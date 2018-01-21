@@ -15,6 +15,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Function Rewrite_AsMultipleTypeOfs(node As BoundTypeOfMany) As BoundNode
+            If node.TargetTypes.Count < 1 Then
+                Return MyBase.VisitTypeOfMany(node)
+            End If
             If node.IsTypeOfIsNotExpression Then
                 Return Rewrite_AsMultiple_TypeOfIsNot(node)
             Else
@@ -48,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
                 Current = [Next]
             Next
-            '       Current.SetWasCompilerGenerated()
+            Current.MakeCompilerGenerated
             Return Current
 
         End Function
@@ -61,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function Make_TypeOfIsNot(syntax As SyntaxNode, left As BoundExpression, right As BoundExpression) As BoundExpression
-            Dim _IsNot_ = New BoundBinaryOperator(syntax, BinaryOperatorKind.IsNot, left, right, True, GetSpecialType(SpecialType.System_Boolean))
+            Dim _IsNot_ = New BoundBinaryOperator(syntax, BinaryOperatorKind.IsNot, left, right, False, GetSpecialType(SpecialType.System_Boolean))
             Dim _TypeOf_ As BoundExpression = New BoundTypeOf(syntax, left.Type, _IsNot_, True, right.Type)
             Return _TypeOf_
         End Function
@@ -81,7 +84,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
                 Current = [Next]
             Next
-            '   Current.SetWasCompilerGenerated()
+            Current.MakeCompilerGenerated
             Return Current
         End Function
 #End Region

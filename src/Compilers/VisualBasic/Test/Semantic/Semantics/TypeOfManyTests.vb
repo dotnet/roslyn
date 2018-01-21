@@ -684,9 +684,9 @@ End Module
             Dim typeOfExpressions = compilation.SyntaxTrees(0).GetCompilationUnitRoot().DescendantNodes.OfType(Of TypeOfManyExpressionSyntax).ToArray()
 
             ' Dim isString = TypeOf o Is CharacterSequence '0
-            Dim _Typeof_ = typeOfExpressions(0).Types(0)
-            Assert.Equal("System.Boolean", semantics.GetTypeInfo(_Typeof_).Type.ToDisplayString(SymbolDisplayFormat.TestFormat))
-            Dim _Symbol_ = semantics.GetSymbolInfo(_Typeof_).Symbol
+            Dim t = typeOfExpressions(0)
+            Assert.Equal("System.Boolean", semantics.GetTypeInfo(typeOfExpressions(0)).Type.ToDisplayString(SymbolDisplayFormat.TestFormat))
+            Dim _Symbol_ = semantics.GetSymbolInfo(typeOfExpressions(0).Types(0)).Symbol
             Assert.Equal("System.String", _Symbol_?.ToDisplayString(SymbolDisplayFormat.TestFormat))
 
             ' Dim isInteger = TypeOf o Is HRESULT '1
@@ -696,12 +696,13 @@ End Module
             Assert.Equal("System.Int32", semantics.GetSymbolInfo(typeOfExpressions(1).Types(0)).Symbol?.ToDisplayString(SymbolDisplayFormat.TestFormat))
 
             ' Dim isNotString = TypeOf o IsNot String '2
-            Assert.Equal("System.Boolean", semantics.GetTypeInfo(typeOfExpressions(2).Types(0)).Type.ToDisplayString(SymbolDisplayFormat.TestFormat))
+            Assert.Equal("System.Boolean", semantics.GetTypeInfo(typeOfExpressions(2)).Type.ToDisplayString(SymbolDisplayFormat.TestFormat))
             Assert.Equal("System.String", semantics.GetSymbolInfo(typeOfExpressions(2).Types(0)).Symbol?.ToDisplayString(SymbolDisplayFormat.TestFormat))
 
             ' Dim isNotInteger As Object = TypeOf o IsNot Integer '3
-            Dim typeInfo = semantics.GetTypeInfo(typeOfExpressions(3).Types(0))
-            Dim conv = semantics.GetConversion(typeOfExpressions(3).Types(0))
+            Dim _TypeOf_ = typeOfExpressions(3)
+            Dim typeInfo = semantics.GetTypeInfo(_TypeOf_)
+            Dim conv = semantics.GetConversion(_TypeOf_) '.Types(0))
             Assert.Equal(ConversionKind.WideningValue, conv.Kind)
             Assert.Equal(SpecialType.System_Object, typeInfo.ConvertedType.SpecialType)
 

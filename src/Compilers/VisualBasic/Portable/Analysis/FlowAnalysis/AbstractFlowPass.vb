@@ -2351,7 +2351,13 @@ EnteredRegion:
             VisitRvalue(node.Operand)
             Return Nothing
         End Function
-
+        Public Overrides Function VisitTypeOfMany(node As BoundTypeOfMany) As BoundNode
+            VisitRvalue(node.Operand)
+            For Each t In node.TargetTypes
+                VisitTypeOf(t)
+            Next
+            Return Nothing
+        End Function
         Public Overrides Function VisitMethodGroup(node As BoundMethodGroup) As BoundNode
             VisitRvalue(node.ReceiverOpt)
             Return Nothing

@@ -803,10 +803,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim targertTypes = ImmutableArray(Of BoundTypeOf).Empty
             Dim resultType As TypeSymbol = GetSpecialType(SpecialType.System_Boolean, node, diagnostics)
             For Each _type_ In node.Types
-                Dim _operand_ = BindRValue(node.Expression, diagnostics, isOperandOfConditionalBranch:=False)
+                Dim _operand_ = BindRValue(node.Expression, diagnostics, isOperandOfConditionalBranch:=False).MakeCompilerGenerated
                 Dim b As BoundTypeOf = BindTypeOf_Inner(_type_, diagnostics, _operand_, operandType, operatorIsIsNot, _type_, node.Expression)
-                targertTypes = targertTypes.Add(b)
+                If b.HasErrors Then ReportDiagnostic(diagnostics, _type_.GetDiagnostics.FirstOrDefault)
+
+                targertTypes = targertTypes.Add(b.MakeCompilerGenerated)
+
             Next
+
             Return New BoundTypeOfMany(node, targertTypes, operand, operatorIsIsNot, resultType)
 
         End Function
