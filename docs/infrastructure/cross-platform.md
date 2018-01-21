@@ -10,11 +10,11 @@ Build all cross-platform projects with:
 
 ```
 cd <roslyn-git-directory>
-./build/scripts/restore.sh
-dotnet build Compilers.sln
+./build.sh --restore
+./build.sh --build
 ```
 
-If you do not have a system-wide `dotnet` install, you can obtain one with `./build/scripts/obtain_dotnet.sh`. This will install a compatible version of the CLI to `./Binaries/Tools/dotnet` - add this to your PATH before trying to build `Compilers.sln`. Alternatively, sourcing the script with `source ./build/scripts/obtain_dotnet.sh` will add it to your PATH for you.
+If you do not have a system-wide `dotnet` install, or it does not match the required version, the build script will install a compatible version of the CLI to `./Binaries/Tools/dotnet` and use that version for all build tasks.
 
 ## Using the compiler
 
