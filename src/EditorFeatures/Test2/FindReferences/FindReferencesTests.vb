@@ -250,9 +250,44 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         '                                  name As String, doc As Document, Optional messageOnly As Boolean = False) As String
         'End Function
 
+        Private Shared Function RemoveDuplicate(input As IEnumerable(Of (name As String, span As TextSpan))) As ArrayBuilder(Of (String, TextSpan))
+            Dim output = New ArrayBuilder(Of (name As String, span As TextSpan))()
+
+            For Each i In input
+                If output.IsEmpty Then
+                    output.Add(i)
+                    Continue For
+                End If
+
+                Dim last = output.Last
+                If last.span <> i.span Then
+                    output.Add(i)
+                    Continue For
+                End If
+
+                If last.name = "Definition" Then
+                    Continue For
+                End If
+
+                If last.name = "Reference" Then
+                    output.RemoveLast()
+                    output.Add(i)
+                    Continue For
+                End If
+
+                Throw ExceptionUtilities.UnexpectedValue(last.name)
+            Next
+
+            Return output
+        End Function
+
         Public Shared Function PrintSpans(expected As IEnumerable(Of (name As String, span As TextSpan)),
                                           actual As IEnumerable(Of (name As String, span As TextSpan)),
                                           doc As Document, Optional messageOnly As Boolean = False) As String
+
+            expected = RemoveDuplicate(expected.OrderBy(Function(e) e.span))
+            actual = RemoveDuplicate(actual.OrderBy(Function(a) a.span))
+
             Debug.Assert(expected IsNot Nothing)
             Debug.Assert(actual IsNot Nothing)
 

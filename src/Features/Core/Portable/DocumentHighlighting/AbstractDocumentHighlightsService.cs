@@ -66,23 +66,38 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
             var solution = document.Project.Solution;
 
             var semanticModel = await document.GetSemanticModelForSpanAsync(span, cancellationToken).ConfigureAwait(false);
-            var symbol = await SymbolFinder.FindSymbolAtPositionAsync(
+            // PROTOTYPE Should get two symbols back here
+            var symbols = await SymbolFinder.FindSymbolExAtPositionAsync(
                 semanticModel, position, solution.Workspace, cancellationToken).ConfigureAwait(false);
-            if (symbol == null)
+            if (symbols.primary == null)
             {
                 return ImmutableArray<DocumentHighlights>.Empty;
             }
 
-            symbol = await GetSymbolToSearchAsync(document, position, semanticModel, symbol, cancellationToken).ConfigureAwait(false);
-            if (symbol == null)
+            symbols.primary = await GetSymbolToSearchAsync(document, position, semanticModel, symbols.primary, cancellationToken).ConfigureAwait(false);
+            if (symbols.primary == null)
             {
                 return ImmutableArray<DocumentHighlights>.Empty;
+            }
+            if (symbols.secondary != null)
+            {
+                symbols.secondary = await GetSymbolToSearchAsync(document, position, semanticModel, symbols.secondary, cancellationToken).ConfigureAwait(false);
             }
 
             // Get unique tags for referenced symbols
-            return await GetTagsForReferencedSymbolAsync(
-                new SymbolAndProjectId(symbol, document.Project.Id),
+            var result = await GetTagsForReferencedSymbolAsync(
+                new SymbolAndProjectId(symbols.primary, document.Project.Id),
                 document, documentsToSearch, cancellationToken).ConfigureAwait(false);
+
+            if (symbols.secondary != null)
+            {
+                var secondaryResult = await GetTagsForReferencedSymbolAsync(
+                    new SymbolAndProjectId(symbols.secondary, document.Project.Id),
+                    document, documentsToSearch, cancellationToken).ConfigureAwait(false);
+                result = result.Concat(secondaryResult);
+            }
+
+            return result;
         }
 
         private static async Task<ISymbol> GetSymbolToSearchAsync(Document document, int position, SemanticModel semanticModel, ISymbol symbol, CancellationToken cancellationToken)

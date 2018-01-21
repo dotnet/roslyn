@@ -45,6 +45,24 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return semanticInfo.GetAnySymbol(includeType: false);
         }
 
+        internal static async Task<(ISymbol primary, ISymbol secondary)> FindSymbolExAtPositionAsync(
+            SemanticModel semanticModel,
+            int position,
+            Workspace workspace,
+            CancellationToken cancellationToken = default)
+        {
+            var semanticInfo = await GetSemanticInfoAtPositionAsync(
+                semanticModel, position, workspace, cancellationToken: cancellationToken).ConfigureAwait(false);
+
+            // PROTOTYPE also should handle anonymous types
+            if (semanticInfo.DeclaredSymbol?.IsTupleField() == true && semanticInfo.ReferencedSymbols.Length == 1)
+            {
+                return (semanticInfo.DeclaredSymbol, semanticInfo.ReferencedSymbols[0]);
+            }
+
+            return (semanticInfo.GetAnySymbol(includeType: false), null);
+        }
+
         internal static async Task<TokenSemanticInfo> GetSemanticInfoAtPositionAsync(
             SemanticModel semanticModel,
             int position,

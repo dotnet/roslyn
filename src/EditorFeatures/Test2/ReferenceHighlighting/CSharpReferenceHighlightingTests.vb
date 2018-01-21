@@ -46,9 +46,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
                         <Document>
 class Program
 {
-    static void Main(int Alice) // PROTOTYPE Should be highlighted
+    static void Main(int {|Definition:Alice|})
     {
-        var x = ({|Definition:Al$$ice|}, Bob: 2);
+        var x = ({|Definition:{|Reference:Al$$ice|}|}, Bob: 2);
         var y = ({|Reference:Alice|}:1, Bob: 2); // PROTOTYPE Probably should not be highlighted
 
         var z = x.{|Reference:Alice|};
