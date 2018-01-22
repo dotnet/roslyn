@@ -170,18 +170,18 @@ namespace Analyzer.Utilities.Extensions
         public static IBlockOperation GetTopmostParentBlock(this IOperation operation)
         {
             IOperation currentOperation = operation;
-            IBlockOperation topMostBlockOperation = null;
+            IBlockOperation topmostBlockOperation = null;
             while (currentOperation != null)
             {
                 if (currentOperation is IBlockOperation blockOperation)
                 {
-                    topMostBlockOperation = blockOperation;
+                    topmostBlockOperation = blockOperation;
                 }
 
                 currentOperation = currentOperation.Parent;
             }
 
-            return topMostBlockOperation;
+            return topmostBlockOperation;
         }
     }
 }
