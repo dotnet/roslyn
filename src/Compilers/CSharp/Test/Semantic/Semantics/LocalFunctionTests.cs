@@ -30,6 +30,271 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     [CompilerTrait(CompilerFeature.LocalFunctions)]
     public class LocalFunctionTests : LocalFunctionsTestBase
     {
+        [ConditionalFact(typeof(DesktopOnly))]
+        public void LocalFunctionResetsLockScopeFlag()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+
+class C
+{
+    static void Main()
+    {
+        lock (new Object())
+        {
+            async Task localFunc()
+            {
+                Console.Write(""localFunc"");
+                await Task.Yield();
+            }
+
+            localFunc();
+        }
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "localFunc");
+        }
+
+        [ConditionalFact(typeof(DesktopOnly))]
+        public void LocalFunctionResetsTryCatchFinallyScopeFlags()
+        {
+            var source = @"
+using System;
+using System.Collections.Generic;
+
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            IEnumerable<int> localFunc()
+            {
+                yield return 1;
+            }
+
+            foreach (int i in localFunc())
+            {
+                Console.Write(i);
+            }
+
+            throw new Exception();
+        }
+        catch (Exception)
+        {
+            IEnumerable<int> localFunc()
+            {
+                yield return 2;
+            }
+
+            foreach (int i in localFunc())
+            {
+                Console.Write(i);
+            }
+        }
+        finally
+        {
+            IEnumerable<int> localFunc()
+            {
+                yield return 3;
+            }
+
+            foreach (int i in localFunc())
+            {
+                Console.Write(i);
+            }
+        }
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "123");
+        }
+
+        [ConditionalFact(typeof(DesktopOnly))]
+        public void LocalFunctionDoesNotOverwriteInnerLockScopeFlag()
+        {
+            var source = @"
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+class C
+{
+    void M(List<Task> listOfTasks)
+    {
+        lock (new Object())
+        {
+            async Task localFunc()
+            {
+                lock (new Object())
+                {
+                    await Task.Yield();
+                }
+            }
+
+            listOfTasks.Add(localFunc());
+        }
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib46(source);
+            comp.VerifyDiagnostics(
+                // (16,21): error CS1996: Cannot await in the body of a lock statement
+                //                     await Task.Yield();
+                Diagnostic(ErrorCode.ERR_BadAwaitInLock, "await Task.Yield()").WithLocation(16, 21));
+        }
+
+        [ConditionalFact(typeof(DesktopOnly))]
+        public void LocalFunctionDoesNotOverwriteInnerTryCatchFinallyScopeFlags()
+        {
+            var source = @"
+using System;
+using System.Collections.Generic;
+
+class C
+{
+    void M()
+    {
+        try
+        {
+            IEnumerable<int> localFunc()
+            {
+                try
+                {
+                    yield return 1;
+                }
+                catch (Exception) {}
+            }
+
+            localFunc();
+        }
+        catch (Exception)
+        {
+            IEnumerable<int> localFunc()
+            {
+                try {}
+                catch (Exception)
+                {
+                    yield return 2;
+                }
+            }
+
+            localFunc();
+        }
+        finally
+        {
+            IEnumerable<int> localFunc()
+            {
+                try {}
+                finally
+                {
+                    yield return 3;
+                }
+            }
+
+            localFunc();
+        }
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib46(source);
+            comp.VerifyDiagnostics(
+                // (15,21): error CS1626: Cannot yield a value in the body of a try block with a catch clause
+                //                     yield return 1;
+                Diagnostic(ErrorCode.ERR_BadYieldInTryOfCatch, "yield").WithLocation(15, 21),
+                // (29,21): error CS1631: Cannot yield a value in the body of a catch clause
+                //                     yield return 2;
+                Diagnostic(ErrorCode.ERR_BadYieldInCatch, "yield").WithLocation(29, 21),
+                // (42,21): error CS1625: Cannot yield in the body of a finally clause
+                //                     yield return 3;
+                Diagnostic(ErrorCode.ERR_BadYieldInFinally, "yield").WithLocation(42, 21));
+        }
+
+        [ConditionalFact(typeof(DesktopOnly))]
+        public void RethrowingExceptionsInCatchInsideLocalFuncIsAllowed()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            throw new Exception();
+        }
+        catch (Exception)
+        {
+            void localFunc()
+            {
+                try
+                {
+                    throw new Exception();
+                }
+                catch (Exception)
+                {
+                    Console.Write(""localFunc"");
+                    throw;
+                }
+            }
+
+            try
+            {
+                localFunc();
+            }
+            catch (Exception)
+            {
+                Console.Write(""_thrown"");
+            }
+        }
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "localFunc_thrown");
+        }
+
+        [ConditionalFact(typeof(DesktopOnly))]
+        public void RethrowingExceptionsInLocalFuncInsideCatchIsNotAllowed()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    static void Main()
+    {
+        try {}
+        catch (Exception)
+        {
+            void localFunc()
+            {
+                throw;
+            }
+
+            localFunc();
+        }
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib46(source);
+            comp.VerifyDiagnostics(
+                // (13,17): error CS0156: A throw statement with no arguments is not allowed outside of a catch clause
+                //                 throw;
+                Diagnostic(ErrorCode.ERR_BadEmptyThrow, "throw").WithLocation(13, 17));
+        }
+
         [Fact]
         public void LocalFunctionTypeParametersUseCorrectBinder()
         {
