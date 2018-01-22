@@ -101,6 +101,5 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Groups
 
         AllClearedAtExecutableCodeBoundary = InLockBody | InCatchBlock | InCatchFilter | InFinallyBlock | InTryBlockOfTryCatch | InNestedFinallyBlock,
-        AllClearedAtInMethodBoundary = InLockBody | InCatchBlock | InFinallyBlock | InTryBlockOfTryCatch | InNestedFinallyBlock,
     }
 }
