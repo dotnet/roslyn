@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Xml.Linq;
+using Microsoft.CodeAnalysis.UnitTests.TestFiles;
 
 namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 {
@@ -52,7 +53,7 @@ EndGlobal
 
         public const string PublicKey = "00240000048000009400000006020000002400005253413100040000010001003bb5de1b79bee9bf5ba44bdb42974c6f40fdc4b329c8e1b833fa798cf0859529485b2bfc359a08e16f025fe57efd293c4dc3541cb2e0929b1c4a92db87eed7a9454dbd08beb7c7308941384b3bfb088de781b51caef23677f8f6defb671e97e1fc5e0979858e52828c86aca1d4ea1797f1f1254bf64073a28e5be520d5397fb0";
         public const string PublicKeyToken = "39d7e8ec38707fde";
-        public static readonly byte[] KeySnk = MSBuildWorkspaceTests.GetResourceBytes("key.snk");
+        public static readonly byte[] KeySnk = Resources.LoadBytes("key.snk");
 
         public static IEnumerable<(string fileName, object fileContent)> GetSolutionFiles(params IBuilder[] inputs)
         {

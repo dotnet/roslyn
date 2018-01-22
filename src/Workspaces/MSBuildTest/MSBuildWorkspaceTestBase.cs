@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.UnitTests;
+using Microsoft.CodeAnalysis.UnitTests.TestFiles;
 using Xunit;
 using static Microsoft.CodeAnalysis.MSBuild.UnitTests.SolutionGeneration;
 using CS = Microsoft.CodeAnalysis.CSharp;
@@ -106,7 +107,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
         {
             // Now try variant of CSharpProject that has an emitted assembly 
             CreateFiles(GetMultiProjectSolutionFiles()
-                .WithFile(@"CSharpProject\CSharpProject.csproj", GetResourceText("CSharpProject_CSharpProject_ForEmittedOutput.csproj")));
+                .WithFile(@"CSharpProject\CSharpProject.csproj", Resources.LoadText("CSharpProject_CSharpProject_ForEmittedOutput.csproj")));
 
             var solutionFilePath = GetSolutionFileName("TestSolution.sln");
             using (var workspace = CreateMSBuildWorkspace())
