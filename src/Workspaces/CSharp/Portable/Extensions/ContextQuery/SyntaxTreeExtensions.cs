@@ -1100,6 +1100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             if (token.IsKind(SyntaxKind.RefKeyword) ||
                 token.IsKind(SyntaxKind.OutKeyword) ||
+                token.IsKind(SyntaxKind.InKeyword) ||
                 token.IsKind(SyntaxKind.ParamsKeyword) ||
                 token.IsKind(SyntaxKind.ThisKeyword))
             {
@@ -1182,6 +1183,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             token = token.GetPreviousTokenIfTouchingWord(position);
 
             if (token.IsKind(SyntaxKind.RefKeyword) ||
+                token.IsKind(SyntaxKind.InKeyword) ||
                 token.IsKind(SyntaxKind.OutKeyword))
             {
                 position = token.SpanStart;
@@ -2175,8 +2177,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             }
 
             // Goo(ref |
-            // Goo(bar |
+            // Goo(in |
+            // Goo(out |
             if (token.IsKind(SyntaxKind.RefKeyword) ||
+                token.IsKind(SyntaxKind.InKeyword) ||
                 token.IsKind(SyntaxKind.OutKeyword))
             {
                 if (token.Parent.IsKind(SyntaxKind.Argument))
