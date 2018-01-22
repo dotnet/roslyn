@@ -481,6 +481,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The settings configured here only apply to your machine. To configure these settings to travel with your solution, use .editorconfig files..
+        /// </summary>
+        internal static string Code_style_header_use_editor_config {
+            get {
+                return ResourceManager.GetString("Code_style_header_use_editor_config", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to prefer auto properties.
         /// </summary>
         internal static string codegen_prefer_auto_properties {
