@@ -7397,7 +7397,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        var obj1 = new MyObject1 { MyDate = DateTime.Parse(""2017-11-13T14:25:00Z"") };
+        var obj1 = new MyObject1 { MyDate = new DateTime(636461511000000000L) };
         var obj2 = new MyObject2<MyObject1>(obj1);
 
         System.Console.WriteLine(obj1.MyDate.Ticks);
@@ -7448,7 +7448,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        var obj1 = new MyObject1 { MyDate = DateTime.Parse(""2017-11-13T14:25:00Z"") };
+        var obj1 = new MyObject1 { MyDate = new DateTime(636461511000000000L) };
         var obj2 = new MyObject2<MyObject1>(obj1);
 
         System.Console.WriteLine(obj1.MyDate.Ticks);
