@@ -49,7 +49,7 @@ class Program
     static void Main(int {|Definition:Alice|})
     {
         var x = ({|Definition:{|Reference:Al$$ice|}|}, Bob: 2);
-        var y = ({|Reference:Alice|}:1, Bob: 2); // PROTOTYPE Probably should not be highlighted
+        var y = ({|Reference:Alice|}:1, Bob: 2);
 
         var z = x.{|Reference:Alice|};
         var z2 = x.{|Reference:Item1|};
@@ -72,7 +72,7 @@ class Program
     static void Main(int Alice)
     {
         var x = ({|Definition:Alice|}, Bob: 2);
-        var y = ({|Reference:Alice|}:1, Bob: 2); // PROTOTYPE Should not be highlighted
+        var y = ({|Reference:Alice|}:1, Bob: 2);
 
         var z = x.{|Reference:Al$$ice|};
         var z2 = x.{|Reference:Item1|};
@@ -94,10 +94,10 @@ class Program
 {
     static void Main(int Alice)
     {
-        var x = (Alice, Bob: 2); // PROTOTYPE Definition should be highlighted
-        var y = (Alice:1, Bob: 2);
+        var x = ({|Definition:Alice|}, Bob: 2);
+        var y = ({|Reference:Alice|}:1, Bob: 2);
 
-        var z = x.Alice; // PROTOTYPE Reference should be highlighted
+        var z = x.{|Reference:Alice|};
         var z2 = x.{|Reference:Ite$$m1|};
     }
 }

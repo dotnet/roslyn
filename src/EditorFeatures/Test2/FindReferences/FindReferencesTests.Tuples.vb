@@ -248,8 +248,8 @@ namespace System
     {
         static void Main(string[] args)
         {
-            var x = ({|Definition:Alice|}:1, Bob: 2);
-            var y = (Alice:1, Bob: 2);
+            var x = ([|{|Definition:Alice|}|]:1, Bob: 2);
+            var y = ([|Alice|]:1, Bob: 2); // PROTOTYPE confirm if this is desirable
 
             var z = x.$$[|Item1|];
         }
@@ -278,7 +278,7 @@ namespace System
             var x = ($$[|{|Definition:Alice|}|]:1, Bob: 2);
             var y = ([|Alice|]:1, Bob: 2);
 
-            var z = x.Item1;
+            var z = x.[|Item1|];
         }
     }
 
@@ -359,7 +359,7 @@ class Program
     static void Main(int {|Definition:Alice|})
     {
         var x = ({|Definition:[|Ali$$ce|]|}, Bob: 2);
-        var y = ([|Alice|]:1, Bob: 2); // PROTOTYPE This probably should not be found
+        var y = ([|Alice|]:1, Bob: 2);
 
         var z = x.[|Alice|];
         var z2 = x.[|Item1|];
@@ -373,6 +373,82 @@ class Program
             Await TestAPIAndFeature(input)
         End Function
 
-        ' PROTOTYPE test variants with different cursor positions
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(20115, "https://github.com/dotnet/roslyn/issues/20115")>
+        Public Async Function TestDualViewOnTupleElement2() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+class Program
+{
+    static void Main(int {|Definition:Al$$ice|})
+    {
+        var x = ([|Alice|], Bob: 2);
+        var y = (Alice:1, Bob: 2);
+
+        var z = x.Alice;
+        var z2 = x.Item1;
+    }
+}
+        ]]>
+            <%= tuple2 %>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(20115, "https://github.com/dotnet/roslyn/issues/20115")>
+        Public Async Function TestDualViewOnTupleElement3() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+class Program
+{
+    static void Main(int Alice)
+    {
+        var x = ({|Definition:Alice|}, Bob: 2);
+        var y = ([|Alice|]:1, Bob: 2);
+
+        var z = x.[|Al$$ice|];
+        var z2 = x.[|Item1|];
+    }
+}
+        ]]>
+            <%= tuple2 %>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(20115, "https://github.com/dotnet/roslyn/issues/20115")>
+        Public Async Function TestDualViewOnTupleElement4() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+class Program
+{
+    static void Main(int Alice)
+    {
+        var x = ({|Definition:Alice|}, Bob: 2);
+        var y = ([|Alice|]:1, Bob: 2);
+
+        var z = x.[|Alice|];
+        var z2 = x.[|It$$em1|];
+    }
+}
+        ]]>
+            <%= tuple2 %>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input)
+        End Function
     End Class
 End Namespace

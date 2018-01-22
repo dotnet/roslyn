@@ -25,11 +25,31 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var symbol = symbolAndProjectId.Symbol;
             if (symbol.IsTupleField())
             {
-                // get the "other" field, if any
-                // PROTOTYPE
-                return Task.FromResult(
-                    ImmutableArray.Create(symbolAndProjectId.WithSymbol((ISymbol)symbol.CorrespondingTupleField)));
+                if (symbol == symbol.CorrespondingTupleField)
+                {
+                    // We have a default element field (Item1, ...), let's find it's corresponding named field (if any)
+                    var tuple = symbol.ContainingType;
+                    foreach (var member in tuple.GetMembers())
+                    {
+                        if (member.IsTupleField())
+                        {
+                            var field = (IFieldSymbol)member;
+                            if (field.CorrespondingTupleField != field && field.CorrespondingTupleField == symbol)
+                            {
+                                return Task.FromResult(
+                                    ImmutableArray.Create(symbolAndProjectId.WithSymbol((ISymbol)field)));
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    // We have a named field, let's cascade to the default field
+                    return Task.FromResult(
+                        ImmutableArray.Create(symbolAndProjectId.WithSymbol((ISymbol)symbol.CorrespondingTupleField)));
+                }
             }
+
             if (symbol.AssociatedSymbol != null)
             {
                 return Task.FromResult(
