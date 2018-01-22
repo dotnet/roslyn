@@ -1361,6 +1361,32 @@ class C
         }
 
         [Fact]
+        public void TupleTypeInference_06()
+        {
+            var source =
+@"class C
+{
+    static void F(object? x, object? y)
+    {
+        if (y != null)
+        {
+            (object?, object?) t = (x, y);
+            t.Item1.ToString();
+            t.Item2.ToString();
+        }
+    }
+}";
+            var comp = CreateStandardCompilation(
+                source,
+                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+                parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (8,13): warning CS8602: Possible dereference of a null reference.
+                //             t.Item1.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.Item1").WithLocation(8, 13));
+        }
+
+        [Fact]
         public void Tuple_Constructor()
         {
             var source =

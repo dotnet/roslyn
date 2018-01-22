@@ -860,7 +860,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Result value = this.State.Result;
                 TypeSymbolWithAnnotations type = local.Type;
 
-                if (type.IsReferenceType && node.DeclaredType.InferredType && (object)value.Type != null)
+                if (node.DeclaredType.InferredType)
                 {
                     _variableTypes[local] = value.Type;
                     type = value.Type;

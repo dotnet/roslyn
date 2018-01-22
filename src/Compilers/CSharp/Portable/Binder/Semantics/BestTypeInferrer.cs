@@ -31,7 +31,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC:    If no such S exists, the expressions have no best common type.
 
             // All non-null types are candidates for best type inference.
-            var candidateTypes = new HashSet<TypeSymbol>();
+            bool includeNullability = conversions.IncludeNullability;
+            var candidateTypes = new HashSet<TypeSymbol>(includeNullability ? TypeSymbol.EqualsIncludingNullableComparer : TypeSymbol.EqualsConsiderEverything);
             foreach (BoundExpression expr in exprs)
             {
                 var type = expr.Type;

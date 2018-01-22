@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (interfaces.Count > 1)
                 {
-                    var seenInterfaces = new Dictionary<NamedTypeSymbol, NamedTypeSymbol>(EqualsIgnoringComparer.InstanceIgnoringTupleNames);
+                    var seenInterfaces = new Dictionary<NamedTypeSymbol, NamedTypeSymbol>(EqualsIgnoringTupleNames);
                     foreach (var @interface in interfaces)
                     {
                         NamedTypeSymbol other;
