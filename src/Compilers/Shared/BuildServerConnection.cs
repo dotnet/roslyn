@@ -467,7 +467,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             }
             catch (Exception ex)
             {
-                Log("Exception checking pipe connection: {0}", ex.Message);
+                LogException(ex, "Checking pipe connection");
                 return false;
             }
         }

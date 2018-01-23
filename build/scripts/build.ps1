@@ -598,6 +598,7 @@ function List-BuildProcesses() {
     Write-Host "Listing running build processes..."
     Get-Process -Name "msbuild" -ErrorAction SilentlyContinue | Out-Host
     Get-Process -Name "vbcscompiler" -ErrorAction SilentlyContinue | Out-Host
+    Get-Process -Name "dotnet" -ErrorAction SilentlyContinue | where { $_.Modules | select { $_.ModuleName -eq "VBCSCompiler.dll" } } | Out-Host
 }
 
 function List-VSProcesses() {
@@ -613,6 +614,7 @@ function Stop-BuildProcesses() {
     Write-Host "Killing running build processes..."
     Get-Process -Name "msbuild" -ErrorAction SilentlyContinue | Stop-Process
     Get-Process -Name "vbcscompiler" -ErrorAction SilentlyContinue | Stop-Process
+    Get-Process -Name "dotnet" -ErrorAction SilentlyContinue | where { $_.Modules | select { $_.ModuleName -eq "VBCSCompiler.dll" } } | Stop-Process
 }
 
 # Kill any instances of devenv.exe to ensure VSIX install/uninstall works in future runs and to ensure

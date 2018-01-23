@@ -29,6 +29,7 @@
     <file src="Dlls/MSBuildTask/Microsoft.Build.Tasks.CodeAnalysis.dll" target="tools" />
     <file src="Dlls/MSbuildTask/Microsoft.CSharp.Core.targets" target="tools" />
     <file src="Dlls/MSbuildTask/Microsoft.VisualBasic.Core.targets" target="tools" />
+    <file src="Dlls/MSBuildTask/runtimes/**" target="tools" />
 
     <!-- Compiler exe files -->
     <file src="Dlls/CodeAnalysis/Microsoft.CodeAnalysis.dll" target="tools/bincore" />
