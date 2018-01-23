@@ -534,9 +534,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             out ImmutableArray<(Guid ThreadId, ActiveInstructionId OldInstructionId, LinePositionSpan NewSpan)> activeStatementsInUpdatedMethods,
             out ImmutableArray<(ActiveMethodId Method, NonRemappableRegion Region)> nonRemappableRegions)
         {
-            int activeStatementCount = baseActiveStatements.InstructionMap.Count;
-            int exceptionRegionCount = baseActiveExceptionRegions.Sum(regions => regions.Spans.Length);
-            var exceptionRegionBuilder = ArrayBuilder<(int MethodToken, int OldMethodVersion, LinePositionSpan OldSpan, LinePositionSpan NewSpan)>.GetInstance(exceptionRegionCount);
             var changedNonRemappableSpans = PooledDictionary<(int MethodToken, int MethodVersion, LinePositionSpan BaseSpan), LinePositionSpan>.GetInstance();
             var activeStatementsInUpdatedMethodsBuilder = ArrayBuilder<(Guid, ActiveInstructionId, LinePositionSpan)>.GetInstance();
             var nonRemappableRegionsBuilder = ArrayBuilder<(ActiveMethodId Method, NonRemappableRegion Region)>.GetInstance();

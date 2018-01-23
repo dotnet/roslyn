@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     internal interface IActiveStatementProvider
     {
         /// <summary>
-        /// Retrives active statements from the debuggee process.
+        /// Retrieves active statements from the debuggee process.
         /// Shall only be called while in debug mode.
         /// Can be invoked on any thread.
         /// </summary>

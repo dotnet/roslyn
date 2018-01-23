@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
     internal sealed partial class VisualStudioActiveStatementProvider : IActiveStatementProvider
     {
         /// <summary>
-        /// Retrives active statements from the debuggee process.
+        /// Retrieves active statements from the debuggee process.
         /// Shall only be called while in debug mode.
         /// Can be invoked on any thread.
         /// </summary>
@@ -51,6 +51,8 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
                             {
                                 if (cancellationToken.IsCancellationRequested)
                                 {
+                                    FreeBuilders(builders);
+
                                     workList.Cancel();
 
                                     // make sure we cancel with the token we received from the caller:
@@ -68,14 +70,19 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
 
                                 foreach (var (instructionId, (symbol, threads, index, flags)) in instructionMap)
                                 {
+                                    var immutableThreads = threads.ToImmutableAndFree();
+
                                     symbol.GetSourcePosition(workList, DkmSourcePositionFlags.None, InspectionSession: null, sourcePositionResult =>
                                     {
                                         if (cancellationToken.IsCancellationRequested)
                                         {
+                                            FreeBuilders(builders);
+
                                             workList.Cancel();
 
                                             // make sure we cancel with the token we received from the caller:
                                             completion.TrySetCanceled(cancellationToken);
+
                                             return;
                                         }
 
@@ -85,15 +92,13 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
                                                 instructionId,
                                                 sourcePositionResult.SourcePosition.DocumentName,
                                                 ToLinePositionSpan(sourcePositionResult.SourcePosition.TextSpan),
-                                                threads.ToImmutableAndFree(),
+                                                immutableThreads,
                                                 flags);
                                         }
 
                                         // the last active statement of the current runtime has been processed:
                                         if (Interlocked.Decrement(ref pendingStatements) == 0)
                                         {
-                                            instructionMap.Free();
-
                                             // the last active statement of the last runtime has been processed:
                                             if (Interlocked.Decrement(ref pendingRuntimes) == 0)
                                             {
@@ -102,6 +107,8 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
                                         }
                                     });
                                 }
+
+                                instructionMap.Free();
                             });
                         }
                     }
@@ -116,6 +123,16 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
 
                 return completion.Task;
             }
+        }
+
+        private static void FreeBuilders(ArrayBuilder<ArrayBuilder<ActiveStatementDebugInfo>> builders)
+        {
+            foreach (var builderArray in builders)
+            {
+                builderArray?.Free();
+            }
+
+            builders.Free();
         }
     }
 }

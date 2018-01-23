@@ -22,12 +22,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public readonly string DocumentName;
 
         /// <summary>
-        /// Location of the closest non-hidden sequence point in retrieved from the PDB.
+        /// Location of the closest non-hidden sequence point retrieved from the PDB.
         /// </summary>
         public readonly LinePositionSpan LinePositionSpan;
 
         /// <summary>
-        /// Aggregated accross <see cref="ThreadIds"/>.
+        /// Aggregated across <see cref="ThreadIds"/>.
         /// </summary>
         public readonly ActiveStatementFlags Flags;
 
