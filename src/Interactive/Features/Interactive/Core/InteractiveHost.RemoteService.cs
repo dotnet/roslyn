@@ -74,8 +74,9 @@ namespace Microsoft.CodeAnalysis.Interactive
                         if (_processExitHandling == ProcessExitHooked)
                         {
                             Process.Exited -= ProcessExitedHandler;
-                            await _host.OnProcessExited(Process).ConfigureAwait(false);
                             _processExitHandling = ProcessExitHandled;
+                            // Should set _processExitHandling before calling OnProcessExited to avoid deadlocks.
+                            await _host.OnProcessExited(Process).ConfigureAwait(false);
                         }
                     }
                 }
@@ -117,12 +118,17 @@ namespace Microsoft.CodeAnalysis.Interactive
 
             internal void Dispose(bool joinThreads)
             {
-                using(_disposeSemaphore.DisposableWait())
+                // There can be a call from host initiated from OnProcessExit. 
+                // This check on the beginning helps to avoid the circular reference.
+                if (_processExitHandling == ProcessExitHooked)
                 {
-                    if (_processExitHandling == ProcessExitHooked)
+                    using (_disposeSemaphore.DisposableWait())
                     {
-                        Process.Exited -= ProcessExitedHandler;
-                        _processExitHandling = ProcessExitHandled;
+                        if (_processExitHandling == ProcessExitHooked)
+                        {
+                            Process.Exited -= ProcessExitedHandler;
+                            _processExitHandling = ProcessExitHandled;
+                        }
                     }
                 }
 
