@@ -118,30 +118,40 @@ class C
     {
     }
 }";
-            var tree = CSharpSyntaxTree.ParseText(source);
-            TestFlowAnalysisFeatureFlagCore(tree, expectException: true);
+            var tree = CSharpSyntaxTree.ParseText(source);            
 
+            void testFlowAnalysisFeatureFlagCore(bool expectException)
+            {
+                var compilation = CSharpCompilation.Create("c", new[] { tree });
+                var model = compilation.GetSemanticModel(tree, ignoreAccessibility: true);
+                var blockSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BlockSyntax>().Last();
+                var operation = (IBlockOperation)model.GetOperation(blockSyntax);
+
+                if (expectException)
+                {
+                    Assert.Throws<InvalidOperationException>(() => model.GetControlFlowGraph(operation));
+                }
+                else
+                {
+                    ImmutableArray<BasicBlock> graph = model.GetControlFlowGraph(operation);
+                    Assert.NotEmpty(graph);
+                }
+            }
+
+            // Test without feature flag.
+            testFlowAnalysisFeatureFlagCore(expectException: true);
+
+            // Test with feature flag.
+            tree = CSharpSyntaxTree.ParseText(source);
             var options = tree.Options.WithFeatures(new[] { new KeyValuePair<string, string>("flow-analysis", "true") });
             tree = tree.WithRootAndOptions(tree.GetRoot(), options);
-            TestFlowAnalysisFeatureFlagCore(tree, expectException: false);
-        }
+            testFlowAnalysisFeatureFlagCore(expectException: false);
 
-        private static void TestFlowAnalysisFeatureFlagCore(SyntaxTree tree, bool expectException)
-        {
-            var compilation = CSharpCompilation.Create("c", new[] { tree });
-            var model = compilation.GetSemanticModel(tree, ignoreAccessibility: true);
-            var blockSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BlockSyntax>().Last();
-            var operation = (IBlockOperation)model.GetOperation(blockSyntax);
-
-            if (expectException)
-            {
-                Assert.Throws<InvalidOperationException>(() => model.GetControlFlowGraph(operation));
-            }
-            else
-            {
-                ImmutableArray<BasicBlock> graph = model.GetControlFlowGraph(operation);
-                Assert.NotEmpty(graph);
-            }
+            // Test with feature flag, case-insensitive.
+            tree = CSharpSyntaxTree.ParseText(source);
+            options = tree.Options.WithFeatures(new[] { new KeyValuePair<string, string>("Flow-Analysis", "true") });
+            tree = tree.WithRootAndOptions(tree.GetRoot(), options);
+            testFlowAnalysisFeatureFlagCore(expectException: false);
         }
     }
 }
