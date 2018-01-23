@@ -23,12 +23,12 @@ param (
     [switch]$cibuild = $false,
     [switch]$build = $false,
     [switch]$buildAll = $false,
+    [switch]$buildCoreClr = $false,
     [switch]$bootstrap = $false,
     [switch]$sign = $false,
     [switch]$pack = $false,
     [switch]$binaryLog = $false,
     [string]$signType = "",
-    [switch]$buildCoreClr = $false,
 
     # Test options 
     [switch]$test32 = $false,
@@ -162,14 +162,12 @@ function Run-MSBuild([string]$projectFilePath, [string]$buildArgs = "", [string]
     $args += " $buildArgs"
     $args += " $projectFilePath"
 
-    if ($useDotnetBuild)
-    {
+    if ($useDotnetBuild) {
         $args = " build --no-restore " + $args
         $args += " -m:1"
         Exec-Console $dotnet $args
     }
-    else
-    {
+    else {
         Exec-Console $msbuild $args
     }
 }
@@ -193,6 +191,7 @@ function Make-BootstrapBuild() {
         Exec-Console "dotnet" "publish --no-restore src/Compilers/VisualBasic/vbc -o `"$dir/bincore`" --framework $bootstrapFramework $bootstrapArgs -bl:$logDir/BootstrapVbc.binlog"
         Exec-Console "dotnet" "publish --no-restore src/Compilers/Server/VBCSCompiler -o `"$dir/bincore`" --framework $bootstrapFramework $bootstrapArgs -bl:$logDir/BootstrapVBCSCompiler.binlog"
         Exec-Console "dotnet" "publish --no-restore src/Compilers/Core/MSBuildTask -o `"$dir`" $bootstrapArgs -bl:$binariesDir/BootstrapMSBuildTask.binlog"
+        Stop-BuildProcesses
     }
     else {
         Run-MSBuild "build\Toolset\Toolset.csproj" $bootstrapArgs -logFileName "Bootstrap"
@@ -666,7 +665,7 @@ try {
         $bootstrapDir = Make-BootstrapBuild
     }
 
-    if ($build -or $buildCoreClr -or $pack) {
+    if ($build -or $pack) {
         Build-Artifacts
     }
 
