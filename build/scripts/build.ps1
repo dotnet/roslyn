@@ -208,8 +208,7 @@ function Make-BootstrapBuild() {
 }
 
 function Build-Artifacts() { 
-    if ($buildCoreClr)
-    {
+    if ($buildCoreClr) {
         Run-MSBuild "Compilers.sln" -useDotnetBuild
     }
     elseif ($build) {

@@ -70,7 +70,10 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 case "System.Reflection":
                     return TryRedirect(name, s_b03f5f7f11d50a3a, 4, 1, 1, 0);
 
-                // Assemblies in the runtimes directory
+                // Assemblies in the runtimes directory. We're not concerned about
+                // redirecting versions for these assemblies, only location, so
+                // it's fine to always return true. The loading location override is
+                // found in the LoadAssemblyWithRedirects method.
                 case "System.IO.Pipes.AccessControl":
                     return true;
             }
@@ -80,6 +83,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         private static Assembly LoadAssemblyWithRedirects(AssemblyName name)
         {
+            // Check if we need to redirect the location of this assembly. This
+            // is necessary for assemblies in the runtimes/ subdirectory of the
+            // build task as this directory is not searched for dependencies by
+            // default. This is necessary because the CoreCLR shared loader doesn't
+            // provide a mechanism for nested assembly load policy:
+            // https://github.com/dotnet/coreclr/issues/15982
             switch (name.Name)
             {
                 case "System.IO.Pipes.AccessControl":
