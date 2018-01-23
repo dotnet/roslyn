@@ -6920,6 +6920,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos;: type used in an async using statement must be implicitly convertible to &apos;System.IAsyncDisposable&apos;.
+        /// </summary>
+        internal static string ERR_NoConvToIAsyncDisp {
+            get {
+                return ResourceManager.GetString("ERR_NoConvToIAsyncDisp", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos;: type used in a using statement must be implicitly convertible to &apos;System.IDisposable&apos;.
         /// </summary>
         internal static string ERR_NoConvToIDisp {

@@ -430,6 +430,8 @@ namespace Microsoft.CodeAnalysis
         System_ReadOnlySpan_T__get_Item,
         System_ReadOnlySpan_T__get_Length,
 
+        System_IAsyncDisposable__DisposeAsync,
+
         Count
     }
 }

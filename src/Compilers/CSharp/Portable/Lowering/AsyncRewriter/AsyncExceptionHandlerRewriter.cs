@@ -690,7 +690,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private AwaitFinallyFrame PushFrame(BoundTryStatement statement)
         {
-            var newFrame = new AwaitFinallyFrame(_currentAwaitFinallyFrame, _analysis.Labels(statement), (TryStatementSyntax)statement.Syntax);
+            var newFrame = new AwaitFinallyFrame(_currentAwaitFinallyFrame, _analysis.Labels(statement), (StatementSyntax)statement.Syntax);
             _currentAwaitFinallyFrame = newFrame;
             return newFrame;
         }
@@ -868,8 +868,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // labels within this frame (branching to these labels does not go through finally).
             public readonly HashSet<LabelSymbol> LabelsOpt;
 
-            // the try statement the frame is associated with
-            private readonly TryStatementSyntax _tryStatementSyntaxOpt;
+            // the try or using-await statement the frame is associated with
+            private readonly StatementSyntax _statementSyntaxOpt;
 
             // proxy labels for branches leaving the frame. 
             // we build this on demand once we encounter leaving branches.
@@ -888,14 +888,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // root frame
             }
 
-            public AwaitFinallyFrame(AwaitFinallyFrame parent, HashSet<LabelSymbol> labelsOpt, TryStatementSyntax tryStatementSyntax)
+            public AwaitFinallyFrame(AwaitFinallyFrame parent, HashSet<LabelSymbol> labelsOpt, StatementSyntax statementSyntax)
             {
                 Debug.Assert(parent != null);
-                Debug.Assert(tryStatementSyntax != null);
+                Debug.Assert(statementSyntax != null);
+
+                Debug.Assert(statementSyntax.Kind() == SyntaxKind.TryStatement || 
+                    (statementSyntax.Kind() == SyntaxKind.UsingStatement && ((UsingStatementSyntax)statementSyntax).AwaitKeyword != default));
 
                 this.ParentOpt = parent;
                 this.LabelsOpt = labelsOpt;
-                _tryStatementSyntaxOpt = tryStatementSyntax;
+                _statementSyntaxOpt = statementSyntax;
             }
 
             public bool IsRoot()
@@ -956,8 +959,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     returnValue = this.returnValue;
                     if (returnValue == null)
                     {
-                        Debug.Assert(_tryStatementSyntaxOpt != null);
-                        this.returnValue = returnValue = new SynthesizedLocal(containingMethod, valueOpt.Type, SynthesizedLocalKind.AsyncMethodReturnValue, _tryStatementSyntaxOpt);
+                        Debug.Assert(_statementSyntaxOpt != null);
+                        this.returnValue = returnValue = new SynthesizedLocal(containingMethod, valueOpt.Type, SynthesizedLocalKind.AsyncMethodReturnValue, _statementSyntaxOpt);
                     }
                 }
 

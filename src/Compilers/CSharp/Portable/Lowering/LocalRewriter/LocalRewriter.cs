@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -8,6 +9,7 @@ using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.RuntimeMembers;
 using Roslyn.Utilities;
@@ -100,7 +102,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     dynamicAnalysisSpans = dynamicInstrumenter.DynamicAnalysisSpans;
                 }
-
+#if DEBUG
+                LocalRewritingValidator.Validate(loweredStatement);
+#endif
                 return loweredStatement;
             }
             catch (SyntheticBoundNodeFactory.MissingPredefinedMember ex)
@@ -319,9 +323,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundBadExpression(syntax, LookupResultKind.NotReferencable, ImmutableArray<Symbol>.Empty, children, resultType);
         }
 
-        private bool TryGetWellKnownTypeMember<TSymbol>(SyntaxNode syntax, WellKnownMember member, out TSymbol symbol, bool isOptional = false) where TSymbol : Symbol
+        private bool TryGetWellKnownTypeMember<TSymbol>(SyntaxNode syntax, WellKnownMember member, out TSymbol symbol, bool isOptional = false, Location location = null) where TSymbol : Symbol
         {
-            symbol = (TSymbol)Binder.GetWellKnownTypeMember(_compilation, member, _diagnostics, syntax: syntax, isOptional: isOptional);
+            Debug.Assert((syntax != null) ^ (location != null));
+
+            symbol = (TSymbol)Binder.GetWellKnownTypeMember(_compilation, member, _diagnostics, syntax: syntax, isOptional: isOptional, location: location);
             return ((object)symbol != null);
         }
 
@@ -594,5 +600,45 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _factory.CompilationState.ModuleBuilderOpt?.EnsureIsReadOnlyAttributeExists();
             }
         }
+
+#if DEBUG
+        /// <summary>
+        /// Note: do not use a static/singleton instance of this type, as it holds state.
+        /// </summary>
+        private sealed class LocalRewritingValidator : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
+        {
+            /// <summary>
+            /// Asserts that no unexpected nodes survived local rewriting.
+            /// </summary>
+            public static void Validate(BoundNode node)
+            {
+                try
+                {
+                    new LocalRewritingValidator().Visit(node);
+                }
+                catch (Exception ex) when (StackGuard.IsInsufficientExecutionStackException(ex))
+                {
+                    // Intentionally ignored to let the overflow get caught in a more crucial visitor
+                }
+            }
+
+            public override BoundNode VisitUsingStatement(BoundUsingStatement node)
+            {
+                Fail(node);
+                return null;
+            }
+
+            public override BoundNode VisitAwaitableValuePlaceholder(BoundAwaitableValuePlaceholder node)
+            {
+                Fail(node);
+                return null;
+            }
+
+            private void Fail(BoundNode node)
+            {
+                Debug.Assert(false, $"Bound nodes of kind {node.Kind} should not survive past local rewriting");
+            }
+        }
+#endif
     }
 }

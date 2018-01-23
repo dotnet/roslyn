@@ -1556,6 +1556,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_AttributesOnBackingFieldsNotAvailable = 8371,
         ERR_DoNotUseFixedBufferAttrOnProperty = 8372,
 
+        // PROTOTYPE(async-streams) Compact error IDs
+        ERR_NoConvToIAsyncDisp = 9000,
+
         // Note: you will need to re-generate compiler code after adding warnings (build\scripts\generate-compiler-code.cmd)
     }
 }

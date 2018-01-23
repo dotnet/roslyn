@@ -503,7 +503,8 @@ End Namespace
                     Case WellKnownType.System_FormattableString,
                          WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory,
                          WellKnownType.System_Span_T,
-                         WellKnownType.System_ReadOnlySpan_T
+                         WellKnownType.System_ReadOnlySpan_T,
+                         WellKnownType.System_IAsyncDisposable
                         ' Not available on all platforms.
                         Continue For
                     Case WellKnownType.ExtSentinel
@@ -542,7 +543,8 @@ End Namespace
                     Case WellKnownType.System_FormattableString,
                          WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory,
                          WellKnownType.System_Span_T,
-                         WellKnownType.System_ReadOnlySpan_T
+                         WellKnownType.System_ReadOnlySpan_T,
+                         WellKnownType.System_IAsyncDisposable
                         ' Not available on all platforms.
                         Continue For
                     Case WellKnownType.ExtSentinel
@@ -590,7 +592,8 @@ End Namespace
                          WellKnownMember.System_Span_T__get_Item,
                          WellKnownMember.System_Span_T__get_Length,
                          WellKnownMember.System_ReadOnlySpan_T__get_Item,
-                         WellKnownMember.System_ReadOnlySpan_T__get_Length
+                         WellKnownMember.System_ReadOnlySpan_T__get_Length,
+                         WellKnownMember.System_IAsyncDisposable__DisposeAsync
                         ' Not available yet, but will be in upcoming release.
                         Continue For
                     Case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile,
@@ -602,7 +605,7 @@ End Namespace
                 End Select
 
                 Dim symbol = comp.GetWellKnownTypeMember(wkm)
-                Assert.NotNull(symbol)
+                Assert.True(symbol IsNot Nothing, $"Unexpected null for {wkm}")
             Next
 
             comp = CreateCompilationWithReferences(<compilation/>, refs, TestOptions.ReleaseDll.WithEmbedVbCoreRuntime(True))
@@ -678,7 +681,8 @@ End Namespace
                          WellKnownMember.System_Span_T__get_Item,
                          WellKnownMember.System_Span_T__get_Length,
                          WellKnownMember.System_ReadOnlySpan_T__get_Item,
-                         WellKnownMember.System_ReadOnlySpan_T__get_Length
+                         WellKnownMember.System_ReadOnlySpan_T__get_Length,
+                         WellKnownMember.System_IAsyncDisposable__DisposeAsync
                         ' Not available yet, but will be in upcoming release.
                         Continue For
                     Case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile,
@@ -690,7 +694,7 @@ End Namespace
                 End Select
 
                 Dim symbol = comp.GetWellKnownTypeMember(wkm)
-                Assert.NotNull(symbol)
+                Assert.True(symbol IsNot Nothing, $"Unexpected null for {wkm}")
             Next
         End Sub
     End Class

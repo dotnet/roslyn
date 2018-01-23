@@ -2959,6 +2959,13 @@ namespace Microsoft.CodeAnalysis
                  0,                                                                                                                                             // Arity
                     0,                                                                                                                                          // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
+
+                // System_IAsyncDisposable__DisposeAsync
+                (byte)(MemberFlags.Method | MemberFlags.Virtual),                                                                                              // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_IAsyncDisposable - WellKnownType.ExtSentinel),                                    // DeclaringTypeId
+                0,                                                                                                                                             // Arity
+                    0,                                                                                                                                         // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Threading_Tasks_Task,
             };
 
             string[] allNames = new string[(int)WellKnownMember.Count]
@@ -3328,6 +3335,8 @@ namespace Microsoft.CodeAnalysis
                 "get_Length",                               // System_Span__get_Length
                 "get_Item",                                 // System_ReadOnlySpan__get_Item
                 "get_Length",                               // System_ReadOnlySpan__get_Length
+
+                "DisposeAsync",                             //  System_IAsyncDisposable__DisposeAsync
             };
 
             s_descriptors = MemberDescriptor.InitializeFromStream(new System.IO.MemoryStream(initializationBytes, writable: false), allNames);

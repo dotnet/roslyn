@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (currentMethodOrLambda?.IsAsync == true &&
                 !currentMethodOrLambda.IsImplicitlyDeclared)
             {
-                var foundAwait = result.Any(pending => pending.Branch?.Kind == BoundKind.AwaitExpression);
+                var foundAwait = result.Any(pending => HasAwait(pending));
                 if (!foundAwait)
                 {
                     // If we're on a LambdaSymbol, then use its 'DiagnosticLocation'.  That will be
@@ -275,6 +275,29 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return result;
         }
+
+        private static bool HasAwait(PendingBranch pending)
+        {
+            if (pending.Branch is null)
+            {
+                return false;
+            }
+
+            BoundKind kind = pending.Branch.Kind;
+            switch (kind)
+            {
+                case BoundKind.AwaitExpression:
+                    return true;
+                case BoundKind.UsingStatement:
+                    var usingStatement = (BoundUsingStatement)pending.Branch;
+                    return usingStatement.AwaitOpt != null;
+                default:
+                    return false;
+            }
+        }
+
+        // For purpose of data flow analysis, awaits create pending branches, so async usings do too
+        public sealed override bool AsyncUsingAddsPendingBranch => true;
 
         protected virtual void ReportUnassignedOutParameter(ParameterSymbol parameter, SyntaxNode node, Location location)
         {
