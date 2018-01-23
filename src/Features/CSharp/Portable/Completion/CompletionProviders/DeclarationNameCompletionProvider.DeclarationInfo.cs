@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     {
         internal struct NameDeclarationInfo
         {
-            private static readonly ImmutableArray<SymbolKind> parameterSyntaxKind = ImmutableArray.Create(SymbolKind.Parameter);
+            private static readonly ImmutableArray<SymbolKind> s_parameterSyntaxKind = ImmutableArray.Create(SymbolKind.Parameter);
 
             public NameDeclarationInfo(
                 ImmutableArray<SymbolKind> possibleSymbolKinds,
@@ -285,7 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     token, semanticModel,
                     p => p.Type,
                     _ => default,
-                    _ => parameterSyntaxKind,
+                    _ => s_parameterSyntaxKind,
                     cancellationToken);
                 return result.Type != null;
             }
@@ -300,7 +300,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         token, semanticModel,
                         b => b.Right,
                         _ => default,
-                        _ => parameterSyntaxKind,
+                        _ => s_parameterSyntaxKind,
                         cancellationToken);
                 }
                 else if (token.Parent.IsParentKind(SyntaxKind.CaseSwitchLabel))
@@ -309,7 +309,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         token, semanticModel,
                         b => b.Value,
                         _ => default,
-                        _ => parameterSyntaxKind,
+                        _ => s_parameterSyntaxKind,
                         cancellationToken);
                 }
                 else if (token.Parent.IsParentKind(SyntaxKind.DeclarationPattern))
@@ -318,7 +318,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         token, semanticModel,
                         b => b.Type,
                         _ => default,
-                        _ => parameterSyntaxKind,
+                        _ => s_parameterSyntaxKind,
                         cancellationToken);
                 }
 
