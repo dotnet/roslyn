@@ -51,11 +51,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             compilation.GetParseDiagnostics().Verify(
                 // a.csx(2,27): error CS1504: Source file 'b.csx' could not be opened -- Could not find file.
                 //                     #load "b.csx";
-                Diagnostic(ErrorCode.ERR_NoSourceFile, @"""b.csx""").WithArguments("b.csx", "Could not find file.").WithLocation(2, 27));
+                Diagnostic(ErrorCode.ERR_NoSourceFile, @"""b.csx""").WithArguments("b.csx", CSharpResources.CouldNotFindFile).WithLocation(2, 27));
             compilation.GetDiagnostics().Verify(
                 // a.csx(2,27): error CS1504: Source file 'b.csx' could not be opened -- Could not find file.
                 //                     #load "b.csx";
-                Diagnostic(ErrorCode.ERR_NoSourceFile, @"""b.csx""").WithArguments("b.csx", "Could not find file.").WithLocation(2, 27),
+                Diagnostic(ErrorCode.ERR_NoSourceFile, @"""b.csx""").WithArguments("b.csx", CSharpResources.CouldNotFindFile).WithLocation(2, 27),
                 // a.csx(3,21): error CS0103: The name 'asdf' does not exist in the current context
                 //                     asdf();
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "asdf").WithArguments("asdf").WithLocation(3, 21));

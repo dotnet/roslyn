@@ -19,16 +19,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var xml = @"<unclosed>";
 
-            var expectedText = @"
+            var expectedText = $@"
 <?xml version=""1.0""?>
 <doc>
     <assembly>
         <name>Test</name>
     </assembly>
     <members>
-        <!-- Badly formed XML comment ignored for member ""T:Partial"" -->
-        <!-- Badly formed XML comment ignored for member ""T:Parse"" -->
-        <!-- Badly formed XML comment ignored for member ""T:Diagnose"" -->
+        {string.Format(CSharpResources.IDS_XMLIGNORED, "T:Partial")}
+        {string.Format(CSharpResources.IDS_XMLIGNORED, "T:Parse")}
+        {string.Format(CSharpResources.IDS_XMLIGNORED, "T:Diagnose")}
     </members>
 </doc>
 ".Trim();

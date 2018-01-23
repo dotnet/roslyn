@@ -1978,17 +1978,17 @@ class C4 { }
 ";
             var comp = CreateCompilationWithMscorlibAndDocumentationComments(source);
             var actual = GetDocumentationCommentText(comp);
-            var expected = (@"
+            var expected = ($@"
 <?xml version=""1.0""?>
 <doc>
     <assembly>
         <name>Test</name>
     </assembly>
     <members>
-        <!-- Badly formed XML comment ignored for member ""T:C1"" -->
-        <!-- Badly formed XML comment ignored for member ""T:C2"" -->
-        <!-- Badly formed XML comment ignored for member ""T:C3"" -->
-        <!-- Badly formed XML comment ignored for member ""T:C4"" -->
+        {string.Format(CSharpResources.IDS_XMLIGNORED, "T:C1")}
+        {string.Format(CSharpResources.IDS_XMLIGNORED, "T:C2")}
+        {string.Format(CSharpResources.IDS_XMLIGNORED, "T:C3")}
+        {string.Format(CSharpResources.IDS_XMLIGNORED, "T:C4")}
     </members>
 </doc>
 ").Trim();
@@ -2011,14 +2011,14 @@ partial class C
 ";
             var comp = CreateCompilationWithMscorlibAndDocumentationComments(source);
             var actual = GetDocumentationCommentText(comp);
-            var expected = (@"
+            var expected = ($@"
 <?xml version=""1.0""?>
 <doc>
     <assembly>
         <name>Test</name>
     </assembly>
     <members>
-        <!-- Badly formed XML comment ignored for member ""T:C"" -->
+        {string.Format(CSharpResources.IDS_XMLIGNORED, "T:C")}
     </members>
 </doc>
 ").Trim();
@@ -2050,7 +2050,7 @@ partial class C
             // NOTE: separate error comment for each part.
             var comp = CreateCompilationWithMscorlibAndDocumentationComments(source);
             var actual = GetDocumentationCommentText(comp);
-            var expected = (@"
+            var expected = ($@"
 <?xml version=""1.0""?>
 <doc>
     <assembly>
@@ -2060,8 +2060,8 @@ partial class C
         <member name=""M:C.M1"">
             <valid2/>
         </member>
-        <!-- Badly formed XML comment ignored for member ""M:C.M1"" -->
-        <!-- Badly formed XML comment ignored for member ""M:C.M2"" -->
+        {string.Format(CSharpResources.IDS_XMLIGNORED, "M:C.M1")}
+        {string.Format(CSharpResources.IDS_XMLIGNORED, "M:C.M2")}
     </members>
 </doc>
 ").Trim();
@@ -2176,7 +2176,7 @@ class C {{ }}
             var comp = CreateCompilationWithMscorlibAndDocumentationComments(string.Format(sourceTemplate, xmlFilePath));
             var actual = GetDocumentationCommentText(comp);
 
-            var expectedTemplate = (@"
+            var expectedTemplate = ($@"
 <?xml version=""1.0""?>
 <doc>
     <assembly>
@@ -2184,7 +2184,7 @@ class C {{ }}
     </assembly>
     <members>
         <member name=""T:C"">
-            <!-- No matching elements were found for the following include tag --><include file=""{0}"" path=""//target"" />
+            <!--{CSharpResources.IDS_XMLNOINCLUDE}--><include file=""{{0}}"" path=""//target"" />
         </member>
     </members>
 </doc>
@@ -2322,7 +2322,7 @@ class C {{ }}
             var comp = CreateCompilationWithMscorlibAndDocumentationComments(string.Format(sourceTemplate, xmlFilePath));
             var actual = GetDocumentationCommentText(comp);
 
-            var expectedTemplate = (@"
+            var expectedTemplate = ($@"
 <?xml version=""1.0""?>
 <doc>
     <assembly>
@@ -2330,7 +2330,7 @@ class C {{ }}
     </assembly>
     <members>
         <member name=""T:C"">
-            <!-- No matching elements were found for the following include tag --><include file=""{0}"" path=""//target"">
+            <!--{CSharpResources.IDS_XMLNOINCLUDE}--><include file=""{{0}}"" path=""//target"">
               <child />
             </include>
         </member>
@@ -2427,7 +2427,7 @@ class C { }
                 // (5,5): warning CS1590: Invalid XML include element -- Missing path attribute
                 // /// <include file='file'/>
                 Diagnostic(ErrorCode.WRN_InvalidInclude, "<include file='file'/>").WithArguments("Missing path attribute"));
-            var expected = (@"
+            var expected = ($@"
 <?xml version=""1.0""?>
 <doc>
     <assembly>
@@ -2435,10 +2435,10 @@ class C { }
     </assembly>
     <members>
         <member name=""T:C"">
-            <!-- Include tag is invalid --><include />
-            <!-- Include tag is invalid --><include other=""stuff"" />
-            <!-- Include tag is invalid --><include path=""path"" />
-            <!-- Include tag is invalid --><include file=""file"" />
+            <!--{CSharpResources.IDS_XMLBADINCLUDE}--><include />
+            <!--{CSharpResources.IDS_XMLBADINCLUDE}--><include other=""stuff"" />
+            <!--{CSharpResources.IDS_XMLBADINCLUDE}--><include path=""path"" />
+            <!--{CSharpResources.IDS_XMLBADINCLUDE}--><include file=""file"" />
         </member>
     </members>
 </doc>
@@ -2504,7 +2504,7 @@ class C { }
                 // (2,5): warning CS1589: Unable to include XML fragment 'path' of file 'file' -- File not found.
                 // /// <include file='file' path='path'/>
                 Diagnostic(ErrorCode.WRN_FailedInclude, "<include file='file' path='path'/>").WithArguments("file", "path", "File not found."));
-            var expected = (@"
+            var expected = ($@"
 <?xml version=""1.0""?>
 <doc>
     <assembly>
@@ -2512,7 +2512,7 @@ class C { }
     </assembly>
     <members>
         <member name=""T:C"">
-            <!-- Failed to insert some or all of included XML --><include file=""file"" path=""path"" />
+            <!--{CSharpResources.IDS_XMLFAILEDINCLUDE}--><include file=""file"" path=""path"" />
         </member>
     </members>
 </doc>
@@ -2748,7 +2748,7 @@ class C {{ }}
             var actual = GetDocumentationCommentText(comp, /*ensureEnglishUICulture:*/ true,
                 // 408eee49f410.xml(1,19): warning CS1592: Badly formed XML in included comments file -- 'Unexpected end of file has occurred. The following elements are not closed: OpenWithoutClose.'
                 Diagnostic(ErrorCode.WRN_XMLParseIncludeError).WithArguments("Unexpected end of file has occurred. The following elements are not closed: OpenWithoutClose."));
-            var expectedTemplate = (@"
+            var expectedTemplate = ($@"
 <?xml version=""1.0""?>
 <doc>
     <assembly>
@@ -2756,7 +2756,7 @@ class C {{ }}
     </assembly>
     <members>
         <member name=""T:C"">
-            <!-- No matching elements were found for the following include tag --><include file=""{0}"" path=""//include"" />
+            <!-- No matching elements were found for the following include tag --><include file=""{{0}}"" path=""//include"" />
         </member>
     </members>
 </doc>
@@ -2780,7 +2780,7 @@ class C {{ }}
             var actual = GetDocumentationCommentText(comp,
                 // 3fba660141b6.xml(1,2): warning CS1589: Unable to include XML fragment 'path' of file 'd4241d125755.xml' -- The process cannot access the file 'd4241d125755.xml' because it is being used by another process.
                 Diagnostic(ErrorCode.WRN_FailedInclude).WithArguments(xmlFilePath, "//include", "Operation caused a stack overflow."));
-            var expectedTemplate = (@"
+            var expectedTemplate = ($@"
 <?xml version=""1.0""?>
 <doc>
     <assembly>
@@ -2788,7 +2788,7 @@ class C {{ }}
     </assembly>
     <members>
         <member name=""T:C"">
-            <!-- No matching elements were found for the following include tag --><include file=""{0}"" path=""//include"" />
+            <!--{CSharpResources.IDS_XMLNOINCLUDE}--><include file=""{{0}}"" path=""//include"" />
         </member>
     </members>
 </doc>
@@ -2814,7 +2814,7 @@ class C {{ }}
             var actual = GetDocumentationCommentText(comp,
                 // 3fba660141b6.xml(1,2): warning CS1589: Unable to include XML fragment 'path' of file 'd4241d125755.xml' -- The process cannot access the file 'd4241d125755.xml' because it is being used by another process.
                 Diagnostic(ErrorCode.WRN_FailedInclude).WithArguments(xmlFilePath, "//parent", "Operation caused a stack overflow."));
-            var expectedTemplate = (@"
+            var expectedTemplate = ($@"
 <?xml version=""1.0""?>
 <doc>
     <assembly>
@@ -2822,7 +2822,7 @@ class C {{ }}
     </assembly>
     <members>
         <member name=""T:C"">
-            <parent><!-- No matching elements were found for the following include tag --><include file=""{0}"" path=""//parent"" /></parent>
+            <parent><!--{CSharpResources.IDS_XMLNOINCLUDE}--><include file=""{{0}}"" path=""//parent"" /></parent>
         </member>
     </members>
 </doc>
@@ -2861,7 +2861,7 @@ class C {{ }}
                 Diagnostic(ErrorCode.WRN_FailedInclude).WithArguments(xmlFilePath, "//include", "Operation caused a stack overflow."),
                 // 1dc0fa5fb526.xml(3,6): warning CS1589: Unable to include XML fragment '//include' of file '1dc0fa5fb526.xml' -- Operation caused a stack overflow.
                 Diagnostic(ErrorCode.WRN_FailedInclude).WithArguments(xmlFilePath, "//include", "Operation caused a stack overflow."));
-            var expectedTemplate = (@"
+            var expectedTemplate = ($@"
 <?xml version=""1.0""?>
 <doc>
     <assembly>
@@ -2869,13 +2869,13 @@ class C {{ }}
     </assembly>
     <members>
         <member name=""T:C"">
-            <!-- No matching elements were found for the following include tag --><include file=""{0}"" path=""//include"">
-    <include file=""{0}"" path=""//include"" />
-</include><!-- No matching elements were found for the following include tag --><include file=""{0}"" path=""//include"">
-    <include file=""{0}"" path=""//include"" />
-</include><!-- No matching elements were found for the following include tag --><include file=""{0}"" path=""//include"" /><!-- No matching elements were found for the following include tag --><include file=""{0}"" path=""//include"">
-    <include file=""{0}"" path=""//include"" />
-</include><!-- No matching elements were found for the following include tag --><include file=""{0}"" path=""//include"" /><!-- No matching elements were found for the following include tag --><include file=""{0}"" path=""//include"" />
+            <!--{CSharpResources.IDS_XMLNOINCLUDE}--><include file=""{{0}}"" path=""//include"">
+    <include file=""{{0}}"" path=""//include"" />
+</include><!--{CSharpResources.IDS_XMLNOINCLUDE}--><include file=""{{0}}"" path=""//include"">
+    <include file=""{{0}}"" path=""//include"" />
+</include><!--{CSharpResources.IDS_XMLNOINCLUDE}--><include file=""{{0}}"" path=""//include"" /><!--{CSharpResources.IDS_XMLNOINCLUDE}--><include file=""{{0}}"" path=""//include"">
+    <include file=""{{0}}"" path=""//include"" />
+</include><!--{CSharpResources.IDS_XMLNOINCLUDE}--><include file=""{{0}}"" path=""//include"" /><!--{CSharpResources.IDS_XMLNOINCLUDE}--><include file=""{{0}}"" path=""//include"" />
         </member>
     </members>
 </doc>
@@ -2945,7 +2945,7 @@ class C {{ }}
             var comp = CreateCompilationWithMscorlibAndDocumentationComments(string.Format(sourceTemplate, xmlFilePath1));
 
             var actual = GetDocumentationCommentText(comp);
-            var expectedTemplate = (@"
+            var expectedTemplate = ($@"
 <?xml version=""1.0""?>
 <doc>
     <assembly>
@@ -2953,7 +2953,7 @@ class C {{ }}
     </assembly>
     <members>
         <member name=""T:C"">
-            <!-- No matching elements were found for the following include tag --><include file=""{0}"" path=""//stuff"" />
+            <!--{CSharpResources.IDS_XMLNOINCLUDE}--><include file=""{{0}}"" path=""//stuff"" />
         </member>
     </members>
 </doc>
@@ -4919,14 +4919,14 @@ class A { }
 
             var actual = GetDocumentationCommentText(comp);
 
-            var expected = @"
+            var expected = $@"
 <?xml version=""1.0""?>
 <doc>
     <assembly>
         <name>Test</name>
     </assembly>
     <members>
-        <!-- Badly formed XML comment ignored for member ""T:A"" -->
+        {string.Format(CSharpResources.IDS_XMLIGNORED, "T:A")}
     </members>
 </doc>".Trim();
 
@@ -5333,14 +5333,14 @@ public class A { }
 
             // NOTE: Dev11 allows this but Roslyn does not.  There's no way for
             // us to build sensible structured trivia for the XML in this scenario.
-            var expected = @"
+            var expected = $@"
 <?xml version=""1.0""?>
 <doc>
     <assembly>
         <name>Test</name>
     </assembly>
     <members>
-        <!-- Badly formed XML comment ignored for member ""T:A"" -->
+        {string.Format(CSharpResources.IDS_XMLIGNORED, "T:A")}
     </members>
 </doc>".Trim();
 
@@ -6111,14 +6111,14 @@ class Module1
                 //     ///<remarks><</remarks>
                 Diagnostic(ErrorCode.WRN_XMLParseError, ""));
             var actual = GetDocumentationCommentText(comp);
-            var expected = @"
+            var expected = $@"
 <?xml version=""1.0""?>
 <doc>
     <assembly>
         <name>Test</name>
     </assembly>
     <members>
-        <!-- Badly formed XML comment ignored for member ""M:Module1.Main"" -->
+        {string.Format(CSharpResources.IDS_XMLIGNORED, "M:Module1.Main")}
     </members>
 </doc>
 ".Trim();
