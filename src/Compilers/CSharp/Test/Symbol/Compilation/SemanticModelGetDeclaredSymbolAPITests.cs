@@ -4966,7 +4966,7 @@ class C
 }
 ";
 
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilationWithMscorlib46(source);
             compilation.VerifyDiagnostics(
                 // (6,31): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //         (short X, string Y) = (Alice: 1, Bob: null);

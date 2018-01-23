@@ -122,7 +122,7 @@ class C
     }
     static void M(string s) {}
 }";
-            CreateStandardCompilation(test).VerifyDiagnostics(
+            CreateCompilationWithMscorlib46(test).VerifyDiagnostics(
                 // (7,17): error CS1525: Invalid expression term 'throw'
                 //         s = s + throw new NullReferenceException();
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "throw new NullReferenceException()").WithArguments("throw").WithLocation(7, 17),
