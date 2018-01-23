@@ -2748,7 +2748,7 @@ class C {{ }}
             var actual = GetDocumentationCommentText(comp, /*ensureEnglishUICulture:*/ true,
                 // 408eee49f410.xml(1,19): warning CS1592: Badly formed XML in included comments file -- 'Unexpected end of file has occurred. The following elements are not closed: OpenWithoutClose.'
                 Diagnostic(ErrorCode.WRN_XMLParseIncludeError).WithArguments("Unexpected end of file has occurred. The following elements are not closed: OpenWithoutClose."));
-            var expectedTemplate = ($@"
+            var expectedTemplate = (@"
 <?xml version=""1.0""?>
 <doc>
     <assembly>
@@ -2756,7 +2756,7 @@ class C {{ }}
     </assembly>
     <members>
         <member name=""T:C"">
-            <!-- No matching elements were found for the following include tag --><include file=""{{0}}"" path=""//include"" />
+            <!-- No matching elements were found for the following include tag --><include file=""{0}"" path=""//include"" />
         </member>
     </members>
 </doc>
