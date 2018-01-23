@@ -18,14 +18,6 @@
 
     <RuntimeIdentifier Condition="'$(TargetFramework)' == 'net461' AND '$(RuntimeIdentifier)' == '' AND '$(OS)' == 'Windows_NT'">$(RoslynDesktopRuntimeIdentifier)</RuntimeIdentifier>
   </PropertyGroup>
-    
-  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp2.0'">
-    <Content Include="$(MicrosoftCSharpRefPath)\Microsoft.CSharp.dll">
-      <Link>ref/%(FileName)%(Extension)</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <Visible>false</Visible>
-    </Content>
-  </ItemGroup>
 
   <Target Name="Test" DependsOnTargets="Build">
     <MakeDir Directories="$(XUnitTestResultsDirectory)" />
