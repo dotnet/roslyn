@@ -58,8 +58,6 @@
     <IntermediateOutputPath>$(BaseIntermediateOutputPath)$(Configuration)</IntermediateOutputPath>
     <ArtifactsSymStoreDirectory Condition="'$(DeveloperBuild)' != 'true' and '$(OS)' == 'Windows_NT'">$(BaseOutputPath)$(Configuration)\SymStore\</ArtifactsSymStoreDirectory>
 
-    <MicrosoftCSharpRefPath>$(NuGetPackageRoot)/microsoft.csharp/$(MicrosoftCSharpVersion)/ref/netstandard1.0/</MicrosoftCSharpRefPath>
-
     <ToolsetPackagesSemaphore>$(ToolsetPackagesDir)toolsetpackages.semaphore</ToolsetPackagesSemaphore>
     <ToolsetCompilerPackageName Condition="'$(MSBuildRuntimeType)' != 'Core'">Microsoft.Net.Compilers</ToolsetCompilerPackageName>
     <ToolsetCompilerPackageName Condition="'$(MSBuildRuntimeType)' == 'Core'">Microsoft.NETCore.Compilers</ToolsetCompilerPackageName>
