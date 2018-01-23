@@ -4,6 +4,7 @@ extern alias PortableTestUtils;
 using System;
 using System.IO;
 using System.Reflection;
+using Microsoft.CodeAnalysis.Scripting;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -50,19 +51,21 @@ new C()
 Environment.Exit(0)
 ");
 
-            AssertEx.AssertEqualToleratingWhitespaceDifferences($@"
-Microsoft (R) Visual C# Interactive Compiler version {s_compilerVersion}
-Copyright (C) Microsoft Corporation. All rights reserved.
+            var expected = $@"
+{ string.Format(CSharpScriptingResources.LogoLine1, s_compilerVersion) }
+{CSharpScriptingResources.LogoLine2}
 
-Type ""#help"" for more information.
+{ScriptingResources.HelpPrompt}
 > > > > > > 1
 > C {{ }}
 > 
-", result.Output);
+";
+            expected = expected.Replace((char)0x2013, (char)0x002d); // EN DASH -> HYPHEN-MINUS
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, result.Output);
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences($@"
-(1,7): error CS1504: Source file 'a.csx' could not be opened -- Could not find file.
-(1,1): error CS0006: Metadata file 'C.dll' could not be found
+(1,7): error CS1504: { string.Format(CSharpResources.ERR_NoSourceFile, "a.csx", CSharpResources.CouldNotFindFile) }
+(1,1): error CS0006: { string.Format(CSharpResources.ERR_NoMetadataFile,"C.dll") }
 ", result.Errors);
 
             Assert.Equal(0, result.ExitCode);
@@ -128,6 +131,7 @@ Console.Write(""OK"");
         }
 
         [Fact]
+        //[UseCulture("en-US")]
         public void LineNumber_Information_On_Exception()
         {
             var source = @"Console.WriteLine(""OK"");
