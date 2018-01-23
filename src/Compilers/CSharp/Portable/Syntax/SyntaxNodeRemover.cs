@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
                             CommonSyntaxNodeRemover.GetSeparatorInfo(
                                 withSeps, i, (int)SyntaxKind.EndOfLineTrivia,
-                                out var nextTokenIsSeparator, out var nextSeparatorBelongsToNode);
+                                out bool nextTokenIsSeparator, out bool nextSeparatorBelongsToNode);
 
                             if (!nextSeparatorBelongsToNode &&
                                 alternate.Count > 0 &&
