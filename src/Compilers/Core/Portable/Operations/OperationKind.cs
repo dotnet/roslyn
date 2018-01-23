@@ -182,7 +182,9 @@ namespace Microsoft.CodeAnalysis
         /// <summary>Indicates an <see cref="IDeclarationPatternOperation"/>.</summary>
         DeclarationPattern = 0x56,
 
+        /// <summary>Indicates an <see cref="IFlowCaptureOperation"/>.</summary>
         FlowCapture = 0x57,
+        /// <summary>Indicates an <see cref="IFlowCaptureReferenceOperation"/>.</summary>
         FlowCaptureReference = 0x58,
 
         // /// <summary>Indicates an <see cref="IFixedOperation"/>.</summary>

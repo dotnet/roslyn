@@ -15,20 +15,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 {
     public sealed class TestOperationVisitor : OperationVisitor
     {
-        private static TestOperationVisitor s_instance;
+        public static readonly TestOperationVisitor Singleton = new TestOperationVisitor();
 
         private TestOperationVisitor()
             : base()
         { }
-
-        public static TestOperationVisitor GetInstance()
-        {
-            if (s_instance == null)
-            {
-                s_instance = new TestOperationVisitor();
-            }
-            return s_instance;
-        }
 
         public override void DefaultVisit(IOperation operation)
         {
@@ -674,6 +665,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             Assert.Equal(OperationKind.Coalesce, operation.Kind);
             AssertEx.Equal(new[] { operation.Value, operation.WhenNull }, operation.Children);
+            var valueConversion = operation.ValueConversion;
         }
 
         public override void VisitIsType(IIsTypeOperation operation)
@@ -1116,12 +1108,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitFlowCapture(IFlowCaptureOperation operation)
         {
             Assert.Equal(OperationKind.FlowCapture, operation.Kind);
+            Assert.True(operation.IsImplicit);
             Assert.Same(operation.Value, operation.Children.Single());
         }
 
         public override void VisitFlowCaptureReference(IFlowCaptureReferenceOperation operation)
         {
             Assert.Equal(OperationKind.FlowCaptureReference, operation.Kind);
+            Assert.True(operation.IsImplicit);
             Assert.Empty(operation.Children);
         }
     }

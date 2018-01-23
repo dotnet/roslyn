@@ -17,6 +17,27 @@ namespace Microsoft.CodeAnalysis.Operations
 
     /// <summary>
     /// PROTOTYPE(dataflow): Add documentation
+    /// </summary>
+    public enum ConditionalBranchKind
+    {
+        /// <summary>
+        /// Jump if value is true
+        /// </summary>
+        IfTrue,
+
+        /// <summary>
+        /// Jump if value is false
+        /// </summary>
+        IfFalse,
+
+        /// <summary>
+        /// Jump if value is null/Nothing 
+        /// </summary>
+        IfNull
+    }
+
+    /// <summary>
+    /// PROTOTYPE(dataflow): Add documentation
     /// PROTOTYPE(dataflow): We need to figure out how to split it into a builder and 
     ///                      a public immutable type.
     /// </summary>
@@ -38,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// <summary>
         /// PROTOTYPE(dataflow): Tuple is temporary return type, we probably should use special structure instead.
         /// </summary>
-        public (IOperation Condition, bool JumpIfTrue, BasicBlock Destination) Conditional { get; internal set; }
+        public (IOperation Value, ConditionalBranchKind Kind, BasicBlock Destination) Conditional { get; internal set; }
 
         /// <summary>
         /// PROTOTYPE(dataflow): During CR there was a suggestion to use different name - "Successor".
