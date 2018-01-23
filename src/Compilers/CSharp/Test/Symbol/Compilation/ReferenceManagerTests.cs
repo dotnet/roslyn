@@ -2525,15 +2525,15 @@ public class P
         public void MissingAssemblyResolution1()
         {
             // c - a -> b
-            var bRef = CreateStandardCompilation("public class B { }", assemblyName: "B").EmitToImageReference();
-            var aRef = CreateStandardCompilation("public class A : B { }", new[] { bRef }, assemblyName: "A").EmitToImageReference();
+            var bRef = CreateCompilationWithMscorlib46("public class B { }", assemblyName: "B").EmitToImageReference();
+            var aRef = CreateCompilationWithMscorlib46("public class A : B { }", new[] { bRef }, assemblyName: "A").EmitToImageReference();
 
             var resolver = new TestMissingMetadataReferenceResolver(new Dictionary<string, MetadataReference>
             {
                 { "B", bRef }
             });
 
-            var c = CreateStandardCompilation("public class C : A { }", new[] { aRef }, TestOptions.ReleaseDll.WithMetadataReferenceResolver(resolver));
+            var c = CreateCompilationWithMscorlib46("public class C : A { }", new[] { aRef }, TestOptions.ReleaseDll.WithMetadataReferenceResolver(resolver));
 
             c.VerifyEmitDiagnostics();
 
