@@ -7458,7 +7458,7 @@ class C
     }
 }
 
-class Foo { }",
+class Goo { }",
 @"using System;
 
 class C
