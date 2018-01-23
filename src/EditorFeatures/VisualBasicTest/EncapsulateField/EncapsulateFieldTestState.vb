@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EncapsulateField
             Dim args = New EncapsulateFieldCommandArgs(_testDocument.GetTextView(), _testDocument.GetTextBuffer())
             Dim commandHandler = New EncapsulateFieldCommandHandler(Workspace.GetService(Of ITextBufferUndoManagerProvider)(),
                                                                     Workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider))
-            commandHandler.ExecuteCommand(args, Nothing)
+            commandHandler.ExecuteCommand(args, TestCommandExecutionContext.Create())
         End Sub
 
         Public Sub AssertEncapsulateAs(expected As String)
