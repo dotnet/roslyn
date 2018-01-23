@@ -7406,7 +7406,11 @@ Copyright (C) Microsoft Corporation. All rights reserved.", output);
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             int exitCode = new MockCSharpCompiler(null, dir.Path, new[] { "/target:library", libSrc.Path }).Run(outWriter);
-            Assert.Contains($"error CS2012: Cannot open '{libDll.Path}' for writing", outWriter.ToString());
+
+            string innerString = string.Format(CSharpResources.ERR_CantOpenFileWrite, libDll.Path, "");
+
+            // Remove the last ' or "
+            Assert.Contains($"error CS2012: {innerString.Substring(0, innerString.Length - 1)}", outWriter.ToString());
 
             AssertEx.Equal(new[] { (byte)'D', (byte)'L', (byte)'L' }, ReadBytes(libDll.Path, 3));
             AssertEx.Equal(new[] { (byte)'D', (byte)'L', (byte)'L' }, ReadBytes(fsDll, 3));
@@ -7425,7 +7429,8 @@ Copyright (C) Microsoft Corporation. All rights reserved.", output);
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             int exitCode = new MockCSharpCompiler(null, dir.Path, new[] { "/target:library", libSrc.Path }).Run(outWriter);
-            Assert.Contains($"error CS2012: Cannot open '{libDll.Path}' for writing", outWriter.ToString());
+            string innerString = string.Format(CSharpResources.ERR_CantOpenFileWrite, libDll.Path, "");
+            Assert.Contains($"error CS2012: {innerString.Substring(0, innerString.Length - 1)}", outWriter.ToString());
         }
 
         private byte[] ReadBytes(Stream stream, int count)
@@ -9543,7 +9548,7 @@ public class C
             var refDll = Path.Combine(dir.Path, Path.Combine("ref", "a.dll"));
             Assert.False(File.Exists(refDll));
 
-            Assert.Equal("a.cs(1,39): error CS0103: The name 'error' does not exist in the current context", outWriter.ToString().Trim());
+            Assert.Equal($"a.cs(1,39): error CS0103: {string.Format(CSharpResources.ERR_NameNotInContext, "error")}", outWriter.ToString().Trim());
 
             // Clean up temp files
             CleanupAllGeneratedFiles(dir.Path);
