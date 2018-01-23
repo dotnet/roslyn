@@ -183,6 +183,7 @@ namespace Microsoft.CodeAnalysis
         DeclarationPattern = 0x56,
 
         FlowCapture = 0x57,
+        FlowCaptureReference = 0x58,
 
         // /// <summary>Indicates an <see cref="IFixedOperation"/>.</summary>
         // https://github.com/dotnet/roslyn/issues/21281

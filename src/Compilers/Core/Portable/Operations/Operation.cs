@@ -22,7 +22,8 @@ namespace Microsoft.CodeAnalysis
 
         // this will be lazily initialized. this will be initialized only once
         // but once initialized, will never change
-        private IOperation _parentDoNotAccessDirectly;
+        private IOperation _parentDoNotAccessDirectly = s_sentinel;
+        private static readonly IOperation s_sentinel = new EmptyStatement(null, null, null, default, isImplicit: true); 
 
         public Operation(OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
         {
@@ -42,7 +43,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                if (_parentDoNotAccessDirectly == null)
+                if (_parentDoNotAccessDirectly == s_sentinel)
                 {
                     SetParentOperation(SearchParentOperation());
                 }
@@ -96,14 +97,14 @@ namespace Microsoft.CodeAnalysis
 
         protected void SetParentOperation(IOperation parent)
         {
-            var result = Interlocked.CompareExchange(ref _parentDoNotAccessDirectly, parent, null);
+            var result = Interlocked.CompareExchange(ref _parentDoNotAccessDirectly, parent, s_sentinel);
 
             // tree must belong to same semantic model if parent is given
             Debug.Assert(parent == null || ((Operation)parent).SemanticModel == SemanticModel || 
                 ((Operation)parent).SemanticModel == null || SemanticModel == null);
 
             // make sure given parent and one we already have is same if we have one already
-            Debug.Assert(result == null || result == parent);
+            Debug.Assert(result == s_sentinel || result == parent);
         }
 
         /// <summary>
@@ -136,7 +137,7 @@ namespace Microsoft.CodeAnalysis
             // .Parent going through slower path of SearchParentOperation()
             // explicit cast is not allowed, so using "as" instead
             // invalid expression can have null element in the array
-            if ((operations[0] as Operation)?._parentDoNotAccessDirectly != null)
+            if ((operations[0] as Operation)?._parentDoNotAccessDirectly != s_sentinel)
             {
                 // most likely already initialized. if not, due to a race or invalid expression,
                 // operation.Parent will take slower path but still return correct Parent.
@@ -150,17 +151,6 @@ namespace Microsoft.CodeAnalysis
             }
 
             return operations;
-        }
-
-        public static T ResetParentOperation<T>(T operation) where T : IOperation
-        {
-            if (operation == null)
-            {
-                return operation;
-            }
-
-            Interlocked.Exchange(ref (operation as Operation)._parentDoNotAccessDirectly, null);
-            return operation;
         }
 
         private class NoneOperation : Operation

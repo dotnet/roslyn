@@ -782,10 +782,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             LogString(nameof(IFlowCaptureOperation));
             LogString($": {operation.Id}");
-            if (operation.IsInitialization)
-            {
-                LogString($" (IsInitialization: {operation.IsInitialization})");
-            }
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.Value, "Value");
+        }
+
+        public override void VisitFlowCaptureReference(IFlowCaptureReferenceOperation operation)
+        {
+            LogString(nameof(IFlowCaptureReferenceOperation));
+            LogString($": {operation.Id}");
             LogCommonPropertiesAndNewLine(operation);
         }
 

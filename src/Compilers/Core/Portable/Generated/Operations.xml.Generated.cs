@@ -6548,17 +6548,15 @@ namespace Microsoft.CodeAnalysis.Operations
         protected override IOperation ExpressionImpl => _lazyExpression.Value;
     }
 
-    internal sealed partial class FlowCapture : Operation, IFlowCaptureOperation
+    internal sealed partial class FlowCaptureReference : Operation, IFlowCaptureReferenceOperation
     {
-        public FlowCapture(int id, SyntaxNode syntax, bool isInitialization, ITypeSymbol type, Optional<object> constantValue) :
-            base(OperationKind.FlowCapture, semanticModel: null, syntax, type, constantValue, isImplicit: true)
+        public FlowCaptureReference(int id, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(OperationKind.FlowCaptureReference, semanticModel: null, syntax, type, constantValue, isImplicit: true)
         {
             Id = id;
-            IsInitialization = isInitialization;
         }
 
         public int Id { get; }
-        public bool IsInitialization { get; }
         public override IEnumerable<IOperation> Children
         {
             get
@@ -6566,10 +6564,43 @@ namespace Microsoft.CodeAnalysis.Operations
                 return Array.Empty<IOperation>();
             }
         }
+
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitFlowCaptureReference(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitFlowCaptureReference(this, argument);
+        }
+    }
+
+    internal sealed partial class FlowCapture : Operation, IFlowCaptureOperation
+    {
+        public FlowCapture(int id, SyntaxNode syntax, IOperation value) :
+            base(OperationKind.FlowCapture, semanticModel: null, syntax, type: null, constantValue: default, isImplicit: true)
+        {
+            Debug.Assert(value != null);
+            Id = id;
+            Value = Operation.SetParentOperation(value, this);
+        }
+
+        public int Id { get; }
+        public IOperation Value { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield return Value;
+            }
+        }
+
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitFlowCapture(this);
         }
+
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             return visitor.VisitFlowCapture(this, argument);

@@ -1112,5 +1112,17 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 AssertEx.Equal(new[] { operation.MinimumValue, operation.MaximumValue }, operation.Children);
             }
         }
+
+        public override void VisitFlowCapture(IFlowCaptureOperation operation)
+        {
+            Assert.Equal(OperationKind.FlowCapture, operation.Kind);
+            Assert.Same(operation.Value, operation.Children.Single());
+        }
+
+        public override void VisitFlowCaptureReference(IFlowCaptureReferenceOperation operation)
+        {
+            Assert.Equal(OperationKind.FlowCaptureReference, operation.Kind);
+            Assert.Empty(operation.Children);
+        }
     }
 }
