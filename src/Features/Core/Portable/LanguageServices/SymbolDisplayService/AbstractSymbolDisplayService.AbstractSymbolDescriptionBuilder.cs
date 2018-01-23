@@ -191,7 +191,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             protected void AddCaptures(SyntaxNode syntax)
             {
                 var semanticModel = GetSemanticModel(syntax.SyntaxTree);
-                Debug.Assert(!semanticModel.IsSpeculativeSemanticModel);
+                if(semanticModel.IsSpeculativeSemanticModel)
+                {
+                    // In the context of symbol completion, it is possible we'll make a description for a symbol while speculating (but it won't be displayed)
+                    AddToGroup(SymbolDescriptionGroups.Captures, new SymbolDisplayPart(kind: SymbolDisplayPartKind.Text, symbol: null, text: $"\r\n{WorkspacesResources.Variables_captured_colon} ?"));
+                    return;
+                }
 
                 var analysis = semanticModel.AnalyzeDataFlow(syntax);
                 var captures = analysis.CapturedInside;
