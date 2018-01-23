@@ -280,18 +280,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         internal VsENCRebuildableProjectImpl EditAndContinueImplOpt { get; private set; }
 
-        /// <summary>
-        /// Override this method to validate references when creating <see cref="ProjectInfo"/> for current state.
-        /// By default, this method does nothing.
-        /// </summary>
-        protected virtual void ValidateReferences()
-        {
-        }
-
         public ProjectInfo CreateProjectInfoForCurrentState()
         {
-            ValidateReferences();
-
             lock (_gate)
             {
                 var info = ProjectInfo.Create(
@@ -1473,16 +1463,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             return new WorkspaceMetadataFileReferenceResolver(metadataService, new RelativePathResolver(assemblySearchPaths, baseDirectory: projectDirectory));
         }
-
-#if DEBUG
-        public virtual bool Debug_VBEmbeddedCoreOptionOn
-        {
-            get
-            {
-                return false;
-            }
-        }
-#endif
 
         /// <summary>
         /// Used for unit testing: don't crash the process if something bad happens.
