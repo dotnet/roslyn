@@ -7454,7 +7454,7 @@ class C
 {
     public void M1()
     {
-        [|Foo|]();
+        [|Goo|]();
     }
 }
 
@@ -7465,16 +7465,16 @@ class C
 {
     public void M1()
     {
-        Foo();
+        Goo();
     }
 
-    private void Foo()
+    private void Goo()
     {
         throw new NotImplementedException();
     }
 }
 
-class Foo { }",
+class Goo { }",
 parseOptions: TestOptions.Regular);
         }
 
@@ -7489,27 +7489,27 @@ class C
 {
     public void M1()
     {
-        [|Foo|]();
+        [|Goo|]();
     }
 }
 
-interface Foo { }",
+interface Goo { }",
 @"using System;
 
 class C
 {
     public void M1()
     {
-        Foo();
+        Goo();
     }
 
-    private void Foo()
+    private void Goo()
     {
         throw new NotImplementedException();
     }
 }
 
-interface Foo { }",
+interface Goo { }",
 parseOptions: TestOptions.Regular);
         }
 
@@ -7524,27 +7524,27 @@ class C
 {
     public void M1()
     {
-        [|Foo|]();
+        [|Goo|]();
     }
 }
 
-struct Foo { }",
+struct Goo { }",
 @"using System;
 
 class C
 {
     public void M1()
     {
-        Foo();
+        Goo();
     }
 
-    private void Foo()
+    private void Goo()
     {
         throw new NotImplementedException();
     }
 }
 
-struct Foo { }",
+struct Goo { }",
 parseOptions: TestOptions.Regular);
         }
 
@@ -7559,27 +7559,27 @@ class C
 {
     public void M1()
     {
-        [|Foo|]();
+        [|Goo|]();
     }
 }
 
-delegate void Foo()",
+delegate void Goo()",
 @"using System;
 
 class C
 {
     public void M1()
     {
-        Foo();
+        Goo();
     }
 
-    private void Foo()
+    private void Goo()
     {
         throw new NotImplementedException();
     }
 }
 
-delegate void Foo()",
+delegate void Goo()",
 parseOptions: TestOptions.Regular);
         }
 
@@ -7594,27 +7594,27 @@ class C
 {
     public void M1()
     {
-        [|Foo|]();
+        [|Goo|]();
     }
 }
 
-namespace Foo { }",
+namespace Goo { }",
 @"using System;
 
 class C
 {
     public void M1()
     {
-        Foo();
+        Goo();
     }
 
-    private void Foo()
+    private void Goo()
     {
         throw new NotImplementedException();
     }
 }
 
-namespace Foo { }",
+namespace Goo { }",
 parseOptions: TestOptions.Regular);
         }
 
@@ -7629,27 +7629,27 @@ class C
 {
     public void M1()
     {
-        [|Foo|]();
+        [|Goo|]();
     }
 }
 
-enum Foo { One }",
+enum Goo { One }",
 @"using System;
 
 class C
 {
     public void M1()
     {
-        Foo();
+        Goo();
     }
 
-    private void Foo()
+    private void Goo()
     {
         throw new NotImplementedException();
     }
 }
 
-enum Foo { One }",
+enum Goo { One }",
 parseOptions: TestOptions.Regular);
         }
     }

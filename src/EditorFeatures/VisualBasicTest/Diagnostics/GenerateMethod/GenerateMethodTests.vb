@@ -4191,32 +4191,32 @@ Class Program
 End Class")
         End Function
 
-                    <WorkItem(16975, "https://github.com/dotnet/roslyn/issues/16975")>
+            <WorkItem(16975, "https://github.com/dotnet/roslyn/issues/16975")>
             <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
             Public Async Function TestWithSameMethodNameAsTypeName1() As Task
                 Await TestInRegularAndScriptAsync(
 "Imports System
 Class C
     Sub Bar()
-        [|Foo|]()
+        [|Goo|]()
     End Sub
 End Class
 
-Enum Foo
+Enum Goo
     One
 End Enum",
 "Imports System
 Class C
     Sub Bar()
-        Foo()
+        Goo()
     End Sub
 
-    Private Sub Foo()
+    Private Sub Goo()
         Throw New NotImplementedException()
     End Sub
 End Class
 
-Enum Foo
+Enum Goo
     One
 End Enum")
             End Function
@@ -4228,23 +4228,23 @@ End Enum")
 "Imports System
 Class C
     Sub Bar()
-        [|Foo|]()
+        [|Goo|]()
     End Sub
 End Class
 
-Delegate Sub Foo()",
+Delegate Sub Goo()",
 "Imports System
 Class C
     Sub Bar()
-        Foo()
+        Goo()
     End Sub
 
-    Private Sub Foo()
+    Private Sub Goo()
         Throw New NotImplementedException()
     End Sub
 End Class
 
-Delegate Sub Foo()")
+Delegate Sub Goo()")
             End Function
 
             <WorkItem(16975, "https://github.com/dotnet/roslyn/issues/16975")>
@@ -4254,26 +4254,26 @@ Delegate Sub Foo()")
 "Imports System
 Class C
     Sub Bar()
-        [|Foo|]()
+        [|Goo|]()
     End Sub
 
 End Class
 
-Class Foo
+Class Goo
     
 End Class",
 "Imports System
 Class C
     Sub Bar()
-        Foo()
+        Goo()
     End Sub
 
-    Private Sub Foo()
+    Private Sub Goo()
         Throw New NotImplementedException()
     End Sub
 End Class
 
-Class Foo
+Class Goo
     
 End Class")
             End Function
@@ -4285,25 +4285,25 @@ End Class")
 "Imports System
 Class C
     Sub Bar()
-        [|Foo|]()
+        [|Goo|]()
     End Sub
 End Class
 
-Structure Foo
+Structure Goo
 
 End Structure",
 "Imports System
 Class C
     Sub Bar()
-        Foo()
+        Goo()
     End Sub
 
-    Private Sub Foo()
+    Private Sub Goo()
         Throw New NotImplementedException()
     End Sub
 End Class
 
-Structure Foo
+Structure Goo
 
 End Structure")
             End Function
@@ -4315,25 +4315,25 @@ End Structure")
 "Imports System
 Class C
     Sub Bar()
-        [|Foo|]()
+        [|Goo|]()
     End Sub
 End Class
 
-Interface Foo
+Interface Goo
     
 End Interface",
 "Imports System
 Class C
     Sub Bar()
-        Foo()
+        Goo()
     End Sub
 
-    Private Sub Foo()
+    Private Sub Goo()
         Throw New NotImplementedException()
     End Sub
 End Class
 
-Interface Foo
+Interface Goo
     
 End Interface")
             End Function
@@ -4345,25 +4345,25 @@ End Interface")
 "Imports System
 Class C
     Sub Bar()
-        [|Foo|]()
+        [|Goo|]()
     End Sub
 End Class
 
-Namespace Foo
+Namespace Goo
 
 End Namespace",
 "Imports System
 Class C
     Sub Bar()
-        Foo()
+        Goo()
     End Sub
 
-    Private Sub Foo()
+    Private Sub Goo()
         Throw New NotImplementedException()
     End Sub
 End Class
 
-Namespace Foo
+Namespace Goo
 
 End Namespace")
             End Function
