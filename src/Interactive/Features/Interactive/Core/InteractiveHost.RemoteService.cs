@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             private Thread _readOutputThread;           // nulled on dispose
             private Thread _readErrorOutputThread;      // nulled on dispose
             private InteractiveHost _host;              // nulled on dispose
-            private int _processExitHandling;           // set to ProcessExitHandled on dispose
+            private volatile int _processExitHandling;  // set to ProcessExitHandled on dispose
 
             internal RemoteService(InteractiveHost host, Process process, int processId, Service service)
             {
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             internal void Dispose(bool joinThreads)
             {
                 // There can be a call from host initiated from OnProcessExit. 
-                // This check on the beginning helps to avoid the circular reference.
+                // This check on the beginning helps to avoid a reentrancy.
                 if (_processExitHandling == ProcessExitHooked)
                 {
                     using (_disposeSemaphore.DisposableWait())
@@ -134,31 +134,23 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                 InitiateTermination(Process, _processId);
 
-                var readOutputThreadJoinTask = Task.Run(() =>
+                try
                 {
-                    try
-                    {
-                        _readOutputThread?.Join();
-                    }
-                    catch (ThreadStateException)
-                    {
-                        // thread hasn't started
-                    }
-                });
-
-                var readErrorOutputThreadJoinTask = Task.Run(() =>
+                    _readOutputThread?.Join();
+                }
+                catch (ThreadStateException)
                 {
-                    try
-                    {
-                        _readErrorOutputThread?.Join();
-                    }
-                    catch (ThreadStateException)
-                    {
-                        // thread hasn't started
-                    }
-                });
+                    // thread hasn't started
+                }
 
-                Task.WaitAll(readOutputThreadJoinTask, readErrorOutputThreadJoinTask);
+                try
+                {
+                    _readErrorOutputThread?.Join();
+                }
+                catch (ThreadStateException)
+                {
+                    // thread hasn't started
+                }
 
                 // null the host so that we don't attempt to write to the buffer anymore:
                 _host = null;
