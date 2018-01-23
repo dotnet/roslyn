@@ -29,6 +29,7 @@
     <file src="Dlls/MSBuildTask/netstandard1.3/publish/Microsoft.Build.Tasks.CodeAnalysis.dll" target="tools" />
     <file src="Dlls/MSbuildTask/netstandard1.3/publish/Microsoft.CSharp.Core.targets" target="tools" />
     <file src="Dlls/MSbuildTask/netstandard1.3/publish/Microsoft.VisualBasic.Core.targets" target="tools" />
+    <!-- N.B.: The backslashes below cannot be replaced with forward slashes. -->
     <file src="Dlls\MSBuildTask\netstandard1.3\publish\System.*.dll" target="tools" />
     <file src="Dlls\MSBuildTask\netstandard1.3\publish\runtimes\**" target="tools\runtimes" />
 
@@ -51,6 +52,7 @@
     <file src="Exes/VBCSCompiler/netcoreapp2.0/publish/VBCSCompiler.runtimeconfig.json" target="tools/bincore" />
 
     <!-- References that are either not in the target framework or are a higher version -->
+    <!-- N.B.: The backslashes below cannot be replaced with forward slashes. -->
     <file src="Exes\csc\netcoreapp2.0\publish\System.*.dll" target="tools\bincore" />
     <file src="Exes\csc\netcoreapp2.0\publish\runtimes\**" target="tools\bincore\runtimes" />
   </files>
