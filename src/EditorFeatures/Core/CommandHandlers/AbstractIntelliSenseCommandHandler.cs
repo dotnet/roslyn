@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using Microsoft.CodeAnalysis.Editor.Commands;
+using Microsoft.VisualStudio.Commanding;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
+using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 {
@@ -22,13 +24,15 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
     /// doesn't process the command.
     /// </summary>
     internal abstract class AbstractIntelliSenseCommandHandler :
-        ICommandHandler<EscapeKeyCommandArgs>,
-        ICommandHandler<UpKeyCommandArgs>,
-        ICommandHandler<DownKeyCommandArgs>
+        IChainedCommandHandler<EscapeKeyCommandArgs>,
+        IChainedCommandHandler<UpKeyCommandArgs>,
+        IChainedCommandHandler<DownKeyCommandArgs>
     {
         private readonly CompletionCommandHandler _completionCommandHandler;
         private readonly SignatureHelpCommandHandler _signatureHelpCommandHandler;
         private readonly QuickInfoCommandHandlerAndSourceProvider _quickInfoCommandHandler;
+
+        public string DisplayName => EditorFeaturesResources.IntelliSense_Command_Handler;
 
         protected AbstractIntelliSenseCommandHandler(
             CompletionCommandHandler completionCommandHandler,
@@ -40,22 +44,22 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
             _quickInfoCommandHandler = quickInfoCommandHandler;
         }
 
-        public CommandState GetCommandState(EscapeKeyCommandArgs args, Func<CommandState> nextHandler)
+        public VSCommanding.CommandState GetCommandState(EscapeKeyCommandArgs args, Func<VSCommanding.CommandState> nextHandler)
         {
             return nextHandler();
         }
 
-        public CommandState GetCommandState(UpKeyCommandArgs args, Func<CommandState> nextHandler)
+        public VSCommanding.CommandState GetCommandState(UpKeyCommandArgs args, Func<VSCommanding.CommandState> nextHandler)
         {
             return nextHandler();
         }
 
-        public CommandState GetCommandState(DownKeyCommandArgs args, Func<CommandState> nextHandler)
+        public VSCommanding.CommandState GetCommandState(DownKeyCommandArgs args, Func<VSCommanding.CommandState> nextHandler)
         {
             return nextHandler();
         }
 
-        public void ExecuteCommand(EscapeKeyCommandArgs args, Action nextHandler)
+        public void ExecuteCommand(EscapeKeyCommandArgs args, Action nextHandler, CommandExecutionContext context)
         {
             if ((_completionCommandHandler != null && _completionCommandHandler.TryHandleEscapeKey(args)) ||
                 (_signatureHelpCommandHandler != null && _signatureHelpCommandHandler.TryHandleEscapeKey(args)) ||
@@ -67,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
             nextHandler();
         }
 
-        public void ExecuteCommand(UpKeyCommandArgs args, Action nextHandler)
+        public void ExecuteCommand(UpKeyCommandArgs args, Action nextHandler, CommandExecutionContext context)
         {
             if ((_completionCommandHandler != null && _completionCommandHandler.TryHandleUpKey(args)) ||
                 (_signatureHelpCommandHandler != null && _signatureHelpCommandHandler.TryHandleUpKey(args)))
@@ -78,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
             nextHandler();
         }
 
-        public void ExecuteCommand(DownKeyCommandArgs args, Action nextHandler)
+        public void ExecuteCommand(DownKeyCommandArgs args, Action nextHandler, CommandExecutionContext context)
         {
             if ((_completionCommandHandler != null && _completionCommandHandler.TryHandleDownKey(args)) ||
                 (_signatureHelpCommandHandler != null && _signatureHelpCommandHandler.TryHandleDownKey(args)))

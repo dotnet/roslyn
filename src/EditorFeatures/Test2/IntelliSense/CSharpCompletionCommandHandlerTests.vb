@@ -5,13 +5,14 @@ Imports System.Globalization
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Completion
-Imports Microsoft.CodeAnalysis.Editor.Commands
 Imports Microsoft.CodeAnalysis.Editor.CSharp.Formatting
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
+Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.VisualStudio.Text.Projection
 Imports Microsoft.VisualStudio.Utilities
@@ -2470,7 +2471,7 @@ class C
                     disposableView.TextView.Caret.MoveTo(New SnapshotPoint(disposableView.TextView.TextBuffer.CurrentSnapshot, 0))
 
                     Dim editorOperations = editorOperationsFactory.GetEditorOperations(disposableView.TextView)
-                    state.CompletionCommandHandler.ExecuteCommand(New DeleteKeyCommandArgs(disposableView.TextView, state.SubjectBuffer), Sub() editorOperations.Delete())
+                    state.CompletionCommandHandler.ExecuteCommand(New DeleteKeyCommandArgs(disposableView.TextView, state.SubjectBuffer), Sub() editorOperations.Delete(), TestCommandExecutionContext.Create())
 
                     Await state.AssertNoCompletionSession()
                 End Using
