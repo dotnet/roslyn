@@ -375,5 +375,15 @@ namespace Analyzer.Utilities
         {
             return compilation.GetTypeByMetadataName("Microsoft.VisualStudio.TestTools.UnitTesting.ExpectedExceptionAttribute");
         }
+
+        public static INamedTypeSymbol XunitAssert(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("Xunit.Assert");
+        }
+
+        public static INamedTypeSymbol NunitAssert(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("NUnit.Framework.Assert");
+        }
     }
 }
