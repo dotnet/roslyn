@@ -1385,7 +1385,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        protected void SetBinOutputPathAndRelatedData(string binOutputPath)
+        protected internal void SetBinOutputPathAndRelatedData(string binOutputPath)
         {
             AssertIsForeground();
 
