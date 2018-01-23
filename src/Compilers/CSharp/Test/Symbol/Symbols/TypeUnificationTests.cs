@@ -409,7 +409,7 @@ interface IB<T, U> : IA<U, object>, IA<T, U>
 }";
             var comp = CreateStandardCompilation(text);
             var type = comp.GetMember<NamedTypeSymbol>("IB");
-            AssertCanUnify(type.Interfaces[0], type.Interfaces[1]);
+            AssertCanUnify(type.Interfaces()[0], type.Interfaces()[1]);
             DiagnosticsUtils.VerifyErrorCodes(comp.GetDiagnostics(),
                 new ErrorDescription { Code = (int)ErrorCode.ERR_UnifyingInterfaceInstantiations, Line = 4, Column = 11 });
         }

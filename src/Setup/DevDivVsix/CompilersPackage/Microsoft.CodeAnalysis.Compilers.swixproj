@@ -10,6 +10,8 @@
     <OutputPath>$(OutputPath)Vsix\CodeAnalysisCompilers</OutputPath>
     <IsPackage>true</IsPackage>
     <OutputType>vsix</OutputType>
+    <ImportDirectoryBuildProps>false</ImportDirectoryBuildProps>
+    <ImportDirectoryBuildTargets>false</ImportDirectoryBuildTargets>
   </PropertyGroup>
 
   <Import Project="$(NuGetPackageRoot)\MicroBuild.Core\$(MicroBuildCoreVersion)\build\MicroBuild.Core.props" />

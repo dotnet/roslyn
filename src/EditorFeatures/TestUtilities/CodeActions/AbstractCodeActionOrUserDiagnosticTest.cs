@@ -489,6 +489,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             int index, ImmutableArray<CodeAction> actions, CodeActionPriority? priority = null)
         {
             Assert.NotNull(actions);
+            Assert.NotEmpty(actions);
             if (actions.Length == 1)
             {
                 if (actions.Single() is TopLevelSuppressionCodeAction suppressionAction)

@@ -3995,6 +3995,37 @@ class C
                 options: PreferIntrinsicTypeInMemberAccess);
         }
 
+        [Theory]
+        [InlineData(0)]
+        [InlineData(1)]
+        [InlineData(2)]
+        [InlineData(3)]
+        [InlineData(4)]
+        [Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [WorkItem(20377, "https://github.com/dotnet/roslyn/issues/20377")]
+        public async Task TestWarningLevel(int warningLevel)
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+namespace Root
+{
+    class A
+    {
+        [|System.Exception|] c;
+    }
+}",
+@"using System;
+
+namespace Root
+{
+    class A
+    {
+        Exception c;
+    }
+}", compilationOptions: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, warningLevel: warningLevel));
+        }
+
         private async Task TestWithPredefinedTypeOptionsAsync(string code, string expected, int index = 0)
         {
             await TestInRegularAndScriptAsync(code, expected, index: index, options: PreferIntrinsicTypeEverywhere);
@@ -4003,6 +4034,10 @@ class C
         private IDictionary<OptionKey, object> PreferIntrinsicTypeEverywhere => OptionsSet(
             SingleOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, true, NotificationOption.Error),
             SingleOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, this.onWithError, GetLanguage()));
+
+        private IDictionary<OptionKey, object> PreferIntrinsicTypeEverywhereAsWarning => OptionsSet(
+            SingleOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, true, NotificationOption.Warning),
+            SingleOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, this.onWithWarning, GetLanguage()));
 
         private IDictionary<OptionKey, object> PreferIntrinsicTypeInDeclaration => OptionsSet(
             SingleOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, true, NotificationOption.Error),

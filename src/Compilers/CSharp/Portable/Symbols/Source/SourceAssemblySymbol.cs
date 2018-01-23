@@ -1556,6 +1556,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (CommonAssemblyWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData;
         }
 
+        /// <summary>
+        /// This only forces binding of attributes that look like they may be forwarded types attributes (syntactically).
+        /// </summary>
+        internal HashSet<NamedTypeSymbol> GetForwardedTypes()
+        {
+            CustomAttributesBag<CSharpAttributeData> attributesBag = _lazySourceAttributesBag;
+            if (attributesBag?.IsDecodedWellKnownAttributeDataComputed == true)
+            {
+                // Use already decoded attributes
+                return ((CommonAssemblyWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData)?.ForwardedTypes;
+            }
+
+            attributesBag = null;
+            LoadAndValidateAttributes(OneOrMany.Create(GetAttributeDeclarations()), ref attributesBag, attributeMatchesOpt: this.IsPossibleForwardedTypesAttribute);
+
+            var wellKnownAttributeData = (CommonAssemblyWellKnownAttributeData)attributesBag?.DecodedWellKnownAttributeData;
+            return wellKnownAttributeData?.ForwardedTypes;
+        }
+
+        private bool IsPossibleForwardedTypesAttribute(AttributeSyntax node)
+        {
+            QuickAttributeChecker checker =
+                this.DeclaringCompilation.GetBinderFactory(node.SyntaxTree).GetBinder(node).QuickAttributeChecker;
+
+            return checker.IsPossibleMatch(node, QuickAttributes.TypeForwardedTo);
+        }
+
         private static IEnumerable<Cci.SecurityAttribute> GetSecurityAttributes(CustomAttributesBag<CSharpAttributeData> attributesBag)
         {
             Debug.Assert(attributesBag.IsSealed);
@@ -2556,13 +2583,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (_lazyForwardedTypesFromSource == null)
             {
                 IDictionary<string, NamedTypeSymbol> forwardedTypesFromSource;
-                CommonAssemblyWellKnownAttributeData<NamedTypeSymbol> wellKnownAttributeData = GetSourceDecodedWellKnownAttributeData();
+                // Get the TypeForwardedTo attributes with minimal binding to avoid cycle problems
+                HashSet<NamedTypeSymbol> forwardedTypes = GetForwardedTypes();
 
-                if (wellKnownAttributeData != null && wellKnownAttributeData.ForwardedTypes != null)
+                if (forwardedTypes != null)
                 {
                     forwardedTypesFromSource = new Dictionary<string, NamedTypeSymbol>(StringOrdinalComparer.Instance);
 
-                    foreach (NamedTypeSymbol forwardedType in wellKnownAttributeData.ForwardedTypes)
+                    foreach (NamedTypeSymbol forwardedType in forwardedTypes)
                     {
                         NamedTypeSymbol originalDefinition = forwardedType.OriginalDefinition;
                         Debug.Assert((object)originalDefinition.ContainingType == null, "How did a nested type get forwarded?");

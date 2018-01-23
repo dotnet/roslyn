@@ -2,21 +2,6 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="fr" original="../WorkspaceDesktopResources.resx">
     <body>
-      <trans-unit id="Downloading_index_failed">
-        <source>Downloading index failed</source>
-        <target state="new">Downloading index failed</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Downloading_index_failed_0">
-        <source>Downloading index failed:{0}</source>
-        <target state="new">Downloading index failed:{0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Downloading_IntelliSense_index_for_0">
-        <source>Downloading IntelliSense index for {0}</source>
-        <target state="new">Downloading IntelliSense index for {0}</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Invalid_assembly_name">
         <source>Invalid assembly name</source>
         <target state="new">Invalid assembly name</target>

@@ -131,13 +131,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 (compilation.Options.OutputKind == OutputKind.ConsoleApplication || compilation.Options.OutputKind == OutputKind.WindowsApplication),
                 "Compilation must be executable if output is expected.");
 
-            if (verify == Verification.Passes)
-            {
-                // Unsafe code might not verify, so don't try.
-                var csharpOptions = compilation.Options as CSharp.CSharpCompilationOptions;
-                verify = (csharpOptions == null || !csharpOptions.AllowUnsafe) ? Verification.Passes : Verification.Skipped;
-            }
-
             if (sourceSymbolValidator != null)
             {
                 var module = compilation.Assembly.Modules.First();
@@ -194,19 +187,26 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         static internal void RunValidators(CompilationVerifier verifier, Action<PEAssembly> assemblyValidator, Action<IModuleSymbol> symbolValidator)
         {
+            Assert.True(assemblyValidator != null || symbolValidator != null);
+
+            var emittedMetadata = verifier.GetMetadata();
+
             if (assemblyValidator != null)
             {
-                using (var emittedMetadata = AssemblyMetadata.Create(verifier.GetAllModuleMetadata()))
-                {
-                    assemblyValidator(emittedMetadata.GetAssembly());
-                }
+                Assert.Equal(MetadataImageKind.Assembly, emittedMetadata.Kind);
+
+                var assembly = ((AssemblyMetadata)emittedMetadata).GetAssembly();
+                assemblyValidator(assembly);
             }
 
             if (symbolValidator != null)
             {
-                var peModuleSymbol = verifier.GetModuleSymbolForEmittedImage();
-                Debug.Assert(peModuleSymbol != null);
-                symbolValidator(peModuleSymbol);
+                var reference = emittedMetadata.Kind == MetadataImageKind.Assembly
+                    ? ((AssemblyMetadata)emittedMetadata).GetReference()
+                    : ((ModuleMetadata)emittedMetadata).GetReference();
+
+                var moduleSymbol = verifier.GetSymbolFromMetadata(reference, verifier.Compilation.Options.MetadataImportOptions);
+                symbolValidator(moduleSymbol);
             }
         }
 
@@ -227,9 +227,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             verifier.Emit(expectedOutput, expectedReturnCode, args, manifestResources, emitOptions, verify, expectedSignatures);
 
-            // We're dual-purposing emitters here.  In this context, it
-            // tells the validator the version of Emit that is calling it. 
-            RunValidators(verifier, assemblyValidator, symbolValidator);
+            if (assemblyValidator != null || symbolValidator != null)
+            {
+                // We're dual-purposing emitters here.  In this context, it
+                // tells the validator the version of Emit that is calling it. 
+                RunValidators(verifier, assemblyValidator, symbolValidator);
+            }
 
             return verifier;
         }

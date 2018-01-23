@@ -148,9 +148,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _compilation = compilation;
             }
 
+            [PerformanceSensitive(
+                "https://github.com/dotnet/roslyn/issues/23582",
+                Constraint = "Avoid " + nameof(SingleNamespaceOrTypeDeclaration.Location) + " since it has a costly allocation on this fast path.")]
             public int Compare(SingleNamespaceDeclaration x, SingleNamespaceDeclaration y)
             {
-                return _compilation.CompareSourceLocations(x.Location, y.Location);
+                return _compilation.CompareSourceLocations(x.SyntaxReference, y.SyntaxReference);
             }
         }
 

@@ -16,14 +16,13 @@ usage()
     echo "  --restore             Restore projects required to build"
     echo "  --build               Build all projects"
     echo "  --test                Run unit tests"
+    echo "  --mono                Run unit tests with mono"
     echo "  --build-bootstrap     Build the bootstrap compilers"
     echo "  --use-bootstrap       Use the built bootstrap compilers when running main build"
     echo "  --bootstrap           Implies --build-bootstrap and --use-bootstrap"
 }
 
-this_dir="$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "${this_dir}"/build/scripts/build-utils.sh
-root_path="$(get_repo_dir)"
+root_path="$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 binaries_path="${root_path}"/Binaries
 bootstrap_path="${binaries_path}"/Bootstrap
 bootstrap_framework=netcoreapp2.0
@@ -32,12 +31,22 @@ build_configuration=Debug
 restore=false
 build=false
 test_=false
+use_mono=false
 build_bootstrap=false
 use_bootstrap=false
+stop_vbcscompiler=false
 
 # LTTNG is the logging infrastructure used by coreclr.  Need this variable set
 # so it doesn't output warnings to the console.
 export LTTNG_HOME="$HOME"
+
+if [[ $# = 0 ]]
+then
+    usage
+    echo ""
+    echo "To build and test this repo, try: ./build.sh --restore --build --test"
+    exit 1
+fi
 
 while [[ $# > 0 ]]
 do
@@ -55,16 +64,20 @@ do
         build_configuration=Release
         shift 1
         ;;
-        --restore)
+        --restore|-r)
         restore=true
         shift 1
         ;;
-        --build)
+        --build|-b)
         build=true
         shift 1
         ;;
-        --test)
+        --test|-t)
         test_=true
+        shift 1
+        ;;
+        --mono)
+        use_mono=true
         shift 1
         ;;
         --build-bootstrap)
@@ -80,12 +93,18 @@ do
         use_bootstrap=true
         shift 1
         ;;
+        --stop-vbcscompiler)
+        stop_vbcscompiler=true
+        shift 1
+        ;;
         *)
         usage
         exit 1
         ;;
     esac
 done
+
+source "${root_path}"/build/scripts/obtain_dotnet.sh
 
 if [[ "$restore" == true ]]
 then
@@ -109,13 +128,38 @@ then
     build_args+=" /p:BootstrapBuildPath=${bootstrap_path}"
 fi
 
+# https://github.com/dotnet/roslyn/issues/23736
+UNAME="$(uname)"
+if [[ "$UNAME" == "Darwin" ]]
+then
+    build_args+=" /p:UseRoslynAnalyzers=false"
+fi
+
 if [[ "${build}" == true ]]
 then
     echo "Building Compilers.sln"
     dotnet build "${root_path}"/Compilers.sln ${build_args} "/bl:${binaries_path}/Build.binlog"
 fi
 
+if [[ "${stop_vbcscompiler}" == true ]]
+then
+    if [[ "${use_bootstrap}" == true ]]
+    then
+        echo "Stopping VBCSCompiler"
+        dotnet "${bootstrap_path}"/bincore/VBCSCompiler.dll -shutdown
+    else
+        echo "--stop-vbcscompiler requires --use-bootstrap. Aborting."
+        exit 1
+    fi
+fi
+
 if [[ "${test_}" == true ]]
 then
-    "${root_path}"/build/scripts/tests.sh
+    if [[ "${use_mono}" == true ]]
+    then
+        test_runtime=mono
+    else
+        test_runtime=dotnet
+    fi
+    "${root_path}"/build/scripts/tests.sh "${build_configuration}" "${test_runtime}"
 fi

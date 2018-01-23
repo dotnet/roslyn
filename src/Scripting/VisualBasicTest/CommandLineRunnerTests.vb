@@ -171,10 +171,10 @@ System.Globalization.CultureInfo.DefaultThreadCurrentCulture = System.Globalizat
             runner.RunInteractive()
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
-"Microsoft (R) Visual Basic Interactive Compiler version " + s_compilerVersion + "
-Copyright (C) Microsoft Corporation. All rights reserved.
+"Microsoft (R) Visual Basic – interaktive Compilerversion " + s_compilerVersion + "
+Copyright (C) Microsoft Corporation. Alle Rechte vorbehalten.
 
-Type ""#help"" for more information.
+Weitere Informationen erhalten Sie nach der Eingabe von ""#help"".
 > Imports System.Globalization
 > System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = System.Globalization.CultureInfo.GetCultureInfo(""en-GB"")
 > System.Globalization.CultureInfo.DefaultThreadCurrentCulture = System.Globalization.CultureInfo.GetCultureInfo(""en-GB"")

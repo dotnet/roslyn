@@ -504,7 +504,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override Conversion ClassifyConversion(ExpressionSyntax expression, ITypeSymbol destination, bool isExplicitInSource = false)
         {
-            var csdestination = destination.EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>("destination");
+            var csdestination = destination.EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>(nameof(destination));
 
             if (expression.Kind() == SyntaxKind.DeclarationExpression)
             {
@@ -1987,29 +1987,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentException("typeParameter not within tree");
             }
 
-            var typeParamList = typeParameter.Parent as TypeParameterListSyntax;
-            if (typeParamList != null)
+            if (typeParameter.Parent is TypeParameterListSyntax typeParamList)
             {
-                var memberDecl = typeParamList.Parent as MemberDeclarationSyntax;
-                if (memberDecl != null)
+                ISymbol parameterizedSymbol = null;
+                switch (typeParamList.Parent)
                 {
-                    var symbol = GetDeclaredSymbol(memberDecl, cancellationToken);
-                    if ((object)symbol != null)
-                    {
-                        var typeSymbol = symbol as NamedTypeSymbol;
-                        if ((object)typeSymbol != null)
-                        {
-                            return this.GetTypeParameterSymbol(typeSymbol.TypeParameters, typeParameter);
-                        }
+                    case MemberDeclarationSyntax memberDecl:
+                        parameterizedSymbol = GetDeclaredSymbol(memberDecl, cancellationToken);
+                        break;
+                    case LocalFunctionStatementSyntax localDecl:
+                        parameterizedSymbol = GetDeclaredSymbol(localDecl, cancellationToken);
+                        break;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(typeParameter.Parent.Kind());
+                }
 
-                        var methodSymbol = symbol as MethodSymbol;
-                        if ((object)methodSymbol != null)
-                        {
-                            return
-                                this.GetTypeParameterSymbol(methodSymbol.TypeParameters, typeParameter) ??
-                                ((object)methodSymbol.PartialDefinitionPart == null ? null : this.GetTypeParameterSymbol(methodSymbol.PartialDefinitionPart.TypeParameters, typeParameter));
-                        }
-                    }
+                switch (parameterizedSymbol)
+                {
+                    case NamedTypeSymbol typeSymbol:
+                        return this.GetTypeParameterSymbol(typeSymbol.TypeParameters, typeParameter);
+
+                    case MethodSymbol methodSymbol:
+                        return this.GetTypeParameterSymbol(methodSymbol.TypeParameters, typeParameter) ??
+                            ((object)methodSymbol.PartialDefinitionPart == null
+                                ? null
+                                : this.GetTypeParameterSymbol(methodSymbol.PartialDefinitionPart.TypeParameters, typeParameter));
                 }
             }
 

@@ -185,17 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                                                     WinRtRefs.Concat(additionalRefs ?? Enumerable.Empty<MetadataReference>()),
                                                     TestOptions.ReleaseExe);
         }
-
-        internal static PEAssemblyBuilder GetDefaultPEBuilder(CSharpCompilation compilation)
-        {
-            return new PEAssemblyBuilder(
-                (SourceAssemblySymbol)compilation.Assembly,
-                EmitOptions.Default,
-                compilation.Options.OutputKind,
-                GetDefaultModulePropertiesForSerialization(),
-                SpecializedCollections.EmptyEnumerable<ResourceDescription>());
-        }
-
+        
         protected override CompilationOptions CompilationOptionsReleaseDll
         {
             get { return TestOptions.ReleaseDll; }
@@ -636,17 +626,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         /// <typeparam name="T">Expected type of the exception.</typeparam>
         /// <param name="source">Program to compile and execute.</param>
         /// <param name="expectedMessage">Ignored if null.</param>
-        internal CompilationVerifier CompileAndVerifyException<T>(string source, string expectedMessage = null, bool allowUnsafe = false) where T : Exception
+        internal CompilationVerifier CompileAndVerifyException<T>(string source, string expectedMessage = null, bool allowUnsafe = false, Verification verify = Verification.Passes) where T : Exception
         {
             var comp = CreateStandardCompilation(source, options: TestOptions.ReleaseExe.WithAllowUnsafe(allowUnsafe));
-            return CompileAndVerifyException<T>(comp, expectedMessage);
+            return CompileAndVerifyException<T>(comp, expectedMessage, verify);
         }
 
-        internal CompilationVerifier CompileAndVerifyException<T>(CSharpCompilation comp, string expectedMessage = null) where T : Exception
+        internal CompilationVerifier CompileAndVerifyException<T>(CSharpCompilation comp, string expectedMessage = null, Verification verify = Verification.Passes) where T : Exception
         {
             try
             {
-                CompileAndVerify(comp, expectedOutput: ""); //need expected output to force execution
+                CompileAndVerify(comp, expectedOutput: "", verify: verify); //need expected output to force execution
                 Assert.False(true, string.Format("Expected exception {0}({1})", typeof(T).Name, expectedMessage));
             }
             catch (ExecutionException x)
@@ -659,7 +649,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 }
             }
 
-            return CompileAndVerify(comp);
+            return CompileAndVerify(comp, verify: verify);
         }
 
         protected static List<SyntaxNode> GetSyntaxNodeList(SyntaxTree syntaxTree)

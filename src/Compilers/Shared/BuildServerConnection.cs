@@ -416,7 +416,19 @@ namespace Microsoft.CodeAnalysis.CommandLine
             {
                 try
                 {
-                    Process.Start(expectedPath, processArguments);
+                    var startInfo = new ProcessStartInfo()
+                    {
+                        FileName = expectedPath,
+                        Arguments = processArguments,
+                        UseShellExecute = false,
+                        WorkingDirectory = clientDir,
+                        RedirectStandardInput = true,
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        CreateNoWindow = true
+                    };
+
+                    Process.Start(startInfo);
                     return true;
                 }
                 catch
@@ -532,7 +544,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 return null;
             }
 
-            return $"{userName}.{isAdmin}.{basePipeName}";
+            return $"{userName}.{(isAdmin ? 'T' : 'F')}.{basePipeName}";
         }
 
         internal static string GetBasePipeName(string compilerExeDirectory)
@@ -547,6 +559,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             {
                 var bytes = sha.ComputeHash(Encoding.UTF8.GetBytes(compilerExeDirectory));
                 basePipeName = Convert.ToBase64String(bytes)
+                    .Substring(0, 25) // We only have ~50 total characters on Mac, so strip this down
                     .Replace("/", "_")
                     .Replace("=", string.Empty);
             }

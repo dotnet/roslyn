@@ -282,12 +282,15 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public CultureInfo PreferredUILang { get; internal set; }
 
-        internal StrongNameProvider GetStrongNameProvider(StrongNameFileSystem fileSystem)
+        internal StrongNameProvider GetStrongNameProvider(
+            StrongNameFileSystem fileSystem,
+            string tempDirectory)
         {
-            // https://github.com/dotnet/roslyn/issues/23521
-            // Disable the portable strong name provider until we can find and fix the
-            // root cause of the bug
-            return new DesktopStrongNameProvider(KeyFileSearchPaths, null, fileSystem);
+            bool fallback = ParseOptionsCore.Features.ContainsKey("UseLegacyStrongNameProvider") ||
+                CompilationOptionsCore.CryptoKeyContainer != null;
+            return fallback ?
+                new DesktopStrongNameProvider(KeyFileSearchPaths, tempDirectory, fileSystem) :
+                (StrongNameProvider)new PortableStrongNameProvider(KeyFileSearchPaths, fileSystem);
         }
 
         internal CommandLineArguments()

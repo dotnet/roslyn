@@ -27,7 +27,6 @@ param (
     [switch]$sign = $false,
     [switch]$pack = $false,
     [switch]$binaryLog = $false,
-    [string]$msbuildDir = "",
     [string]$signType = "",
 
     # Test options 
@@ -61,7 +60,6 @@ function Print-Usage() {
     Write-Host "  -sign                     Sign our binaries"
     Write-Host "  -signType                 Type of sign: real, test, verify"
     Write-Host "  -pack                     Create our NuGet packages"
-    Write-Host "  -msbuildDir               MSBuild to use for operations"
     Write-Host "  -binaryLog                Create binary log for every MSBuild invocation"
     Write-Host "" 
     Write-Host "Test options" 
@@ -181,10 +179,8 @@ function Make-BootstrapBuild() {
 }
 
 function Build-Artifacts() { 
-    Run-MSBuild "Roslyn.sln" "/p:DeployExtension=false"
-
-    if ($testDesktop) { 
-        Run-MSBuild "src\Samples\Samples.sln" "/p:DeployExtension=false"
+    if ($build) { 
+        Run-MSBuild "Roslyn.sln" "/p:DeployExtension=false"
     }
 
     if ($buildAll) {
@@ -217,18 +213,17 @@ function Build-ExtraSignArtifacts() {
         # Publish the CoreClr projects (CscCore and VbcCore) and dependencies for later NuGet packaging.
         Write-Host "Publishing csc"
         Run-MSBuild "..\Compilers\CSharp\csc\csc.csproj" "/p:TargetFramework=netcoreapp2.0 /t:PublishWithoutBuilding"
-        Write-Host "Publishing csc"
+        Write-Host "Publishing vbc"
         Run-MSBuild "..\Compilers\VisualBasic\vbc\vbc.csproj" "/p:TargetFramework=netcoreapp2.0 /t:PublishWithoutBuilding"
+        Write-Host "Publishing VBCSCompiler"
+        Run-MSBuild "..\Compilers\Server\VBCSCompiler\VBCSCompiler.csproj" "/p:TargetFramework=netcoreapp2.0 /t:PublishWithoutBuilding"
 
         $dest = @(
-            $configDir,
-            "Templates\CSharp\Diagnostic\Analyzer",
-            "Templates\VisualBasic\Diagnostic\Analyzer\tools")
+            $configDir)
         foreach ($dir in $dest) { 
             Copy-Item "PowerShell\*.ps1" $dir
         }
 
-        Run-MSBuild "Templates\Templates.sln" "/p:VersionType=Release"
         Run-MSBuild "DevDivInsertionFiles\DevDivInsertionFiles.sln" -buildArgs ""
         Copy-Item -Force "Vsix\myget_org-extensions.config" $configDir
     }
@@ -288,6 +283,7 @@ function Build-NuGetPackages() {
         $buildArgs = '/p:SkipReleaseVersion=true /p:SkipPreReleaseVersion=true'
     }
 
+    Ensure-NuGet | Out-Null
     Run-MSBuild "src\NuGet\NuGet.proj" $buildArgs
 }
 
@@ -411,7 +407,7 @@ function Test-XUnit() {
     $logFilePath = Join-Path $configDir "runtests.log"
     $unitDir = Join-Path $configDir "UnitTests"
     $runTests = Join-Path $configDir "Exes\RunTests\RunTests.exe"
-    $xunitDir = Join-Path (Get-PackageDir "xunit.runner.console") "tools"
+    $xunitDir = Join-Path (Get-PackageDir "xunit.runner.console") "tools\net452"
     $args = "$xunitDir"
     $args += " -log:$logFilePath"
     $args += " -nocache"
@@ -558,6 +554,8 @@ function Ensure-ProcDump() {
 function Redirect-Temp() {
     $temp = Join-Path $binariesDir "Temp"
     Create-Directory $temp
+    Copy-Item (Join-Path $repoDir "src\Workspaces\CoreTestUtilities\TestFiles\Directory.Build.props") $temp
+    Copy-Item (Join-Path $repoDir "src\Workspaces\CoreTestUtilities\TestFiles\Directory.Build.targets") $temp
     ${env:TEMP} = $temp
     ${env:TMP} = $temp
 }
@@ -600,7 +598,7 @@ try {
 
     Process-Arguments
 
-    $msbuild, $msbuildDir = Ensure-MSBuildAndDir -msbuildDir $msbuildDir
+    $msbuild = Ensure-MSBuild
     $dotnet = Ensure-DotnetSdk
     $buildConfiguration = if ($release) { "Release" } else { "Debug" }
     $configDir = Join-Path $binariesDir $buildConfiguration
@@ -618,7 +616,7 @@ try {
 
     if ($restore) {
         Write-Host "Running restore"
-        Restore-All -msbuildDir $msbuildDir
+        Restore-All $dotnet
     }
 
     if ($isAnyTestSpecial) {
@@ -630,7 +628,7 @@ try {
         $bootstrapDir = Make-BootstrapBuild
     }
 
-    if ($build) {
+    if ($build -or $pack) {
         Build-Artifacts
     }
 

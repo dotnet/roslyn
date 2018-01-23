@@ -53,6 +53,8 @@
         "Dlls\\Diagnostics\\Roslyn.Hosting.Diagnostics.dll",
         "Dlls\\EditorFeatures\\Microsoft.CodeAnalysis.EditorFeatures.dll",
         "Dlls\\EditorFeatures\\*\\Microsoft.CodeAnalysis.EditorFeatures.resources.dll",
+        "Dlls\\EditorFeatures.Wpf\\Microsoft.CodeAnalysis.EditorFeatures.Wpf.dll",
+        "Dlls\\EditorFeatures.Wpf\\*\\Microsoft.CodeAnalysis.EditorFeatures.Wpf.dll",
         "Dlls\\Features\\Microsoft.CodeAnalysis.Features.dll",
         "Dlls\\Features\\*\\Microsoft.CodeAnalysis.Features.resources.dll",
         "Dlls\\InteractiveEditorFeatures\\Microsoft.CodeAnalysis.InteractiveEditorFeatures.dll",
@@ -69,9 +71,6 @@
         "Dlls\\ServicesVisualStudio\\*\\Microsoft.VisualStudio.LanguageServices.resources.dll",
         "Dlls\\SolutionExplorerShim\\Microsoft.VisualStudio.LanguageServices.SolutionExplorer.dll",
         "Dlls\\SolutionExplorerShim\\*\\Microsoft.VisualStudio.LanguageServices.SolutionExplorer.resources.dll",
-        "Dlls\\SyntaxVisualizerControl\\Roslyn.SyntaxVisualizer.Control.dll",
-        "Dlls\\SyntaxVisualizerDgmlHelper\\Roslyn.SyntaxVisualizer.DgmlHelper.dll",
-        "Dlls\\SyntaxVisualizerExtension\\Roslyn.SyntaxVisualizer.Extension.dll",
         "Dlls\\RazorServiceHub\\Microsoft.CodeAnalysis.Remote.Razor.ServiceHub.dll",
         "Dlls\\RazorVisualStudio\\Microsoft.VisualStudio.LanguageServices.Razor.RemoteClient.dll",
         "Dlls\\TextEditorFeatures\\Microsoft.CodeAnalysis.EditorFeatures.Text.dll",
@@ -85,6 +84,7 @@
         "Dlls\\XamlVisualStudio\\*\\Microsoft.VisualStudio.LanguageServices.Xaml.resources.dll",
         "Exes\\InteractiveHost\\InteractiveHost.exe",
         "Exes\\VBCSCompiler\\net46\\VBCSCompiler.exe",
+        "Exes\\VBCSCompiler\\netcoreapp2.0\\VBCSCompiler.dll",
         "Exes\\csc\\net46\\csc.exe",
         "Exes\\csc\\netcoreapp2.0\\csc.dll",
         "Exes\\csi\\net46\\csi.exe",
@@ -94,7 +94,6 @@
         "Exes\\vbi\\net46\\vbi.exe",
         "Exes\\vbi\\netcoreapp2.0\\vbi.dll",
         "Vsix\\CompilerExtension\\Roslyn.Compilers.Extension.dll",
-        "Vsix\\Templates\\Roslyn.Templates.dll",
         "Vsix\\VisualStudioDiagnosticsWindow\\Roslyn.VisualStudio.DiagnosticsWindow.dll",
         "Vsix\\VisualStudioDiagnosticsWindow\\*\\Roslyn.VisualStudio.DiagnosticsWindow.resources.dll",
         "Vsix\\VisualStudioInteractiveComponents\\Roslyn.VisualStudio.InteractiveComponents.dll"
@@ -106,7 +105,8 @@
       "values": [
         "Dlls\\ServicesTestUtilities\\Roslyn.Services.Test.Utilities.dll",
         "Dlls\\TestUtilities\\net461\\Roslyn.Test.Utilities.dll",
-        "Dlls\\VisualStudioIntegrationTestUtilities\\Microsoft.VisualStudio.IntegrationTest.Utilities.dll"
+        "Dlls\\VisualStudioIntegrationTestUtilities\\Microsoft.VisualStudio.IntegrationTest.Utilities.dll",
+        "Vsix\\VisualStudioIntegrationTestSetup\\Microsoft.VisualStudio.IntegrationTest.Setup.dll"
       ]
     },
     {
@@ -142,7 +142,7 @@
         "Vsix\\VisualStudioSetup.Next\\Roslyn.VisualStudio.Setup.Next.vsix",
         "Vsix\\VisualStudioSetup\\Roslyn.VisualStudio.Setup.vsix",
         "Vsix\\Roslyn\\RoslynDeployment.vsix",
-        "Vsix\\Templates\\Roslyn SDK.vsix"
+        "Vsix\\VisualStudioIntegrationTestSetup\\Microsoft.VisualStudio.IntegrationTest.Setup.vsix"
       ]
     },
     {
@@ -160,6 +160,7 @@
     "e_sqlite3.dll",
     "Humanizer.dll",
     "Humanizer.resources.dll",
+    "ICSharpCode.Decompiler.dll",
     "Microsoft.Build.Conversion.Core.dll",
     "Microsoft.Build.Engine.dll",
     "Microsoft.Build.Framework.dll",
@@ -174,6 +175,7 @@
     "Microsoft.CodeAnalysis.VisualBasic.1.0.1.nupkg",
     "Microsoft.CodeAnalysis.VisualBasic.Workspaces.1.0.1.nupkg",
     "Microsoft.CodeAnalysis.Workspaces.Common.1.0.1.nupkg",
+    "Microsoft.Diagnostics.Runtime.dll",
     "Microsoft.DiaSymReader.Native.amd64.dll",
     "Microsoft.DiaSymReader.Native.arm.dll",
     "Microsoft.DiaSymReader.Native.x86.dll",
@@ -182,6 +184,10 @@
     "Microsoft.VisualStudio.Threading.resources.dll",
     "Microsoft.VisualStudio.Validation.dll",
     "Microsoft.Win32.Primitives.dll",
+    "Mono.Cecil.dll",
+    "Mono.Cecil.Mdb.dll",
+    "Mono.Cecil.Pdb.dll",
+    "Mono.Cecil.Rocks.dll",
     "Nerdbank.FullDuplexStream.dll",
     "Newtonsoft.Json.dll",
     "NuGet.CommandLine.2.8.5.nupkg",
