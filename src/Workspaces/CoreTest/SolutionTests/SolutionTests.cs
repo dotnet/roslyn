@@ -32,8 +32,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
     {
         private static readonly MetadataReference s_mscorlib = TestReferences.NetFx.v4_0_30319.mscorlib;
 
-        public static byte[] GetResourceBytes(string fileName) => Resources.LoadBytes(fileName);
-
         private Solution CreateSolution()
         {
             return new AdhocWorkspace().CurrentSolution;
@@ -302,7 +300,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public async Task TestAddMetadataReferencesAsync()
         {
-            var csharpReference = MetadataReference.CreateFromImage(GetResourceBytes(@"CSharpProject.dll"));
+            var csharpReference = MetadataReference.CreateFromImage(Resources.Dlls.CSharpProject);
             var solution = CreateSolution();
             var project1 = ProjectId.CreateNewId();
             solution = solution.AddProject(project1, "goo", "goo.dll", LanguageNames.CSharp);

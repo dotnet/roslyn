@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
         {
             // Now try variant of CSharpProject that has an emitted assembly 
             CreateFiles(GetMultiProjectSolutionFiles()
-                .WithFile(@"CSharpProject\CSharpProject.csproj", Resources.LoadText("CSharpProject_CSharpProject_ForEmittedOutput.csproj")));
+                .WithFile(@"CSharpProject\CSharpProject.csproj", Resources.ProjectFiles.CSharp.ForEmittedOutput));
 
             var solutionFilePath = GetSolutionFileName("TestSolution.sln");
             using (var workspace = CreateMSBuildWorkspace())
