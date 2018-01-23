@@ -82,7 +82,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             switch (name.Name)
             {
-                case "System.IO.Pipes":
                 case "System.IO.Pipes.AccessControl":
                     return TryRedirectToRuntimesDir(name);
             }
