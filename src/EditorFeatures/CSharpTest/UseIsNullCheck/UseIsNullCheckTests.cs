@@ -220,7 +220,7 @@ class C
 
         [WorkItem(23581, "https://github.com/dotnet/roslyn/issues/23581")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
-        public async Task TestValueParameterTypeIsUnconstraintGeneric()
+        public async Task TestValueParameterTypeIsUnconstrainedGeneric()
         {
             await TestInRegularAndScriptAsync(
 @"

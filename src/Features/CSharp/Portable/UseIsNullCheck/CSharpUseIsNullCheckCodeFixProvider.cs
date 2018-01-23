@@ -31,13 +31,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
         private static SyntaxNode CreateIsNotNullCheck(SyntaxNode notExpression, SyntaxNode argument)
             => ((PrefixUnaryExpressionSyntax)notExpression).WithOperand((ExpressionSyntax)CreateIsNullCheck(argument));
 
-        protected override SyntaxNode CreateNullCheck(SyntaxNode argument, bool isUnconstraintGeneric)
-            => isUnconstraintGeneric
+        protected override SyntaxNode CreateNullCheck(SyntaxNode argument, bool isUnconstrainedGeneric)
+            => isUnconstrainedGeneric
                 ? CreateEqualsNullCheck(argument, SyntaxKind.EqualsExpression)
                 : CreateIsNullCheck(argument);
 
-        protected override SyntaxNode CreateNotNullCheck(SyntaxNode notExpression, SyntaxNode argument, bool isUnconstraintGeneric)
-            => isUnconstraintGeneric
+        protected override SyntaxNode CreateNotNullCheck(SyntaxNode notExpression, SyntaxNode argument, bool isUnconstrainedGeneric)
+            => isUnconstrainedGeneric
                 ? CreateEqualsNullCheck(argument, SyntaxKind.NotEqualsExpression)
                 : CreateIsNotNullCheck(notExpression, argument);
     }

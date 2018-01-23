@@ -18,13 +18,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseIsNullCheck
             Return VBFeaturesResources.Use_IsNot_Nothing_check
         End Function
 
-        Protected Overrides Function CreateNullCheck(argument As SyntaxNode, isUnconstraintGeneric As Boolean) As SyntaxNode
+        Protected Overrides Function CreateNullCheck(argument As SyntaxNode, isUnconstrainedGeneric As Boolean) As SyntaxNode
             Return SyntaxFactory.IsExpression(
                 DirectCast(argument, ExpressionSyntax).Parenthesize(),
                 SyntaxFactory.NothingLiteralExpression(SyntaxFactory.Token(SyntaxKind.NothingKeyword))).Parenthesize()
         End Function
 
-        Protected Overrides Function CreateNotNullCheck(notExpression As SyntaxNode, argument As SyntaxNode, isUnconstraintGeneric As Boolean) As SyntaxNode
+        Protected Overrides Function CreateNotNullCheck(notExpression As SyntaxNode, argument As SyntaxNode, isUnconstrainedGeneric As Boolean) As SyntaxNode
             Return SyntaxFactory.IsNotExpression(
                 DirectCast(argument, ExpressionSyntax).Parenthesize(),
                 SyntaxFactory.NothingLiteralExpression(SyntaxFactory.Token(SyntaxKind.NothingKeyword))).Parenthesize()
