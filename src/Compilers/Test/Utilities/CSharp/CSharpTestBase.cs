@@ -1250,6 +1250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         {
             var defaultRefs = useLatestFrameworkReferences ? s_latestOperationReferences : s_defaultOperationReferences;
             var references = additionalReferences == null ? defaultRefs : additionalReferences.Concat(defaultRefs);
+            parseOptions = parseOptions?.WithFlowAnalysisFeature() ?? TestOptions.RegularWithFlowAnalysisFeature;
             var compilation = CreateStandardCompilation(testSrc, references, sourceFileName: "file.cs", options: compilationOptions ?? TestOptions.ReleaseDll, parseOptions: parseOptions);
             VerifyFlowGraphAndDiagnosticsForTest<TSyntaxNode>(compilation, expectedFlowGraph, expectedDiagnostics);
         }

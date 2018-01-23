@@ -91,7 +91,27 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public ImmutableArray<Operations.BasicBlock> GetControlFlowGraph(Operations.IBlockOperation body)
         {
-            return Operations.ControlFlowGraphBuilder.Create(body);
+            if (body == null)
+            {
+                throw new ArgumentNullException(nameof(body));
+            }
+
+            if (!body.Syntax.SyntaxTree.Options.Features.ContainsKey("flow-analysis"))
+            {
+                throw new InvalidOperationException(CodeAnalysisResources.FlowAnalysisFeatureDisabled);
+            }
+
+            try
+            {
+                return Operations.ControlFlowGraphBuilder.Create(body);
+            }
+            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            {
+                // Log a Non-fatal-watson and then ignore the crash in the attempt of getting flow graph.
+                Debug.Assert(false, "\n" + e.ToString());
+            }
+
+            return default;
         }
 
         /// <summary>

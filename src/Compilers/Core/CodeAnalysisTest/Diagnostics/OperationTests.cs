@@ -3,7 +3,9 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -103,6 +105,43 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 (arguments, argumentNames, argumentRefKinds) => new DynamicObjectCreationExpression(arguments, argumentNames, argumentRefKinds, null, null, null, null, null, false);
 
             TestCore(createDynamicExpression);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TestFlowAnalysisFeatureFlag()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+    }
+}";
+            var tree = CSharpSyntaxTree.ParseText(source);
+            TestFlowAnalysisFeatureFlagCore(tree, expectException: true);
+
+            var options = tree.Options.WithFeatures(new[] { new KeyValuePair<string, string>("flow-analysis", "true") });
+            tree = tree.WithRootAndOptions(tree.GetRoot(), options);
+            TestFlowAnalysisFeatureFlagCore(tree, expectException: false);
+        }
+
+        private static void TestFlowAnalysisFeatureFlagCore(SyntaxTree tree, bool expectException)
+        {
+            var compilation = CSharpCompilation.Create("c", new[] { tree });
+            var model = compilation.GetSemanticModel(tree, ignoreAccessibility: true);
+            var blockSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BlockSyntax>().Last();
+            var operation = (IBlockOperation)model.GetOperation(blockSyntax);
+
+            if (expectException)
+            {
+                Assert.Throws<InvalidOperationException>(() => model.GetControlFlowGraph(operation));
+            }
+            else
+            {
+                ImmutableArray<BasicBlock> graph = model.GetControlFlowGraph(operation);
+                Assert.NotEmpty(graph);
+            }
         }
     }
 }

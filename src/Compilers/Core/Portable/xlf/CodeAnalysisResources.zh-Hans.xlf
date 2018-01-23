@@ -833,6 +833,11 @@
         <target state="new">Reported diagnostic has an ID '{0}', which only a compiler should be reporting.</target>
         <note />
       </trans-unit>
+      <trans-unit id="FlowAnalysisFeatureDisabled">
+        <source>Feature 'Flow-Analysis' is disabled.</source>
+        <target state="new">Feature 'Flow-Analysis' is disabled.</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

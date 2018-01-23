@@ -615,4 +615,7 @@
   <data name="ExceptionEnablingMulticoreJit" xml:space="preserve">
     <value>Warning: Could not enable multicore JIT due to exception: {0}.</value>
   </data>
+  <data name="FlowAnalysisFeatureDisabled" xml:space="preserve">
+    <value>Feature 'Flow-Analysis' is disabled.</value>
+  </data>
 </root>
