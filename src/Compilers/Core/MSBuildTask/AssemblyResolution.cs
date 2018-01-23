@@ -52,6 +52,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     return TryRedirect(name, s_b77a5c561934e089, 4, 1, 2, 0);
 
                 case "System.Console":
+                case "System.IO.Pipes":
                 case "System.Security.AccessControl":
                 case "System.Security.Cryptography.Primitives":
                 case "System.Security.Principal.Windows":
@@ -70,7 +71,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     return TryRedirect(name, s_b03f5f7f11d50a3a, 4, 1, 1, 0);
 
                 // Assemblies in the runtimes directory
-                case "System.IO.Pipes":
                 case "System.IO.Pipes.AccessControl":
                     return true;
             }
