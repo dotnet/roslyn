@@ -9653,7 +9653,7 @@ Test
     <file name="a.vb">
 Module Module1
     Sub Main()
-        Dim obj1 As New MyObject1 With {.MyDate = CDate("2017-11-13T14:25:00Z")}
+        Dim obj1 As New MyObject1 With {.MyDate = New Date(636461511000000000L)}
         Dim obj2 As New MyObject2(Of MyObject1)(obj1)
 
         System.Console.WriteLine(obj1.MyDate.Ticks)
@@ -9709,7 +9709,7 @@ False
     <file name="a.vb">
 Module Module1
     Sub Main()
-        Dim obj1 As New MyObject1 With {.MyDate = CDate("2017-11-13T14:25:00Z")}
+        Dim obj1 As New MyObject1 With {.MyDate = New Date(636461511000000000L)}
         Dim obj2 As New MyObject2(Of MyObject1)(obj1)
 
         System.Console.WriteLine(obj1.MyDate.Ticks)
