@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public readonly ImmutableArray<Guid> ThreadIds;
 
         /// <summary>
-        /// Aggregated accross <see cref="ThreadIds"/>.
+        /// Aggregated across <see cref="ThreadIds"/>.
         /// </summary>
         public readonly ActiveStatementFlags Flags;
 

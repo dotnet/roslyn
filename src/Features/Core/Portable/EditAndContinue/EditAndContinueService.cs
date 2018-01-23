@@ -75,9 +75,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         public void StartDebuggingSession(Solution currentSolution)
         {
-            Debug.Assert(_debuggingSession == null && _editSession == null);
+            Contract.ThrowIfNull(currentSolution);
 
-            Interlocked.CompareExchange(ref _debuggingSession, new DebuggingSession(currentSolution), null);
+            var previousSession = Interlocked.CompareExchange(ref _debuggingSession, new DebuggingSession(currentSolution), null);
+            Contract.ThrowIfFalse(previousSession == null, "New debugging session can't be started until the existing one has ended.");
 
             // TODO(tomat): allow changing documents
         }
@@ -87,7 +88,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             ImmutableDictionary<ProjectId, ProjectReadOnlyReason> projects,
             bool stoppedAtException)
         {
-            Debug.Assert(_debuggingSession != null && _editSession == null);
+            Contract.ThrowIfNull(currentSolution);
 
             var newSession = new EditSession(
                 currentSolution, 
@@ -97,7 +98,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 _nonRemappableRegions,
                 stoppedAtException);
 
-            Interlocked.CompareExchange(ref _editSession, newSession, null);
+            var previousSession = Interlocked.CompareExchange(ref _editSession, newSession, null);
+            Contract.ThrowIfFalse(previousSession == null, "New edit session can't be started until the existing one has ended.");
 
             // TODO(tomat): allow changing documents
             // TODO(tomat): document added
@@ -105,10 +107,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         public void EndEditSession(ImmutableDictionary<ActiveMethodId, ImmutableArray<NonRemappableRegion>> nonRemappableRegions)
         {
-            Debug.Assert(_debuggingSession != null && _editSession != null && nonRemappableRegions != null);
+            Contract.ThrowIfNull(nonRemappableRegions);
 
             // first, publish null session:
             var session = Interlocked.Exchange(ref _editSession, null);
+            Contract.ThrowIfNull(session, "Edit session has not started.");
 
             // then cancel all ongoing work bound to the session:
             session.Cancellation.Cancel();
@@ -124,8 +127,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         public void EndDebuggingSession()
         {
-            Debug.Assert(_debuggingSession != null && _editSession == null);
-            _debuggingSession = null;
+            var session = Interlocked.Exchange(ref _debuggingSession, null);
+            Contract.ThrowIfNull(session, "Debugging session has not started.");
         }
 
         public bool IsProjectReadOnly(ProjectId id, out SessionReadOnlyReason sessionReason, out ProjectReadOnlyReason projectReason)

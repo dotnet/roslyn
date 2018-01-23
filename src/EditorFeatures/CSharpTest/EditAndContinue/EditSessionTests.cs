@@ -167,11 +167,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         private static string Update(string src, string marker)
             => Insert(Delete(src, marker), marker);
 
-        private static string InspectAS(ActiveStatement statement)
+        private static string InspectActiveStatement(ActiveStatement statement)
             => $"{statement.Ordinal}: {statement.Span} flags=[{statement.Flags}] pdid={statement.PrimaryDocumentId.DebugName} docs=[{string.Join(",", statement.DocumentIds.Select(d => d.DebugName))}]";
 
         private static string InspectActiveStatementAndInstruction(ActiveStatement statement)
-            => InspectAS(statement) + " " + statement.InstructionId.GetDebuggerDisplay();
+            => InspectActiveStatement(statement) + " " + statement.InstructionId.GetDebuggerDisplay();
 
         private static string InspectActiveStatementAndInstruction(ActiveStatement statement, SourceText text)
             => InspectActiveStatementAndInstruction(statement) + $" '{GetFirstLineText(statement.Span, text)}'";
@@ -267,14 +267,14 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             {
                 "0: (9,14)-(9,35) flags=[IsLeafFrame, MethodUpToDate] pdid=test1.cs docs=[test1.cs]",
                 "1: (4,32)-(4,37) flags=[MethodUpToDate, IsNonLeafFrame] pdid=test1.cs docs=[test1.cs]"
-            }, baseActiveStatements.DocumentMap[docs[0]].Select(InspectAS));
+            }, baseActiveStatements.DocumentMap[docs[0]].Select(InspectActiveStatement));
 
             AssertEx.Equal(new[]
             {
                 "2: (21,14)-(21,24) flags=[MethodUpToDate, IsNonLeafFrame] pdid=test2.cs docs=[test2.cs]",
                 "3: (8,20)-(8,25) flags=[MethodUpToDate, IsNonLeafFrame] pdid=test2.cs docs=[test2.cs]",
                 "4: (26,20)-(26,25) flags=[MethodUpToDate, IsNonLeafFrame] pdid=test2.cs docs=[test2.cs]"
-            }, baseActiveStatements.DocumentMap[docs[1]].Select(InspectAS));
+            }, baseActiveStatements.DocumentMap[docs[1]].Select(InspectActiveStatement));
 
            // Exception Regions
 
@@ -576,7 +576,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             {
                 "0: (15,14)-(15,18) flags=[PartiallyExecuted, NonUserCode, MethodUpToDate, IsNonLeafFrame] pdid=test1.cs docs=[test1.cs]",
                 "1: (6,18)-(6,22) flags=[IsLeafFrame, MethodUpToDate, IsNonLeafFrame] pdid=test1.cs docs=[test1.cs]",
-            }, baseActiveStatements.DocumentMap[docs[0]].Select(InspectAS));
+            }, baseActiveStatements.DocumentMap[docs[0]].Select(InspectActiveStatement));
 
             Assert.Equal(2, baseActiveStatements.InstructionMap.Count);
 
@@ -672,29 +672,29 @@ class Test2
             {
                 "1: (3,29)-(3,49) flags=[MethodUpToDate, IsNonLeafFrame] pdid=test1.cs docs=[test1.cs,Project2->test1.cs,Project3->test1.cs]",
                 "2: (2,32)-(2,52) flags=[MethodUpToDate, IsNonLeafFrame] pdid=test1.cs docs=[test1.cs,Project2->test1.cs,Project3->test1.cs]"
-            }, documentMap[docs[0]].Select(InspectAS));
+            }, documentMap[docs[0]].Select(InspectActiveStatement));
 
             AssertEx.Equal(new[]
             {
                 "0: (3,29)-(3,49) flags=[IsLeafFrame, MethodUpToDate] pdid=test2.cs docs=[test2.cs,Project4->test2.cs]",
-            }, documentMap[docs[1]].Select(InspectAS));
+            }, documentMap[docs[1]].Select(InspectActiveStatement));
 
             AssertEx.Equal(new[]
             {
                 "1: (3,29)-(3,49) flags=[MethodUpToDate, IsNonLeafFrame] pdid=test1.cs docs=[test1.cs,Project2->test1.cs,Project3->test1.cs]",
                 "2: (2,32)-(2,52) flags=[MethodUpToDate, IsNonLeafFrame] pdid=test1.cs docs=[test1.cs,Project2->test1.cs,Project3->test1.cs]"
-            }, documentMap[docs[2]].Select(InspectAS));
+            }, documentMap[docs[2]].Select(InspectActiveStatement));
 
             AssertEx.Equal(new[]
             {
                 "1: (3,29)-(3,49) flags=[MethodUpToDate, IsNonLeafFrame] pdid=test1.cs docs=[test1.cs,Project2->test1.cs,Project3->test1.cs]",
                 "2: (2,32)-(2,52) flags=[MethodUpToDate, IsNonLeafFrame] pdid=test1.cs docs=[test1.cs,Project2->test1.cs,Project3->test1.cs]"
-            }, documentMap[docs[3]].Select(InspectAS));
+            }, documentMap[docs[3]].Select(InspectActiveStatement));
 
             AssertEx.Equal(new[]
             {
                 "0: (3,29)-(3,49) flags=[IsLeafFrame, MethodUpToDate] pdid=test2.cs docs=[test2.cs,Project4->test2.cs]",
-            }, documentMap[docs[4]].Select(InspectAS));
+            }, documentMap[docs[4]].Select(InspectActiveStatement));
 
             Assert.Equal(3, baseActiveStatements.InstructionMap.Count);
 
