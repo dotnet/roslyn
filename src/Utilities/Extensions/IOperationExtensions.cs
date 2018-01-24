@@ -165,6 +165,26 @@ namespace Analyzer.Utilities.Extensions
         }
 
         /// <summary>
+        /// Returns the topmost <see cref="IBlockOperation"/> containing the given <paramref name="operation"/>.
+        /// </summary>
+        public static IBlockOperation GetTopmostParentBlock(this IOperation operation)
+        {
+            IOperation currentOperation = operation;
+            IBlockOperation topmostBlockOperation = null;
+            while (currentOperation != null)
+            {
+                if (currentOperation is IBlockOperation blockOperation)
+                {
+                    topmostBlockOperation = blockOperation;
+                }
+
+                currentOperation = currentOperation.Parent;
+            }
+
+            return topmostBlockOperation;
+        }
+
+        /// <summary>
         /// Gets the first ancestor of this operation with the specified OperationKind. Returns null if there is no ancestor of the given kind.
         /// </summary>
         public static TOperation GetAncestor<TOperation>(this IOperation root, OperationKind ancestorKind) where TOperation : IOperation
