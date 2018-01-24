@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
             foreach (ActiveStatementTextSpan asSpan in _trackingService.GetSpans(snapshot.AsText()))
             {
-                if ((asSpan.Flags & ActiveStatementFlags.LeafFrame) != 0)
+                if (asSpan.IsLeaf)
                 {
                     continue;
                 }
