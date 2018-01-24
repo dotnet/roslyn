@@ -2630,7 +2630,7 @@ public unsafe class X
 }
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe.WithAllowUnsafe(true));
-            CompileAndVerify(compilation, expectedOutput:
+            CompileAndVerify(compilation, verify: Verification.Fails, expectedOutput:
 @"fixed
 fixed");
         }
@@ -6476,7 +6476,51 @@ False
 False";
             var compilation = CreateStandardCompilation(source, options: TestOptions.UnsafeReleaseExe);
             compilation.VerifyDiagnostics();
-            CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: Verification.Fails);
+        }
+
+        [Fact]
+        public void DefaultPattern()
+        {
+            var source =
+@"class Program
+{
+    public static void Main()
+    {
+        int i = 12;
+        if (i is default) {} // error 1
+        if (i is (default)) {} // error 2
+        if (i is (((default)))) {} // error 3
+        switch (i) { case default: break; } // error 4
+        switch (i) { case (default): break; } // error 5
+        switch (i) { case default when true: break; } // error 6
+        switch (i) { case (default) when true: break; } // error 7
+    }
+}";
+            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                // (6,18): error CS8363: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.
+                //         if (i is default) {} // error 1
+                Diagnostic(ErrorCode.ERR_DefaultInPattern, "default").WithLocation(6, 18),
+                // (7,19): error CS8363: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.
+                //         if (i is (default)) {} // error 2
+                Diagnostic(ErrorCode.ERR_DefaultInPattern, "default").WithLocation(7, 19),
+                // (8,21): error CS8363: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.
+                //         if (i is (((default)))) {} // error 3
+                Diagnostic(ErrorCode.ERR_DefaultInPattern, "default").WithLocation(8, 21),
+                // (9,27): error CS8313: A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.
+                //         switch (i) { case default: break; } // error 4
+                Diagnostic(ErrorCode.ERR_DefaultInSwitch, "default").WithLocation(9, 27),
+                // (10,28): error CS8313: A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.
+                //         switch (i) { case (default): break; } // error 5
+                Diagnostic(ErrorCode.ERR_DefaultInSwitch, "default").WithLocation(10, 28),
+                // (11,27): error CS8363: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.
+                //         switch (i) { case default when true: break; } // error 6
+                Diagnostic(ErrorCode.ERR_DefaultInPattern, "default").WithLocation(11, 27),
+                // (12,28): error CS8363: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.
+                //         switch (i) { case (default) when true: break; } // error 7
+                Diagnostic(ErrorCode.ERR_DefaultInPattern, "default").WithLocation(12, 28)
+                );
         }
     }
 }

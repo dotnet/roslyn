@@ -47,8 +47,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             IForegroundNotificationService notificationService,
             ISemanticChangeNotificationService semanticChangeNotificationService,
             ClassificationTypeMap typeMap,
-            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
-            : base(new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.Classification), notificationService)
+            IAsynchronousOperationListenerProvider listenerProvider)
+            : base(listenerProvider.GetListener(FeatureAttribute.Classification), notificationService)
         {
             _semanticChangeNotificationService = semanticChangeNotificationService;
             _typeMap = typeMap;
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         }
 
         private Task ProduceTagsAsync<TClassificationService>(
-            TaggerContext<IClassificationTag> context, 
+            TaggerContext<IClassificationTag> context,
             DocumentSnapshotSpan spanToTag,
             IClassificationDelegationService<TClassificationService> delegationService)
             where TClassificationService : class, ILanguageService

@@ -1185,7 +1185,8 @@ unsafe class C
                 optimizationLevel: OptimizationLevel.Release,
                 allowUnsafe: true));
 
-            CompileAndVerify(compilation, symbolValidator: module =>
+            //Skipped because PeVerify fails to run with "The module  was expected to contain an assembly manifest."
+            CompileAndVerify(compilation, verify: Verification.Skipped, symbolValidator: module =>
             {
                 var unverifiableCode = module.GetAttributes().Single();
 
@@ -1198,7 +1199,7 @@ unsafe class C
                 {
                     // Modules security attributes are copied to assemblies they're included in
                     var moduleReference = ModuleMetadata.CreateFromImage(compilation.EmitToArray()).GetReference();
-                    CompileAndVerify("", additionalRefs: new[] { moduleReference }, symbolValidator: validateSecurity);
+                    CompileAndVerify("", additionalRefs: new[] { moduleReference }, symbolValidator: validateSecurity, verify: Verification.Skipped);
                 }
                 else
                 {

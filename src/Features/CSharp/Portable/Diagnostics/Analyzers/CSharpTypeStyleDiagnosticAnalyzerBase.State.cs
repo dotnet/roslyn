@@ -94,8 +94,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
                 var typeSyntax = GetTypeSyntaxFromDeclaration(declarationStatement);
 
                 return typeSyntax != null
-                    ? semanticModel.GetTypeInfo(typeSyntax).Type?.IsSpecialType() == true
+                    ? IsMadeOfSpecialTypes(semanticModel.GetTypeInfo(typeSyntax).Type)
                     : false;
+            }
+
+            /// <summary>
+            /// Returns true for type that are arrays/nullable/pointer types of special types
+            /// </summary>
+            private bool IsMadeOfSpecialTypes(ITypeSymbol type)
+            {
+                if (type == null)
+                {
+                    return false;
+                }
+
+                while (true)
+                {
+                    type = type.RemoveNullableIfPresent();
+
+                    if (type.IsArrayType())
+                    {
+                        type = ((IArrayTypeSymbol)type).ElementType;
+                        continue;
+                    }
+
+                    if (type.IsPointerType())
+                    {
+                        type = ((IPointerTypeSymbol)type).PointedAtType;
+                        continue;
+                    }
+
+                    return type.IsSpecialType();
+                }
             }
 
             private bool IsInferredPredefinedType(SyntaxNode declarationStatement, SemanticModel semanticModel, CancellationToken cancellationToken)
@@ -109,13 +139,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
 
             private TypeSyntax GetTypeSyntaxFromDeclaration(SyntaxNode declarationStatement)
             {
-                if (declarationStatement is VariableDeclarationSyntax varDecl)
+                switch (declarationStatement)
                 {
-                    return varDecl.Type;
-                }
-                else if (declarationStatement is ForEachStatementSyntax forEach)
-                {
-                    return forEach.Type;
+                    case VariableDeclarationSyntax varDecl:
+                        return varDecl.Type;
+                    case ForEachStatementSyntax forEach:
+                        return forEach.Type;
+                    case DeclarationExpressionSyntax declExpr:
+                        return declExpr.Type;
                 }
 
                 return null;

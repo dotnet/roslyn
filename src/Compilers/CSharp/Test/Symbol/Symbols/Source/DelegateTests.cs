@@ -131,7 +131,7 @@ class A {
             Assert.Equal(0, v.Arity); // number of type parameters
             Assert.Equal(1, v.DelegateInvokeMethod.Parameters.Length);
             Assert.Equal(Accessibility.Internal, v.DeclaredAccessibility);
-            Assert.Equal("System.MulticastDelegate", v.BaseType.ToTestDisplayString());
+            Assert.Equal("System.MulticastDelegate", v.BaseType().ToTestDisplayString());
         }
 
         [WorkItem(537188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537188")]
@@ -210,7 +210,7 @@ namespace System
             Assert.Equal(d.DelegateInvokeMethod.Parameters[0].Type, q);
 
             // same as type parameter
-            Assert.Equal(1, d.TypeArguments.Length);
+            Assert.Equal(1, d.TypeArguments().Length);
         }
 
         [WorkItem(537401, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537401")]

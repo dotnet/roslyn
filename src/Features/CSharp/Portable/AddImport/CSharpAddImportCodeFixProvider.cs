@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.SymbolSearch;
 
@@ -122,7 +123,8 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
                 CS0616,
                 CS1580,
                 CS1581,
-                CS8129);
+                CS8129,
+                IDEDiagnosticIds.UnboundIdentifierId);
 
         public static ImmutableArray<string> FixableDiagnosticIds =
             FixableTypeIds.Concat(ImmutableArray.Create(

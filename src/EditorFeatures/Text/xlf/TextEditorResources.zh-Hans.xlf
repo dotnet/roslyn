@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="textContainer_is_not_a_SourceTextContainer_that_was_created_from_an_ITextBuffer">
         <source>textContainer is not a SourceTextContainer that was created from an ITextBuffer.</source>
-        <target state="new">textContainer is not a SourceTextContainer that was created from an ITextBuffer.</target>
+        <target state="translated">textContainer 不是从 ITextBuffer 创建的 SourceTextContainer。</target>
         <note />
       </trans-unit>
     </body>

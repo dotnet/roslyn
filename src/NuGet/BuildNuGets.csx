@@ -132,6 +132,10 @@ string[] NonRedistPackageNames = {
     "Microsoft.NETCore.Compilers",
     "Microsoft.VisualStudio.IntegrationTest.Utilities",
     "Microsoft.VisualStudio.LanguageServices.Razor.RemoteClient",
+
+    // Right now there is no public surface area in this assembly, and the expectation is it will be able to go away
+    // as the editor continues to refactor its surface area better.
+    "Microsoft.CodeAnalysis.EditorFeatures.Wpf"
 };
 
 string[] TestPackageNames = {
