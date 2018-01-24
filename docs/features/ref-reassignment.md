@@ -40,4 +40,4 @@ before the `out` parameter is ref-reassigned to a new reference.
 The lifetime for a `ref` local or parameter is fixed on declaration and
 cannot be reassigned with ref-reassignment. The lifetime requirements for the
 right-hand expression are the same as for the right-hand expression in a
-variable declaration statement.
+variable assignment, identical to the lifetime for Span<T> assignments.
