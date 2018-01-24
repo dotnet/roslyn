@@ -162,6 +162,15 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
 
         private static void Report(Exception exception, Action<Exception> handler)
         {
+            // hold onto last exception to make investigation easier
+            s_reportedException = exception;
+            s_reportedExceptionMessage = exception.ToString();
+
+            if (handler == null)
+            {
+                return;
+            }
+
             // only report exception once
             if (exception.Data[s_reportedMarker] != null)
             {
@@ -179,11 +188,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
                 exception.Data[s_reportedMarker] = s_reportedMarker;
             }
 
-            // hold onto last exception to make investigation easier
-            s_reportedException = exception;
-            s_reportedExceptionMessage = exception.ToString();
-
-            handler?.Invoke(exception);
+            handler.Invoke(exception);
         }
     }
 }
