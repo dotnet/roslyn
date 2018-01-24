@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                         {
                             Process.Exited -= ProcessExitedHandler;
                             _processExitHandlerStatus = ProcessExitHandlerStatus.Handled;
-                            // Should set _processExitHandling before calling OnProcessExited to avoid deadlocks.
+                            // Should set _processExitHandlerStatus before calling OnProcessExited to avoid deadlocks.
                             await _host.OnProcessExited(Process).ConfigureAwait(false);
                         }
                     }
