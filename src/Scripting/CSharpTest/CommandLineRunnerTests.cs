@@ -136,10 +136,15 @@ Enumerable.WhereSelectArrayIterator<int, int> {{ 9, 16, 25 }}
                 runner.Console.Error.ToString());
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/17043")]
         [WorkItem(7133, "http://github.com/dotnet/roslyn/issues/7133")]
         public void TestDisplayResultsWithCurrentUICulture1()
         {
+            // logoOutput needs to be retrieved before the runner is started, because the runner changes the culture to de-DE. 
+            var logoOutput = $@"{ string.Format(CSharpScriptingResources.LogoLine1, s_compilerVersion) }
+{ CSharpScriptingResources.LogoLine2}
+
+{ ScriptingResources.HelpPrompt}";
             var runner = CreateRunner(input:
 @"using System.Globalization;
 CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(""en-GB"", useUserOverride: false)
@@ -150,10 +155,7 @@ Math.PI
             runner.RunInteractive();
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
-$@"{ string.Format(CSharpScriptingResources.LogoLine1, s_compilerVersion) }
-{CSharpScriptingResources.LogoLine2}
-
-{ScriptingResources.HelpPrompt}
+$@"{ logoOutput }
 > using System.Globalization;
 > CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(""en-GB"", useUserOverride: false)
 [en-GB]
@@ -166,7 +168,7 @@ $@"{ string.Format(CSharpScriptingResources.LogoLine1, s_compilerVersion) }
 >", runner.Console.Out.ToString());
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/17043")]
         [WorkItem(7133, "http://github.com/dotnet/roslyn/issues/7133")]
         public void TestDisplayResultsWithCurrentUICulture2()
         {

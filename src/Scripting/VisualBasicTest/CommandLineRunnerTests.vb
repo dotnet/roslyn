@@ -137,7 +137,11 @@ VBScriptingResources.LogoLine2 + "
 
         <Fact()>
         <WorkItem(7133, "https://github.com/dotnet/roslyn/issues/7133")>
-        Public Sub TestDisplayResultsWithCurrentUICulture()
+        Public Sub TestDisplayResultsWithCurrentUICulture1()
+            Dim logoText = String.Format(VBScriptingResources.LogoLine1, s_compilerVersion) + vbNewLine +
+VBScriptingResources.LogoLine2 + "
+
+" + ScriptingResources.HelpPrompt
             Dim runner = CreateRunner(args:={}, input:="Imports System.Globalization
 System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = System.Globalization.CultureInfo.GetCultureInfo(""en-GB"")
 ? System.Math.PI
@@ -147,10 +151,7 @@ System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = System.Globaliz
             runner.RunInteractive()
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
-String.Format(VBScriptingResources.LogoLine1, s_compilerVersion) + vbNewLine +
-VBScriptingResources.LogoLine2 + "
-
-" + ScriptingResources.HelpPrompt + "
+logoText + "
 > Imports System.Globalization
 > System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = System.Globalization.CultureInfo.GetCultureInfo(""en-GB"")
 > ? System.Math.PI
@@ -159,9 +160,17 @@ VBScriptingResources.LogoLine2 + "
 > ? System.Math.PI
 3,1415926535897931
 >", runner.Console.Out.ToString())
+        End Sub
 
+        <Fact()>
+        <WorkItem(7133, "https://github.com/dotnet/roslyn/issues/7133")>
+        Public Sub TestDisplayResultsWithCurrentUICulture2()
             ' Tests that DefaultThreadCurrentUICulture is respected and not DefaultThreadCurrentCulture.
-            runner = CreateRunner(args:={}, input:="Imports System.Globalization
+            Dim logoText = String.Format(VBScriptingResources.LogoLine1, s_compilerVersion) + vbNewLine +
+VBScriptingResources.LogoLine2 + "
+
+" + ScriptingResources.HelpPrompt
+            Dim runner = CreateRunner(args:={}, input:="Imports System.Globalization
 System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = System.Globalization.CultureInfo.GetCultureInfo(""en-GB"")
 System.Globalization.CultureInfo.DefaultThreadCurrentCulture = System.Globalization.CultureInfo.GetCultureInfo(""en-GB"")
 ? System.Math.PI
@@ -171,10 +180,7 @@ System.Globalization.CultureInfo.DefaultThreadCurrentCulture = System.Globalizat
             runner.RunInteractive()
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
-"Microsoft (R) Visual Basic – interaktive Compilerversion " + s_compilerVersion + "
-Copyright (C) Microsoft Corporation. Alle Rechte vorbehalten.
-
-Weitere Informationen erhalten Sie nach der Eingabe von ""#help"".
+logoText + "
 > Imports System.Globalization
 > System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = System.Globalization.CultureInfo.GetCultureInfo(""en-GB"")
 > System.Globalization.CultureInfo.DefaultThreadCurrentCulture = System.Globalization.CultureInfo.GetCultureInfo(""en-GB"")
