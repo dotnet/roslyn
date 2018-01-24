@@ -209,9 +209,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public string GetQuickInfo()
             => ExecuteOnActiveView(view =>
             {
-#pragma warning disable CS0618 // IQuickInfo* is obsolete
+#pragma warning disable CS0618 // IQuickInfo* is obsolete, tracked by https://github.com/dotnet/roslyn/issues/24094
                 var broker = GetComponentModelService<IQuickInfoBroker>();
-#pragma warning restore CS0618 // IQuickInfo* is obsolete
+#pragma warning restore CS0618 // IQuickInfo* is obsolete, tracked by https://github.com/dotnet/roslyn/issues/24094
 
                 var sessions = broker.GetSessions(view);
                 if (sessions.Count != 1)
