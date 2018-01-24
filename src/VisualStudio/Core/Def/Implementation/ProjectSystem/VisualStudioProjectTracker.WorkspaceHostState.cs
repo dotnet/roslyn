@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
@@ -53,12 +54,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             private void AddToPushListIfNeeded(AbstractProject project, List<AbstractProject> inOrderToPush, HashSet<AbstractProject> visited)
             {
-                AssertIsForeground();                
+                AssertIsForeground();
+
                 Contract.ThrowIfFalse(_tracker.ContainsProject(project));
 
                 // Bail out if any of the following is true:
                 //  1. We have already started pushing changes for this project OR
-                //  2. We have already visited this project in a prior recursive call                
+                //  2. We have already visited this project in a prior recursive call
                 if (_pushedProjects.Contains(project) || !visited.Add(project))
                 {
                     return;
@@ -66,7 +68,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 foreach (var projectReference in project.GetCurrentProjectReferences())
                 {
-                    AddToPushListIfNeeded(_tracker.GetProject(projectReference.ProjectId), inOrderToPush, visited);
+                    var referencedProject = _tracker.GetProject(projectReference.ProjectId);
+                    if (referencedProject == null)
+                    {
+                        // don't crash and ignore invalid p2p reference. and use
+                        // non fatal watson to report.
+                        WatsonReporter.Report(new Exception("missing project reference"));
+                        continue;
+                    }
+
+                    AddToPushListIfNeeded(referencedProject, inOrderToPush, visited);
                 }
 
                 inOrderToPush.Add(project);
