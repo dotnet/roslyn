@@ -14,9 +14,6 @@ namespace Microsoft.CodeAnalysis.Interactive
     {
         internal sealed class RemoteService
         {
-            private const int ProcessExitHooked = 1;
-            private const int ProcessExitHandled = 2;
-
             public readonly Process Process;
             public readonly Service Service;
             private readonly int _processId;
@@ -26,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             private Thread _readOutputThread;           // nulled on dispose
             private Thread _readErrorOutputThread;      // nulled on dispose
             private InteractiveHost _host;              // nulled on dispose
-            private volatile int _processExitHandling;  // set to ProcessExitHandled on dispose
+            private volatile ProcessExitHandlerStatus _processExitHandlerStatus;  // set to Handled on dispose
 
             internal RemoteService(InteractiveHost host, Process process, int processId, Service service)
             {
@@ -38,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 this.Process = process;
                 _processId = processId;
                 this.Service = service;
-                _processExitHandling = 0;
+                _processExitHandlerStatus = ProcessExitHandlerStatus.Uninitialized;
 
                 // TODO (tomat): consider using single-thread async readers
                 _readOutputThread = new Thread(() => ReadOutput(error: false));
@@ -54,13 +51,13 @@ namespace Microsoft.CodeAnalysis.Interactive
 
             internal void HookAutoRestartEvent()
             {
-                using(_disposeSemaphore.DisposableWait())
+                using (_disposeSemaphore.DisposableWait())
                 {
                     // hook the event only once per process:
-                    if (_processExitHandling == 0)
+                    if (_processExitHandlerStatus == ProcessExitHandlerStatus.Uninitialized)
                     {
                         Process.Exited += ProcessExitedHandler;
-                        _processExitHandling = ProcessExitHooked;
+                        _processExitHandlerStatus = ProcessExitHandlerStatus.Hooked;
                     }
                 }
             }
@@ -71,10 +68,10 @@ namespace Microsoft.CodeAnalysis.Interactive
                 {
                     using (await _disposeSemaphore.DisposableWaitAsync().ConfigureAwait(false))
                     {
-                        if (_processExitHandling == ProcessExitHooked)
+                        if (_processExitHandlerStatus == ProcessExitHandlerStatus.Hooked)
                         {
                             Process.Exited -= ProcessExitedHandler;
-                            _processExitHandling = ProcessExitHandled;
+                            _processExitHandlerStatus = ProcessExitHandlerStatus.Handled;
                             // Should set _processExitHandling before calling OnProcessExited to avoid deadlocks.
                             await _host.OnProcessExited(Process).ConfigureAwait(false);
                         }
@@ -120,14 +117,14 @@ namespace Microsoft.CodeAnalysis.Interactive
             {
                 // There can be a call from host initiated from OnProcessExit. 
                 // This check on the beginning helps to avoid a reentrancy.
-                if (_processExitHandling == ProcessExitHooked)
+                if (_processExitHandlerStatus == ProcessExitHandlerStatus.Hooked)
                 {
                     using (_disposeSemaphore.DisposableWait())
                     {
-                        if (_processExitHandling == ProcessExitHooked)
+                        if (_processExitHandlerStatus == ProcessExitHandlerStatus.Hooked)
                         {
                             Process.Exited -= ProcessExitedHandler;
-                            _processExitHandling = ProcessExitHandled;
+                            _processExitHandlerStatus = ProcessExitHandlerStatus.Handled;
                         }
                     }
                 }
@@ -171,6 +168,13 @@ namespace Microsoft.CodeAnalysis.Interactive
                 {
                     Debug.WriteLine("InteractiveHostProcess: can't terminate process {0}: {1}", processId, e.Message);
                 }
+            }
+
+            private enum ProcessExitHandlerStatus
+            {
+                Uninitialized = 0,
+                Hooked = 1,
+                Handled = 2
             }
         }
     }
