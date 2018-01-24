@@ -395,14 +395,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return InferResultNullability(conversion, targetType, valueResult, allowImplicitConversions: true);
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Remove.
         private static BoundExpression CreatePlaceholderExpressionIfNecessary(BoundExpression value, Result valueResult)
         {
             var valueType = valueResult.Type;
             return valueResult.Expression ?? new BoundValuePlaceholder(value.Syntax, valueType?.IsNullable, valueType?.TypeSymbol);
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Remove.
         private static ImmutableArray<BoundExpression> CreatePlaceholderExpressionsIfNecessary(ImmutableArray<BoundExpression> values, ImmutableArray<Result> valueResults)
         {
             return valueResults.ZipAsArray(values, (r, v) => CreatePlaceholderExpressionIfNecessary(v, r));
@@ -3527,7 +3525,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // PROTOTYPE(NullableReferenceTypes): Replace Result with BoundNode, making
         // NullableWalker a proper rewriter instead, returning the result (the rewritten
-        // BoundNode) from each Visit method rather than storing Result in this.State.
+        // BoundNode) from each Visit method rather than storing in _result.
         [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
         internal struct Result
         {

@@ -8473,7 +8473,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         public override BoundNode VisitLambda(BoundLambda node)
         {
-            this.Visit(node.UnboundLambda);
             this.Visit(node.Body);
             return null;
         }
@@ -9357,7 +9356,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         public override BoundNode VisitLambda(BoundLambda node)
         {
-            UnboundLambda unboundLambda = (UnboundLambda)this.Visit(node.UnboundLambda);
+            UnboundLambda unboundLambda = node.UnboundLambda;
             BoundBlock body = (BoundBlock)this.Visit(node.Body);
             TypeSymbol type = this.VisitType(node.Type);
             return node.Update(unboundLambda, node.Symbol, body, node.Diagnostics, node.Binder, type);
