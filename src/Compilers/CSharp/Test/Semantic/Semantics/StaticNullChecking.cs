@@ -17329,5 +17329,175 @@ class C
                 //         S s = (S)null;
                 Diagnostic(ErrorCode.ERR_ValueCantBeNull, "(S)null").WithArguments("S").WithLocation(6, 15));
         }
+
+        [Fact]
+        public void TaskReturnValue_NonAsync()
+        {
+            var source =
+@"using System.Threading.Tasks;
+class C
+{
+    static Task F()
+    {
+        return Task.Delay(0);
+    }
+    static Task<object> F(object? x)
+    {
+        return Task.FromResult(x);
+    }
+    static Task<object[]> F(object? x, object y)
+    {
+        return Task.FromResult(new[] { x, y });
+    }
+    static Task<object?> G(object? x)
+    {
+        return Task.FromResult(x);
+    }
+    static Task<object?[]> G(object? x, object y)
+    {
+        return Task.FromResult(new[] { x, y });
+    }
+}";
+            var comp = CreateCompilationWithMscorlib46(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (10,16): warning CS8619: Nullability of reference types in value of type 'Task<object?>' doesn't match target type 'Task<object>'.
+                //         return Task.FromResult(x);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "Task.FromResult(x)").WithArguments("System.Threading.Tasks.Task<object?>", "System.Threading.Tasks.Task<object>").WithLocation(10, 16),
+                // (14,16): warning CS8619: Nullability of reference types in value of type 'Task<object?[]>' doesn't match target type 'Task<object[]>'.
+                //         return Task.FromResult(new[] { x, y });
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "Task.FromResult(new[] { x, y })").WithArguments("System.Threading.Tasks.Task<object?[]>", "System.Threading.Tasks.Task<object[]>").WithLocation(14, 16));
+        }
+
+        [Fact]
+        public void TaskReturnValue_Async()
+        {
+            var source =
+@"using System.Threading.Tasks;
+class C
+{
+    static async Task F()
+    {
+        await Task.Delay(0);
+        return;
+    }
+    static async Task<object> F(object? x)
+    {
+        await Task.Delay(0);
+        return x;
+    }
+    static async Task<object[]> F(object? x, object y)
+    {
+        await Task.Delay(0);
+        return new[] { x, y };
+    }
+    static async Task<object?> G(object? x)
+    {
+        await Task.Delay(0);
+        return x;
+    }
+    static async Task<object?[]> G(object? x, object y)
+    {
+        await Task.Delay(0);
+        return new[] { x, y };
+    }
+}";
+            var comp = CreateCompilationWithMscorlib46(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (12,16): warning CS8603: Possible null reference return.
+                //         return x;
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "x").WithLocation(12, 16),
+                // (17,16): warning CS8619: Nullability of reference types in value of type 'object?[]' doesn't match target type 'object[]'.
+                //         return new[] { x, y };
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "new[] { x, y }").WithArguments("object?[]", "object[]").WithLocation(17, 16));
+        }
+
+        [Fact]
+        public void TaskReturnValue_NonAsyncLambda()
+        {
+            var source =
+@"using System;
+using System.Threading.Tasks;
+class C
+{
+    static void F(object? x, object y)
+    {
+        Func<Task> a = () =>
+        {
+            return Task.Delay(0);
+        };
+        Func<Task<object>> b = () =>
+        {
+            return Task.FromResult(x);
+        };
+        Func<Task<object[]>> c = () =>
+        {
+            return Task.FromResult(new[] { x, y });
+        };
+        Func<Task<object?>> d = () =>
+        {
+            return Task.FromResult(x);
+        };
+        Func<Task<object?[]>> e = () =>
+        {
+            return Task.FromResult(new[] { x, y });
+        };
+    }
+}";
+            var comp = CreateCompilationWithMscorlib46(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (13,20): warning CS8619: Nullability of reference types in value of type 'Task<object?>' doesn't match target type 'Task<object>'.
+                //             return Task.FromResult(x);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "Task.FromResult(x)").WithArguments("System.Threading.Tasks.Task<object?>", "System.Threading.Tasks.Task<object>").WithLocation(13, 20),
+                // (17,20): warning CS8619: Nullability of reference types in value of type 'Task<object?[]>' doesn't match target type 'Task<object[]>'.
+                //             return Task.FromResult(new[] { x, y });
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "Task.FromResult(new[] { x, y })").WithArguments("System.Threading.Tasks.Task<object?[]>", "System.Threading.Tasks.Task<object[]>").WithLocation(17, 20));
+        }
+
+        [Fact]
+        public void TaskReturnValue_AsyncLambda()
+        {
+            var source =
+@"using System;
+using System.Threading.Tasks;
+class C
+{
+    static void F(object? x, object y)
+    {
+        Func<Task> a = async () =>
+        {
+            await Task.Delay(0);
+            return;
+        };
+        Func<Task<object>> b = async () =>
+        {
+            await Task.Delay(0);
+            return x;
+        };
+        Func<Task<object[]>> c = async () =>
+        {
+            await Task.Delay(0);
+            return new[] { x, y };
+        };
+        Func<Task<object?>> d = async () =>
+        {
+            await Task.Delay(0);
+            return x;
+        };
+        Func<Task<object?[]>> e = async () =>
+        {
+            await Task.Delay(0);
+            return new[] { x, y };
+        };
+    }
+}";
+            var comp = CreateCompilationWithMscorlib46(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (15,20): warning CS8603: Possible null reference return.
+                //             return x;
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "x").WithLocation(15, 20),
+                // (20,20): warning CS8619: Nullability of reference types in value of type 'object?[]' doesn't match target type 'object[]'.
+                //             return new[] { x, y };
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "new[] { x, y }").WithArguments("object?[]", "object[]").WithLocation(20, 20));
+        }
     }
 }

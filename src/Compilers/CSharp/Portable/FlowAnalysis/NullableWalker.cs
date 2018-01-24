@@ -67,13 +67,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private NullableWalker(
             CSharpCompilation compilation,
-            Symbol member,
+            MethodSymbol member,
             BoundNode node,
             bool includeNonNullableWarnings)
             : base(compilation, member, node, new EmptyStructTypeCache(compilation, dev12CompilerCompatibility: false), trackUnassignments: false)
         {
             _sourceAssembly = ((object)member == null) ? null : (SourceAssemblySymbol)member.ContainingAssembly;
-            this._currentMethodOrLambda = member as MethodSymbol;
+            this._currentMethodOrLambda = member;
             _includeNonNullableWarnings = includeNonNullableWarnings;
             _binder = compilation.GetBinderFactory(node.SyntaxTree).GetBinder(node.Syntax);
             _conversions = _binder.Conversions.WithNullability();
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Perform data flow analysis, reporting all necessary diagnostics.
         /// </summary>
-        public static void Analyze(CSharpCompilation compilation, Symbol member, BoundNode node, DiagnosticBag diagnostics)
+        public static void Analyze(CSharpCompilation compilation, MethodSymbol member, BoundNode node, DiagnosticBag diagnostics)
         {
             Debug.Assert(diagnostics != null);
 
@@ -734,7 +734,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             //if (this.State.Reachable) // PROTOTYPE(NullableReferenceTypes): Consider reachability?
             {
-                TypeSymbolWithAnnotations returnType = this._currentMethodOrLambda?.ReturnType;
+                TypeSymbolWithAnnotations returnType = GetReturnType(this._currentMethodOrLambda);
                 result = CheckImplicitConversion(expr, returnType.TypeSymbol, result, conversion);
 
                 if (result.Type?.IsNullable == true)
@@ -748,6 +748,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return null;
+        }
+
+        private TypeSymbolWithAnnotations GetReturnType(MethodSymbol method)
+        {
+            var returnType = method.ReturnType;
+            return method.IsGenericTaskReturningAsync(compilation) ?
+                ((NamedTypeSymbol)returnType.TypeSymbol).TypeArgumentsNoUseSiteDiagnostics[0] :
+                returnType;
         }
 
         // PROTOTYPE(NullableReferenceTypes): Move some of the Visit
@@ -910,7 +918,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitObjectCreationExpression(BoundObjectCreationExpression node)
         {
             Debug.Assert(!IsConditionalState);
-            VisitArguments(node.Arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Constructor, node.ArgsToParamsOpt, node.Expanded);
+            VisitArguments(node, node.Arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Constructor, node.ArgsToParamsOpt, node.Expanded);
             VisitObjectOrDynamicObjectCreation(node, node.InitializerExpressionOpt);
             return null;
         }
@@ -996,7 +1004,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var symbol = objectInitializer.MemberSymbol;
                         if (!objectInitializer.Arguments.IsDefaultOrEmpty)
                         {
-                            VisitArguments(objectInitializer.Arguments, objectInitializer.ArgumentNamesOpt, objectInitializer.ArgumentRefKindsOpt, (PropertySymbol)symbol, objectInitializer.ArgsToParamsOpt, objectInitializer.Expanded);
+                            VisitArguments(objectInitializer, objectInitializer.Arguments, objectInitializer.ArgumentNamesOpt, objectInitializer.ArgumentRefKindsOpt, (PropertySymbol)symbol, objectInitializer.ArgsToParamsOpt, objectInitializer.Expanded);
                         }
                         int slot = (containingSlot < 0) ? -1 : GetOrCreateSlot(symbol, containingSlot);
                         VisitObjectCreationInitializer(symbol, slot, node.Right);
@@ -1016,7 +1024,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // of omitted call. See PreciseAbstractFlowPass.VisitCollectionElementInitializer.
             }
 
-            VisitArguments(node.Arguments, default, default, node.AddMethod, node.ArgsToParamsOpt, node.Expanded);
+            VisitArguments(node, node.Arguments, default, default, node.AddMethod, node.ArgsToParamsOpt, node.Expanded);
             SetUnknownResultNullability();
         }
 
@@ -1617,18 +1625,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // PROTOTYPE(NullableReferenceTypes): Update method based on inferred receiver type.
             }
 
-            var names = node.ArgumentNamesOpt;
-            var refKindsOpt = node.ArgumentRefKindsOpt;
-            var argsToParamsOpt = node.ArgsToParamsOpt;
-            var arguments = RemoveArgumentConversions(node.Arguments, refKindsOpt);
-            ImmutableArray<Result> results = VisitArgumentsEvaluate(arguments, refKindsOpt, argsToParamsOpt, node.Expanded);
-            ImmutableArray<BoundExpression> updatedArguments = CreatePlaceholderExpressionsIfNecessary(arguments, results);
-            if (method.IsGenericMethod && !HasExplicitTypeArguments(node))
+            if (!node.HasErrors)
             {
-                method = InferMethod(node, method, updatedArguments);
+                var names = node.ArgumentNamesOpt;
+                var refKindsOpt = node.ArgumentRefKindsOpt;
+                var argsToParamsOpt = node.ArgsToParamsOpt;
+                var arguments = RemoveArgumentConversions(node.Arguments, refKindsOpt);
+                ImmutableArray<Result> results = VisitArgumentsEvaluate(arguments, refKindsOpt, argsToParamsOpt, node.Expanded);
+                ImmutableArray<BoundExpression> updatedArguments = CreatePlaceholderExpressionsIfNecessary(arguments, results);
+                if (method.IsGenericMethod && !HasExplicitTypeArguments(node))
+                {
+                    method = InferMethod(node, method, updatedArguments);
+                }
+                var conversions = GetArgumentConversions(updatedArguments, names, refKindsOpt, method, node.Expanded, _binder);
+                VisitArgumentsWarn(arguments, conversions, refKindsOpt, method.Parameters, argsToParamsOpt, node.Expanded, results);
             }
-            var conversions = GetArgumentConversions(updatedArguments, names, refKindsOpt, method, node.Expanded, _binder);
-            VisitArgumentsWarn(arguments, conversions, refKindsOpt, method.Parameters, argsToParamsOpt, node.Expanded, results);
 
             UpdateStateForCall(node);
 
@@ -1668,8 +1679,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             throw ExceptionUtilities.Unreachable;
         }
 
-        private void VisitArguments(ImmutableArray<BoundExpression> arguments, ImmutableArray<string> namesOpt, ImmutableArray<RefKind> refKindsOpt, MethodSymbol method, ImmutableArray<int> argsToParamsOpt, bool expanded)
+        private void VisitArguments(BoundExpression node, ImmutableArray<BoundExpression> arguments, ImmutableArray<string> namesOpt, ImmutableArray<RefKind> refKindsOpt, MethodSymbol method, ImmutableArray<int> argsToParamsOpt, bool expanded)
         {
+            if (node.HasErrors)
+            {
+                return;
+            }
             arguments = RemoveArgumentConversions(arguments, refKindsOpt);
             ImmutableArray<Result> results = VisitArgumentsEvaluate(arguments, refKindsOpt, argsToParamsOpt, expanded);
             ImmutableArray<BoundExpression> updatedArguments = CreatePlaceholderExpressionsIfNecessary(arguments, results);
@@ -1677,8 +1692,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitArgumentsWarn(arguments, conversions, refKindsOpt, (method is null) ? default : method.Parameters, argsToParamsOpt, expanded, results);
         }
 
-        private void VisitArguments(ImmutableArray<BoundExpression> arguments, ImmutableArray<string> namesOpt, ImmutableArray<RefKind> refKindsOpt, PropertySymbol property, ImmutableArray<int> argsToParamsOpt, bool expanded)
+        private void VisitArguments(BoundExpression node, ImmutableArray<BoundExpression> arguments, ImmutableArray<string> namesOpt, ImmutableArray<RefKind> refKindsOpt, PropertySymbol property, ImmutableArray<int> argsToParamsOpt, bool expanded)
         {
+            if (node.HasErrors)
+            {
+                return;
+            }
             arguments = RemoveArgumentConversions(arguments, refKindsOpt);
             ImmutableArray<Result> results = VisitArgumentsEvaluate(arguments, refKindsOpt, argsToParamsOpt, expanded);
             ImmutableArray<BoundExpression> updatedArguments = CreatePlaceholderExpressionsIfNecessary(arguments, results);
@@ -2714,7 +2733,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // PROTOTYPE(NullableReferenceTypes): Update method based on inferred receiver type.
             var method = node.Indexer.GetOwnOrInheritedGetMethod();
-            VisitArguments(node.Arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, method, node.ArgsToParamsOpt, node.Expanded);
+            VisitArguments(node, node.Arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, method, node.ArgsToParamsOpt, node.Expanded);
 
             Debug.Assert(!IsConditionalState);
             //if (this.State.Reachable) // PROTOTYPE(NullableReferenceTypes): Consider reachability?
@@ -3229,7 +3248,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitDynamicObjectCreationExpression(BoundDynamicObjectCreationExpression node)
         {
             Debug.Assert(!IsConditionalState);
-            VisitArguments(node.Arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, (MethodSymbol)null, argsToParamsOpt: default, expanded: false);
+            VisitArguments(node, node.Arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, (MethodSymbol)null, argsToParamsOpt: default, expanded: false);
             VisitObjectOrDynamicObjectCreation(node, node.InitializerExpressionOpt);
             return null;
         }
@@ -3314,7 +3333,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var receiver = node.ReceiverOpt;
             VisitRvalue(receiver);
             CheckPossibleNullReceiver(receiver);
-            VisitArguments(node.Arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, (MethodSymbol)null, argsToParamsOpt: default, expanded: false);
+            VisitArguments(node, node.Arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, (MethodSymbol)null, argsToParamsOpt: default, expanded: false);
 
             Debug.Assert(node.Type.IsDynamic());
             Debug.Assert(!IsConditionalState);
