@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
     {
         private readonly IOutliningManagerService _outliningManagerService;
 
-        public string DisplayName => EditorFeaturesResources.Go_To_Adjacent_Member_Command_Handler;
+        public string DisplayName => EditorFeaturesResources.Go_To_Adjacent_Member;
 
         [ImportingConstructor]
         public GoToAdjacentMemberCommandHandler(IOutliningManagerService outliningManagerService)

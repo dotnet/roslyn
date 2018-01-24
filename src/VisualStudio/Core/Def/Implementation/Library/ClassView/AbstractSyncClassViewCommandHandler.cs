@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ClassVi
 
         private readonly IServiceProvider _serviceProvider;
 
-        public string DisplayName => ServicesVSResources.Sync_Class_View_Command_Handler;
+        public string DisplayName => ServicesVSResources.Sync_Class_View;
 
         protected AbstractSyncClassViewCommandHandler(
             SVsServiceProvider serviceProvider)

@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
             _editorOperationsFactoryService = editorOperationsFactoryService;
         }
 
-        public string DisplayName => EditorFeaturesResources.Comment_Uncomment_Selection_Command_Handler;
+        public string DisplayName => EditorFeaturesResources.Comment_Uncomment_Selection;
 
         private static VSCommanding.CommandState GetCommandState(ITextBuffer buffer)
         {

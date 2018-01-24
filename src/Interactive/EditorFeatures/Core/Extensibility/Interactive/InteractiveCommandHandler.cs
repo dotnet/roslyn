@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
         protected abstract ISendToInteractiveSubmissionProvider SendToInteractiveSubmissionProvider { get; }
 
-        public string DisplayName => EditorFeaturesResources.Interactive_Command_Handler;
+        public string DisplayName => EditorFeaturesResources.Interactive;
 
         private string GetSelectedText(EditorCommandArgs args, CancellationToken cancellationToken)
         {

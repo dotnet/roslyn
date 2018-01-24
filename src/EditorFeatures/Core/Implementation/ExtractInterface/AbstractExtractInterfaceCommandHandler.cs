@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractInterface
 {
     internal abstract class AbstractExtractInterfaceCommandHandler : VSCommanding.ICommandHandler<ExtractInterfaceCommandArgs>
     {
-        public string DisplayName => EditorFeaturesResources.Extract_Interface_Command_Handler;
+        public string DisplayName => EditorFeaturesResources.Extract_Interface;
 
         public VSCommanding.CommandState GetCommandState(ExtractInterfaceCommandArgs args)
         {

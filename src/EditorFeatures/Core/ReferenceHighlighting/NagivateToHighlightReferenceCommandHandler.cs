@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
         private readonly IOutliningManagerService _outliningManagerService;
         private readonly IViewTagAggregatorFactoryService _tagAggregatorFactory;
 
-        public string DisplayName => EditorFeaturesResources.Navigate_To_Highlight_Reference_Command_Handler;
+        public string DisplayName => EditorFeaturesResources.Navigate_To_Highlight_Reference;
 
         [ImportingConstructor]
         public NavigateToHighlightReferenceCommandHandler(
