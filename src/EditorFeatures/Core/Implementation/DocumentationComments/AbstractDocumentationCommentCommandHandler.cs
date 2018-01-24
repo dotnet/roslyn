@@ -575,9 +575,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
         {
             var originalCaretPosition = args.TextView.GetCaretPoint(args.SubjectBuffer) ?? -1;
 
-            using (context.WaitContext.AddScope(allowCancellation: true, EditorFeaturesResources.Inserting_documentation_comment))
+            using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Inserting_documentation_comment))
             {
-                return CompleteComment(args.SubjectBuffer, args.TextView, originalCaretPosition, InsertOnCommandInvoke, context.WaitContext.UserCancellationToken);
+                return CompleteComment(args.SubjectBuffer, args.TextView, originalCaretPosition, InsertOnCommandInvoke, context.OperationContext.UserCancellationToken);
             }
         }
 

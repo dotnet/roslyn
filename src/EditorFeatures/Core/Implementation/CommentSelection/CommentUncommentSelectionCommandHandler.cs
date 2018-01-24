@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
             var message = operation == Operation.Comment ? EditorFeaturesResources.Commenting_currently_selected_text
                                                          : EditorFeaturesResources.Uncommenting_currently_selected_text;
 
-            using (context.WaitContext.AddScope(allowCancellation: false, message))
+            using (context.OperationContext.AddScope(allowCancellation: false, message))
             {
 
                 var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();

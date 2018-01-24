@@ -165,11 +165,11 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
         internal void FindReferences(
             Document document, IFindReferencesService service, int caretPosition, CommandExecutionContext context)
         {
-            using (var waitScope = context.WaitContext.AddScope(allowCancellation: true, EditorFeaturesResources.Finding_references))
+            using (var waitScope = context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Finding_references))
             using (Logger.LogBlock(
                 FunctionId.CommandHandler_FindAllReference,
                 KeyValueLogMessage.Create(LogType.UserAction, m => m["type"] = "legacy"),
-                context.WaitContext.UserCancellationToken))
+                context.OperationContext.UserCancellationToken))
             {
                 if (!service.TryFindReferences(document, caretPosition, new WaitContextAdapter(waitScope)))
                 {

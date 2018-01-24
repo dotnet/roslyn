@@ -64,14 +64,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                 Return
             End If
 
-            Using context.WaitContext.AddScope(allowCancellation:=True, VBEditorResources.Formatting_Document)
+            Using context.OperationContext.AddScope(allowCancellation:=True, VBEditorResources.Formatting_Document)
                 Dim buffer = args.SubjectBuffer
                 Dim snapshot = buffer.CurrentSnapshot
 
                 Dim wholeFile = snapshot.GetFullSpan()
                 Dim commitBufferManager = _bufferManagerFactory.CreateForBuffer(buffer)
                 commitBufferManager.ExpandDirtyRegion(wholeFile)
-                commitBufferManager.CommitDirty(isExplicitFormat:=True, cancellationToken:=context.WaitContext.UserCancellationToken)
+                commitBufferManager.CommitDirty(isExplicitFormat:=True, cancellationToken:=context.OperationContext.UserCancellationToken)
             End Using
         End Sub
 
@@ -85,7 +85,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                 Return
             End If
 
-            Using context.WaitContext.AddScope(allowCancellation:=True, VBEditorResources.Formatting_Document)
+            Using context.OperationContext.AddScope(allowCancellation:=True, VBEditorResources.Formatting_Document)
                 Dim buffer = args.SubjectBuffer
                 Dim selections = args.TextView.Selection.GetSnapshotSpansOnBuffer(buffer)
 
@@ -100,7 +100,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                     Dim selectedSpan = New SnapshotSpan(snapshot, textspan.Start, textspan.Length)
                     Dim commitBufferManager = _bufferManagerFactory.CreateForBuffer(buffer)
                     commitBufferManager.ExpandDirtyRegion(selectedSpan)
-                    commitBufferManager.CommitDirty(isExplicitFormat:=True, cancellationToken:=context.WaitContext.UserCancellationToken)
+                    commitBufferManager.CommitDirty(isExplicitFormat:=True, cancellationToken:=context.OperationContext.UserCancellationToken)
                 Next
             End Using
 
@@ -212,8 +212,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
         End Function
 
         Public Sub ExecuteCommand(args As PasteCommandArgs, nextHandler As Action, context As CommandExecutionContext) Implements IChainedCommandHandler(Of PasteCommandArgs).ExecuteCommand
-            Using context.WaitContext.AddScope(allowCancellation:=True, VBEditorResources.Formatting_pasted_text)
-                CommitOnPaste(args, nextHandler, context.WaitContext.UserCancellationToken)
+            Using context.OperationContext.AddScope(allowCancellation:=True, VBEditorResources.Formatting_pasted_text)
+                CommitOnPaste(args, nextHandler, context.OperationContext.UserCancellationToken)
             End Using
         End Sub
 
@@ -257,9 +257,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
 
         Public Sub ExecuteCommand(args As SaveCommandArgs, nextHandler As Action, context As CommandExecutionContext) Implements IChainedCommandHandler(Of SaveCommandArgs).ExecuteCommand
             If args.SubjectBuffer.GetFeatureOnOffOption(InternalFeatureOnOffOptions.FormatOnSave) Then
-                Using context.WaitContext.AddScope(allowCancellation:=True, VBEditorResources.Formatting_Document)
+                Using context.OperationContext.AddScope(allowCancellation:=True, VBEditorResources.Formatting_Document)
                     Using transaction = _textUndoHistoryRegistry.GetHistory(args.TextView.TextBuffer).CreateTransaction(VBEditorResources.Format_on_Save)
-                        _bufferManagerFactory.CreateForBuffer(args.SubjectBuffer).CommitDirty(isExplicitFormat:=False, cancellationToken:=context.WaitContext.UserCancellationToken)
+                        _bufferManagerFactory.CreateForBuffer(args.SubjectBuffer).CommitDirty(isExplicitFormat:=False, cancellationToken:=context.OperationContext.UserCancellationToken)
 
                         ' We should only create the transaction if anything actually happened
                         If transaction.UndoPrimitives.Any() Then

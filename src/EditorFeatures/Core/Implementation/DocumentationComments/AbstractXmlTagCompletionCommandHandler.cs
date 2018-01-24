@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
                 return;
             }
 
-            using (context.WaitContext.AddScope(allowCancellation: true, EditorFeaturesResources.Completing_Tag))
+            using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Completing_Tag))
             {
                 var buffer = args.SubjectBuffer;
 
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
                     return;
                 }
 
-                TryCompleteTag(args.TextView, args.SubjectBuffer, document, position.Value, context.WaitContext.UserCancellationToken);
+                TryCompleteTag(args.TextView, args.SubjectBuffer, document, position.Value, context.OperationContext.UserCancellationToken);
             }
         }
 

@@ -59,9 +59,9 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         bool VSCommanding.ICommandHandler<ExecuteInInteractiveCommandArgs>.ExecuteCommand(ExecuteInInteractiveCommandArgs args, CommandExecutionContext context)
         {
             var window = OpenInteractiveWindow(focus: false);
-            using (context.WaitContext.AddScope(allowCancellation: true, InteractiveEditorFeaturesResources.Executing_selection_in_Interactive_Window))
+            using (context.OperationContext.AddScope(allowCancellation: true, InteractiveEditorFeaturesResources.Executing_selection_in_Interactive_Window))
             {
-                string submission = GetSelectedText(args, context.WaitContext.UserCancellationToken);
+                string submission = GetSelectedText(args, context.OperationContext.UserCancellationToken);
                 if (!String.IsNullOrWhiteSpace(submission))
                 {
                     window.SubmitAsync(new string[] { submission });
@@ -107,10 +107,10 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
             using (var edit = buffer.CreateEdit())
             {
-                using (var waitScope = context.WaitContext.AddScope(allowCancellation: true, 
+                using (var waitScope = context.OperationContext.AddScope(allowCancellation: true, 
                     InteractiveEditorFeaturesResources.Copying_selection_to_Interactive_Window))
                 {
-                    var text = GetSelectedText(args, context.WaitContext.UserCancellationToken);
+                    var text = GetSelectedText(args, context.OperationContext.UserCancellationToken);
 
                     // If the last line isn't empty in the existing submission buffer, we will prepend a
                     // newline

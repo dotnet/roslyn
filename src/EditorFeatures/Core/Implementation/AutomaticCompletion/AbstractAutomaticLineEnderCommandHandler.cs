@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
                 return;
             }
 
-            using (context.WaitContext.AddScope(allowCancellation: false, EditorFeaturesResources.Automatically_completing))
+            using (context.OperationContext.AddScope(allowCancellation: false, EditorFeaturesResources.Automatically_completing))
             {
                 // This is a non cancellable command
                 var userCancellationToken = CancellationToken.None;

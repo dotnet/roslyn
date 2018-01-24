@@ -47,9 +47,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         public void ExecuteCommand(RenameCommandArgs args, Action nextHandler, CommandExecutionContext context)
         {
-            using (context.WaitContext.AddScope(allowCancellation: true, EditorFeaturesResources.Finding_token_to_rename))
+            using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Finding_token_to_rename))
             {
-                ExecuteRenameWorker(args, context.WaitContext.UserCancellationToken);
+                ExecuteRenameWorker(args, context.OperationContext.UserCancellationToken);
             }
         }
 

@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ChangeSignature
 
             ChangeSignatureResult result = null;
 
-            using (context.WaitContext.AddScope(allowCancellation: true, FeaturesResources.Change_signature))
+            using (context.OperationContext.AddScope(allowCancellation: true, FeaturesResources.Change_signature))
             {
                 var reorderParametersService = document.GetLanguageService<AbstractChangeSignatureService>();
                 result = reorderParametersService.ChangeSignature(
@@ -91,10 +91,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ChangeSignature
                         // We are about to show a modal UI dialog so we should take over the command execution
                         // wait context. That means the command system won't attempt to show its own wait dialog 
                         // and also will take it into consideration when measuring command handling duration.
-                        context.WaitContext.TakeOwnership();
+                        context.OperationContext.TakeOwnership();
                         workspace.Services.GetService<INotificationService>().SendNotification(errorMessage, severity: severity);
                     },
-                    context.WaitContext.UserCancellationToken);
+                    context.OperationContext.UserCancellationToken);
             }
 
             if (result == null || !result.Succeeded)
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ChangeSignature
                 // We are about to show a modal UI dialog so we should take over the command execution
                 // wait context. That means the command system won't attempt to show its own wait dialog 
                 // and also will take it into consideration when measuring command handling duration.
-                context.WaitContext.TakeOwnership();
+                context.OperationContext.TakeOwnership();
                 finalSolution = previewService.PreviewChanges(
                     string.Format(EditorFeaturesResources.Preview_Changes_0, EditorFeaturesResources.Change_Signature),
                     "vs.csharp.refactoring.preview",

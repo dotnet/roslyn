@@ -92,10 +92,10 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 
             int? targetPosition = null;
 
-            using (context.WaitContext.AddScope(allowCancellation: true, description: EditorFeaturesResources.Navigating))
+            using (context.OperationContext.AddScope(allowCancellation: true, description: EditorFeaturesResources.Navigating))
             {
-                var task = GetTargetPositionAsync(document, caretPoint.Value.Position, gotoNextMember, context.WaitContext.UserCancellationToken);
-                targetPosition = task.WaitAndGetResult(context.WaitContext.UserCancellationToken);
+                var task = GetTargetPositionAsync(document, caretPoint.Value.Position, gotoNextMember, context.OperationContext.UserCancellationToken);
+                targetPosition = task.WaitAndGetResult(context.OperationContext.UserCancellationToken);
             }
 
             if (targetPosition != null)

@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EncapsulateField
                 return false;
             }
 
-            using (var waitScope = context.WaitContext.AddScope(allowCancellation: true, EditorFeaturesResources.Applying_Encapsulate_Field_refactoring))
+            using (var waitScope = context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Applying_Encapsulate_Field_refactoring))
             {
                 return Execute(args, waitScope);
             }
