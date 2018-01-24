@@ -4402,7 +4402,7 @@ namespace System
             Assert.Same(mTuple, mItem1.ContainingSymbol);
             Assert.True(mItem1.CustomModifiers.IsEmpty);
             Assert.True(mItem1.GetAttributes().IsEmpty);
-            Assert.Equal("error CS8128: Member 'Item1' was not found on type 'ValueTuple<T1, T2>' from assembly 'comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.",
+            Assert.Equal($"error CS8128: {string.Format(CSharpResources.ERR_PredefinedTypeMemberNotFoundInAssembly, "Item1", "ValueTuple<T1, T2>", "comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null")}",
                          mItem1.GetUseSiteDiagnostic().ToString());
             Assert.True(mItem1.Locations.IsEmpty);
             Assert.True(mItem1.DeclaringSyntaxReferences.IsEmpty);
@@ -20863,7 +20863,7 @@ class Program
             comp.VerifyDiagnostics(
                 // (9,11): error CS1503: Argument 1: cannot convert from '(int, <null>)' to 'int'
                 //         M((1, null));
-                Diagnostic(ErrorCode.ERR_BadArgType, "(1, null)").WithArguments("1", "(int, <null>)", "int").WithLocation(9, 11));
+                Diagnostic(ErrorCode.ERR_BadArgType, "(1, null)").WithArguments("1", $"(int, {MessageID.IDS_NULL.Localize()})", "int").WithLocation(9, 11));
         }
 
         [Fact]
@@ -23280,10 +23280,10 @@ static class C
             comp.VerifyDiagnostics(
                 // (13,64): error CS0117: '(string, (int, (<null>, int)))' does not contain a definition for 'M'
                 //         System.Console.WriteLine(("qq", (Alice: 1, (null, 3))).M());
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("(string, (int, (<null>, int)))", "M").WithLocation(13, 64),
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments($"(string, (int, ({MessageID.IDS_NULL.Localize() }, int)))", "M").WithLocation(13, 64),
                 // (15,49): error CS0117: '(string, lambda expression)' does not contain a definition for 'GetAwaiter'
                 //         System.Console.WriteLine(("qq", ()=>1 ).GetAwaiter());
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "GetAwaiter").WithArguments("(string, lambda expression)", "GetAwaiter").WithLocation(15, 49)
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "GetAwaiter").WithArguments($"(string, {MessageID.IDS_Lambda.Localize()})", "GetAwaiter").WithLocation(15, 49)
                 );
         }
         
@@ -23327,7 +23327,7 @@ static class C
                 Diagnostic(ErrorCode.ERR_BadInstanceArgType, "(First: 1, Second: 2L)").WithArguments("(int, long)", "M1", "C.M1((int x, long? y))", "(int x, long? y)").WithLocation(16, 34),
                 // (19,44): error CS0117: '(int, <null>)' does not contain a definition for 'M1'
                 //         System.Console.WriteLine((1, null).M1());
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "M1").WithArguments("(int, <null>)", "M1"),
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "M1").WithArguments($"(int, {MessageID.IDS_NULL.Localize()})", "M1"),
                 // (23,34): error CS1929: '(int A, int B)' does not contain a definition for 'M' and the best extension method overload 'C.M((int x, long y))' requires a receiver of type '(int x, long y)'
                 //         System.Console.WriteLine(notAliteral.M());
                 Diagnostic(ErrorCode.ERR_BadInstanceArgType, "notAliteral").WithArguments("(int A, int B)", "M", "C.M((int x, long y))", "(int x, long y)").WithLocation(23, 34)
