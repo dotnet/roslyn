@@ -66,6 +66,11 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 return null;
             }
 
+            if (!ShouldAnalize())
+            {
+                return null;
+            }
+
             _containingStatement = _objectCreationExpression.FirstAncestorOrSelf<TStatementSyntax>();
             if (_containingStatement == null)
             {
@@ -179,5 +184,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
             return false;
         }
+
+        protected abstract bool ShouldAnalize();
     }
 }

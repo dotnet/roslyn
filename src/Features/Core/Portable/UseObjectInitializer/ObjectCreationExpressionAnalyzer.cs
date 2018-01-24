@@ -164,6 +164,8 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
             }
         }
 
+        protected override bool ShouldAnalize() => true;
+
         private bool ImplicitMemberAccessWouldBeAffected(SyntaxNode node)
         {
             if (node != null)

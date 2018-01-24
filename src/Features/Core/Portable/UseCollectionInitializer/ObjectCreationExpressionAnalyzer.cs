@@ -1,12 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 {
@@ -120,6 +118,11 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             }
         }
 
+        protected override bool ShouldAnalize()
+            => _semanticModel.GetTypeInfo(_objectCreationExpression, default).Type
+                    .GetMembers(WellKnownMemberNames.CollectionInitializerAddMethodName)
+                    .Any(x => x is IMethodSymbol m && m.DeclaredAccessibility == Accessibility.Public);
+
         private bool TryAnalyzeIndexAssignment(
             TExpressionStatementSyntax statement,
             out SyntaxNode instance)
@@ -200,30 +203,13 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             _syntaxFacts.GetPartsOfMemberAccessExpression(memberAccess, out var localInstance, out var memberName);
             _syntaxFacts.GetNameAndArityOfSimpleName(memberName, out var name, out var arity);
 
-            if (arity != 0 || !name.Equals(nameof(IList.Add)) || IsExplicitlyImplemented(memberName))
+            if (arity != 0 || !name.Equals(WellKnownMemberNames.CollectionInitializerAddMethodName))
             {
                 return false;
             }
 
             instance = localInstance;
             return true;
-        }
-
-        private bool IsExplicitlyImplemented(SyntaxNode memberName)
-        {
-            return IsExplicitlyImplemented(
-                _semanticModel.GetTypeInfo(_objectCreationExpression, default).Type, 
-                _semanticModel.GetSymbolInfo(memberName, default).Symbol);
-        }
-
-        private static bool IsExplicitlyImplemented(
-             ITypeSymbol classOrStructType,
-             ISymbol member)
-        {
-            var implementation = classOrStructType?.FindImplementationForInterfaceMember(member);
-            return implementation is IMethodSymbol method &&
-                method.ExplicitInterfaceImplementations.Length > 0 &&
-                method.DeclaredAccessibility == Accessibility.Private;
         }
     }
 }
