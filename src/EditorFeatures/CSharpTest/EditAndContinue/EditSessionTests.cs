@@ -245,7 +245,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                     threadIds: ImmutableArray.Create(Guid.NewGuid()),
                     ActiveStatementFlags.IsNonLeafFrame));
 
-            // add an extra active statement from language that doesn't support Roslyn EnC should be ignored:
+            // Add an extra active statement from language that doesn't support Roslyn EnC should be ignored:
+            // See https://github.com/dotnet/roslyn/issues/24408 for test scenario.
             activeStatements = activeStatements.Add(
                 new ActiveStatementDebugInfo(
                     new ActiveInstructionId(moduleId: Guid.NewGuid(), methodToken: 0x06000005, methodVersion: 1, ilOffset: 10),
