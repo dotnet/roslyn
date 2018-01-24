@@ -23,8 +23,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Regex_Character_class">
-        <source>Regex - Chraracter class</source>
-        <target state="new">Regex - Chraracter class</target>
+        <source>Regex - Character class</source>
+        <target state="new">Regex - Character class</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_Quantifier">
