@@ -605,6 +605,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Feature &apos;Flow-Analysis&apos; is disabled..
+        /// </summary>
+        internal static string FlowAnalysisFeatureDisabled {
+            get {
+                return ResourceManager.GetString("FlowAnalysisFeatureDisabled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to {0}.GetMetadata() must return an instance of {1}..
         /// </summary>
         internal static string GetMetadataMustReturnInstance {
