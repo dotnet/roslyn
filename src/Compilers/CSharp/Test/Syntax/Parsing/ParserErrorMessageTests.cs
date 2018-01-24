@@ -2468,7 +2468,7 @@ namespace x
 }
 ";
 
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
                 // (7,26): error CS8124: Tuple must contain at least two elements.
                 //             var e = new ();
                 Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(7, 26),
@@ -2534,7 +2534,7 @@ namespace x
     }
 }
 ";
-            CreateStandardCompilation(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)).VerifyDiagnostics(
+            CreateCompilationWithMscorlib46(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)).VerifyDiagnostics(
                 // (7,25): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7.0 or greater.
                 //             var e = new ();
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "()").WithArguments("tuples", "7.0").WithLocation(7, 25),
@@ -2566,7 +2566,7 @@ namespace x
     }
 }
 ";
-            CreateStandardCompilation(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7)).VerifyDiagnostics(
+            CreateCompilationWithMscorlib46(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7)).VerifyDiagnostics(
                 // (7,26): error CS8124: Tuple must contain at least two elements.
                 //             var e = new ();
                 Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")"),

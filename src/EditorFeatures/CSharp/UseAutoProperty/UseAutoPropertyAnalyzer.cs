@@ -22,12 +22,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
         protected override bool SupportsPropertyInitializer(Compilation compilation)
             => ((CSharpCompilation)compilation).LanguageVersion >= LanguageVersion.CSharp6;
 
+        protected override bool CanExplicitInterfaceImplementationsBeFixed()
+            => false;
+
         protected override void AnalyzeCompilationUnit(
             SemanticModelAnalysisContext context, SyntaxNode root, List<AnalysisResult> analysisResults)
             => AnalyzeMembers(context, ((CompilationUnitSyntax)root).Members, analysisResults);
 
         private void AnalyzeMembers(
-            SemanticModelAnalysisContext context, 
+            SemanticModelAnalysisContext context,
             SyntaxList<MemberDeclarationSyntax> members,
             List<AnalysisResult> analysisResults)
         {
