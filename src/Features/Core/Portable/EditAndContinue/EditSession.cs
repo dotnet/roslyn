@@ -127,16 +127,19 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             var byDocument = PooledDictionary<DocumentId, ArrayBuilder<ActiveStatement>>.GetInstance();
             var byInstruction = PooledDictionary<ActiveInstructionId, ActiveStatement>.GetInstance();
 
+            bool SupportsEditAndContinue(DocumentId documentId)
+                => solution.GetProject(documentId.ProjectId).LanguageServices.GetService<IEditAndContinueAnalyzer>() != null;
+
             foreach (var debugInfo in debugInfos)
             {
                 var documentIds = solution.GetDocumentIdsWithFilePath(debugInfo.DocumentName);
-                if (documentIds.IsEmpty)
+                var firstDocumentId = documentIds.FirstOrDefault(SupportsEditAndContinue);
+                if (firstDocumentId == null)
                 {
-                    // Ignore active statements that don't belong to the solution (non-Roslyn managed languages).
+                    // Ignore active statements that don't belong to the solution or language that supports EnC service.
                     continue;
                 }
 
-                var firstDocumentId = documentIds.First();
                 if (!byDocument.TryGetValue(firstDocumentId, out var primaryDocumentActiveStatements))
                 {
                     byDocument.Add(firstDocumentId, primaryDocumentActiveStatements = ArrayBuilder<ActiveStatement>.GetInstance());
@@ -157,9 +160,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 // https://github.com/dotnet/roslyn/issues/24320
                 for (int i = 1; i < documentIds.Length; i++)
                 {
-                    if (!byDocument.TryGetValue(documentIds[i], out var linkedDocumentActiveStatements))
+                    var documentId = documentIds[i];
+                    if (!SupportsEditAndContinue(documentId))
                     {
-                        byDocument.Add(documentIds[i], linkedDocumentActiveStatements = ArrayBuilder<ActiveStatement>.GetInstance());
+                        continue;
+                    }
+
+                    if (!byDocument.TryGetValue(documentId, out var linkedDocumentActiveStatements))
+                    {
+                        byDocument.Add(documentId, linkedDocumentActiveStatements = ArrayBuilder<ActiveStatement>.GetInstance());
                     }
 
                     linkedDocumentActiveStatements.Add(activeStatement);
@@ -309,7 +318,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 return analysis.Results;
             }
 
-            var analyzer = document.Project.LanguageServices.GetService<IEditAndContinueAnalyzer>();
+            var analyzer = document.Project.LanguageServices.GetRequiredService<IEditAndContinueAnalyzer>();
 
             var lazyResults = new AsyncLazy<DocumentAnalysisResults>(
                 asynchronousComputeFunction: async cancellationToken =>

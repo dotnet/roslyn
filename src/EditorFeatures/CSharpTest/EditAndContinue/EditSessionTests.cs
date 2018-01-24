@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             Func<Solution, Solution> adjustSolution = null)
         {
             var exportProvider = MinimalTestExportProvider.CreateExportProvider(
-                TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic.WithPart(typeof(CSharpEditAndContinueAnalyzer)));
+                TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic.WithPart(typeof(CSharpEditAndContinueAnalyzer)).WithPart(typeof(DummyLanguageService)));
 
             using (var workspace = TestWorkspace.CreateCSharp(
                 ActiveStatementsDescription.ClearTags(markedSource),
@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                 ilOffsets: new[] { 1, 1, 1, 2, 3 },
                 modules: new[] { module1, module1, module2, module2, module2 });
 
-            // add an extra active statement from non-Roslyn project, it should be ignored:
+            // add an extra active statement from project not belonging to the solution, it should be ignored:
             activeStatements = activeStatements.Add(
                 new ActiveStatementDebugInfo(
                     new ActiveInstructionId(moduleId: Guid.NewGuid(), methodToken: 0x06000005, methodVersion: 1, ilOffset: 10),
@@ -245,7 +245,22 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                     threadIds: ImmutableArray.Create(Guid.NewGuid()),
                     ActiveStatementFlags.IsNonLeafFrame));
 
-            var (baseActiveStatements, baseExceptionRegions, docs) = await GetBaseActiveStatementsAndExceptionRegions(markedSource, activeStatements).ConfigureAwait(false);
+            // add an extra active statement from language that doesn't support Roslyn EnC should be ignored:
+            activeStatements = activeStatements.Add(
+                new ActiveStatementDebugInfo(
+                    new ActiveInstructionId(moduleId: Guid.NewGuid(), methodToken: 0x06000005, methodVersion: 1, ilOffset: 10),
+                    "a.dummy",
+                    new LinePositionSpan(new LinePosition(1, 1), new LinePosition(1, 10)),
+                    threadIds: ImmutableArray.Create(Guid.NewGuid()),
+                    ActiveStatementFlags.IsNonLeafFrame));
+
+            var adjustSolution = new Func<Solution, Solution>(solution =>
+            {
+                var project = solution.AddProject("dummy_proj", "dummy_proj", DummyLanguageService.LanguageName);
+                return project.Solution.AddDocument(DocumentId.CreateNewId(project.Id, DummyLanguageService.LanguageName), "a.dummy", "");
+            });
+
+            var (baseActiveStatements, baseExceptionRegions, docs) = await GetBaseActiveStatementsAndExceptionRegions(markedSource, activeStatements, adjustSolution: adjustSolution).ConfigureAwait(false);
 
             // Active Statements
 
