@@ -134,7 +134,6 @@ Console.Write(""OK"");
         }
 
         [Fact]
-        //[UseCulture("en-US")]
         public void LineNumber_Information_On_Exception()
         {
             var source = @"Console.WriteLine(""OK"");
@@ -150,7 +149,7 @@ throw new Exception(""Error!"");
             AssertEx.AssertEqualToleratingWhitespaceDifferences("OK", result.Output);
             AssertEx.AssertEqualToleratingWhitespaceDifferences($@"
 Error!
-   + <Initialize>.MoveNext() at {cwd}{Path.DirectorySeparatorChar}a.csx : 2
+   + <Initialize>.MoveNext(){string.Format(ScriptingResources.AtFileLine, $"{cwd}{Path.DirectorySeparatorChar}a.csx", "2")}
 ", result.Errors);
         }
     }
