@@ -525,10 +525,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         result);
                 }
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
+            catch (Exception e) when (FatalError.ReportWithoutCrashAndPropagate(e))
             {
-                // recover (cancel EnC)
-                return null;
+                throw ExceptionUtilities.Unreachable;
             }
         }
 

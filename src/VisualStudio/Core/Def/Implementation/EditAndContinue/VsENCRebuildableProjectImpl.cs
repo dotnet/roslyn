@@ -257,21 +257,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                     {
                         log.Write("StartDebuggingPE: error reading MVID of '{0}' ('{1}'): {2}", _vsProject.DisplayName, outputPath, e.Message);
                         _mvid = Guid.Empty;
-
-                        var descriptor = new DiagnosticDescriptor(
-                            "ENC0002", 
-                            new LocalizableResourceString(nameof(ServicesVSResources.ErrorReadingFile), ServicesVSResources.ResourceManager, typeof(ServicesVSResources)),
-                            ServicesVSResources.Error_while_reading_0_colon_1,
-                            DiagnosticCategory.EditAndContinue,
-                            DiagnosticSeverity.Error, 
-                            isEnabledByDefault: true, 
-                            customTags: DiagnosticCustomTags.EditAndContinue);
-
-                        _diagnosticProvider.ReportDiagnostics(
-                            new EncErrorId(_encService.DebuggingSession, EditAndContinueDiagnosticUpdateSource.DebuggerErrorId),
-                            _encService.DebuggingSession.InitialSolution,
-                            _vsProject.Id,
-                            new[] { Diagnostic.Create(descriptor, Location.None, outputPath, e.Message) });
+                        ReportInternalError(InternalErrorCode.ErrorReadingFile, new[] { outputPath, e.Message }); 
                     }
                 }
                 else
@@ -354,22 +340,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 else
                 {
                     // an error might have been reported:
-                    var errorId = new EncErrorId(_encService.DebuggingSession, EditAndContinueDiagnosticUpdateSource.DebuggerErrorId);
+                    var errorId = new EncErrorId(_encService.DebuggingSession, EditAndContinueDiagnosticUpdateSource.InternalErrorId);
                     _diagnosticProvider.ClearDiagnostics(errorId, _vsProject.Workspace.CurrentSolution, _vsProject.Id, documentIdOpt: null);
                 }
 
                 _committedBaseline = null;
                 _projectBeingEmitted = null;
 
-                var pdbReader = Interlocked.Exchange(ref _pdbReader, null);
-                if (pdbReader?.IsValueCreated == true)
-                {
-                    var symReader = pdbReader.Value;
-                    if (Marshal.IsComObject(symReader))
-                    {
-                        Marshal.ReleaseComObject(symReader);
-                    }
-                }
+                ReleasePdbReader(Interlocked.Exchange(ref _pdbReader, null));
 
                 // The HResult is ignored by the debugger.
                 return VSConstants.S_OK;
@@ -377,6 +355,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
             catch (Exception e) when (FatalError.ReportWithoutCrash(e))
             {
                 return VSConstants.E_FAIL;
+            }
+        }
+
+        private static void ReleasePdbReader(Lazy<ISymUnmanagedReader5> pdbReader)
+        {
+            if (pdbReader?.IsValueCreated == true)
+            {
+                var symReader = pdbReader.Value;
+                if (Marshal.IsComObject(symReader))
+                {
+                    Marshal.ReleaseComObject(symReader);
+                }
             }
         }
 
@@ -783,11 +773,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 
                 var updater = (IDebugUpdateInMemoryPE3)pUpdatePE;
 
-                if (_committedBaseline == null)
+                // Acquire PDB reader lazily. _pdbReader is cleared when the debugging session stops.
+                if (_pdbReader == null)
                 {
                     var previousPdbReader = Interlocked.Exchange(ref _pdbReader, MarshalPdbReader(updater));
 
-                    // PDB reader should have been nulled out when debugging stopped:
+                    // This method should only be called on UI thread, thus the previous value should be null.
                     Contract.ThrowIfFalse(previousPdbReader == null);
                 }
 
@@ -802,7 +793,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 
                     if (delta == null)
                     {
-                        // A diagnostic or non-fatal Watson has already been reported by the emit task
+                        // A diagnostic has already been reported by the emit task
                         return VSConstants.E_FAIL;
                     }
                 }
@@ -856,6 +847,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
             }
             catch (Exception e) when (FatalError.ReportWithoutCrash(e))
             {
+                ReportInternalError(InternalErrorCode.CantApplyChangesUnexpectedError, new[] { e.ToString() });
                 return VSConstants.E_FAIL;
             }
         }
@@ -979,27 +971,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 
                 // The metadata blob is guaranteed to not be disposed while BuildForEnc is being executed. 
                 // If it is disposed it means it had been disposed when entering BuildForEnc.
-                log.Write("Module has been unloaded: module '{0}', project '{1}', , MVID: {2}", moduleName, _vsProject.DisplayName, _mvid.ToString());
+                log.Write("Module has been unloaded: module '{0}', project '{1}', MVID: {2}", moduleName, _vsProject.DisplayName, _mvid.ToString());
 
-                var descriptor = new DiagnosticDescriptor(
-                    "ENC0001",
-                    new LocalizableResourceString(nameof(ServicesVSResources.ModuleHasBeenUnloaded), ServicesVSResources.ResourceManager, typeof(ServicesVSResources)),
-                    ServicesVSResources.CantApplyChangesModuleHasBeenUnloaded, 
-                    DiagnosticCategory.EditAndContinue, 
-                    DiagnosticSeverity.Error, 
-                    isEnabledByDefault: true, 
-                    customTags: DiagnosticCustomTags.EditAndContinue);
-
-                _diagnosticProvider.ReportDiagnostics(
-                    new EncErrorId(_encService.DebuggingSession, EditAndContinueDiagnosticUpdateSource.DebuggerErrorId),
-                    _encService.DebuggingSession.InitialSolution,
-                    _vsProject.Id,
-                    new[] { Diagnostic.Create(descriptor, Location.None, moduleName) });
-
+                ReportInternalError(InternalErrorCode.CantApplyChangesModuleHasBeenUnloaded, new[] { moduleName });
                 return null;
             }
 
-            var emitTask = _encService.EditSession.EmitProjectDeltaAsync(_projectBeingEmitted, baseline, default);
+            var emitTask = _encService.EditSession.EmitProjectDeltaAsync(_projectBeingEmitted, baseline, CancellationToken.None);
+            if (emitTask.Exception != null)
+            {
+                ReportInternalError(InternalErrorCode.CantApplyChangesUnexpectedError, new[] { emitTask.Exception.ToString() });
+                return null;
+            }
+
             return emitTask.Result;
         }
 
@@ -1197,6 +1181,62 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
             {
                 var managedSymReader = (ISymUnmanagedReader5)pdbReaderObjSta;
                 return new Lazy<ISymUnmanagedReader5>(() => managedSymReader);
+            }
+        }
+
+        private enum InternalErrorCode
+        {
+            CantApplyChangesModuleHasBeenUnloaded = 1,
+            ErrorReadingFile = 2,
+            CantApplyChangesUnexpectedError = 3,
+        }
+
+        private void ReportInternalError(InternalErrorCode errorId, object[] args)
+        {
+            try
+            {
+                string resourceName;
+                string resourceString;
+
+                switch (errorId)
+                {
+                    case InternalErrorCode.CantApplyChangesModuleHasBeenUnloaded:
+                        resourceName = nameof(ServicesVSResources.CantApplyChangesModuleHasBeenUnloaded);
+                        resourceString = ServicesVSResources.CantApplyChangesModuleHasBeenUnloaded;
+                        break;
+
+                    case InternalErrorCode.CantApplyChangesUnexpectedError:
+                        resourceName = nameof(ServicesVSResources.CantApplyChangesUnexpectedError);
+                        resourceString = ServicesVSResources.CantApplyChangesUnexpectedError;
+                        break;
+
+                    case InternalErrorCode.ErrorReadingFile:
+                        resourceName = nameof(ServicesVSResources.ErrorReadingFile);
+                        resourceString = ServicesVSResources.ErrorReadingFile;
+                        break;
+
+                    default:
+                        throw ExceptionUtilities.Unreachable;
+                }
+
+                var descriptor = new DiagnosticDescriptor(
+                    $"ENC{(int)errorId:D4}",
+                    new LocalizableResourceString(resourceName, ServicesVSResources.ResourceManager, typeof(ServicesVSResources)),
+                    resourceString,
+                    DiagnosticCategory.EditAndContinue,
+                    DiagnosticSeverity.Error,
+                    isEnabledByDefault: true,
+                    customTags: DiagnosticCustomTags.EditAndContinue);
+
+                _diagnosticProvider.ReportDiagnostics(
+                    new EncErrorId(_encService.DebuggingSession, EditAndContinueDiagnosticUpdateSource.InternalErrorId),
+                    _encService.DebuggingSession.InitialSolution,
+                    _vsProject.Id,
+                    new[] { Diagnostic.Create(descriptor, Location.None, args) });
+            }
+            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
+            {
+                // nop
             }
         }
 
