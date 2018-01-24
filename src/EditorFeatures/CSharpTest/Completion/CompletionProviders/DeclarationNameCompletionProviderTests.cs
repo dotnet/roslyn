@@ -706,6 +706,135 @@ class Test
             await VerifyItemExistsAsync(markup, "tokens");
         }
 
+        [WorkItem(23497, "https://github.com/dotnet/roslyn/issues/23497")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void InPatternMatching1()
+        {
+            var markup = @"
+using System.Threading;
+
+public class C
+{
+    public static void Main()
+    {
+        object obj = null;
+        if (obj is CancellationToken $$) { }
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "cancellationToken");
+            await VerifyItemExistsAsync(markup, "cancellation");
+            await VerifyItemExistsAsync(markup, "token");
+        }
+
+        [WorkItem(23497, "https://github.com/dotnet/roslyn/issues/23497")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void InPatternMatching2()
+        {
+            var markup = @"
+using System.Threading;
+
+public class C
+{
+    public static bool Foo()
+    {
+        object obj = null;
+        return obj is CancellationToken $$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "cancellationToken");
+            await VerifyItemExistsAsync(markup, "cancellation");
+            await VerifyItemExistsAsync(markup, "token");
+        }
+
+        [WorkItem(23497, "https://github.com/dotnet/roslyn/issues/23497")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void InPatternMatching3()
+        {
+            var markup = @"
+using System.Threading;
+
+public class C
+{
+    public static void Main()
+    {
+        object obj = null;
+        switch(obj)
+        {
+            case CancellationToken $$
+        }
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "cancellationToken");
+            await VerifyItemExistsAsync(markup, "cancellation");
+            await VerifyItemExistsAsync(markup, "token");
+        }
+
+        [WorkItem(23497, "https://github.com/dotnet/roslyn/issues/23497")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void InPatternMatching4()
+        {
+            var markup = @"
+using System.Threading;
+
+public class C
+{
+    public static void Main()
+    {
+        object obj = null;
+        if (obj is CancellationToken ca$$) { }
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "cancellationToken");
+            await VerifyItemExistsAsync(markup, "cancellation");
+        }
+
+        [WorkItem(23497, "https://github.com/dotnet/roslyn/issues/23497")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void InPatternMatching5()
+        {
+            var markup = @"
+using System.Threading;
+
+public class C
+{
+    public static bool Foo()
+    {
+        object obj = null;
+        return obj is CancellationToken to$$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "cancellationToken");
+            await VerifyItemExistsAsync(markup, "token");
+        }
+
+        [WorkItem(23497, "https://github.com/dotnet/roslyn/issues/23497")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void InPatternMatching6()
+        {
+            var markup = @"
+using System.Threading;
+
+public class C
+{
+    public static void Main()
+    {
+        object obj = null;
+        switch(obj)
+        {
+            case CancellationToken to$$
+        }
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "cancellationToken");
+            await VerifyItemExistsAsync(markup, "token");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async void DisabledByOption()
         {
