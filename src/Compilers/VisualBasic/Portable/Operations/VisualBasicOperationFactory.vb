@@ -470,7 +470,22 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim type As ITypeSymbol = boundBinaryConditionalExpression.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundBinaryConditionalExpression.ConstantValueOpt)
             Dim isImplicit As Boolean = boundBinaryConditionalExpression.WasCompilerGenerated
-            Return New LazyCoalesceExpression(expression, whenNull, _semanticModel, syntax, type, constantValue, isImplicit)
+
+            Dim valueConversion = New Conversion(Conversions.Identity)
+
+            If boundBinaryConditionalExpression.Type <> boundBinaryConditionalExpression.TestExpression.Type Then
+                Dim convertedTestExpression As BoundExpression = boundBinaryConditionalExpression.ConvertedTestExpression
+                If convertedTestExpression IsNot Nothing Then
+                    If convertedTestExpression.Kind = BoundKind.Conversion Then
+                        valueConversion = CreateConversion(convertedTestExpression)
+                    Else
+                        Debug.Assert(convertedTestExpression.Kind = BoundKind.BadExpression)
+                        valueConversion = New Conversion()
+                    End If
+                End If
+            End If
+
+            Return New LazyCoalesceExpression(expression, whenNull, valueConversion, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundUserDefinedShortCircuitingOperatorOperation(boundUserDefinedShortCircuitingOperator As BoundUserDefinedShortCircuitingOperator) As IBinaryOperation

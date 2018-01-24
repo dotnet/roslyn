@@ -3,7 +3,9 @@
 namespace Microsoft.CodeAnalysis.Operations
 {
     /// <summary>
-    /// Represents a point of use of an intermediate result captured earlier.
+    /// Represents a point of use of an intermediate result captured earlier. 
+    /// The fact of capturing the result is represented by <see cref="IFlowCaptureOperation"/>.
+    /// This node is produced only as part of a flow graph.
     /// PROTOTYPE(dataflow): Finalize the design how capturing/referencing intermediate results is represented.
     /// </summary>
     public interface IFlowCaptureReferenceOperation : IOperation

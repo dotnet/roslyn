@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             char[] newLineChars = Environment.NewLine.ToCharArray();
             string actual = actualOperationTree.Trim(newLineChars);
             expectedOperationTree = expectedOperationTree.Trim(newLineChars);
-            expectedOperationTree = Regex.Replace(expectedOperationTree, "([^\r])\n", "$1" + Environment.NewLine);
+            expectedOperationTree = expectedOperationTree.Replace("\r\n", "\n").Replace("\n", Environment.NewLine);
 
             AssertEx.AreEqual(expectedOperationTree, actual);
         }
@@ -980,6 +980,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogCommonPropertiesAndNewLine(operation);
             Indent();
             LogConversion(operation.Conversion);
+
+            if (((Operation)operation).SemanticModel == null)
+            {
+                LogNewLine();
+                Indent();
+                LogString($"({((BaseConversionExpression)operation).ConvertibleConversion})");
+                Unindent();
+            }
+
             Unindent();
             LogNewLine();
 
@@ -1008,6 +1017,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogCommonPropertiesAndNewLine(operation);
 
             Visit(operation.Value, "Expression");
+            Indent();
+            LogConversion(operation.ValueConversion, "ValueConversion");
+            LogNewLine();
+            Indent();
+            LogString($"({((BaseCoalesceExpression)operation).ConvertibleValueConversion})");
+            Unindent();
+            LogNewLine();
+            Unindent();
+
             Visit(operation.WhenNull, "WhenNull");
         }
 

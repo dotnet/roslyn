@@ -1133,7 +1133,15 @@ namespace Microsoft.CodeAnalysis.Operations
             ITypeSymbol type = boundNullCoalescingOperator.Type;
             Optional<object> constantValue = ConvertToOptional(boundNullCoalescingOperator.ConstantValue);
             bool isImplicit = boundNullCoalescingOperator.WasCompilerGenerated;
-            return new LazyCoalesceExpression(expression, whenNull, _semanticModel, syntax, type, constantValue, isImplicit);
+            Conversion valueConversion = boundNullCoalescingOperator.LeftConversion;
+
+            if (valueConversion.Exists && !valueConversion.IsIdentity &&
+                boundNullCoalescingOperator.Type.Equals(boundNullCoalescingOperator.LeftOperand.Type?.StrippedType(), TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds))
+            {
+                valueConversion = Conversion.Identity;
+            }
+
+            return new LazyCoalesceExpression(expression, whenNull, valueConversion, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IAwaitOperation CreateBoundAwaitExpressionOperation(BoundAwaitExpression boundAwaitExpression)

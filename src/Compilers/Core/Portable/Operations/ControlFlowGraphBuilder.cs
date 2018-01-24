@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 BasicBlock block = blocks[i];
                 Debug.Assert(block.Next != null);
-                if (block.Statements.IsEmpty && block.Conditional.Condition == null)
+                if (block.Statements.IsEmpty && block.Conditional.Value == null)
                 {
                     BasicBlock next = block.Next;
                     foreach (BasicBlock predecessor in block.Predecessors)
@@ -69,10 +69,10 @@ namespace Microsoft.CodeAnalysis.Operations
                             next.AddPredecessor(predecessor);
                         }
 
-                        (IOperation condition, bool jumpIfTrue, BasicBlock destination) = predecessor.Conditional;
+                        (IOperation condition, ConditionalBranchKind kind, BasicBlock destination) = predecessor.Conditional;
                         if (destination == block)
                         {
-                            predecessor.Conditional = (condition, jumpIfTrue, next);
+                            predecessor.Conditional = (condition, kind, next);
                             next.AddPredecessor(predecessor);
                         }
                     }
@@ -109,8 +109,16 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
 
-        private void AddStatement(IOperation statement)
+        private void AddStatement(
+            IOperation statement
+#if DEBUG
+            , bool spillingTheStack = false
+#endif
+            )
         {
+#if DEBUG
+            Debug.Assert(spillingTheStack || !_evalStack.Any(o => o.Kind != OperationKind.FlowCaptureReference));
+#endif
             if (statement == null)
             {
                 return;
@@ -224,12 +232,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 BasicBlock whenFalse = null;
                 VisitConditionalBranch(operation.Condition, ref whenFalse, sense: false);
 
-                IOperation whenTrueValue = Visit(operation.WhenTrue, captureId);
-                if (whenTrueValue.Kind != OperationKind.FlowCaptureReference ||
-                    captureId != ((IFlowCaptureReferenceOperation)whenTrueValue).Id)
-                {
-                    AddStatement(new FlowCapture(captureId, operation.WhenTrue.Syntax, whenTrueValue));
-                }
+                VisitAndCapture(operation.WhenTrue, captureId);
 
                 var afterIf = new BasicBlock(BasicBlockKind.Block);
                 LinkBlocks(CurrentBasicBlock, afterIf);
@@ -237,16 +240,26 @@ namespace Microsoft.CodeAnalysis.Operations
 
                 AppendNewBlock(whenFalse);
 
-                IOperation whenFalseValue = Visit(operation.WhenFalse, captureId);
-                if (whenFalseValue.Kind != OperationKind.FlowCaptureReference ||
-                    captureId != ((IFlowCaptureReferenceOperation)whenFalseValue).Id)
-                {
-                    AddStatement(new FlowCapture(captureId, operation.WhenFalse.Syntax, whenFalseValue));
-                }
+                VisitAndCapture(operation.WhenFalse, captureId);
 
                 AppendNewBlock(afterIf);
 
                 return new FlowCaptureReference(captureId, operation.Syntax, operation.Type, operation.ConstantValue);
+            }
+        }
+
+        private void VisitAndCapture(IOperation operation, int captureId)
+        {
+            IOperation result = Visit(operation, captureId);
+            CaptureResultIfNotAlready(operation.Syntax, captureId, result);
+        }
+
+        private void CaptureResultIfNotAlready(SyntaxNode syntax, int captureId, IOperation result)
+        {
+            if (result.Kind != OperationKind.FlowCaptureReference ||
+                captureId != ((IFlowCaptureReferenceOperation)result).Id)
+            {
+                AddStatement(new FlowCapture(captureId, syntax, result));
             }
         }
 
@@ -259,7 +272,11 @@ namespace Microsoft.CodeAnalysis.Operations
                 {
                     int captureId = _availableCaptureId++;
 
-                    AddStatement(new FlowCapture(captureId, operation.Syntax, Visit(operation)));
+                    AddStatement(new FlowCapture(captureId, operation.Syntax, Visit(operation))
+#if DEBUG
+                                 , spillingTheStack: true
+#endif
+                                );
 
                     _evalStack[i] = new FlowCaptureReference(captureId, operation.Syntax, operation.Type, operation.ConstantValue);
                 }
@@ -300,6 +317,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 return VisitBinaryConditionalOperator(operation, sense: true, captureIdForResult, fallToTrueOpt: null, fallToFalseOpt: null);
             }
 
+            // PROTOTYPE(dataflow): deal with stack spilling
             return base.VisitBinaryOperator(operation, captureIdForResult);
         }
 
@@ -370,27 +388,14 @@ namespace Microsoft.CodeAnalysis.Operations
             SpillEvalStack();
             int captureId = captureIdForResult ?? _availableCaptureId++;
 
-            BasicBlock lazyFallThrough = stopSense ? fallToTrueOpt : fallToFalseOpt;
+            ref BasicBlock lazyFallThrough = ref stopSense ? ref fallToTrueOpt : ref fallToFalseOpt;
             bool newFallThroughBlock = (lazyFallThrough == null);
 
             VisitConditionalBranch(condition.LeftOperand, ref lazyFallThrough, stopSense);
 
-            if (stopSense)
-            {
-                fallToTrueOpt = lazyFallThrough;
-            }
-            else
-            {
-                fallToFalseOpt = lazyFallThrough;
-            }
-
             IOperation resultFromRight = VisitConditionalExpression(condition.RightOperand, sense, captureId, fallToTrueOpt, fallToFalseOpt);
 
-            if (resultFromRight.Kind != OperationKind.FlowCaptureReference ||
-                captureId != ((IFlowCaptureReferenceOperation)resultFromRight).Id)
-            {
-                AddStatement(new FlowCapture(captureId, condition.RightOperand.Syntax, resultFromRight));
-            }
+            CaptureResultIfNotAlready(condition.RightOperand.Syntax, captureId, resultFromRight);
 
             if (newFallThroughBlock)
             {
@@ -521,17 +526,117 @@ oneMoreTime:
                 default:
                     condition = Operation.SetParentOperation(Visit(condition), null);
                     dest = dest ?? new BasicBlock(BasicBlockKind.Block);
-                    LinkBlocks(CurrentBasicBlock, (condition, sense, dest));
+                    LinkBlocks(CurrentBasicBlock, (condition, sense ? ConditionalBranchKind.IfTrue : ConditionalBranchKind.IfFalse, dest));
                     _currentBasicBlock = null;
                     return;
             }
         }
 
-        private static void LinkBlocks(BasicBlock previous, (IOperation Condition, bool JumpIfTrue, BasicBlock Destination) next)
+        private static void LinkBlocks(BasicBlock previous, (IOperation Value, ConditionalBranchKind Kind, BasicBlock Destination) next)
         {
-            Debug.Assert(previous.Conditional.Condition == null);
+            Debug.Assert(previous.Conditional.Value == null);
+            Debug.Assert(next.Value != null);
+            Debug.Assert(next.Value.Parent == null);
             next.Destination.AddPredecessor(previous);
             previous.Conditional = next;
+        }
+
+        public override IOperation VisitCoalesce(ICoalesceOperation operation, int? captureIdForResult)
+        {
+            SyntaxNode valueSyntax = operation.Value.Syntax;
+            ITypeSymbol valueTypeOpt = operation.Value.Type;
+
+            SpillEvalStack();
+
+            int save_availableCaptureId = _availableCaptureId;
+            IOperation rewrittenValue = Visit(operation.Value);
+
+            int testExpressionCaptureId;
+
+            if (rewrittenValue.Kind != OperationKind.FlowCaptureReference ||
+                save_availableCaptureId > (testExpressionCaptureId = ((IFlowCaptureReferenceOperation)rewrittenValue).Id))
+            {
+                testExpressionCaptureId = _availableCaptureId++;
+                AddStatement(new FlowCapture(testExpressionCaptureId, valueSyntax, rewrittenValue));
+            }
+
+            var whenNull = new BasicBlock(BasicBlockKind.Block);
+            LinkBlocks(CurrentBasicBlock, 
+                       (Operation.SetParentOperation(new FlowCaptureReference(testExpressionCaptureId, valueSyntax, valueTypeOpt, operation.Value.ConstantValue), null),
+                        ConditionalBranchKind.IfNull, whenNull));
+            _currentBasicBlock = null;
+
+            CommonConversion testConversion = operation.ValueConversion;
+            var capturedValue = new FlowCaptureReference(testExpressionCaptureId, valueSyntax, valueTypeOpt, operation.Value.ConstantValue);
+            IOperation convertedTestExpression = null;
+
+            if (testConversion.Exists)
+            {
+                IOperation possiblyUnwrappedValue = null;
+
+                if (valueTypeOpt?.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T &&
+                    (!testConversion.IsIdentity || operation.Type.OriginalDefinition.SpecialType != SpecialType.System_Nullable_T))
+                {
+                    foreach (ISymbol candidate in valueTypeOpt.GetMembers("GetValueOrDefault"))
+                    {
+                        if (candidate.Kind == SymbolKind.Method && !candidate.IsStatic && candidate.DeclaredAccessibility == Accessibility.Public)
+                        {
+                            var method = (IMethodSymbol)candidate;
+                            if (method.Parameters.Length == 0 && !method.ReturnsByRef && !method.ReturnsByRefReadonly &&
+                                method.OriginalDefinition.ReturnType.Equals(((INamedTypeSymbol)valueTypeOpt).OriginalDefinition.TypeParameters[0]))
+                            {
+                                possiblyUnwrappedValue = new InvocationExpression(method, capturedValue, isVirtual: false,
+                                                                                  ImmutableArray<IArgumentOperation>.Empty, semanticModel: null, valueSyntax,
+                                                                                  method.ReturnType, constantValue: default, isImplicit: true);
+                                break;
+                            }
+                        }
+                    }
+
+                    // PROTOTYPE(dataflow): The scenario with missing GetValueOrDefault is not covered by unit-tests.
+                }
+                else
+                {
+                    possiblyUnwrappedValue = capturedValue;
+                }
+
+                if (possiblyUnwrappedValue != null)
+                {
+                    if (testConversion.IsIdentity)
+                    {
+                        convertedTestExpression = possiblyUnwrappedValue;
+                    }
+                    else
+                    {
+                        convertedTestExpression = new ConversionOperation(possiblyUnwrappedValue, ((BaseCoalesceExpression)operation).ConvertibleValueConversion, 
+                                                                          isTryCast: false, isChecked: false, semanticModel: null, valueSyntax, operation.Type, 
+                                                                          constantValue: default, isImplicit: true);
+                    }
+                }
+            }
+
+            if (convertedTestExpression == null)
+            {
+                convertedTestExpression = new InvalidOperation(ImmutableArray.Create<IOperation>(capturedValue),
+                                                               semanticModel: null, valueSyntax, operation.Type,
+                                                               constantValue: default, isImplicit: true);
+            }
+
+            int resultCaptureId = captureIdForResult ?? _availableCaptureId++;
+
+            AddStatement(new FlowCapture(resultCaptureId, valueSyntax, convertedTestExpression));
+
+            var afterCoalesce = new BasicBlock(BasicBlockKind.Block);
+            LinkBlocks(CurrentBasicBlock, afterCoalesce);
+            _currentBasicBlock = null;
+
+            AppendNewBlock(whenNull);
+
+            VisitAndCapture(operation.WhenNull, resultCaptureId);
+
+            AppendNewBlock(afterCoalesce);
+
+            return new FlowCaptureReference(resultCaptureId, operation.Syntax, operation.Type, operation.ConstantValue);
         }
 
         private T Visit<T>(T node) where T : IOperation
@@ -782,11 +887,6 @@ oneMoreTime:
         {
             var compoundAssignment = (BaseCompoundAssignmentExpression)operation;
             return new CompoundAssignmentOperation(Visit(operation.Target), Visit(operation.Value), compoundAssignment.InConversionConvertible, compoundAssignment.OutConversionConvertible, operation.OperatorKind, operation.IsLifted, operation.IsChecked, operation.OperatorMethod, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
-        }
-
-        public override IOperation VisitCoalesce(ICoalesceOperation operation, int? captureIdForResult)
-        {
-            return new CoalesceExpression(Visit(operation.Value), Visit(operation.WhenNull), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitIsType(IIsTypeOperation operation, int? captureIdForResult)

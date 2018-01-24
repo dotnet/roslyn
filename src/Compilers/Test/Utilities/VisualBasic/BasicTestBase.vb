@@ -829,6 +829,15 @@ Public MustInherit Class BasicTestBaseBase
         End If
     End Sub
 
+    Protected Shared Sub VerifyFlowGraphForTest(Of TSyntaxNode As SyntaxNode)(compilation As VisualBasicCompilation, expectedFlowGraph As String, Optional which As Integer = 0)
+        Dim tree = compilation.SyntaxTrees(0)
+        Dim model = compilation.GetSemanticModel(tree)
+        Dim syntaxNode As SyntaxNode = CompilationUtils.FindBindingText(Of TSyntaxNode)(compilation, tree.FilePath, which, prefixMatch:=True)
+
+        Dim graph As ImmutableArray(Of Operations.BasicBlock) = SemanticModel.GetControlFlowGraph(DirectCast(model.GetOperation(syntaxNode), Operations.IBlockOperation))
+        ControlFlowGraphVerifier.VerifyGraph(compilation, expectedFlowGraph, graph)
+    End Sub
+
     Friend Shared Sub VerifyOperationTreeForTest(Of TSyntaxNode As SyntaxNode)(
         testSrc As String,
         expectedOperationTree As String,

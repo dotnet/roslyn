@@ -4,6 +4,7 @@ namespace Microsoft.CodeAnalysis.Operations
 {
     /// <summary>
     /// Represents that an intermediate result is being captured.
+    /// This node is produced only as part of a flow graph.
     /// PROTOTYPE(dataflow): Finalize the design how capturing/referencing intermediate results is represented.
     /// </summary>
     public interface IFlowCaptureOperation : IOperation

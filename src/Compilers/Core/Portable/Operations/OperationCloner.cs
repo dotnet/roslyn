@@ -294,7 +294,9 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public override IOperation VisitCoalesce(ICoalesceOperation operation, object argument)
         {
-            return new CoalesceExpression(Visit(operation.Value), Visit(operation.WhenNull), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            var coalesceOperation = (BaseCoalesceExpression)operation;
+            return new CoalesceExpression(Visit(operation.Value), Visit(operation.WhenNull), coalesceOperation.ConvertibleValueConversion, coalesceOperation.SemanticModel, 
+                                          operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitIsType(IIsTypeOperation operation, object argument)

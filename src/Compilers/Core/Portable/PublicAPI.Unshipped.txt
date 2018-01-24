@@ -149,7 +149,7 @@ Microsoft.CodeAnalysis.Operations.ArgumentKind.None = 0 -> Microsoft.CodeAnalysi
 Microsoft.CodeAnalysis.Operations.ArgumentKind.ParamArray = 2 -> Microsoft.CodeAnalysis.Operations.ArgumentKind
 Microsoft.CodeAnalysis.Operations.BasicBlock
 Microsoft.CodeAnalysis.Operations.BasicBlock.BasicBlock(Microsoft.CodeAnalysis.Operations.BasicBlockKind kind) -> void
-Microsoft.CodeAnalysis.Operations.BasicBlock.Conditional.get -> (Microsoft.CodeAnalysis.IOperation Condition, bool JumpIfTrue, Microsoft.CodeAnalysis.Operations.BasicBlock Destination)
+Microsoft.CodeAnalysis.Operations.BasicBlock.Conditional.get -> (Microsoft.CodeAnalysis.IOperation Value, Microsoft.CodeAnalysis.Operations.ConditionalBranchKind Kind, Microsoft.CodeAnalysis.Operations.BasicBlock Destination)
 Microsoft.CodeAnalysis.Operations.BasicBlock.Kind.get -> Microsoft.CodeAnalysis.Operations.BasicBlockKind
 Microsoft.CodeAnalysis.Operations.BasicBlock.Next.get -> Microsoft.CodeAnalysis.Operations.BasicBlock
 Microsoft.CodeAnalysis.Operations.BasicBlock.Predecessors.get -> System.Collections.Immutable.ImmutableHashSet<Microsoft.CodeAnalysis.Operations.BasicBlock>
@@ -203,6 +203,10 @@ Microsoft.CodeAnalysis.Operations.CommonConversion.IsNumeric.get -> bool
 Microsoft.CodeAnalysis.Operations.CommonConversion.IsReference.get -> bool
 Microsoft.CodeAnalysis.Operations.CommonConversion.IsUserDefined.get -> bool
 Microsoft.CodeAnalysis.Operations.CommonConversion.MethodSymbol.get -> Microsoft.CodeAnalysis.IMethodSymbol
+Microsoft.CodeAnalysis.Operations.ConditionalBranchKind
+Microsoft.CodeAnalysis.Operations.ConditionalBranchKind.IfFalse = 1 -> Microsoft.CodeAnalysis.Operations.ConditionalBranchKind
+Microsoft.CodeAnalysis.Operations.ConditionalBranchKind.IfNull = 2 -> Microsoft.CodeAnalysis.Operations.ConditionalBranchKind
+Microsoft.CodeAnalysis.Operations.ConditionalBranchKind.IfTrue = 0 -> Microsoft.CodeAnalysis.Operations.ConditionalBranchKind
 Microsoft.CodeAnalysis.Operations.IAddressOfOperation
 Microsoft.CodeAnalysis.Operations.IAddressOfOperation.Reference.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Operations.IAnonymousFunctionOperation
@@ -253,6 +257,7 @@ Microsoft.CodeAnalysis.Operations.ICatchClauseOperation.Handler.get -> Microsoft
 Microsoft.CodeAnalysis.Operations.ICatchClauseOperation.Locals.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ILocalSymbol>
 Microsoft.CodeAnalysis.Operations.ICoalesceOperation
 Microsoft.CodeAnalysis.Operations.ICoalesceOperation.Value.get -> Microsoft.CodeAnalysis.IOperation
+Microsoft.CodeAnalysis.Operations.ICoalesceOperation.ValueConversion.get -> Microsoft.CodeAnalysis.Operations.CommonConversion
 Microsoft.CodeAnalysis.Operations.ICoalesceOperation.WhenNull.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Operations.ICollectionElementInitializerOperation
 Microsoft.CodeAnalysis.Operations.ICollectionElementInitializerOperation.AddMethod.get -> Microsoft.CodeAnalysis.IMethodSymbol
@@ -507,7 +512,6 @@ Microsoft.CodeAnalysis.Operations.UnaryOperatorKind.Plus = 3 -> Microsoft.CodeAn
 Microsoft.CodeAnalysis.Operations.UnaryOperatorKind.True = 5 -> Microsoft.CodeAnalysis.Operations.UnaryOperatorKind
 Microsoft.CodeAnalysis.RefKind.In = 3 -> Microsoft.CodeAnalysis.RefKind
 Microsoft.CodeAnalysis.RefKind.RefReadOnly = 3 -> Microsoft.CodeAnalysis.RefKind
-Microsoft.CodeAnalysis.SemanticModel.GetControlFlowGraph(Microsoft.CodeAnalysis.Operations.IBlockOperation body) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Operations.BasicBlock>
 Microsoft.CodeAnalysis.SemanticModel.GetOperation(Microsoft.CodeAnalysis.SyntaxNode node, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.SyntaxList<TNode>.SyntaxList(System.Collections.Generic.IEnumerable<TNode> nodes) -> void
 Microsoft.CodeAnalysis.SyntaxList<TNode>.SyntaxList(TNode node) -> void
@@ -542,6 +546,7 @@ static Microsoft.CodeAnalysis.Operations.OperationExtensions.GetArgumentRefKind(
 static Microsoft.CodeAnalysis.Operations.OperationExtensions.GetDeclaredVariables(this Microsoft.CodeAnalysis.Operations.IVariableDeclarationGroupOperation declarationGroup) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ILocalSymbol>
 static Microsoft.CodeAnalysis.Operations.OperationExtensions.GetDeclaredVariables(this Microsoft.CodeAnalysis.Operations.IVariableDeclarationOperation declaration) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ILocalSymbol>
 static Microsoft.CodeAnalysis.Operations.OperationExtensions.GetVariableInitializer(this Microsoft.CodeAnalysis.Operations.IVariableDeclaratorOperation declarationOperation) -> Microsoft.CodeAnalysis.Operations.IVariableInitializerOperation
+static Microsoft.CodeAnalysis.SemanticModel.GetControlFlowGraph(Microsoft.CodeAnalysis.Operations.IBlockOperation body) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Operations.BasicBlock>
 virtual Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.RegisterOperationAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext> action, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.OperationKind> operationKinds) -> void
 virtual Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.RegisterOperationBlockAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext> action) -> void
 virtual Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.RegisterOperationBlockStartAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext> action) -> void

@@ -3579,9 +3579,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal abstract partial class BaseCoalesceExpression : Operation, ICoalesceOperation
     {
-        protected BaseCoalesceExpression(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        protected BaseCoalesceExpression(IConvertibleConversion convertibleValueConversion, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
                     base(OperationKind.Coalesce, semanticModel, syntax, type, constantValue, isImplicit)
         {
+            ConvertibleValueConversion = convertibleValueConversion;
         }
 
         protected abstract IOperation ExpressionImpl { get; }
@@ -3616,6 +3617,9 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             return visitor.VisitCoalesce(this, argument);
         }
+
+        internal IConvertibleConversion ConvertibleValueConversion { get; } // PROTOTYPE(dataflow): add extension methods that expose language specific conversion information
+        public CommonConversion ValueConversion => ConvertibleValueConversion.ToCommonConversion();
     }
 
     /// <summary>
@@ -3623,8 +3627,9 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal sealed partial class CoalesceExpression : BaseCoalesceExpression, ICoalesceOperation
     {
-        public CoalesceExpression(IOperation expression, IOperation whenNull, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(semanticModel, syntax, type, constantValue, isImplicit)
+        public CoalesceExpression(IOperation expression, IOperation whenNull, IConvertibleConversion convertibleValueConversion, SemanticModel semanticModel, 
+                                  SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(convertibleValueConversion, semanticModel, syntax, type, constantValue, isImplicit)
         {
             ExpressionImpl = expression;
             WhenNullImpl = whenNull;
@@ -3642,7 +3647,9 @@ namespace Microsoft.CodeAnalysis.Operations
         private readonly Lazy<IOperation> _lazyExpression;
         private readonly Lazy<IOperation> _lazyWhenNull;
 
-        public LazyCoalesceExpression(Lazy<IOperation> expression, Lazy<IOperation> whenNull, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : base(semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyCoalesceExpression(Lazy<IOperation> expression, Lazy<IOperation> whenNull, IConvertibleConversion convertibleValueConversion, 
+                                      SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) : 
+            base(convertibleValueConversion, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyExpression = expression ?? throw new System.ArgumentNullException(nameof(expression));
             _lazyWhenNull = whenNull ?? throw new System.ArgumentNullException(nameof(whenNull));
