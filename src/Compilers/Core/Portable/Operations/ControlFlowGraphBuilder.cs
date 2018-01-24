@@ -546,12 +546,19 @@ oneMoreTime:
             SyntaxNode valueSyntax = operation.Value.Syntax;
             ITypeSymbol valueTypeOpt = operation.Value.Type;
 
+            SpillEvalStack();
+
+            int save_availableCaptureId = _availableCaptureId;
             IOperation rewrittenValue = Visit(operation.Value);
 
-            SpillEvalStack();
-            int testExpressionCaptureId = _availableCaptureId++;
+            int testExpressionCaptureId;
 
-            AddStatement(new FlowCapture(testExpressionCaptureId, valueSyntax, rewrittenValue));
+            if (rewrittenValue.Kind != OperationKind.FlowCaptureReference ||
+                save_availableCaptureId > (testExpressionCaptureId = ((IFlowCaptureReferenceOperation)rewrittenValue).Id))
+            {
+                testExpressionCaptureId = _availableCaptureId++;
+                AddStatement(new FlowCapture(testExpressionCaptureId, valueSyntax, rewrittenValue));
+            }
 
             var whenNull = new BasicBlock(BasicBlockKind.Block);
             LinkBlocks(CurrentBasicBlock, 
