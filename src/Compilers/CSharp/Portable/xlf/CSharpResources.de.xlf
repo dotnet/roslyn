@@ -8605,6 +8605,11 @@ Um die Warnung zu beheben, können Sie stattdessen /reference verwenden (Einbett
         <target state="new">enum generic type constraints</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureDelegateGenericTypeConstraint">
+        <source>delegate generic type constraints</source>
+        <target state="new">delegate generic type constraints</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

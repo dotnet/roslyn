@@ -8605,6 +8605,11 @@ Para eliminar la advertencia puede usar /reference (establezca la propiedad Embe
         <target state="new">enum generic type constraints</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureDelegateGenericTypeConstraint">
+        <source>delegate generic type constraints</source>
+        <target state="new">delegate generic type constraints</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

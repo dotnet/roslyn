@@ -5164,5 +5164,29 @@ class X<T> where T : System.Enum
 }",
                 MainDescription($"T {FeaturesResources.in_} X<T> where T : Enum"));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task DelegateConstraint()
+        {
+            await TestInMethodAsync(
+@"
+class X<T> where T : System.Delegate
+{
+    private $$T x;
+}",
+                MainDescription($"T {FeaturesResources.in_} X<T> where T : Delegate"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task MulticastDelegateConstraint()
+        {
+            await TestInMethodAsync(
+@"
+class X<T> where T : System.MulticastDelegate
+{
+    private $$T x;
+}",
+                MainDescription($"T {FeaturesResources.in_} X<T> where T : MulticastDelegate"));
+        }
     }
 }

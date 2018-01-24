@@ -6317,5 +6317,31 @@ End Structure";
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.ClassName);
         }
+
+        [Fact]
+        public void DelegateConstraint()
+        {
+            TestSymbolDescription(
+                "class X<T> where T : System.Delegate { }",
+                global => global.GetTypeMember("X").TypeParameters.Single().ConstraintTypes().Single(),
+                SymbolDisplayFormat.TestFormat,
+                "System.Delegate",
+                SymbolDisplayPartKind.NamespaceName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.ClassName);
+        }
+
+        [Fact]
+        public void MulticastDelegateConstraint()
+        {
+            TestSymbolDescription(
+                "class X<T> where T : System.MulticastDelegate { }",
+                global => global.GetTypeMember("X").TypeParameters.Single().ConstraintTypes().Single(),
+                SymbolDisplayFormat.TestFormat,
+                "System.MulticastDelegate",
+                SymbolDisplayPartKind.NamespaceName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.ClassName);
+        }
     }
 }

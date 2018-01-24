@@ -270,6 +270,32 @@ class Program
                 new CSharpParseOptions(LanguageVersion.CSharp7_2),
                 index: 1);
         }
+        
+        [Fact]
+        public async Task UpgradeProjectFromCSharp7_2ToLatest_DelegateConstraint()
+        {
+            await TestLanguageVersionUpgradedAsync(
+@"public class X<T> where T : [|System.Delegate|]
+{
+}
+",
+                LanguageVersion.CSharp7_3,
+                new CSharpParseOptions(LanguageVersion.CSharp7_2),
+                index: 1);
+        }
+
+        [Fact]
+        public async Task UpgradeProjectFromCSharp7_2ToLatest_MulticastDelegateConstraint()
+        {
+            await TestLanguageVersionUpgradedAsync(
+@"public class X<T> where T : [|System.MulticastDelegate|]
+{
+}
+",
+                LanguageVersion.CSharp7_3,
+                new CSharpParseOptions(LanguageVersion.CSharp7_2),
+                index: 1);
+        }
         #endregion C# 7.3
 
         [Fact]
