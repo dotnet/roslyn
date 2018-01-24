@@ -14,43 +14,45 @@ using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
-    internal partial class RenameCommandHandler : IChainedCommandHandler<RenameCommandArgs>
+    internal partial class RenameCommandHandler : VSCommanding.ICommandHandler<RenameCommandArgs>
     {
-        public VSCommanding.CommandState GetCommandState(RenameCommandArgs args, Func<VSCommanding.CommandState> nextHandler)
+        public VSCommanding.CommandState GetCommandState(RenameCommandArgs args)
         {
             var caretPoint = args.TextView.GetCaretPoint(args.SubjectBuffer);
             if (!caretPoint.HasValue)
             {
-                return nextHandler();
+                return VSCommanding.CommandState.Unspecified;
             }
 
             var textContainer = args.SubjectBuffer.AsTextContainer();
             if (!Workspace.TryGetWorkspace(textContainer, out var workspace))
             {
-                return nextHandler();
+                return VSCommanding.CommandState.Unspecified;
             }
 
             if (!workspace.CanApplyChange(ApplyChangesKind.ChangeDocument))
             {
-                return nextHandler();
+                return VSCommanding.CommandState.Unspecified;
             }
 
             var documents = textContainer.GetRelatedDocuments();
             var supportsFeatureService = workspace.Services.GetService<IDocumentSupportsFeatureService>();
             if (!documents.All(d => supportsFeatureService.SupportsRename(d)))
             {
-                return nextHandler();
+                return VSCommanding.CommandState.Unspecified;
             }
 
             return VSCommanding.CommandState.Available;
         }
 
-        public void ExecuteCommand(RenameCommandArgs args, Action nextHandler, CommandExecutionContext context)
+        public bool ExecuteCommand(RenameCommandArgs args, CommandExecutionContext context)
         {
             using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Finding_token_to_rename))
             {
                 ExecuteRenameWorker(args, context.OperationContext.UserCancellationToken);
             }
+
+            return true;
         }
 
         private void ExecuteRenameWorker(RenameCommandArgs args, CancellationToken cancellationToken)
