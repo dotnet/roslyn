@@ -60,6 +60,9 @@ Environment.Exit(0)
 > C {{ }}
 > 
 ";
+            // The German translation (and possibly others) contains an en dash (0x2013),
+            // but csi.exe outputs it as a hyphen-minus (0x002d). We need to fix up the 
+            // expected string before we can compare it to the actual output.
             expected = expected.Replace((char)0x2013, (char)0x002d); // EN DASH -> HYPHEN-MINUS
             AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, result.Output);
 
