@@ -1473,7 +1473,6 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>Predefined type '{0}' is not defined or imported</value>
   </data>
   <data name="ERR_PredefinedValueTupleTypeNotFound" xml:space="preserve">
-    <!-- We need a specific error code for ValueTuple as an IDE codefix depends on it (AddNuget) -->
     <value>Predefined type '{0}' is not defined or imported</value>
   </data>
   <data name="ERR_PredefinedValueTupleTypeAmbiguous3" xml:space="preserve">
@@ -5246,5 +5245,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_DefaultInPattern" xml:space="preserve">
     <value>A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.</value>
+  </data>
+  <data name="IDS_FeatureEnumGenericTypeConstraint" xml:space="preserve">
+    <value>enum generic type constraints</value>
   </data>
 </root>

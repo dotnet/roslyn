@@ -171,9 +171,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                                 if ((constraints & (TypeParameterConstraintKind.ReferenceType | TypeParameterConstraintKind.ValueType)) != 0)
                                 {
-                                    // "'{0}': cannot specify both a constraint class and the 'class' or 'struct' constraint"
-                                    Error(diagnostics, ErrorCode.ERR_RefValBoundWithClass, syntax, type);
-                                    continue;
+                                    // System.Enum is allowed to exist with class and struct constraints
+                                    if (type.SpecialType != SpecialType.System_Enum)
+                                    {
+                                        // "'{0}': cannot specify both a constraint class and the 'class' or 'struct' constraint"
+                                        Error(diagnostics, ErrorCode.ERR_RefValBoundWithClass, syntax, type);
+                                        continue;
+                                    }
                                 }
                             }
 
@@ -196,9 +200,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             switch (type.SpecialType)
             {
+                case SpecialType.System_Enum:
+                    CheckFeatureAvailability(syntax, MessageID.IDS_FeatureEnumGenericTypeConstraint, diagnostics);
+                    break;
+
                 case SpecialType.System_Object:
                 case SpecialType.System_ValueType:
-                case SpecialType.System_Enum:
                 case SpecialType.System_Delegate:
                 case SpecialType.System_MulticastDelegate:
                 case SpecialType.System_Array:

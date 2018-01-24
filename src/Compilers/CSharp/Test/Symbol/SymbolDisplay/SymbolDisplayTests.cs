@@ -6304,5 +6304,18 @@ End Structure";
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.StructName);
         }
+
+        [Fact]
+        public void EnumConstraint()
+        {
+            TestSymbolDescription(
+                "class X<T> where T : System.Enum { }",
+                global => global.GetTypeMember("X").TypeParameters.Single().ConstraintTypes().Single(),
+                SymbolDisplayFormat.TestFormat,
+                "System.Enum",
+                SymbolDisplayPartKind.NamespaceName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.ClassName);
+        }
     }
 }

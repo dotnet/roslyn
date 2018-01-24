@@ -8600,6 +8600,11 @@ Pour supprimer l'avertissement, vous pouvez utiliser la commande /reference (dé
         <target state="new">Field-targeted attributes on auto-properties are not supported in this version of the language.</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureEnumGenericTypeConstraint">
+        <source>enum generic type constraints</source>
+        <target state="new">enum generic type constraints</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>
