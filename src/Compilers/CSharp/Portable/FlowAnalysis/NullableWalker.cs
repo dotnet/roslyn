@@ -815,12 +815,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             DeclareVariables(node.Locals);
             var result = base.VisitSequence(node);
-
-            if (node.Value == null)
-            {
-                SetUnknownResultNullability();
-            }
-
+            SetUnknownResultNullability();
             return result;
         }
 
@@ -2641,7 +2636,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitAddressOfOperator(BoundAddressOfOperator node)
         {
-            SetUnknownResultNullability();
+            SetResult(node);
             return null;
         }
 
@@ -2795,8 +2790,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitDynamicObjectInitializerMember(BoundDynamicObjectInitializerMember node)
         {
-            SetUnknownResultNullability();
-            return null;
+            // Should be handled by VisitObjectCreationExpression.
+            throw ExceptionUtilities.Unreachable;
         }
 
         public override BoundNode VisitBadExpression(BoundBadExpression node)
@@ -2809,14 +2804,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitTypeExpression(BoundTypeExpression node)
         {
             var result = base.VisitTypeExpression(node);
-            SetUnknownResultNullability();
+            SetResult(node);
             return result;
         }
 
         public override BoundNode VisitTypeOrValueExpression(BoundTypeOrValueExpression node)
         {
             var result = base.VisitTypeOrValueExpression(node);
-            SetUnknownResultNullability();
+            SetResult(node);
             return result;
         }
 
@@ -2857,14 +2852,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitPointerIndirectionOperator(BoundPointerIndirectionOperator node)
         {
             var result = base.VisitPointerIndirectionOperator(node);
-            SetUnknownResultNullability();
+            SetResult(node);
             return result;
         }
 
         public override BoundNode VisitPointerElementAccess(BoundPointerElementAccess node)
         {
             var result = base.VisitPointerElementAccess(node);
-            SetUnknownResultNullability();
+            SetResult(node);
             return result;
         }
 
@@ -2885,7 +2880,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitRefValueOperator(BoundRefValueOperator node)
         {
             var result = base.VisitRefValueOperator(node);
-            SetUnknownResultNullability();
+            SetResult(node);
             return result;
         }
 
@@ -3020,7 +3015,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (!node.Type.IsReferenceType || node.HasErrors || (object)node.GetResult == null)
                 {
-                    SetUnknownResultNullability();
+                    SetResult(node);
                 }
                 else
                 {
@@ -3063,7 +3058,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var result = base.VisitIsOperator(node);
             Debug.Assert(node.Type.SpecialType == SpecialType.System_Boolean);
-            SetUnknownResultNullability();
+            SetResult(node);
             return result;
         }
 
@@ -3129,7 +3124,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var result = base.VisitArgList(node);
             Debug.Assert(node.Type.SpecialType == SpecialType.System_RuntimeArgumentHandle);
-            SetUnknownResultNullability();
+            SetResult(node);
             return result;
         }
 
@@ -3137,7 +3132,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             VisitArgumentsEvaluate(node.Arguments, node.ArgumentRefKindsOpt, argsToParamsOpt: default, expanded: false);
             Debug.Assert((object)node.Type == null);
-            SetUnknownResultNullability();
+            SetResult(node);
             return null;
         }
 
@@ -3156,7 +3151,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var result = base.VisitPreviousSubmissionReference(node);
             Debug.Assert(node.WasCompilerGenerated);
-            SetUnknownResultNullability();
+            SetResult(node);
             return result;
         }
 
@@ -3164,21 +3159,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var result = base.VisitHostObjectMemberReference(node);
             Debug.Assert(node.WasCompilerGenerated);
-            SetUnknownResultNullability();
+            SetResult(node);
             return result;
         }
 
         public override BoundNode VisitPseudoVariable(BoundPseudoVariable node)
         {
             var result = base.VisitPseudoVariable(node);
-            SetUnknownResultNullability();
+            SetResult(node);
             return result;
         }
 
         public override BoundNode VisitRangeVariable(BoundRangeVariable node)
         {
             var result = base.VisitRangeVariable(node);
-            SetUnknownResultNullability(); // PROTOTYPE(NullableReferenceTypes)
+            SetResult(node); // PROTOTYPE(NullableReferenceTypes)
             return result;
         }
 
@@ -3228,7 +3223,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CheckPossibleNullReceiver(receiverOpt);
             }
             VisitRvalue(node.Argument);
-            SetUnknownResultNullability();
+            SetResult(node); // PROTOTYPE(NullableReferenceTypes)
             return null;
         }
 
@@ -3243,21 +3238,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitObjectInitializerExpression(BoundObjectInitializerExpression node)
         {
             // Only reachable from bad expression. Otherwise handled in VisitObjectCreationExpression().
-            SetUnknownResultNullability();
+            SetResult(node);
             return null;
         }
 
         public override BoundNode VisitCollectionInitializerExpression(BoundCollectionInitializerExpression node)
         {
             // Only reachable from bad expression. Otherwise handled in VisitObjectCreationExpression().
-            SetUnknownResultNullability();
+            SetResult(node);
             return null;
         }
 
         public override BoundNode VisitDynamicCollectionElementInitializer(BoundDynamicCollectionElementInitializer node)
         {
             // Only reachable from bad expression. Otherwise handled in VisitObjectCreationExpression().
-            SetUnknownResultNullability();
+            SetResult(node);
             return null;
         }
 
@@ -3271,7 +3266,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitAnonymousPropertyDeclaration(BoundAnonymousPropertyDeclaration node)
         {
             var result = base.VisitAnonymousPropertyDeclaration(node);
-            SetUnknownResultNullability();
+            SetResult(node);
             return result;
         }
 
@@ -3292,7 +3287,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitArrayInitialization(BoundArrayInitialization node)
         {
             var result = base.VisitArrayInitialization(node);
-            SetUnknownResultNullability();
+            SetResult(node);
             return result;
         }
 
@@ -3311,7 +3306,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var result = base.VisitStackAllocArrayCreation(node);
             Debug.Assert((object)node.Type == null || node.Type.IsPointerType() || node.Type.IsByRefLikeType);
-            SetUnknownResultNullability();
+            SetResult(node);
             return result;
         }
 
@@ -3408,7 +3403,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitQueryClause(BoundQueryClause node)
         {
             var result = base.VisitQueryClause(node);
-            SetUnknownResultNullability(); // PROTOTYPE(NullableReferenceTypes)
+            SetResult(node); // PROTOTYPE(NullableReferenceTypes)
             return result;
         }
 
