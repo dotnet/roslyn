@@ -3985,7 +3985,60 @@ unsafe class C
 
         #endregion Fixed statement tests
 
-        #region Pointer conversion tests
+        #region Custom fixed statement tests
+
+        [Fact(Skip = "NYI")]
+        public void SimpleCaseOfCustomFixed()
+        {
+            var text = @"
+unsafe class C
+{
+    public static void Main()
+    {
+        fixed (int* p = new Fixable())
+        {
+            System.Console.WriteLine(p[1]);
+        }
+    }
+
+    class Fixable
+    {
+        public ref int DangerousGetPinnableReference()
+        {
+            return ref (new int[]{1,2,3})[0];
+        }
+    }
+
+}";
+
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"2", verify: Verification.Fails);
+
+            compVerifier.VerifyIL("C.Main", @"
+{
+  // Code size       30 (0x1e)
+  .maxstack  3
+  .locals init (pinned int& V_0)
+  IL_0000:  newobj     ""C..ctor()""
+  IL_0005:  dup
+  IL_0006:  ldflda     ""int C.x""
+  IL_000b:  stloc.0
+  IL_000c:  ldloc.0
+  IL_000d:  conv.u
+  IL_000e:  ldc.i4.1
+  IL_000f:  stind.i4
+  IL_0010:  ldc.i4.0
+  IL_0011:  conv.u
+  IL_0012:  stloc.0
+  IL_0013:  ldfld      ""int C.x""
+  IL_0018:  call       ""void System.Console.WriteLine(int)""
+  IL_001d:  ret
+}
+");
+        }
+
+        #endregion Custom fixed statement tests
+
+            #region Pointer conversion tests
 
         [Fact]
         public void ConvertNullToPointer()

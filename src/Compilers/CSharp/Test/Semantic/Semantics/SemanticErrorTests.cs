@@ -8019,10 +8019,10 @@ public class MyClass
             CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (7,23): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
                 //       fixed (int *j = &i) { }  // CS0213
-                Diagnostic(ErrorCode.ERR_FixedNotNeeded, "&i"),
-                // (14,26): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
+                Diagnostic(ErrorCode.ERR_FixedNotNeeded, "&i").WithLocation(7, 23),
+                // (14,26): error CS9365: The given expression cannot be used in a fixed statement
                 //          fixed (int *c = b) { }  // CS0213
-                Diagnostic(ErrorCode.ERR_FixedNotNeeded, "b"));
+                Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "b").WithLocation(14, 26));
         }
 
         [Fact]
@@ -8734,9 +8734,9 @@ class FixedTest
 }
 ";
             CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (20,23): error CS0254: The right hand side of a fixed statement assignment may not be a cast expression
+                // (20,23): error CS9365: The given expression cannot be used in a fixed statement
                 //       fixed (int* p = (int*)&pt.x)   // CS0254
-                Diagnostic(ErrorCode.ERR_BadCastInFixed, "(int*)&pt.x"));
+                Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "(int*)&pt.x").WithLocation(20, 23));
         }
 
         [Fact]

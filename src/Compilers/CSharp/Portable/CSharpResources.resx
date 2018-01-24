@@ -927,6 +927,9 @@
   <data name="ERR_FixedNotNeeded" xml:space="preserve">
     <value>You cannot use the fixed statement to take the address of an already fixed expression</value>
   </data>
+  <data name="ERR_ExprCannotBeFixed" xml:space="preserve">
+    <value>The given expression cannot be used in a fixed statement</value>
+  </data>
   <data name="ERR_UnsafeNeeded" xml:space="preserve">
     <value>Pointers and fixed size buffers may only be used in an unsafe context</value>
   </data>

@@ -1558,5 +1558,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_DoNotUseFixedBufferAttrOnProperty = 8372,
 
         // Note: you will need to re-generate compiler code after adding warnings (build\scripts\generate-compiler-code.cmd)
+
+        ERR_ExprCannotBeFixed = 9365,
     }
 }

@@ -1041,7 +1041,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!ReferenceEquals(declType, null));
             Debug.Assert(declType.IsPointerType());
 
-            if (ReferenceEquals(initializerOpt, null))
+            if (initializerOpt?.HasAnyErrors != false)
             {
                 return false;
             }
@@ -1049,86 +1049,62 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol initializerType = initializerOpt.Type;
             SyntaxNode initializerSyntax = initializerOpt.Syntax;
 
-            if (ReferenceEquals(initializerType, null))
+            if ((object)initializerType == null)
             {
-                initializerOpt = GenerateConversionForAssignment(declType, initializerOpt, diagnostics);
-                if (!initializerOpt.HasAnyErrors)
-                {
-                    // Dev10 just reports the assignment conversion error, which must occur, except for these cases:
-                    Debug.Assert(
-                        initializerOpt is BoundConvertedStackAllocExpression ||
-                        initializerOpt is BoundConversion conversion && (conversion.Operand.IsLiteralNull() || conversion.Operand.Kind == BoundKind.DefaultExpression),
-                        "All other typeless expressions should have conversion errors");
-
-                    // CONSIDER: this is a very confusing error message, but it's what Dev10 reports.
-                    Error(diagnostics, ErrorCode.ERR_FixedNotNeeded, initializerSyntax);
-                }
-            }
-            else
-            {
-                TypeSymbol elementType;
-                bool hasErrors = false;
-
-                if (initializerType.SpecialType == SpecialType.System_String)
-                {
-                    elementType = this.GetSpecialType(SpecialType.System_Char, diagnostics, initializerSyntax);
-                    Debug.Assert(!elementType.IsManagedType);
-                }
-                else if (initializerType.IsArray())
-                {
-                    // See ExpressionBinder::BindPtrToArray (though most of that functionality is now in LocalRewriter).
-                    var arrayType = (ArrayTypeSymbol)initializerType;
-                    elementType = arrayType.ElementType;
-
-                    if (elementType.IsManagedType)
-                    {
-                        Error(diagnostics, ErrorCode.ERR_ManagedAddr, initializerSyntax, elementType);
-                        hasErrors = true;
-                    }
-                }
-                else if (!initializerOpt.HasAnyErrors)
-                {
-                    elementType = initializerOpt.Type;
-                    switch (initializerOpt.Kind)
-                    {
-                        case BoundKind.AddressOfOperator:
-                            elementType = ((BoundAddressOfOperator)initializerOpt).Operand.Type;
-                            break;
-                        case BoundKind.FieldAccess:
-                            var fa = (BoundFieldAccess)initializerOpt;
-                            if (!fa.FieldSymbol.IsFixed)
-                            {
-                                Error(diagnostics, ErrorCode.ERR_FixedNotNeeded, initializerSyntax);
-                                return true;
-                            }
-                            else
-                            {
-                                elementType = ((PointerTypeSymbol)fa.Type).PointedAtType;
-                            }
-                            break;
-                        case BoundKind.Conversion:
-                            // The following assertion would not be correct because there might be an implicit conversion after (above) the explicit one.
-                            //Debug.Assert(((BoundConversion)initializerOpt).ExplicitCastInCode, "The assignment conversion hasn't been applied yet, so this must be from source.");
-
-                            // NOTE: Dev10 specifically doesn't report this error for the array or string cases.
-                            Error(diagnostics, ErrorCode.ERR_BadCastInFixed, initializerSyntax);
-                            return true;
-                        default:
-                            // CONSIDER: this is a very confusing error message, but it's what Dev10 reports.
-                            Error(diagnostics, ErrorCode.ERR_FixedNotNeeded, initializerSyntax);
-                            return true;
-                    }
-                }
-                else
-                {
-                    // convert to generate any additional conversion errors
-                    initializerOpt = GenerateConversionForAssignment(declType, initializerOpt, diagnostics);
-                    return true;
-                }
-
-                initializerOpt = GetFixedLocalCollectionInitializer(initializerOpt, elementType, declType, hasErrors, diagnostics);
+                // TODO: VS replace with better error.
+                // CONSIDER: this is a very confusing error message, but it's what Dev10 reports.
+                Error(diagnostics, ErrorCode.ERR_ExprCannotBeFixed, initializerSyntax);
+                return false;
             }
 
+            TypeSymbol elementType;
+            bool hasErrors = false;
+
+            switch (initializerOpt.Kind)
+            {
+                case BoundKind.AddressOfOperator:
+                    elementType = ((BoundAddressOfOperator)initializerOpt).Operand.Type;
+                    break;
+
+                case BoundKind.FieldAccess:
+                    var fa = (BoundFieldAccess)initializerOpt;
+                    if (fa.FieldSymbol.IsFixed)
+                    {
+                        elementType = ((PointerTypeSymbol)fa.Type).PointedAtType;
+                        break;
+                    }
+
+                    goto default;
+
+                default:
+                    //  fixed (T* variable = <expr>) ...
+                    if (initializerType.SpecialType == SpecialType.System_String)
+                    {
+                        elementType = this.GetSpecialType(SpecialType.System_Char, diagnostics, initializerSyntax);
+                        Debug.Assert(!elementType.IsManagedType);
+                    }
+                    else if (initializerType.IsArray())
+                    {
+                        // See ExpressionBinder::BindPtrToArray (though most of that functionality is now in LocalRewriter).
+                        var arrayType = (ArrayTypeSymbol)initializerType;
+                        elementType = arrayType.ElementType;
+                    }
+                    else
+                    {
+                        Error(diagnostics, ErrorCode.ERR_ExprCannotBeFixed, initializerSyntax);
+                        return false;
+                    }
+
+                    break;
+            }
+
+            if (elementType.IsManagedType)
+            {
+                Error(diagnostics, ErrorCode.ERR_ManagedAddr, initializerSyntax, elementType);
+                hasErrors = true;
+            }
+
+            initializerOpt = GetFixedLocalCollectionInitializer(initializerOpt, elementType, declType, hasErrors, diagnostics);
             return true;
         }
 
