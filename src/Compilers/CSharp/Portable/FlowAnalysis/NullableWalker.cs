@@ -2380,7 +2380,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitLambda(BoundLambda node)
         {
             var result = VisitLambdaOrLocalFunction(node);
-            _result = node.UnboundLambda.Clone(_binder);
+            SetResult(node); // PROTOTYPE(NullableReferenceTypes)
             return result;
         }
 

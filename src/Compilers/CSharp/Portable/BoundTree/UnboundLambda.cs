@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         SyntaxNode IBoundLambdaOrFunction.Syntax { get { return Syntax; } }
 
         public BoundLambda(SyntaxNode syntax, UnboundLambda unboundLambda, BoundBlock body, ImmutableArray<Diagnostic> diagnostics, Binder binder, TypeSymbol delegateType, bool inferReturnType)
-            : this(syntax, unboundLambda, (LambdaSymbol)binder.ContainingMemberOrLambda, body, diagnostics, binder, delegateType)
+            : this(syntax, (LambdaSymbol)binder.ContainingMemberOrLambda, body, diagnostics, binder, delegateType)
         {
             if (inferReturnType)
             {

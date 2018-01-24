@@ -1534,7 +1534,6 @@
   </Node>
 
   <Node Name="BoundLambda" Base="BoundExpression">
-    <Field Name="UnboundLambda" Type="UnboundLambda" Null="disallow" SkipInVisitor="true"/>
     <!-- LambdaSymbol may differ from Binder.MemberSymbol after rewriting. -->
     <Field Name="Symbol" Type="LambdaSymbol" Null="disallow"/>
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="allow"/>
