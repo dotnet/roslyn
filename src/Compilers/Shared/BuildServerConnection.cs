@@ -467,7 +467,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             }
             catch (Exception ex)
             {
-                Log("Exception checking pipe connection: {0}", ex.Message);
+                LogException(ex, "Checking pipe connection");
                 return false;
             }
         }
@@ -477,7 +477,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
         {
             // Identity verification is unavailable in the MSBuild task,
             // but verification is not needed client-side so that's okay.
-            // (unavailable due to lack of internal reflection capabilities in netstandard1.3)
             return true;
         }
 #else
@@ -506,14 +505,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
         private static ObjectSecurity GetPipeSecurity(PipeStream pipeStream)
         {
-#if NETSTANDARD1_3
-            return (ObjectSecurity)typeof(PipeStream)
-                .GetTypeInfo()
-                .GetDeclaredMethod("GetAccessControl")
-                ?.Invoke(pipeStream, parameters: null);
-#else
             return pipeStream.GetAccessControl();
-#endif
         }
 
         private static string GetUserName() =>
