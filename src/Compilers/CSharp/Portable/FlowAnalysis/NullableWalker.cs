@@ -1425,7 +1425,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var leftConversion = node.LeftConversion;
             var rightOperand = RemoveImplicitConversion(node.RightOperand, out var rightConversion);
 
-            VisitRvalue(leftOperand);
+            var leftResult = VisitRvalue(leftOperand);
             if (IsConstantNull(leftOperand))
             {
                 VisitRvalue(rightOperand);
@@ -1433,7 +1433,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var leftState = this.State.Clone();
-            var leftResult = _result;
             if (leftResult.Type?.IsNullable == false)
             {
                 ReportStaticNullCheckingDiagnostics(ErrorCode.HDN_ExpressionIsProbablyNeverNull, leftOperand.Syntax);
@@ -3540,6 +3539,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new Result(null, type, slot);
             }
 
+            // PROTOTYPE(NullableReferenceTypes): Consider replacing implicit cast operators with
+            // explicit methods - either Result.Create() overloads or ToResult() extension methods.
             public static implicit operator Result(BoundExpression expr)
             {
                 var type = expr?.GetTypeAndNullability(includeNullability: true);
