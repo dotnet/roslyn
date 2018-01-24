@@ -52,8 +52,8 @@ namespace Roslyn.Test.Utilities
         public UseCultureAttribute(string culture, string uiCulture)
         {
 #if NET461 || NETCOREAPP20
-            _culture = new Lazy<CultureInfo>(() => new CultureInfo(culture, false));
-            _uiCulture = new Lazy<CultureInfo>(() => new CultureInfo(uiCulture, false));
+            _culture = new Lazy<CultureInfo>(() => new CultureInfo(culture, useUserOverride: false));
+            _uiCulture = new Lazy<CultureInfo>(() => new CultureInfo(uiCulture, useUserOverride: false));
 #else
             _culture = new Lazy<CultureInfo>(() => throw new NotSupportedException());
             _uiCulture = new Lazy<CultureInfo>(() => throw new NotSupportedException());
