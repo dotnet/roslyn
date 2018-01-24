@@ -1,8 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-namespace Test.Utilities
+namespace Test.Utilities.MinimalImplementations
 {
-    public static class MinimalImmutableCollectionsSource
+    public static class ImmutableCollectionsSource
     {
         public const string CSharp = @"
 using System.Collections.Generic;

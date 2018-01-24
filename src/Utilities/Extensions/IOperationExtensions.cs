@@ -183,5 +183,31 @@ namespace Analyzer.Utilities.Extensions
 
             return topmostBlockOperation;
         }
+
+        /// <summary>
+        /// Gets the first ancestor of this operation with the specified OperationKind. Returns null if there is no ancestor of the given kind.
+        /// </summary>
+        public static TOperation GetAncestor<TOperation>(this IOperation root, OperationKind ancestorKind) where TOperation : IOperation
+        {
+            if (root == null)
+            {
+                throw new ArgumentNullException(nameof(root));
+            }
+
+            IOperation ancestor = root;
+            do
+            {
+                ancestor = ancestor.Parent;
+            } while (ancestor != null && ancestor.Kind != ancestorKind);
+
+            if (ancestor != null)
+            {
+                return (TOperation)ancestor;
+            }
+            else
+            {
+                return default(TOperation);
+            }
+        }
     }
 }
