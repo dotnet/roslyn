@@ -55,10 +55,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.UnitTests
             runner.RunInteractive()
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
-"Microsoft (R) Visual Basic Interactive Compiler version " + s_compilerVersion + "
-Copyright (C) Microsoft Corporation. All rights reserved.
+String.Format(VBScriptingResources.LogoLine1, s_compilerVersion) + vbNewLine +
+VBScriptingResources.LogoLine2 + "
 
-Type ""#help"" for more information.
+" + ScriptingResources.HelpPrompt + "
 > ? 10
 10
 >", runner.Console.Out.ToString())
@@ -71,10 +71,10 @@ Type ""#help"" for more information.
             runner.RunInteractive()
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
-"Microsoft (R) Visual Basic Interactive Compiler version " + s_compilerVersion + "
-Copyright (C) Microsoft Corporation. All rights reserved.
+String.Format(VBScriptingResources.LogoLine1, s_compilerVersion) + vbNewLine +
+VBScriptingResources.LogoLine2 + "
 
-Type ""#help"" for more information.
+" + ScriptingResources.HelpPrompt + "
 >", runner.Console.Out.ToString())
         End Sub
 
@@ -92,10 +92,10 @@ End Class", "1").EmitToArray())
             runner.RunInteractive()
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
-"Microsoft (R) Visual Basic Interactive Compiler version " + s_compilerVersion + "
-Copyright (C) Microsoft Corporation. All rights reserved.
+String.Format(VBScriptingResources.LogoLine1, s_compilerVersion) + vbNewLine +
+VBScriptingResources.LogoLine2 + "
 
-Type ""#help"" for more information.
+" + ScriptingResources.HelpPrompt + "
 > #r """ & file1.Path & """
 > ? New C1().Goo()
 ""Bar""
@@ -106,13 +106,13 @@ Type ""#help"" for more information.
             runner.RunInteractive()
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
-"Microsoft (R) Visual Basic Interactive Compiler version " + s_compilerVersion + "
-Copyright (C) Microsoft Corporation. All rights reserved.
+String.Format(VBScriptingResources.LogoLine1, s_compilerVersion) + vbNewLine +
+VBScriptingResources.LogoLine2 + "
 
-Type ""#help"" for more information.
+" + ScriptingResources.HelpPrompt + "
 > ? New C1().Goo()
 «Red»
-(1) : error BC30002: Type 'C1' is not defined.
+(1) : error BC30002: " + String.Format(VBResources.ERR_UndefinedType1, "C1") + "
 «Gray»
 >", runner.Console.Out.ToString())
         End Sub
@@ -124,13 +124,13 @@ Type ""#help"" for more information.
             runner.RunInteractive()
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
-"Microsoft (R) Visual Basic Interactive Compiler version " + s_compilerVersion + "
-Copyright (C) Microsoft Corporation. All rights reserved.
+String.Format(VBScriptingResources.LogoLine1, s_compilerVersion) + vbNewLine +
+VBScriptingResources.LogoLine2 + "
 
-Type ""#help"" for more information.
+" + ScriptingResources.HelpPrompt + "
 > #r ""://invalidfilepath""
 «Red»
-(1) : error BC2017: could not find library '://invalidfilepath'
+(1) : error BC2017: " + String.Format(ERR_LibNotFound, "://invalidfilepath") + "
 «Gray»
 >", runner.Console.Out.ToString())
         End Sub
@@ -147,10 +147,10 @@ System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = System.Globaliz
             runner.RunInteractive()
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
-"Microsoft (R) Visual Basic Interactive Compiler version " + s_compilerVersion + "
-Copyright (C) Microsoft Corporation. All rights reserved.
+String.Format(VBScriptingResources.LogoLine1, s_compilerVersion) + vbNewLine +
+VBScriptingResources.LogoLine2 + "
 
-Type ""#help"" for more information.
+" + ScriptingResources.HelpPrompt + "
 > Imports System.Globalization
 > System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = System.Globalization.CultureInfo.GetCultureInfo(""en-GB"")
 > ? System.Math.PI
