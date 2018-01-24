@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                         break;
 
                     case CandidateReason.WrongArity:
-                        if (name.GetRightmostName().Arity == 0)
+                        if (name.GetRightmostName()?.Arity == 0)
                         {
                             // When the user writes something like "IList" we don't want to *not* classify 
                             // just because the type bound to "IList<T>".  This is also important for use

@@ -1509,6 +1509,27 @@ class Enclosing<T> where T : class
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [WorkItem(24344, "https://github.com/dotnet/roslyn/issues/24344")]
+        public async Task TestMissingIfUsedInExpressionTree2()
+        {
+            await TestMissingAsync(
+@"using System;
+using System.Linq.Expressions;
+
+public class C
+{
+    void Method(Action action) { }
+
+    Expression<Action> Example()
+    {
+        Action [||]action = () => Method(null);
+        return () => Method(action);
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         [WorkItem(23150, "https://github.com/dotnet/roslyn/issues/23150")]
         public async Task TestWithInvokeMethod1()
         {

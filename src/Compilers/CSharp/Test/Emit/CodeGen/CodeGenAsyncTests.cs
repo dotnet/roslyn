@@ -3851,8 +3851,8 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
                 );
         }
 
-        // Should check constraints (see https://github.com/dotnet/roslyn/issues/12616).
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/12616")]
+        [WorkItem(12616, "https://github.com/dotnet/roslyn/issues/12616")]
+        [Fact]
         public void AsyncTasklikeBuilderConstraints()
         {
             var source1 = @"
@@ -3887,10 +3887,9 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
 
             var comp1 = CreateCompilation(source1, options: TestOptions.DebugExe);
             comp1.VerifyEmitDiagnostics(
-                // (8,22): error CS0656: Missing compiler required member 'MyTaskBuilder.Start'
+                // (8,22): error CS0311: The type 'C.<f>d__1' cannot be used as type parameter 'TSM' in the generic type or method 'MyTaskBuilder.Start<TSM>(ref TSM)'. There is no implicit reference conversion from 'C.<f>d__1' to 'I'.
                 //     async MyTask f() { await (Task)null; }
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ await (Task)null; }").WithArguments("MyTaskBuilder", "Start").WithLocation(8, 22)
-                );
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "{ await (Task)null; }").WithArguments("MyTaskBuilder.Start<TSM>(ref TSM)", "I", "TSM", "C.<f>d__1").WithLocation(8, 22));
 
             var source2 = @"
 using System;
@@ -3921,11 +3920,7 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
 ";
 
             var comp2 = CreateCompilation(source2, options: TestOptions.DebugExe);
-            comp2.VerifyEmitDiagnostics(
-                // (8,22): error CS0656: Missing compiler required member 'MyTaskBuilder.AwaitUnsafeOnCompleted'
-                //     async MyTask f() { await (Task)null; }
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ await (Task)null; }").WithArguments("MyTaskBuilder", "AwaitUnsafeOnCompleted").WithLocation(8, 22)
-                );
+            comp2.VerifyEmitDiagnostics();
         }
 
         [Fact]
