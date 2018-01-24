@@ -8574,7 +8574,7 @@ End Class")
             Assert.False(File.Exists(refDll))
 
             Assert.Equal(
-$"{vb}(3) : error BC30451: 'Bad' is not declared. It may be inaccessible due to its protection level.
+$"{vb}(3) : error BC30451: {String.Format(VBResources.ERR_NameNotDeclared1, "Bad")}
 
         Bad()
         ~~~",
