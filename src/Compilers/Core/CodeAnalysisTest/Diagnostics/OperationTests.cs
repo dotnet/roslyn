@@ -129,11 +129,11 @@ class C
 
                 if (expectException)
                 {
-                    Assert.Throws<InvalidOperationException>(() => model.GetControlFlowGraph(operation));
+                    Assert.Throws<InvalidOperationException>(() => SemanticModel.GetControlFlowGraph(operation));
                 }
                 else
                 {
-                    ImmutableArray<BasicBlock> graph = model.GetControlFlowGraph(operation);
+                    ImmutableArray<BasicBlock> graph = SemanticModel.GetControlFlowGraph(operation);
                     Assert.NotEmpty(graph);
                 }
             }
