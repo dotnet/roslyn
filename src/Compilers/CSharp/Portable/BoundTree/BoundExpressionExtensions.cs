@@ -194,9 +194,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             switch (expr.Kind)
             {
+                case BoundKind.SuppressNullableWarningExpression:
+                    return null;
                 case BoundKind.ThisReference:
                 case BoundKind.BaseReference:
-                case BoundKind.SuppressNullableWarningExpression:
                     return false;
                 case BoundKind.Local:
                     {
