@@ -2,6 +2,7 @@
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -23,7 +24,7 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateStandardCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
 
             compilation.VerifyDiagnostics();
 
@@ -117,7 +118,7 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateStandardCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
 
             compilation.VerifyDiagnostics();
 
@@ -215,7 +216,7 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateStandardCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
 
             compilation.VerifyDiagnostics();
 
@@ -313,7 +314,7 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateStandardCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
 
             compilation.VerifyDiagnostics();
 
@@ -408,7 +409,7 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateStandardCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
 
             compilation.VerifyDiagnostics(
                 // (6,18): error CS0019: Operator '??' cannot be applied to operands of type 'int?' and 'DateTime'
@@ -509,7 +510,7 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, references: new[] { CSharpRef });
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, references: new[] { CSharpRef }, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
 
             compilation.VerifyDiagnostics();
 
@@ -607,7 +608,7 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, references: new[] { CSharpRef });
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, references: new[] { CSharpRef }, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
 
             compilation.VerifyDiagnostics();
 
@@ -702,7 +703,7 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateStandardCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
 
             compilation.VerifyDiagnostics(
                 // (6,18): error CS0019: Operator '??' cannot be applied to operands of type '<null>' and 'int'
@@ -803,7 +804,7 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateStandardCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
 
             compilation.VerifyDiagnostics();
 
@@ -898,7 +899,7 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateStandardCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
 
             compilation.VerifyDiagnostics();
 
@@ -996,7 +997,7 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateStandardCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
 
             compilation.VerifyDiagnostics();
 
@@ -1087,7 +1088,7 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateStandardCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
 
             compilation.VerifyDiagnostics();
 

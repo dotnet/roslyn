@@ -25,7 +25,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithFlowAnalysisFeature)
 
             compilation.AssertNoDiagnostics()
 
@@ -132,7 +132,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithFlowAnalysisFeature)
 
             compilation.AssertNoDiagnostics()
 
@@ -243,7 +243,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithFlowAnalysisFeature)
 
             compilation.AssertNoDiagnostics()
 
@@ -354,7 +354,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithFlowAnalysisFeature)
 
             compilation.AssertNoDiagnostics()
 
@@ -462,7 +462,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithFlowAnalysisFeature)
 
             compilation.AssertTheseDiagnostics()
 
@@ -580,7 +580,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithFlowAnalysisFeature)
 
             compilation.AssertNoDiagnostics()
 
@@ -691,7 +691,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithFlowAnalysisFeature)
 
             compilation.AssertNoDiagnostics()
 
@@ -799,7 +799,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithFlowAnalysisFeature)
 
             compilation.AssertNoDiagnostics()
 
@@ -907,7 +907,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithFlowAnalysisFeature)
 
             compilation.AssertNoDiagnostics()
 
@@ -1015,7 +1015,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithFlowAnalysisFeature)
 
             compilation.AssertNoDiagnostics()
 
@@ -1126,7 +1126,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithFlowAnalysisFeature)
 
             compilation.AssertNoDiagnostics()
 
@@ -1230,7 +1230,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithFlowAnalysisFeature)
 
             compilation.AssertNoDiagnostics()
 
