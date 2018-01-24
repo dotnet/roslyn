@@ -97,6 +97,15 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 (@"CSharpProject\Properties\AssemblyInfo.cs", Resources.SourceFiles.CSharp.AssemblyInfo));
         }
 
+        protected FileSet GetNetCoreApp2Files()
+        {
+            return new FileSet(
+                (@"Directory.Build.props", Resources.Directory_Build_props),
+                (@"Directory.Build.targets", Resources.Directory_Build_targets),
+                (@"NetCoreApp2.csproj", Resources.ProjectFiles.CSharp.NetCoreApp2_Project),
+                (@"Program.cs", Resources.SourceFiles.CSharp.NetCoreApp2_Program));
+        }
+
         protected FileSet GetMultiProjectSolutionFiles()
         {
             return new FileSet(
