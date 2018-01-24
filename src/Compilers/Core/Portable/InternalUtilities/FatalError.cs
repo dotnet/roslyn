@@ -147,8 +147,38 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
             return true;
         }
 
+        /// <summary>
+        /// Report a non-fatal error like <see cref="ReportWithoutCrash"/> but propagates the exception.
+        /// </summary>
+        /// <returns>False to propagate the exception.</returns>
+        [DebuggerHidden]
+        public static bool ReportWithoutCrashAndPropagate(Exception exception)
+        {
+            Report(exception, s_nonFatalHandler);
+            return false;
+        }
+
+        private static object s_reportedMarker = new object();
+
         private static void Report(Exception exception, Action<Exception> handler)
         {
+            // only report exception once
+            if (exception.Data[s_reportedMarker] != null)
+            {
+                return;
+            }
+
+#if !NETFX20
+            if (exception is AggregateException aggregate && aggregate.InnerExceptions.Count == 1 && aggregate.InnerExceptions[0].Data[s_reportedMarker] != null)
+            {
+                return;
+            }
+#endif
+            if (!exception.Data.IsReadOnly)
+            {
+                exception.Data[s_reportedMarker] = s_reportedMarker;
+            }
+
             // hold onto last exception to make investigation easier
             s_reportedException = exception;
             s_reportedExceptionMessage = exception.ToString();
