@@ -161,11 +161,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                     break;
                 case IFieldSymbol fieldSymbol:
                     token = name.GetNameToken();
-                    classifiedSpan = new ClassifiedSpan(token.Span, ClassificationTypeNames.FieldName);
+                    classifiedSpan = new ClassifiedSpan(token.Span, GetClassificationForField(fieldSymbol));
                     return true;
                 case IMethodSymbol methodSymbol:
                     token = name.GetNameToken();
-                    classifiedSpan = new ClassifiedSpan(token.Span, ClassificationTypeNames.MethodName);
+                    classifiedSpan = new ClassifiedSpan(token.Span, methodSymbol.IsExtensionMethod ? ClassificationTypeNames.ExtensionMethodName : ClassificationTypeNames.MethodName);
                     return true;
                 case IPropertySymbol propertySymbol:
                     token = name.GetNameToken();
@@ -175,10 +175,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                     token = name.GetNameToken();
                     classifiedSpan = new ClassifiedSpan(token.Span, ClassificationTypeNames.EventName);
                     return true;
+                case IParameterSymbol parameterSymbol:
+                    token = name.GetNameToken();
+                    classifiedSpan = new ClassifiedSpan(token.Span, ClassificationTypeNames.ParameterName);
+                    return true;
+                case ILocalSymbol localSymbol:
+                    token = name.GetNameToken();
+                    classifiedSpan = new ClassifiedSpan(token.Span, localSymbol.IsConst ? ClassificationTypeNames.ConstantName : ClassificationTypeNames.LocalName);
+                    return true;
             }
 
             classifiedSpan = default;
             return false;
+        }
+
+        static string GetClassificationForField(IFieldSymbol fieldSymbol)
+        {
+            if (fieldSymbol.IsConst)
+            {
+                if (fieldSymbol.ContainingType.IsEnumType())
+                    return ClassificationTypeNames.EnumFieldName;
+                return ClassificationTypeNames.ConstantName;
+            }
+            return ClassificationTypeNames.FieldName;
         }
 
         private bool IsInVarContext(NameSyntax name)

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -117,6 +118,40 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             else if (token.Parent.IsKind(SyntaxKind.TypeParameter) && ((TypeParameterSyntax)token.Parent).Identifier == token)
             {
                 return ClassificationTypeNames.TypeParameterName;
+            }
+            else if (token.Parent is MethodDeclarationSyntax methodDeclaration && methodDeclaration.Identifier == token)
+            {
+                // TODO: Add proper extension method check - I'm sure there is some syntax based check somewhere burried in roslyn but I couldn't find it.
+                bool isExtensionMethod =
+                    (methodDeclaration.Parent as TypeDeclarationSyntax)?.Modifiers.Any(m => m.IsKind(SyntaxKind.StaticKeyword)) == true &&
+                    methodDeclaration.Modifiers.Any(m => m.IsKind(SyntaxKind.StaticKeyword)) &&
+                    methodDeclaration.ParameterList.Parameters.FirstOrDefault()?.Modifiers.Any(m => m.IsKind(SyntaxKind.ThisKeyword)) == true;
+
+                return isExtensionMethod ? ClassificationTypeNames.ExtensionMethodName : ClassificationTypeNames.MethodName;
+            }
+            else if (token.Parent is PropertyDeclarationSyntax propertyDeclaration && propertyDeclaration.Identifier == token)
+            {
+                return ClassificationTypeNames.PropertyName;
+            }
+            else if (token.Parent is EnumMemberDeclarationSyntax enumMemberDeclaration && enumMemberDeclaration.Identifier == token)
+            {
+                return ClassificationTypeNames.EnumFieldName;
+            }
+            else if (token.Parent is VariableDeclaratorSyntax variableDeclarator && variableDeclarator.Identifier == token)
+            {
+                var varDecl = variableDeclarator.Parent as VariableDeclarationSyntax;
+                switch (varDecl.Parent)
+                {
+                    case ParameterSyntax parameter:
+                        return ClassificationTypeNames.ParameterName;
+                    case FieldDeclarationSyntax fieldDeclaration:
+                        return fieldDeclaration.Modifiers.Any(m => m.IsKind(SyntaxKind.ConstKeyword)) ? ClassificationTypeNames.ConstantName : ClassificationTypeNames.LocalName;
+                    case LocalDeclarationStatementSyntax localDeclarationStatement:
+                        return localDeclarationStatement.IsConst ? ClassificationTypeNames.ConstantName : ClassificationTypeNames.LocalName;
+                    case EventDeclarationSyntax eventDeclarationSyntax:
+                        return ClassificationTypeNames.EventName;
+                }
+                return ClassificationTypeNames.Identifier;
             }
             else if (IsActualContextualKeyword(token))
             {
