@@ -307,17 +307,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol localType = localSymbol.Type;
             BoundExpression initializerExpr = VisitExpression(fixedInitializer.Expression);
 
+            var initializerType = initializerExpr.Type;
+            var initializerSyntax = initializerExpr.Syntax;
+            var getPinnableMethod = fixedInitializer.GetPinnableOpt;
+
             // intervening parens may have been skipped by the binder; find the declarator
             VariableDeclaratorSyntax declarator = fixedInitializer.Syntax.FirstAncestorOrSelf<VariableDeclaratorSyntax>();
             Debug.Assert(declarator != null);
 
-            var initializerType = initializerExpr.Type;
-            var initializerSyntax = initializerExpr.Syntax;
-            var getPinnableMethod = fixedInitializer.GetPinnableOpt;
-            var tempType = getPinnableMethod.ReturnType;
-
             pinnedTemp = factory.SynthesizedLocal(
-                tempType,
+                getPinnableMethod.ReturnType,
                 syntax: declarator,
                 isPinned: true,
                 //NOTE: different from the array and string cases
@@ -325,41 +324,44 @@ namespace Microsoft.CodeAnalysis.CSharp
                 refKind: RefKind.RefReadOnly,
                 kind: SynthesizedLocalKind.FixedReference);
 
-            // NOTE: we pin the reference, not the pointer.
-            Debug.Assert(pinnedTemp.IsPinned);
-            Debug.Assert(!localSymbol.IsPinned);
-
             //TODO: VS
-            //       optimize for a null receiver
-            //       handle nonnulable case (no conditional)
             //       binding for nullable
+            //       error on ref extensions vs. not writeable receiver
 
-            // pinnedTemp = ref v?.GetPinnable ?? ref *default(T*) ;
-            var currentConditionalAccessID = _currentConditionalAccessID++;
+            BoundExpression callReceiver;
+            int currentConditionalAccessID = 0;
 
-            var conditionalReceiver = new BoundConditionalReceiver(
-                initializerSyntax,
-                currentConditionalAccessID,
-                initializerType);
+            bool needNullCheck = !initializerType.IsValueType || initializerType.IsNullableType();
 
-            BoundExpression loweredAccessExpression;
+            if (needNullCheck)
+            {
+                currentConditionalAccessID = _currentConditionalAccessID++;
+                callReceiver = new BoundConditionalReceiver(
+                    initializerSyntax,
+                    currentConditionalAccessID,
+                    initializerType);
+            }
+            else
+            {
+                callReceiver = initializerExpr;
+            }
 
             // .GetPinnable()
-            loweredAccessExpression = getPinnableMethod.IsStatic?
-                                            factory.Call(null, getPinnableMethod, conditionalReceiver):
-                                            factory.Call(conditionalReceiver, getPinnableMethod);
+            var getPinnableCall = getPinnableMethod.IsStatic?
+                                            factory.Call(null, getPinnableMethod, callReceiver):
+                                            factory.Call(callReceiver, getPinnableMethod);
 
             // temp =ref .GetPinnable()
-            loweredAccessExpression = factory.AssignmentExpression(
-                                                           factory.Local(pinnedTemp),
-                                                           loweredAccessExpression,
-                                                           isRef: true);
+            var tempAssignment = factory.AssignmentExpression(
+                factory.Local(pinnedTemp),                                                   
+                getPinnableCall,
+                isRef: true);
 
             // &pinnedTemp;
             var addr = new BoundAddressOfOperator(
                 factory.Syntax,
-                 factory.Local(pinnedTemp),
-                 type: fixedInitializer.ElementPointerType);
+                factory.Local(pinnedTemp),
+                type: fixedInitializer.ElementPointerType);
 
             // (int*)&pinnedTemp
             var pointerValue = factory.Convert(
@@ -367,24 +369,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                 addr,
                 fixedInitializer.ElementPointerTypeConversion);
 
-            // {temp =ref .GetPinnable(), (int*)&pinnedTemp}
-            loweredAccessExpression = factory.Sequence(locals: ImmutableArray<LocalSymbol>.Empty, sideEffects: ImmutableArray.Create(loweredAccessExpression), result: pointerValue);
+            // {pinnedTemp =ref .GetPinnable(), (int*)&pinnedTemp}
+            BoundExpression pinAndGetPtr = factory.Sequence(
+                locals: ImmutableArray<LocalSymbol>.Empty, 
+                sideEffects: ImmutableArray.Create<BoundExpression>(tempAssignment), 
+                result: pointerValue);
 
-
-            // initializer?.{temp =ref .GetPinnable(), (int*)&pinnedTemp} ?? default;
-            var conditionalPointerValue = new BoundLoweredConditionalAccess(
-                initializerSyntax,
-                initializerExpr,
-                initializerType.IsNullableType() ?
-                         UnsafeGetNullableMethod(initializerSyntax, initializerType, SpecialMember.System_Nullable_T_get_HasValue) :
-                         null,
-                whenNotNull: loweredAccessExpression,
-                whenNullOpt: null, // just return default(T*)
-                currentConditionalAccessID,
-                localType);
+            if (needNullCheck)
+            {
+                // initializer?.{temp =ref .GetPinnable(), (int*)&pinnedTemp} ?? default;
+                pinAndGetPtr = new BoundLoweredConditionalAccess(
+                    initializerSyntax,
+                    initializerExpr,
+                    initializerType.IsNullableType() ?
+                             UnsafeGetNullableMethod(initializerSyntax, initializerType, SpecialMember.System_Nullable_T_get_HasValue) :
+                             null,
+                    whenNotNull: pinAndGetPtr,
+                    whenNullOpt: null, // just return default(T*)
+                    currentConditionalAccessID,
+                    localType);
+            }
 
             // ptr = initializer?.{temp =ref .GetPinnable(), (int*)&pinnedTemp} ?? default;
-            BoundStatement localInit = InstrumentLocalDeclarationIfNecessary(localDecl, localSymbol, factory.Assignment(factory.Local(localSymbol), conditionalPointerValue));
+            BoundStatement localInit = InstrumentLocalDeclarationIfNecessary(localDecl, localSymbol, factory.Assignment(factory.Local(localSymbol), pinAndGetPtr));
 
             return localInit;
         }

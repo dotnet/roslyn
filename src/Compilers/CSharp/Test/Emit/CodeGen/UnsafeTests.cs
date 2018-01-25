@@ -4092,6 +4092,134 @@ unsafe class C
 ");
         }
 
+        [Fact]
+        public void SimpleCaseOfCustomFixedStruct()
+        {
+            var text = @"
+unsafe class C
+{
+    public static void Main()
+    {
+        fixed (int* p = new Fixable())
+        {
+            System.Console.WriteLine(p[1]);
+        }
+    }
+
+    struct Fixable
+    {
+        public ref int DangerousGetPinnableReference()
+        {
+            return ref (new int[]{1,2,3})[0];
+        }
+    }
+
+}";
+
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"2", verify: Verification.Fails);
+
+            compVerifier.VerifyIL("C.Main", @"
+{
+  // Code size       29 (0x1d)
+  .maxstack  2
+  .locals init (pinned int& V_0,
+                C.Fixable V_1)
+  IL_0000:  ldloca.s   V_1
+  IL_0002:  dup
+  IL_0003:  initobj    ""C.Fixable""
+  IL_0009:  call       ""ref int C.Fixable.DangerousGetPinnableReference()""
+  IL_000e:  stloc.0
+  IL_000f:  ldloc.0
+  IL_0010:  conv.u
+  IL_0011:  ldc.i4.4
+  IL_0012:  add
+  IL_0013:  ldind.i4
+  IL_0014:  call       ""void System.Console.WriteLine(int)""
+  IL_0019:  ldc.i4.0
+  IL_001a:  conv.u
+  IL_001b:  stloc.0
+  IL_001c:  ret
+}
+");
+        }
+
+        [Fact]
+        public void SimpleCaseOfCustomFixedGeneric()
+        {
+            var text = @"
+unsafe class C
+{
+    public static void Main()
+    {
+        Test(42);
+        Test((object)null);
+    }
+
+    public static void Test<T>(T arg)
+    {
+        fixed (int* p = arg)
+        {
+            System.Console.Write(p == null? 0: p[1]);
+        }
+    }
+}
+
+static class FixAllExt
+{
+    public static ref int DangerousGetPinnableReference<T>(this T dummy)
+    {
+        return ref (new int[]{1,2,3})[0];
+    }
+}
+";
+
+            var compVerifier = CompileAndVerify(text, additionalRefs: new[] { ExtensionAssemblyRef },  options: TestOptions.UnsafeReleaseExe, expectedOutput: @"20", verify: Verification.Fails);
+
+            compVerifier.VerifyIL("C.Test<T>(T)", @"
+{
+  // Code size       49 (0x31)
+  .maxstack  2
+  .locals init (int* V_0, //p
+                pinned int& V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  box        ""T""
+  IL_0006:  brtrue.s   IL_000c
+  IL_0008:  ldc.i4.0
+  IL_0009:  conv.u
+  IL_000a:  br.s       IL_001b
+  IL_000c:  ldarga.s   V_0
+  IL_000e:  ldobj      ""T""
+  IL_0013:  call       ""ref int FixAllExt.DangerousGetPinnableReference<T>(T)""
+  IL_0018:  stloc.1
+  IL_0019:  ldloc.1
+  IL_001a:  conv.u
+  IL_001b:  stloc.0
+  IL_001c:  ldloc.0
+  IL_001d:  ldc.i4.0
+  IL_001e:  conv.u
+  IL_001f:  beq.s      IL_0027
+  IL_0021:  ldloc.0
+  IL_0022:  ldc.i4.4
+  IL_0023:  add
+  IL_0024:  ldind.i4
+  IL_0025:  br.s       IL_0028
+  IL_0027:  ldc.i4.0
+  IL_0028:  call       ""void System.Console.Write(int)""
+  IL_002d:  ldc.i4.0
+  IL_002e:  conv.u
+  IL_002f:  stloc.1
+  IL_0030:  ret
+}
+");
+        }
+
+        // TODO: VS:
+        //           struct + sideeffects
+        //           interfaces + generic sideeffects
+        //           in   extension
+        //           in   generic
+        //           ref  extension
+
         #endregion Custom fixed statement tests
 
         #region Pointer conversion tests
