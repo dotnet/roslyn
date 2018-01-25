@@ -329,7 +329,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _result;
         }
 
-        private Result CheckImplicitConversion(BoundExpression value, TypeSymbol targetType, Result valueResult, Conversion originalConversion)
+        private Result CheckImplicitConversion(BoundExpression value, TypeSymbol targetType, Result valueResult)
         {
             Debug.Assert(value != null);
 
@@ -350,10 +350,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var syntax = value.Syntax;
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             var conversion = _conversions.ClassifyImplicitConversionFromExpression(value, targetType, ref useSiteDiagnostics);
-
-            Debug.Assert(originalConversion.Kind == ConversionKind.NoConversion ||
-                conversion.Kind == ConversionKind.NoConversion ||
-                (originalConversion.Kind == ConversionKind.ImplicitUserDefined) == (conversion.Kind == ConversionKind.ImplicitUserDefined));
 
             switch (conversion.Kind)
             {
@@ -729,13 +725,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            expr = RemoveImplicitConversion(expr, out var conversion);
+            expr = RemoveImplicitConversion(expr);
             var result = VisitRvalue(expr);
 
             //if (this.State.Reachable) // PROTOTYPE(NullableReferenceTypes): Consider reachability?
             {
                 TypeSymbolWithAnnotations returnType = GetReturnType(this._currentMethodOrLambda);
-                result = CheckImplicitConversion(expr, returnType.TypeSymbol, result, conversion);
+                result = CheckImplicitConversion(expr, returnType.TypeSymbol, result);
 
                 if (result.Type?.IsNullable == true)
                 {
@@ -863,7 +859,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var initializer = node.InitializerOpt;
             if (initializer != null)
             {
-                initializer = RemoveImplicitConversion(initializer, out var conversion);
+                initializer = RemoveImplicitConversion(initializer);
                 var value = VisitRvalue(initializer);
                 TypeSymbolWithAnnotations type = local.Type;
 
@@ -873,7 +869,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     type = value.Type;
                 }
 
-                value = CheckImplicitConversion(initializer, type?.TypeSymbol, value, conversion);
+                value = CheckImplicitConversion(initializer, type?.TypeSymbol, value);
                 TrackNullableStateForAssignment(node, slot, type, initializer, value.Type, value.Slot);
             }
 
@@ -1129,7 +1125,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var resultBuilder = ArrayBuilder<Result>.GetInstance(elementBuilder.Count);
             for (int i = 0; i < elementBuilder.Count; i++)
             {
-                var element = RemoveImplicitConversion(elementBuilder[i], out var conversion);
+                var element = RemoveImplicitConversion(elementBuilder[i]);
                 elementBuilder[i] = element;
                 resultBuilder.Add(VisitRvalue(element));
             }
@@ -1150,7 +1146,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = 0; i < elementBuilder.Count; i++)
             {
                 var element = elementBuilder[i];
-                var result = CheckImplicitConversion(element, elementType?.TypeSymbol, resultBuilder[i], Conversion.NoConversion);
+                var result = CheckImplicitConversion(element, elementType?.TypeSymbol, resultBuilder[i]);
                 if (elementType?.IsReferenceType == true)
                 {
                     TrackNullableStateForAssignment(element, -1, elementType, element, result.Type, result.Slot);
@@ -1298,9 +1294,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override void VisitBinaryOperatorChildren(ArrayBuilder<BoundBinaryOperator> stack)
         {
             var binary = stack.Peek();
-            var left = RemoveImplicitConversion(binary.Left, out var conversion);
+            var left = RemoveImplicitConversion(binary.Left);
             var leftResult = VisitRvalue(left);
-            leftResult = CheckImplicitConversion(left, binary.Left.Type, leftResult, conversion);
+            leftResult = CheckImplicitConversion(left, binary.Left.Type, leftResult);
 
             while (true)
             {
@@ -1329,11 +1325,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     WarnOnNullReferenceArgument(binary.Left, leftType, binary.MethodOpt.Parameters[0], expanded: false);
                 }
 
-                var right = RemoveImplicitConversion(binary.Right, out var conversion);
+                var right = RemoveImplicitConversion(binary.Right);
                 var rightResult = VisitRvalue(right);
 
                 Debug.Assert(!IsConditionalState);
-                rightResult = CheckImplicitConversion(right, binary.Right.Type, rightResult, conversion);
+                rightResult = CheckImplicitConversion(right, binary.Right.Type, rightResult);
 
                 // At this point, State.Reachable may be false for
                 // invalid code such as `s + throw new Exception()`.
@@ -1430,8 +1426,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!IsConditionalState);
 
             var leftOperand = node.LeftOperand;
-            var leftConversion = node.LeftConversion;
-            var rightOperand = RemoveImplicitConversion(node.RightOperand, out var rightConversion);
+            var rightOperand = RemoveImplicitConversion(node.RightOperand);
 
             var leftResult = VisitRvalue(leftOperand);
             if (IsConstantNull(leftOperand))
@@ -1455,8 +1450,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var rightResult = VisitRvalue(rightOperand);
             IntersectWith(ref this.State, ref leftState);
 
-            leftResult = CheckImplicitConversion(node.LeftOperand, node.Type, leftResult, leftConversion);
-            rightResult = CheckImplicitConversion(node.RightOperand, node.Type, rightResult, rightConversion);
+            leftResult = CheckImplicitConversion(node.LeftOperand, node.Type, leftResult);
+            rightResult = CheckImplicitConversion(node.RightOperand, node.Type, rightResult);
 
             TypeSymbolWithAnnotations resultType;
 
@@ -1531,14 +1526,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             var alternativeState = this.StateWhenFalse;
 
             var consequence = node.Consequence;
-            VisitConditionalOperand(consequenceState, node.Consequence, isByRef, out var consequenceConversion);
+            VisitConditionalOperand(consequenceState, node.Consequence, isByRef);
             Unsplit();
             consequenceState = this.State;
             var consequenceResult = _result;
             consequence = CreatePlaceholderExpressionIfNecessary(consequence, consequenceResult);
 
             var alternative = node.Alternative;
-            VisitConditionalOperand(alternativeState, alternative, isByRef, out var alternativeConversion);
+            VisitConditionalOperand(alternativeState, alternative, isByRef);
             Unsplit();
             var alternativeResult = _result;
             alternative = CreatePlaceholderExpressionIfNecessary(alternative, alternativeResult);
@@ -1559,8 +1554,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    consequenceResult = CheckImplicitConversion(consequence, bestType, consequenceResult, consequenceConversion);
-                    alternativeResult = CheckImplicitConversion(alternative, bestType, alternativeResult, alternativeConversion);
+                    consequenceResult = CheckImplicitConversion(consequence, bestType, consequenceResult);
+                    alternativeResult = CheckImplicitConversion(alternative, bestType, alternativeResult);
                     resultType = bestType;
                 }
             }
@@ -1587,17 +1582,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private void VisitConditionalOperand(LocalState state, BoundExpression operand, bool isByRef, out Conversion implicitConversion)
+        private void VisitConditionalOperand(LocalState state, BoundExpression operand, bool isByRef)
         {
             SetState(state);
             if (isByRef)
             {
                 VisitLvalue(operand);
-                implicitConversion = default;
             }
             else
             {
-                operand = RemoveImplicitConversion(operand, out implicitConversion);
+                operand = RemoveImplicitConversion(operand);
                 VisitRvalue(operand);
             }
         }
@@ -1804,7 +1798,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var argument = arguments[i];
                     if (refKind == RefKind.None)
                     {
-                        argument = RemoveImplicitConversion(argument, out var conversion);
+                        argument = RemoveImplicitConversion(argument);
                         if (argument != arguments[i])
                         {
                             includedConversion = true;
@@ -1998,20 +1992,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             return method;
         }
 
-        private static BoundExpression RemoveImplicitConversion(BoundExpression expr, out Conversion conversion)
+        private static BoundExpression RemoveImplicitConversion(BoundExpression expr)
         {
-            if (expr.Kind == BoundKind.Conversion)
+            while (expr.Kind == BoundKind.Conversion)
             {
                 var conv = (BoundConversion)expr;
-                conversion = conv.Conversion;
-                if (!conv.ExplicitCastInCode && conversion.IsImplicit)
+                if (conv.ExplicitCastInCode || !conv.Conversion.IsImplicit)
                 {
-                    expr = conv.Operand;
-                    Debug.Assert(expr.Kind != BoundKind.Conversion || ((BoundConversion)expr).ExplicitCastInCode);
-                    return expr;
+                    break;
                 }
+                expr = conv.Operand;
             }
-            conversion = default;
             return expr;
         }
 
@@ -2474,7 +2465,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitLvalue(left);
             Result leftResult = _result;
 
-            var right = RemoveImplicitConversion(node.Right, out var rightConversion);
+            var right = RemoveImplicitConversion(node.Right);
             Result rightResult = VisitRvalue(right);
 
             // byref assignment is also a potential write
@@ -2483,7 +2474,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 WriteArgument(right, node.RefKind, method: null);
             }
 
-            rightResult = CheckImplicitConversion(right, leftResult.Type?.TypeSymbol, rightResult, rightConversion);
+            rightResult = CheckImplicitConversion(right, leftResult.Type?.TypeSymbol, rightResult);
             TrackNullableStateForAssignment(left, leftResult.Slot, leftResult.Type, right, rightResult.Type, rightResult.Slot);
 
             //if (this.State.Reachable) // PROTOTYPE(NullableReferenceTypes): Consider reachability?
@@ -2501,10 +2492,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitLvalue(left);
             var leftResult = _result;
 
-            var right = RemoveImplicitConversion(node.Right, out var rightConversion);
+            var right = RemoveImplicitConversion(node.Right);
             var rightResult = VisitRvalue(right);
 
-            rightResult = CheckImplicitConversion(right, leftResult.Type?.TypeSymbol, rightResult, rightConversion);
+            rightResult = CheckImplicitConversion(right, leftResult.Type?.TypeSymbol, rightResult);
 
             // PROTOTYPE(NullableReferenceTypes): Assign each of the deconstructed values.
             _result = rightResult;
@@ -2554,7 +2545,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if ((object)targetTypeOfOperandConversion != null)
                 {
                     // PROTOTYPE(NullableReferenceTypes): Should something special be done for targetTypeOfOperandConversion for lifted case?
-                    operandConversionResult = CheckImplicitConversion(node.Operand, targetTypeOfOperandConversion, operandResult, node.OperandConversion);
+                    operandConversionResult = CheckImplicitConversion(node.Operand, targetTypeOfOperandConversion, operandResult);
                 }
                 else
                 {
@@ -2573,7 +2564,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     incrementResult = Result.Create(GetTypeOrReturnTypeWithAdjustedNullableAnnotations(incrementOperator));
                 }
 
-                incrementResult = CheckImplicitConversion(node, node.Type, incrementResult, node.ResultConversion);
+                incrementResult = CheckImplicitConversion(node, node.Type, incrementResult);
 
                 // PROTOTYPE(NullableReferenceTypes): Check node.Type.IsErrorType() instead?
                 if (!node.HasErrors)
@@ -2607,12 +2598,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Result leftOnRightResult = GetAdjustedResult(leftResult);
 
                 // PROTOTYPE(NullableReferenceTypes): Update operator based on inferred argument types.
-                leftOnRightResult = CheckImplicitConversion(node.Left, node.Operator.LeftType, leftOnRightResult, node.LeftConversion);
+                leftOnRightResult = CheckImplicitConversion(node.Left, node.Operator.LeftType, leftOnRightResult);
 
-                var right = RemoveImplicitConversion(node.Right, out var rightConversion);
+                var right = RemoveImplicitConversion(node.Right);
                 Result rightResult = VisitRvalue(right);
 
-                rightResult = CheckImplicitConversion(right, node.Operator.RightType, rightResult, rightConversion);
+                rightResult = CheckImplicitConversion(right, node.Operator.RightType, rightResult);
 
                 if ((object)node.Operator.ReturnType != null)
                 {
@@ -2623,7 +2614,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     resultType = InferResultNullability(node.Operator.Kind, node.Operator.Method, node.Operator.ReturnType, leftOnRightResult.Type, rightResult.Type);
-                    resultType = CheckImplicitConversion(node, node.Type, Result.Create(resultType), node.FinalConversion).Type;
+                    resultType = CheckImplicitConversion(node, node.Type, Result.Create(resultType)).Type;
                 }
                 else
                 {
@@ -2812,8 +2803,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitDynamicObjectInitializerMember(BoundDynamicObjectInitializerMember node)
         {
-            // Should be handled by VisitObjectCreationExpression.
-            throw ExceptionUtilities.Unreachable;
+            SetResult(node);
+            return null;
         }
 
         public override BoundNode VisitBadExpression(BoundBadExpression node)
