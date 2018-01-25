@@ -3987,7 +3987,7 @@ unsafe class C
 
         #region Custom fixed statement tests
 
-        [Fact(Skip = "NYI")]
+        [Fact]
         public void SimpleCaseOfCustomFixed()
         {
             var text = @"
@@ -4015,30 +4015,86 @@ unsafe class C
 
             compVerifier.VerifyIL("C.Main", @"
 {
-  // Code size       30 (0x1e)
-  .maxstack  3
+  // Code size       33 (0x21)
+  .maxstack  2
   .locals init (pinned int& V_0)
-  IL_0000:  newobj     ""C..ctor()""
+  IL_0000:  newobj     ""C.Fixable..ctor()""
   IL_0005:  dup
-  IL_0006:  ldflda     ""int C.x""
-  IL_000b:  stloc.0
-  IL_000c:  ldloc.0
-  IL_000d:  conv.u
-  IL_000e:  ldc.i4.1
-  IL_000f:  stind.i4
-  IL_0010:  ldc.i4.0
-  IL_0011:  conv.u
+  IL_0006:  brtrue.s   IL_000d
+  IL_0008:  pop
+  IL_0009:  ldc.i4.0
+  IL_000a:  conv.u
+  IL_000b:  br.s       IL_0015
+  IL_000d:  call       ""ref int C.Fixable.DangerousGetPinnableReference()""
   IL_0012:  stloc.0
-  IL_0013:  ldfld      ""int C.x""
+  IL_0013:  ldloc.0
+  IL_0014:  conv.u
+  IL_0015:  ldc.i4.4
+  IL_0016:  add
+  IL_0017:  ldind.i4
   IL_0018:  call       ""void System.Console.WriteLine(int)""
-  IL_001d:  ret
+  IL_001d:  ldc.i4.0
+  IL_001e:  conv.u
+  IL_001f:  stloc.0
+  IL_0020:  ret
+}
+");
+        }
+
+        [Fact]
+        public void SimpleCaseOfCustomFixedNull()
+        {
+            var text = @"
+unsafe class C
+{
+    public static void Main()
+    {
+        fixed (int* p = (Fixable)null)
+        {
+            System.Console.WriteLine((int)p);
+        }
+    }
+
+    class Fixable
+    {
+        public ref int DangerousGetPinnableReference()
+        {
+            return ref (new int[]{1,2,3})[0];
+        }
+    }
+
+}";
+
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"0", verify: Verification.Fails);
+
+            compVerifier.VerifyIL("C.Main", @"
+{
+  // Code size       26 (0x1a)
+  .maxstack  1
+  .locals init (pinned int& V_0)
+  IL_0000:  ldnull
+  IL_0001:  brtrue.s   IL_0007
+  IL_0003:  ldc.i4.0
+  IL_0004:  conv.u
+  IL_0005:  br.s       IL_0010
+  IL_0007:  ldnull
+  IL_0008:  call       ""ref int C.Fixable.DangerousGetPinnableReference()""
+  IL_000d:  stloc.0
+  IL_000e:  ldloc.0
+  IL_000f:  conv.u
+  IL_0010:  conv.i4
+  IL_0011:  call       ""void System.Console.WriteLine(int)""
+  IL_0016:  ldc.i4.0
+  IL_0017:  conv.u
+  IL_0018:  stloc.0
+  IL_0019:  ret
 }
 ");
         }
 
         #endregion Custom fixed statement tests
 
-            #region Pointer conversion tests
+        #region Pointer conversion tests
 
         [Fact]
         public void ConvertNullToPointer()

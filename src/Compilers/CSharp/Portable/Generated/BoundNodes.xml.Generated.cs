@@ -2038,7 +2038,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundFixedLocalCollectionInitializer : BoundExpression
     {
-        public BoundFixedLocalCollectionInitializer(SyntaxNode syntax, TypeSymbol elementPointerType, Conversion elementPointerTypeConversion, BoundExpression expression, TypeSymbol type, bool hasErrors = false)
+        public BoundFixedLocalCollectionInitializer(SyntaxNode syntax, TypeSymbol elementPointerType, Conversion elementPointerTypeConversion, BoundExpression expression, MethodSymbol getPinnableOpt, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.FixedLocalCollectionInitializer, syntax, type, hasErrors || expression.HasErrors())
         {
 
@@ -2049,6 +2049,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.ElementPointerType = elementPointerType;
             this.ElementPointerTypeConversion = elementPointerTypeConversion;
             this.Expression = expression;
+            this.GetPinnableOpt = getPinnableOpt;
         }
 
 
@@ -2058,16 +2059,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundExpression Expression { get; }
 
+        public MethodSymbol GetPinnableOpt { get; }
+
         public override BoundNode Accept(BoundTreeVisitor visitor)
         {
             return visitor.VisitFixedLocalCollectionInitializer(this);
         }
 
-        public BoundFixedLocalCollectionInitializer Update(TypeSymbol elementPointerType, Conversion elementPointerTypeConversion, BoundExpression expression, TypeSymbol type)
+        public BoundFixedLocalCollectionInitializer Update(TypeSymbol elementPointerType, Conversion elementPointerTypeConversion, BoundExpression expression, MethodSymbol getPinnableOpt, TypeSymbol type)
         {
-            if (elementPointerType != this.ElementPointerType || elementPointerTypeConversion != this.ElementPointerTypeConversion || expression != this.Expression || type != this.Type)
+            if (elementPointerType != this.ElementPointerType || elementPointerTypeConversion != this.ElementPointerTypeConversion || expression != this.Expression || getPinnableOpt != this.GetPinnableOpt || type != this.Type)
             {
-                var result = new BoundFixedLocalCollectionInitializer(this.Syntax, elementPointerType, elementPointerTypeConversion, expression, type, this.HasErrors);
+                var result = new BoundFixedLocalCollectionInitializer(this.Syntax, elementPointerType, elementPointerTypeConversion, expression, getPinnableOpt, type, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -8722,7 +8725,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression expression = (BoundExpression)this.Visit(node.Expression);
             TypeSymbol elementPointerType = this.VisitType(node.ElementPointerType);
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(elementPointerType, node.ElementPointerTypeConversion, expression, type);
+            return node.Update(elementPointerType, node.ElementPointerTypeConversion, expression, node.GetPinnableOpt, type);
         }
         public override BoundNode VisitSequencePoint(BoundSequencePoint node)
         {
@@ -9817,6 +9820,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 new TreeDumperNode("elementPointerType", node.ElementPointerType, null),
                 new TreeDumperNode("elementPointerTypeConversion", node.ElementPointerTypeConversion, null),
                 new TreeDumperNode("expression", null, new TreeDumperNode[] { Visit(node.Expression, null) }),
+                new TreeDumperNode("getPinnableOpt", node.GetPinnableOpt, null),
                 new TreeDumperNode("type", node.Type, null)
             }
             );

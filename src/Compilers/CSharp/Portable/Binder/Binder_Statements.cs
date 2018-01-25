@@ -1059,6 +1059,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol elementType;
             bool hasErrors = false;
+            MethodSymbol getPinnableMethod = null;
 
             switch (initializerOpt.Kind)
             {
@@ -1078,24 +1079,38 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 default:
                     //  fixed (T* variable = <expr>) ...
-                    if (initializerType.SpecialType == SpecialType.System_String)
-                    {
-                        elementType = this.GetSpecialType(SpecialType.System_Char, diagnostics, initializerSyntax);
-                        Debug.Assert(!elementType.IsManagedType);
-                    }
-                    else if (initializerType.IsArray())
+
+                    // check for arrays
+                    if (initializerType.IsArray())
                     {
                         // See ExpressionBinder::BindPtrToArray (though most of that functionality is now in LocalRewriter).
                         var arrayType = (ArrayTypeSymbol)initializerType;
                         elementType = arrayType.ElementType;
-                    }
-                    else
-                    {
-                        Error(diagnostics, ErrorCode.ERR_ExprCannotBeFixed, initializerSyntax);
-                        return false;
+                        break;
                     }
 
-                    break;
+                    // check for "DangerousGetPinnableReference"
+                    getPinnableMethod = GetDangerousGetPinnableReferenceMethod(initializerOpt);
+
+                    // check for String
+                    // NOTE: We will allow DangerousGetPinnableReferenceMethod to take precendence, but only if it is a member of System.String
+                    if (initializerType.SpecialType == SpecialType.System_String &&
+                        ((object)getPinnableMethod == null || getPinnableMethod.ContainingType.SpecialType == SpecialType.System_String))
+                    {
+                        elementType = this.GetSpecialType(SpecialType.System_Char, diagnostics, initializerSyntax);
+                        Debug.Assert(!elementType.IsManagedType);
+                        break;
+                    }
+
+                    // not a specially known type, check for getPinnableMethod
+                    if (getPinnableMethod != null)
+                    {
+                        elementType = getPinnableMethod.ReturnType;
+                        break;
+                    }
+
+                    Error(diagnostics, ErrorCode.ERR_ExprCannotBeFixed, initializerSyntax);
+                    return false;
             }
 
             if (elementType.IsManagedType)
@@ -1104,15 +1119,54 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors = true;
             }
 
-            initializerOpt = GetFixedLocalCollectionInitializer(initializerOpt, elementType, declType, hasErrors, diagnostics);
+            initializerOpt = GetFixedLocalCollectionInitializer(initializerOpt, elementType, declType, getPinnableMethod, hasErrors, diagnostics);
             return true;
+        }
+
+        private MethodSymbol GetDangerousGetPinnableReferenceMethod(BoundExpression initializer)
+        {
+            if (initializer.Type.SpecialType == SpecialType.System_Void)
+            {
+                return null;
+            }
+
+            DiagnosticBag diagnostics = DiagnosticBag.GetInstance();
+            var getPinnableReferenceCall = MakeInvocationExpression(initializer.Syntax, initializer, "DangerousGetPinnableReference", ImmutableArray<BoundExpression>.Empty, diagnostics);
+            diagnostics.Free();
+
+            if (getPinnableReferenceCall.HasAnyErrors)
+            {
+                return null;
+            }
+
+            if (getPinnableReferenceCall.Kind != BoundKind.Call)
+            {
+                return null;
+            }
+
+            var getPinnableReferenceMethod = ((BoundCall)getPinnableReferenceCall).Method;
+            if (getPinnableReferenceMethod is ErrorMethodSymbol ||
+                HasOptionalOrVariableParameters(getPinnableReferenceMethod) || // We might have been able to resolve an overload with optional parameters, so check for that here
+                getPinnableReferenceMethod.ReturnsVoid ||
+                !getPinnableReferenceMethod.RefKind.IsManagedReference()) 
+            {
+                return null;
+            }
+
+            return getPinnableReferenceMethod;
         }
 
         /// <summary>
         /// Wrap the initializer in a BoundFixedLocalCollectionInitializer so that the rewriter will have the
         /// information it needs (e.g. conversions, helper methods).
         /// </summary>
-        private BoundExpression GetFixedLocalCollectionInitializer(BoundExpression initializer, TypeSymbol elementType, TypeSymbol declType, bool hasErrors, DiagnosticBag diagnostics)
+        private BoundExpression GetFixedLocalCollectionInitializer(
+            BoundExpression initializer, 
+            TypeSymbol elementType, 
+            TypeSymbol declType, 
+            MethodSymbol getPinnableMethodOpt,
+            bool hasErrors, 
+            DiagnosticBag diagnostics)
         {
             Debug.Assert(initializer != null);
 
@@ -1134,6 +1188,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 pointerType,
                 elementConversion,
                 initializer,
+                getPinnableMethodOpt,
                 declType,
                 hasErrors);
         }
