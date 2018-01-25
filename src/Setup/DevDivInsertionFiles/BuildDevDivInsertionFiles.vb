@@ -550,7 +550,7 @@ Public Class BuildDevDivInsertionFiles
                                                                 packageName,
                                                                 packageVersion,
                                                                 isNative:=native IsNot Nothing,
-                                                                isFacade:=frameworkAssemblies IsNot Nothing))
+                                                                isFacade:=frameworkAssemblies IsNot Nothing OrElse packageName = "System.IO.Pipes.AccessControl"))
                     End If
                 Next
             Next
@@ -852,6 +852,7 @@ Public Class BuildDevDivInsertionFiles
         add("Exes\Toolset\System.IO.FileSystem.DriveInfo.dll")
         add("Exes\Toolset\System.IO.FileSystem.Primitives.dll")
         add("Exes\Toolset\System.IO.Pipes.dll")
+        add("Exes\Toolset\System.IO.Pipes.AccessControl.dll")
         add("Exes\Toolset\System.Reflection.Metadata.dll")
         add("Exes\Toolset\System.Security.AccessControl.dll")
         add("Exes\Toolset\System.Security.Claims.dll")
