@@ -27,17 +27,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var elementType = stackAllocNode.ElementType;
 
+            var initializerOpt = stackAllocNode.InitializerOpt;
+            if (initializerOpt != null)
+            {
+                initializerOpt = initializerOpt.Update(VisitList(initializerOpt.Initializers));
+            }
+
             if (type.IsPointerType())
             {
                 var stackSize = RewriteStackAllocCountToSize(rewrittenCount, elementType);
-                return new BoundConvertedStackAllocExpression(stackAllocNode.Syntax, elementType, stackSize, stackAllocNode.Type);
+                return new BoundConvertedStackAllocExpression(stackAllocNode.Syntax, elementType, stackSize, initializerOpt, stackAllocNode.Type);
             }
             else if (type.OriginalDefinition == _compilation.GetWellKnownType(WellKnownType.System_Span_T))
             {
                 var spanType = (NamedTypeSymbol)stackAllocNode.Type;
                 var countTemp = _factory.StoreToTemp(rewrittenCount, out BoundAssignmentOperator countTempAssignment);
                 var stackSize = RewriteStackAllocCountToSize(countTemp, elementType);
-                stackAllocNode = new BoundConvertedStackAllocExpression(stackAllocNode.Syntax, elementType, stackSize, spanType);
+                stackAllocNode = new BoundConvertedStackAllocExpression(stackAllocNode.Syntax, elementType, stackSize, initializerOpt, spanType);
 
                 var spanCtor = (MethodSymbol)_compilation.GetWellKnownTypeMember(WellKnownMember.System_Span_T__ctor).SymbolAsMember(spanType);
                 var ctorCall = _factory.New(spanCtor, stackAllocNode, countTemp);

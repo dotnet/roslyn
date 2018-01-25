@@ -383,6 +383,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return BindImplicitArrayCreationExpression((ImplicitArrayCreationExpressionSyntax)node, diagnostics);
                 case SyntaxKind.StackAllocArrayCreationExpression:
                     return BindStackAllocArrayCreationExpression((StackAllocArrayCreationExpressionSyntax)node, diagnostics);
+                case SyntaxKind.ImplicitStackAllocArrayCreationExpression:
+                    return BindImplicitStackAllocArrayCreationExpression((ImplicitStackAllocArrayCreationExpressionSyntax)node, diagnostics);
                 case SyntaxKind.ObjectCreationExpression:
                     return BindObjectCreationExpression((ObjectCreationExpressionSyntax)node, diagnostics);
                 case SyntaxKind.IdentifierName:
@@ -2714,6 +2716,40 @@ namespace Microsoft.CodeAnalysis.CSharp
                 sizes: ImmutableArray<BoundExpression>.Empty, boundInitExprOpt: boundInitializerExpressions);
         }
 
+
+        private BoundExpression BindImplicitStackAllocArrayCreationExpression(ImplicitStackAllocArrayCreationExpressionSyntax node, DiagnosticBag diagnostics)
+        {
+            bool inLegalPosition = ReportBadStackAllocPosition(node, diagnostics);
+            bool hasErrors = !inLegalPosition;
+
+            InitializerExpressionSyntax initializer = node.Initializer;
+            ImmutableArray<BoundExpression> boundInitializerExpressions = BindArrayInitializerExpressions(initializer, diagnostics, dimension: 1, rank: 1);
+
+            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            TypeSymbol bestType = BestTypeInferrer.InferBestType(boundInitializerExpressions, this.Conversions, out bool hadMultipleCandidates, ref useSiteDiagnostics);
+            diagnostics.Add(node, useSiteDiagnostics);
+
+            if ((object)bestType == null || bestType.SpecialType == SpecialType.System_Void)
+            {
+                Error(diagnostics, ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, node);
+                bestType = CreateErrorType();
+            }
+
+            if (!bestType.IsErrorType() && bestType.IsManagedType)
+            {
+                Error(diagnostics, ErrorCode.ERR_ManagedAddr, node, bestType);
+            }
+
+            return BindStackAllocWithInitializer(
+                node, 
+                initializer, 
+                type: GetStackAllocType(node, bestType, inLegalPosition, diagnostics), 
+                elementType: bestType,
+                sizeOpt: null, 
+                diagnostics,
+                hasErrors: hasErrors);
+        }
+
         // This method binds all the array initializer expressions.
         // NOTE: It doesn't convert the bound initializer expressions to array's element type.
         // NOTE: This is done separately in ConvertAndBindArrayInitialization method below.
@@ -3032,22 +3068,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression BindStackAllocArrayCreationExpression(
             StackAllocArrayCreationExpressionSyntax node, DiagnosticBag diagnostics)
         {
-            bool hasErrors = false;
-            var inLegalPosition = (IsInMethodBody || IsLocalFunctionsScopeBinder) && node.IsLegalSpanStackAllocPosition();
-
-            if (!inLegalPosition)
-            {
-                hasErrors = true;
-                diagnostics.Add(
-                    ErrorCode.ERR_InvalidExprTerm,
-                    node.StackAllocKeyword.GetLocation(),
-                    SyntaxFacts.GetText(SyntaxKind.StackAllocKeyword));
-            }
+            bool inLegalPosition = ReportBadStackAllocPosition(node, diagnostics);
+            bool hasErrors = !inLegalPosition;
 
             // Check if we're syntactically within a catch or finally clause.
-            if (this.Flags.Includes(BinderFlags.InCatchBlock) ||
-                this.Flags.Includes(BinderFlags.InCatchFilter) ||
-                this.Flags.Includes(BinderFlags.InFinallyBlock))
+            if (this.Flags.IncludesAny(BinderFlags.InCatchBlock | BinderFlags.InCatchFilter | BinderFlags.InFinallyBlock))
             {
                 Error(diagnostics, ErrorCode.ERR_StackallocInCatchFinally, node);
             }
@@ -3070,24 +3095,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSyntax elementTypeSyntax = arrayTypeSyntax.ElementType;
             TypeSymbol elementType = BindType(elementTypeSyntax, diagnostics);
 
-            bool typeHasErrors = elementType.IsErrorType();
-            if (!typeHasErrors && elementType.IsManagedType)
+            if (!elementType.IsErrorType() && elementType.IsManagedType)
             {
                 Error(diagnostics, ErrorCode.ERR_ManagedAddr, elementTypeSyntax, elementType);
-                typeHasErrors = true;
+                hasErrors = true;
             }
 
             SyntaxList<ArrayRankSpecifierSyntax> rankSpecifiers = arrayTypeSyntax.RankSpecifiers;
 
             if (rankSpecifiers.Count != 1 ||
-                rankSpecifiers[0].Sizes.Count != 1 ||
-                rankSpecifiers[0].Sizes[0].Kind() == SyntaxKind.OmittedArraySizeExpression)
+                rankSpecifiers[0].Sizes.Count != 1)
             {
                 // NOTE: Dev10 reported several parse errors here.
                 Error(diagnostics, ErrorCode.ERR_BadStackAllocExpr, typeSyntax);
 
                 var builder = ArrayBuilder<BoundExpression>.GetInstance();
-                DiagnosticBag discardedDiagnostics = DiagnosticBag.GetInstance();
+                var discardedDiagnostics = DiagnosticBag.GetInstance();
                 foreach (ArrayRankSpecifierSyntax rankSpecifier in rankSpecifiers)
                 {
                     foreach (ExpressionSyntax size in rankSpecifier.Sizes)
@@ -3098,6 +3121,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
                 }
+
                 discardedDiagnostics.Free();
 
                 return new BoundBadExpression(
@@ -3108,20 +3132,54 @@ namespace Microsoft.CodeAnalysis.CSharp
                     new PointerTypeSymbol(elementType));
             }
 
+            TypeSymbol type = GetStackAllocType(node, elementType, inLegalPosition, diagnostics);
+
             ExpressionSyntax countSyntax = rankSpecifiers[0].Sizes[0];
-            var count = BindValue(countSyntax, diagnostics, BindValueKind.RValue);
-            if (!count.HasAnyErrors)
+            BoundExpression count = null;
+            if (countSyntax.Kind() != SyntaxKind.OmittedArraySizeExpression)
             {
-                // NOTE: this is different from how we would bind an array size (in which case we would allow uint, long, or ulong).
-                count = GenerateConversionForAssignment(GetSpecialType(SpecialType.System_Int32, diagnostics, node), count, diagnostics);
-                if (!count.HasAnyErrors && IsNegativeConstantForArraySize(count))
+                count = BindValue(countSyntax, diagnostics, BindValueKind.RValue);
+                if (!count.HasAnyErrors)
                 {
-                    Error(diagnostics, ErrorCode.ERR_NegativeStackAllocSize, countSyntax);
-                    hasErrors = true;
+                    // NOTE: this is different from how we would bind an array size (in which case we would allow uint, long, or ulong).
+                    count = GenerateConversionForAssignment(GetSpecialType(SpecialType.System_Int32, diagnostics, node), count, diagnostics);
+                    if (!count.HasAnyErrors && IsNegativeConstantForArraySize(count))
+                    {
+                        Error(diagnostics, ErrorCode.ERR_NegativeStackAllocSize, countSyntax);
+                        hasErrors = true;
+                    }
                 }
             }
+            else if (node.Initializer == null)
+            {
+                // ERR_MissingArraySize is already reported
+                count = BadExpression(countSyntax);
+                hasErrors = true;
+            }
 
-            TypeSymbol type = null;
+            return node.Initializer == null
+                ? new BoundStackAllocArrayCreation(node, elementType, count, initializerOpt: null, type, hasErrors: hasErrors)
+                : BindStackAllocWithInitializer(node, node.Initializer, type, elementType, count, diagnostics, hasErrors);
+        }
+
+        private bool ReportBadStackAllocPosition(SyntaxNode node, DiagnosticBag diagnostics)
+        {
+            Debug.Assert(node is StackAllocArrayCreationExpressionSyntax || node is ImplicitStackAllocArrayCreationExpressionSyntax);
+
+            var inLegalPosition = (IsInMethodBody || IsLocalFunctionsScopeBinder) && node.IsLegalSpanStackAllocPosition();
+            if (!inLegalPosition)
+            {
+                diagnostics.Add(
+                    ErrorCode.ERR_InvalidExprTerm,
+                    node.GetFirstToken().GetLocation(),
+                    SyntaxFacts.GetText(SyntaxKind.StackAllocKeyword));
+            }
+
+            return inLegalPosition;
+        }
+
+        private TypeSymbol GetStackAllocType(SyntaxNode node, TypeSymbol elementType, bool inLegalPosition, DiagnosticBag diagnostics)
+        {
             if (inLegalPosition && !node.IsVariableDeclarationInitialization())
             {
                 CheckFeatureAvailability(node, MessageID.IDS_FeatureRefStructs, diagnostics);
@@ -3130,11 +3188,53 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var spanType = GetWellKnownType(WellKnownType.System_Span_T, diagnostics, node);
                 if (!spanType.IsErrorType())
                 {
-                    type = spanType.Construct(elementType);
+                    return spanType.Construct(elementType);
                 }
             }
 
-            return new BoundStackAllocArrayCreation(node, elementType, count, type, hasErrors: hasErrors || typeHasErrors);
+            return null;
+        }
+
+        private BoundExpression BindStackAllocWithInitializer(
+            SyntaxNode node,
+            InitializerExpressionSyntax initSyntax,
+            TypeSymbol type,
+            TypeSymbol elementType,
+            BoundExpression sizeOpt,
+            DiagnosticBag diagnostics,
+            bool hasErrors,
+            ImmutableArray<BoundExpression> boundInitExprOpt = default)
+        {
+
+            if (boundInitExprOpt.IsDefault)
+            {
+                boundInitExprOpt = BindArrayInitializerExpressions(initSyntax, diagnostics, dimension: 1, rank: 1) 
+                    .SelectAsArray((expr, t) => GenerateConversionForAssignment(t.elementType, expr, t.diagnostics), (elementType, diagnostics));
+            }
+            
+            if (sizeOpt != null)
+            {
+                int? constantSizeOpt = GetIntegerConstantForArraySize(sizeOpt);
+                if (!sizeOpt.HasAnyErrors && constantSizeOpt == null)
+                {
+                    Error(diagnostics, ErrorCode.ERR_ConstantExpected, sizeOpt.Syntax);
+                    hasErrors = true;
+                }
+                else if (boundInitExprOpt.Length != constantSizeOpt)
+                {
+                    Error(diagnostics, ErrorCode.ERR_ArrayInitializerIncorrectLength, node, constantSizeOpt.Value);
+                    hasErrors = true;
+                }
+            }
+            else
+            {
+                sizeOpt = new BoundLiteral(
+                        node,
+                        ConstantValue.Create(boundInitExprOpt.Length),
+                        GetSpecialType(SpecialType.System_Int32, diagnostics, node))
+                { WasCompilerGenerated = true };
+            }
+            return new BoundStackAllocArrayCreation(node, elementType, sizeOpt, new BoundArrayInitialization(initSyntax, boundInitExprOpt), type, hasErrors);
         }
 
         private static int? GetIntegerConstantForArraySize(BoundExpression expression)

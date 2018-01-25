@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection.Metadata;
 using Roslyn.Utilities;
 
@@ -85,6 +86,29 @@ namespace Microsoft.CodeAnalysis.CodeGen
             EmitToken(field, syntaxNode, diagnostics);      //block
             EmitOpCode(ILOpCode.Call, -2);
             EmitToken(initializeArray, syntaxNode, diagnostics);
+        }
+
+        internal void EmitStackAllocBlockInitializer(ImmutableArray<byte> data, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
+        {
+            if (data.All(datum => datum == data[0]))
+            {
+                // All bytes are the same, no need for metadata blob
+
+                EmitOpCode(ILOpCode.Dup);
+                EmitIntConstant(data[0]);
+                EmitIntConstant(data.Length);
+                EmitOpCode(ILOpCode.Initblk, -3);
+            }
+            else
+            {
+                var field = module.GetFieldForData(data, syntaxNode, diagnostics);
+
+                EmitOpCode(ILOpCode.Dup);
+                EmitOpCode(ILOpCode.Ldsflda);
+                EmitToken(field, syntaxNode, diagnostics);
+                EmitIntConstant(data.Length);
+                EmitOpCode(ILOpCode.Cpblk, -3);
+            }
         }
 
         /// <summary>

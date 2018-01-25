@@ -20,6 +20,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression RewritePointerElementAccess(BoundPointerElementAccess node, BoundExpression rewrittenExpression, BoundExpression rewrittenIndex)
         {
+            return RewritePointerElementAccess(node, rewrittenExpression, rewrittenIndex, node.Checked);
+        }
+
+        private BoundExpression RewritePointerElementAccess(BoundExpression node, BoundExpression rewrittenExpression, BoundExpression rewrittenIndex, bool @checked)
+        {
             // Optimization: p[0] == *p
             if (rewrittenIndex.IsDefaultValue())
             {
@@ -49,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     throw ExceptionUtilities.UnexpectedValue(rewrittenIndex.Type.SpecialType);
             }
 
-            if (node.Checked)
+            if (@checked)
             {
                 additionKind |= BinaryOperatorKind.Checked;
             }
