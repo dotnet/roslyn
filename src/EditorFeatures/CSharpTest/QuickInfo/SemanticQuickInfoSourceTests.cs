@@ -26,11 +26,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
         {
             using (var workspace = TestWorkspace.CreateCSharp(markup, options))
             {
-                await TestWithOptionsAsync(workspace, skipSpeculative: false, expectedResults);
+                await TestWithOptionsAsync(workspace, expectedResults);
             }
         }
 
-        private async Task TestWithOptionsAsync(TestWorkspace workspace, bool skipSpeculative, params Action<object>[] expectedResults)
+        private async Task TestWithOptionsAsync(TestWorkspace workspace, params Action<object>[] expectedResults)
         {
             var testDocument = workspace.DocumentWithCursor;
             var position = testDocument.CursorPosition.GetValueOrDefault();
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
             await TestWithOptionsAsync(document, provider, position, expectedResults);
 
             // speculative semantic model
-            if (await CanUseSpeculativeSemanticModelAsync(document, position) && !skipSpeculative)
+            if (await CanUseSpeculativeSemanticModelAsync(document, position))
             {
                 var buffer = testDocument.TextBuffer;
                 using (var edit = buffer.CreateEdit())
@@ -124,14 +124,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
         {
             await TestWithOptionsAsync(Options.Regular, markup, expectedResults);
             await TestWithOptionsAsync(Options.Script, markup, expectedResults);
-        }
-
-        private async Task TestWithoutSpeculativeAsync(string markup, params Action<object>[] expectedResults)
-        {
-            using (var workspace = TestWorkspace.CreateCSharp(markup, Options.Regular))
-            {
-                await TestWithOptionsAsync(workspace, skipSpeculative: true, expectedResults);
-            }
         }
 
         protected async Task TestWithUsingsAsync(string markup, params Action<object>[] expectedResults)
@@ -4756,7 +4748,7 @@ namespace MyNs
         [WorkItem(23307, "https://github.com/dotnet/roslyn/issues/23307")]
         public async Task QuickInfoCapturesOnLocalFunction()
         {
-            await TestWithoutSpeculativeAsync(@"
+            await TestAsync(@"
 class C
 {
     void M()
@@ -4774,7 +4766,7 @@ class C
         [WorkItem(23307, "https://github.com/dotnet/roslyn/issues/23307")]
         public async Task QuickInfoCapturesOnLocalFunction2()
         {
-            await TestWithoutSpeculativeAsync(@"
+            await TestAsync(@"
 class C
 {
     void M()
@@ -4792,7 +4784,7 @@ class C
         [WorkItem(23307, "https://github.com/dotnet/roslyn/issues/23307")]
         public async Task QuickInfoCapturesOnLocalFunction3()
         {
-            await TestWithoutSpeculativeAsync(@"
+            await TestAsync(@"
 class C
 {
     public void M(int @this)
@@ -4815,7 +4807,7 @@ class C
         [WorkItem(23307, "https://github.com/dotnet/roslyn/issues/23307")]
         public async Task QuickInfoCapturesOnLambda()
         {
-            await TestWithoutSpeculativeAsync(@"
+            await TestAsync(@"
 class C
 {
     void M()
@@ -4847,7 +4839,7 @@ class C
         [WorkItem(23307, "https://github.com/dotnet/roslyn/issues/23307")]
         public async Task QuickInfoCapturesOnLambda2_DifferentOrder()
         {
-            await TestWithoutSpeculativeAsync(@"
+            await TestAsync(@"
 class C
 {
     void M(int j)
@@ -4863,7 +4855,7 @@ class C
         [WorkItem(23307, "https://github.com/dotnet/roslyn/issues/23307")]
         public async Task QuickInfoCapturesOnLambda3()
         {
-            await TestWithoutSpeculativeAsync(@"
+            await TestAsync(@"
 class C
 {
     void M()
@@ -4881,7 +4873,7 @@ class C
         [WorkItem(23307, "https://github.com/dotnet/roslyn/issues/23307")]
         public async Task QuickInfoCapturesOnLambda4()
         {
-            await TestWithoutSpeculativeAsync(@"
+            await TestAsync(@"
 class C
 {
     void M()
@@ -4898,7 +4890,7 @@ class C
         [WorkItem(23307, "https://github.com/dotnet/roslyn/issues/23307")]
         public async Task QuickInfoCapturesOnDelegate()
         {
-            await TestWithoutSpeculativeAsync(@"
+            await TestAsync(@"
 class C
 {
     void M()
@@ -4947,7 +4939,7 @@ class C
 ";
             using (var workspace = TestWorkspace.Create(XElement.Parse(workspaceDefinition), workspaceKind: WorkspaceKind.Interactive))
             {
-                await TestWithOptionsAsync(workspace, skipSpeculative: false, MainDescription("(parameter) int x = 1"));
+                await TestWithOptionsAsync(workspace, MainDescription("(parameter) int x = 1"));
             }
         }
 

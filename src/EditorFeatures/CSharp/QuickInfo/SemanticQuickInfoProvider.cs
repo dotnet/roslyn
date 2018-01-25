@@ -1,13 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.VisualStudio.Language.Intellisense;
-using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Text.Projection;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.QuickInfo
 {
@@ -24,19 +19,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.QuickInfo
                 && token.Parent.IsKind(SyntaxKind.ParenthesizedLambdaExpression, SyntaxKind.SimpleLambdaExpression))
             {
                 // () =>
+                found = token.Parent;
+                return true;
             }
             else if (token.IsKind(SyntaxKind.DelegateKeyword) && token.Parent.IsKind(SyntaxKind.AnonymousMethodExpression))
             {
                 // delegate (...) { ... }
-            }
-            else
-            {
-                found = null;
-                return false;
+                found = token.Parent;
+                return true;
             }
 
-            found = token.Parent;
-            return true;
+            found = null;
+            return false;
         }
 
         protected override bool ShouldCheckPreviousToken(SyntaxToken token)
