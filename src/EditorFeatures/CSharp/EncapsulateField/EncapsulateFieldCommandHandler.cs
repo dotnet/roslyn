@@ -19,8 +19,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EncapsulateField
         public EncapsulateFieldCommandHandler(
             IWaitIndicator waitIndicator,
             ITextBufferUndoManagerProvider undoManager,
-            IAsynchronousOperationListenerProvider listenerProvider)
-            : base(waitIndicator, undoManager, listenerProvider)
+            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
+            : base(waitIndicator, undoManager, asyncListeners)
         {
         }
     }

@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         [Fact]
         public void ReportDiagnostics()
         {
-            var service = new DiagnosticService(AsynchronousOperationListenerProvider.NullProvider);
+            var service = new DiagnosticService(SpecializedCollections.EmptyEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>>());
             var source = new EditAndContinueDiagnosticUpdateSource(service);
 
             var updates = new List<string>();
