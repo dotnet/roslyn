@@ -278,17 +278,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Data = new PlainUnboundLambdaState(this, binder, names, types, refKinds, isAsync);
         }
 
-        private UnboundLambda(UnboundLambda other, Binder binder) :
-            base(BoundKind.UnboundLambda, other.Syntax, null, other.HasErrors)
-        {
-            this.Data = other.Data.Clone(this, binder);
-        }
-
-        internal UnboundLambda Clone(Binder binder)
-        {
-            return new UnboundLambda(this, binder);
-        }
-
         public MessageID MessageID { get { return Data.MessageID; } }
         public BoundLambda Bind(NamedTypeSymbol delegateType) { return Data.Bind(delegateType); }
         public BoundLambda BindForErrorRecovery() { return Data.BindForErrorRecovery(); }
@@ -332,8 +321,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(_unboundLambda == null);
             _unboundLambda = unbound;
         }
-
-        public abstract UnboundLambdaState Clone(UnboundLambda unboundLambda, Binder binder);
 
         public UnboundLambda UnboundLambda => _unboundLambda;
 
@@ -941,11 +928,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             _parameterTypes = parameterTypes;
             _parameterRefKinds = parameterRefKinds;
             _isAsync = isAsync;
-        }
-
-        public override UnboundLambdaState Clone(UnboundLambda unboundLambda, Binder binder)
-        {
-            return new PlainUnboundLambdaState(unboundLambda, binder, _parameterNames, _parameterTypes, _parameterRefKinds, _isAsync);
         }
 
         public override bool HasSignature { get { return !_parameterNames.IsDefault; } }
