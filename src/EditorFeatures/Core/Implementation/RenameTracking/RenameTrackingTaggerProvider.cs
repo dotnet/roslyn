@@ -47,14 +47,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             IInlineRenameService inlineRenameService,
             IDiagnosticAnalyzerService diagnosticAnalyzerService,
             [ImportMany] IEnumerable<IRefactorNotifyService> refactorNotifyServices,
-            IAsynchronousOperationListenerProvider listenerProvider)
+            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
         {
             _undoHistoryRegistry = undoHistoryRegistry;
             _waitIndicator = waitIndicator;
             _inlineRenameService = inlineRenameService;
             _refactorNotifyServices = refactorNotifyServices;
             _diagnosticAnalyzerService = diagnosticAnalyzerService;
-            _asyncListener = listenerProvider.GetListener(FeatureAttribute.RenameTracking);
+            _asyncListener = new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.RenameTracking);
         }
 
         public ITagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag

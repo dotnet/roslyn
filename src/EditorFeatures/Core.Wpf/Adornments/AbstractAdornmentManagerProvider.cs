@@ -21,10 +21,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
 
         protected AbstractAdornmentManagerProvider(
             IViewTagAggregatorFactoryService tagAggregatorFactoryService,
-            IAsynchronousOperationListenerProvider listenerProvider)
+            IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
         {
             _tagAggregatorFactoryService = tagAggregatorFactoryService;
-            _asyncListener = listenerProvider.GetListener(this.FeatureAttributeName);
+            _asyncListener = new AggregateAsynchronousOperationListener(
+                asyncListeners,
+                this.FeatureAttributeName);
         }
 
         protected abstract string FeatureAttributeName { get; }
