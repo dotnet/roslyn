@@ -122,16 +122,22 @@ End Class", "1").EmitToArray())
         <Fact()>
         <WorkItem(7133, "https://github.com/dotnet/roslyn/issues/7133")>
         Public Sub TestDisplayResultsWithCurrentUICulture1()
-            Dim runner = CreateRunner(args:={}, input:="Imports System.Globalization
+            ' Save the current thread culture as it is changed in the test.
+            ' If the culture is not restored after the test all following tests
+            ' would run in the en-GB culture.
+            Dim currentCulture = CultureInfo.DefaultThreadCurrentCulture
+            Dim currentUICulture = CultureInfo.DefaultThreadCurrentUICulture
+            Try
+                Dim runner = CreateRunner(args:={}, input:="Imports System.Globalization
 System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = System.Globalization.CultureInfo.GetCultureInfo(""en-GB"")
 ? System.Math.PI
 System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = System.Globalization.CultureInfo.GetCultureInfo(""de-DE"")
 ? System.Math.PI")
 
-            runner.RunInteractive()
+                runner.RunInteractive()
 
-            AssertEx.AssertEqualToleratingWhitespaceDifferences(
-s_logoAndHelpPrompt + "
+                AssertEx.AssertEqualToleratingWhitespaceDifferences(
+    s_logoAndHelpPrompt + "
 > Imports System.Globalization
 > System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = System.Globalization.CultureInfo.GetCultureInfo(""en-GB"")
 > ? System.Math.PI
@@ -140,6 +146,10 @@ s_logoAndHelpPrompt + "
 > ? System.Math.PI
 3,1415926535897931
 >", runner.Console.Out.ToString())
+            Finally
+                CultureInfo.DefaultThreadCurrentCulture = currentCulture
+                CultureInfo.DefaultThreadCurrentUICulture = currentUICulture
+            End Try
         End Sub
 
         <Fact()>
