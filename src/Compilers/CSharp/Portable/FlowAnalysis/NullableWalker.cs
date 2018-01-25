@@ -2254,7 +2254,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         // parameter when all implicit conversion callers have been updated.
         private Result InferResultNullability(Conversion conversion, TypeSymbol targetType, Result operand, bool allowImplicitConversions = false)
         {
-            Debug.Assert(allowImplicitConversions || !conversion.IsImplicit);
+            // PROTOTYPE(NullableReferenceTypes): Enable assert to catch remaining
+            // callers where conversions are not recalculated.
+            //Debug.Assert(allowImplicitConversions || !conversion.IsImplicit);
 
             bool? isNullable = null;
 

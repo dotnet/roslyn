@@ -2273,7 +2273,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             // * From any delegate type S to a delegate type T provided S is not T and
             //   S is a delegate convertible to T
 
-            return HasDelegateVarianceConversion(source, destination, ref useSiteDiagnostics);
+            if (HasDelegateVarianceConversion(source, destination, ref useSiteDiagnostics))
+            {
+                return true;
+            }
+
+            return false;
         }
 
         public bool HasImplicitTypeParameterConversion(TypeParameterSymbol source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
@@ -2351,7 +2356,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // * From T to any interface implemented by C (or any interface variance-compatible with such)
-            return HasAnyBaseInterfaceConversion(effectiveBaseClass, destination, ref useSiteDiagnostics);
+            if (HasAnyBaseInterfaceConversion(effectiveBaseClass, destination, ref useSiteDiagnostics))
+            {
+                return true;
+            }
+
+            return false;
         }
 
         private bool HasImplicitEffectiveInterfaceSetConversion(TypeParameterSymbol source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
@@ -2525,15 +2535,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var destinationTypeArgument = destinationTypeArguments[paramIndex];
 
                     // If they're identical then this one is automatically good, so skip it.
-                    if (HasIdentityConversionInternal(sourceTypeArgument.TypeSymbol, destinationTypeArgument.TypeSymbol))
+                    if (HasIdentityConversionInternal(sourceTypeArgument.TypeSymbol, destinationTypeArgument.TypeSymbol) &&
+                        (!IncludeNullability || HasTopLevelNullabilityIdentityConversion(sourceTypeArgument, destinationTypeArgument)))
                     {
-                        if (!IncludeNullability ||
-                            sourceTypeArgument.IsNullable == null ||
-                            destinationTypeArgument.IsNullable == null ||
-                            sourceTypeArgument.IsNullable == destinationTypeArgument.IsNullable)
-                        {
-                            continue;
-                        }
+                        continue;
                     }
 
                     var typeParameterSymbol = (TypeParameterSymbol)typeParameters[paramIndex].TypeSymbol;
@@ -2675,7 +2680,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            return HasAnyBaseInterfaceConversion(source, destination, ref useSiteDiagnostics);
+            if (HasAnyBaseInterfaceConversion(source, destination, ref useSiteDiagnostics))
+            {
+                return true;
+            }
+
+            return false;
         }
 
         private static bool HasImplicitPointerConversion(TypeSymbol source, TypeSymbol destination)
