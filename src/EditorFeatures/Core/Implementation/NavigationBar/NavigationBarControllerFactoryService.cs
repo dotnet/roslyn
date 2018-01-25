@@ -13,15 +13,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
     internal class NavigationBarControllerFactoryService : INavigationBarControllerFactoryService
     {
         private readonly IWaitIndicator _waitIndicator;
-        private readonly IAsynchronousOperationListener _asyncListener;
+        private readonly AggregateAsynchronousOperationListener _asyncListener;
 
         [ImportingConstructor]
         public NavigationBarControllerFactoryService(
             IWaitIndicator waitIndicator,
-            IAsynchronousOperationListenerProvider listenerProvider)
+            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
         {
             _waitIndicator = waitIndicator;
-            _asyncListener = listenerProvider.GetListener(FeatureAttribute.NavigationBar);
+            _asyncListener = new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.NavigationBar);
         }
 
         public INavigationBarController CreateController(INavigationBarPresenter presenter, ITextBuffer textBuffer)
