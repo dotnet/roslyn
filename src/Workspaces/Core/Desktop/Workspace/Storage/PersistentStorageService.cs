@@ -24,9 +24,9 @@ namespace Microsoft.CodeAnalysis.Storage
 
         private readonly bool _testing;
         private readonly object _lookupAccessLock;
+        private readonly PrimaryStorageInfo _primaryStorage;
 
         private string _lastSolutionPath;
-        private PrimaryStorageInfo _primaryStorage;
 
         protected AbstractPersistentStorageService(
             IOptionService optionService,
