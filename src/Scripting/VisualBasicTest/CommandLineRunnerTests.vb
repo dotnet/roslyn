@@ -150,7 +150,6 @@ s_logoAndHelpPrompt + "
             ' would run in the en-GB culture.
             Dim currentCulture = CultureInfo.DefaultThreadCurrentCulture
             Dim currentUICulture = CultureInfo.DefaultThreadCurrentUICulture
-            Dim output As String
             Try
                 ' Tests that DefaultThreadCurrentUICulture is respected and not DefaultThreadCurrentCulture.
                 Dim runner = CreateRunner(args:={}, input:="Imports System.Globalization
@@ -161,12 +160,8 @@ System.Globalization.CultureInfo.DefaultThreadCurrentCulture = System.Globalizat
 ? System.Math.PI")
 
                 runner.RunInteractive()
-                output = runner.Console.Out.ToString()
-            Finally
-                CultureInfo.DefaultThreadCurrentCulture = currentCulture
-                CultureInfo.DefaultThreadCurrentUICulture = currentUICulture
-            End Try
-            AssertEx.AssertEqualToleratingWhitespaceDifferences(
+
+                AssertEx.AssertEqualToleratingWhitespaceDifferences(
 s_logoAndHelpPrompt + "
 > Imports System.Globalization
 > System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = System.Globalization.CultureInfo.GetCultureInfo(""en-GB"")
@@ -176,7 +171,11 @@ s_logoAndHelpPrompt + "
 > System.Globalization.CultureInfo.DefaultThreadCurrentCulture = System.Globalization.CultureInfo.GetCultureInfo(""de-DE"")
 > ? System.Math.PI
 3.1415926535897931
->", output)
+>", runner.Console.Out.ToString())
+            Finally
+                CultureInfo.DefaultThreadCurrentCulture = currentCulture
+                CultureInfo.DefaultThreadCurrentUICulture = currentUICulture
+            End Try
         End Sub
 
         <Fact>
