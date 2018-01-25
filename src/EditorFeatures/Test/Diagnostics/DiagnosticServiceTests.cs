@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 var document = workspace.CurrentSolution.AddProject("TestProject", "TestProject", LanguageNames.CSharp).AddDocument("TestDocument", string.Empty);
 
                 var source = new TestDiagnosticUpdateSource(false, null);
-                var diagnosticService = new DiagnosticService(AsynchronousOperationListenerProvider.NullProvider);
+                var diagnosticService = new DiagnosticService(AggregateAsynchronousOperationListener.EmptyListeners);
                 diagnosticService.Register(source);
 
                 diagnosticService.DiagnosticsUpdated += (s, o) => { set.Set(); };
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 var document2 = document.Project.AddDocument("TestDocument2", string.Empty);
 
                 var source = new TestDiagnosticUpdateSource(false, null);
-                var diagnosticService = new DiagnosticService(AsynchronousOperationListenerProvider.NullProvider);
+                var diagnosticService = new DiagnosticService(AggregateAsynchronousOperationListener.EmptyListeners);
                 diagnosticService.Register(source);
 
                 diagnosticService.DiagnosticsUpdated += (s, o) => { set.Set(); };

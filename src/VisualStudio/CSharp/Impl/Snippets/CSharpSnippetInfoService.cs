@@ -26,8 +26,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
         [ImportingConstructor]
         public CSharpSnippetInfoService(
             SVsServiceProvider serviceProvider,
-            IAsynchronousOperationListenerProvider listenerProvider)
-            : base(serviceProvider, Guids.CSharpLanguageServiceId, listenerProvider)
+            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
+            : base(serviceProvider, Guids.CSharpLanguageServiceId, asyncListeners)
         {
         }
 

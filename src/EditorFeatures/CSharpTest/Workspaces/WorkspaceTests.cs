@@ -22,11 +22,24 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
 {
     public partial class WorkspaceTests
     {
+        [Shared]
+        [Export(typeof(IAsynchronousOperationListener))]
+        [Export(typeof(IAsynchronousOperationWaiter))]
+        [Feature(FeatureAttribute.Workspace)]
+        private class WorkspaceWaiter : AsynchronousOperationListener
+        {
+            internal WorkspaceWaiter()
+            {
+            }
+        }
+
         private static Lazy<ExportProvider> s_exportProvider = new Lazy<ExportProvider>(CreateExportProvider);
 
         private static ExportProvider CreateExportProvider()
         {
-            var catalog = TestExportProvider.CreateAssemblyCatalogWithCSharpAndVisualBasic();
+            var catalog = MinimalTestExportProvider.WithPart(
+                TestExportProvider.CreateAssemblyCatalogWithCSharpAndVisualBasic(),
+                typeof(WorkspaceWaiter));
             return MinimalTestExportProvider.CreateExportProvider(catalog);
         }
 
@@ -38,9 +51,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
         private static async Task WaitForWorkspaceOperationsToComplete(TestWorkspace workspace)
         {
             var workspaceWaiter = workspace.ExportProvider
-                                    .GetExportedValue<AsynchronousOperationListenerProvider>()
-                                    .GetWaiter(FeatureAttribute.Workspace);
-
+                .GetExports<IAsynchronousOperationListener, FeatureMetadata>()
+                .First(l => l.Metadata.FeatureName == FeatureAttribute.Workspace).Value as IAsynchronousOperationWaiter;
             await workspaceWaiter.CreateWaitTask();
         }
 
