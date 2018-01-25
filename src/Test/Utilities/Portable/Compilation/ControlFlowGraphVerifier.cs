@@ -1,16 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
-using System.Globalization;
 using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.Test.Extensions;
-using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -19,6 +12,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     public static class ControlFlowGraphVerifier
     {
         public static void VerifyGraph(Compilation compilation, string expectedFlowGraph, ImmutableArray<BasicBlock> graph)
+        {
+            var actualFlowGraph = GetFlowGraph(compilation, graph);
+            OperationTreeVerifier.Verify(expectedFlowGraph, actualFlowGraph);
+        }
+
+        public static string GetFlowGraph(Compilation compilation, ImmutableArray<BasicBlock> graph)
         {
             var map = new Dictionary<Operations.BasicBlock, int>();
 
@@ -103,8 +102,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 }
             }
 
-            var actualFlowGraph = stringBuilder.ToStringAndFree();
-            OperationTreeVerifier.Verify(expectedFlowGraph, actualFlowGraph);
+            return stringBuilder.ToStringAndFree();
         }
 
         private static bool CanBeInControlFlowGraph(IOperation n)
