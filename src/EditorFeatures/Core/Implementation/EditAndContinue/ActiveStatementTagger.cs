@@ -27,10 +27,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
             _workspaceRegistration = Workspace.GetWorkspaceRegistration(buffer.AsTextContainer());
             ConnectToWorkspace(_workspaceRegistration.Workspace);
-            _workspaceRegistration.WorkspaceChanged += (_, __) => ConnectToWorkspace(_workspaceRegistration.Workspace);
+            _workspaceRegistration.WorkspaceChanged += OnWorkspaceChanged;
 
             _buffer = buffer;
         }
+
+        private void OnWorkspaceChanged(object sender, EventArgs e)
+            => ConnectToWorkspace(_workspaceRegistration.Workspace);
 
         private void ConnectToWorkspace(Workspace workspaceOpt)
         {
@@ -50,6 +53,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
         public void Dispose()
         {
             AssertIsForeground();
+
+            _workspaceRegistration.WorkspaceChanged -= OnWorkspaceChanged;
             ConnectToWorkspace(workspaceOpt: null);
         }
 
