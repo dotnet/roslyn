@@ -3309,7 +3309,7 @@ struct S2
         }
 
         [Fact]
-        public void PassingParameters_1()
+        public void PassingParameters_01()
         {
             CSharpCompilation c = CreateStandardCompilation(@"
 class C
@@ -3455,7 +3455,7 @@ class CL1
         }
 
         [Fact]
-        public void PassingParameters_2()
+        public void PassingParameters_02()
         {
             CSharpCompilation c = CreateStandardCompilation(@"
 class C
@@ -3488,7 +3488,7 @@ class CL0
         }
 
         [Fact]
-        public void PassingParameters_3()
+        public void PassingParameters_03()
         {
             CSharpCompilation c = CreateStandardCompilation(@"
 class C
@@ -3521,6 +3521,81 @@ class CL0 : System.Collections.IEnumerable
                 //         var y1 = new CL0() { null };
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(10, 30)
                 );
+        }
+
+        [Fact]
+        public void PassingParameters_04()
+        {
+            var source =
+@"interface I<T> { }
+class C
+{
+    static void F(I<object> x, I<object?> y, I<object>? z)
+    {
+        G(x);
+        G(y);
+        G(x, x, x);
+        G(x, y, y);
+        G(x, x, y, z);
+        G(y: x, x: y);
+        G(y: y, x: x);
+        I<object?>[]? w = null;
+        G(x, w);
+        G(x, new I<object?>[0]);
+        G(x, new[] { x, x });
+        G(x, new[] { y, y });
+        G(x, new[] { x, y, z });
+        G(y: new[] { x, x }, x: y);
+        G(y: new[] { y, y }, x: x);
+    }
+    static void G(I<object> x, params I<object?>[] y)
+    {
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (7,11): warning CS8620: Nullability of reference types in argument of type 'I<object?>' doesn't match target type 'I<object>' for parameter 'x' in 'void C.G(I<object> x, params I<object?>[] y)'.
+                //         G(y);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "y").WithArguments("I<object?>", "I<object>", "x", "void C.G(I<object> x, params I<object?>[] y)").WithLocation(7, 11),
+                // (8,14): warning CS8620: Nullability of reference types in argument of type 'I<object>' doesn't match target type 'I<object?>[]' for parameter 'y' in 'void C.G(I<object> x, params I<object?>[] y)'.
+                //         G(x, x, x);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x").WithArguments("I<object>", "I<object?>[]", "y", "void C.G(I<object> x, params I<object?>[] y)").WithLocation(8, 14),
+                // (8,17): warning CS8620: Nullability of reference types in argument of type 'I<object>' doesn't match target type 'I<object?>[]' for parameter 'y' in 'void C.G(I<object> x, params I<object?>[] y)'.
+                //         G(x, x, x);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x").WithArguments("I<object>", "I<object?>[]", "y", "void C.G(I<object> x, params I<object?>[] y)").WithLocation(8, 17),
+                // (10,14): warning CS8620: Nullability of reference types in argument of type 'I<object>' doesn't match target type 'I<object?>[]' for parameter 'y' in 'void C.G(I<object> x, params I<object?>[] y)'.
+                //         G(x, x, y, z);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x").WithArguments("I<object>", "I<object?>[]", "y", "void C.G(I<object> x, params I<object?>[] y)").WithLocation(10, 14),
+                // (10,17): warning CS8620: Nullability of reference types in argument of type 'I<object?>' doesn't match target type 'I<object?>[]' for parameter 'y' in 'void C.G(I<object> x, params I<object?>[] y)'.
+                //         G(x, x, y, z);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "y").WithArguments("I<object?>", "I<object?>[]", "y", "void C.G(I<object> x, params I<object?>[] y)").WithLocation(10, 17),
+                // (10,20): warning CS8620: Nullability of reference types in argument of type 'I<object>' doesn't match target type 'I<object?>[]' for parameter 'y' in 'void C.G(I<object> x, params I<object?>[] y)'.
+                //         G(x, x, y, z);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "z").WithArguments("I<object>", "I<object?>[]", "y", "void C.G(I<object> x, params I<object?>[] y)").WithLocation(10, 20),
+                // (11,14): warning CS8620: Nullability of reference types in argument of type 'I<object>' doesn't match target type 'I<object?>[]' for parameter 'y' in 'void C.G(I<object> x, params I<object?>[] y)'.
+                //         G(y: x, x: y);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x").WithArguments("I<object>", "I<object?>[]", "y", "void C.G(I<object> x, params I<object?>[] y)").WithLocation(11, 14),
+                // (11,20): warning CS8620: Nullability of reference types in argument of type 'I<object?>' doesn't match target type 'I<object>' for parameter 'x' in 'void C.G(I<object> x, params I<object?>[] y)'.
+                //         G(y: x, x: y);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "y").WithArguments("I<object?>", "I<object>", "x", "void C.G(I<object> x, params I<object?>[] y)").WithLocation(11, 20),
+                // (14,14): warning CS8604: Possible null reference argument for parameter 'y' in 'void C.G(I<object> x, params I<object?>[] y)'.
+                //         G(x, w);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "w").WithArguments("y", "void C.G(I<object> x, params I<object?>[] y)").WithLocation(14, 14),
+                // (16,14): warning CS8620: Nullability of reference types in argument of type 'I<object>[]' doesn't match target type 'I<object?>[]' for parameter 'y' in 'void C.G(I<object> x, params I<object?>[] y)'.
+                //         G(x, new[] { x, x });
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "new[] { x, x }").WithArguments("I<object>[]", "I<object?>[]", "y", "void C.G(I<object> x, params I<object?>[] y)").WithLocation(16, 14),
+                // (18,25): warning CS8619: Nullability of reference types in value of type 'I<object?>' doesn't match target type 'I<object>'.
+                //         G(x, new[] { x, y, z });
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("I<object?>", "I<object>").WithLocation(18, 25),
+                // (18,14): warning CS8620: Nullability of reference types in argument of type 'I<object>?[]' doesn't match target type 'I<object?>[]' for parameter 'y' in 'void C.G(I<object> x, params I<object?>[] y)'.
+                //         G(x, new[] { x, y, z });
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "new[] { x, y, z }").WithArguments("I<object>?[]", "I<object?>[]", "y", "void C.G(I<object> x, params I<object?>[] y)").WithLocation(18, 14),
+                // (19,14): warning CS8620: Nullability of reference types in argument of type 'I<object>[]' doesn't match target type 'I<object?>[]' for parameter 'y' in 'void C.G(I<object> x, params I<object?>[] y)'.
+                //         G(y: new[] { x, x }, x: y);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "new[] { x, x }").WithArguments("I<object>[]", "I<object?>[]", "y", "void C.G(I<object> x, params I<object?>[] y)").WithLocation(19, 14),
+                // (19,33): warning CS8620: Nullability of reference types in argument of type 'I<object?>' doesn't match target type 'I<object>' for parameter 'x' in 'void C.G(I<object> x, params I<object?>[] y)'.
+                //         G(y: new[] { x, x }, x: y);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "y").WithArguments("I<object?>", "I<object>", "x", "void C.G(I<object> x, params I<object?>[] y)").WithLocation(19, 33));
         }
 
         [Fact]
@@ -5435,7 +5510,7 @@ class C
         }
 
         [Fact]
-        public void Loop_1()
+        public void Loop_01()
         {
             CSharpCompilation c = CreateStandardCompilation(@"
 class C
@@ -5505,7 +5580,7 @@ class CL1
         }
 
         [Fact]
-        public void Loop_2()
+        public void Loop_02()
         {
             CSharpCompilation c = CreateStandardCompilation(@"
 class C
@@ -9197,6 +9272,30 @@ class C
                 //         x1 = default(C);
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default(C)").WithLocation(10, 14)
                 );
+        }
+
+        // PROTOTYPE(NullableReferenceTypes): Should report WRN_NullReferenceReceiver.
+        [Fact(Skip = "TODO")]
+        public void Discard_01()
+        {
+            var source =
+@"class C
+{
+    static void F((object, object?) t)
+    {
+        object? x;
+        ((_, x) = t).Item1.ToString();
+        ((x, _) = t).Item2.ToString();
+    }
+}";
+            var comp = CreateStandardCompilation(
+                source,
+                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+                parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (7,9): warning CS8602: Possible dereference of a null reference.
+                //         ((x, _) = t).Item2.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "((x, _) = t).Item2").WithLocation(7, 9));
         }
 
         [Fact]
@@ -17371,6 +17470,22 @@ class C
                 // (6,15): error CS0037: Cannot convert null to 'S' because it is a non-nullable value type
                 //         S s = (S)null;
                 Diagnostic(ErrorCode.ERR_ValueCantBeNull, "(S)null").WithArguments("S").WithLocation(6, 15));
+        }
+
+        [Fact]
+        public void GroupBy()
+        {
+            var source =
+@"using System.Linq;
+class Program
+{
+    static void Main()
+    {
+        var items = from i in Enumerable.Range(0, 3) group (long)i by i;
+    }
+}";
+            var comp = CreateCompilationWithMscorlibAndSystemCore(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
