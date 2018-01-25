@@ -24,11 +24,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         public VisualStudioRuleSetManagerFactory(
             SVsServiceProvider serviceProvider,
             IForegroundNotificationService foregroundNotificationService,
-            IAsynchronousOperationListenerProvider listenerProvider)
+            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
         {
             _serviceProvider = serviceProvider;
             _foregroundNotificationService = foregroundNotificationService;
-            _listener = listenerProvider.GetListener(FeatureAttribute.RuleSetEditor);
+            _listener = new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.RuleSetEditor);
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)

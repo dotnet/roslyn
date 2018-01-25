@@ -28,11 +28,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         public FixMultipleOccurrencesService(
             ICodeActionEditHandlerService editHandler,
             IWaitIndicator waitIndicator,
-            IAsynchronousOperationListenerProvider listenerProvider)
+            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
         {
             _editHandler = editHandler;
             _waitIndicator = waitIndicator;
-            _listener = listenerProvider.GetListener(FeatureAttribute.LightBulb);
+            _listener = new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.LightBulb);
         }
 
         public Solution GetFix(
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 fixAllProvider, diagnosticsToFix, fixProvider, equivalenceKey);
 
             return GetFixedSolution(
-                fixMultipleState, workspace, waitDialogTitle,
+                fixMultipleState, workspace, waitDialogTitle, 
                 waitDialogMessage, cancellationToken);
         }
 
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 fixAllProvider, diagnosticsToFix, fixProvider, equivalenceKey);
 
             return GetFixedSolution(
-                fixMultipleState, workspace, waitDialogTitle,
+                fixMultipleState, workspace, waitDialogTitle, 
                 waitDialogMessage, cancellationToken);
         }
 

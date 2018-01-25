@@ -16,8 +16,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Progression
         Inherits AbstractGraphProvider
 
         <ImportingConstructor>
-        Public Sub New(glyphService As IGlyphService, serviceProvider As SVsServiceProvider, workspaceProvider As IProgressionPrimaryWorkspaceProvider, listenerProvider As IAsynchronousOperationListenerProvider)
-            MyBase.New(glyphService, serviceProvider, workspaceProvider.PrimaryWorkspace, listenerProvider)
+        Public Sub New(glyphService As IGlyphService, serviceProvider As SVsServiceProvider, workspaceProvider As IProgressionPrimaryWorkspaceProvider, <ImportMany> asyncListeners As IEnumerable(Of Lazy(Of IAsynchronousOperationListener, FeatureMetadata)))
+            MyBase.New(glyphService, serviceProvider, workspaceProvider.PrimaryWorkspace, asyncListeners)
         End Sub
     End Class
 End Namespace
