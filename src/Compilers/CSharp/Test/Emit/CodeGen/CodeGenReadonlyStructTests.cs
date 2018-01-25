@@ -1209,7 +1209,7 @@ class Test
     }
 }", TestOptions.ReleaseExe);
 
-            CompileAndVerify(comp, expectedOutput: "overflow", verify: Verification.Fails).VerifyIL("Test.M", @"
+            var expectedIL = @"
 {
   // Code size       22 (0x16)
   .maxstack  2
@@ -1222,7 +1222,19 @@ class Test
   IL_000f:  newobj     ""System.Span<int>..ctor(void*, int)""
   IL_0014:  pop
   IL_0015:  ret
-}");
+}";
+
+            var isx86 = (IntPtr.Size == 4);
+            if (isx86)
+            {
+                CompileAndVerify(comp, expectedOutput: "overflow", verify: Verification.Fails).VerifyIL("Test.M", expectedIL);
+            }
+            else 
+            {
+                // On 64bit the native int does not overflow, so we get StackOverflow instead
+                // therefore we will just check the IL
+                CompileAndVerify(comp, verify: Verification.Fails).VerifyIL("Test.M", expectedIL);
+            }
         }
 
         [Fact]
