@@ -8022,6 +8022,49 @@ class CL1<T>
         }
 
         [Fact]
+        public void UnboundLambda_01()
+        {
+            var source =
+@"class C
+{
+    static void F()
+    {
+        var y = x => x;
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (5,13): error CS0815: Cannot assign lambda expression to an implicitly-typed variable
+                //         var y = x => x;
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "y = x => x").WithArguments("lambda expression").WithLocation(5, 13));
+        }
+
+        [Fact]
+        public void UnboundLambda_02()
+        {
+            var source =
+@"class C
+{
+    static void F(object? x)
+    {
+        var z = y => y ?? x.ToString();
+    }
+}";
+            // PROTOTYPE(NullableReferenceTypes): Should not report HDN_ExpressionIsProbablyNeverNull for `y`.
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (5,13): error CS0815: Cannot assign lambda expression to an implicitly-typed variable
+                //         var z = y => y ?? x.ToString();
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "z = y => y ?? x.ToString()").WithArguments("lambda expression").WithLocation(5, 13),
+                // (5,22): hidden CS8607: Expression is probably never null.
+                //         var z = y => y ?? x.ToString();
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "y").WithLocation(5, 22),
+                // (5,27): warning CS8602: Possible dereference of a null reference.
+                //         var z = y => y ?? x.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(5, 27));
+        }
+
+        [Fact]
         public void NewT_01()
         {
             CSharpCompilation c = CreateStandardCompilation(@"

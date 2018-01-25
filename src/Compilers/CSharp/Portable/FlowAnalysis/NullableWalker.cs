@@ -873,7 +873,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     type = value.Type;
                 }
 
-                value = CheckImplicitConversion(initializer, type.TypeSymbol, value, conversion);
+                value = CheckImplicitConversion(initializer, type?.TypeSymbol, value, conversion);
                 TrackNullableStateForAssignment(node, slot, type, initializer, value.Type, value.Slot);
             }
 
@@ -1543,45 +1543,47 @@ namespace Microsoft.CodeAnalysis.CSharp
             var alternativeResult = _result;
             alternative = CreatePlaceholderExpressionIfNecessary(alternative, alternativeResult);
 
+            TypeSymbol resultType = null;
+            if (!node.HasErrors)
+            {
+                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                var bestType = BestTypeInferrer.InferBestTypeForConditionalOperator(consequence, alternative, _conversions, out bool _, ref useSiteDiagnostics);
+                if (bestType is null)
+                {
+                    object GetTypeAsDiagnosticArgument(TypeSymbol typeOpt) => typeOpt ?? (object)"<null>";
+                    ReportStaticNullCheckingDiagnostics(
+                        ErrorCode.WRN_NoBestNullabilityConditionalExpression,
+                        node.Syntax,
+                        GetTypeAsDiagnosticArgument(consequenceResult.Type?.TypeSymbol),
+                        GetTypeAsDiagnosticArgument(alternativeResult.Type?.TypeSymbol));
+                }
+                else
+                {
+                    consequenceResult = CheckImplicitConversion(consequence, bestType, consequenceResult, consequenceConversion);
+                    alternativeResult = CheckImplicitConversion(alternative, bestType, alternativeResult, alternativeConversion);
+                    resultType = bestType;
+                }
+            }
+
+            bool? GetIsNullable(Result result) => (object)result.Type == null ? true : result.Type.IsNullable;
+            bool? resultIsNullable;
+
             if (IsConstantTrue(node.Condition))
             {
                 SetState(consequenceState);
-                _result = consequenceResult.Type;
+                resultIsNullable = GetIsNullable(consequenceResult);
             }
             else if (IsConstantFalse(node.Condition))
             {
-                _result = alternativeResult.Type;
+                resultIsNullable = GetIsNullable(alternativeResult);
             }
             else
             {
                 IntersectWith(ref this.State, ref consequenceState);
-
-                TypeSymbol resultType = null;
-                if (!node.HasErrors)
-                {
-                    HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                    var bestType = BestTypeInferrer.InferBestTypeForConditionalOperator(consequence, alternative, _conversions, out bool _, ref useSiteDiagnostics);
-                    if (bestType is null)
-                    {
-                        object GetTypeAsDiagnosticArgument(TypeSymbol typeOpt) => typeOpt ?? (object)"<null>";
-                        ReportStaticNullCheckingDiagnostics(
-                            ErrorCode.WRN_NoBestNullabilityConditionalExpression,
-                            node.Syntax,
-                            GetTypeAsDiagnosticArgument(consequenceResult.Type?.TypeSymbol),
-                            GetTypeAsDiagnosticArgument(alternativeResult.Type?.TypeSymbol));
-                    }
-                    else
-                    {
-                        consequenceResult = CheckImplicitConversion(consequence, bestType, consequenceResult, consequenceConversion);
-                        alternativeResult = CheckImplicitConversion(alternative, bestType, alternativeResult, alternativeConversion);
-                        resultType = bestType;
-                    }
-                }
-
-                bool? GetIsNullable(Result result) => (object)result.Type == null ? true : result.Type.IsNullable;
-                _result = TypeSymbolWithAnnotations.Create(resultType ?? node.Type, GetIsNullable(consequenceResult) | GetIsNullable(alternativeResult));
+                resultIsNullable = (GetIsNullable(consequenceResult) | GetIsNullable(alternativeResult));
             }
 
+            _result = TypeSymbolWithAnnotations.Create(resultType ?? node.Type, resultIsNullable);
             return null;
         }
 
@@ -2407,7 +2409,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitUnboundLambda(UnboundLambda node)
         {
             var result = base.VisitUnboundLambda(node);
-            SetUnknownResultNullability();
+            SetResult(node);
             return result;
         }
 
