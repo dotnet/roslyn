@@ -122,7 +122,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.TestFiles
                 public static string ExternAlias2 => GetText("ProjectFiles.CSharp.ExternAlias2.csproj");
                 public static string ForEmittedOutput => GetText("ProjectFiles.CSharp.ForEmittedOutput.csproj");
                 public static string MsbuildError => GetText("ProjectFiles.CSharp.MsbuildError.csproj");
-                public static string NetCoreApp2_Project => GetText("NetCoreApp2.NetCoreApp2.csproj");
+                public static string NetCoreApp2_Project => GetText("NetCoreApp2.Project.csproj");
+                public static string NetCoreMultiTFM_Project => GetText("NetCoreMultiTFM.Project.csproj");
                 public static string PortableProject => GetText("ProjectFiles.CSharp.PortableProject.csproj");
                 public static string ProjectReference => GetText("ProjectFiles.CSharp.ProjectReference.csproj");
                 public static string ReferencesPortableProject => GetText("ProjectFiles.CSharp.ReferencesPortableProject.csproj");
@@ -163,6 +164,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.TestFiles
                 public static string CSharpConsole => GetText("SourceFiles.CSharp.CSharpConsole.cs");
                 public static string CSharpExternAlias => GetText("SourceFiles.CSharp.CSharpExternAlias.cs");
                 public static string NetCoreApp2_Program => GetText("NetCoreApp2.Program.cs");
+                public static string NetCoreMultiTFM_Program => GetText("NetCoreMultiTFM.Program.cs");
                 public static string MainWindow => GetText("SourceFiles.CSharp.MainWindow.xaml.cs");
                 public static string OtherStuff_Foo => GetText("SourceFiles.CSharp.OtherStuff_Foo.cs");
             }

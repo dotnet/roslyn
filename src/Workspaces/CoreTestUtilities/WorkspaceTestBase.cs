@@ -102,7 +102,16 @@ namespace Microsoft.CodeAnalysis.UnitTests
             return new FileSet(
                 (@"Directory.Build.props", Resources.Directory_Build_props),
                 (@"Directory.Build.targets", Resources.Directory_Build_targets),
-                (@"NetCoreApp2.csproj", Resources.ProjectFiles.CSharp.NetCoreApp2_Project),
+                (@"Project.csproj", Resources.ProjectFiles.CSharp.NetCoreApp2_Project),
+                (@"Program.cs", Resources.SourceFiles.CSharp.NetCoreApp2_Program));
+        }
+
+        protected FileSet GetNetCoreMultiTFMFiles()
+        {
+            return new FileSet(
+                (@"Directory.Build.props", Resources.Directory_Build_props),
+                (@"Directory.Build.targets", Resources.Directory_Build_targets),
+                (@"Project.csproj", Resources.ProjectFiles.CSharp.NetCoreMultiTFM_Project),
                 (@"Program.cs", Resources.SourceFiles.CSharp.NetCoreApp2_Program));
         }
 

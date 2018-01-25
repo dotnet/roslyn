@@ -12,14 +12,37 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 {
     public class NetCoreTests : MSBuildWorkspaceTestBase
     {
-        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+        [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [Trait(Traits.Feature, Traits.Features.NetCore)]
         public async Task TestOpenProject_NetCoreApp2()
         {
             CreateFiles(GetNetCoreApp2Files());
 
-            var projectFilePath = GetSolutionFileName("NetCoreApp2.csproj");
+            var projectFilePath = GetSolutionFileName("Project.csproj");
 
-            DotNetHelper.Restore("NetCoreApp2.csproj", workingDirectory: this.SolutionDirectory.Path);
+            DotNetHelper.Restore("Project.csproj", workingDirectory: this.SolutionDirectory.Path);
+
+            using (var workspace = CreateMSBuildWorkspace())
+            {
+                var project = await workspace.OpenProjectAsync(projectFilePath);
+                var document = project.Documents.First(d => d.Name == "Program.cs");
+                var semanticModel = await document.GetSemanticModelAsync();
+                var diagnostics = semanticModel.GetDiagnostics();
+                Assert.Empty(diagnostics);
+            }
+        }
+
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+        [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [Trait(Traits.Feature, Traits.Features.NetCore)]
+        public async Task TestOpenProject_NetCoreMultiTFM()
+        {
+            CreateFiles(GetNetCoreMultiTFMFiles());
+
+            var projectFilePath = GetSolutionFileName("Project.csproj");
+
+            DotNetHelper.Restore("Project.csproj", workingDirectory: this.SolutionDirectory.Path);
 
             using (var workspace = CreateMSBuildWorkspace())
             {
