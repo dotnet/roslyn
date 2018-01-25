@@ -11,22 +11,17 @@ using System.Runtime.CompilerServices;
 
 namespace Microsoft.CodeAnalysis.Shared.TestHooks
 {
-    internal sealed partial class AsynchronousOperationListener : IAsynchronousOperationListener, IAsynchronousOperationWaiter
+    internal partial class AsynchronousOperationListener : IAsynchronousOperationListener, IAsynchronousOperationWaiter
     {
         private readonly object _gate = new object();
-        private readonly string _featureName;
         private readonly HashSet<TaskCompletionSource<bool>> _pendingTasks = new HashSet<TaskCompletionSource<bool>>();
-
         private List<DiagnosticAsyncToken> _diagnosticTokenList = new List<DiagnosticAsyncToken>();
         private int _counter;
         private bool _trackActiveTokens;
 
-        public AsynchronousOperationListener(string featureName = "noname", bool enableDiagnosticTokens = false)
+        public AsynchronousOperationListener()
         {
             TrackActiveTokens = Debugger.IsAttached;
-
-            _featureName = featureName;
-            TrackActiveTokens = enableDiagnosticTokens;
         }
 
         public IAsyncToken BeginAsyncOperation(string name, object tag = null, [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
@@ -93,22 +88,22 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
             }
         }
 
-        public Task CreateWaitTask()
+        public virtual Task CreateWaitTask()
         {
             lock (_gate)
             {
+                var source = new TaskCompletionSource<bool>();
                 if (_counter == 0)
                 {
                     // There is nothing to wait for, so we are immediately done
-                    return Task.CompletedTask;
+                    source.SetResult(true);
                 }
                 else
                 {
-                    var source = new TaskCompletionSource<bool>();
                     _pendingTasks.Add(source);
-
-                    return source.Task;
                 }
+
+                return source.Task;
             }
         }
 
@@ -152,6 +147,25 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
                     return _diagnosticTokenList.ToImmutableArray();
                 }
             }
+        }
+
+        internal static IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> CreateListeners(
+            string featureName, IAsynchronousOperationListener listener)
+        {
+            return CreateListeners(ValueTuple.Create(featureName, listener));
+        }
+
+        internal static IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> CreateListeners<T>(
+            params ValueTuple<string, T>[] pairs) where T : IAsynchronousOperationListener
+        {
+            return pairs.Select(CreateLazy).ToList();
+        }
+
+        private static Lazy<IAsynchronousOperationListener, FeatureMetadata> CreateLazy<T>(
+            ValueTuple<string, T> tuple) where T : IAsynchronousOperationListener
+        {
+            return new Lazy<IAsynchronousOperationListener, FeatureMetadata>(
+                () => tuple.Item2, new FeatureMetadata(new Dictionary<string, object>() { { "FeatureName", tuple.Item1 } }));
         }
     }
 }

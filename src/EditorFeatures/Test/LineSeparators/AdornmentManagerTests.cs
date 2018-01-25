@@ -83,9 +83,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.LineSeparators
 
                 var workspace = new TestWorkspace();
 
+                var listener = new AggregateAsynchronousOperationListener(
+                    Enumerable.Empty<Lazy<IAsynchronousOperationListener, FeatureMetadata>>(),
+                    FeatureAttribute.LineSeparators);
                 Manager = AdornmentManager<Tag>.Create(_textView.Object,
                                                        aggregatorService.Object,
-                                                       AsynchronousOperationListenerProvider.NullListener,
+                                                       listener,
                                                        adornmentLayerName: layerName);
             }
 

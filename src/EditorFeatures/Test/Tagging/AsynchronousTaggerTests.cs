@@ -53,8 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
                 {
                     return new List<ITagSpan<TestTag>>() { new TagSpan<TestTag>(span, new TestTag()) };
                 }
-
-                var asyncListener = new AsynchronousOperationListener();
+                var asyncListener = new TaggerOperationListener();
 
                 WpfTestCase.RequireWpfFact($"{nameof(AsynchronousTaggerTests)}.{nameof(LargeNumberOfSpans)} creates asynchronous taggers");
 
@@ -101,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
                     workspace.GetService<ITextEditorFactoryService>(),
                     workspace.GetService<IEditorOptionsFactoryService>(),
                     workspace.GetService<IProjectionBufferFactoryService>(),
-                    workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>());
+                    workspace.ExportProvider.GetExports<IAsynchronousOperationListener, FeatureMetadata>());
 
                 var document = workspace.Documents.First();
                 var textBuffer = document.TextBuffer;
@@ -119,6 +118,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
         private static TestTaggerEventSource CreateEventSource()
         {
             return new TestTaggerEventSource();
+        }
+
+        private sealed class TaggerOperationListener : AsynchronousOperationListener
+        {
         }
 
         private sealed class TestTag : TextMarkerTag

@@ -50,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                         Optional extraExportedTypes As List(Of Type) = Nothing,
                         Optional includeFormatCommandHandler As Boolean = False,
                         Optional workspaceKind As String = Nothing)
-            MyBase.New(workspaceElement, MinimalTestExportProvider.CreateTypeCatalog(If(extraExportedTypes, New List(Of Type))), workspaceKind:=workspaceKind)
+            MyBase.New(workspaceElement, CreatePartCatalog(extraExportedTypes), workspaceKind:=workspaceKind)
 
             Dim languageServices = Me.Workspace.CurrentSolution.Projects.First().LanguageServices
             Dim language = languageServices.Language
@@ -64,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 GetService(Of IEditorOperationsFactoryService)(),
                 UndoHistoryRegistry,
                 GetService(Of IInlineRenameService)(),
-                GetExportedValue(Of IAsynchronousOperationListenerProvider),
+                GetExports(Of IAsynchronousOperationListener, FeatureMetadata)(),
                 {New Lazy(Of IIntelliSensePresenter(Of ICompletionPresenterSession, ICompletionSession), OrderableMetadata)(Function() New TestCompletionPresenter(Me), New OrderableMetadata("Presenter"))},
                 GetExports(Of IBraceCompletionSessionProvider, BraceCompletionMetadata)())
 
@@ -73,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Me.SignatureHelpCommandHandler = New SignatureHelpCommandHandler(
                 New TestSignatureHelpPresenter(Me),
                 GetExports(Of ISignatureHelpProvider, OrderableLanguageMetadata)().Concat(extraSignatureHelpProviders),
-                GetExportedValue(Of IAsynchronousOperationListenerProvider)())
+                GetExports(Of IAsynchronousOperationListener, FeatureMetadata)())
 
             Me.IntelliSenseCommandHandler = New IntelliSenseCommandHandler(CompletionCommandHandler, SignatureHelpCommandHandler, Nothing)
 
@@ -84,6 +84,15 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                     GetService(Of IEditorOperationsFactoryService)),
                 Nothing)
         End Sub
+
+        Private Shared Function CreatePartCatalog(types As List(Of Type)) As ComposableCatalog
+            types = If(types, New List(Of Type))
+
+            types.Add(GetType(CompletionWaiter))
+            types.Add(GetType(SignatureHelpWaiter))
+
+            Return MinimalTestExportProvider.CreateTypeCatalog(types)
+        End Function
 
         Public Shared Function CreateVisualBasicTestState(
                 documentElement As XElement,

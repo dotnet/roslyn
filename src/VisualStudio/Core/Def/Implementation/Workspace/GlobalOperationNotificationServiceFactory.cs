@@ -20,9 +20,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         [ImportingConstructor]
         public GlobalOperationNotificationServiceFactory(
-            IAsynchronousOperationListenerProvider listenerProvider)
+            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
         {
-            _listener = listenerProvider.GetListener(FeatureAttribute.GlobalOperation);
+            _listener = new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.GlobalOperation);
             _singleton = new Service(_listener);
         }
 

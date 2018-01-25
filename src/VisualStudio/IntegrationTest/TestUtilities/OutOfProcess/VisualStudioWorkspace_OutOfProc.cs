@@ -50,8 +50,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void WaitForAsyncOperations(string featuresToWaitFor, bool waitForWorkspaceFirst = true)
             => _inProc.WaitForAsyncOperations(featuresToWaitFor, waitForWorkspaceFirst);
 
-        public void WaitForAllAsyncOperations(params string[] featureNames)
-            => _inProc.WaitForAllAsyncOperations(featureNames);
+        public void WaitForAllAsyncOperations()
+            => _inProc.WaitForAllAsyncOperations();
 
         public void CleanUpWorkspace()
             => _inProc.CleanUpWorkspace();
