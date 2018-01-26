@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Storage
             }
 
             // check whether the solution actually exist on disk
-            if (!EnsureSolutionFileExist(solution.FilePath))
+            if (!CheckSolutionFileExist(solution.FilePath))
             {
                 return NoOpPersistentStorage.Instance;
             }
@@ -78,16 +78,19 @@ namespace Microsoft.CodeAnalysis.Storage
             return GetStorage(solution, workingFolderPath);
         }
 
-        private bool EnsureSolutionFileExist(string solutionFilePath)
+        private bool CheckSolutionFileExist(string solutionFilePath)
         {
             if (!string.Equals(solutionFilePath, _lastSolutionPath, StringComparison.OrdinalIgnoreCase))
             {
                 // check whether the solution actually exist on disk
-                return File.Exists(solutionFilePath);
+                var exist = File.Exists(solutionFilePath);
+
+                // cache current result.
+                _lastSolutionPath = exist ? solutionFilePath : null;
+
+                return exist;                
             }
 
-            // cache current result.
-            _lastSolutionPath = solutionFilePath;
             return true;
         }
 
