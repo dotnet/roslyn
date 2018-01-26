@@ -3566,9 +3566,6 @@ class C
                 // (10,14): warning CS8620: Nullability of reference types in argument of type 'I<object>' doesn't match target type 'I<object?>[]' for parameter 'y' in 'void C.G(I<object> x, params I<object?>[] y)'.
                 //         G(x, x, y, z);
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x").WithArguments("I<object>", "I<object?>[]", "y", "void C.G(I<object> x, params I<object?>[] y)").WithLocation(10, 14),
-                // (10,17): warning CS8620: Nullability of reference types in argument of type 'I<object?>' doesn't match target type 'I<object?>[]' for parameter 'y' in 'void C.G(I<object> x, params I<object?>[] y)'.
-                //         G(x, x, y, z);
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "y").WithArguments("I<object?>", "I<object?>[]", "y", "void C.G(I<object> x, params I<object?>[] y)").WithLocation(10, 17),
                 // (10,20): warning CS8620: Nullability of reference types in argument of type 'I<object>' doesn't match target type 'I<object?>[]' for parameter 'y' in 'void C.G(I<object> x, params I<object?>[] y)'.
                 //         G(x, x, y, z);
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "z").WithArguments("I<object>", "I<object?>[]", "y", "void C.G(I<object> x, params I<object?>[] y)").WithLocation(10, 20),
@@ -3596,6 +3593,133 @@ class C
                 // (19,33): warning CS8620: Nullability of reference types in argument of type 'I<object?>' doesn't match target type 'I<object>' for parameter 'x' in 'void C.G(I<object> x, params I<object?>[] y)'.
                 //         G(y: new[] { x, x }, x: y);
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "y").WithArguments("I<object?>", "I<object>", "x", "void C.G(I<object> x, params I<object?>[] y)").WithLocation(19, 33));
+        }
+
+        [Fact]
+        public void DuplicateArguments()
+        {
+            var source =
+@"class C
+{
+    static void F(object x, object? y)
+    {
+        // Duplicate x
+        G(x: x, x: y);
+        G(x: y, x: x);
+        G(x: x, x: y, y: y);
+        G(x: y, x: x, y: y);
+        G(y: y, x: x, x: y);
+        G(y: y, x: y, x: x);
+        // Duplicate y
+        G(y: x, y: y);
+        G(y: y, y: x);
+        G(x, y: x, y: y);
+        G(x, y: y, y: x);
+        G(y: x, y: y, x: x);
+        G(y: y, y: x, x: x);
+    }
+    static void G(object x, params object?[] y)
+    {
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (6,17): error CS1740: Named argument 'x' cannot be specified multiple times
+                //         G(x: x, x: y);
+                Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "x").WithArguments("x").WithLocation(6, 17),
+                // (7,17): error CS1740: Named argument 'x' cannot be specified multiple times
+                //         G(x: y, x: x);
+                Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "x").WithArguments("x").WithLocation(7, 17),
+                // (8,17): error CS1740: Named argument 'x' cannot be specified multiple times
+                //         G(x: x, x: y, y: y);
+                Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "x").WithArguments("x").WithLocation(8, 17),
+                // (9,17): error CS1740: Named argument 'x' cannot be specified multiple times
+                //         G(x: y, x: x, y: y);
+                Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "x").WithArguments("x").WithLocation(9, 17),
+                // (10,23): error CS1740: Named argument 'x' cannot be specified multiple times
+                //         G(y: y, x: x, x: y);
+                Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "x").WithArguments("x").WithLocation(10, 23),
+                // (11,23): error CS1740: Named argument 'x' cannot be specified multiple times
+                //         G(y: y, x: y, x: x);
+                Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "x").WithArguments("x").WithLocation(11, 23),
+                // (13,17): error CS1740: Named argument 'y' cannot be specified multiple times
+                //         G(y: x, y: y);
+                Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "y").WithArguments("y").WithLocation(13, 17),
+                // (13,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'x' of 'C.G(object, params object?[])'
+                //         G(y: x, y: y);
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "G").WithArguments("x", "C.G(object, params object?[])").WithLocation(13, 9),
+                // (14,17): error CS1740: Named argument 'y' cannot be specified multiple times
+                //         G(y: y, y: x);
+                Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "y").WithArguments("y").WithLocation(14, 17),
+                // (14,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'x' of 'C.G(object, params object?[])'
+                //         G(y: y, y: x);
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "G").WithArguments("x", "C.G(object, params object?[])").WithLocation(14, 9),
+                // (15,20): error CS1740: Named argument 'y' cannot be specified multiple times
+                //         G(x, y: x, y: y);
+                Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "y").WithArguments("y").WithLocation(15, 20),
+                // (16,20): error CS1740: Named argument 'y' cannot be specified multiple times
+                //         G(x, y: y, y: x);
+                Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "y").WithArguments("y").WithLocation(16, 20),
+                // (17,17): error CS1740: Named argument 'y' cannot be specified multiple times
+                //         G(y: x, y: y, x: x);
+                Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "y").WithArguments("y").WithLocation(17, 17),
+                // (18,17): error CS1740: Named argument 'y' cannot be specified multiple times
+                //         G(y: y, y: x, x: x);
+                Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "y").WithArguments("y").WithLocation(18, 17),
+                // (6,20): warning CS8604: Possible null reference argument for parameter 'x' in 'void C.G(object x, params object?[] y)'.
+                //         G(x: x, x: y);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("x", "void C.G(object x, params object?[] y)").WithLocation(6, 20),
+                // (7,14): warning CS8604: Possible null reference argument for parameter 'x' in 'void C.G(object x, params object?[] y)'.
+                //         G(x: y, x: x);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("x", "void C.G(object x, params object?[] y)").WithLocation(7, 14),
+                // (8,20): warning CS8604: Possible null reference argument for parameter 'x' in 'void C.G(object x, params object?[] y)'.
+                //         G(x: x, x: y, y: y);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("x", "void C.G(object x, params object?[] y)").WithLocation(8, 20),
+                // (8,26): warning CS8604: Possible null reference argument for parameter 'y' in 'void C.G(object x, params object?[] y)'.
+                //         G(x: x, x: y, y: y);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("y", "void C.G(object x, params object?[] y)").WithLocation(8, 26),
+                // (9,14): warning CS8604: Possible null reference argument for parameter 'x' in 'void C.G(object x, params object?[] y)'.
+                //         G(x: y, x: x, y: y);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("x", "void C.G(object x, params object?[] y)").WithLocation(9, 14),
+                // (9,26): warning CS8604: Possible null reference argument for parameter 'y' in 'void C.G(object x, params object?[] y)'.
+                //         G(x: y, x: x, y: y);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("y", "void C.G(object x, params object?[] y)").WithLocation(9, 26),
+                // (10,26): warning CS8604: Possible null reference argument for parameter 'x' in 'void C.G(object x, params object?[] y)'.
+                //         G(y: y, x: x, x: y);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("x", "void C.G(object x, params object?[] y)").WithLocation(10, 26),
+                // (11,20): warning CS8604: Possible null reference argument for parameter 'x' in 'void C.G(object x, params object?[] y)'.
+                //         G(y: y, x: y, x: x);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("x", "void C.G(object x, params object?[] y)").WithLocation(11, 20),
+                // (15,23): warning CS8604: Possible null reference argument for parameter 'y' in 'void C.G(object x, params object?[] y)'.
+                //         G(x, y: x, y: y);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("y", "void C.G(object x, params object?[] y)").WithLocation(15, 23),
+                // (16,17): warning CS8604: Possible null reference argument for parameter 'y' in 'void C.G(object x, params object?[] y)'.
+                //         G(x, y: y, y: x);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("y", "void C.G(object x, params object?[] y)").WithLocation(16, 17));
+        }
+
+        [Fact]
+        public void MissingArguments()
+        {
+            var source =
+@"class C
+{
+    static void F(object? x)
+    {
+        G(y: x);
+    }
+    static void G(object? x = null, object y)
+    {
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (7,45): error CS1737: Optional parameters must appear after all required parameters
+                //     static void G(object? x = null, object y)
+                Diagnostic(ErrorCode.ERR_DefaultValueBeforeRequiredValue, ")").WithLocation(7, 45),
+                // (5,14): warning CS8604: Possible null reference argument for parameter 'y' in 'void C.G(object? x = null, object y)'.
+                //         G(y: x);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("y", "void C.G(object? x = null, object y)").WithLocation(5, 14));
         }
 
         [Fact]

@@ -10,18 +10,18 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal sealed class TypeConversions : ConversionsBase
     {
         public TypeConversions(AssemblySymbol corLibrary)
-            : this(corLibrary, currentRecursionDepth: 0, withoutNullability: null)
+            : this(corLibrary, currentRecursionDepth: 0, includeNullability: false)
         {
         }
 
-        private TypeConversions(AssemblySymbol corLibrary, int currentRecursionDepth, ConversionsBase withoutNullability)
-            : base(corLibrary, currentRecursionDepth, withoutNullability)
+        private TypeConversions(AssemblySymbol corLibrary, int currentRecursionDepth, bool includeNullability)
+            : base(corLibrary, currentRecursionDepth, includeNullability)
         {
         }
 
-        protected override ConversionsBase CreateInstance(int currentRecursionDepth, ConversionsBase withoutNullability)
+        protected override ConversionsBase CreateInstance(int currentRecursionDepth, bool includeNullability)
         {
-            return new TypeConversions(this.corLibrary, currentRecursionDepth, withoutNullability);
+            return new TypeConversions(this.corLibrary, currentRecursionDepth, includeNullability);
         }
 
         public override Conversion GetMethodGroupConversion(BoundMethodGroup source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)

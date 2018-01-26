@@ -123,7 +123,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             out RefKind refKind,
             out bool inferredFromSingleType)
         {
-            var conversions = binder.Conversions;
             int numberOfDistinctReturns;
             var resultTypes = BlockReturns.GetReturnTypes(block, out refKind, out numberOfDistinctReturns);
 
@@ -140,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                bestResultType = BestTypeInferrer.InferBestType(resultTypes, conversions, ref useSiteDiagnostics);
+                bestResultType = BestTypeInferrer.InferBestType(resultTypes, binder.Conversions, ref useSiteDiagnostics);
             }
 
             if (!isAsync)

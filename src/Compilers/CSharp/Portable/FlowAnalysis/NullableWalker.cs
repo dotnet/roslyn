@@ -11,6 +11,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -882,7 +883,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _result = _invalidType; // PROTOTYPE(NullableReferenceTypes): Move to `Visit` method?
             var result = base.VisitExpressionWithoutStackGuard(node);
 #if DEBUG
-            // Verify Visit method set ResultType.
+            // Verify Visit method set _result.
             if (!IsConditionalState)
             {
                 var resultType = _result.Type;
@@ -901,6 +902,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 typeB.IsErrorType() ||
                 typeA.IsDynamic() ||
                 typeB.IsDynamic() ||
+                typeA.HasUseSiteError ||
+                typeB.HasUseSiteError ||
                 typeA.Equals(typeB, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreDynamicAndTupleNames); // Ignore TupleElementNames (see https://github.com/dotnet/roslyn/issues/23651).
         }
 #endif
@@ -914,7 +917,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitObjectCreationExpression(BoundObjectCreationExpression node)
         {
             Debug.Assert(!IsConditionalState);
-            VisitArguments(node, node.Arguments, node.ArgumentRefKindsOpt, node.Constructor, node.ArgsToParamsOpt, node.Expanded);
+            VisitArguments(node, node.Arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Constructor, node.ArgsToParamsOpt, node.Expanded);
             VisitObjectOrDynamicObjectCreation(node, node.InitializerExpressionOpt);
             return null;
         }
@@ -1000,7 +1003,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var symbol = objectInitializer.MemberSymbol;
                         if (!objectInitializer.Arguments.IsDefaultOrEmpty)
                         {
-                            VisitArguments(objectInitializer, objectInitializer.Arguments, objectInitializer.ArgumentRefKindsOpt, (PropertySymbol)symbol, objectInitializer.ArgsToParamsOpt, objectInitializer.Expanded);
+                            VisitArguments(objectInitializer, objectInitializer.Arguments, objectInitializer.ArgumentNamesOpt, objectInitializer.ArgumentRefKindsOpt, (PropertySymbol)symbol, objectInitializer.ArgsToParamsOpt, objectInitializer.Expanded);
                         }
                         int slot = (containingSlot < 0) ? -1 : GetOrCreateSlot(symbol, containingSlot);
                         VisitObjectCreationInitializer(symbol, slot, node.Right);
@@ -1020,7 +1023,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // of omitted call. See PreciseAbstractFlowPass.VisitCollectionElementInitializer.
             }
 
-            VisitArguments(node, node.Arguments, default, node.AddMethod, node.ArgsToParamsOpt, node.Expanded);
+            VisitArguments(node, node.Arguments, default, default, node.AddMethod, node.ArgsToParamsOpt, node.Expanded);
             SetUnknownResultNullability();
         }
 
@@ -1623,6 +1626,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!node.HasErrors)
             {
+                var namesOpt = node.ArgumentNamesOpt;
                 var refKindsOpt = node.ArgumentRefKindsOpt;
                 var argsToParamsOpt = node.ArgsToParamsOpt;
                 var arguments = RemoveArgumentConversions(node.Arguments, refKindsOpt);
@@ -1632,7 +1636,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     method = InferMethod(node, method, updatedArguments);
                 }
-                var conversions = GetArgumentConversions(updatedArguments, refKindsOpt, argsToParamsOpt, method, node.Expanded, _binder);
+                var conversions = GetArgumentConversions(updatedArguments, namesOpt, refKindsOpt, argsToParamsOpt, method, node.Expanded, _binder);
                 VisitArgumentsWarn(arguments, conversions, refKindsOpt, method.Parameters, argsToParamsOpt, node.Expanded, results);
             }
 
@@ -1660,10 +1664,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return false;
             }
-            syntax = ((Microsoft.CodeAnalysis.CSharp.Syntax.InvocationExpressionSyntax)syntax).Expression;
+            syntax = ((InvocationExpressionSyntax)syntax).Expression;
             if (syntax.Kind() == SyntaxKind.QualifiedName)
             {
-                syntax = ((Microsoft.CodeAnalysis.CSharp.Syntax.QualifiedNameSyntax)syntax).Right;
+                syntax = ((QualifiedNameSyntax)syntax).Right;
             }
             return syntax.Kind() == SyntaxKind.GenericName;
         }
@@ -1677,6 +1681,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void VisitArguments(
             BoundExpression node,
             ImmutableArray<BoundExpression> arguments,
+            ImmutableArray<string> namesOpt,
             ImmutableArray<RefKind> refKindsOpt,
             MethodSymbol method,
             ImmutableArray<int> argsToParamsOpt,
@@ -1689,13 +1694,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             arguments = RemoveArgumentConversions(arguments, refKindsOpt);
             ImmutableArray<Result> results = VisitArgumentsEvaluate(arguments, refKindsOpt, expanded);
             ImmutableArray<BoundExpression> updatedArguments = CreatePlaceholderExpressionsIfNecessary(arguments, results);
-            ImmutableArray<Conversion> conversions = (method is null) ? default : GetArgumentConversions(updatedArguments, refKindsOpt, argsToParamsOpt, method, expanded, _binder);
+            ImmutableArray<Conversion> conversions =
+                (method is null) ?
+                default :
+                GetArgumentConversions(updatedArguments, namesOpt, refKindsOpt, argsToParamsOpt, method, expanded, _binder);
             VisitArgumentsWarn(arguments, conversions, refKindsOpt, (method is null) ? default : method.Parameters, argsToParamsOpt, expanded, results);
         }
 
         private void VisitArguments(
             BoundExpression node,
             ImmutableArray<BoundExpression> arguments,
+            ImmutableArray<string> namesOpt,
             ImmutableArray<RefKind> refKindsOpt,
             PropertySymbol property,
             ImmutableArray<int> argsToParamsOpt,
@@ -1708,7 +1717,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             arguments = RemoveArgumentConversions(arguments, refKindsOpt);
             ImmutableArray<Result> results = VisitArgumentsEvaluate(arguments, refKindsOpt, expanded);
             ImmutableArray<BoundExpression> updatedArguments = CreatePlaceholderExpressionsIfNecessary(arguments, results);
-            ImmutableArray<Conversion> conversions = GetArgumentConversions(property, property, default, updatedArguments, refKindsOpt, argsToParamsOpt, property.ParameterCount, expanded, _binder);
+            ImmutableArray<Conversion> conversions =
+                GetArgumentConversions(property, property, default, updatedArguments, namesOpt, refKindsOpt, argsToParamsOpt, property.Parameters, expanded, _binder);
             VisitArgumentsWarn(arguments, conversions, refKindsOpt, property.Parameters, argsToParamsOpt, expanded, results);
         }
 
@@ -1774,8 +1784,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        // Conversions were calculated in GetConversions which orders arguments by parameter.
-                        var conversion = conversionsOpt[parameter.Ordinal];
+                        var conversion = conversionsOpt[i];
                         if (conversion.Kind == ConversionKind.NoConversion && (object)result.Type != null)
                         {
                             argumentTypeForMismatch = result.Type;
@@ -1837,6 +1846,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static ImmutableArray<Conversion> GetArgumentConversions(
             ImmutableArray<BoundExpression> arguments,
+            ImmutableArray<string> namesOpt,
             ImmutableArray<RefKind> refKindsOpt,
             ImmutableArray<int> argsToParamsOpt,
             MethodSymbol method,
@@ -1845,7 +1855,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var constructedFrom = method.ConstructedFrom;
             var definition = GetLeastOverriddenMethod(constructedFrom);
-            return GetArgumentConversions(constructedFrom, definition, method.TypeArguments, arguments, refKindsOpt, argsToParamsOpt, method.ParameterCount, expanded, binder);
+            return GetArgumentConversions(constructedFrom, definition, method.TypeArguments, arguments, namesOpt, refKindsOpt, argsToParamsOpt, method.Parameters, expanded, binder);
         }
 
         private static ImmutableArray<Conversion> GetArgumentConversions<TMember>(
@@ -1853,9 +1863,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             TMember leastOverriddenMember,
             ImmutableArray<TypeSymbolWithAnnotations> typeArguments,
             ImmutableArray<BoundExpression> arguments,
+            ImmutableArray<string> namesOpt,
             ImmutableArray<RefKind> refKindsOpt,
             ImmutableArray<int> argsToParamsOpt,
-            int parameterCount,
+            ImmutableArray<ParameterSymbol> parameters,
             bool expanded,
             Binder binder)
             where TMember : Symbol
@@ -1868,7 +1879,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 typeArgumentsBuilder.AddRange(typeArguments);
             }
             var analyzedArguments = AnalyzedArguments.GetInstance();
-            GetArguments(analyzedArguments.Arguments, arguments, argsToParamsOpt, parameterCount, expanded);
+            analyzedArguments.Arguments.AddRange(arguments);
+            GetArgumentNames(analyzedArguments.Names, namesOpt, argsToParamsOpt, parameters);
             if (!refKindsOpt.IsDefault)
             {
                 analyzedArguments.RefKinds.AddRange(refKindsOpt);
@@ -1904,32 +1916,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             return memberResolutionResult.Result.ConversionsOpt;
         }
 
-        private static void GetArguments(
-            ArrayBuilder<BoundExpression> builder,
-            ImmutableArray<BoundExpression> arguments,
+        private static void GetArgumentNames(
+            ArrayBuilder<IdentifierNameSyntax> builder,
+            ImmutableArray<string> namesOpt,
             ImmutableArray<int> argsToParamsOpt,
-            int parameterCount,
-            bool expanded)
+            ImmutableArray<ParameterSymbol> parameters)
         {
-            int paramsArrayCount = 0;
-            int n = arguments.Length;
-            builder.AddMany(null, n);
-            for (int i = 0; i < n; i++)
+            IdentifierNameSyntax getName(string name) => name is null ? null : SyntaxFactory.IdentifierName(name);
+
+            if (namesOpt != null)
             {
-                int index = i;
-                if (!argsToParamsOpt.IsDefault)
+                foreach (var name in namesOpt)
                 {
-                    index = argsToParamsOpt[i];
-                    if (expanded && index == parameterCount - 1)
-                    {
-                        index += paramsArrayCount++;
-                    }
+                    builder.Add(getName(name));
                 }
-                Debug.Assert(index < n);
-                Debug.Assert(builder[index] is null);
-                builder[index] = arguments[i];
             }
-            Debug.Assert(builder.All(a => a != null));
+            else if (argsToParamsOpt != null)
+            {
+                // Query expressions include ArgsToParams but not Names.
+                foreach (var paramIndex in argsToParamsOpt)
+                {
+                    builder.Add(getName(parameters[paramIndex].Name));
+                }
+            }
         }
 
         private static MethodSymbol GetLeastOverriddenMethod(MethodSymbol method)
@@ -2033,16 +2042,31 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static BoundExpression RemoveImplicitConversion(BoundExpression expr)
         {
+            bool canRemove(BoundConversion conv)
+            {
+                if (conv.ExplicitCastInCode)
+                {
+                    return false;
+                }
+                switch (conv.Conversion.Kind)
+                {
+                    case ConversionKind.Identity:
+                    case ConversionKind.DefaultOrNullLiteral:
+                    case ConversionKind.ImplicitReference:
+                    case ConversionKind.ImplicitTuple:
+                    case ConversionKind.ImplicitTupleLiteral:
+                    case ConversionKind.ImplicitUserDefined:
+                    case ConversionKind.Deconstruction:
+                    case ConversionKind.MethodGroup:
+                        return true;
+                    default:
+                        return false;
+                }
+            }
             while (expr.Kind == BoundKind.Conversion)
             {
                 var conv = (BoundConversion)expr;
-                if (conv.ExplicitCastInCode || !conv.Conversion.IsImplicit)
-                {
-                    break;
-                }
-                // PROTOTYPE(NullableReferenceTypes): CheckImplicitConversion does not handle
-                // anonymous function conversions currently, so such conversions are left as is.
-                if (conv.Conversion.Kind == ConversionKind.AnonymousFunction)
+                if (!canRemove(conv))
                 {
                     break;
                 }
@@ -2092,28 +2116,25 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private Symbol AsMemberOfResultType(Symbol symbol)
         {
-            if (symbol is null)
-            {
-                return null;
-            }
             var containingType = _result.Type?.TypeSymbol as NamedTypeSymbol;
             if ((object)containingType == null || containingType.IsErrorType())
             {
                 return symbol;
             }
-            if (symbol.Kind == SymbolKind.Field)
+            return AsMemberOfType(containingType, symbol);
+        }
+
+        private static Symbol AsMemberOfType(NamedTypeSymbol containingType, Symbol symbol)
+        {
+            if (symbol is null)
             {
-                var field = (FieldSymbol)symbol;
-                var index = field.TupleElementIndex;
-                if (index >= 0)
-                {
-                    // PROTOTYPE(NullableReferenceTypes): Handle other members of
-                    // tuple type (such as TuplePropertySymbol), perhaps using
-                    // TupleTypeSymbol.GetTupleMemberSymbolForUnderlyingMember
-                    return containingType.TupleElements[index];
-                }
+                return null;
             }
-            else if (symbol.Kind == SymbolKind.Method)
+            if (containingType.IsTupleType)
+            {
+                return AsMemberOfTupleType((TupleTypeSymbol)containingType, symbol);
+            }
+            if (symbol.Kind == SymbolKind.Method)
             {
                 if (((MethodSymbol)symbol).MethodKind == MethodKind.LocalFunction)
                 {
@@ -2140,6 +2161,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             return symbol;
         }
 
+        private static Symbol AsMemberOfTupleType(TupleTypeSymbol tupleType, Symbol symbol)
+        {
+            var underlyingType = tupleType.UnderlyingNamedType;
+            switch (symbol.Kind)
+            {
+                case SymbolKind.Field:
+                    {
+                        var index = ((FieldSymbol)symbol).TupleElementIndex;
+                        if (index >= 0)
+                        {
+                            return tupleType.TupleElements[index];
+                        }
+                        return new TupleFieldSymbol(tupleType, (FieldSymbol)AsMemberOfType(underlyingType, ((TupleFieldSymbol)symbol).UnderlyingField), index);
+                    }
+                case SymbolKind.Property:
+                    return new TuplePropertySymbol(tupleType, (PropertySymbol)AsMemberOfType(underlyingType, ((TuplePropertySymbol)symbol).UnderlyingProperty));
+                case SymbolKind.Event:
+                    return new TupleEventSymbol(tupleType, (EventSymbol)AsMemberOfType(underlyingType, ((TupleEventSymbol)symbol).UnderlyingEvent));
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
+            }
+        }
+
         public override BoundNode VisitConversion(BoundConversion node)
         {
             if (node.ConversionKind == ConversionKind.MethodGroup
@@ -2150,37 +2194,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ReplayReadsAndWrites(localFunc, syntax, writes: false);
             }
 
-            Visit(node.Operand);
-
-            if (IsConditionalState)
-            {
-                var whenTrue = this.StateWhenTrue;
-                var whenFalse = this.StateWhenFalse;
-
-                SetState(whenTrue);
-                VisitConversionNoConditionalState(node);
-                Debug.Assert(!IsConditionalState);
-                whenTrue = this.State;
-
-                SetState(whenFalse);
-                VisitConversionNoConditionalState(node);
-                Debug.Assert(!IsConditionalState);
-                whenFalse = this.State;
-
-                SetConditionalState(whenTrue, whenFalse);
-            }
-            else
-            {
-                VisitConversionNoConditionalState(node);
-            }
-
-            return null;
-        }
-
-        private void VisitConversionNoConditionalState(BoundConversion node)
-        {
-            Debug.Assert(!IsConditionalState);
             var operand = node.Operand;
+            Visit(operand);
 
             //if (this.State.Reachable) // PROTOTYPE(NullableReferenceTypes): Consider reachability?
             {
@@ -2214,6 +2229,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 _result = result;
             }
+
+            return null;
         }
 
         public override BoundNode VisitTupleLiteral(BoundTupleLiteral node)
@@ -2231,18 +2248,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void VisitTupleExpression(BoundTupleExpression node)
         {
             var arguments = node.Arguments;
-            var tuple = (TupleTypeSymbol)node.Type;
             var elementTypes = arguments.SelectAsArray((a, w) => w.VisitRvalue(a).Type, this);
-            var resultType = TupleTypeSymbol.Create(
-                locationOpt: null,
-                elementTypes: elementTypes,
-                elementLocations: default,
-                elementNames: tuple.TupleElementNames,
-                compilation: compilation,
-                shouldCheckConstraints: false,
-                errorPositions: default,
-                syntax: (CSharpSyntaxNode)node.Syntax);
-            _result = TypeSymbolWithAnnotations.Create(resultType);
+            var tupleOpt = (TupleTypeSymbol)node.Type;
+            _result = tupleOpt is null ?
+                (Result)node :
+                TypeSymbolWithAnnotations.Create(tupleOpt.WithElementTypes(elementTypes));
         }
 
         private void ReportNullabilityMismatchWithTargetDelegate(SyntaxNode syntax, NamedTypeSymbol delegateType, MethodSymbol method)
@@ -2344,7 +2354,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            Debug.Assert(operandType?.IsReferenceType != true);
+                            Debug.Assert(operandType?.IsReferenceType != true ||
+                                operandType.SpecialType == SpecialType.System_ValueType ||
+                                operandType.TypeKind == TypeKind.Interface);
                         }
                     }
                     break;
@@ -2781,7 +2793,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // PROTOTYPE(NullableReferenceTypes): Update method based on inferred receiver type.
             var method = node.Indexer.GetOwnOrInheritedGetMethod();
-            VisitArguments(node, node.Arguments, node.ArgumentRefKindsOpt, method, node.ArgsToParamsOpt, node.Expanded);
+            VisitArguments(node, node.Arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, method, node.ArgsToParamsOpt, node.Expanded);
 
             Debug.Assert(!IsConditionalState);
             //if (this.State.Reachable) // PROTOTYPE(NullableReferenceTypes): Consider reachability?
@@ -3296,7 +3308,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitDynamicObjectCreationExpression(BoundDynamicObjectCreationExpression node)
         {
             Debug.Assert(!IsConditionalState);
-            VisitArguments(node, node.Arguments, node.ArgumentRefKindsOpt, (MethodSymbol)null, argsToParamsOpt: default, expanded: false);
+            VisitArguments(node, node.Arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, (MethodSymbol)null, argsToParamsOpt: default, expanded: false);
             VisitObjectOrDynamicObjectCreation(node, node.InitializerExpressionOpt);
             return null;
         }
@@ -3381,7 +3393,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var receiver = node.ReceiverOpt;
             VisitRvalue(receiver);
             CheckPossibleNullReceiver(receiver);
-            VisitArguments(node, node.Arguments, node.ArgumentRefKindsOpt, (MethodSymbol)null, argsToParamsOpt: default, expanded: false);
+            VisitArguments(node, node.Arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, (MethodSymbol)null, argsToParamsOpt: default, expanded: false);
 
             Debug.Assert(node.Type.IsDynamic());
             Debug.Assert(!IsConditionalState);

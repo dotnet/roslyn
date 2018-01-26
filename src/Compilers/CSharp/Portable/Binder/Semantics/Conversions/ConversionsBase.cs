@@ -16,35 +16,28 @@ namespace Microsoft.CodeAnalysis.CSharp
         private const int MaximumRecursionDepth = 50;
 
         protected readonly AssemblySymbol corLibrary;
-        private readonly ConversionsBase _withoutNullability;
         private readonly int _currentRecursionDepth;
 
-        protected ConversionsBase(AssemblySymbol corLibrary, int currentRecursionDepth, ConversionsBase withoutNullability)
+        internal readonly bool IncludeNullability;
+
+        protected ConversionsBase(AssemblySymbol corLibrary, int currentRecursionDepth, bool includeNullability)
         {
             Debug.Assert((object)corLibrary != null);
-            Debug.Assert(withoutNullability == null || !withoutNullability.IncludeNullability);
 
             this.corLibrary = corLibrary;
-            _withoutNullability = withoutNullability;
             _currentRecursionDepth = currentRecursionDepth;
+            IncludeNullability = includeNullability;
         }
 
         public abstract Conversion GetMethodGroupConversion(BoundMethodGroup source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics);
 
         public abstract Conversion GetStackAllocConversion(BoundStackAllocArrayCreation sourceExpression, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics);
 
-        protected abstract ConversionsBase CreateInstance(int currentRecursionDepth, ConversionsBase withoutNullability);
+        protected abstract ConversionsBase CreateInstance(int currentRecursionDepth, bool includeNullability);
 
         protected abstract Conversion GetInterpolatedStringConversion(BoundInterpolatedString source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics);
 
         internal AssemblySymbol CorLibrary { get { return corLibrary; } }
-
-        internal bool IncludeNullability => _withoutNullability != null;
-
-        internal ConversionsBase WithoutNullability()
-        {
-            return _withoutNullability ?? this;
-        }
 
         /// <summary>
         /// Determines if the source expression is convertible to the destination type via
@@ -1418,7 +1411,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     destination,
                     ref useSiteDiagnostics,
                     ConversionKind.ImplicitTupleLiteral,
-                    (ConversionsBase conversions, BoundExpression s, TypeSymbol d, ref HashSet<DiagnosticInfo> u, bool a) => conversions.ClassifyImplicitExtensionMethodThisArgConversion(s, s.Type, d, ref u),
+                    (ConversionsBase conversions, BoundExpression s, TypeSymbol d, ref HashSet<DiagnosticInfo> u, bool a) =>
+                        conversions.ClassifyImplicitExtensionMethodThisArgConversion(s, s.Type, d, ref u),
                     arg: false);
                 if (tupleConversion.Exists)
                 {
@@ -1434,7 +1428,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     destination,
                     ref useSiteDiagnostics,
                     ConversionKind.ImplicitTuple,
-                    (ConversionsBase conversions, TypeSymbolWithAnnotations s, TypeSymbolWithAnnotations d, ref HashSet<DiagnosticInfo> u, bool a) => conversions.ClassifyImplicitExtensionMethodThisArgConversion(null, s.TypeSymbol, d.TypeSymbol, ref u), 
+                    (ConversionsBase conversions, TypeSymbolWithAnnotations s, TypeSymbolWithAnnotations d, ref HashSet<DiagnosticInfo> u, bool a) =>
+                        conversions.ClassifyImplicitExtensionMethodThisArgConversion(null, s.TypeSymbol, d.TypeSymbol, ref u), 
                     arg: false);
                 if (tupleConversion.Exists)
                 {
@@ -1896,7 +1891,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 destination,
                 ref useSiteDiagnostics,
                 ConversionKind.ExplicitTuple,
-                (ConversionsBase conversions, TypeSymbolWithAnnotations s, TypeSymbolWithAnnotations d, ref HashSet<DiagnosticInfo> u, bool a) => conversions.ClassifyConversionFromType(s.TypeSymbol, d.TypeSymbol, ref u, a),
+                (ConversionsBase conversions, TypeSymbolWithAnnotations s, TypeSymbolWithAnnotations d, ref HashSet<DiagnosticInfo> u, bool a) =>
+                    conversions.ClassifyConversionFromType(s.TypeSymbol, d.TypeSymbol, ref u, a),
                 forCast);
         }
 
@@ -2488,7 +2484,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return quickResult.Value();
             }
 
-            return this.CreateInstance(_currentRecursionDepth + 1, _withoutNullability).
+            return this.CreateInstance(_currentRecursionDepth + 1, IncludeNullability).
                 HasVariantConversionNoCycleCheck(source, destination, ref useSiteDiagnostics);
         }
 

@@ -13,26 +13,26 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly Binder _binder;
 
         public Conversions(Binder binder)
-            : this(binder, currentRecursionDepth: 0, withoutNullability: null)
+            : this(binder, currentRecursionDepth: 0, includeNullability: false)
         {
         }
 
-        private Conversions(Binder binder, int currentRecursionDepth, ConversionsBase withoutNullability)
-            : base(binder.Compilation.Assembly.CorLibrary, currentRecursionDepth, withoutNullability)
+        private Conversions(Binder binder, int currentRecursionDepth, bool includeNullability)
+            : base(binder.Compilation.Assembly.CorLibrary, currentRecursionDepth, includeNullability)
         {
             _binder = binder;
         }
 
-        protected override ConversionsBase CreateInstance(int currentRecursionDepth, ConversionsBase withoutNullability)
+        protected override ConversionsBase CreateInstance(int currentRecursionDepth, bool includeNullability)
         {
-            return new Conversions(_binder, currentRecursionDepth, withoutNullability);
+            return new Conversions(_binder, currentRecursionDepth, includeNullability);
         }
 
         private CSharpCompilation Compilation { get { return _binder.Compilation; } }
 
         internal Conversions WithNullability()
         {
-            return IncludeNullability ? this : new Conversions(_binder, 0, this);
+            return IncludeNullability ? this : new Conversions(_binder, 0, includeNullability: true);
         }
 
         public override Conversion GetMethodGroupConversion(BoundMethodGroup source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
