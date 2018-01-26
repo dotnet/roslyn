@@ -51,7 +51,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         {
             // Add a dummy data item to the appdomain to add it to the disposal queue when the debugged process is shutting down.
             // This should prevent from attempts to use the Metadata pointer for dead debugged processes.
-            appDomain.SetDataItem(DkmDataCreationDisposition.CreateNew, new AppDomainLifetimeDataItem());
+            if (appDomain.GetDataItem<AppDomainLifetimeDataItem>() == null)
+            {
+                appDomain.SetDataItem(DkmDataCreationDisposition.CreateNew, new AppDomainLifetimeDataItem());
+            }
 
             var builder = ArrayBuilder<MetadataBlock>.GetInstance();
             IntPtr ptr;
