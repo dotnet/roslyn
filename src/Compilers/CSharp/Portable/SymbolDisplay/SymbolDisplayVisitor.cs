@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal SymbolDisplayPart CreatePart(SymbolDisplayPartKind kind, ISymbol symbol, string text)
         {
             text = (text == null) ? "?" :
-                   (_escapeKeywordIdentifiers && IsEscapable(kind)) ? EscapeIdentifier(text, symbol) : text;
+                   (_escapeKeywordIdentifiers && IsEscapable(kind)) ? EscapeIdentifier(text) : text;
 
             return new SymbolDisplayPart(kind, symbol, text);
         }
@@ -82,10 +82,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static string EscapeIdentifier(string identifier, ISymbol symbol)
+        private static string EscapeIdentifier(string identifier)
         {
             var kind = SyntaxFacts.GetKeywordKind(identifier);
-            return kind == SyntaxKind.None || (symbol as IParameterSymbol)?.IsThis == true
+            return kind == SyntaxKind.None
                 ? identifier
                 : $"@{identifier}";
         }

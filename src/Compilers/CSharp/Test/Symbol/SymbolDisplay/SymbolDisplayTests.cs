@@ -5371,14 +5371,20 @@ class A
 
             Verify(
                 SymbolDisplay.ToDisplayParts(model.GetSymbolInfo(actualThis).Symbol, SymbolDisplayFormat.MinimallyQualifiedFormat),
-                "A this");
+                "A this",
+                SymbolDisplayPartKind.ClassName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword);
 
             var escapedThis = invocation.ArgumentList.Arguments[0].Expression;
             Assert.Equal("@this", escapedThis.ToString());
 
             Verify(
                 SymbolDisplay.ToDisplayParts(model.GetSymbolInfo(escapedThis).Symbol, SymbolDisplayFormat.MinimallyQualifiedFormat),
-                "int @this");
+                "int @this",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName);
         }
 
         [WorkItem(11356, "https://github.com/dotnet/roslyn/issues/11356")]

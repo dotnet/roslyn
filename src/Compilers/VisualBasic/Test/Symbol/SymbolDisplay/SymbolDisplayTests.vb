@@ -4951,14 +4951,24 @@ End Class
 
             Verify(
                 ToDisplayParts(model.GetSymbolInfo(actualThis).Symbol, SymbolDisplayFormat.MinimallyQualifiedFormat),
-                "Me As A")
+                "Me As A",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ClassName)
 
             Dim escapedThis = invocation.ArgumentList.Arguments(0).GetExpression()
             Assert.Equal("[Me]", escapedThis.ToString())
 
             Verify(
                 ToDisplayParts(model.GetSymbolInfo(escapedThis).Symbol, SymbolDisplayFormat.MinimallyQualifiedFormat),
-                "[Me] As Integer")
+                "[Me] As Integer",
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword)
         End Sub
 
         ' SymbolDisplayMemberOptions.IncludeRef is ignored in VB.
