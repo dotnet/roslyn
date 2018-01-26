@@ -193,7 +193,11 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 var semanticModel = GetSemanticModel(syntax.SyntaxTree);
                 if(semanticModel.IsSpeculativeSemanticModel)
                 {
-                    // In the context of symbol completion, it is possible we'll make a description for a symbol while speculating (but it won't be displayed)
+                    // The region analysis APIs used below are not meaningful/applicable in the context of speculation (because they are designed
+                    // to ask questions about an expression if it were in a certain *scope* of code, not if it were inserted at a certain *position*).
+                    //
+                    // But in the context of symbol completion, we do prepare a description for the symbol while speculating. Only the "main description"
+                    // section of that description will be displayed. We still add a "captures" section, just in case.
                     AddToGroup(SymbolDescriptionGroups.Captures, new SymbolDisplayPart(kind: SymbolDisplayPartKind.Text, symbol: null, text: $"\r\n{WorkspacesResources.Variables_captured_colon} ?"));
                     return;
                 }
