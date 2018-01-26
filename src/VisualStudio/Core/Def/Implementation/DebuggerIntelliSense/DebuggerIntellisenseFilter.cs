@@ -48,7 +48,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
             // Chain in editor command handler service. It will execute all our command handlers migrated to the modern editor commanding.
             var componentModel = (IComponentModel)_languageService.SystemServiceProvider.GetService(typeof(SComponentModel));
             var vsCommandHandlerServiceAdapterFactory = componentModel.GetService<IVsCommandHandlerServiceAdapterFactory>();
-            var vsCommandHandlerServiceAdapter = vsCommandHandlerServiceAdapterFactory.Create(ConvertTextView(), GetSubjectBufferContainingCaret(), NextCommandTarget);
+            var vsCommandHandlerServiceAdapter = vsCommandHandlerServiceAdapterFactory.Create(ConvertTextView(), 
+                GetSubjectBufferContainingCaret(), // our override doesn't actually check the caret and always returns _context.Buffer
+                NextCommandTarget);
             NextCommandTarget = vsCommandHandlerServiceAdapter;
         }
 
@@ -95,7 +97,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
                 // legacy stuff they interfaced with. That means we get SCROLLUP if the user
                 // types escape, so treat SCROLLUP like CANCEL. It's actually a CANCEL.
                 case VSConstants.VSStd2KCmdID.SCROLLUP:
-                    ExecuteCancel(subjectBuffer, contentType, executeNextCommandTarget);
+                    ExecuteCancel(subjectBuffer, contentType, () =>
+                    {
+                        // We cannot just pass executeNextCommandTarget becuase it would execute TYPECHAR
+                        var cancelCmdGroupId = VSConstants.VSStd2K;
+                        NextCommandTarget.Exec(ref cancelCmdGroupId, (uint)VSConstants.VSStd2KCmdID.CANCEL, executeInformation, pvaIn, pvaOut);
+                    });
                     break;
 
                 // If we see a RETURN, and we're in the immediate window, we'll want to rebuild
@@ -118,8 +125,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
                             // the real subject buffer.
                             this.ExecuteInvokeCompletionList(_context.Buffer, _context.ContentType, () =>
                             {
-                                var cmdGroupId = VSConstants.VSStd2K;
-                                NextCommandTarget.Exec(ref cmdGroupId, (uint)VSConstants.VSStd2KCmdID.SHOWMEMBERLIST, executeInformation, pvaIn, pvaOut);
+                                // We cannot just pass executeNextCommandTarget becuase it would execute TYPECHAR
+                                var showMemberListCmdGroupId = VSConstants.VSStd2K;
+                                NextCommandTarget.Exec(ref showMemberListCmdGroupId, (uint)VSConstants.VSStd2KCmdID.SHOWMEMBERLIST, executeInformation, pvaIn, pvaOut);
                             });
                         }
                     }
