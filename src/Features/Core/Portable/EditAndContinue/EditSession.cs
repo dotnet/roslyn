@@ -570,37 +570,36 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         }
                     }
 
-                    if (oldActiveStatement.Span != newActiveStatement.Span)
+                    void AddNonRemappableRegion(LinePositionSpan oldSpan, LinePositionSpan newSpan, bool isExceptionRegion)
                     {
-                        if (!oldActiveStatement.IsMethodUpToDate)
+                        if (oldActiveStatement.IsMethodUpToDate)
                         {
-                            changedNonRemappableSpans[(methodToken, methodVersion, oldActiveStatement.Span)] = newActiveStatement.Span;
+                            // Start tracking non-remappable regions for active statements in methods that were up-to-date 
+                            // when break state was entered and now being updated (regardless of whether the active span changed or not).
+                            if (isMethodUpdated)
+                            {
+                                int lineDelta = oldSpan.GetLineDelta(newSpan: newSpan);
+                                nonRemappableRegionsBuilder.Add((oldInstructionId.MethodId, new NonRemappableRegion(oldSpan, lineDelta, isExceptionRegion)));
+                            }
+
+                            // If the method has been up-to-date and it is not updated now then either the active statement span has not changed,
+                            // or the entire method containing it moved. In neither case do we need to start tracking non-remapable region
+                            // for the active statement since movement of whole method bodies (if any) is handled only on PDB level without 
+                            // triggering any remapping on the IL level.
                         }
-                        else if (isMethodUpdated)
+                        else if (oldSpan != newSpan)
                         {
-                            // Start tracking non-remappable regions for active statements in methods that were up-to-date when break state was entered and now being updated.
-                            int lineDelta = oldActiveStatement.Span.GetLineDelta(newSpan: newActiveStatement.Span);
-                            nonRemappableRegionsBuilder.Add((oldInstructionId.MethodId, new NonRemappableRegion(oldActiveStatement.Span, lineDelta, isExceptionRegion: false)));
+                            // The method is not up-to-date hence we maintain non-remapable span map for it that needs to be updated.
+                            changedNonRemappableSpans[(methodToken, methodVersion, oldSpan)] = newSpan;
                         }
                     }
+
+                    AddNonRemappableRegion(oldActiveStatement.Span, newActiveStatement.Span, isExceptionRegion: false);
 
                     int j = 0;
                     foreach (var oldSpan in baseActiveExceptionRegions[oldActiveStatement.Ordinal].Spans)
                     {
-                        var newSpan = newExceptionRegions[oldActiveStatement.PrimaryDocumentOrdinal][j++];
-                        if (oldSpan != newSpan)
-                        {
-                            if (!oldActiveStatement.IsMethodUpToDate)
-                            {
-                                changedNonRemappableSpans[(methodToken, methodVersion, oldSpan)] = newSpan;
-                            }
-                            else if (isMethodUpdated)
-                            {
-                                // Start tracking non-remappable regions for exception regions in methods that were up-to-date when break state was entered and now being updated.
-                                int lineDelta = oldSpan.GetLineDelta(newSpan: newSpan);
-                                nonRemappableRegionsBuilder.Add((oldInstructionId.MethodId, new NonRemappableRegion(oldSpan, lineDelta, isExceptionRegion: true)));
-                            }
-                        }
+                        AddNonRemappableRegion(oldSpan, newExceptionRegions[oldActiveStatement.PrimaryDocumentOrdinal][j++], isExceptionRegion: true);
                     }
                 }
             }

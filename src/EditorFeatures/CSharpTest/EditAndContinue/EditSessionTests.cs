@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             => text.Lines[span.Start.Line].ToString().Trim();
 
         [Fact]
-        public async Task BaseActiveStatementsAndExceptionRegions()
+        public async Task BaseActiveStatementsAndExceptionRegions1()
         {
             var markedSource = new[]
             {
@@ -349,6 +349,106 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             {
                 "thread=00000000-0000-0000-0000-000000000010 mvid=22222222-2222-2222-2222-222222222222 0x06000004 v1 IL_0002: (9,20)-(9,25)"
             }, activeStatementsInUpdatedMethods.Select(v => $"thread={v.ThreadId} {v.OldInstructionId.GetDebuggerDisplay()}: {v.NewSpan}"));
+        }
+
+        [Fact, WorkItem(24439, "https://github.com/dotnet/roslyn/issues/24439")]
+        public async Task BaseActiveStatementsAndExceptionRegions2()
+        {
+            var baseSource =
+@"class Test
+{
+    static void F1()
+    {   
+        try
+        {
+            <AS:0>F2();</AS:0>
+        }
+        catch (Exception) {
+            Console.WriteLine(1);
+            Console.WriteLine(2);
+            Console.WriteLine(3);
+        }
+        /*insert1[1]*/
+    }
+
+    static void F2()
+    {
+        <AS:1>throw new Exception();</AS:1>
+    }
+}";
+            var updatedSource = Update(baseSource, "1");
+
+            var module1 = new Guid("11111111-1111-1111-1111-111111111111");
+            var baseText = SourceText.From(baseSource);
+            var updatedText = SourceText.From(updatedSource);
+
+            var baseActiveStatementInfos = GetActiveStatementDebugInfos(new[] { baseSource },
+                modules: new[] { module1, module1 },
+                methodVersions: new[] { 1, 1 },
+                flags: new[]
+                {
+                    ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.IsNonLeafFrame, // F1
+                    ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.IsLeafFrame,    // F2
+                });
+
+            var (baseActiveStatementMap, baseExceptionRegions, docs) = await GetBaseActiveStatementsAndExceptionRegions(new[] { baseSource }, baseActiveStatementInfos).ConfigureAwait(false);
+
+            // Active Statements
+
+            var baseActiveStatements = baseActiveStatementMap.InstructionMap.Values.OrderBy(v => v.Ordinal).ToArray();
+
+            AssertEx.Equal(new[]
+            {
+                "0: (6,18)-(6,23) flags=[MethodUpToDate, IsNonLeafFrame] pdid=test1.cs docs=[test1.cs] mvid=11111111-1111-1111-1111-111111111111 0x06000001 v1 IL_0000 '<AS:0>F2();</AS:0>'",
+                "1: (18,14)-(18,36) flags=[IsLeafFrame, MethodUpToDate] pdid=test1.cs docs=[test1.cs] mvid=11111111-1111-1111-1111-111111111111 0x06000002 v1 IL_0000 '<AS:1>throw new Exception();</AS:1>'"
+            }, baseActiveStatements.Select(s => InspectActiveStatementAndInstruction(s, baseText)));
+
+            // Exception Regions
+
+            // Note that the spans correspond to the base snapshot (V2). 
+            AssertEx.Equal(new[]
+            {
+                "[(8,8)-(12,9) 'catch (Exception) {']",
+                "[]",
+            }, baseExceptionRegions.Select(r => "[" + string.Join(", ", r.Spans.Select(s => $"{s} '{GetFirstLineText(s, baseText)}'")) + "]"));
+
+            // GetActiveStatementAndExceptionRegionSpans
+
+            var newActiveStatementsInChangedDocuments = ImmutableArray.Create(
+                (
+                    docs[0],
+
+                    ImmutableArray.Create(
+                        baseActiveStatements[0],
+                        baseActiveStatements[1].WithSpan(baseActiveStatements[1].Span.AddLineDelta(+1))),
+
+                    ImmutableArray.Create(
+                        baseExceptionRegions[0].Spans,
+                        baseExceptionRegions[1].Spans)
+                )
+            );
+
+            EditSession.GetActiveStatementAndExceptionRegionSpans(
+                module1,
+                baseActiveStatementMap,
+                baseExceptionRegions,
+                updatedMethodTokens: new[] { 0x06000001 }, // F1
+                ImmutableDictionary<ActiveMethodId, ImmutableArray<NonRemappableRegion>>.Empty,
+                newActiveStatementsInChangedDocuments,
+                out var activeStatementsInUpdatedMethods,
+                out var nonRemappableRegions);
+
+            // although the span has not changed the method has, so we need to add corresponding non-remappable regions
+            AssertEx.Equal(new[]
+            {
+                "mvid=11111111-1111-1111-1111-111111111111 0x06000001 v1 | AS (6,18)-(6,23) δ=0",
+                "mvid=11111111-1111-1111-1111-111111111111 0x06000001 v1 | ER (8,8)-(12,9) δ=0",    
+            }, nonRemappableRegions.OrderBy(r => r.Region.Span.Start.Line).Select(r => $"{r.Method.GetDebuggerDisplay()} | {r.Region.GetDebuggerDisplay()}"));
+
+            AssertEx.Equal(new[]
+            {
+                "thread=00000000-0000-0000-0000-000000000010 mvid=11111111-1111-1111-1111-111111111111 0x06000001 v1 IL_0000: (6,18)-(6,23) '<AS:0>F2();</AS:0>'"
+            }, activeStatementsInUpdatedMethods.Select(v => $"thread={v.ThreadId} {v.OldInstructionId.GetDebuggerDisplay()}: {v.NewSpan} '{GetFirstLineText(v.NewSpan, updatedText)}'"));
         }
 
         [Fact]
