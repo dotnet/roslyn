@@ -10941,7 +10941,7 @@ class C
         // CS0625: See AttributeTests_StructLayout.ExplicitFieldLayout_Errors
 
         [Fact]
-        public void CS0629ERR_InterfaceImplementedByConditional()
+        public void CS0629ERR_InterfaceImplementedByConditional01()
         {
             var text = @"interface MyInterface
 {
@@ -10962,6 +10962,33 @@ public class MyClass : MyInterface
 ";
             var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_InterfaceImplementedByConditional, Line = 9, Column = 17 });
+        }
+
+        [Fact]
+        public void CS0629ERR_InterfaceImplementedByConditional02()
+        {
+            var source = @"
+using System.Diagnostics;
+
+interface I<T>
+{
+	void M(T x);
+}
+class Base
+{
+    [Conditional(""debug"")]
+    public void M(int x) {}
+}
+class Derived : Base, I<int>
+{
+}
+";
+
+            var comp = CreateStandardCompilation(source);
+            comp.VerifyDiagnostics(
+                // (13,23): error CS0629: Conditional member 'Base.M(int)' cannot implement interface member 'I<int>.M(int)' in type 'Derived'
+                // class Derived : Base, I<int>
+                Diagnostic(ErrorCode.ERR_InterfaceImplementedByConditional, "I<int>").WithArguments("Base.M(int)", "I<int>.M(int)", "Derived").WithLocation(13, 23));
         }
 
         [Fact]
@@ -17819,7 +17846,7 @@ class Derived : Base<int, int>, IFace
 }
 ";
             var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.WRN_MultipleRuntimeImplementationMatches, Line = 9, Column = 24, IsWarning = true });
+                new ErrorDescription { Code = (int)ErrorCode.WRN_MultipleRuntimeImplementationMatches, Line = 20, Column = 33, IsWarning = true });
         }
 
         [Fact]

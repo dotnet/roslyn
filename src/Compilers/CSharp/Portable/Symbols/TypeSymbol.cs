@@ -1048,11 +1048,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (interfaceMethodIsAccessor && !implicitImplIsAccessor && !interfaceMethod.IsIndexedPropertyAccessor())
                 {
-                    diagnostics.Add(ErrorCode.ERR_MethodImplementingAccessor, implicitImpl.Locations[0], implicitImpl, interfaceMethod, implementingType);
+                    diagnostics.Add(ErrorCode.ERR_MethodImplementingAccessor, GetDiagnosticLocation(implicitImpl), implicitImpl, interfaceMethod, implementingType);
                 }
                 else if (!interfaceMethodIsAccessor && implicitImplIsAccessor)
                 {
-                    diagnostics.Add(ErrorCode.ERR_AccessorImplementingMethod, implicitImpl.Locations[0], implicitImpl, interfaceMethod, implementingType);
+                    diagnostics.Add(ErrorCode.ERR_AccessorImplementingMethod, GetDiagnosticLocation(implicitImpl), implicitImpl, interfaceMethod, implementingType);
                 }
                 else
                 {
@@ -1061,7 +1061,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     if (implicitImplMethod.IsConditional)
                     {
                         // CS0629: Conditional member '{0}' cannot implement interface member '{1}' in type '{2}'
-                        diagnostics.Add(ErrorCode.ERR_InterfaceImplementedByConditional, implicitImpl.Locations[0], implicitImpl, interfaceMethod, implementingType);
+                        diagnostics.Add(ErrorCode.ERR_InterfaceImplementedByConditional, GetDiagnosticLocation(implicitImpl), implicitImpl, interfaceMethod, implementingType);
                     }
                     else
                     {
@@ -1073,21 +1073,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (implicitImpl.ContainsTupleNames() && MemberSignatureComparer.ConsideringTupleNamesCreatesDifference(implicitImpl, interfaceMember))
             {
                 // it is ok to implement implicitly with no tuple names, for compatibility with C# 6, but otherwise names should match
-                diagnostics.Add(ErrorCode.ERR_ImplBadTupleNames, GetDiagnosticLocation(), implicitImpl, interfaceMember);
-
-                Location GetDiagnosticLocation()
-                {
-                    if (implicitImpl.ContainingType == implementingType)
-                    {
-                        return implicitImpl.Locations[0];
-                    }
-                    else
-                    {
-                        var @interface = interfaceMember.ContainingType;
-                        SourceMemberContainerTypeSymbol snt = implementingType as SourceMemberContainerTypeSymbol;
-                        return snt.GetImplementsLocation(@interface) ?? implementingType.Locations[0];
-                    }
-                }
+                diagnostics.Add(ErrorCode.ERR_ImplBadTupleNames, GetDiagnosticLocation(implicitImpl), implicitImpl, interfaceMember);
             }
 
             // In constructed types, it is possible to see multiple members with the same (runtime) signature.
@@ -1104,8 +1090,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     else if (MemberSignatureComparer.RuntimeImplicitImplementationComparer.Equals(interfaceMember, member) && !member.IsAccessor())
                     {
                         // CONSIDER: Dev10 does not seem to report this for indexers or their accessors.
-                        diagnostics.Add(ErrorCode.WRN_MultipleRuntimeImplementationMatches, member.Locations[0], member, interfaceMember, implementingType);
+                        diagnostics.Add(ErrorCode.WRN_MultipleRuntimeImplementationMatches, GetDiagnosticLocation(member), member, interfaceMember, implementingType);
                     }
+                }
+            }
+
+            Location GetDiagnosticLocation(Symbol member)
+            {
+                if (member.ContainingType == implementingType)
+                {
+                    return member.Locations[0];
+                }
+                else
+                {
+                    var @interface = interfaceMember.ContainingType;
+                    SourceMemberContainerTypeSymbol snt = implementingType as SourceMemberContainerTypeSymbol;
+                    return snt?.GetImplementsLocation(@interface) ?? implementingType.Locations[0];
                 }
             }
         }
@@ -1121,7 +1121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var @interface = interfaceMember.ContainingType;
                 SourceMemberContainerTypeSymbol snt = implementingType as SourceMemberContainerTypeSymbol;
-                interfaceLocation = snt.GetImplementsLocation(@interface) ?? implementingType.Locations[0];
+                interfaceLocation = snt?.GetImplementsLocation(@interface) ?? implementingType.Locations[0];
             }
             else
             {
