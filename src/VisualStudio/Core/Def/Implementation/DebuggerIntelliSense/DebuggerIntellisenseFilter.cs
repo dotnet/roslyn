@@ -100,7 +100,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
                 case VSConstants.VSStd2KCmdID.SCROLLUP:
                     ExecuteCancel(subjectBuffer, contentType, () =>
                     {
-                        // We cannot just pass executeNextCommandTarget becuase it would execute TYPECHAR
+                        // We cannot just pass executeNextCommandTarget becuase it would execute SCROLLUP
                         var cancelCmdGroupId = VSConstants.VSStd2K;
                         NextCommandTarget.Exec(ref cancelCmdGroupId, (uint)VSConstants.VSStd2KCmdID.CANCEL, executeInformation, pvaIn, pvaOut);
                     });
@@ -124,7 +124,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
                             // target isn't the one we want, because we've
                             // definitely remapped buffers. Ask our context for
                             // the real subject buffer.
-                            this.ExecuteInvokeCompletionList(_context.Buffer, _context.ContentType, () =>
+                            ExecuteInvokeCompletionList(_context.Buffer, _context.ContentType, () =>
                             {
                                 // We cannot just pass executeNextCommandTarget becuase it would execute TYPECHAR
                                 var showMemberListCmdGroupId = VSConstants.VSStd2K;
