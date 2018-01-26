@@ -820,17 +820,23 @@ public class Test2
         
         var b = new Test<D1, D1>();
         var c = new Test<System.Delegate, System.Delegate>();
+        var d = new Test<System.MulticastDelegate, System.Delegate>();
+        var e = new Test<System.Delegate, System.MulticastDelegate>();
+        var f = new Test<System.MulticastDelegate, System.MulticastDelegate>();
 
-        var d = new Test<D1, System.Delegate>();
-        var e = new Test<System.Delegate, D1>();
+        var g = new Test<D1, System.Delegate>();
+        var h = new Test<System.Delegate, D1>();
     }
 }").VerifyDiagnostics(
                 // (10,33): error CS0311: The type 'D1' cannot be used as type parameter 'U' in the generic type or method 'Test<T, U>'. There is no implicit reference conversion from 'D1' to 'Test2'.
                 //         var a = new Test<Test2, D1>();
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "D1").WithArguments("Test<T, U>", "Test2", "U", "D1").WithLocation(10, 33),
-                // (15,30): error CS0311: The type 'System.Delegate' cannot be used as type parameter 'U' in the generic type or method 'Test<T, U>'. There is no implicit reference conversion from 'System.Delegate' to 'D1'.
-                //         var d = new Test<D1, System.Delegate>();
-                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "System.Delegate").WithArguments("Test<T, U>", "D1", "U", "System.Delegate").WithLocation(15, 30));
+                // (14,52): error CS0311: The type 'System.Delegate' cannot be used as type parameter 'U' in the generic type or method 'Test<T, U>'. There is no implicit reference conversion from 'System.Delegate' to 'System.MulticastDelegate'.
+                //         var d = new Test<System.MulticastDelegate, System.Delegate>();
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "System.Delegate").WithArguments("Test<T, U>", "System.MulticastDelegate", "U", "System.Delegate").WithLocation(14, 52),
+                // (18,30): error CS0311: The type 'System.Delegate' cannot be used as type parameter 'U' in the generic type or method 'Test<T, U>'. There is no implicit reference conversion from 'System.Delegate' to 'D1'.
+                //         var g = new Test<D1, System.Delegate>();
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "System.Delegate").WithArguments("Test<T, U>", "D1", "U", "System.Delegate").WithLocation(18, 30));
         }
 
         [Fact]
@@ -1271,17 +1277,26 @@ public class Test2
         
         var b = new Test<D1, D1>();
         var c = new Test<System.MulticastDelegate, System.MulticastDelegate>();
+        var d = new Test<System.Delegate, System.MulticastDelegate>();
+        var e = new Test<System.MulticastDelegate, System.Delegate>();
+        var f = new Test<System.Delegate, System.Delegate>();
 
-        var d = new Test<D1, System.MulticastDelegate>();
-        var e = new Test<System.MulticastDelegate, D1>();
+        var g = new Test<D1, System.MulticastDelegate>();
+        var h = new Test<System.MulticastDelegate, D1>();
     }
 }").VerifyDiagnostics(
                 // (10,33): error CS0311: The type 'D1' cannot be used as type parameter 'U' in the generic type or method 'Test<T, U>'. There is no implicit reference conversion from 'D1' to 'Test2'.
                 //         var a = new Test<Test2, D1>();
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "D1").WithArguments("Test<T, U>", "Test2", "U", "D1").WithLocation(10, 33),
-                // (15,30): error CS0311: The type 'System.MulticastDelegate' cannot be used as type parameter 'U' in the generic type or method 'Test<T, U>'. There is no implicit reference conversion from 'System.MulticastDelegate' to 'D1'.
-                //         var d = new Test<D1, System.MulticastDelegate>();
-                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "System.MulticastDelegate").WithArguments("Test<T, U>", "D1", "U", "System.MulticastDelegate").WithLocation(15, 30));
+                // (15,52): error CS0311: The type 'System.Delegate' cannot be used as type parameter 'U' in the generic type or method 'Test<T, U>'. There is no implicit reference conversion from 'System.Delegate' to 'System.MulticastDelegate'.
+                //         var e = new Test<System.MulticastDelegate, System.Delegate>();
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "System.Delegate").WithArguments("Test<T, U>", "System.MulticastDelegate", "U", "System.Delegate").WithLocation(15, 52),
+                // (16,43): error CS0311: The type 'System.Delegate' cannot be used as type parameter 'U' in the generic type or method 'Test<T, U>'. There is no implicit reference conversion from 'System.Delegate' to 'System.MulticastDelegate'.
+                //         var f = new Test<System.Delegate, System.Delegate>();
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "System.Delegate").WithArguments("Test<T, U>", "System.MulticastDelegate", "U", "System.Delegate").WithLocation(16, 43),
+                // (18,30): error CS0311: The type 'System.MulticastDelegate' cannot be used as type parameter 'U' in the generic type or method 'Test<T, U>'. There is no implicit reference conversion from 'System.MulticastDelegate' to 'D1'.
+                //         var g = new Test<D1, System.MulticastDelegate>();
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "System.MulticastDelegate").WithArguments("Test<T, U>", "D1", "U", "System.MulticastDelegate").WithLocation(18, 30));
         }
 
         [Fact]
@@ -1504,6 +1519,25 @@ class TestClass
             CompileAndVerify(code, expectedOutput: @"
 Got 2 and 3
 Got 7 and 9");
+        }
+
+        [Fact]
+        public void ConversionInInheritanceChain_MulticastDelegate()
+        {
+            var code = @"
+class A<T> where T : System.Delegate { }
+class B<T> : A<T> where T : System.MulticastDelegate { }";
+
+            CreateStandardCompilation(code).VerifyDiagnostics();
+
+            code = @"
+class A<T> where T : System.MulticastDelegate { }
+class B<T> : A<T> where T : System.Delegate { }";
+
+            CreateStandardCompilation(code).VerifyDiagnostics(
+                // (3,7): error CS0311: The type 'T' cannot be used as type parameter 'T' in the generic type or method 'A<T>'. There is no implicit reference conversion from 'T' to 'System.MulticastDelegate'.
+                // class B<T> : A<T> where T : System.Delegate { }
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "B").WithArguments("A<T>", "System.MulticastDelegate", "T", "T").WithLocation(3, 7));
         }
     }
 }
