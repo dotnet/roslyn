@@ -1457,16 +1457,6 @@ Pro aktuální řešení je povolené zjednodušené načtení řešení. Jeho z
         <target state="translated">Použijte vazby kláves pro ReSharper/IntelliJ/Vim/etc.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Your_keybindings_are_no_longer_mapped_to_Visual_Studio_commands">
-        <source>Your keybindings are no longer mapped to Visual Studio commands.</source>
-        <target state="translated">Vaše vazby kláves už nejsou namapované na příkazy sady Visual Studio.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="We_noticed_you_suspended_ReSharper_Ultimate_Restore_Visual_Studio_keybindings_to_continue_to_navigate_and_refactor">
-        <source>We noticed you suspended ‘ReSharper Ultimate’. Restore Visual Studio keybindings to continue to navigate and refactor.</source>
-        <target state="translated">Všimli jsme si, že jste pozastavili ReSharper Ultimate. Pokud chcete pokračovat v navigaci a refaktoringu, obnovte vazby kláves pro Visual Studio.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Enable_navigation_to_decompiled_sources">
         <source>Enable navigation to decompiled sources (experimental)</source>
         <target state="translated">Povolit navigaci na dekompilované zdroje (experimentální)</target>
@@ -1498,6 +1488,7 @@ Souhlasím se všemi výše uvedenými podmínkami:</target>
         <target state="translated">Právní doložka pro dekompilátor</target>
         <note />
       </trans-unit>
+<<<<<<< HEAD
       <trans-unit id="Colorize_regular_expressions">
         <source>Colorize regular expressions</source>
         <target state="new">Colorize regular expressions</target>
@@ -1516,6 +1507,16 @@ Souhlasím se všemi výše uvedenými podmínkami:</target>
       <trans-unit id="Report_invalid_regular_expressions">
         <source>Report invalid regular expressions</source>
         <target state="new">Report invalid regular expressions</target>
+=======
+      <trans-unit id="Disabling_the_extension_0_unbound_your_keyboard_bindings">
+        <source>Disabling the extension '{0}' unbound your keyboard bindings.</source>
+        <target state="new">Disabling the extension '{0}' unbound your keyboard bindings.</target>
+        <note>0 is an extension name</note>
+      </trans-unit>
+      <trans-unit id="Code_style_header_use_editor_config">
+        <source>The settings configured here only apply to your machine. To configure these settings to travel with your solution, use .editorconfig files.</source>
+        <target state="new">The settings configured here only apply to your machine. To configure these settings to travel with your solution, use .editorconfig files.</target>
+>>>>>>> upstream/master
         <note />
       </trans-unit>
     </body>

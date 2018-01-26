@@ -26,12 +26,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 class 123 { }
                        </code>
             Using workspace = TestWorkspace.CreateCSharp(code.Value)
-                Dim listener = New AsynchronousOperationListener()
-                Dim listeners = AsynchronousOperationListener.CreateListeners(
-                    ValueTuple.Create(FeatureAttribute.DiagnosticService, listener),
-                    ValueTuple.Create(FeatureAttribute.ErrorSquiggles, listener))
-
-                Dim diagnosticService = New DiagnosticService(listeners)
+                Dim listenerProvider = New AsynchronousOperationListenerProvider()
+                Dim diagnosticService = New DiagnosticService(listenerProvider)
 
                 Dim miscService = New DefaultDiagnosticAnalyzerService(diagnosticService)
                 Assert.False(miscService.SupportGetDiagnostics)
@@ -42,13 +38,14 @@ class 123 { }
 
                 WpfTestCase.RequireWpfFact("This test uses IForegroundNotificationService")
                 Dim foregroundService = workspace.GetService(Of IForegroundNotificationService)()
-                Dim provider = New DiagnosticsSquiggleTaggerProvider(diagnosticService, foregroundService, listeners)
+                Dim provider = New DiagnosticsSquiggleTaggerProvider(diagnosticService, foregroundService, listenerProvider)
                 Dim tagger = provider.CreateTagger(Of IErrorTag)(buffer)
                 Using disposable = TryCast(tagger, IDisposable)
                     Dim analyzer = miscService.CreateIncrementalAnalyzer(workspace)
                     Await analyzer.AnalyzeSyntaxAsync(workspace.CurrentSolution.Projects.First().Documents.First(), InvocationReasons.Empty, CancellationToken.None)
 
-                    Await listener.CreateWaitTask()
+                    Await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).CreateWaitTask()
+                    Await listenerProvider.GetWaiter(FeatureAttribute.ErrorSquiggles).CreateWaitTask()
 
                     Dim snapshot = buffer.CurrentSnapshot
                     Dim spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToImmutableArray()
@@ -72,12 +69,8 @@ class A
                        </code>
 
             Using workspace = TestWorkspace.CreateCSharp(code.Value)
-                Dim listener = New AsynchronousOperationListener()
-                Dim listeners = AsynchronousOperationListener.CreateListeners(
-                    ValueTuple.Create(FeatureAttribute.DiagnosticService, listener),
-                    ValueTuple.Create(FeatureAttribute.ErrorSquiggles, listener))
-
-                Dim diagnosticService = New DiagnosticService(listeners)
+                Dim listenerProvider = New AsynchronousOperationListenerProvider()
+                Dim diagnosticService = New DiagnosticService(listenerProvider)
 
                 Dim miscService = New DefaultDiagnosticAnalyzerService(diagnosticService)
                 Assert.False(miscService.SupportGetDiagnostics)
@@ -86,10 +79,12 @@ class A
 
                 Dim document = workspace.CurrentSolution.Projects.First().Documents.First()
                 Dim analyzer = miscService.CreateIncrementalAnalyzer(workspace)
+
                 Await analyzer.AnalyzeSyntaxAsync(document, InvocationReasons.Empty, CancellationToken.None)
                 Await analyzer.AnalyzeDocumentAsync(document, Nothing, InvocationReasons.Empty, CancellationToken.None)
 
-                Await listener.CreateWaitTask()
+                Await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).CreateWaitTask()
+                Await listenerProvider.GetWaiter(FeatureAttribute.ErrorSquiggles).CreateWaitTask()
 
                 Assert.True(
                     diagnosticService.GetDiagnostics(workspace, document.Project.Id, document.Id, Nothing, False, CancellationToken.None).Count() = 1)
@@ -109,12 +104,8 @@ class A
                        </code>
 
             Using workspace = TestWorkspace.CreateCSharp(code.Value)
-                Dim listener = New AsynchronousOperationListener()
-                Dim listeners = AsynchronousOperationListener.CreateListeners(
-                    ValueTuple.Create(FeatureAttribute.DiagnosticService, listener),
-                    ValueTuple.Create(FeatureAttribute.ErrorSquiggles, listener))
-
-                Dim diagnosticService = New DiagnosticService(listeners)
+                Dim listenerProvider = New AsynchronousOperationListenerProvider()
+                Dim diagnosticService = New DiagnosticService(listenerProvider)
 
                 Dim miscService = New DefaultDiagnosticAnalyzerService(diagnosticService)
                 Assert.False(miscService.SupportGetDiagnostics)
@@ -126,7 +117,8 @@ class A
                 Await analyzer.AnalyzeSyntaxAsync(document, InvocationReasons.Empty, CancellationToken.None)
                 Await analyzer.AnalyzeDocumentAsync(document, Nothing, InvocationReasons.Empty, CancellationToken.None)
 
-                Await listener.CreateWaitTask()
+                Await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).CreateWaitTask()
+                Await listenerProvider.GetWaiter(FeatureAttribute.ErrorSquiggles).CreateWaitTask()
 
                 Assert.True(
                     diagnosticService.GetDiagnostics(workspace, document.Project.Id, document.Id, Nothing, False, CancellationToken.None).Count() = 1)
@@ -146,12 +138,8 @@ class A
                        </code>
 
             Using workspace = TestWorkspace.CreateCSharp(code.Value)
-                Dim listener = New AsynchronousOperationListener()
-                Dim listeners = AsynchronousOperationListener.CreateListeners(
-                    ValueTuple.Create(FeatureAttribute.DiagnosticService, listener),
-                    ValueTuple.Create(FeatureAttribute.ErrorSquiggles, listener))
-
-                Dim diagnosticService = New DiagnosticService(listeners)
+                Dim listenerProvider = New AsynchronousOperationListenerProvider()
+                Dim diagnosticService = New DiagnosticService(listenerProvider)
 
                 Dim miscService = New DefaultDiagnosticAnalyzerService(diagnosticService)
                 Assert.False(miscService.SupportGetDiagnostics)
@@ -163,7 +151,8 @@ class A
                 Await analyzer.AnalyzeSyntaxAsync(document, InvocationReasons.Empty, CancellationToken.None)
                 Await analyzer.AnalyzeDocumentAsync(document, Nothing, InvocationReasons.Empty, CancellationToken.None)
 
-                Await listener.CreateWaitTask()
+                Await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).CreateWaitTask()
+                Await listenerProvider.GetWaiter(FeatureAttribute.ErrorSquiggles).CreateWaitTask()
 
                 Assert.True(
                     diagnosticService.GetDiagnostics(workspace, document.Project.Id, document.Id, Nothing, False, CancellationToken.None).Count() = 2)
@@ -183,12 +172,8 @@ class A
                        </code>
 
             Using workspace = TestWorkspace.CreateCSharp(code.Value)
-                Dim listener = New AsynchronousOperationListener()
-                Dim listeners = AsynchronousOperationListener.CreateListeners(
-                    ValueTuple.Create(FeatureAttribute.DiagnosticService, listener),
-                    ValueTuple.Create(FeatureAttribute.ErrorSquiggles, listener))
-
-                Dim diagnosticService = New DiagnosticService(listeners)
+                Dim listenerProvider = New AsynchronousOperationListenerProvider()
+                Dim diagnosticService = New DiagnosticService(listenerProvider)
 
                 Dim miscService = New DefaultDiagnosticAnalyzerService(diagnosticService)
                 Assert.False(miscService.SupportGetDiagnostics)
@@ -201,7 +186,9 @@ class A
                 Await analyzer.AnalyzeDocumentAsync(document, Nothing, InvocationReasons.Empty, CancellationToken.None)
 
                 analyzer.RemoveDocument(document.Id)
-                Await listener.CreateWaitTask()
+
+                Await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).CreateWaitTask()
+                Await listenerProvider.GetWaiter(FeatureAttribute.ErrorSquiggles).CreateWaitTask()
 
                 Assert.True(
                     diagnosticService.GetDiagnostics(workspace, document.Project.Id, document.Id, Nothing, False, CancellationToken.None).Count() = 0)

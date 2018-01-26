@@ -2138,14 +2138,13 @@ struct Type<T>
                 WpfTestCase.RequireWpfFact("Creates an IWpfTextView explicitly with an unrelated buffer");
                 using (var disposableView = workspace.ExportProvider.GetExportedValue<ITextEditorFactoryService>().CreateDisposableTextView(extraBuffer))
                 {
-                    var waiter = new Waiter();
+                    var listenerProvider = new AsynchronousOperationListenerProvider();
+
                     var provider = new SemanticClassificationViewTaggerProvider(
                         workspace.ExportProvider.GetExportedValue<IForegroundNotificationService>(),
                         workspace.ExportProvider.GetExportedValue<ISemanticChangeNotificationService>(),
                         workspace.ExportProvider.GetExportedValue<ClassificationTypeMap>(),
-                        SpecializedCollections.SingletonEnumerable(
-                            new Lazy<IAsynchronousOperationListener, FeatureMetadata>(
-                            () => waiter, new FeatureMetadata(new Dictionary<string, object>() { { "FeatureName", FeatureAttribute.Classification } }))));
+                        listenerProvider);
 
                     using (var tagger = (IDisposable)provider.CreateTagger<IClassificationTag>(disposableView.TextView, extraBuffer))
                     {
@@ -2155,6 +2154,7 @@ struct Type<T>
                             edit.Apply();
                         }
 
+                        var waiter = listenerProvider.GetWaiter(FeatureAttribute.Classification);
                         await waiter.CreateWaitTask();
                     }
                 }
@@ -2169,18 +2169,18 @@ struct Type<T>
             {
                 var document = workspace.Documents.First();
 
-                var waiter = new Waiter();
+                var listenerProvider = new AsynchronousOperationListenerProvider();
+
                 var provider = new SemanticClassificationBufferTaggerProvider(
                     workspace.ExportProvider.GetExportedValue<IForegroundNotificationService>(),
                     workspace.ExportProvider.GetExportedValue<ISemanticChangeNotificationService>(),
                     workspace.ExportProvider.GetExportedValue<ClassificationTypeMap>(),
-                    SpecializedCollections.SingletonEnumerable(
-                        new Lazy<IAsynchronousOperationListener, FeatureMetadata>(
-                        () => waiter, new FeatureMetadata(new Dictionary<string, object>() { { "FeatureName", FeatureAttribute.Classification } }))));
+                    listenerProvider);
 
                 var tagger = provider.CreateTagger<IClassificationTag>(document.TextBuffer);
                 using (var disposable = (IDisposable)tagger)
                 {
+                    var waiter = listenerProvider.GetWaiter(FeatureAttribute.Classification);
                     await waiter.CreateWaitTask();
 
                     var tags = tagger.GetTags(document.TextBuffer.CurrentSnapshot.GetSnapshotSpanCollection());
@@ -2193,8 +2193,6 @@ struct Type<T>
                 }
             }
         }
-
-        private class Waiter : AsynchronousOperationListener { }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task Tuples()

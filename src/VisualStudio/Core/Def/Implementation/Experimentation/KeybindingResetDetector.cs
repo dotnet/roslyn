@@ -2,6 +2,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -30,6 +31,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
     /// 'Never show this again', this will persist for the life of the VS instance, and does not need to be manually disposed
     /// in that case.
     /// </remarks>
+    /// <para>
+    /// We've written this in a generic mechanism we can extend to any extension as we know of them,
+    /// but at this time ReSharper is the only one we know of that has this behavior.
+    /// If we find other extensions that do this in the future, we'll re-use this same mechanism
+    /// </para>
     [Export(typeof(IExperiment))]
     internal sealed class KeybindingResetDetector : ForegroundThreadAffinitizedObject, IExperiment, IOleCommandTarget
     {
@@ -37,6 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
         private const string InternalFlightName = "keybindgoldbarint";
         private const string ExternalFlightName = "keybindgoldbarext";
         private const string KeybindingsFwLink = "https://go.microsoft.com/fwlink/?linkid=864209";
+        private const string ReSharperExtensionName = "ReSharper Ultimate";
 
         // Resharper commands and package
         private const uint ResumeId = 707;
@@ -181,25 +188,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
 
             _infoBarOpen = true;
 
-            string message;
-            if (_experimentationService.IsExperimentEnabled(InternalFlightName))
-            {
-                message = ServicesVSResources.We_noticed_you_suspended_ReSharper_Ultimate_Restore_Visual_Studio_keybindings_to_continue_to_navigate_and_refactor;
-            }
-            else if (_experimentationService.IsExperimentEnabled(ExternalFlightName))
-            {
-                message = ServicesVSResources.Your_keybindings_are_no_longer_mapped_to_Visual_Studio_commands;
-            }
-            else
-            {
-                // Should never have gotten to checking this if one of the flights isn't enabled.
-                throw ExceptionUtilities.Unreachable;
-            }
+            Debug.Assert(_experimentationService.IsExperimentEnabled(InternalFlightName) ||
+                         _experimentationService.IsExperimentEnabled(ExternalFlightName));
 
+            string message = ServicesVSResources.Disabling_the_extension_0_unbound_your_keyboard_bindings;
             KeybindingsResetLogger.Log("InfoBarShown");
             var infoBarService = _workspace.Services.GetRequiredService<IInfoBarService>();
             infoBarService.ShowInfoBarInGlobalView(
-                message,
+                string.Format(message, ReSharperExtensionName),
                 new InfoBarUI(title: ServicesVSResources.Restore_Visual_Studio_keybindings,
                               kind: InfoBarUI.UIKind.Button,
                               action: RestoreVsKeybindings),

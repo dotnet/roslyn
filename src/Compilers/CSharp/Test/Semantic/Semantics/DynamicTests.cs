@@ -3901,5 +3901,166 @@ class Test
                 Diagnostic(ErrorCode.ERR_BindToBogusProp2, "Indexer").WithArguments("WithIndexer.Indexer[object, object]", "WithIndexer.get_Indexer(object, object)", "WithIndexer.set_Indexer(object, object, object)").WithLocation(8, 30)
                 );
         }
+
+        [WorkItem(22813, "https://github.com/dotnet/roslyn/issues/22813")]
+        [Fact]
+        public void InArgumentDynamic()
+        {
+            string source = @"
+class C
+{
+    static void M1()
+    {
+        int x = 42;
+        dynamic d = null;
+        d.M2(in x);
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib45AndCSruntime(source, parseOptions: TestOptions.Regular7_2);
+
+            comp.VerifyEmitDiagnostics(
+                // (8,17): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.
+                //         d.M2(in x);
+                Diagnostic(ErrorCode.ERR_InDynamicMethodArg, "x").WithLocation(8, 17)
+                );
+        }
+
+        [WorkItem(22813, "https://github.com/dotnet/roslyn/issues/22813")]
+        [Fact]
+        public void InArgumentDynamic2()
+        {
+            string source = @"
+class C
+{
+    static void M1()
+    {
+        int x = 42;
+        dynamic d = null;
+        d.M2(1, in d, 123, in x);
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib45AndCSruntime(source, parseOptions: TestOptions.Regular7_2);
+
+            comp.VerifyEmitDiagnostics(
+                // (8,20): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.
+                //         d.M2(1, in d, 123, in x);
+                Diagnostic(ErrorCode.ERR_InDynamicMethodArg, "d").WithLocation(8, 20),
+                // (8,31): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.
+                //         d.M2(1, in d, 123, in x);
+                Diagnostic(ErrorCode.ERR_InDynamicMethodArg, "x").WithLocation(8, 31)
+                );
+        }
+
+        [WorkItem(22813, "https://github.com/dotnet/roslyn/issues/22813")]
+        [Fact]
+        public void InArgumentDynamicLocalFunction()
+        {
+            string source = @"
+class C
+{
+    private static void M1(in dynamic x, int y, in dynamic z) => System.Console.WriteLine(x == y);
+
+    static void Main()
+    {
+        dynamic d = 1;
+
+        // Produce an error. This cannot work correctly right now
+        M1(in d, d = 2, in d);
+
+        void M2(in dynamic x, int y, in dynamic z) => System.Console.WriteLine(x == y);
+
+        // NOTE: the following could work!!!
+        //
+        // Currently any kind of overloading that would require dynamic dispatch is not permitted
+        // for locals functions and dynamic dispatch is bypassed.
+        // 
+        // We will still give an error for consistency with the case where the method is an ordinary private method. 
+        // (and also in case if overloading restrictions are relaxed in the future and dispatch becomes necessary)
+        //
+        M2(in d, d = 3, in d);
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib45AndCSruntime(source, parseOptions: TestOptions.Regular7_2);
+
+            comp.VerifyEmitDiagnostics(
+                // (11,15): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.
+                //         M1(in d, d = 2, in d);
+                Diagnostic(ErrorCode.ERR_InDynamicMethodArg, "d").WithLocation(11, 15),
+                // (11,28): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.
+                //         M1(in d, d = 2, in d);
+                Diagnostic(ErrorCode.ERR_InDynamicMethodArg, "d").WithLocation(11, 28),
+                // (23,15): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.
+                //         M2(in d, d = 3, in d);
+                Diagnostic(ErrorCode.ERR_InDynamicMethodArg, "d").WithLocation(23, 15),
+                // (23,28): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.
+                //         M2(in d, d = 3, in d);
+                Diagnostic(ErrorCode.ERR_InDynamicMethodArg, "d").WithLocation(23, 28)
+                );
+        }
+
+        [WorkItem(22813, "https://github.com/dotnet/roslyn/issues/22813")]
+        [Fact]
+        public void InArgumentDynamicCtor()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        int x = 42;
+        dynamic d = 1;
+        var y = new M2(d, in x);
+    }
+
+    class M2
+    {
+        public M2(int a, in int d) => System.Console.Write(1);
+        public M2(int a, int d) => System.Console.Write(2);
+    }
+}";
+
+            var comp = CreateCompilationWithMscorlib45AndCSruntime(source, parseOptions: TestOptions.Regular7_2);
+
+            comp.VerifyEmitDiagnostics(
+                // (8,30): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.
+                //         var y = new M2(d, in x);
+                Diagnostic(ErrorCode.ERR_InDynamicMethodArg, "x").WithLocation(8, 30)
+                );
+        }
+
+        [WorkItem(22813, "https://github.com/dotnet/roslyn/issues/22813")]
+        [Fact]
+        public void InArgumentDynamicIndexer()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        int x = 42;
+        dynamic d = new C1();
+        System.Console.WriteLine(d[in x]);
+    }
+
+    class C1
+    {
+        public int this[in int x] => x;
+    }
+}";
+
+            var comp = CreateCompilationWithMscorlib45AndCSruntime(source, parseOptions: TestOptions.Regular7_2);
+
+            comp.VerifyEmitDiagnostics(
+                // (8,39): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.
+                //         System.Console.WriteLine(d[in x]);
+                Diagnostic(ErrorCode.ERR_InDynamicMethodArg, "x").WithLocation(8, 39)
+                );
+        }
     }
 }
