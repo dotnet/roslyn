@@ -1426,7 +1426,7 @@ namespace N1
 {
     partial class C1
     {
-        partial void PartialM(int v) { }
+        partial void PartialM() { }
         void M1()
         {
             PartialM(1);
