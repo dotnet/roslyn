@@ -8610,6 +8610,11 @@ Pour supprimer l'avertissement, vous pouvez utiliser la commande /reference (dé
         <target state="new">ref conditional expression</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureStackAllocInitializer">
+        <source>stackalloc initilizer</source>
+        <target state="new">stackalloc initilizer</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>
