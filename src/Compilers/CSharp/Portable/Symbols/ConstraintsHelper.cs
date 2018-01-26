@@ -810,6 +810,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
+            if(typeParameter.HasUnmanagedTypeConstraint && typeArgument.IsManagedType)
+            {
+                // "The type '{2}' cannot be a reference type, or contain reference type fields at any level of nesting, in order to use it as parameter '{1}' in the generic type or method '{0}'"
+                diagnosticsBuilder.Add(new TypeParameterDiagnosticInfo(typeParameter, new CSDiagnosticInfo(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, containingSymbol.ConstructedFrom(), typeParameter, typeArgument)));
+                return false;
+            }
+
             // The type parameters for a constructed type/method are the type parameters of
             // the ConstructedFrom type/method, so the constraint types are not substituted.
             // For instance with "class C<T, U> where T : U", the type parameter for T in "C<object, int>"

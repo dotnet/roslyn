@@ -254,6 +254,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
+        public override bool HasUnmanagedTypeConstraint
+        {
+            get
+            {
+                // PROTOTYPE: handle PE symbols
+                return false;
+            }
+        }
+
         public override VarianceKind Variance
         {
             get

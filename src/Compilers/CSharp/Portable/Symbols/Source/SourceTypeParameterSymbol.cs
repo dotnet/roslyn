@@ -363,6 +363,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override bool HasUnmanagedTypeConstraint
+        {
+            get
+            {
+                var constraints = this.GetDeclaredConstraints();
+                return (constraints & TypeParameterConstraintKind.Unmanaged) != 0;
+            }
+        }
+
         protected override ImmutableArray<TypeParameterSymbol> ContainerTypeParameters
         {
             get { return _owner.TypeParameters; }
@@ -430,6 +439,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var constraints = this.GetDeclaredConstraints();
                 return (constraints & TypeParameterConstraintKind.ReferenceType) != 0;
+            }
+        }
+
+        public override bool HasUnmanagedTypeConstraint
+        {
+            get
+            {
+                var constraints = this.GetDeclaredConstraints();
+                return (constraints & TypeParameterConstraintKind.Unmanaged) != 0;
             }
         }
 
@@ -624,6 +642,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var typeParameter = this.OverriddenTypeParameter;
                 return ((object)typeParameter != null) && typeParameter.HasReferenceTypeConstraint;
+            }
+        }
+
+        public override bool HasUnmanagedTypeConstraint
+        {
+            get
+            {
+                var typeParameter = this.OverriddenTypeParameter;
+                return ((object)typeParameter != null) && typeParameter.HasUnmanagedTypeConstraint;
             }
         }
 

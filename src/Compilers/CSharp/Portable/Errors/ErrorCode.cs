@@ -1556,6 +1556,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_AttributesOnBackingFieldsNotAvailable = 8371,
         ERR_DoNotUseFixedBufferAttrOnProperty = 8372,
 
+        ERR_NewBoundWithUnmanaged = 8373,
+        ERR_UnmanagedConstraintMustBeAlone = 8374,
+        ERR_UnmanagedConstraintNotSatisfied = 8375,
+
         // Note: you will need to re-generate compiler code after adding warnings (build\scripts\generate-compiler-code.cmd)
     }
 }

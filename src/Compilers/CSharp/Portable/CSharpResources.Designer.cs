@@ -6758,6 +6758,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The &apos;new()&apos; constraint cannot be used with the &apos;unmanaged&apos; constraint.
+        /// </summary>
+        internal static string ERR_NewBoundWithUnmanaged {
+            get {
+                return ResourceManager.GetString("ERR_NewBoundWithUnmanaged", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The &apos;new()&apos; constraint cannot be used with the &apos;struct&apos; constraint.
         /// </summary>
         internal static string ERR_NewBoundWithVal {
@@ -9710,6 +9719,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The &apos;unmanaged&apos; constraint cannot be specified with other constraints..
+        /// </summary>
+        internal static string ERR_UnmanagedConstraintMustBeAlone {
+            get {
+                return ResourceManager.GetString("ERR_UnmanagedConstraintMustBeAlone", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The type &apos;{2}&apos; cannot be a reference type, or contain reference type fields at any level of nesting, in order to use it as parameter &apos;{1}&apos; in the generic type or method &apos;{0}&apos;.
+        /// </summary>
+        internal static string ERR_UnmanagedConstraintNotSatisfied {
+            get {
+                return ResourceManager.GetString("ERR_UnmanagedConstraintNotSatisfied", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A previous catch clause already catches all exceptions of this or of a super type (&apos;{0}&apos;).
         /// </summary>
         internal static string ERR_UnreachableCatch {
@@ -10787,6 +10814,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_FeatureTypeVariance {
             get {
                 return ResourceManager.GetString("IDS_FeatureTypeVariance", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to unmanaged generic type constraints.
+        /// </summary>
+        internal static string IDS_FeatureUnmanagedGenericTypeConstraint {
+            get {
+                return ResourceManager.GetString("IDS_FeatureUnmanagedGenericTypeConstraint", resourceCulture);
             }
         }
         

@@ -149,6 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureAttributesOnBackingFields = MessageBase + 12731,
         IDS_FeatureEnumGenericTypeConstraint = MessageBase + 12732,
         IDS_FeatureDelegateGenericTypeConstraint = MessageBase + 12733,
+        IDS_FeatureUnmanagedGenericTypeConstraint = MessageBase + 12734,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -192,6 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureAttributesOnBackingFields: // semantic check
                 case MessageID.IDS_FeatureEnumGenericTypeConstraint: // semantic check
                 case MessageID.IDS_FeatureDelegateGenericTypeConstraint: // semantic check
+                case MessageID.IDS_FeatureUnmanagedGenericTypeConstraint: // semantic check
                     return LanguageVersion.CSharp7_3;
 
                 // C# 7.2 features.

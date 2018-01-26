@@ -310,7 +310,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (_typeSyntax.IsVar)
                 {
                     bool isVar;
-                    TypeSymbol declType = this.TypeSyntaxBinder.BindType(_typeSyntax, new DiagnosticBag(), out isVar);
+                    TypeSymbol declType = this.TypeSyntaxBinder.BindTypeOrVarKeyword(_typeSyntax, new DiagnosticBag(), out isVar);
                     return isVar;
                 }
 
@@ -326,7 +326,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             bool isVar;
             RefKind refKind;
-            TypeSymbol declType = typeBinder.BindType(_typeSyntax.SkipRef(out refKind), diagnostics, out isVar);
+            TypeSymbol declType = typeBinder.BindTypeOrVarKeyword(_typeSyntax.SkipRef(out refKind), diagnostics, out isVar);
 
             if (isVar)
             {

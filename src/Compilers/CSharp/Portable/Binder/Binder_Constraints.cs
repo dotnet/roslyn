@@ -92,7 +92,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var constraints = TypeParameterConstraintKind.None;
             var constraintTypes = ArrayBuilder<TypeSymbol>.GetInstance();
-            var isStruct = false;
 
             for (int i = 0, n = constraintsSyntax.Count; i < n; i++)
             {
@@ -113,13 +112,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                             diagnostics.Add(ErrorCode.ERR_RefValBoundMustBeFirst, syntax.GetFirstToken().GetLocation());
                         }
 
-                        isStruct = true;
                         constraints |= TypeParameterConstraintKind.ValueType;
                         continue;
                     case SyntaxKind.ConstructorConstraint:
-                        if (isStruct)
+                        if ((constraints & TypeParameterConstraintKind.ValueType) != 0)
                         {
                             diagnostics.Add(ErrorCode.ERR_NewBoundWithVal, syntax.GetFirstToken().GetLocation());
+                        }
+                        if ((constraints & TypeParameterConstraintKind.Unmanaged) != 0)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_NewBoundWithUnmanaged, syntax.GetFirstToken().GetLocation());
                         }
 
                         if (i != n - 1)
@@ -138,50 +140,67 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 diagnostics.Add(ErrorCode.ERR_BadConstraintType, typeSyntax.GetLocation());
                             }
 
-                            var type = this.BindType(typeSyntax, diagnostics);
+                            var type = BindTypeOrUnmanagedKeyword(typeSyntax, diagnostics, out var isUnmanaged);
 
-                            // Only valid constraint types are included in ConstraintTypes
-                            // since, in general, it may be difficult to support all invalid types.
-                            // In the future, we may want to include some invalid types
-                            // though so the public binding API has the most information.
-                            if (!IsValidConstraintType(typeConstraintSyntax, type, diagnostics))
+                            if (isUnmanaged)
                             {
-                                continue;
-                            }
-
-                            if (constraintTypes.Contains(type))
-                            {
-                                // "Duplicate constraint '{0}' for type parameter '{1}'"
-                                Error(diagnostics, ErrorCode.ERR_DuplicateBound, syntax, type, name);
-                                continue;
-                            }
-
-                            if (type.TypeKind == TypeKind.Class)
-                            {
-                                // If there is already a struct or class constraint (class constraint could be
-                                // 'class' or explicit type), report an error and drop this class. If we don't
-                                // drop this additional class, we may end up with conflicting class constraints.
-
-                                if (constraintTypes.Count > 0)
+                                if (constraints != 0 || constraintTypes.Any())
                                 {
-                                    // "The class type constraint '{0}' must come before any other constraints"
-                                    Error(diagnostics, ErrorCode.ERR_ClassBoundNotFirst, syntax, type);
+                                    diagnostics.Add(ErrorCode.ERR_UnmanagedConstraintMustBeAlone, typeSyntax.GetLocation());
+                                }
+
+                                constraints |= TypeParameterConstraintKind.Unmanaged;
+                                continue;
+                            }
+                            else
+                            {
+                                // Only valid constraint types are included in ConstraintTypes
+                                // since, in general, it may be difficult to support all invalid types.
+                                // In the future, we may want to include some invalid types
+                                // though so the public binding API has the most information.
+                                if (!IsValidConstraintType(typeConstraintSyntax, type, diagnostics))
+                                {
                                     continue;
                                 }
 
-                                if ((constraints & (TypeParameterConstraintKind.ReferenceType | TypeParameterConstraintKind.ValueType)) != 0)
+                                if (constraintTypes.Contains(type))
                                 {
-                                    switch (type.SpecialType)
-                                    {
-                                        case SpecialType.System_Enum:
-                                        case SpecialType.System_Delegate:
-                                        case SpecialType.System_MulticastDelegate:
-                                            break;
+                                    // "Duplicate constraint '{0}' for type parameter '{1}'"
+                                    Error(diagnostics, ErrorCode.ERR_DuplicateBound, syntax, type, name);
+                                    continue;
+                                }
 
-                                        default:
-                                            // "'{0}': cannot specify both a constraint class and the 'class' or 'struct' constraint"
-                                            Error(diagnostics, ErrorCode.ERR_RefValBoundWithClass, syntax, type);
-                                            continue;
+                                if (type.TypeKind == TypeKind.Class)
+                                {
+                                    // If there is already a struct or class constraint (class constraint could be
+                                    // 'class' or explicit type), report an error and drop this class. If we don't
+                                    // drop this additional class, we may end up with conflicting class constraints.
+
+                                    if (constraintTypes.Count > 0)
+                                    {
+                                        // "The class type constraint '{0}' must come before any other constraints"
+                                        Error(diagnostics, ErrorCode.ERR_ClassBoundNotFirst, syntax, type);
+                                        continue;
+                                    }
+
+                                    if ((constraints & (TypeParameterConstraintKind.ReferenceType | TypeParameterConstraintKind.ValueType)) != 0)
+                                    {
+                                        switch (type.SpecialType)
+                                        {
+                                            case SpecialType.System_Enum:
+                                            case SpecialType.System_Delegate:
+                                            case SpecialType.System_MulticastDelegate:
+                                                break;
+
+                                            default:
+                                                // "'{0}': cannot specify both a constraint class and the 'class' or 'struct' constraint"
+                                                Error(diagnostics, ErrorCode.ERR_RefValBoundWithClass, syntax, type);
+                                                continue;
+                                        }
+                                    }
+                                    else if ((constraints & TypeParameterConstraintKind.Unmanaged) != 0)
+                                    {
+                                        diagnostics.Add(ErrorCode.ERR_UnmanagedConstraintMustBeAlone, typeSyntax.GetLocation());
                                     }
                                 }
                             }
