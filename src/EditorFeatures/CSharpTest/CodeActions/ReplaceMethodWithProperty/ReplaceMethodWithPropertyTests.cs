@@ -158,8 +158,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
         {
         }
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
@@ -192,8 +191,7 @@ ignoreTrivia: false);
             return count;
         }
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [WorkItem(21460, "https://github.com/dotnet/roslyn/issues/21460")]
@@ -390,8 +388,7 @@ ignoreTrivia: false);
         }
     }
 }",
-index: 1,
-ignoreTrivia: false);
+index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
@@ -1491,8 +1488,7 @@ index: 1));
         SetGoo(out int i);
     }
 }",
-index: 0,
-ignoreTrivia: false);
+index: 0);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
@@ -1535,8 +1531,7 @@ ignoreTrivia: false);
         {|Conflict:Goo|}(out int i);
     }
 }",
-index: 1,
-ignoreTrivia: false);
+index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
@@ -1927,13 +1922,11 @@ class C : IGoo
 
         private async Task TestWithAllCodeStyleOff(
             string initialMarkup, string expectedMarkup, 
-            ParseOptions parseOptions = null, int index = 0, 
-            bool ignoreTrivia = false)
+            ParseOptions parseOptions = null, int index = 0)
         {
             await TestAsync(
                 initialMarkup, expectedMarkup, parseOptions,
                 index: index,
-                ignoreTrivia: ignoreTrivia,
                 options: AllCodeStyleOff);
         }
 

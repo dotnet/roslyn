@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 foreach (var label in section.SwitchLabels)
                 {
-                    if (label.IsReachable)
+                    if (label.IsReachable && label != node.DefaultLabel)
                     {
                         SetState(initialState.Clone());
                         // assign pattern variables
@@ -171,10 +171,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            // we always consider the default label reachable for flow analysis purposes.
+            // we always consider the default label reachable for flow analysis purposes
+            // unless there was a single case that would match every input.
             if (node.DefaultLabel != null)
             {
-                SetState(initialState.Clone());
+                if (node.SomeLabelAlwaysMatches)
+                {
+                    SetUnreachable();
+                }
+                else
+                {
+                    SetState(initialState.Clone());
+                }
+
                 _pendingBranches.Add(new PendingBranch(node.DefaultLabel, this.State));
             }
 

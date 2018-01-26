@@ -15,6 +15,8 @@ using Microsoft.CodeAnalysis;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     [Export(typeof(IAttachedCollectionSourceProvider))]
     [Name(nameof(CpsDiagnosticItemProvider))]
     [Order]

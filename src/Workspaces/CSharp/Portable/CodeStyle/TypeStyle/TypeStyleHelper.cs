@@ -75,6 +75,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
             CancellationToken cancellationToken,
             ITypeSymbol typeInDeclaration = null)
         {
+            // tuple literals
+            if (initializerExpression.IsKind(SyntaxKind.TupleExpression))
+            {
+                var tuple = (TupleExpressionSyntax)initializerExpression;
+                foreach (var argument in tuple.Arguments)
+                {
+                    if (!IsTypeApparentInAssignmentExpression(stylePreferences, argument.Expression, semanticModel, cancellationToken, typeInDeclaration))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
             // default(type)
             if (initializerExpression.IsKind(SyntaxKind.DefaultExpression))
             {
@@ -89,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
 
             // constructor invocations cases:
             //      = new type();
-            if (initializerExpression.IsKind(SyntaxKind.ObjectCreationExpression) &&
+            if (initializerExpression.IsKind(SyntaxKind.ObjectCreationExpression, SyntaxKind.ArrayCreationExpression) &&
                 !initializerExpression.IsKind(SyntaxKind.AnonymousObjectCreationExpression))
             {
                 return true;
@@ -216,20 +231,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
 
         private static ExpressionSyntax GetRightmostInvocationExpression(ExpressionSyntax node)
         {
-            var awaitExpression = node as AwaitExpressionSyntax;
-            if (awaitExpression != null && awaitExpression.Expression != null)
+            if (node is AwaitExpressionSyntax awaitExpression && awaitExpression.Expression != null)
             {
                 return GetRightmostInvocationExpression(awaitExpression.Expression);
             }
 
-            var invocationExpression = node as InvocationExpressionSyntax;
-            if (invocationExpression != null && invocationExpression.Expression != null)
+            if (node is InvocationExpressionSyntax invocationExpression && invocationExpression.Expression != null)
             {
                 return GetRightmostInvocationExpression(invocationExpression.Expression);
             }
 
-            var conditional = node as ConditionalAccessExpressionSyntax;
-            if (conditional != null)
+            if (node is ConditionalAccessExpressionSyntax conditional)
             {
                 return GetRightmostInvocationExpression(conditional.WhenNotNull);
             }

@@ -194,7 +194,6 @@ of the problem.");
             var aggregate = new AggregateException(exceptions);
             return aggregate.Flatten().InnerExceptions
                 .Select(UnwrapException)
-                .Where(ex => !(ex is JoinableTaskContextException))
                 .ToList();
         }
 
@@ -488,11 +487,9 @@ of the problem.");
             projectionBufferSpans = new List<object>();
             var projectionBufferSpanStartingPositions = new List<int>();
             mappedCaretLocation = null;
-            string inertText;
-            int? markupCaretLocation;
 
-            MarkupTestFile.GetPositionAndSpans(markup, 
-                out inertText, out markupCaretLocation, out var markupSpans);
+            MarkupTestFile.GetPositionAndSpans(markup,
+                out var inertText, out int? markupCaretLocation, out var markupSpans);
 
             var namedSpans = markupSpans.Where(kvp => kvp.Key != string.Empty);
             var sortedAndNamedSpans = namedSpans.OrderBy(kvp => kvp.Value.Single().Start)
@@ -600,9 +597,8 @@ of the problem.");
 
                     foreach (var projectionSpan in projectionBufferSpans)
                     {
-                        var text = projectionSpan as string;
 
-                        if (text != null)
+                        if (projectionSpan is string text)
                         {
                             if (spanStartLocation == null && positionInMarkup <= markupSpanStart && markupSpanStart <= positionInMarkup + text.Length)
                             {

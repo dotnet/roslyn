@@ -1326,5 +1326,22 @@ class EntryPoint
             var compilation = CreateCompilationWithMscorlib45(source, null, new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithAllowUnsafe(true));
             CompileAndVerify(compilation, expectedOutput: "normalField fixedField").VerifyDiagnostics();
         }
+
+        [Fact]
+        public void PassingNameOfToInShouldCopy()
+        {
+            CompileAndVerify(@"
+class Program
+{
+    public static void Main()
+    {
+        M(nameof(Main));
+    }
+    private static void M(in string value)
+    {
+        System.Console.WriteLine(value);
+    }
+}", expectedOutput: "Main");
+        }
     }
 }

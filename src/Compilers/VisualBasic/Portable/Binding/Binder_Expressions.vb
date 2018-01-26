@@ -251,7 +251,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' e.g. SyntaxKind.MidExpression is handled elsewhere
                     ' NOTE: There were too many "else" cases to justify listing them explicitly and throwing on
                     ' anything unexpected.
-                    Debug.Assert(node.ContainsDiagnostics, String.Format("Unexpected {0} syntax does not have diagnostics", node.Kind))
+                    Debug.Assert(IsSemanticModelBinder OrElse node.ContainsDiagnostics, String.Format("Unexpected {0} syntax does not have diagnostics", node.Kind))
                     Return BadExpression(node, ImmutableArray(Of BoundExpression).Empty, ErrorTypeSymbol.UnknownResultType)
 
             End Select
@@ -414,7 +414,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 CollectTupleFieldMemberName(inferredName, i, numElements, inferredElementNames)
             Next
 
-            RemoveDuplicateInferredTupleNames(inferredElementNames, uniqueFieldNames)
+            RemoveDuplicateInferredTupleNamesAndFreeIfEmptied(inferredElementNames, uniqueFieldNames)
 
             Dim result = MergeTupleElementNames(elementNames, inferredElementNames)
             elementNames?.Free()
@@ -453,7 +453,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return (elementNames.ToImmutable(), builder.ToImmutableAndFree())
         End Function
 
-        Private Shared Sub RemoveDuplicateInferredTupleNames(inferredElementNames As ArrayBuilder(Of String), uniqueFieldNames As HashSet(Of String))
+        ''' <summary>
+        ''' Removes duplicate entries in <paramref name="inferredElementNames"/> and frees it if only nulls remain.
+        ''' </summary>
+        Private Shared Sub RemoveDuplicateInferredTupleNamesAndFreeIfEmptied(ByRef inferredElementNames As ArrayBuilder(Of String), uniqueFieldNames As HashSet(Of String))
             If inferredElementNames Is Nothing Then
                 Return
             End If
@@ -472,6 +475,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     inferredElementNames(index) = Nothing
                 End If
             Next
+
+            If inferredElementNames.All(Function(n) n Is Nothing) Then
+                inferredElementNames.Free()
+                inferredElementNames = Nothing
+            End If
         End Sub
 
         Private Shared Function InferTupleElementName(element As ExpressionSyntax) As String
@@ -1199,12 +1207,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim resultType As TypeSymbol = access.Type
 
                 If Not resultType.IsErrorType() Then
-                    If resultType.IsValueType Then
+                    If resultType.IsValueType AndAlso Not resultType.IsRestrictedType Then
                         If Not resultType.IsNullableType() Then
                             resultType = GetSpecialType(SpecialType.System_Nullable_T, expr.Syntax, diagnostics).Construct(resultType)
                         End If
                     ElseIf Not resultType.IsReferenceType Then
-                        ' Access cannot have unconstrained generic type
+                        ' Access cannot have unconstrained generic type or a restricted type
                         ReportDiagnostic(diagnostics, access.Syntax, ERRID.ERR_CannotBeMadeNullable1, resultType)
                         resultType = ErrorTypeSymbol.UnknownResultType
                     End If
@@ -1631,12 +1639,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Dim initializers = ImmutableArray(Of BoundExpression).Empty
-            For i = 1 To rank
-                arrayInitialization = New BoundArrayInitialization(arrayInitialization.Syntax, initializers, Nothing)
+
+            For i = 1 To rank - 1
+                arrayInitialization = New BoundArrayInitialization(arrayInitialization.Syntax, initializers, Nothing).MakeCompilerGenerated()
                 initializers = ImmutableArray.Create(Of BoundExpression)(arrayInitialization)
             Next
 
-            Return arrayInitialization
+            Return New BoundArrayInitialization(arrayInitialization.Syntax, initializers, Nothing)
         End Function
 
         Private Function ReclassifyTupleLiteralExpression(
@@ -4084,6 +4093,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim inferredElementType As TypeSymbol = Nothing
             Dim arrayInitializer = BindArrayInitializerList(node, knownSizes, hasDominantType, numberOfCandidates, inferredElementType, diagnostics)
 
+            ' Similar to ReclassifyArrayLiteralExpression:
+            ' Mark as compiler generated so that semantic model does not select the array initialization bound node.
+            ' The array initialization node is not a real expression and lacks a type.
+            arrayInitializer.SetWasCompilerGenerated()
+
             Dim inferredArrayType = ArrayTypeSymbol.CreateVBArray(inferredElementType, Nothing, knownSizes.Length, Compilation)
 
             Dim sizes As ImmutableArray(Of BoundExpression) = CreateArrayBounds(node, knownSizes, diagnostics)
@@ -4499,7 +4513,9 @@ lElseClause:
 
                 ElseIf expressionKind = BoundKind.TupleLiteral Then
                     expressionType = DirectCast(expression, BoundTupleLiteral).InferredType
-                    typeList.AddType(expressionType, RequiredConversion.Any, expression)
+                    If expressionType IsNot Nothing Then
+                        typeList.AddType(expressionType, RequiredConversion.Any, expression)
+                    End If
 
                 ElseIf expressionKind = BoundKind.ArrayLiteral Then
                     Dim arrayLiteral = DirectCast(expression, BoundArrayLiteral)
@@ -4532,8 +4548,7 @@ lElseClause:
                         allConvertibleToObject = False
                     End If
 
-                    ' this will pick up lambdas which couldn't be inferred, and array literals which lacked a dominant type,
-                    ' and AddressOf expressions.
+                    ' this will pick up AddressOf expressions.
                 End If
             Next
 

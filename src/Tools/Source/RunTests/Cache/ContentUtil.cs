@@ -133,8 +133,7 @@ namespace RunTests.Cache
                     continue;
                 }
 
-                string currentPath;
-                if (assemblyUtil.TryGetAssemblyPath(current, out currentPath))
+                if (assemblyUtil.TryGetAssemblyPath(current, out var currentPath))
                 {
                     enqueueReferences(currentPath);
                     var currentHash = GetFileChecksum(currentPath);
@@ -154,10 +153,10 @@ namespace RunTests.Cache
             {
                 var builder = new StringBuilder();
                 builder.AppendLine("References:");
-                references.Sort((x, y) => x.Item1.CompareTo(y.Item1));
+                references.Sort((x, y) => x.assemblyName.CompareTo(y.assemblyName));
                 foreach (var pair in references)
                 {
-                    builder.AppendLine($"\t{pair.Item1} {pair.Item2}");
+                    builder.AppendLine($"\t{pair.assemblyName} {pair.assemblyHash}");
                 }
 
                 return (builder.ToString(), isError: false);

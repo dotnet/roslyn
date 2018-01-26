@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-#if NET46
+#if NET461 || NET46
 
 using System;
 using System.Collections.Concurrent;
@@ -54,8 +54,7 @@ namespace Roslyn.Test.Utilities.Desktop
             var cache = reflectionOnly ? _reflectionOnlyAssemblyCache : _assemblyCache;
             lock (s_guard)
             {
-                Assembly assembly;
-                if (cache.TryGetValue(id.Mvid, out assembly))
+                if (cache.TryGetValue(id.Mvid, out var assembly))
                 {
                     return assembly;
                 }
@@ -70,8 +69,7 @@ namespace Roslyn.Test.Utilities.Desktop
 
             lock (s_guard)
             {
-                Assembly assembly;
-                if (cache.TryGetValue(moduleData.Mvid, out assembly))
+                if (cache.TryGetValue(moduleData.Mvid, out var assembly))
                 {
                     return assembly;
                 }

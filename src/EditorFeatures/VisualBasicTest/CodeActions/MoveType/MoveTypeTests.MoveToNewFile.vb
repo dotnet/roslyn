@@ -134,7 +134,7 @@ End Class
 "
             Await TestMoveTypeToNewFileAsync(
                 code, codeAfterMove, expectedDocumentName, destinationDocumentText,
-                index:=1, ignoreTrivia:=False)
+                index:=1)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)>

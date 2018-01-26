@@ -69,8 +69,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 return false;
             }
 
-            var dkmException = exception as DkmException;
-            if (dkmException != null)
+            if (exception is DkmException dkmException)
             {
                 switch (dkmException.Code)
                 {

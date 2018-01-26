@@ -37,15 +37,16 @@ function Copy-Debugger() {
     Copy-Item -re -fo (Join-Path $dropPath "..\..\Debugger\ReferenceDLL\*") $debuggerRefDir
     Copy-Item -re -fo (Join-Path $dropPath "..\..\Debugger\IDE\Microsoft.VisualStudio.Debugger.Engine.dll") $debuggerImplDir
     Copy-Item -re -fo (Join-Path $dropPath "Microsoft.VisualStudio.Debugger.Metadata.dll") $debuggerImplDir
+    Copy-Item -re -fo (Join-Path $dropPath "Microsoft.VisualStudio.Debugger.UI.Interfaces.dll") $debuggerImplDir
     
     Get-ChildItem $debuggerDir -Recurse -File | ForEach-Object { & $fakeSign -f $_.FullName }
 }
 
 # Used to package debugger nugets
 function Package-Debugger() {
-    param( [string]$kind )
+    param( [string]$simpleName )
     $debuggerPath = Join-Path $dllPath "debugger"
-    $nuspecPath = Join-Path $PSScriptRoot "$kind.nuspec"
+    $nuspecPath = Join-Path $PSScriptRoot "$simpleName.nuspec"
     & $nuget pack $nuspecPath -OutputDirectory $packagePath -Properties version=$packageVersion`;debuggerPath=$debuggerPath
 }
 
@@ -59,7 +60,7 @@ try {
 
     $list = Get-Content (Join-Path $PSScriptRoot "files.txt")
     $dropPath = "\\cpvsbuild\drops\VS\$branch\raw\$version\binaries.x86ret\bin\i386"
-    $nuget = Join-Path $PSScriptRoot "..\..\..\nuget.exe"
+    $nuget = Join-Path $PSScriptRoot "..\..\..\Binaries\Tools\nuget.exe"
     $fakeSign = Join-Path (Get-PackageDir "FakeSign") "Tools\FakeSign.exe"
 
     $shortVersion = $version.Substring(0, $version.IndexOf('.'))
@@ -82,10 +83,11 @@ try {
             $name = Split-Path -leaf $item
             $simpleName = [IO.Path]::GetFileNameWithoutExtension($name) 
             Write-Host "Packing $simpleName"
-            switch ($simpleName) {
-                "Microsoft.VisualStudio.Debugger.Engine" { Package-Debugger "engine" }
-                "Microsoft.VisualStudio.Debugger.Metadata" { Package-Debugger "metadata" }
-                default { Package-Normal }
+
+            if ($simpleName.StartsWith("Microsoft.VisualStudio.Debugger")) {
+              Package-Debugger $simpleName     
+            } else {
+              Package-Normal
             }
         }
     }

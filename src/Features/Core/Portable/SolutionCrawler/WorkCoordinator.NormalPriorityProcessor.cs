@@ -434,7 +434,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         RemoveDocument(this.Analyzers, documentId);
                     }
 
-                    private static void RemoveDocument(IEnumerable<IIncrementalAnalyzer> analyzers, DocumentId documentId)
+                    private static void RemoveDocument(ImmutableArray<IIncrementalAnalyzer> analyzers, DocumentId documentId)
                     {
                         foreach (var analyzer in analyzers)
                         {

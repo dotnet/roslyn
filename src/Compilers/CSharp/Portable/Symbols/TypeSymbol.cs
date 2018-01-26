@@ -146,14 +146,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// (for example, interfaces), null is returned. Also the special class System.Object
         /// always has a BaseType of null.
         /// </summary>
-        public NamedTypeSymbol BaseType
-        {
-            get
-            {
-                return BaseTypeNoUseSiteDiagnostics;
-            }
-        }
-
         internal abstract NamedTypeSymbol BaseTypeNoUseSiteDiagnostics { get; }
 
         internal NamedTypeSymbol BaseTypeWithDefinitionUseSiteDiagnostics(ref HashSet<DiagnosticInfo> useSiteDiagnostics)
@@ -185,14 +177,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Gets the set of interfaces that this type directly implements. This set does not include
         /// interfaces that are base interfaces of directly implemented interfaces.
         /// </summary>
-        public ImmutableArray<NamedTypeSymbol> Interfaces
-        {
-            get
-            {
-                return InterfacesNoUseSiteDiagnostics();
-            }
-        }
-
         internal abstract ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<Symbol> basesBeingResolved = null);
 
         /// <summary>
@@ -208,14 +192,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Note: When interfaces specified on the same inheritance level differ by tuple names only,
         /// only the last one will be listed here.
         /// </summary>
-        public ImmutableArray<NamedTypeSymbol> AllInterfaces
-        {
-            get
-            {
-                return AllInterfacesNoUseSiteDiagnostics;
-            }
-        }
-
         internal ImmutableArray<NamedTypeSymbol> AllInterfacesNoUseSiteDiagnostics
         {
             get
@@ -662,6 +638,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// See Type::computeManagedType.
         /// </remarks>
         internal abstract bool IsManagedType { get; }
+
+        /// <summary>
+        /// Returns true if the type may contain embedded references
+        /// </summary>
+        internal abstract bool IsByRefLikeType { get; }
+
+        /// <summary>
+        /// Returns true if the type is a readonly sruct
+        /// </summary>
+        internal abstract bool IsReadOnly { get; }
 
         #region ITypeSymbol Members
 
@@ -1375,11 +1361,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 switch (closestMismatch.Kind)
                 {
                     case SymbolKind.Method:
-                        hasRefReturnMismatch = (((MethodSymbol)closestMismatch).RefKind != RefKind.None) != (interfaceMemberRefKind != RefKind.None);
+                        hasRefReturnMismatch = ((MethodSymbol)closestMismatch).RefKind != interfaceMemberRefKind;
                         break;
 
                     case SymbolKind.Property:
-                        hasRefReturnMismatch = (((PropertySymbol)closestMismatch).RefKind != RefKind.None) != (interfaceMemberRefKind != RefKind.None);
+                        hasRefReturnMismatch = ((PropertySymbol)closestMismatch).RefKind != interfaceMemberRefKind;
                         break;
                 }
 
@@ -1392,7 +1378,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else if (hasRefReturnMismatch)
                 {
-                    diagnostics.Add(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongRefReturn, interfaceLocation, implementingType, interfaceMember, closestMismatch, interfaceMemberRefKind != RefKind.None ? "reference" : "value");
+                    diagnostics.Add(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongRefReturn, interfaceLocation, implementingType, interfaceMember, closestMismatch);
                 }
                 else
                 {

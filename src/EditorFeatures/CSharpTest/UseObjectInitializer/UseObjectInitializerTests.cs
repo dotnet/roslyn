@@ -448,8 +448,7 @@ class C
             j = 2 // Bar
         };
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [WorkItem(15459, "https://github.com/dotnet/roslyn/issues/15459")]
@@ -536,7 +535,7 @@ public class Goo
     }
 
     public string Value { get; set; }
-}", ignoreTrivia: false);
+}");
         }
 
         [WorkItem(19253, "https://github.com/dotnet/roslyn/issues/19253")]
@@ -577,7 +576,7 @@ class MyClass
 
         int horse = 1;
     }
-}", ignoreTrivia: false);
+}");
         }
     }
 }

@@ -41,8 +41,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public async Task<T> GetAssetAsync<T>(Checksum checksum, CancellationToken cancellationToken)
         {
-            T asset;
-            if (_assetStorage.TryGetAsset(checksum, out asset))
+            if (_assetStorage.TryGetAsset(checksum, out T asset))
             {
                 return asset;
             }
@@ -115,8 +114,7 @@ namespace Microsoft.CodeAnalysis.Remote
             //
             // even if it got expired after this for whatever reason, functionality wise everything will still work, 
             // just perf will be impacted since we will fetch it from data source (VS)
-            object unused;
-            return _assetStorage.TryGetAsset(checksum, out unused);
+            return _assetStorage.TryGetAsset(checksum, out object unused);
         }
 
         public async Task SynchronizeAssetsAsync(ISet<Checksum> checksums, CancellationToken cancellationToken)

@@ -410,9 +410,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
     {
         public static void VerifyEdits<TNode>(this EditScript<TNode> actual, params string[] expected)
         {
-            AssertEx.Equal(
-                expected.Select(s => string.Format("\"{0}\"",s)), 
-                actual.Edits.Select(e => string.Format("\"{0}\"", e.GetDebuggerDisplay())), itemSeparator: ",\r\n");
+            AssertEx.Equal(expected, actual.Edits.Select(e => e.GetDebuggerDisplay()), itemSeparator: ",\r\n");
         }
     }
 }

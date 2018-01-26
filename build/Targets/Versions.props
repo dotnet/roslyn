@@ -2,20 +2,19 @@
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
+  <Import Project="RepoToolset\GitHash.props" />
+ 
   <!-- This controls the version numbers of the build that we are producing -->
-
-  <Import Project="Packages.props" />
-  <Import Project="FixedPackages.props" />
 
   <PropertyGroup>
     <!-- This is the assembly version of Roslyn from the .NET assembly perspective. It should only be revved during significant point releases. -->
-    <RoslynAssemblyVersionBase Condition="'$(RoslynAssemblyVersion)' == ''">2.6.0</RoslynAssemblyVersionBase>
+    <RoslynAssemblyVersionBase Condition="'$(RoslynAssemblyVersion)' == ''">2.7.0</RoslynAssemblyVersionBase>
     <!-- This is the file version of Roslyn, as placed in the PE header. It should be revved during point releases, and is also what provides the basis for our NuGet package versioning. -->
-    <RoslynFileVersionBase Condition="'$(RoslynFileVersionBase)' == ''">2.6.0</RoslynFileVersionBase>
+    <RoslynFileVersionBase Condition="'$(RoslynFileVersionBase)' == ''">2.7.0</RoslynFileVersionBase>
     <!-- The release moniker for our packages.  Developers should use "dev" and official builds pick the branch
          moniker listed below -->
     <RoslynNuGetMoniker Condition="'$(RoslynNuGetMoniker)' == ''">dev</RoslynNuGetMoniker>
-    <RoslynNuGetMoniker Condition="'$(OfficialBuild)' == 'true'">beta1</RoslynNuGetMoniker> 
+    <RoslynNuGetMoniker Condition="'$(OfficialBuild)' == 'true'">beta3</RoslynNuGetMoniker> 
 
     <!-- This is the base of the NuGet versioning for prerelease packages -->
     <NuGetPreReleaseVersion>$(RoslynFileVersionBase)-$(RoslynNuGetMoniker)</NuGetPreReleaseVersion>
@@ -28,7 +27,11 @@
          same format as provided by MicroBuild v2, but greater than any that MicroBuild v2 will produce, and is still compatible
          with the Win32 file version limitations. This is required so that builds done locally, where '$(OfficialBuild)' == 'true',
          can still be deployed to VS and override the version that is globally installed. -->
-    <BuildNumber Condition="'$(BuildNumber)' == ''">00065535.0</BuildNumber>
+    <BuildNumberFiveDigitDateStamp Condition="'$(BuildNumber)' == ''">65535</BuildNumberFiveDigitDateStamp>
+    <BuildNumberBuildOfTheDayPadded Condition="'$(BuildNumber)' == ''">01</BuildNumberBuildOfTheDayPadded>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(BuildNumber)' != ''">
     <!-- When a build number is specified, it needs to be in the format of 'x.y'-->
     <Error Condition="$(BuildNumber.Split($([System.Convert]::ToString(`.`).ToCharArray())).Length) != 2">BuildNumber should have two parts (in the form of 'x.y')</Error>
 
@@ -38,12 +41,15 @@
          BuildNumberBuildOfTheDayPadded: 01;and the 12th build of the day, 20160615.12, will produce BuildNumberFiveDigitDateStamp: 60615, BuildNumberBuildOfTheDay: 12
 
          Additionally, in order ensure the value fits in the 16-bit PE header fields, we will only take the last five digits of the BuildNumber, so
-         in the case of 20160615, we will set BuildNumberFiveDigitDateStamp to 60615. Unfortunately for releases in 2017 we can't go any higher, so
-         well continue the month counting instead: the build after 61231 is 61301. -->
-    <BuildNumberFiveDigitDateStampLeft>$(BuildNumber.Split($([System.Convert]::ToString(`.`).ToCharArray())).GetValue($([System.Convert]::ToInt32(0))).Substring($([System.Convert]::ToInt32(3))).Trim())</BuildNumberFiveDigitDateStampLeft>
-    <BuildNumberFiveDigitDateStamp>$([MSBuild]::Subtract($([System.Convert]::ToInt32($(BuildNumberFiveDigitDateStampLeft))), $([System.Convert]::ToInt32(8800))))</BuildNumberFiveDigitDateStamp>
+         in the case of 20160615, we will set BuildNumberFiveDigitDateStamp to 60615. Further, if this would result in a number like 71201 or 81201, we
+         decrement the year and add 12 to the month to extend the time. -->
+    <BuildNumberFiveDigitDateStamp>$([MSBuild]::Subtract($(BuildNumber.Split($([System.Convert]::ToString(`.`).ToCharArray())).GetValue($([System.Convert]::ToInt32(0)))), 20100000))</BuildNumberFiveDigitDateStamp>
+    <_BuildNumberFiveDigitDateStampYearsToOffset>$([System.Math]::Max($([System.Convert]::ToInt32($([MSBuild]::Subtract($([MSBuild]::Divide($(BuildNumberFiveDigitDateStamp), 10000)), 6)))), 0))</_BuildNumberFiveDigitDateStampYearsToOffset>
+    <BuildNumberFiveDigitDateStamp>$([MSBuild]::Subtract($([System.Convert]::ToInt32($(BuildNumberFiveDigitDateStamp))), $([MSBuild]::Multiply($(_BuildNumberFiveDigitDateStampYearsToOffset), 8800))))</BuildNumberFiveDigitDateStamp>
     <BuildNumberBuildOfTheDayPadded>$(BuildNumber.Split($([System.Convert]::ToString(`.`).ToCharArray())).GetValue($([System.Convert]::ToInt32(1))).PadLeft($([System.Convert]::ToInt32(2)), $([System.Convert]::ToChar(`0`))))</BuildNumberBuildOfTheDayPadded>
+  </PropertyGroup>
 
+  <PropertyGroup>
     <!-- NuGet version -->
     <NuGetReleaseVersion>$(RoslynFileVersionBase)</NuGetReleaseVersion>
     <NuGetPerBuildPreReleaseVersion>$(NuGetPreReleaseVersion)-$(BuildNumberFiveDigitDateStamp)-$(BuildNumberBuildOfTheDayPadded)</NuGetPerBuildPreReleaseVersion>
@@ -76,35 +82,14 @@
     </Otherwise>
   </Choose>
 
-  <Choose>
-    <When Condition="'$(OfficialBuild)' != 'true'">
-      <!-- On non-official builds we don't burn in a git sha.  In large part because it
-           hurts our determinism efforts as binaries which should be the same between
-           builds will not (due to developers building against different HEAD
-           values). -->
-      <PropertyGroup>
-        <GitHeadSha>&lt;developer build&gt;</GitHeadSha>
-      </PropertyGroup>
-    </When>
-    <When Condition="'$(BUILD_SOURCEVERSION)' != ''">
-      <PropertyGroup>
-        <GitHeadSha>$(BUILD_SOURCEVERSION)</GitHeadSha>
-      </PropertyGroup>
-    </When>
-    <When Condition="'$(BUILD_SOURCEVERSION)' == '' AND '$(GIT_COMMIT)' != ''">
-      <PropertyGroup>
-        <GitHeadSha>$(GIT_COMMIT)</GitHeadSha>
-      </PropertyGroup>
-    </When>
-    <Otherwise>
-      <PropertyGroup>
-        <GitHeadSha>Not found</GitHeadSha>
-        <DotGitDir>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)../../.git'))</DotGitDir>
-        <HeadFileContent Condition="Exists('$(DotGitDir)/HEAD')">$([System.IO.File]::ReadAllText('$(DotGitDir)/HEAD').Trim())</HeadFileContent>
-        <RefPath Condition="$(HeadFileContent.StartsWith('ref: '))">$(DotGitDir)/$(HeadFileContent.Substring(5))</RefPath>
-        <GitHeadSha Condition="'$(RefPath)' != '' AND Exists('$(RefPath)')">$([System.IO.File]::ReadAllText('$(RefPath)').Trim())</GitHeadSha>
-        <GitHeadSha Condition="'$(HeadFileContent)' != '' AND '$(RefPath)' == ''">$(HeadFileContent)</GitHeadSha>
-      </PropertyGroup>
-    </Otherwise>
-  </Choose>
+  <PropertyGroup>
+    <!-- On non-official builds we don't burn in a git sha.  In large part because it
+         hurts our determinism efforts as binaries which should be the same between
+         builds will not (due to developers building against different HEAD
+         values). -->
+    <CommitHashDisplay>&lt;developer build&gt;</CommitHashDisplay>
+    <CommitHashDisplay Condition="'$(OfficialBuild)' == 'true'">$(GitHeadSha)</CommitHashDisplay>
+    
+    <InformationalVersion>$(NuGetPerBuildPreReleaseVersion). Commit Hash: $(CommitHashDisplay)</InformationalVersion>
+  </PropertyGroup>
 </Project>

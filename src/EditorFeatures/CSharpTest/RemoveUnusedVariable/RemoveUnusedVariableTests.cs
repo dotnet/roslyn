@@ -253,7 +253,7 @@ namespace ClassLibrary
 #endif
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [WorkItem(20942, "https://github.com/dotnet/roslyn/issues/20942")]
@@ -281,7 +281,7 @@ class Test
 
         return used;
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [WorkItem(20942, "https://github.com/dotnet/roslyn/issues/20942")]
@@ -306,7 +306,7 @@ class Test
     {
         return used;
     }
-}", ignoreTrivia: false);
+}");
         }
     }
 }

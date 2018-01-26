@@ -16,10 +16,6 @@ namespace Roslyn.Test.Utilities
             CultureInfo.CurrentCulture = cultureInfo;
         }
 
-        public CultureContext(string testCulture)
-            : this(new CultureInfo(testCulture))
-        { }
-
         public void Dispose()
         {
             CultureInfo.CurrentCulture = _threadCulture;

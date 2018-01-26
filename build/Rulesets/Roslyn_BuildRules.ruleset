@@ -102,7 +102,7 @@
     <Rule Id="CA1308" Action="None" />
     <Rule Id="CA1810" Action="None" />
     <Rule Id="CA1816" Action="None" />
-    <Rule Id="CA1825" Action="Warning" />
+    <Rule Id="CA1825" Action="None" />
     <Rule Id="CA2002" Action="None" />
     <Rule Id="CA2207" Action="None" />
     <Rule Id="CA2208" Action="None" />
@@ -136,5 +136,11 @@
     <Rule Id="xUnit2006" Action="None" /> <!-- "do not use generic Assert.Equal to test string equality" is a valid assert, but very noisy right now -->
     <Rule Id="xUnit2007" Action="None" /> <!-- "do not use Assert.IsType(typeof...)" is a valid assert, but very noisy right now -->
     <Rule Id="xUnit2009" Action="None" /> <!-- "do not use Assert.True to check for substrings" is a valid assert, but very noisy right now -->
+    <Rule Id="xUnit2012" Action="None" /> <!-- "do not use Enumerable.Any() to check if a value exists in a collection" is a valid assert, but very noisy right now -->
+    <Rule Id="xUnit2013" Action="None" /> <!-- "do not use Assert.Equal() to check for collection size" is a valid assert, but very noisy right now -->
+    <Rule Id="xUnit2015" Action="None" /> <!-- "do not use typeof() expression to check the exception type. " is a valid assert, but very noisy right now -->
+    <Rule Id="xUnit2017" Action="None" /> <!-- "do not use Contains() to check if a value exists in a collection" is a valid assert, but very noisy right now -->
+    <Rule Id="xUnit2018" Action="None" /> <!-- "do not compare an object's exact type to the abstract class" is a valid assert, but very noisy right now -->
+collection.
   </Rules>
 </RuleSet>

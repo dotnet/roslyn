@@ -561,5 +561,62 @@ End Class
 ",
 CodeStyleOptions.QualifyMethodAccess)
         End Function
+
+        <WorkItem(21519, "https://github.com/dotnet/roslyn/issues/21519")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)>
+        Public Async Function DoNotReportToQualify_IfInStaticContext1() As Task
+            Await TestMissingAsyncWithOption("
+Class C
+    Private Value As String
+
+    Shared Sub Test()
+        Console.WriteLine([|Value|])
+    End Sub
+End Class
+",
+CodeStyleOptions.QualifyFieldAccess)
+        End Function
+
+        <WorkItem(21519, "https://github.com/dotnet/roslyn/issues/21519")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)>
+        Public Async Function DoNotReportToQualify_IfInStaticContext2() As Task
+            Await TestMissingAsyncWithOption("
+Class C
+    Private Value As String
+    Private Shared Field As String = NameOf([|Value|])
+End Class
+",
+CodeStyleOptions.QualifyFieldAccess)
+        End Function
+
+        <WorkItem(22776, "https://github.com/dotnet/roslyn/issues/22776")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)>
+        Public Async Function DoNotReportToQualify_InObjectInitializer1() As Task
+            Await TestMissingAsyncWithOption("
+class C
+    Public Foo As Integer
+
+    Sub Bar()
+        Dim c = New C() With { [|.Foo = 1|] }
+    End Sub
+End Class
+",
+CodeStyleOptions.QualifyFieldAccess)
+        End Function
+
+        <WorkItem(22776, "https://github.com/dotnet/roslyn/issues/22776")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)>
+        Public Async Function DoNotReportToQualify_InObjectInitializer2() As Task
+            Await TestMissingAsyncWithOption("
+class C
+    Public Property Foo As Integer
+
+    Sub Bar()
+        Dim c = New C() With { [|.Foo|] = 1 }
+    End Sub
+End Class
+",
+CodeStyleOptions.QualifyFieldAccess)
+        End Function
     End Class
 End Namespace

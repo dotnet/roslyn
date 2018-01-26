@@ -75,8 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             else
             {
                 var textBeforeDeletion = SubjectBuffer.AsTextContainer().CurrentText;
-                var documentBeforeDeletion = textBeforeDeletion.GetDocumentWithFrozenPartialSemanticsAsync(CancellationToken.None)
-                                                               .WaitAndGetResult(CancellationToken.None);
+                var documentBeforeDeletion = textBeforeDeletion.GetDocumentWithFrozenPartialSemantics(CancellationToken.None);
 
                 this.TextView.TextBuffer.PostChanged -= OnTextViewBufferPostChanged;
                 this.TextView.Caret.PositionChanged -= OnCaretPositionChanged;

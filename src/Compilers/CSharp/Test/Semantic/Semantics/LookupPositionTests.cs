@@ -1468,6 +1468,34 @@ label1:
             Assert.True(symbols.IsEmpty);
         }
 
+        [Fact]
+        public void GotoLabelShouldNotHaveColon()
+        {
+            var source = @"
+class Program
+{
+    static void M(object o)
+    {
+        switch (o)
+        {
+            case int i:
+                goto HERE;
+            default:
+@default:
+label1:
+                break;
+        }
+    }
+}
+";
+
+            var compilation = CreateStandardCompilation(source);
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+            var symbols = model.LookupLabels(source.ToString().IndexOf("HERE", StringComparison.Ordinal));
+            AssertEx.SetEqual(new[] { "default", "case int i:", "label1" }, symbols.Select(s => s.ToTestDisplayString()));
+        }
+
         [WorkItem(586815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/586815")]
         [WorkItem(598371, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/598371")]
         [Fact]

@@ -844,6 +844,24 @@ class Test
         }
 
         [Fact]
+        public void NoImplicitConversionsDefaultParameter_01()
+        {
+            var source = @"
+class C
+{
+    void Goo(float x = 0.0)
+    {
+
+    }
+}";
+            CreateStandardCompilation(source).VerifyDiagnostics(
+                // (4,20): error CS1750: A value of type 'double' cannot be used as a default parameter because there are no standard conversions to type 'float'
+                //     void Goo(float x = 0.0)
+                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "x").WithArguments("double", "float").WithLocation(4, 20)
+                );
+        }
+
+        [Fact]
         public void NoUserDefinedConversionsDefaultParameter1()
         {
             var source = @"

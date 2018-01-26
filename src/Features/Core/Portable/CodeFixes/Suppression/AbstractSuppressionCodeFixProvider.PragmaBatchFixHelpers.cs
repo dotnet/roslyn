@@ -131,9 +131,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 
             private static void UpdateDiagnosticSpans(ImmutableArray<Diagnostic> diagnostics, Dictionary<Diagnostic, TextSpan> currentDiagnosticSpans, IEnumerable<TextChange> textChanges)
             {
-                Func<TextSpan, TextChange, bool> isPriorSpan = (span, textChange) => span.End <= textChange.Span.Start;
-                Func<TextSpan, TextChange, bool> isFollowingSpan = (span, textChange) => span.Start >= textChange.Span.End;
-                Func<TextSpan, TextChange, bool> isEnclosingSpan = (span, textChange) => span.Contains(textChange.Span);
+                bool isPriorSpan(TextSpan span, TextChange textChange) => span.End <= textChange.Span.Start;
+                bool isFollowingSpan(TextSpan span, TextChange textChange) => span.Start >= textChange.Span.End;
+                bool isEnclosingSpan(TextSpan span, TextChange textChange) => span.Contains(textChange.Span);
 
                 foreach (var diagnostic in diagnostics)
                 {

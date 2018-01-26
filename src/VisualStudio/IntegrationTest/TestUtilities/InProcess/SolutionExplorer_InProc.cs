@@ -546,7 +546,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             using (var solutionEvents = new UpdateSolutionEvents(buildManager))
             {
                 semaphore.Wait();
-                UpdateSolutionEvents.UpdateSolutionDoneEvent @event = (bool succeeded, bool modified, bool canceled) => semaphore.Release();
+                void @event(bool succeeded, bool modified, bool canceled) => semaphore.Release();
                 solutionEvents.OnUpdateSolutionDone += @event;
                 try
                 {

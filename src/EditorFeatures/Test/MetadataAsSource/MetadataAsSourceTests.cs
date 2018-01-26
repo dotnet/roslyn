@@ -958,7 +958,7 @@ public class [|C|]
     public static C operator -(C c1, C c2);
 }}";
             var symbolName = "C";
-            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, expectedCS, ignoreTrivia: false);
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, expectedCS);
 
             var expectedVB = $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
 ' {CodeAnalysisResources.InMemoryAssembly}
@@ -989,7 +989,7 @@ Public Class [|C|]
     Public Shared Operator +(c1 As C, c2 As C) As C
     Public Shared Operator -(c1 As C, c2 As C) As C
 End Class";
-            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, expectedVB, ignoreTrivia: false);
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, expectedVB);
         }
 
         [WorkItem(728644, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/728644")]
@@ -1030,7 +1030,7 @@ public interface [|IGoo|]
     //     M:IGoo.Method1
     Uri Method1();
 }}";
-            await GenerateAndVerifySourceAsync(source, symbolName, LanguageNames.CSharp, expectedCS, ignoreTrivia: false, includeXmlDocComments: true);
+            await GenerateAndVerifySourceAsync(source, symbolName, LanguageNames.CSharp, expectedCS, includeXmlDocComments: true);
 
             var expectedVB = $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
 ' {CodeAnalysisResources.InMemoryAssembly}
@@ -1052,7 +1052,7 @@ Public Interface [|IGoo|]
     '     M:IGoo.Method1
     Function Method1() As Uri
 End Interface";
-            await GenerateAndVerifySourceAsync(source, symbolName, LanguageNames.VisualBasic, expectedVB, ignoreTrivia: false, includeXmlDocComments: true);
+            await GenerateAndVerifySourceAsync(source, symbolName, LanguageNames.VisualBasic, expectedVB, includeXmlDocComments: true);
         }
 
         [WorkItem(679114, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/679114"), WorkItem(715013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715013")]
@@ -1375,7 +1375,7 @@ public interface [|IGoo|]
     //     M:IGoo.Method1 ABCDE FGHIJK
     Uri Method1();
 }}";
-            await GenerateAndVerifySourceAsync(source, symbolName, LanguageNames.CSharp, expectedCS, ignoreTrivia: false, includeXmlDocComments: true);
+            await GenerateAndVerifySourceAsync(source, symbolName, LanguageNames.CSharp, expectedCS, includeXmlDocComments: true);
 
             var expectedVB = $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
 ' {CodeAnalysisResources.InMemoryAssembly}
@@ -1397,7 +1397,7 @@ Public Interface [|IGoo|]
     '     M:IGoo.Method1 ABCDE FGHIJK
     Function Method1() As Uri
 End Interface";
-            await GenerateAndVerifySourceAsync(source, symbolName, LanguageNames.VisualBasic, expectedVB, ignoreTrivia: false, includeXmlDocComments: true);
+            await GenerateAndVerifySourceAsync(source, symbolName, LanguageNames.VisualBasic, expectedVB, includeXmlDocComments: true);
         }
     }
 }

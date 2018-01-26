@@ -6,7 +6,6 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -18,9 +17,429 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class AttributeTests : CompilingTestBase
+    public class AttributeTests : WellKnownAttributesTestBase
     {
         #region Function Tests
+
+        [Fact]
+        [WorkItem(21194, "https://github.com/dotnet/roslyn/issues/21194")]
+        public void TestQuickAttributeChecker()
+        {
+            var predefined = QuickAttributeChecker.Predefined;
+            var typeForwardedTo = SyntaxFactory.Attribute(SyntaxFactory.ParseName("TypeForwardedTo"));
+            var typeIdentifier = SyntaxFactory.Attribute(SyntaxFactory.ParseName("TypeIdentifier"));
+
+            Assert.True(predefined.IsPossibleMatch(typeForwardedTo, QuickAttributes.TypeForwardedTo));
+            Assert.False(predefined.IsPossibleMatch(typeForwardedTo, QuickAttributes.TypeIdentifier));
+            Assert.False(predefined.IsPossibleMatch(typeForwardedTo, QuickAttributes.None));
+
+            Assert.False(predefined.IsPossibleMatch(typeIdentifier, QuickAttributes.TypeForwardedTo));
+            Assert.True(predefined.IsPossibleMatch(typeIdentifier, QuickAttributes.TypeIdentifier));
+            Assert.False(predefined.IsPossibleMatch(typeIdentifier, QuickAttributes.None));
+
+            var alias1 = SyntaxFactory.Attribute(SyntaxFactory.ParseName("alias1"));
+            var checker1 = WithAliases(predefined, "using alias1 = TypeForwardedToAttribute;");
+            Assert.True(checker1.IsPossibleMatch(alias1, QuickAttributes.TypeForwardedTo));
+            Assert.False(checker1.IsPossibleMatch(alias1, QuickAttributes.TypeIdentifier));
+
+            var checker1a = WithAliases(checker1, "using alias1 = TypeIdentifierAttribute;");
+            Assert.True(checker1a.IsPossibleMatch(alias1, QuickAttributes.TypeForwardedTo));
+            Assert.True(checker1a.IsPossibleMatch(alias1, QuickAttributes.TypeIdentifier));
+
+            var checker1b = WithAliases(checker1, "using alias2 = TypeIdentifierAttribute;");
+            var alias2 = SyntaxFactory.Attribute(SyntaxFactory.ParseName("alias2"));
+            Assert.True(checker1b.IsPossibleMatch(alias1, QuickAttributes.TypeForwardedTo));
+            Assert.False(checker1b.IsPossibleMatch(alias1, QuickAttributes.TypeIdentifier));
+            Assert.False(checker1b.IsPossibleMatch(alias2, QuickAttributes.TypeForwardedTo));
+            Assert.True(checker1b.IsPossibleMatch(alias2, QuickAttributes.TypeIdentifier));
+
+            var checker3 = WithAliases(predefined, "using alias3 = TypeForwardedToAttribute; using alias3 = TypeIdentifierAttribute;");
+            var alias3 = SyntaxFactory.Attribute(SyntaxFactory.ParseName("alias3"));
+            Assert.True(checker3.IsPossibleMatch(alias3, QuickAttributes.TypeForwardedTo));
+            Assert.True(checker3.IsPossibleMatch(alias3, QuickAttributes.TypeIdentifier));
+
+            QuickAttributeChecker WithAliases(QuickAttributeChecker checker, string aliases)
+            {
+                var nodes = Parse(aliases).GetRoot().DescendantNodes().OfType<UsingDirectiveSyntax>();
+                var list = new SyntaxList<UsingDirectiveSyntax>().AddRange(nodes);
+                return checker.AddAliasesIfAny(list);
+            }
+        }
+
+
+        [Fact]
+        [WorkItem(21194, "https://github.com/dotnet/roslyn/issues/21194")]
+        public void AttributeWithTypeReferenceToCurrentCompilation_WithMissingType_WithIrrelevantType()
+        {
+            var origLib_cs = @"public class C { }";
+
+            var newLib_cs = @"
+[assembly: RefersToLib] // to bind this, we'll want to lookup type C in 'lib' (during overload resolution of attribute constructors) albeit irrelevant
+// but C won't exist
+";
+
+            var reference_cs =
+@"using System;
+public class RefersToLibAttribute : Attribute
+{
+    public RefersToLibAttribute() { }
+    public RefersToLibAttribute(C c) { }
+}
+";
+
+            var origLibComp = CreateStandardCompilation(origLib_cs, assemblyName: "lib");
+            origLibComp.VerifyDiagnostics();
+
+            var compWithReferenceToLib = CreateStandardCompilation(reference_cs, references: new[] { origLibComp.EmitToImageReference() });
+            compWithReferenceToLib.VerifyDiagnostics();
+
+            var newLibComp = CreateStandardCompilation(newLib_cs, references: new[] { compWithReferenceToLib.EmitToImageReference() }, assemblyName: "lib");
+            newLibComp.VerifyDiagnostics();
+
+            var newLibComp2 = CreateStandardCompilation(newLib_cs, references: new[] { compWithReferenceToLib.ToMetadataReference() }, assemblyName: "lib");
+            newLibComp2.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(21194, "https://github.com/dotnet/roslyn/issues/21194")]
+        public void AttributeWithTypeReferenceToCurrentCompilation_WithDiagnostic()
+        {
+            var origLib_cs = @"public class C { }";
+
+            var newLib_cs = @"
+[assembly: RefersToLib]
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(1)]
+";
+
+            var reference_cs =
+@"using System;
+public class RefersToLibAttribute : Attribute
+{
+    public RefersToLibAttribute() { }
+    public RefersToLibAttribute(C c) { }
+}
+";
+
+            var origLibComp = CreateStandardCompilation(origLib_cs, assemblyName: "lib");
+            origLibComp.VerifyDiagnostics();
+
+            var compWithReferenceToLib = CreateStandardCompilation(reference_cs, references: new[] { origLibComp.EmitToImageReference() });
+            compWithReferenceToLib.VerifyDiagnostics();
+
+            var newLibComp = CreateStandardCompilation(newLib_cs, references: new[] { compWithReferenceToLib.EmitToImageReference() }, assemblyName: "lib");
+            newLibComp.VerifyDiagnostics(
+                // (3,60): error CS1503: Argument 1: cannot convert from 'int' to 'System.Type'
+                // [assembly: System.Runtime.CompilerServices.TypeForwardedTo(1)]
+                Diagnostic(ErrorCode.ERR_BadArgType, "1").WithArguments("1", "int", "System.Type").WithLocation(3, 60)
+                );
+
+            var newLibComp2 = CreateStandardCompilation(newLib_cs, references: new[] { compWithReferenceToLib.ToMetadataReference() }, assemblyName: "lib");
+            newLibComp2.VerifyDiagnostics(
+                // (3,60): error CS1503: Argument 1: cannot convert from 'int' to 'System.Type'
+                // [assembly: System.Runtime.CompilerServices.TypeForwardedTo(1)]
+                Diagnostic(ErrorCode.ERR_BadArgType, "1").WithArguments("1", "int", "System.Type").WithLocation(3, 60)
+                );
+        }
+
+        [Fact]
+        [WorkItem(21194, "https://github.com/dotnet/roslyn/issues/21194")]
+        public void AttributeWithTypeReferenceToCurrentCompilation_WithMissingType_WithRelevantType()
+        {
+            var origLib_cs = @"public class C : System.Attribute { }";
+
+            var newLib_cs = @"
+[assembly: RefersToLib] // to bind this, we'll need to find type C in 'lib'
+// but C won't exist
+";
+
+            var reference_cs =
+@"
+public class RefersToLibAttribute : C
+{
+    public RefersToLibAttribute() { }
+}
+";
+
+            var origLibComp = CreateStandardCompilation(origLib_cs, assemblyName: "lib");
+            origLibComp.VerifyDiagnostics();
+
+            var compWithReferenceToLib = CreateStandardCompilation(reference_cs, references: new[] { origLibComp.EmitToImageReference() });
+            compWithReferenceToLib.VerifyDiagnostics();
+
+            var newLibComp = CreateStandardCompilation(newLib_cs, references: new[] { compWithReferenceToLib.EmitToImageReference() }, assemblyName: "lib");
+            newLibComp.VerifyDiagnostics(
+                // (2,12): error CS7068: Reference to type 'C' claims it is defined in this assembly, but it is not defined in source or any added modules
+                // [assembly: RefersToLib] // to bind this, we'll want to lookup type C in 'lib'
+                Diagnostic(ErrorCode.ERR_MissingTypeInSource, "RefersToLib").WithArguments("C").WithLocation(2, 12)
+                );
+
+            var newLibComp2 = CreateStandardCompilation(newLib_cs, references: new[] { compWithReferenceToLib.ToMetadataReference() }, assemblyName: "lib");
+            newLibComp2.VerifyDiagnostics(
+                // (2,12): error CS7068: Reference to type 'C' claims it is defined in this assembly, but it is not defined in source or any added modules
+                // [assembly: RefersToLib] // to bind this, we'll want to lookup type C in 'lib'
+                Diagnostic(ErrorCode.ERR_MissingTypeInSource, "RefersToLib").WithArguments("C").WithLocation(2, 12)
+                );
+        }
+
+        [Fact]
+        [WorkItem(21194, "https://github.com/dotnet/roslyn/issues/21194")]
+        public void AttributeWithTypeReferenceToCurrentCompilation_WithStaticUsing()
+        {
+            var origLib_cs = @"public class C : System.Attribute { }";
+
+            var newLib_cs = @"
+using static RefersToLibAttribute;
+    // Binding this will cause a lookup for 'C' in 'lib'.
+    // Such lookup requires binding 'TypeForwardedTo' attributes (and aliases), but we should not bind other usings, to avoid an infinite recursion.
+
+[assembly: System.Reflection.AssemblyTitleAttribute(""title"")]
+
+public class Ignore
+{
+    public void UseStaticUsing() { Method(); }
+}
+";
+
+            var reference_cs =
+@"
+public class RefersToLibAttribute : C
+{
+    public RefersToLibAttribute() { }
+    public static void Method() { }
+}
+";
+
+            var origLibComp = CreateStandardCompilation(origLib_cs, assemblyName: "lib");
+            origLibComp.VerifyDiagnostics();
+
+            var compWithReferenceToLib = CreateStandardCompilation(reference_cs, references: new[] { origLibComp.EmitToImageReference() });
+            compWithReferenceToLib.VerifyDiagnostics();
+
+            var newLibComp = CreateStandardCompilation(newLib_cs, references: new[] { compWithReferenceToLib.EmitToImageReference() }, assemblyName: "lib");
+            newLibComp.VerifyDiagnostics();
+
+            var newLibComp2 = CreateStandardCompilation(newLib_cs, references: new[] { compWithReferenceToLib.ToMetadataReference() }, assemblyName: "lib");
+            newLibComp2.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(21194, "https://github.com/dotnet/roslyn/issues/21194")]
+        public void AttributeWithTypeReferenceToCurrentCompilation_WithTypeForward_WithIrrelevantType()
+        {
+            var origLib_cs = @"public class C { }";
+
+            var newLib_cs = @"
+[assembly: RefersToLib] // to bind this, we'll want to lookup type C in 'lib' (during overload resolution of attribute constructors) albeit irrelevant
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(C))] // but C is forwarded
+";
+
+            var reference_cs =
+@"using System;
+public class RefersToLibAttribute : Attribute
+{
+    public RefersToLibAttribute() { }
+    public RefersToLibAttribute(C c) { }
+}
+";
+
+            var origLibComp = CreateStandardCompilation(origLib_cs, assemblyName: "lib");
+            origLibComp.VerifyDiagnostics();
+
+            var newComp = CreateStandardCompilation(origLib_cs, assemblyName: "new");
+            newComp.VerifyDiagnostics();
+
+            var compWithReferenceToLib = CreateStandardCompilation(reference_cs, references: new[] { origLibComp.EmitToImageReference() });
+            compWithReferenceToLib.VerifyDiagnostics();
+
+            var newLibComp = CreateStandardCompilation(newLib_cs,
+                references: new[] { compWithReferenceToLib.EmitToImageReference(),  newComp.EmitToImageReference() }, assemblyName: "lib");
+            newLibComp.VerifyDiagnostics();
+
+            var newLibComp2 = CreateStandardCompilation(newLib_cs,
+                references: new[] { compWithReferenceToLib.ToMetadataReference(),  newComp.ToMetadataReference() }, assemblyName: "lib");
+            newLibComp2.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(21194, "https://github.com/dotnet/roslyn/issues/21194")]
+        public void AttributeWithTypeReferenceToCurrentCompilation_WithTypeForward_WithRelevantType()
+        {
+            var origLib_cs = @"public class C : System.Attribute { }";
+
+            var newLib_cs = @"
+[assembly: RefersToLib] // to bind this, we'll need to find type C in 'lib'
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(C))] // but C is forwarded
+";
+
+            var reference_cs =
+@"
+public class RefersToLibAttribute : C
+{
+    public RefersToLibAttribute() { }
+}
+";
+
+            var origLibComp = CreateStandardCompilation(origLib_cs, assemblyName: "lib");
+            origLibComp.VerifyDiagnostics();
+
+            var newComp = CreateStandardCompilation(origLib_cs, assemblyName: "new");
+            newComp.VerifyDiagnostics();
+
+            var compWithReferenceToLib = CreateStandardCompilation(reference_cs, references: new[] { origLibComp.EmitToImageReference() });
+            compWithReferenceToLib.VerifyDiagnostics();
+
+            var newLibComp = CreateStandardCompilation(newLib_cs, references: new[] { compWithReferenceToLib.EmitToImageReference(),  newComp.EmitToImageReference() }, assemblyName: "lib");
+            newLibComp.VerifyDiagnostics();
+
+            var newLibComp2 = CreateStandardCompilation(newLib_cs, references: new[] { compWithReferenceToLib.ToMetadataReference(),  newComp.ToMetadataReference() }, assemblyName: "lib");
+            newLibComp2.VerifyDiagnostics();
+
+            var newLibComp3 = CreateStandardCompilation(newLib_cs, references: new[] { compWithReferenceToLib.EmitToImageReference(),  newComp.EmitToImageReference() }, assemblyName: "lib");
+            newLibComp3.SourceAssembly.GetAttributes();
+            newLibComp3.VerifyDiagnostics();
+        }
+
+        /// <summary>
+        /// Looking up C explicitly after calling GetAttributes will cause <see cref="SourceAssemblySymbol.GetForwardedTypes"/> to use the cached attributes, rather that do partial binding
+        /// </summary>
+        [Fact]
+        [WorkItem(21194, "https://github.com/dotnet/roslyn/issues/21194")]
+        public void AttributeWithTypeReferenceToCurrentCompilation_WithCheckAttributes()
+        {
+            var cDefinition_cs = @"public class C { }";
+            var derivedDefinition_cs = @"public class Derived : C { }";
+
+            var typeForward_cs = @"
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(C))]
+";
+
+            var origLibComp = CreateStandardCompilation(cDefinition_cs, assemblyName: "lib");
+            origLibComp.VerifyDiagnostics();
+
+            var compWithDerivedAndReferenceToLib = CreateStandardCompilation(typeForward_cs + derivedDefinition_cs, references: new[] { origLibComp.EmitToImageReference() });
+            compWithDerivedAndReferenceToLib .VerifyDiagnostics();
+
+            var compWithC = CreateStandardCompilation(cDefinition_cs, assemblyName: "new");
+            compWithC.VerifyDiagnostics();
+
+            var newLibComp = CreateStandardCompilation(typeForward_cs, references: new[] { compWithDerivedAndReferenceToLib.EmitToImageReference(), compWithC.EmitToImageReference() }, assemblyName: "lib");
+            var attribute = newLibComp.SourceAssembly.GetAttributes().Single(); // GetAttributes binds all attributes
+            Assert.Equal("System.Runtime.CompilerServices.TypeForwardedToAttribute(typeof(C))", attribute.ToString());
+
+            var derived = (NamedTypeSymbol)newLibComp.GetMember("Derived");
+            var c = derived.BaseType(); // get C
+            Assert.Equal("C", c.ToTestDisplayString());
+            Assert.False(c.IsErrorType());
+        }
+
+        [Fact]
+        [WorkItem(21194, "https://github.com/dotnet/roslyn/issues/21194")]
+        public void AttributeWithTypeReferenceToCurrentCompilation_WithTypeForward_WithRelevantType_WithAlias()
+        {
+            var origLib_cs = @"public class C : System.Attribute { }";
+
+            var newLib_cs = @"
+using alias1 = System.Runtime.CompilerServices.TypeForwardedToAttribute;
+[assembly: RefersToLib] // to bind this, we'll need to find type C in 'lib'
+[assembly: alias1(typeof(C))] // but C is forwarded via alias
+";
+
+            var reference_cs =
+@"
+public class RefersToLibAttribute : C
+{
+    public RefersToLibAttribute() { }
+}
+";
+
+            var origLibComp = CreateStandardCompilation(origLib_cs, assemblyName: "lib");
+            origLibComp.VerifyDiagnostics();
+
+            var newComp = CreateStandardCompilation(origLib_cs, assemblyName: "new");
+            newComp.VerifyDiagnostics();
+
+            var compWithReferenceToLib = CreateStandardCompilation(reference_cs, references: new[] { origLibComp.EmitToImageReference() });
+            compWithReferenceToLib.VerifyDiagnostics();
+
+            var newLibComp = CreateStandardCompilation(newLib_cs,
+                references: new[] { compWithReferenceToLib.EmitToImageReference(),  newComp.EmitToImageReference() }, assemblyName: "lib");
+            newLibComp.VerifyDiagnostics();
+
+            var newLibComp2 = CreateStandardCompilation(newLib_cs,
+                references: new[] { compWithReferenceToLib.ToMetadataReference(),  newComp.ToMetadataReference() }, assemblyName: "lib");
+            newLibComp2.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(21194, "https://github.com/dotnet/roslyn/issues/21194")]
+        public void AttributeWithTypeReferenceToCurrentCompilation_WithExistingType_WithIrrelevantType()
+        {
+            var origLib_cs = @"public class C { }";
+
+            var newLib_cs = @"
+[assembly: RefersToLib] // to bind this, we'll want to lookup type C in 'lib' (during overload resolution of attribute constructors) albeit irrelevant
+public class C { } // and C exists here
+";
+
+            var reference_cs =
+@"using System;
+public class RefersToLibAttribute : Attribute
+{
+    public RefersToLibAttribute() { }
+    public RefersToLibAttribute(C c) { }
+}
+";
+
+            var origLibComp = CreateStandardCompilation(origLib_cs, assemblyName: "lib");
+            origLibComp.VerifyDiagnostics();
+
+            var newComp = CreateStandardCompilation(origLib_cs, assemblyName: "new");
+            newComp.VerifyDiagnostics();
+
+            var compWithReferenceToLib = CreateStandardCompilation(reference_cs, references: new[] { origLibComp.EmitToImageReference() });
+            compWithReferenceToLib.VerifyDiagnostics();
+
+            var newLibComp = CreateStandardCompilation(newLib_cs, references: new[] { compWithReferenceToLib.EmitToImageReference(),  newComp.EmitToImageReference() }, assemblyName: "lib");
+            newLibComp.VerifyDiagnostics();
+
+            var newLibComp2 = CreateStandardCompilation(newLib_cs, references: new[] { compWithReferenceToLib.ToMetadataReference(),  newComp.ToMetadataReference() }, assemblyName: "lib");
+            newLibComp2.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(21194, "https://github.com/dotnet/roslyn/issues/21194")]
+        public void AttributeWithTypeReferenceToCurrentCompilation_WithExistingType_WithRelevantType()
+        {
+            var origLib_cs = @"public class C : System.Attribute { }";
+
+            var newLib_cs = @"
+[assembly: RefersToLib] // to bind this, we'll need to find type C in 'lib'
+public class C : System.Attribute { } // and C exists here
+";
+
+            var reference_cs =
+@"
+public class RefersToLibAttribute : C
+{
+    public RefersToLibAttribute() { }
+}
+";
+
+            var origLibComp = CreateStandardCompilation(origLib_cs, assemblyName: "lib");
+            origLibComp.VerifyDiagnostics();
+
+            var newComp = CreateStandardCompilation(origLib_cs, assemblyName: "new");
+            newComp.VerifyDiagnostics();
+
+            var compWithReferenceToLib = CreateStandardCompilation(reference_cs, references: new[] { origLibComp.EmitToImageReference() });
+            compWithReferenceToLib.VerifyDiagnostics();
+
+            var newLibComp = CreateStandardCompilation(newLib_cs, references: new[] { compWithReferenceToLib.EmitToImageReference(),  newComp.EmitToImageReference() }, assemblyName: "lib");
+            newLibComp.VerifyDiagnostics();
+
+            var newLibComp2 = CreateStandardCompilation(newLib_cs, references: new[] { compWithReferenceToLib.ToMetadataReference(),  newComp.ToMetadataReference() }, assemblyName: "lib");
+            newLibComp2.VerifyDiagnostics();
+        }
 
         [Fact]
         public void TestAssemblyAttributes()
@@ -60,6 +479,286 @@ class C
 
             // Verify attributes from source and then load metadata to see attributes are written correctly.
             CompileAndVerify(source, sourceSymbolValidator: attributeValidator, symbolValidator: null);
+        }
+
+        [Fact]
+        [WorkItem(20741, "https://github.com/dotnet/roslyn/issues/20741")]
+        public void TestNamedArgumentOnStringParamsArgument()
+        {
+            var comp = CreateCompilationWithMscorlib46(@"
+using System;
+
+class MarkAttribute : Attribute
+{
+    public MarkAttribute(bool a, params object[] b)
+    {
+    }
+}
+
+[Mark(b: new string[] { ""Hello"", ""World"" }, a: true)]
+[Mark(b: ""Hello"", true)]
+static class Program
+{
+}", parseOptions: TestOptions.Regular7_2);
+            comp.VerifyDiagnostics(
+                // (11,2): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [Mark(b: new string[] { "Hello", "World" }, a: true)]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, @"Mark(b: new string[] { ""Hello"", ""World"" }, a: true)").WithLocation(11, 2),
+                // (12,7): error CS8323: Named argument 'b' is used out-of-position but is followed by an unnamed argument
+                // [Mark(b: "Hello", true)]
+                Diagnostic(ErrorCode.ERR_BadNonTrailingNamedArgument, "b").WithArguments("b").WithLocation(12, 7)
+                );
+        }
+
+        [Fact]
+        [WorkItem(20741, "https://github.com/dotnet/roslyn/issues/20741")]
+        public void TestNamedArgumentOnOrderedObjectParamsArgument()
+        {
+            var comp = CreateCompilationWithMscorlib46(@"
+using System;
+using System.Reflection;
+
+sealed class MarkAttribute : Attribute
+{
+    public MarkAttribute(bool a, params object[] b)
+    {
+        B = b;
+    }
+    public object[] B { get; }
+}
+
+[Mark(a: true, b: new object[] { ""Hello"", ""World"" })]
+static class Program
+{
+    public static void Main()
+    {
+        var attr = typeof(Program).GetCustomAttribute<MarkAttribute>();
+        Console.Write($""B.Length={attr.B.Length}, B[0]={attr.B[0]}, B[1]={attr.B[1]}"");
+    }
+}", options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+
+            CompileAndVerify(comp, expectedOutput: @"B.Length=2, B[0]=Hello, B[1]=World");
+
+            var program = (NamedTypeSymbol)comp.GetMember("Program");
+            var attributeData = (SourceAttributeData)program.GetAttributes()[0];
+            Assert.Equal(new[] { 0, -1 }, attributeData.ConstructorArgumentsSourceIndices);
+        }
+
+        [Fact]
+        [WorkItem(20741, "https://github.com/dotnet/roslyn/issues/20741")]
+        public void TestNamedArgumentOnObjectParamsArgument()
+        {
+            var comp = CreateCompilationWithMscorlib46(@"
+using System;
+using System.Reflection;
+
+sealed class MarkAttribute : Attribute
+{
+    public MarkAttribute(bool a, params object[] b)
+    {
+        B = b;
+    }
+    public object[] B { get; }
+}
+
+[Mark(b: new object[] { ""Hello"", ""World"" }, a: true)]
+static class Program
+{
+    public static void Main()
+    {
+        var attr = typeof(Program).GetCustomAttribute<MarkAttribute>();
+        Console.Write($""B.Length={attr.B.Length}, B[0]={attr.B[0]}, B[1]={attr.B[1]}"");
+    }
+}", options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+
+            CompileAndVerify(comp, expectedOutput: @"B.Length=2, B[0]=Hello, B[1]=World");
+
+            var program = (NamedTypeSymbol)comp.GetMember("Program");
+            var attributeData = (SourceAttributeData)program.GetAttributes()[0];
+            Assert.Equal(new[] { 1, -1 }, attributeData.ConstructorArgumentsSourceIndices);
+        }
+
+        [Fact]
+        [WorkItem(20741, "https://github.com/dotnet/roslyn/issues/20741")]
+        public void TestNamedArgumentOnObjectParamsArgument2()
+        {
+            var comp = CreateCompilationWithMscorlib46(@"
+using System;
+using System.Reflection;
+
+sealed class MarkAttribute : Attribute
+{
+    public MarkAttribute(bool a, params object[] b)
+    {
+        A = a;
+        B = b;
+    }
+    public bool A { get; }
+    public object[] B { get; }
+}
+
+[Mark(b: ""Hello"", a: true)]
+static class Program
+{
+    public static void Main()
+    {
+        var attr = typeof(Program).GetCustomAttribute<MarkAttribute>();
+        Console.Write($""A={attr.A}, B.Length={attr.B.Length}, B[0]={attr.B[0]}"");
+    }
+}", options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_2);
+            comp.VerifyDiagnostics();
+
+            CompileAndVerify(comp, expectedOutput: @"A=True, B.Length=1, B[0]=Hello");
+
+            var program = (NamedTypeSymbol)comp.GetMember("Program");
+            var attributeData = (SourceAttributeData)program.GetAttributes()[0];
+            Assert.Equal(new[] { 1, -1 }, attributeData.ConstructorArgumentsSourceIndices);
+        }
+
+        [Fact]
+        [WorkItem(20741, "https://github.com/dotnet/roslyn/issues/20741")]
+        public void TestNamedArgumentOnObjectParamsArgument3()
+        {
+            var comp = CreateCompilationWithMscorlib46(@"
+using System;
+using System.Reflection;
+
+sealed class MarkAttribute : Attribute
+{
+    public MarkAttribute(bool a, params object[] b)
+    {
+        B = b;
+    }
+    public object[] B { get; }
+}
+
+[Mark(true, new object[] { ""Hello"" }, new object[] { ""World"" })]
+static class Program
+{
+    public static void Main()
+    {
+        var attr = typeof(Program).GetCustomAttribute<MarkAttribute>();
+        var worldArray = (object[])attr.B[1];
+        Console.Write(worldArray[0]);
+    }
+}", options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+
+            CompileAndVerify(comp, expectedOutput: @"World");
+
+            var program = (NamedTypeSymbol)comp.GetMember("Program");
+            var attributeData = (SourceAttributeData)program.GetAttributes()[0];
+            Assert.Equal(new[] { 0, -1 }, attributeData.ConstructorArgumentsSourceIndices);
+        }
+
+        [Fact]
+        [WorkItem(20741, "https://github.com/dotnet/roslyn/issues/20741")]
+        public void TestNamedArgumentOnObjectParamsArgument4()
+        {
+            var comp = CreateCompilationWithMscorlib46(@"
+using System;
+using System.Reflection;
+
+sealed class MarkAttribute : Attribute
+{
+    public MarkAttribute(bool a, params object[] b)
+    {
+        B = b;
+    }
+    public object[] B { get; }
+}
+
+[Mark(a: true, new object[] { ""Hello"" }, new object[] { ""World"" })]
+static class Program
+{
+    public static void Main()
+    {
+        var attr = typeof(Program).GetCustomAttribute<MarkAttribute>();
+        var worldArray = (object[])attr.B[1];
+        Console.Write(worldArray[0]);
+    }
+}", options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_2);
+            comp.VerifyDiagnostics();
+
+            CompileAndVerify(comp, expectedOutput: @"World");
+
+            var program = (NamedTypeSymbol)comp.GetMember("Program");
+            var attributeData = (SourceAttributeData)program.GetAttributes()[0];
+            Assert.Equal(new[] { 0, -1 }, attributeData.ConstructorArgumentsSourceIndices);
+        }
+
+        [Fact]
+        [WorkItem(20741, "https://github.com/dotnet/roslyn/issues/20741")]
+        public void TestNamedArgumentOnObjectParamsArgument5()
+        {
+            var comp = CreateCompilationWithMscorlib46(@"
+using System;
+using System.Reflection;
+
+sealed class MarkAttribute : Attribute
+{
+    public MarkAttribute(bool a, params object[] b)
+    {
+        B = b;
+    }
+    public object[] B { get; }
+}
+
+[Mark(b: null, a: true)]
+static class Program
+{
+    public static void Main()
+    {
+        var attr = typeof(Program).GetCustomAttribute<MarkAttribute>();
+        Console.Write(attr.B == null);
+    }
+}", options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+
+            CompileAndVerify(comp, expectedOutput: @"True");
+
+            var program = (NamedTypeSymbol)comp.GetMember("Program");
+            var attributeData = (SourceAttributeData)program.GetAttributes()[0];
+            Assert.Equal(new[] { 1, -1 }, attributeData.ConstructorArgumentsSourceIndices);
+        }
+
+        [Fact]
+        [WorkItem(20741, "https://github.com/dotnet/roslyn/issues/20741")]
+        public void TestNamedArgumentOnNonParamsArgument()
+        {
+            var comp = CreateCompilationWithMscorlib46(@"
+using System;
+using System.Reflection;
+
+sealed class MarkAttribute : Attribute
+{
+    public MarkAttribute(int a, int b)
+    {
+        A = a;
+        B = b;
+    }
+    public int A { get; }
+    public int B { get;  }
+}
+
+[Mark(b: 42, a: 1)]
+static class Program
+{
+    public static void Main()
+    {
+        var attr = typeof(Program).GetCustomAttribute<MarkAttribute>();
+        Console.Write($""A={attr.A}, B={attr.B}"");
+    }
+}", options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+
+            CompileAndVerify(comp, expectedOutput: "A=1, B=42");
+
+            var program = (NamedTypeSymbol)comp.GetMember("Program");
+            var attributeData = (SourceAttributeData)program.GetAttributes()[0];
+            Assert.Equal(new[] { 1, 0 }, attributeData.ConstructorArgumentsSourceIndices);
         }
 
         [WorkItem(984896, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/984896")]
@@ -866,7 +1565,7 @@ class C
     }
 }";
 
-            Func<bool, Action<ModuleSymbol>> symbolValidator = isFromSource => moduleSymbol =>
+            Func<bool, Action<ModuleSymbol>> symbolValidator = isFromMetadata => moduleSymbol =>
             {
                 var type = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
                 var paramAttrType = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("ParamAttribute");
@@ -885,10 +1584,10 @@ class C
                 Assert.Equal("p2", parameters[1].Name);
                 Assert.Equal(1, parameters[1].GetAttributes(paramAttrType).Count());
 
-                // verify ParamArrayAttribute on p2
-                if (isFromSource)
+                if (isFromMetadata)
                 {
-                    WellKnownAttributesTestBase.VerifyParamArrayAttribute(parameters[1], (SourceModuleSymbol)moduleSymbol);
+                    // verify ParamArrayAttribute on p2
+                    VerifyParamArrayAttribute(parameters[1]);
                 }
 
                 // Delegate Constructor: Doesn't have any parameter attributes
@@ -897,8 +1596,6 @@ class C
                 Assert.Equal(2, parameters.Length);
                 Assert.Equal(0, parameters[0].GetAttributes().Length);
                 Assert.Equal(0, parameters[1].GetAttributes().Length);
-                Assert.Equal(0, parameters[0].GetSynthesizedAttributes().Length);
-                Assert.Equal(0, parameters[1].GetSynthesizedAttributes().Length);
 
                 // BeginInvoke method: Has parameter attributes from delegate declaration parameters syntax
                 var beginInvokeMethod = (MethodSymbol)delegateType.GetMember("BeginInvoke");
@@ -911,14 +1608,14 @@ class C
                 Assert.Equal(0, parameters[2].GetAttributes(paramAttrType).Count());
                 Assert.Equal(0, parameters[3].GetAttributes(paramAttrType).Count());
 
-                // verify no ParamArrayAttribute on p2
-                if (isFromSource)
+                if (isFromMetadata)
                 {
-                    WellKnownAttributesTestBase.VerifyParamArrayAttribute(parameters[1], (SourceModuleSymbol)moduleSymbol, expected: false);
+                    // verify no ParamArrayAttribute on p2
+                    VerifyParamArrayAttribute(parameters[1], expected: false);
                 }
             };
 
-            CompileAndVerify(source, sourceSymbolValidator: symbolValidator(true), symbolValidator: symbolValidator(false));
+            CompileAndVerify(source, sourceSymbolValidator: symbolValidator(false), symbolValidator: symbolValidator(true));
         }
 
         [Fact]
@@ -3858,9 +4555,12 @@ public class Test
 
             compilation.VerifyDiagnostics(
                 // (3,39): error CS0643: 'AllowMultiple' duplicate named attribute argument
+                // [AttributeUsage(AllowMultiple = true, AllowMultiple = false)]
                 Diagnostic(ErrorCode.ERR_DuplicateNamedAttributeArgument, "AllowMultiple = false").WithArguments("AllowMultiple").WithLocation(3, 39),
-                // (3,2): error CS7036: There is no argument given that corresponds to the required formal parameter 'validOn' of 'System.AttributeUsageAttribute.AttributeUsageAttribute(System.AttributeTargets)'
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "AttributeUsage(AllowMultiple = true, AllowMultiple = false)").WithArguments("validOn", "System.AttributeUsageAttribute.AttributeUsageAttribute(System.AttributeTargets)").WithLocation(3, 2));
+                // (3,2): error CS7036: There is no argument given that corresponds to the required formal parameter 'validOn' of 'AttributeUsageAttribute.AttributeUsageAttribute(AttributeTargets)'
+                // [AttributeUsage(AllowMultiple = true, AllowMultiple = false)]
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "AttributeUsage(AllowMultiple = true, AllowMultiple = false)").WithArguments("validOn", "System.AttributeUsageAttribute.AttributeUsageAttribute(System.AttributeTargets)").WithLocation(3, 2)
+                );
         }
 
         [WorkItem(541059, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541059")]
@@ -4357,11 +5057,17 @@ namespace AttributeTest
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1);
             compilation.VerifyDiagnostics(
                 // (7,27): error CS1016: Named attribute argument expected
                 //     [A(3, z: 5, X = 6, y: 1)]
                 Diagnostic(ErrorCode.ERR_NamedArgumentExpected, "1").WithLocation(7, 27),
+                // (8,17): error CS1738: Named argument specifications must appear after all fixed arguments have been specified. Please use language version 7.2 or greater to allow non-trailing named arguments.
+                //     [A(3, z: 5, 1)]
+                Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgument, "1").WithArguments("7.2").WithLocation(8, 17),
+                // (8,11): error CS8321: Named argument 'z' is used out-of-position but is followed by an unnamed argument
+                //     [A(3, z: 5, 1)]
+                Diagnostic(ErrorCode.ERR_BadNonTrailingNamedArgument, "z").WithArguments("z").WithLocation(8, 11),
                 // (9,24): error CS1016: Named attribute argument expected
                 //     [A(3, 1, X = 6, z: 5)]
                 Diagnostic(ErrorCode.ERR_NamedArgumentExpected, "5").WithLocation(9, 24),
@@ -4370,10 +5076,8 @@ namespace AttributeTest
                 Diagnostic(ErrorCode.ERR_NamedArgumentExpected, "0").WithLocation(10, 15),
                 // (11,18): error CS1016: Named attribute argument expected
                 //     [A(X = 6, x: 0)]
-                Diagnostic(ErrorCode.ERR_NamedArgumentExpected, "0").WithLocation(11, 18),
-                // (8,17): error CS1738: Named argument specifications must appear after all fixed arguments have been specified
-                //     [A(3, z: 5, 1)]
-                Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgument, "1").WithLocation(8, 17));
+                Diagnostic(ErrorCode.ERR_NamedArgumentExpected, "0").WithLocation(11, 18)
+                );
         }
 
         [WorkItem(541877, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541877")]

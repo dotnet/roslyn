@@ -21,7 +21,7 @@ class Awaiter<T> : INotifyCompletion
 {
     public bool IsCompleted { get; }
     public T GetResult();
-    public void OnCompletion(Action completion);
+    public void OnCompleted(Action completion);
 }
 ```
 ## Builder Type

@@ -81,8 +81,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                 var arguments = syntaxFactsService.GetArgumentsOfInvocationExpression(invocation);
                 if (arguments.Count >= 2)
                 {
-                    var firstArgumentExpression = syntaxFactsService.GetExpressionOfArgument(GetFormatArgument(arguments, syntaxFactsService)) as TLiteralExpressionSyntax;
-                    if (firstArgumentExpression != null && syntaxFactsService.IsStringLiteral(firstArgumentExpression.GetFirstToken()))
+                    if (syntaxFactsService.GetExpressionOfArgument(GetFormatArgument(arguments, syntaxFactsService)) is TLiteralExpressionSyntax firstArgumentExpression && syntaxFactsService.IsStringLiteral(firstArgumentExpression.GetFirstToken()))
                     {
                         invocationSymbol = semanticModel.GetSymbolInfo(invocation, cancellationToken).Symbol;
                         if (formatMethods.Contains(invocationSymbol))
@@ -203,8 +202,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                 var interpolationSyntaxNode = newNode;
                 if (interpolationSyntaxNode != null)
                 {
-                    var literalExpression = syntaxFactsService.GetExpressionOfInterpolation(interpolationSyntaxNode) as TLiteralExpressionSyntax;
-                    if (literalExpression != null && syntaxFactsService.IsNumericLiteralExpression(literalExpression))
+                    if (syntaxFactsService.GetExpressionOfInterpolation(interpolationSyntaxNode) is TLiteralExpressionSyntax literalExpression && syntaxFactsService.IsNumericLiteralExpression(literalExpression))
                     {
                         if (int.TryParse(literalExpression.GetFirstToken().ValueText, out var index))
                         {

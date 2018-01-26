@@ -600,7 +600,7 @@ class B
 }
 ";
             DkmClrRuntimeInstance runtime = null;
-            GetMemberValueDelegate getMemberValue = (v, m) => (m == "Q") ? CreateErrorValue(runtime.GetType("A"), "Function evaluation timed out") : null;
+            VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue getMemberValue(VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue v, string m) => (m == "Q") ? CreateErrorValue(runtime.GetType("A"), "Function evaluation timed out") : null;
             runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlibAndSystemCore(GetAssembly(source)), getMemberValue: getMemberValue);
             using (runtime.Load())
             {

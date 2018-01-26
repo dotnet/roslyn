@@ -11,7 +11,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Storage
     [ExportWorkspaceService(typeof(IPersistentStorageLocationService), ServiceLayer.Host), Shared]
     internal class VisualStudioPersistentStorageLocationService : IPersistentStorageLocationService
     {
-        public bool IsSupported(Workspace workspace)
+        public bool IsSupported(Microsoft.CodeAnalysis.Workspace workspace)
             => workspace is VisualStudioWorkspaceImpl;
 
         public string GetStorageLocation(Solution solution)

@@ -17,6 +17,7 @@ using Roslyn.Utilities;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using System;
+using Microsoft.CodeAnalysis.ErrorReporting;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
@@ -69,29 +70,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
-            var document = context.Document;
-            var position = context.Position;
-            var options = context.Options;
-            var cancellationToken = context.CancellationToken;
-
-            var (token, semanticModel, symbols) = await GetSymbolsAsync(document, position, options, cancellationToken).ConfigureAwait(false);
-
-            if (symbols.Length == 0)
+            try
             {
-                return;
+                var document = context.Document;
+                var position = context.Position;
+                var options = context.Options;
+                var cancellationToken = context.CancellationToken;
+
+                var (token, semanticModel, symbols) = await GetSymbolsAsync(document, position, options, cancellationToken).ConfigureAwait(false);
+
+                if (symbols.Length == 0)
+                {
+                    return;
+                }
+
+                context.IsExclusive = true;
+
+                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var span = GetCompletionItemSpan(text, position);
+                var hideAdvancedMembers = options.GetOption(CompletionOptions.HideAdvancedMembers, semanticModel.Language);
+                var serializedOptions = ImmutableDictionary<string, string>.Empty.Add(HideAdvancedMembers, hideAdvancedMembers.ToString());
+
+                var items = CreateCompletionItems(document.Project.Solution.Workspace,
+                    semanticModel, symbols, token, span, position, serializedOptions);
+
+                context.AddItems(items);
             }
-
-            context.IsExclusive = true;
-
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var span = GetCompletionItemSpan(text, position);
-            var hideAdvancedMembers = options.GetOption(CompletionOptions.HideAdvancedMembers, semanticModel.Language);
-            var serializedOptions = ImmutableDictionary<string, string>.Empty.Add(HideAdvancedMembers, hideAdvancedMembers.ToString());
-
-            var items = CreateCompletionItems(document.Project.Solution.Workspace, 
-                semanticModel, symbols, token, span, position, serializedOptions);
-
-            context.AddItems(items);
+            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            {
+                // nop
+            }
         }
 
         protected override async Task<(SyntaxToken, SemanticModel, ImmutableArray<ISymbol>)> GetSymbolsAsync(
@@ -238,8 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var result = ArrayBuilder<ISymbol>.GetInstance();
             result.AddRange(semanticModel.LookupSymbols(token.SpanStart, container));
 
-            var namedTypeContainer = container as INamedTypeSymbol;
-            if (namedTypeContainer != null)
+            if (container is INamedTypeSymbol namedTypeContainer)
             {
                 result.AddRange(namedTypeContainer.InstanceConstructors);
             }
@@ -257,7 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
 
         private IEnumerable<CompletionItem> CreateCompletionItems(
-            Workspace workspace, SemanticModel semanticModel, IEnumerable<ISymbol> symbols, SyntaxToken token, TextSpan itemSpan, int position, ImmutableDictionary<string, string> options)
+            Workspace workspace, SemanticModel semanticModel, ImmutableArray<ISymbol> symbols, SyntaxToken token, TextSpan itemSpan, int position, ImmutableDictionary<string, string> options)
         {
             var builder = SharedPools.Default<StringBuilder>().Allocate();
             try
@@ -334,13 +341,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                         var parameter = parameters[i];
 
-                        if (parameter.RefKind == RefKind.Out)
+                        switch (parameter.RefKind)
                         {
-                            builder.Append("out ");
-                        }
-                        else if (parameter.RefKind == RefKind.Ref)
-                        {
-                            builder.Append("ref ");
+                            case RefKind.Ref:
+                                builder.Append("ref ");
+                                break;
+                            case RefKind.Out:
+                                builder.Append("out ");
+                                break;
+                            case RefKind.In:
+                                builder.Append("in ");
+                                break;
                         }
 
                         builder.Append(parameter.Type.ToMinimalDisplayString(semanticModel, position));

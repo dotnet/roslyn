@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -11,7 +10,6 @@ using System.Reflection.Metadata.Ecma335;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -63,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var now = DateTime.Now;
             int days, seconds;
-            VersionTestHelpers.GetDefautVersion(now, out days, out seconds);
+            VersionTestHelpers.GetDefaultVersion(now, out days, out seconds);
 
             var s = @"[assembly: System.Reflection.AssemblyVersion(""10101.0.*"")] public class C {}";
             var comp = CreateStandardCompilation(s, options: TestOptions.ReleaseDll.WithCurrentLocalTime(now));
@@ -107,6 +105,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (1,46): error CS7034: The specified version string does not conform to the required format - major[.minor[.build[.revision]]]
                 // [assembly: System.Reflection.AssemblyVersion("-1")] public class C {}
                 Diagnostic(ErrorCode.ERR_InvalidVersionFormat, @"""-1""").WithLocation(1, 46));
+        }
+
+        [Fact, WorkItem(22660, "https://github.com/dotnet/roslyn/issues/22660")]
+        public void VersionAttributeWithWildcardAndDeterminism()
+        {
+            string s = @"[assembly: System.Reflection.AssemblyVersion(""1.1.1.*"")]";
+
+            var comp = CreateStandardCompilation(s, options: TestOptions.ReleaseDll.WithDeterministic(true));
+            comp.VerifyDiagnostics(
+                // (1,46): error CS8357: The specified version string contains wildcards, which are not compatible with determinism. Either remove wildcards from the version string, or disable determinism for this compilation
+                // [assembly: System.Reflection.AssemblyVersion("1.1.1.*")]
+                Diagnostic(ErrorCode.ERR_InvalidVersionFormatDeterministic, @"""1.1.1.*""").WithLocation(1, 46)
+                );
         }
 
         [Fact]
@@ -169,24 +180,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             other.VerifyEmitDiagnostics();
         }
 
-        [Fact, WorkItem(545947, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545947"), WorkItem(546971, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546971")]
+        [Fact, WorkItem(545947, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545947"),
+            WorkItem(546971, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546971"),
+            WorkItem(22660, "https://github.com/dotnet/roslyn/issues/22660")]
         public void SatelliteContractVersionAttributeErr()
         {
             string s = @"[assembly: System.Resources.SatelliteContractVersionAttribute(""1.2.3.A"")] public class C {}";
 
             var other = CreateStandardCompilation(s, options: TestOptions.ReleaseDll);
             other.VerifyDiagnostics(
-                // (1,63): error CS7031: The specified version string does not conform to the required format - major.minor.build.revision
+                // (1,63): error CS7058: The specified version string does not conform to the required format - major.minor.build.revision (without wildcards)
                 // [assembly: System.Resources.SatelliteContractVersionAttribute("1.2.3.A")] public class C {}
-                Diagnostic(ErrorCode.ERR_InvalidVersionFormat2, @"""1.2.3.A""").WithLocation(1, 63));
+                Diagnostic(ErrorCode.ERR_InvalidVersionFormat2, @"""1.2.3.A""").WithLocation(1, 63)
+                );
 
             s = @"[assembly: System.Resources.SatelliteContractVersionAttribute(""1.2.*"")] public class C {}";
 
             other = CreateStandardCompilation(s, options: TestOptions.ReleaseDll);
             other.VerifyDiagnostics(
-                // (1,63): error CS7031: The specified version string does not conform to the required format - major.minor.build.revision
+                // (1,63): error CS7058: The specified version string does not conform to the required format - major.minor.build.revision (without wildcards)
                 // [assembly: System.Resources.SatelliteContractVersionAttribute("1.2.*")] public class C {}
-                Diagnostic(ErrorCode.ERR_InvalidVersionFormat2, @"""1.2.*""").WithLocation(1, 63));
+                Diagnostic(ErrorCode.ERR_InvalidVersionFormat2, @"""1.2.*""").WithLocation(1, 63)
+                );
 
             s = @"[assembly: System.Resources.SatelliteContractVersionAttribute(""1"")] public class C {}";
 
@@ -280,7 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             string s = @"[assembly: System.Reflection.AssemblyCultureAttribute(""\uD800"")]";
             var comp = CreateStandardCompilation(s, options: TestOptions.ReleaseDll);
 
-            CompileAndVerify(comp, verify: false, symbolValidator: m =>
+            CompileAndVerify(comp, verify: Verification.Fails, symbolValidator: m =>
             {
                 var utf8 = new System.Text.UTF8Encoding(false, false);
                 Assert.Equal(utf8.GetString(utf8.GetBytes("\uD800")), m.ContainingAssembly.Identity.CultureName);
@@ -353,7 +368,7 @@ public class en_US
 
             compilation = CreateStandardCompilation("", new MetadataReference[] { compilation.EmitToImageReference() }, TestOptions.ReleaseDll, assemblyName: assemblyNameBase + "20");
 
-            CompileAndVerify(compilation, verify: false).VerifyDiagnostics(
+            CompileAndVerify(compilation, verify: Verification.Skipped).VerifyDiagnostics(
     // warning CS8009: Referenced assembly 'de, Version=0.0.0.0, Culture=de, PublicKeyToken=null' has different culture setting of 'de'.
     Diagnostic(ErrorCode.WRN_RefCultureMismatch).WithArguments("de, Version=0.0.0.0, Culture=de, PublicKeyToken=null", "de")
                 );
@@ -415,7 +430,7 @@ public class en_US
                     Assert.Equal(2, ((PEModuleSymbol)m).GetReferencedAssemblySymbols().Length);
                     Assert.Equal("neutral, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", m.GetReferencedAssemblySymbols()[1].ToTestDisplayString());
                 },
-                verify: false).VerifyDiagnostics();
+                verify: Verification.Skipped).VerifyDiagnostics();
 
             compilation = CreateStandardCompilation(
 @"
@@ -436,7 +451,7 @@ public class neutral
 
             compilation = CreateStandardCompilation("", new MetadataReference[] { compilation.EmitToImageReference() }, TestOptions.ReleaseDll, assemblyName: assemblyNameBase + "60");
 
-            CompileAndVerify(compilation, verify: false).VerifyDiagnostics(
+            CompileAndVerify(compilation, verify: Verification.Skipped).VerifyDiagnostics(
     // warning CS8009: Referenced assembly 'de, Version=0.0.0.0, Culture=de, PublicKeyToken=null' has different culture setting of 'de'.
     Diagnostic(ErrorCode.WRN_RefCultureMismatch).WithArguments("de, Version=0.0.0.0, Culture=de, PublicKeyToken=null", "de")
                 );
@@ -638,7 +653,7 @@ class Program
 }
 ", options: TestOptions.ReleaseDll, references: new[] { MscorlibRef_v4_0_30316_17626, hash_module });
 
-            CompileAndVerify(compilation, verify: false,
+            CompileAndVerify(compilation, verify: Verification.Fails,
                 manifestResources: hash_resources,
                 validator: (peAssembly) =>
                 {
@@ -667,7 +682,7 @@ class Program
 }
 ", options: TestOptions.ReleaseDll, references: new[] { MscorlibRef_v4_0_30316_17626, hash_module });
 
-            CompileAndVerify(compilation, verify: false,
+            CompileAndVerify(compilation, verify: Verification.Fails,
                 manifestResources: hash_resources,
                 validator: (peAssembly) =>
                 {
@@ -700,7 +715,7 @@ class Program
 }
 ", options: TestOptions.ReleaseDll, references: new[] { MscorlibRef_v4_0_30316_17626, hash_module });
 
-            CompileAndVerify(compilation, verify: false,
+            CompileAndVerify(compilation, verify: Verification.Fails,
                 manifestResources: hash_resources,
                 validator: (peAssembly) =>
                 {
@@ -939,31 +954,35 @@ public class C {}
             return ModuleMetadata.CreateFromImage(netmoduleCompilation.EmitToArray());
         }
 
-        private static void TestDuplicateAssemblyAttributesNotEmitted(AssemblySymbol assembly, int expectedSrcAttrCount, int expectedDuplicateAttrCount, string attrTypeName)
+        private void TestDuplicateAssemblyAttributesNotEmitted(CSharpCompilation compilation, int expectedSrcAttrCount, int expectedDuplicateAttrCount, string attrTypeName)
         {
             // SOURCE ATTRIBUTES
 
-            var allSrcAttrs = assembly.GetAttributes();
-            var srcAttrs = allSrcAttrs.Where((a) => string.Equals(a.AttributeClass.Name, attrTypeName, StringComparison.Ordinal)).AsImmutable();
+            var sourceAttributes = compilation.Assembly
+                .GetAttributes()
+                .Where(a => string.Equals(a.AttributeClass.Name, attrTypeName, StringComparison.Ordinal));
 
-            Assert.Equal(expectedSrcAttrCount, srcAttrs.Length);
-
+            Assert.Equal(expectedSrcAttrCount, sourceAttributes.Count());
 
             // EMITTED ATTRIBUTES
 
-            // We should get only unique netmodule/assembly attributes here, duplicate ones should not be emitted.
-            int expectedEmittedAttrsCount = expectedSrcAttrCount - expectedDuplicateAttrCount;
-
-            var allEmittedAttrs = ((SourceAssemblySymbol)assembly).GetCustomAttributesToEmit(new ModuleCompilationState(),
-                emittingRefAssembly: false, emittingAssemblyAttributesInNetModule: false);
-            var emittedAttrs = allEmittedAttrs.Where(a => string.Equals(a.AttributeClass.Name, attrTypeName, StringComparison.Ordinal)).AsImmutable();
-
-            Assert.Equal(expectedEmittedAttrsCount, emittedAttrs.Length);
-            var uniqueAttributes = new HashSet<CSharpAttributeData>(comparer: CommonAttributeDataComparer.Instance);
-            foreach (var attr in emittedAttrs)
+            CompileAndVerify(compilation, symbolValidator: module =>
             {
-                Assert.True(uniqueAttributes.Add(attr));
-            }
+                // We should get only unique netmodule/assembly attributes here, duplicate ones should not be emitted.
+                var expectedEmittedAttrsCount = expectedSrcAttrCount - expectedDuplicateAttrCount;
+
+                var metadataAttributes = module.ContainingAssembly
+                    .GetAttributes()
+                    .Where(a => string.Equals(a.AttributeClass.Name, attrTypeName, StringComparison.Ordinal));
+
+                Assert.Equal(expectedEmittedAttrsCount, metadataAttributes.Count());
+
+                var uniqueAttributes = new HashSet<CSharpAttributeData>(comparer: CommonAttributeDataComparer.Instance);
+                foreach (var attr in metadataAttributes)
+                {
+                    Assert.True(uniqueAttributes.Add(attr));
+                }
+            });
         }
 
         #endregion
@@ -1187,12 +1206,12 @@ public class C {}
             var consoleappCompilation = CreateStandardCompilation(consoleappSource, references: new[] { GetNetModuleWithAssemblyAttributesRef() }, options: TestOptions.ReleaseExe);
             var diagnostics = consoleappCompilation.GetDiagnostics();
 
-            TestDuplicateAssemblyAttributesNotEmitted(consoleappCompilation.Assembly,
+            TestDuplicateAssemblyAttributesNotEmitted(consoleappCompilation,
                expectedSrcAttrCount: 2,
                expectedDuplicateAttrCount: 1,
                attrTypeName: "UserDefinedAssemblyAttrAllowMultipleAttribute");
 
-            TestDuplicateAssemblyAttributesNotEmitted(consoleappCompilation.Assembly,
+            TestDuplicateAssemblyAttributesNotEmitted(consoleappCompilation,
                expectedSrcAttrCount: 2,
                expectedDuplicateAttrCount: 1,
                attrTypeName: "UserDefinedAssemblyAttrNoAllowMultipleAttribute");
@@ -1237,41 +1256,41 @@ public class C {}
                 ";
 
             var consoleappCompilation = CreateStandardCompilation(consoleappSource, references: new[] { GetNetModuleWithAssemblyAttributesRef() }, options: TestOptions.ReleaseExe);
-            var diagnostics = consoleappCompilation.GetDiagnostics();
 
-            TestDuplicateAssemblyAttributesNotEmitted(consoleappCompilation.Assembly,
+            TestDuplicateAssemblyAttributesNotEmitted(consoleappCompilation,
                expectedSrcAttrCount: 2,
                expectedDuplicateAttrCount: 1,
                attrTypeName: "AssemblyTitleAttribute");
 
-            var attrs = ((SourceAssemblySymbol)consoleappCompilation.Assembly).GetCustomAttributesToEmit(new ModuleCompilationState(),
-                emittingRefAssembly: false, emittingAssemblyAttributesInNetModule: false);
-            foreach (var a in attrs)
+            CompileAndVerify(consoleappCompilation, symbolValidator: module =>
             {
-                switch (a.AttributeClass.Name)
+                foreach (var a in module.ContainingAssembly.GetAttributes())
                 {
-                    case "AssemblyTitleAttribute":
-                        Assert.Equal(@"System.Reflection.AssemblyTitleAttribute(""AssemblyTitle (from source)"")", a.ToString());
-                        break;
-                    case "FileIOPermissionAttribute":
-                        Assert.Equal(@"System.Security.Permissions.FileIOPermissionAttribute(System.Security.Permissions.SecurityAction.RequestOptional)", a.ToString());
-                        break;
-                    case "UserDefinedAssemblyAttrNoAllowMultipleAttribute":
-                        Assert.Equal(@"UserDefinedAssemblyAttrNoAllowMultipleAttribute(""UserDefinedAssemblyAttrNoAllowMultiple"")", a.ToString());
-                        break;
-                    case "UserDefinedAssemblyAttrAllowMultipleAttribute":
-                        Assert.Equal(@"UserDefinedAssemblyAttrAllowMultipleAttribute(""UserDefinedAssemblyAttrAllowMultiple"")", a.ToString());
-                        break;
-                    case "CompilationRelaxationsAttribute":
-                    case "RuntimeCompatibilityAttribute":
-                    case "DebuggableAttribute":
-                        // synthesized attributes
-                        break;
-                    default:
-                        Assert.Equal("Unexpected Attr", a.AttributeClass.Name);
-                        break;
+                    switch (a.AttributeClass.Name)
+                    {
+                        case "AssemblyTitleAttribute":
+                            Assert.Equal(@"System.Reflection.AssemblyTitleAttribute(""AssemblyTitle (from source)"")", a.ToString());
+                            break;
+                        case "FileIOPermissionAttribute":
+                            Assert.Equal(@"System.Security.Permissions.FileIOPermissionAttribute(System.Security.Permissions.SecurityAction.RequestOptional)", a.ToString());
+                            break;
+                        case "UserDefinedAssemblyAttrNoAllowMultipleAttribute":
+                            Assert.Equal(@"UserDefinedAssemblyAttrNoAllowMultipleAttribute(""UserDefinedAssemblyAttrNoAllowMultiple"")", a.ToString());
+                            break;
+                        case "UserDefinedAssemblyAttrAllowMultipleAttribute":
+                            Assert.Equal(@"UserDefinedAssemblyAttrAllowMultipleAttribute(""UserDefinedAssemblyAttrAllowMultiple"")", a.ToString());
+                            break;
+                        case "CompilationRelaxationsAttribute":
+                        case "RuntimeCompatibilityAttribute":
+                        case "DebuggableAttribute":
+                            // synthesized attributes
+                            break;
+                        default:
+                            Assert.Equal("Unexpected Attr", a.AttributeClass.Name);
+                            break;
+                    }
                 }
-            }
+            });
         }
 
         [Fact]
@@ -1373,7 +1392,7 @@ using System.Runtime.CompilerServices;
             var compilation = CreateStandardCompilation(source);
             CompileAndVerify(compilation);
 
-            TestDuplicateAssemblyAttributesNotEmitted(compilation.Assembly,
+            TestDuplicateAssemblyAttributesNotEmitted(compilation,
                 expectedSrcAttrCount: 2,
                 expectedDuplicateAttrCount: 1,
                 attrTypeName: "InternalsVisibleToAttribute");
@@ -1412,7 +1431,7 @@ class Program
 
             var compilation = CreateStandardCompilation(source, references: new[] { GetNetModuleWithAssemblyAttributesRef() }, options: TestOptions.ReleaseDll);
 
-            TestDuplicateAssemblyAttributesNotEmitted(compilation.Assembly,
+            TestDuplicateAssemblyAttributesNotEmitted(compilation,
                 expectedSrcAttrCount: 20,
                 expectedDuplicateAttrCount: 5,
                 attrTypeName: "UserDefinedAssemblyAttrAllowMultipleAttribute");
@@ -1440,7 +1459,7 @@ using System;
             // duplicate ignored, no error because identical
             compilation.VerifyDiagnostics();
 
-            TestDuplicateAssemblyAttributesNotEmitted(compilation.Assembly,
+            TestDuplicateAssemblyAttributesNotEmitted(compilation,
                expectedSrcAttrCount: 2,
                expectedDuplicateAttrCount: 1,
                attrTypeName: "UserDefinedAssemblyAttrNoAllowMultipleAttribute");
@@ -1450,7 +1469,7 @@ using System;
             // duplicate ignored, no error because identical
             compilation.VerifyDiagnostics();
 
-            TestDuplicateAssemblyAttributesNotEmitted(compilation.Assembly,
+            TestDuplicateAssemblyAttributesNotEmitted(compilation,
                expectedSrcAttrCount: 2,
                expectedDuplicateAttrCount: 1,
                attrTypeName: "UserDefinedAssemblyAttrNoAllowMultipleAttribute");
@@ -1491,7 +1510,7 @@ class Program
 }";
             var compilation = CreateStandardCompilation(source, references: new[] { netmoduleRef }, options: TestOptions.ReleaseDll);
 
-            TestDuplicateAssemblyAttributesNotEmitted(compilation.Assembly,
+            TestDuplicateAssemblyAttributesNotEmitted(compilation,
                expectedSrcAttrCount: 20,
                expectedDuplicateAttrCount: 5,
                attrTypeName: "UserDefinedAssemblyAttrAllowMultipleAttribute");
@@ -1544,7 +1563,7 @@ class Program
 }";
             var compilation = CreateStandardCompilation(source, references: new[] { netmoduleDefsRef, netmodule0Ref, netmodule1Ref, netmodule2Ref, netmodule3Ref }, options: TestOptions.ReleaseDll);
 
-            TestDuplicateAssemblyAttributesNotEmitted(compilation.Assembly,
+            TestDuplicateAssemblyAttributesNotEmitted(compilation,
                expectedSrcAttrCount: 21,
                expectedDuplicateAttrCount: 6,
                attrTypeName: "UserDefinedAssemblyAttrAllowMultipleAttribute");
@@ -1586,7 +1605,7 @@ class Program
 }";
             var compilation = CreateStandardCompilation(source, references: new[] { netmoduleRef }, options: TestOptions.ReleaseDll);
 
-            TestDuplicateAssemblyAttributesNotEmitted(compilation.Assembly,
+            TestDuplicateAssemblyAttributesNotEmitted(compilation,
                expectedSrcAttrCount: 20,
                expectedDuplicateAttrCount: 5,
                attrTypeName: "UserDefinedAssemblyAttrAllowMultipleAttribute");
@@ -1633,7 +1652,7 @@ class Program
 }";
             var compilation = CreateStandardCompilation(source, references: new[] { netmoduleRef }, options: TestOptions.ReleaseDll);
 
-            TestDuplicateAssemblyAttributesNotEmitted(compilation.Assembly,
+            TestDuplicateAssemblyAttributesNotEmitted(compilation,
                expectedSrcAttrCount: 25,
                expectedDuplicateAttrCount: 10,
                attrTypeName: "UserDefinedAssemblyAttrAllowMultipleAttribute");

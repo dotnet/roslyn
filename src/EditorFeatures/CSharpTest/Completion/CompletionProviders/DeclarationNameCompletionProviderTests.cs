@@ -207,9 +207,9 @@ public class C
     void Goo(StringBuilder $$) {}
 }
 ";
-            await VerifyItemExistsAsync(markup, "stringBuilder", glyph: (int) Glyph.Parameter);
-            await VerifyItemExistsAsync(markup, "@string", glyph: (int) Glyph.Parameter);
-            await VerifyItemExistsAsync(markup, "builder", glyph: (int) Glyph.Parameter);
+            await VerifyItemExistsAsync(markup, "stringBuilder", glyph: (int)Glyph.Parameter);
+            await VerifyItemExistsAsync(markup, "@string", glyph: (int)Glyph.Parameter);
+            await VerifyItemExistsAsync(markup, "builder", glyph: (int)Glyph.Parameter);
         }
 
         [WorkItem(19260, "https://github.com/dotnet/roslyn/issues/19260")]
@@ -223,7 +223,7 @@ public class C
     void Goo(For $$) {}
 }
 ";
-            await VerifyItemExistsAsync(markup, "@for", glyph: (int) Glyph.Parameter);
+            await VerifyItemExistsAsync(markup, "@for", glyph: (int)Glyph.Parameter);
         }
 
         [WorkItem(19260, "https://github.com/dotnet/roslyn/issues/19260")]
@@ -453,7 +453,7 @@ public class MyClass
     MyClass[] $$
 }
 ";
-            await VerifyItemExistsAsync(markup, "MyClass");
+            await VerifyItemExistsAsync(markup, "MyClasses");
             await VerifyItemIsAbsentAsync(markup, "Array");
         }
 
@@ -490,7 +490,7 @@ public class C
     System.Collections.Generic.IEnumerable<C> $$
 }
 ";
-            await VerifyItemExistsAsync(markup, "GetC");
+            await VerifyItemExistsAsync(markup, "GetCs");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -625,6 +625,238 @@ class Test
 }
 ";
             await VerifyItemExistsAsync(markup, "test");
+        }
+
+        [WorkItem(17987, "https://github.com/dotnet/roslyn/issues/17987")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void Pluralize1()
+        {
+            var markup = @"
+using System.Collections.Generic;
+class Index
+{
+    IEnumerable<Index> $$
+}
+";
+            await VerifyItemExistsAsync(markup, "Indices");
+        }
+
+        [WorkItem(17987, "https://github.com/dotnet/roslyn/issues/17987")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void Pluralize2()
+        {
+            var markup = @"
+using System.Collections.Generic;
+class Test
+{
+    IEnumerable<IEnumerable<Test>> $$
+}
+";
+            await VerifyItemExistsAsync(markup, "tests");
+        }
+
+        [WorkItem(17987, "https://github.com/dotnet/roslyn/issues/17987")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void Pluralize3()
+        {
+            var markup = @"
+using System.Collections.Generic;
+using System.Threading;
+class Test
+{
+    IEnumerable<CancellationToken> $$
+}
+";
+            await VerifyItemExistsAsync(markup, "cancellationTokens");
+            await VerifyItemExistsAsync(markup, "cancellations");
+            await VerifyItemExistsAsync(markup, "tokens");
+        }
+
+        [WorkItem(17987, "https://github.com/dotnet/roslyn/issues/17987")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void PluralizeList()
+        {
+            var markup = @"
+using System.Collections.Generic;
+using System.Threading;
+class Test
+{
+    List<CancellationToken> $$
+}
+";
+            await VerifyItemExistsAsync(markup, "cancellationTokens");
+            await VerifyItemExistsAsync(markup, "cancellations");
+            await VerifyItemExistsAsync(markup, "tokens");
+        }
+
+        [WorkItem(17987, "https://github.com/dotnet/roslyn/issues/17987")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void PluralizeArray()
+        {
+            var markup = @"
+using System.Collections.Generic;
+using System.Threading;
+class Test
+{
+    CancellationToken[] $$
+}
+";
+            await VerifyItemExistsAsync(markup, "cancellationTokens");
+            await VerifyItemExistsAsync(markup, "cancellations");
+            await VerifyItemExistsAsync(markup, "tokens");
+        }
+
+        [WorkItem(23497, "https://github.com/dotnet/roslyn/issues/23497")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void InPatternMatching1()
+        {
+            var markup = @"
+using System.Threading;
+
+public class C
+{
+    public static void Main()
+    {
+        object obj = null;
+        if (obj is CancellationToken $$) { }
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "cancellationToken");
+            await VerifyItemExistsAsync(markup, "cancellation");
+            await VerifyItemExistsAsync(markup, "token");
+        }
+
+        [WorkItem(23497, "https://github.com/dotnet/roslyn/issues/23497")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void InPatternMatching2()
+        {
+            var markup = @"
+using System.Threading;
+
+public class C
+{
+    public static bool Foo()
+    {
+        object obj = null;
+        return obj is CancellationToken $$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "cancellationToken");
+            await VerifyItemExistsAsync(markup, "cancellation");
+            await VerifyItemExistsAsync(markup, "token");
+        }
+
+        [WorkItem(23497, "https://github.com/dotnet/roslyn/issues/23497")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void InPatternMatching3()
+        {
+            var markup = @"
+using System.Threading;
+
+public class C
+{
+    public static void Main()
+    {
+        object obj = null;
+        switch(obj)
+        {
+            case CancellationToken $$
+        }
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "cancellationToken");
+            await VerifyItemExistsAsync(markup, "cancellation");
+            await VerifyItemExistsAsync(markup, "token");
+        }
+
+        [WorkItem(23497, "https://github.com/dotnet/roslyn/issues/23497")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void InPatternMatching4()
+        {
+            var markup = @"
+using System.Threading;
+
+public class C
+{
+    public static void Main()
+    {
+        object obj = null;
+        if (obj is CancellationToken ca$$) { }
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "cancellationToken");
+            await VerifyItemExistsAsync(markup, "cancellation");
+        }
+
+        [WorkItem(23497, "https://github.com/dotnet/roslyn/issues/23497")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void InPatternMatching5()
+        {
+            var markup = @"
+using System.Threading;
+
+public class C
+{
+    public static bool Foo()
+    {
+        object obj = null;
+        return obj is CancellationToken to$$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "cancellationToken");
+            await VerifyItemExistsAsync(markup, "token");
+        }
+
+        [WorkItem(23497, "https://github.com/dotnet/roslyn/issues/23497")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void InPatternMatching6()
+        {
+            var markup = @"
+using System.Threading;
+
+public class C
+{
+    public static void Main()
+    {
+        object obj = null;
+        switch(obj)
+        {
+            case CancellationToken to$$
+        }
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "cancellationToken");
+            await VerifyItemExistsAsync(markup, "token");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void DisabledByOption()
+        {
+            var workspace = WorkspaceFixture.GetWorkspace();
+            var originalOptions = WorkspaceFixture.GetWorkspace().Options;
+            try
+            {
+                workspace.Options = originalOptions.
+                    WithChangedOption(CompletionOptions.ShowNameSuggestions, LanguageNames.CSharp, false);
+
+                var markup = @"
+class Test
+{
+    Test $$
+}
+";
+                await VerifyNoItemsExistAsync(markup);
+            }
+            finally
+            {
+                workspace.Options = originalOptions;
+            }
         }
     }
 }

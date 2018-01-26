@@ -285,6 +285,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                     End If
             End Select
 
+            ' nullable ? case
+            If FormattingHelpers.IsQuestionInNullableType(currentToken) Then
+                Return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
+            End If
+
             ' { *
             ' ( *
             ' ) *
@@ -326,11 +331,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             If (previousToken.Kind = SyntaxKind.PlusToken OrElse
                 previousToken.Kind = SyntaxKind.MinusToken) AndAlso
                 TypeOf previousToken.Parent Is UnaryExpressionSyntax Then
-                Return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
-            End If
-
-            ' nullable ? case
-            If FormattingHelpers.IsQuestionInNullableType(currentToken) Then
                 Return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
             End If
 

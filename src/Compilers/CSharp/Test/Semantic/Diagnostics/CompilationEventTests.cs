@@ -98,6 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 "SymbolDeclaredCompilationEvent(F int C<T1>.F @ : (6,8)-(6,14))",
                 "SymbolDeclaredCompilationEvent(C C<T1> @ : (2,2)-(8,3), : (9,2)-(12,3))",
                 "SymbolDeclaredCompilationEvent(M void C<T1>.M(int x1) @ : (4,4)-(4,27))",
+                "SymbolDeclaredCompilationEvent(M void C<T1>.M(int x2) @ : (11,4)-(11,29))",
                 "SymbolDeclaredCompilationEvent(N N @ : (0,0)-(13,1))",
                 "SymbolDeclaredCompilationEvent(<empty>  @ : (0,0)-(13,1))",
                 "SymbolDeclaredCompilationEvent(get_P int C<T1>.P.get @ : (5,21)-(5,25))",

@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 #if DEBUG
                 // Exclude unused import diagnostics since they are never reported when a span is passed.
                 // (See CSharp/VisualBasicCompilation.GetDiagnosticsForMethodBodiesInTree.)
-                Func<Diagnostic, bool> shouldInclude = d => _range.IntersectsWith(d.Location.SourceSpan) && !IsUnusedImportDiagnostic(d);
+                bool shouldInclude(Diagnostic d) => _range.IntersectsWith(d.Location.SourceSpan) && !IsUnusedImportDiagnostic(d);
 
                 // make sure what we got from range is same as what we got from whole diagnostics
                 var rangeDeclaractionDiagnostics = model.GetDeclarationDiagnostics(_range).ToArray();

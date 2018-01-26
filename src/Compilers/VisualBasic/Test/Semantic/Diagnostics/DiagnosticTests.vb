@@ -51,7 +51,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Public Sub Features()
             Dim excludedFeatures = {
                 Feature.InterpolatedStrings, ' https://github.com/dotnet/roslyn/issues/17761
-                Feature.InferredTupleNames
+                Feature.InferredTupleNames,
+                Feature.NonTrailingNamedArguments
             }
             Dim [set] = New HashSet(Of ERRID)
             For Each feature As Feature In [Enum].GetValues(GetType(Feature))

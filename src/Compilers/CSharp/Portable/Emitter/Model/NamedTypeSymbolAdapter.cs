@@ -383,9 +383,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var method = m as MethodSymbol;
                     if ((object)method != null)
                     {
+                        Debug.Assert((object)method.PartialDefinitionPart == null); // must be definition
+
                         foreach (var implemented in method.ExplicitInterfaceImplementations)
                         {
-                            Debug.Assert((object)method.PartialDefinitionPart == null); // must be definition
                             yield return new Microsoft.Cci.MethodImplementation(method, moduleBeingBuilt.TranslateOverriddenMethodReference(implemented, (CSharpSyntaxNode)context.SyntaxNodeOpt, context.Diagnostics));
                         }
 

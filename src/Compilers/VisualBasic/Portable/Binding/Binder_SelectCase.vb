@@ -125,7 +125,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim statementsSyntax As SyntaxList(Of StatementSyntax) = node.Statements
             Dim bodyBinder = GetBinder(statementsSyntax)
-            Dim body As BoundBlock = bodyBinder.BindBlock(node, statementsSyntax, diagnostics)
+            Dim body As BoundBlock = bodyBinder.BindBlock(node, statementsSyntax, diagnostics).MakeCompilerGenerated()
 
             Return New BoundCaseBlock(node, caseStatement, body)
         End Function

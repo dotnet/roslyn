@@ -194,7 +194,7 @@ public class Test : Class2
         {
             CompileAndVerify(
                 "public class C { }",
-                verify: false,
+                verify: Verification.Fails,
                 options: TestOptions.DebugDll.WithOutputKind(OutputKind.NetModule));
         }
 
@@ -287,9 +287,9 @@ abstract public class B : I2, I3
                 Assert.Equal(TypeKind.Class, classA.TypeKind);
                 Assert.Equal(TypeKind.Class, classB.TypeKind);
 
-                Assert.Same(i1, classA.Interfaces.Single());
+                Assert.Same(i1, classA.Interfaces().Single());
 
-                var interfaces = classB.Interfaces;
+                var interfaces = classB.Interfaces();
                 Assert.Same(i2, interfaces[0]);
                 Assert.Same(i3, interfaces[1]);
 
@@ -325,15 +325,15 @@ class C : I1 { }
                 var c = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
 
                 // Order is important - should be pre-order depth-first with declaration order at each level
-                Assert.True(i1.Interfaces.SequenceEqual(ImmutableArray.Create<NamedTypeSymbol>(i2, i3, i4, i5, i6, i7)));
-                Assert.True(i2.Interfaces.SequenceEqual(ImmutableArray.Create<NamedTypeSymbol>(i3, i4)));
-                Assert.False(i3.Interfaces.Any());
-                Assert.False(i4.Interfaces.Any());
-                Assert.True(i5.Interfaces.SequenceEqual(ImmutableArray.Create<NamedTypeSymbol>(i6, i7)));
-                Assert.False(i6.Interfaces.Any());
-                Assert.False(i7.Interfaces.Any());
+                Assert.True(i1.Interfaces().SequenceEqual(ImmutableArray.Create<NamedTypeSymbol>(i2, i3, i4, i5, i6, i7)));
+                Assert.True(i2.Interfaces().SequenceEqual(ImmutableArray.Create<NamedTypeSymbol>(i3, i4)));
+                Assert.False(i3.Interfaces().Any());
+                Assert.False(i4.Interfaces().Any());
+                Assert.True(i5.Interfaces().SequenceEqual(ImmutableArray.Create<NamedTypeSymbol>(i6, i7)));
+                Assert.False(i6.Interfaces().Any());
+                Assert.False(i7.Interfaces().Any());
 
-                Assert.True(c.Interfaces.SequenceEqual(ImmutableArray.Create<NamedTypeSymbol>(i1, i2, i3, i4, i5, i6, i7)));
+                Assert.True(c.Interfaces().SequenceEqual(ImmutableArray.Create<NamedTypeSymbol>(i1, i2, i3, i4, i5, i6, i7)));
             });
         }
 
@@ -745,13 +745,13 @@ class Derived<T, U> : Base<T, U>
                 var derivedType = module.GlobalNamespace.GetTypeMembers("Derived").Single();
                 Assert.Equal(derivedType.Arity, 2);
 
-                var baseType = derivedType.BaseType;
+                var baseType = derivedType.BaseType();
                 Assert.Equal(baseType.Name, "Base");
                 Assert.Equal(baseType.Arity, 2);
 
-                Assert.Equal(derivedType.BaseType, baseType);
-                Assert.Same(baseType.TypeArguments[0], derivedType.TypeParameters[0]);
-                Assert.Same(baseType.TypeArguments[1], derivedType.TypeParameters[1]);
+                Assert.Equal(derivedType.BaseType(), baseType);
+                Assert.Same(baseType.TypeArguments()[0], derivedType.TypeParameters[0]);
+                Assert.Same(baseType.TypeArguments()[1], derivedType.TypeParameters[1]);
             };
             CompileAndVerify(source: source, sourceSymbolValidator: validator, symbolValidator: validator);
         }
@@ -1235,47 +1235,56 @@ class C : B<string>
 ";
             Func<bool, Action<ModuleSymbol>> validator = isFromSource => module =>
             {
-                var classA = module.GlobalNamespace.GetTypeMembers("A").Single();
-                var p = classA.GetMembers("P").OfType<PropertySymbol>().Single();
+                var classA = module.GlobalNamespace.GetTypeMember("A");
+                var p = classA.GetProperty("P");
                 VerifyAutoProperty(p, isFromSource);
-                var q = classA.GetMembers("Q").OfType<PropertySymbol>().Single();
+                var q = classA.GetProperty("Q");
                 VerifyAutoProperty(q, isFromSource);
 
                 var classC = module.GlobalNamespace.GetTypeMembers("C").Single();
-                p = classC.BaseType.GetMembers("P").OfType<PropertySymbol>().Single();
+                p = classC.BaseType().GetProperty("P");
                 VerifyAutoProperty(p, isFromSource);
                 Assert.Equal(p.Type.SpecialType, SpecialType.System_String);
                 Assert.Equal(p.GetMethod.AssociatedSymbol, p);
             };
 
-            CompileAndVerify(source, sourceSymbolValidator: validator(true), symbolValidator: validator(false), options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
+            CompileAndVerify(
+                source,
+                sourceSymbolValidator: validator(true),
+                symbolValidator: validator(false),
+                options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
         }
 
         private static void VerifyAutoProperty(PropertySymbol property, bool isFromSource)
         {
-            var sourceProperty = property as SourcePropertySymbol;
-            if (sourceProperty != null)
+            if (isFromSource)
             {
-                Assert.True(sourceProperty.IsAutoProperty);
-                Assert.Equal(((SourceAssemblySymbol)sourceProperty.ContainingAssembly).DeclaringCompilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor),
-                    sourceProperty.BackingField.GetSynthesizedAttributes().Single().AttributeConstructor);
+                if (property is SourcePropertySymbol sourceProperty)
+                {
+                    Assert.True(sourceProperty.IsAutoProperty);
+                }
+            }
+            else
+            {
+                var backingField = property.ContainingType.GetField(GeneratedNames.MakeBackingFieldName(property.Name));
+                var attribute = backingField.GetAttributes().Single();
+
+                Assert.Equal("System.Runtime.CompilerServices.CompilerGeneratedAttribute", attribute.AttributeClass.ToTestDisplayString());
+                Assert.Empty(attribute.AttributeConstructor.Parameters);
             }
 
-            VerifyAutoPropertyAccessor(property, property.GetMethod, isFromSource);
-            VerifyAutoPropertyAccessor(property, property.SetMethod, isFromSource);
+            VerifyAutoPropertyAccessor(property, property.GetMethod);
+            VerifyAutoPropertyAccessor(property, property.SetMethod);
         }
 
-        private static void VerifyAutoPropertyAccessor(PropertySymbol property, MethodSymbol accessor, bool isFromSource)
+        private static void VerifyAutoPropertyAccessor(PropertySymbol property, MethodSymbol accessor)
         {
             if (accessor != null)
             {
                 var method = property.ContainingType.GetMembers(accessor.Name).Single();
                 Assert.Equal(method, accessor);
                 Assert.Equal(accessor.AssociatedSymbol, property);
-                if (isFromSource)
-                {
-                    Assert.False(accessor.IsImplicitlyDeclared, "MethodSymbol.IsImplicitlyDeclared should be false for auto property accessors");
-                }
+                Assert.False(accessor.IsImplicitlyDeclared, "MethodSymbol.IsImplicitlyDeclared should be false for auto property accessors");
             }
         }
 
@@ -1346,7 +1355,7 @@ class C : B<string>
 
         private void CheckEnumType(NamedTypeSymbol type, Accessibility declaredAccessibility, SpecialType underlyingType)
         {
-            Assert.Equal(type.BaseType.SpecialType, SpecialType.System_Enum);
+            Assert.Equal(type.BaseType().SpecialType, SpecialType.System_Enum);
             Assert.Equal(type.EnumUnderlyingType.SpecialType, underlyingType);
             Assert.Equal(type.DeclaredAccessibility, declaredAccessibility);
             Assert.True(type.IsSealed);
@@ -2484,6 +2493,416 @@ class Program
             Assert.Equal(0x400, sections[0].SizeOfRawData);
             Assert.Equal(0x2000, sections[0].VirtualAddress);
             Assert.Equal(832, sections[0].VirtualSize);
+        }
+
+        [Fact]
+        public void InParametersShouldHaveMetadataIn_TypeMethods()
+        {
+            var text = @"
+using System.Runtime.InteropServices;
+class T
+{
+    public void M(in int a, [In]in int b, [In]int c, int d) {}
+}";
+
+            Action<ModuleSymbol> verifier = module =>
+            {
+                var parameters = module.GlobalNamespace.GetTypeMember("T").GetMethod("M").GetParameters();
+                Assert.Equal(4, parameters.Length);
+
+                Assert.True(parameters[0].IsMetadataIn);
+                Assert.True(parameters[1].IsMetadataIn);
+                Assert.True(parameters[2].IsMetadataIn);
+                Assert.False(parameters[3].IsMetadataIn);
+            };
+
+            CompileAndVerify(text, sourceSymbolValidator: verifier, symbolValidator: verifier);
+        }
+
+        [Fact]
+        public void InParametersShouldHaveMetadataIn_IndexerMethods()
+        {
+            var text = @"
+using System.Runtime.InteropServices;
+class T
+{
+    public int this[in int a, [In]in int b, [In]int c, int d] => 0;
+}";
+
+            Action<ModuleSymbol> verifier = module =>
+            {
+                var parameters = module.GlobalNamespace.GetTypeMember("T").GetMethod("get_Item").GetParameters();
+                Assert.Equal(4, parameters.Length);
+
+                Assert.True(parameters[0].IsMetadataIn);
+                Assert.True(parameters[1].IsMetadataIn);
+                Assert.True(parameters[2].IsMetadataIn);
+                Assert.False(parameters[3].IsMetadataIn);
+            };
+
+            CompileAndVerify(text, sourceSymbolValidator: verifier, symbolValidator: verifier);
+        }
+
+        [Fact]
+        public void InParametersShouldHaveMetadataIn_Delegates()
+        {
+            var text = @"
+using System.Runtime.InteropServices;
+public delegate void D(in int a, [In]in int b, [In]int c, int d);
+public class C
+{
+    public void M()
+    {
+        N((in int a, in int b, int c, int d) => {});
+    }
+    public void N(D lambda) { }
+}
+";
+
+            CompileAndVerify(text,
+                options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                sourceSymbolValidator: module =>
+                {
+                    var parameters = module.ContainingAssembly.GetTypeByMetadataName("D").DelegateInvokeMethod.Parameters;
+                    Assert.Equal(4, parameters.Length);
+
+                    Assert.True(parameters[0].IsMetadataIn);
+                    Assert.True(parameters[1].IsMetadataIn);
+                    Assert.True(parameters[2].IsMetadataIn);
+                    Assert.False(parameters[3].IsMetadataIn);
+                },
+                symbolValidator: module =>
+                {
+                    var delegateParameters = module.ContainingAssembly.GetTypeByMetadataName("D").DelegateInvokeMethod.Parameters;
+                    Assert.Equal(4, delegateParameters.Length);
+
+                    Assert.True(delegateParameters[0].IsMetadataIn);
+                    Assert.True(delegateParameters[1].IsMetadataIn);
+                    Assert.True(delegateParameters[2].IsMetadataIn);
+                    Assert.False(delegateParameters[3].IsMetadataIn);
+
+                    var lambdaParameters = module.GlobalNamespace.GetTypeMember("C").GetTypeMember("<>c").GetMethod("<M>b__0_0").Parameters;
+                    Assert.Equal(4, lambdaParameters.Length);
+
+                    Assert.True(lambdaParameters[0].IsMetadataIn);
+                    Assert.True(lambdaParameters[1].IsMetadataIn);
+                    Assert.False(lambdaParameters[2].IsMetadataIn);
+                    Assert.False(lambdaParameters[3].IsMetadataIn);
+                });
+        }
+
+        [Fact]
+        public void InParametersShouldHaveMetadataIn_LocalFunctions()
+        {
+            var text = @"
+using System.Runtime.InteropServices;
+public class C
+{
+    public void M()
+    {
+        void local(in int a, int c) { }
+    }
+}
+";
+
+            CompileAndVerify(text, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            {
+                var parameters = module.GlobalNamespace.GetTypeMember("C").GetMember("<M>g__local|0_0").GetParameters();
+                Assert.Equal(2, parameters.Length);
+
+                Assert.True(parameters[0].IsMetadataIn);
+                Assert.False(parameters[1].IsMetadataIn);
+            });
+        }
+
+        [Fact]
+        public void InParametersShouldHaveMetadataIn_ExternMethods()
+        {
+            var text = @"
+using System.Runtime.InteropServices;
+class T
+{
+    [DllImport(""Other.dll"")]
+    public static extern void M(in int a, [In]in int b, [In]int c, int d);
+}";
+
+            Action<ModuleSymbol> verifier = module =>
+            {
+                var parameters = module.GlobalNamespace.GetTypeMember("T").GetMethod("M").GetParameters();
+                Assert.Equal(4, parameters.Length);
+
+                Assert.True(parameters[0].IsMetadataIn);
+                Assert.True(parameters[1].IsMetadataIn);
+                Assert.True(parameters[2].IsMetadataIn);
+                Assert.False(parameters[3].IsMetadataIn);
+            };
+
+            CompileAndVerify(text, sourceSymbolValidator: verifier, symbolValidator: verifier);
+        }
+
+        [Fact]
+        public void InParametersShouldHaveMetadataIn_NoPIA()
+        {
+            var comAssembly = CreateStandardCompilation(@"
+using System;
+using System.Runtime.InteropServices;
+[assembly: ImportedFromTypeLib(""test.dll"")]
+[assembly: Guid(""6681dcd6-9c3e-4c3a-b04a-aef3ee85c2cf"")]
+[ComImport()]
+[Guid(""6681dcd6-9c3e-4c3a-b04a-aef3ee85c2cf"")]
+public interface T
+{
+    void M(in int a, [In]in int b, [In]int c, int d);
+}");
+
+            CompileAndVerify(comAssembly, symbolValidator: module =>
+            {
+                var parameters = module.GlobalNamespace.GetTypeMember("T").GetMethod("M").GetParameters();
+                Assert.Equal(4, parameters.Length);
+
+                Assert.True(parameters[0].IsMetadataIn);
+                Assert.True(parameters[1].IsMetadataIn);
+                Assert.True(parameters[2].IsMetadataIn);
+                Assert.False(parameters[3].IsMetadataIn);
+            });
+
+            var code = @"
+class User
+{
+    public void M(T obj)
+    {
+        obj.M(1, 2, 3, 4);
+    }
+}";
+
+
+            CompileAndVerify(
+                source: code,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                additionalRefs: new[] { comAssembly.EmitToImageReference(embedInteropTypes: true) },
+                symbolValidator: module =>
+                {
+                    var parameters = module.GlobalNamespace.GetTypeMember("T").GetMethod("M").GetParameters();
+                    Assert.Equal(4, parameters.Length);
+
+                    Assert.True(parameters[0].IsMetadataIn);
+                    Assert.True(parameters[1].IsMetadataIn);
+                    Assert.True(parameters[2].IsMetadataIn);
+                    Assert.False(parameters[3].IsMetadataIn);
+                });
+        }
+
+        [Fact]
+        public void ExtendingInParametersFromParentWithoutInAttributeWorksWithoutErrors()
+        {
+            var reference = CompileIL(@"
+.class private auto ansi sealed beforefieldinit Microsoft.CodeAnalysis.EmbeddedAttribute extends [mscorlib]System.Attribute
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (01 00 00 00)
+    .custom instance void Microsoft.CodeAnalysis.EmbeddedAttribute::.ctor() = (01 00 00 00)
+
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed 
+    {
+        .maxstack 8
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Attribute::.ctor()
+        IL_0006: nop
+        IL_0007: ret
+    }
+}
+
+.class private auto ansi sealed beforefieldinit System.Runtime.CompilerServices.IsReadOnlyAttribute extends [mscorlib]System.Attribute
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (01 00 00 00)
+    .custom instance void Microsoft.CodeAnalysis.EmbeddedAttribute::.ctor() = (01 00 00 00)
+
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed 
+    {
+        .maxstack 8
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Attribute::.ctor()
+        IL_0006: nop
+        IL_0007: ret
+    }
+}
+
+.class public auto ansi beforefieldinit Parent extends [mscorlib]System.Object
+{
+    .method public hidebysig newslot virtual instance void M (
+            int32& modreq([mscorlib]System.Runtime.InteropServices.InAttribute)  a,
+            int32& modreq([mscorlib]System.Runtime.InteropServices.InAttribute)  b,
+            int32 c,
+            int32 d) cil managed 
+    {
+        .param [1] .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = (01 00 00 00)
+        .param [2] .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = (01 00 00 00)
+        .maxstack 8
+        IL_0000: nop
+        IL_0001: ldstr ""Parent called""
+        IL_0006: call void [mscorlib]System.Console::WriteLine(string)
+        IL_000b: nop
+        IL_000c: ret
+    }
+
+    .method public hidebysig specialname rtspecialname instance void .ctor() cil managed
+    {
+        .maxstack 8
+        IL_0000: ldarg.0
+        IL_0001: call instance void[mscorlib] System.Object::.ctor()
+        IL_0006: nop
+        IL_0007: ret
+    }
+}");
+
+            var comp = CreateStandardCompilation(@"
+using System;
+using System.Runtime.InteropServices;
+
+public class Child : Parent
+{
+    public override void M(in int a, [In]in int b, [In]int c, int d)
+    {
+        base.M(a, b, c, d);
+
+        Console.WriteLine(""Child called"");
+    }
+}
+public static class Program
+{
+    public static void Main()
+    {
+        var obj = new Child();
+        obj.M(1, 2, 3, 4);
+    }
+}", new[] { reference }, TestOptions.ReleaseExe);
+
+            var parentParameters = comp.GetTypeByMetadataName("Parent").GetMethod("M").GetParameters();
+            Assert.Equal(4, parentParameters.Length);
+
+            Assert.False(parentParameters[0].IsMetadataIn);
+            Assert.False(parentParameters[1].IsMetadataIn);
+            Assert.False(parentParameters[2].IsMetadataIn);
+            Assert.False(parentParameters[3].IsMetadataIn);
+
+
+            var expectedOutput =
+@"Parent called
+Child called";
+
+            CompileAndVerify(comp, expectedOutput: expectedOutput, symbolValidator: module =>
+            {
+                var childParameters = module.ContainingAssembly.GetTypeByMetadataName("Child").GetMethod("M").GetParameters();
+                Assert.Equal(4, childParameters.Length);
+
+                Assert.True(childParameters[0].IsMetadataIn);
+                Assert.True(childParameters[1].IsMetadataIn);
+                Assert.True(childParameters[2].IsMetadataIn);
+                Assert.False(childParameters[3].IsMetadataIn);
+            });
+        }
+
+        [Fact]
+        public void GeneratingProxyForVirtualMethodInParentCopiesMetadataBitsCorrectly_OutAttribute()
+        {
+            var reference = CreateStandardCompilation(@"
+using System.Runtime.InteropServices;
+
+public class Parent
+{
+    public void M(out int a, [Out] int b) => throw null;
+}");
+
+            CompileAndVerify(reference, symbolValidator: module =>
+            {
+                var sourceParentParameters = module.GlobalNamespace.GetTypeMember("Parent").GetMethod("M").GetParameters();
+                Assert.Equal(2, sourceParentParameters.Length);
+
+                Assert.True(sourceParentParameters[0].IsMetadataOut);
+                Assert.True(sourceParentParameters[1].IsMetadataOut);
+            });
+
+            var source = @"
+using System.Runtime.InteropServices;
+
+public interface IParent
+{
+    void M(out int a, [Out] int b);
+}
+
+public class Child : Parent, IParent
+{
+}";
+
+            CompileAndVerify(
+                source: source,
+                additionalRefs: new[] { reference.EmitToImageReference() },
+                options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                symbolValidator: module =>
+                {
+                    var interfaceParameters = module.GlobalNamespace.GetTypeMember("IParent").GetMethod("M").GetParameters();
+                    Assert.Equal(2, interfaceParameters.Length);
+
+                    Assert.True(interfaceParameters[0].IsMetadataOut);
+                    Assert.True(interfaceParameters[1].IsMetadataOut);
+
+                    var proxyChildParameters = module.GlobalNamespace.GetTypeMember("Child").GetMethod("IParent.M").GetParameters();
+                    Assert.Equal(2, proxyChildParameters.Length);
+
+                    Assert.True(proxyChildParameters[0].IsMetadataOut);
+                    Assert.False(proxyChildParameters[1].IsMetadataOut); // User placed attributes are not copied.
+                });
+        }
+
+        [Fact]
+        public void GeneratingProxyForVirtualMethodInParentCopiesMetadataBitsCorrectly_InAttribute()
+        {
+            var reference = CreateStandardCompilation(@"
+using System.Runtime.InteropServices;
+
+public class Parent
+{
+    public void M(in int a, [In] int b) => throw null;
+}");
+
+            CompileAndVerify(reference, symbolValidator: module =>
+            {
+                var sourceParentParameters = module.GlobalNamespace.GetTypeMember("Parent").GetMethod("M").GetParameters();
+                Assert.Equal(2, sourceParentParameters.Length);
+
+                Assert.True(sourceParentParameters[0].IsMetadataIn);
+                Assert.True(sourceParentParameters[1].IsMetadataIn);
+            });
+
+            var source = @"
+using System.Runtime.InteropServices;
+
+public interface IParent
+{
+    void M(in int a, [In] int b);
+}
+
+public class Child : Parent, IParent
+{
+}";
+
+            CompileAndVerify(
+                source: source,
+                additionalRefs: new[] { reference.EmitToImageReference() },
+                options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                symbolValidator: module =>
+                {
+                    var interfaceParameters = module.GlobalNamespace.GetTypeMember("IParent").GetMethod("M").GetParameters();
+                    Assert.Equal(2, interfaceParameters.Length);
+
+                    Assert.True(interfaceParameters[0].IsMetadataIn);
+                    Assert.True(interfaceParameters[1].IsMetadataIn);
+
+                    var proxyChildParameters = module.GlobalNamespace.GetTypeMember("Child").GetMethod("IParent.M").GetParameters();
+                    Assert.Equal(2, proxyChildParameters.Length);
+
+                    Assert.True(proxyChildParameters[0].IsMetadataIn);
+                    Assert.False(proxyChildParameters[1].IsMetadataIn); // User placed attributes are not copied.
+                });
         }
     }
 }

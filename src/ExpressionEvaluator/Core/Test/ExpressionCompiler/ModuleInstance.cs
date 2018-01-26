@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 
         public static ModuleInstance Create(PortableExecutableReference reference)
         {
-            // make a copy of the metadata, so that we don't dispose the metadata of a reference that are shared accross tests:
+            // make a copy of the metadata, so that we don't dispose the metadata of a reference that are shared across tests:
             return Create(reference.GetMetadata(), symReader: null, includeLocalSignatures: false);
         }
 

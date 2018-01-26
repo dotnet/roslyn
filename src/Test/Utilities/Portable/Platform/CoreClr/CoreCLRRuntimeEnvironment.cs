@@ -6,7 +6,7 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
-using static Roslyn.Test.Utilities.RuntimeUtilities;
+using static Roslyn.Test.Utilities.RuntimeEnvironmentUtilities;
 
 namespace Roslyn.Test.Utilities.CoreClr
 {
@@ -62,8 +62,7 @@ namespace Roslyn.Test.Utilities.CoreClr
             }
             else
             {
-                string dumpDir;
-                DumpAssemblyData(dependencies, out dumpDir);
+                DumpAssemblyData(dependencies, out var dumpDir);
 
                 // This method MUST throw if compilation did not succeed.  If compilation succeeded and there were errors, that is bad.
                 // Please see KevinH if you intend to change this behavior as many tests expect the Exception to indicate failure.

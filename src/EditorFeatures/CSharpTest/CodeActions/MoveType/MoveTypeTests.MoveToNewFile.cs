@@ -468,8 +468,7 @@ class Class2 { }";
     }
 }";
             await TestMoveTypeToNewFileAsync(
-                code, codeAfterMove, expectedDocumentName, destinationDocumentText,
-                ignoreTrivia: false);
+                code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
@@ -840,8 +839,7 @@ partial class Outer
 }";
 
             await TestMoveTypeToNewFileAsync(
-                code, codeAfterMove, expectedDocumentName, destinationDocumentText,
-                ignoreTrivia: false);
+                code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
 
         [WorkItem(17171, "https://github.com/dotnet/roslyn/issues/17171")]
@@ -880,7 +878,6 @@ partial class Outer
 
             await TestMoveTypeToNewFileAsync(
                 code, codeAfterMove, expectedDocumentName, destinationDocumentText,
-                ignoreTrivia: false,
                 onAfterWorkspaceCreated: w =>
                 {
                     w.Options = w.Options.WithChangedOption(FormattingOptions.InsertFinalNewLine, true);
@@ -922,7 +919,6 @@ partial class Outer
 
             await TestMoveTypeToNewFileAsync(
                 code, codeAfterMove, expectedDocumentName, destinationDocumentText,
-                ignoreTrivia: false,
                 onAfterWorkspaceCreated: w =>
                 {
                     w.Options = w.Options.WithChangedOption(FormattingOptions.InsertFinalNewLine, false);
@@ -1009,7 +1005,7 @@ public class Inner
 #endif";
 
             await TestMoveTypeToNewFileAsync(
-                code, codeAfterMove, expectedDocumentName, destinationDocumentText, ignoreTrivia: false);
+                code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
 
         [WorkItem(17930, "https://github.com/dotnet/roslyn/issues/17930")]
@@ -1067,7 +1063,7 @@ namespace N
 }";
 
             await TestMoveTypeToNewFileAsync(
-                code, codeAfterMove, expectedDocumentName, destinationDocumentText, ignoreTrivia: false);
+                code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
 
         [WorkItem(21456, "https://github.com/dotnet/roslyn/issues/21456")]

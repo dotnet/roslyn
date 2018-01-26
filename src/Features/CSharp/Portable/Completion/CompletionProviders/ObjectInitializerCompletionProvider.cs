@@ -154,9 +154,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             {
                 if (token.Parent != null)
                 {
-                    var initializer = token.Parent as InitializerExpressionSyntax;
 
-                    if (initializer != null)
+                    if (token.Parent is InitializerExpressionSyntax initializer)
                     {
                         return new HashSet<string>(initializer.Expressions.OfType<AssignmentExpressionSyntax>()
                             .Where(b => b.OperatorToken.Kind() == SyntaxKind.EqualsToken)

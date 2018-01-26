@@ -127,6 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 out arglistToken,
                 allowRefOrOut: true,
                 allowThis: false,
+                addRefReadOnlyModifier: false,
                 diagnostics: diagnostics);
 
             if (arglistToken.Kind() == SyntaxKind.ArgListKeyword)
@@ -142,7 +143,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             _lazyReturnType = signatureBinder.BindType(ReturnTypeSyntax, diagnostics);
 
-            if (_lazyReturnType.IsRestrictedType())
+            // restricted types cannot be returned. 
+            // NOTE: Span-like types can be returned (if expression is returnable).
+            if (_lazyReturnType.IsRestrictedType(ignoreSpanLikeTypes: true))
             {
                 // Method or delegate cannot return type '{0}'
                 diagnostics.Add(ErrorCode.ERR_MethodReturnCantBeRefAny, ReturnTypeSyntax.Location, _lazyReturnType);
@@ -178,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // SPEC: The parameters of an operator must be value parameters.
             foreach (var p in this.Parameters)
             {
-                if (p.RefKind != RefKind.None)
+                if (p.RefKind != RefKind.None && p.RefKind != RefKind.In)
                 {
                     diagnostics.Add(ErrorCode.ERR_IllegalRefParam, this.Locations[0]);
                     break;
@@ -612,7 +615,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public sealed override ImmutableArray<TypeParameterConstraintClause> TypeParameterConstraintClauses
             => ImmutableArray<TypeParameterConstraintClause>.Empty;
 
-        internal override RefKind RefKind
+        public override RefKind RefKind
         {
             get { return RefKind.None; }
         }
@@ -648,6 +651,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 parameter.Type.CheckAllConstraints(conversions, parameter.Locations[0], diagnostics);
             }
+
+            ParameterHelpers.EnsureIsReadOnlyAttributeExists(Parameters, diagnostics, modifyCompilationForRefReadOnly: true);
         }
     }
 }

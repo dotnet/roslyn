@@ -8,6 +8,8 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     internal partial class PreviewUpdater
     {
         // internal for testing

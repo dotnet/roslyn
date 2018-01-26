@@ -1793,16 +1793,19 @@ End Class
 
             diff1.VerifyPdb({&H06000001UI, &H06000002UI, &H06000003UI, &H06000004UI, &H06000005UI},
 <symbols>
+    <files>
+      <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" />
+    </files>
     <methods>
         <method token="0x6000004">
             <sequencePoints>
-                <entry offset="0x0" startLine="8" startColumn="5" endLine="8" endColumn="30"/>
-                <entry offset="0x1" startLine="9" startColumn="13" endLine="9" endColumn="25"/>
-                <entry offset="0x7" startLine="10" startColumn="13" endLine="10" endColumn="31"/>
-                <entry offset="0xd" startLine="11" startColumn="13" endLine="11" endColumn="30"/>
-                <entry offset="0x14" startLine="12" startColumn="9" endLine="12" endColumn="13"/>
-                <entry offset="0x21" startLine="13" startColumn="9" endLine="13" endColumn="13"/>
-                <entry offset="0x28" startLine="14" startColumn="5" endLine="14" endColumn="12"/>
+                <entry offset="0x0" startLine="8" startColumn="5" endLine="8" endColumn="30" document="1"/>
+                <entry offset="0x1" startLine="9" startColumn="13" endLine="9" endColumn="25" document="1"/>
+                <entry offset="0x7" startLine="10" startColumn="13" endLine="10" endColumn="31" document="1"/>
+                <entry offset="0xd" startLine="11" startColumn="13" endLine="11" endColumn="30" document="1"/>
+                <entry offset="0x14" startLine="12" startColumn="9" endLine="12" endColumn="13" document="1"/>
+                <entry offset="0x21" startLine="13" startColumn="9" endLine="13" endColumn="13" document="1"/>
+                <entry offset="0x28" startLine="14" startColumn="5" endLine="14" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x29">
                 <currentnamespace name=""/>
@@ -1842,15 +1845,18 @@ End Class
 
             diff2.VerifyPdb({&H06000001UI, &H06000002UI, &H06000003UI, &H06000004UI, &H06000005UI},
 <symbols>
+    <files>
+      <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" />
+    </files>
     <methods>
         <method token="0x6000004">
             <sequencePoints>
-                <entry offset="0x0" startLine="8" startColumn="5" endLine="8" endColumn="30"/>
-                <entry offset="0x1" startLine="9" startColumn="13" endLine="9" endColumn="30"/>
-                <entry offset="0x8" startLine="10" startColumn="13" endLine="10" endColumn="25"/>
-                <entry offset="0xe" startLine="11" startColumn="9" endLine="11" endColumn="13"/>
-                <entry offset="0x1b" startLine="12" startColumn="9" endLine="12" endColumn="13"/>
-                <entry offset="0x22" startLine="13" startColumn="5" endLine="13" endColumn="12"/>
+                <entry offset="0x0" startLine="8" startColumn="5" endLine="8" endColumn="30" document="1"/>
+                <entry offset="0x1" startLine="9" startColumn="13" endLine="9" endColumn="30" document="1"/>
+                <entry offset="0x8" startLine="10" startColumn="13" endLine="10" endColumn="25" document="1"/>
+                <entry offset="0xe" startLine="11" startColumn="9" endLine="11" endColumn="13" document="1"/>
+                <entry offset="0x1b" startLine="12" startColumn="9" endLine="12" endColumn="13" document="1"/>
+                <entry offset="0x22" startLine="13" startColumn="5" endLine="13" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x23">
                 <currentnamespace name=""/>
@@ -1897,15 +1903,18 @@ End Class
 
             diff3.VerifyPdb({&H06000001UI, &H06000002UI, &H06000003UI, &H06000004UI, &H06000005UI},
 <symbols>
+    <files>
+      <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" />
+    </files>
     <methods>
         <method token="0x6000005">
             <sequencePoints>
-                <entry offset="0x0" startLine="14" startColumn="5" endLine="14" endColumn="19"/>
-                <entry offset="0x1" startLine="15" startColumn="13" endLine="15" endColumn="30"/>
-                <entry offset="0x7" startLine="16" startColumn="13" endLine="16" endColumn="30"/>
-                <entry offset="0xd" startLine="17" startColumn="9" endLine="17" endColumn="13"/>
-                <entry offset="0x19" startLine="18" startColumn="9" endLine="18" endColumn="13"/>
-                <entry offset="0x25" startLine="19" startColumn="5" endLine="19" endColumn="12"/>
+                <entry offset="0x0" startLine="14" startColumn="5" endLine="14" endColumn="19" document="1"/>
+                <entry offset="0x1" startLine="15" startColumn="13" endLine="15" endColumn="30" document="1"/>
+                <entry offset="0x7" startLine="16" startColumn="13" endLine="16" endColumn="30" document="1"/>
+                <entry offset="0xd" startLine="17" startColumn="9" endLine="17" endColumn="13" document="1"/>
+                <entry offset="0x19" startLine="18" startColumn="9" endLine="18" endColumn="13" document="1"/>
+                <entry offset="0x25" startLine="19" startColumn="5" endLine="19" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x26">
                 <currentnamespace name=""/>
@@ -1983,13 +1992,16 @@ End Class
 ]]>.Value)
             diff2.VerifyPdb({&H06000002UI},
 <symbols>
+    <files>
+      <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" />
+    </files>
     <methods>
         <method token="0x6000002">
             <sequencePoints>
-                <entry offset="0x0" startLine="2" startColumn="5" endLine="2" endColumn="19"/>
-                <entry offset="0x1" startLine="3" startColumn="13" endLine="3" endColumn="18"/>
-                <entry offset="0x3" startLine="4" startColumn="13" endLine="4" endColumn="29"/>
-                <entry offset="0x9" startLine="5" startColumn="5" endLine="5" endColumn="12"/>
+                <entry offset="0x0" startLine="2" startColumn="5" endLine="2" endColumn="19" document="1"/>
+                <entry offset="0x1" startLine="3" startColumn="13" endLine="3" endColumn="18" document="1"/>
+                <entry offset="0x3" startLine="4" startColumn="13" endLine="4" endColumn="29" document="1"/>
+                <entry offset="0x9" startLine="5" startColumn="5" endLine="5" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0xa">
                 <currentnamespace name=""/>

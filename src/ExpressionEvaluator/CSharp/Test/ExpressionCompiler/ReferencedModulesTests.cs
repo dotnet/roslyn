@@ -490,14 +490,14 @@ class C
             string errorMessage;
             CompilationTestData testData;
             int attempts = 0;
-            ExpressionCompiler.CreateContextDelegate contextFactory = (b, u) =>
+            EvaluationContextBase contextFactory(ImmutableArray<MetadataBlock> b, bool u)
             {
                 attempts++;
                 return EvaluationContext.CreateTypeContext(
                     ToCompilation(b, u, moduleVersionId),
                     moduleVersionId,
                     typeToken);
-            };
+            }
 
             // Compile: [DebuggerDisplay("{new B()}")]
             const string expr = "new B()";
@@ -660,7 +660,7 @@ public class B
                 ObjectIdAlias(1, typeof(object)));
 
             int attempts = 0;
-            ExpressionCompiler.CreateContextDelegate contextFactory = (b, u) =>
+            EvaluationContextBase contextFactory(ImmutableArray<MetadataBlock> b, bool u)
             {
                 attempts++;
                 return EvaluationContext.CreateMethodContext(
@@ -671,7 +671,7 @@ public class B
                     methodVersion: 1,
                     ilOffset: 0,
                     localSignatureToken: localSignatureToken);
-            };
+            }
 
             string errorMessage;
             CompilationTestData testData;
@@ -749,7 +749,7 @@ namespace System
             var compCorLib = CreateCompilation(sourceCorLib, assemblyName: CorLibAssemblyName, references: new[] { MscorlibRef, refLib });
             compCorLib.VerifyDiagnostics();
             var objectType = compCorLib.SourceAssembly.GlobalNamespace.GetMember<NamedTypeSymbol>("System.Object");
-            Assert.NotNull(objectType.BaseType);
+            Assert.NotNull(objectType.BaseType());
 
             ImmutableArray<byte> peBytes;
             ImmutableArray<byte> pdbBytes;
@@ -867,7 +867,7 @@ namespace System
             var compCorLib = CreateCompilation(sourceCorLib, assemblyName: CorLibAssemblyName, references: new[] { MscorlibRef, refLib });
             compCorLib.VerifyDiagnostics();
             var objectType = compCorLib.SourceAssembly.GlobalNamespace.GetMember<NamedTypeSymbol>("System.Object");
-            Assert.NotNull(objectType.BaseType);
+            Assert.NotNull(objectType.BaseType());
 
             var pdbPath = Temp.CreateDirectory().Path;
             ImmutableArray<byte> peBytes;
@@ -1008,6 +1008,11 @@ namespace System
                 {
                     yield return (type == _objectType.UnderlyingType) ? _objectType : type;
                 }
+            }
+
+            internal override SynthesizedAttributeData SynthesizeEmbeddedAttribute()
+            {
+                throw new NotImplementedException();
             }
 
             public override int CurrentGenerationOrdinal => _builder.CurrentGenerationOrdinal;

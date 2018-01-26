@@ -71,10 +71,10 @@ namespace Roslyn.Utilities
             int IComparer<EnumField>.Compare(EnumField field1, EnumField field2)
             {
                 // Sort order is descending value, then ascending name.
-                var diff = unchecked((long)field2.Value - (long)field1.Value);
+                int diff = unchecked(((long)field2.Value).CompareTo((long)field1.Value));
                 return diff == 0
                     ? string.CompareOrdinal(field1.Name, field2.Name)
-                    : (int)diff;
+                    : diff;
             }
         }
     }

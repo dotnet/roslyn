@@ -60,9 +60,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             Debug.Assert(_tracker.SelectedHierarchy != null);
             if (_tracker.SelectedHierarchy.TryGetProject(out var project))
             {
-                var vsproject = project.Object as VSProject3;
 
-                if (vsproject != null)
+                if (project.Object is VSProject3 vsproject)
                 {
                     foreach (IVsReference reference in changedContext.References)
                     {

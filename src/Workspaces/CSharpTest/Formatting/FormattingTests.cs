@@ -7855,7 +7855,7 @@ switch (o)
 
         private Task AssertFormatBodyAsync(string expected, string input)
         {
-            Func<string, string> transform = s =>
+            string transform(string s)
             {
                 var lines = s.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
                 for (int i = 0; i < lines.Length; i++)
@@ -7866,7 +7866,7 @@ switch (o)
                     }
                 }
                 return string.Join(Environment.NewLine, lines);
-            };
+            }
 
             var pattern = @"
 class C
@@ -7943,6 +7943,64 @@ class C
 @"
 class C {
     [Attr]   int   i;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(21789, "https://github.com/dotnet/roslyn/issues/21789")]
+        public async Task FormatMultipleAttributeOnSameLineAsField1()
+        {
+            await AssertFormatAsync(
+@"
+class C
+{
+    [Attr1]
+    [Attr2]
+    [Attr3] [Attr4] int i;
+}",
+@"
+class C {
+    [Attr1]
+    [Attr2]
+    [Attr3][Attr4]   int   i;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(21789, "https://github.com/dotnet/roslyn/issues/21789")]
+        public async Task FormatMultipleAttributesOnSameLineAsField2()
+        {
+            await AssertFormatAsync(
+@"
+class C
+{
+    [Attr1]
+    [Attr2]
+    [Attr3] [Attr4] int i;
+}",
+@"
+class C {
+    [Attr1][Attr2]
+    [Attr3][Attr4]   int   i;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(21789, "https://github.com/dotnet/roslyn/issues/21789")]
+        public async Task FormatMultipleAttributeOnSameLineAndFieldOnNewLine()
+        {
+            await AssertFormatAsync(
+@"
+class C
+{
+    [Attr1]
+    [Attr2]
+    int i;
+}",
+@"
+class C {
+    [Attr1][Attr2]
+    int   i;
 }");
         }
 

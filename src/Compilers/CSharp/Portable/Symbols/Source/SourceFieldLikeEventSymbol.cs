@@ -79,6 +79,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // Don't initialize this.type - we'll just use the type of the field (which is lazy and handles var)
             }
 
+            if (!IsStatic && ContainingType.IsReadOnly)
+            {
+                diagnostics.Add(ErrorCode.ERR_FieldlikeEventsInRoStruct, this.Locations[0]);
+            }
+
             if (inInterfaceType && !this.IsStatic)
             {
                 if (this.IsExtern)

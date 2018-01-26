@@ -175,8 +175,7 @@ namespace CSharpSyntaxGenerator
         {
             if (typeName == derivedTypeName)
                 return true;
-            string baseType;
-            if (derivedTypeName != null && _parentMap.TryGetValue(derivedTypeName, out baseType))
+            if (derivedTypeName != null && _parentMap.TryGetValue(derivedTypeName, out var baseType))
             {
                 return IsDerivedType(typeName, baseType);
             }
@@ -195,8 +194,7 @@ namespace CSharpSyntaxGenerator
 
         protected Node GetNode(string typeName)
         {
-            Node node;
-            return _nodeMap.TryGetValue(typeName, out node) ? node : null;
+            return _nodeMap.TryGetValue(typeName, out var node) ? node : null;
         }
 
         protected static bool IsOptional(Field f)

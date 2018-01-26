@@ -747,7 +747,7 @@ class Program
         Int32 x = 5;
     }
 }";
-            await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
@@ -772,7 +772,7 @@ class Program
         Int32 /* 2 */ x = 5;
     }
 }";
-            await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
         }
     }
 }

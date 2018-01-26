@@ -1,15 +1,14 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\..\build\Targets\SettingsSdk.props" />
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">x86</Platform>
     <PlatformTarget>x86</PlatformTarget>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.VisualStudio.IntegrationTest.Setup</RootNamespace>
     <AssemblyName>Microsoft.VisualStudio.IntegrationTest.Setup</AssemblyName>
-    <TargetFramework>net46</TargetFramework>
-    <RuntimeIdentifiers>win7-x86</RuntimeIdentifiers>
+    <TargetFramework>net461</TargetFramework>
+    <RuntimeIdentifier>$(RoslynDesktopRuntimeIdentifierX86)</RuntimeIdentifier>
     <Nonshipping>true</Nonshipping>
     <RoslynProjectType>Vsix</RoslynProjectType>
     <GeneratePkgDefFile>true</GeneratePkgDefFile>
@@ -50,12 +49,7 @@
   <ItemGroup>
     <Reference Include="System.Design" />
     <Reference Include="System.Runtime.Remoting" />
-    <!-- The CodingConventions nuget package isn't correctly formed for real nuget to understand it -->
-    <Reference Include="$(NuGetPackageRoot)\VS.ExternalAPIs.CodingConventions\1.0.60704.2\Microsoft.VisualStudio.CodingConventions.dll">
-      <Private>true</Private>
-    </Reference>
     <PackageReference Include="Microsoft.Diagnostics.Runtime" Version="$(MicrosoftDiagnosticsRuntimeVersion)" />
-    <PackageReference Include="VS.ExternalAPIs.CodingConventions" Version="$(VSExternalAPIsCodingConventionsVersion)" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Test\Diagnostics\Diagnostics.csproj">
@@ -77,7 +71,5 @@
   </ItemGroup>
   <ItemGroup>
     <VSIXSourceItem Include="$(OutputPath)Microsoft.Diagnostics.Runtime.dll" />
-    <VSIXSourceItem Include="$(OutputPath)Microsoft.VisualStudio.CodingConventions.dll" />
   </ItemGroup>
-  <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>

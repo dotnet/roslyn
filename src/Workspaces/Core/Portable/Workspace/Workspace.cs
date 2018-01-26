@@ -1027,8 +1027,7 @@ namespace Microsoft.CodeAnalysis
                 // convert metadata references to project references if the metadata reference matches some project's output assembly.
                 foreach (var meta in project.MetadataReferences)
                 {
-                    var pemeta = meta as PortableExecutableReference;
-                    if (pemeta != null)
+                    if (meta is PortableExecutableReference pemeta)
                     {
 
                         // check both Display and FilePath. FilePath points to the actually bits, but Display should match output path if 

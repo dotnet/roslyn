@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 {
@@ -60,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         {
             // Leaves are labeled statements that don't have a labeled child.
             // We also return true for non-labeled statements.
-            Label label = Classify(node.Kind(), out var isLeaf, ignoreVariableDeclarations: false);
+            Label label = Classify(node.Kind(), out var isLeaf);
 
             // ignored should always be reported as leaves
             Debug.Assert(label != Label.Ignored || isLeaf);
@@ -160,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         }
 
         // internal for testing
-        internal static Label Classify(SyntaxKind kind, out bool isLeaf, bool ignoreVariableDeclarations)
+        internal static Label Classify(SyntaxKind kind, out bool isLeaf)
         {
             switch (kind)
             {
@@ -205,12 +206,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return Label.FieldDeclaration;
 
                 case SyntaxKind.VariableDeclaration:
-                    isLeaf = ignoreVariableDeclarations;
-                    return ignoreVariableDeclarations ? Label.Ignored : Label.FieldVariableDeclaration;
+                    isLeaf = false;
+                    return  Label.FieldVariableDeclaration;
 
                 case SyntaxKind.VariableDeclarator:
                     isLeaf = true;
-                    return ignoreVariableDeclarations ? Label.Ignored : Label.FieldVariableDeclarator;
+                    return  Label.FieldVariableDeclarator;
 
                 case SyntaxKind.MethodDeclaration:
                     isLeaf = false;
@@ -306,13 +307,13 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         internal static Label GetLabel(SyntaxKind kind)
         {
-            return Classify(kind, out var isLeaf, ignoreVariableDeclarations: false);
+            return Classify(kind, out var isLeaf);
         }
 
         // internal for testing
-        internal static bool HasLabel(SyntaxKind kind, bool ignoreVariableDeclarations)
+        internal static bool HasLabel(SyntaxKind kind)
         {
-            return Classify(kind, out var isLeaf, ignoreVariableDeclarations) != Label.Ignored;
+            return Classify(kind, out var isLeaf) != Label.Ignored;
         }
 
         protected internal override int LabelCount
@@ -346,13 +347,22 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.RemoveAccessorDeclaration:
                     // When comparing method bodies we need to NOT ignore VariableDeclaration and VariableDeclarator children,
                     // but when comparing field definitions we should ignore VariableDeclarations children.
-                    ignoreChildFunction = childKind => HasLabel(childKind, ignoreVariableDeclarations: true);
+
+                    var leftBody = GetBody(left);
+                    var rightBody = GetBody(right);
+                    
+                    if (!SyntaxFactory.AreEquivalent(leftBody, rightBody, null))
+                    {
+                        return false;
+                    }
+
+                    ignoreChildFunction = childKind => childKind == SyntaxKind.Block || childKind == SyntaxKind.ArrowExpressionClause || HasLabel(childKind);
                     break;
 
                 default:
                     if (HasChildren(left))
                     {
-                        ignoreChildFunction = childKind => HasLabel(childKind, ignoreVariableDeclarations: false);
+                        ignoreChildFunction = childKind => HasLabel(childKind);
                     }
                     else
                     {
@@ -363,6 +373,16 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             }
 
             return SyntaxFactory.AreEquivalent(left, right, ignoreChildFunction);
+        }
+
+        private static SyntaxNode GetBody(SyntaxNode node)
+        {
+            switch (node)
+            {
+                case BaseMethodDeclarationSyntax baseMethodDeclarationSyntax: return baseMethodDeclarationSyntax.Body ?? (SyntaxNode)baseMethodDeclarationSyntax.ExpressionBody?.Expression;
+                case AccessorDeclarationSyntax accessorDeclarationSyntax: return accessorDeclarationSyntax.Body ?? (SyntaxNode)accessorDeclarationSyntax.ExpressionBody?.Expression;
+                default: throw ExceptionUtilities.UnexpectedValue(node);
+            }
         }
 
         protected override bool TryComputeWeightedDistance(SyntaxNode leftNode, SyntaxNode rightNode, out double distance)

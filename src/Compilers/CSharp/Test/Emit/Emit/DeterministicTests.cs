@@ -1,17 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.Test.Utilities;
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using Xunit;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Roslyn.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
-using System.Diagnostics;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
 {
@@ -40,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
             return result;
         }
 
-        private ImmutableArray<byte> EmitDeterministic(string source, Platform platform, DebugInformationFormat pdbFormat, bool optimize)
+        private (ImmutableArray<byte> pe, ImmutableArray<byte> pdb) EmitDeterministic(string source, Platform platform, DebugInformationFormat pdbFormat, bool optimize)
         {
             var options = (optimize ? TestOptions.ReleaseExe : TestOptions.DebugExe).WithPlatform(platform).WithDeterministic(true);
 
@@ -55,7 +53,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
 
             var pdbStream = (pdbFormat == DebugInformationFormat.Embedded) ? null : new MemoryStream();
 
-            return compilation.EmitToArray(EmitOptions.Default.WithDebugInformationFormat(pdbFormat), pdbStream: pdbStream);
+            return (pe: compilation.EmitToArray(EmitOptions.Default.WithDebugInformationFormat(pdbFormat), pdbStream: pdbStream), 
+                    pdb: (pdbStream ?? new MemoryStream()).ToImmutable());
         }
 
         [Fact, WorkItem(4578, "https://github.com/dotnet/roslyn/issues/4578")]
@@ -166,11 +165,13 @@ namespace N
             {
                 var result1 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.AnyCpu32BitPreferred, pdbFormat, optimize: true);
                 var result2 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.AnyCpu32BitPreferred, pdbFormat, optimize: true);
-                AssertEx.Equal(result1, result2);
+                AssertEx.Equal(result1.pe, result2.pe);
+                AssertEx.Equal(result1.pdb, result2.pdb);
 
                 var result3 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.X64, pdbFormat, optimize: true);
                 var result4 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.X64, pdbFormat, optimize: true);
-                AssertEx.Equal(result3, result4);
+                AssertEx.Equal(result3.pe, result4.pe);
+                AssertEx.Equal(result3.pdb, result4.pdb);
             }
         }
 
@@ -186,11 +187,13 @@ namespace N
             {
                 var result1 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.AnyCpu32BitPreferred, pdbFormat, optimize: false);
                 var result2 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.AnyCpu32BitPreferred, pdbFormat, optimize: false);
-                AssertEx.Equal(result1, result2);
+                AssertEx.Equal(result1.pe, result2.pe);
+                AssertEx.Equal(result1.pdb, result2.pdb);
 
                 var result3 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.X64, pdbFormat, optimize: false);
                 var result4 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.X64, pdbFormat, optimize: false);
-                AssertEx.Equal(result3, result4);
+                AssertEx.Equal(result3.pe, result4.pe);
+                AssertEx.Equal(result3.pdb, result4.pdb);
             }
         }
 

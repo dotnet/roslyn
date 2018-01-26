@@ -57,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                     originalBinder As Binder)
             ' UNDONE: check options to see if type parameters should be found.
             For Each typeParameter In _typeParameters
-                If originalBinder.CanAddLookupSymbolInfo(typeParameter, options, Nothing) Then
+                If originalBinder.CanAddLookupSymbolInfo(typeParameter, options, nameSet, Nothing) Then
                     nameSet.AddSymbol(typeParameter, typeParameter.Name, 0)
                 End If
             Next

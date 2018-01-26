@@ -510,18 +510,18 @@ class C
     }
 }";
             DkmClrRuntimeInstance runtime = null;
-            GetMemberValueDelegate getMemberValue = (v, m) =>
+            VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue getMemberValue(VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue v, string m)
+            {
+                switch (m)
                 {
-                    switch (m)
-                    {
-                        case "P":
-                            return CreateErrorValue(runtime.GetType(typeof(System.Collections.ArrayList)), "Property 'P' evaluation timed out");
-                        case "Q":
-                            return CreateErrorValue(runtime.GetType(typeof(string)), "Property 'Q' evaluation timed out");
-                        default:
-                            return null;
-                    }
-                };
+                    case "P":
+                        return CreateErrorValue(runtime.GetType(typeof(System.Collections.ArrayList)), "Property 'P' evaluation timed out");
+                    case "Q":
+                        return CreateErrorValue(runtime.GetType(typeof(string)), "Property 'Q' evaluation timed out");
+                    default:
+                        return null;
+                }
+            }
             runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlibAndSystemCore(GetAssembly(source)), getMemberValue: getMemberValue);
             using (runtime.Load())
             {

@@ -38,8 +38,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
         {
             IEnumerable<CodeActionOperation> operations = null;
 
-            var extractInterfaceOptions = options as ExtractInterfaceOptionsResult;
-            if (extractInterfaceOptions != null && !extractInterfaceOptions.IsCancelled)
+            if (options is ExtractInterfaceOptionsResult extractInterfaceOptions && !extractInterfaceOptions.IsCancelled)
             {
                 var extractInterfaceResult = _extractInterfaceService.ExtractInterfaceFromAnalyzedType(_typeAnalysisResult, extractInterfaceOptions, cancellationToken);
 

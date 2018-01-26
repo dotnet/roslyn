@@ -1307,8 +1307,7 @@ class Derived : Base
     {
         new C(1);
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [WorkItem(5864, "DevDiv_Projects/Roslyn")]
@@ -2429,7 +2428,7 @@ class Program
         this.wde = wde;
     }
 }
-", ignoreTrivia: false);
+");
         }
 
         [WorkItem(528257, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528257")]
@@ -3276,6 +3275,149 @@ class P {
         var c = new C ( prop ) ;
     }
 } ");
+        }
+
+        [WorkItem(21692, "https://github.com/dotnet/roslyn/issues/21692")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestDelegateConstructor1()
+        {
+            await TestInRegularAndScriptAsync(
+@"class A
+{
+    public A(int a) : [|this(a, 1)|]
+    {
+    }
+}",
+@"class A
+{
+    private int a;
+    private int v;
+
+    public A(int a) : this(a, 1)
+    {
+    }
+
+    public A(int a, int v)
+    {
+        this.a = a;
+        this.v = v;
+    }
+}");
+        }
+
+        [WorkItem(21692, "https://github.com/dotnet/roslyn/issues/21692")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestDelegateConstructor2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    public C(int x) { }
+
+    public C(int x, int y, int z) : [|this(x, y)|] { }
+}",
+@"class C
+{
+    private int y;
+
+    public C(int x) { }
+
+    public C(int x, int y) : this(x)
+    {
+        this.y = y;
+    }
+
+    public C(int x, int y, int z) : this(x, y) { }
+}");
+        }
+
+        [WorkItem(21692, "https://github.com/dotnet/roslyn/issues/21692")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestDelegateConstructor3()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    public C(int x) : this(x, 0, 0) { }
+
+    public C(int x, int y, int z) : [|this(x, y)|] { }
+}",
+@"class C
+{
+    private int x;
+    private int y;
+
+    public C(int x) : this(x, 0, 0) { }
+
+    public C(int x, int y)
+    {
+        this.x = x;
+        this.y = y;
+    }
+
+    public C(int x, int y, int z) : this(x, y) { }
+}");
+        }
+
+        [WorkItem(21692, "https://github.com/dotnet/roslyn/issues/21692")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestDelegateConstructor4()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    public C(int x) : this(x, 0) { }
+
+    public C(int x, int y) : [|this(x, y, 0)|] { }
+}",
+@"class C
+{
+    private int x;
+    private int y;
+    private int v;
+
+    public C(int x) : this(x, 0) { }
+
+    public C(int x, int y) : this(x, y, 0) { }
+
+    public C(int x, int y, int v)
+    {
+        this.x = x;
+        this.y = y;
+        this.v = v;
+    }
+}");
+        }
+
+        [WorkItem(21692, "https://github.com/dotnet/roslyn/issues/21692")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestDelegateConstructor5()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    public C(int a) { }
+    public C(bool b, bool a) : this(0, 0) { }
+    public C(int i, int i1) : this(true, true) { }
+    public C(int x, int y, int z, int e) : [|this(x, y, z)|] { }
+}",
+@"class C
+{
+    private int y;
+    private int z;
+
+    public C(int a) { }
+    public C(bool b, bool a) : this(0, 0) { }
+    public C(int i, int i1) : this(true, true) { }
+
+    public C(int a, int y, int z) : this(a)
+    {
+        this.y = y;
+        this.z = z;
+    }
+
+    public C(int x, int y, int z, int e) : this(x, y, z) { }
+}");
         }
     }
 }

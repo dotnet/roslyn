@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     accessibility: Accessibility.Private,
                     modifiers: CreateMethodModifiers(),
                     returnType: this.AnalyzerResult.ReturnType,
-                    returnsByRef: false,
+                    refKind: RefKind.None,
                     explicitInterfaceImplementations: default,
                     name: _methodName.ToString(),
                     typeParameters: CreateMethodTypeParameters(cancellationToken),
@@ -247,8 +247,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     return SpecializedCollections.SingletonEnumerable<StatementSyntax>(SyntaxFactory.CheckedStatement(kind, SyntaxFactory.Block(statements)));
                 }
 
-                var block = statements.Single() as BlockSyntax;
-                if (block != null)
+                if (statements.Single() is BlockSyntax block)
                 {
                     return SpecializedCollections.SingletonEnumerable<StatementSyntax>(SyntaxFactory.CheckedStatement(kind, block));
                 }
@@ -279,8 +278,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                 if (count == 1)
                 {
-                    var returnStatement = statements.Single() as ReturnStatementSyntax;
-                    if (returnStatement != null && returnStatement.Expression == null)
+                    if (statements.Single() is ReturnStatementSyntax returnStatement && returnStatement.Expression == null)
                     {
                         return OperationStatus.NoActiveStatement;
                     }

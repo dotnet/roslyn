@@ -12,6 +12,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             node As ObjectCreationExpressionSyntax,
             diagnostics As DiagnosticBag
         ) As BoundExpression
+
+            DisallowNewOnTupleType(node.Type, diagnostics)
             Dim type As TypeSymbol = Me.BindTypeSyntax(node.Type, diagnostics)
 
             ' When the type is an error still try to bind the arguments for better data flow analysis and 
@@ -56,6 +58,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Return BindObjectCreationExpression(node.Type, node.ArgumentList, type, node, diagnostics, Nothing)
         End Function
+
+        Private Shared Sub DisallowNewOnTupleType(type As TypeSyntax, diagnostics As DiagnosticBag)
+            If type.Kind = SyntaxKind.TupleType Then
+                diagnostics.Add(ERRID.ERR_NewWithTupleTypeSyntax, type.Location)
+            End If
+        End Sub
 
         Friend Function BindObjectCreationExpression(
             typeNode As TypeSyntax,
@@ -692,10 +700,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         target = BadExpression(namedFieldInitializer,
                                                target,
-                                               ErrorTypeSymbol.UnknownResultType)
+                                               ErrorTypeSymbol.UnknownResultType).MakeCompilerGenerated()
                     End If
                 Else
-                    target = BadExpression(namedFieldInitializer, ErrorTypeSymbol.UnknownResultType)
+                    target = BadExpression(namedFieldInitializer, ErrorTypeSymbol.UnknownResultType).MakeCompilerGenerated()
                 End If
 
                 ' in contrast to Dev10 Roslyn continues to bind the initialization value even if the receiver had errors.
@@ -883,7 +891,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                              LookupOptions.AllMethodsOfAnyArity,
                                                                              placeholder,
                                                                              Nothing,
-                                                                             QualificationKind.QualifiedViaValue)
+                                                                             QualificationKind.QualifiedViaValue).MakeCompilerGenerated()
 
                 Dim invocation = BindInvocationExpression(topLevelInitializer, topLevelInitializer,
                                                           TypeCharacter.None,

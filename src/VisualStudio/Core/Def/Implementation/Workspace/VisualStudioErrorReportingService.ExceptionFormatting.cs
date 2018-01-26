@@ -11,8 +11,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     {
         private static string GetFormattedExceptionStack(Exception exception)
         {
-            var aggregate = exception as AggregateException;
-            if (aggregate != null)
+            if (exception is AggregateException aggregate)
             {
                 return GetStackForAggregateException(exception, aggregate);
             }

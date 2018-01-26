@@ -3,6 +3,7 @@
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using System;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Reflection;
@@ -141,15 +142,46 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             return new ArgumentException(string.Format(CultureInfo.CurrentCulture, errorString, args));
         }
 
-        internal static string GetLocation(Assembly assembly)
+        internal static string TryGetAssemblyPath(Assembly assembly)
         {
-            var method = typeof(Assembly).GetTypeInfo().GetDeclaredProperty("Location")?.GetMethod;
-            if (method == null)
+            if ((bool?)typeof(Assembly).GetTypeInfo()
+                .GetDeclaredProperty("GlobalAssemblyCache")
+                ?.GetMethod.Invoke(assembly, parameters: null) == true)
             {
                 return null;
             }
 
-            return (string)method.Invoke(assembly, parameters: null);
+            var codebase = (string)typeof(Assembly)
+                .GetTypeInfo()
+                .GetDeclaredProperty("CodeBase")
+                ?.GetMethod.Invoke(assembly, parameters: null);
+
+            if (codebase != null)
+            {
+                var uri = new Uri(codebase);
+                if (uri.IsFile)
+                {
+                    return uri.LocalPath;
+                }
+                else
+                {
+                    var callingAssembly = (Assembly)typeof(Assembly)
+                        .GetTypeInfo()
+                        .GetDeclaredMethod("GetCallingAssembly")
+                        ?.Invoke(null, null);
+
+                    var location = (string)typeof(Assembly).GetTypeInfo()
+                        .GetDeclaredProperty("Location")
+                        ?.GetMethod.Invoke(assembly, parameters: null);
+
+                    if (location != null)
+                    {
+                        return location;
+                    }
+                }
+            }
+
+            return null;
         }
 
         /// <summary>
@@ -161,67 +193,36 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             string toolLocation = null;
 
             var buildTask = typeof(Utilities).GetTypeInfo().Assembly;
-            var inGac = (bool?)typeof(Assembly)
-                .GetTypeInfo()
-                .GetDeclaredProperty("GlobalAssemblyCache")
-                ?.GetMethod.Invoke(buildTask, parameters: null);
+            var assemblyPath = TryGetAssemblyPath(buildTask);
 
-            if (inGac != true)
+            if (assemblyPath != null)
             {
-                var codeBase = (string)typeof(Assembly)
-                    .GetTypeInfo()
-                    .GetDeclaredProperty("CodeBase")
-                    ?.GetMethod.Invoke(buildTask, parameters: null);
+                var assemblyDirectory = Path.GetDirectoryName(assemblyPath);
+                var desktopToolLocalLocation = Path.Combine(assemblyDirectory, toolName);
+                var cliToolLocalLocation = Path.Combine(assemblyDirectory, "bincore", toolName);
 
-                if (codeBase != null)
+                if (File.Exists(desktopToolLocalLocation))
                 {
-                    var uri = new Uri(codeBase);
-
-                    string assemblyPath = null;
-                    if (uri.IsFile)
-                    {
-                        assemblyPath = uri.LocalPath;
-                    }
-                    else
-                    {
-                        var callingAssembly = (Assembly)typeof(Assembly)
-                            .GetTypeInfo()
-                            .GetDeclaredMethod("GetCallingAssembly")
-                            ?.Invoke(null, null);
-
-                        var location = GetLocation(callingAssembly);
-
-                        if (location != null)
-                        {
-                            assemblyPath = location;
-                        }
-                    }
-
-                    if(assemblyPath != null)
-                    {
-                        var assemblyDirectory = Path.GetDirectoryName(assemblyPath);
-                        var toolLocalLocation = Path.Combine(assemblyDirectory, toolName);
-
-                        if (File.Exists(toolLocalLocation))
-                        {
-                            toolLocation = toolLocalLocation;
-                        }
-                    }
+                    toolLocation = desktopToolLocalLocation;
                 }
-
-                if (toolLocation == null)
+                else if (File.Exists(cliToolLocalLocation))
                 {
-                    // Roslyn only deploys to the 32Bit folder of MSBuild, so request this path on all architectures.
-                    var pathToBuildTools = ToolLocationHelper.GetPathToBuildTools(ToolLocationHelper.CurrentToolsVersion, DotNetFrameworkArchitecture.Bitness32);
+                    toolLocation = cliToolLocalLocation;
+                }
+            }
 
-                    if (pathToBuildTools != null)
+            if (toolLocation == null)
+            {
+                // Roslyn only deploys to the 32Bit folder of MSBuild, so request this path on all architectures.
+                var pathToBuildTools = ToolLocationHelper.GetPathToBuildTools(ToolLocationHelper.CurrentToolsVersion, DotNetFrameworkArchitecture.Bitness32);
+
+                if (pathToBuildTools != null)
+                {
+                    var toolMSBuildLocation = Path.Combine(pathToBuildTools, MSBuildRoslynFolderName, toolName);
+
+                    if (File.Exists(toolMSBuildLocation))
                     {
-                        var toolMSBuildLocation = Path.Combine(pathToBuildTools, MSBuildRoslynFolderName, toolName);
-
-                        if (File.Exists(toolMSBuildLocation))
-                        {
-                            toolLocation = toolMSBuildLocation;
-                        }
+                        toolLocation = toolMSBuildLocation;
                     }
                 }
             }

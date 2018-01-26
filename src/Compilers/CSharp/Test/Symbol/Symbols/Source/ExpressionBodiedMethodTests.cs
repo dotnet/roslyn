@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -376,6 +377,19 @@ class C
 {
     int field = 0;
     public ref int M() => ref field;
+}");
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
+        public void RefReadonlyReturningExpressionBodiedMethod()
+        {
+            var comp = CreateCompilationWithMscorlib45(@"
+class C
+{
+    int field = 0;
+    public ref readonly int M() => ref field;
 }");
             comp.VerifyDiagnostics();
         }

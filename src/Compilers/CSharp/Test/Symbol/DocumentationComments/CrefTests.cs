@@ -1522,7 +1522,7 @@ class B<T, T>
             var compilation = CreateCompilationWithMscorlibAndDocumentationComments(source);
             var crefSyntax = GetCrefSyntaxes(compilation).Single();
 
-            var expectedSymbol = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("B").TypeArguments[0];
+            var expectedSymbol = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("B").TypeArguments()[0];
             var actualSymbol = GetReferencedSymbol(crefSyntax, compilation,
                 // (3,20): warning CS1723: XML comment has cref attribute 'T' that refers to a type parameter
                 // /// See <see cref="T"/>.
@@ -1662,7 +1662,7 @@ class A<T, U>
             Assert.False(actualWinner.IsDefinition);
 
             var actualParameterType = actualWinner.GetParameters().Single().Type;
-            AssertEx.All(actualWinner.ContainingType.TypeArguments, typeParam => typeParam == actualParameterType); //CONSIDER: Would be different in Dev11.
+            AssertEx.All(actualWinner.ContainingType.TypeArguments(), typeParam => typeParam == actualParameterType); //CONSIDER: Would be different in Dev11.
             Assert.Equal(1, ((TypeParameterSymbol)actualParameterType).Ordinal);
 
             Assert.Equal(2, actualCandidates.Length);
@@ -1700,8 +1700,8 @@ class A<T>
             Assert.False(actualWinner.IsDefinition);
 
             var actualParameterType = actualWinner.GetParameters().Single().Type;
-            Assert.Equal(actualParameterType, actualWinner.ContainingType.TypeArguments.Single());
-            Assert.Equal(actualParameterType, actualWinner.ContainingType.ContainingType.TypeArguments.Single());
+            Assert.Equal(actualParameterType, actualWinner.ContainingType.TypeArguments().Single());
+            Assert.Equal(actualParameterType, actualWinner.ContainingType.ContainingType.TypeArguments().Single());
 
             Assert.Equal(2, actualCandidates.Length);
             Assert.Equal(actualWinner, actualCandidates[0]);
@@ -4369,8 +4369,8 @@ public partial class D { }
 public partial class E { }
 ";
 
-            var tree1 = Parse(source1, options: TestOptions.RegularWithDocumentationComments);
-            var tree2 = Parse(source2, options: TestOptions.Regular);
+            var tree1 = Parse(source1, options: TestOptions.RegularWithDocumentationComments.WithLanguageVersion(LanguageVersion.Latest));
+            var tree2 = Parse(source2, options: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
 
             // This scenario does not exist in dev11, but the diagnostics seem reasonable.
             CreateStandardCompilation(new[] { tree1, tree2 }).VerifyDiagnostics(
@@ -5515,7 +5515,7 @@ class C<T>
             NamedTypeSymbol referencedType = (NamedTypeSymbol)model.GetSymbolInfo(cref).Symbol;
             Assert.NotNull(referencedType);
 
-            var crefTypeParam = referencedType.TypeArguments.Single();
+            var crefTypeParam = referencedType.TypeArguments().Single();
             Assert.IsType<CrefTypeParameterSymbol>(crefTypeParam);
 
             var sourceTypeParam = referencedType.TypeParameters.Single();
@@ -6628,6 +6628,37 @@ class Test
             Assert.Equal("U", name.ToString());
             var typeParameter = (TypeParameterSymbol)model.GetSymbolInfo(name).Symbol;
             Assert.Empty(model.LookupSymbols(name.SpanStart, typeParameter, "GetAwaiter"));
+        }
+
+        [Fact]
+        [WorkItem(23957, "https://github.com/dotnet/roslyn/issues/23957")]
+        public void CRef_InParameter()
+        {
+            var source = @"
+class Test
+{
+    void M(in int x)
+    {
+    }
+
+    /// <summary>
+    /// <see cref=""M(in int)""/>
+    /// </summary>
+    void S()
+    {
+    }
+}
+";
+
+            var compilation = CreateStandardCompilation(source, parseOptions: TestOptions.RegularWithDocumentationComments).VerifyDiagnostics();
+            var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
+            var cref = (NameMemberCrefSyntax)GetCrefSyntaxes(compilation).Single();
+
+            var parameter = cref.Parameters.Parameters.Single();
+            Assert.Equal(SyntaxKind.InKeyword, parameter.RefKindKeyword.Kind());
+
+            var parameterSymbol = ((MethodSymbol)model.GetSymbolInfo(cref).Symbol).Parameters.Single();
+            Assert.Equal(RefKind.In, parameterSymbol.RefKind);
         }
     }
 }

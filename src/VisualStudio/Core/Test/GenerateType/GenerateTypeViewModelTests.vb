@@ -892,11 +892,11 @@ namespace A
             Me._projectFolders = projectFolders
         End Sub
 
-        Public Function GetDefaultNamespace(project As Project, workspace As Workspace) As String Implements IProjectManagementService.GetDefaultNamespace
+        Public Function GetDefaultNamespace(project As Project, workspace As Microsoft.CodeAnalysis.Workspace) As String Implements IProjectManagementService.GetDefaultNamespace
             Return ""
         End Function
 
-        Public Function GetFolders(projectId As ProjectId, workspace As Workspace) As IList(Of String) Implements IProjectManagementService.GetFolders
+        Public Function GetFolders(projectId As ProjectId, workspace As Microsoft.CodeAnalysis.Workspace) As IList(Of String) Implements IProjectManagementService.GetFolders
             Return Me._projectFolders
         End Function
     End Class

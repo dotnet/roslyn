@@ -57,7 +57,7 @@ namespace N
             Console.WriteLine(""My section"");
         }
     }
-}", index: 0, ignoreTrivia: false);
+}", index: 0);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
@@ -102,7 +102,7 @@ namespace N
             Console.WriteLine(""Their section"");
         }
     }
-}", index: 1, ignoreTrivia: false);
+}", index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
@@ -155,7 +155,7 @@ namespace N
             Console.WriteLine(""Their section"");
         }
     }
-}", index: 2, ignoreTrivia: false);
+}", index: 2);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
@@ -184,7 +184,7 @@ using System;
 
 namespace N
 {
-}", index: 0, ignoreTrivia: false);
+}", index: 0);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
@@ -221,7 +221,7 @@ namespace N
             Console.WriteLine(""Their section"");
         }
     }
-}", index: 1, ignoreTrivia: false);
+}", index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
@@ -258,7 +258,7 @@ namespace N
             Console.WriteLine(""My section"");
         }
     }
-}", index: 0, ignoreTrivia: false);
+}", index: 0);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
@@ -287,7 +287,7 @@ using System;
 
 namespace N
 {
-}", index: 1, ignoreTrivia: false);
+}", index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
@@ -336,7 +336,7 @@ namespace N
         }
     }
 
-}", index: 0, ignoreTrivia: false);
+}", index: 0);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
@@ -385,7 +385,7 @@ namespace N
         }
     }
 
-}", index: 1, ignoreTrivia: false);
+}", index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
@@ -446,7 +446,7 @@ namespace N
         }
     }
 
-}", index: 2, ignoreTrivia: false);
+}", index: 2);
         }
     }
 }

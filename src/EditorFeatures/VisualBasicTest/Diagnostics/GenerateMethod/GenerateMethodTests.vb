@@ -1045,8 +1045,7 @@ Public Class C
     Private Sub Goo()
         Throw New NotImplementedException()
     End Sub
-End Class</text>.Value.Replace(vbLf, vbCrLf),
-ignoreTrivia:=False)
+End Class</text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <WorkItem(539283, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539283")>
@@ -1073,8 +1072,7 @@ Public Class D
     Friend Shared Sub Goo()
         Throw New NotImplementedException()
     End Sub
-End Class</text>.Value.Replace(vbLf, vbCrLf),
-ignoreTrivia:=False)
+End Class</text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
@@ -1441,8 +1439,7 @@ Class Test
         Throw New NotImplementedException()
     End Sub
 End Class
-</Text>.Value.Replace(vbLf, vbCrLf),
-ignoreTrivia:=False)
+</Text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <WorkItem(540013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540013")>
@@ -1723,7 +1720,7 @@ Class C
 #End ExternalSource
     End Sub
 End Class
-</text>.Value.Replace(vbLf, vbCrLf), ignoreTrivia:=False)
+</text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
@@ -1759,7 +1756,7 @@ Class C
 #End ExternalSource
     End Sub
 End Class
-</text>.Value.Replace(vbLf, vbCrLf), ignoreTrivia:=False)
+</text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
@@ -1796,7 +1793,7 @@ Class C
     End Sub
 End Class
 #End ExternalSource
-</text>.Value.Replace(vbLf, vbCrLf), ignoreTrivia:=False)
+</text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
@@ -1839,7 +1836,7 @@ Class C
     End Sub
 End Class
 #End ExternalSource
-</text>.Value.Replace(vbLf, vbCrLf), ignoreTrivia:=False)
+</text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
@@ -2266,7 +2263,7 @@ Module Program
     Public Sub Baz()
     End Sub
 End Module
-</text>.Value.Replace(vbLf, vbCrLf), ignoreTrivia:=False)
+</text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <WorkItem(907612, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/907612")>
@@ -2304,7 +2301,7 @@ Module Program
     Public Sub Baz(one As Integer)
     End Sub
 End Module
-</text>.Value.Replace(vbLf, vbCrLf), ignoreTrivia:=False)
+</text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <WorkItem(907612, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/907612")>
@@ -2342,7 +2339,7 @@ Module Program
     Public Sub Baz(one As Func(Of String), two As Integer)
     End Sub
 End Module
-</text>.Value.Replace(vbLf, vbCrLf), ignoreTrivia:=False)
+</text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <WorkItem(889349, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/889349")>
@@ -2376,7 +2373,7 @@ Class Program
         M()
     End Sub
 End Class
-</text>.Value.Replace(vbLf, vbCrLf), ignoreTrivia:=False)
+</text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <WorkItem(769760, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/769760")>
@@ -2412,7 +2409,7 @@ Class Program
         Throw New NotImplementedException()
     End Sub
 End Class
-</text>.Value.Replace(vbLf, vbCrLf), ignoreTrivia:=False)
+</text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <WorkItem(769760, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/769760")>
@@ -2454,7 +2451,7 @@ Class Program
         Throw New NotImplementedException()
     End Sub
 End Class
-</text>.Value.Replace(vbLf, vbCrLf), ignoreTrivia:=False)
+</text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <WorkItem(935731, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/935731")>
@@ -2479,7 +2476,7 @@ Module Module1
         Throw New NotImplementedException()
     End Function
 End Module
-</text>.Value.Replace(vbLf, vbCrLf), ignoreTrivia:=False)
+</text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <WorkItem(939941, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939941")>
@@ -2508,7 +2505,7 @@ Module M1
     Sub test(ByVal name As String, ByVal age As Integer)
     End Sub
 End Module
-</text>.Value.Replace(vbLf, vbCrLf), ignoreTrivia:=False)
+</text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <WorkItem(939941, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939941")>
@@ -2532,7 +2529,7 @@ Module M1
         Throw New NotImplementedException()
     End Sub
 End Module
-</text>.Value.Replace(vbLf, vbCrLf), ignoreTrivia:=False)
+</text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <WorkItem(939941, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939941")>
@@ -2584,7 +2581,7 @@ Module Module1
     End Sub
 
 End Module
-</text>.Value.Replace(vbLf, vbCrLf), ignoreTrivia:=False)
+</text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <WorkItem(939941, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939941")>
@@ -2611,7 +2608,7 @@ Module M1
         Throw New NotImplementedException()
     End Function
 End Module
-</text>.Value.Replace(vbLf, vbCrLf), ignoreTrivia:=False)
+</text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <WorkItem(939941, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939941")>
@@ -2643,7 +2640,7 @@ Class M1
         Throw New NotImplementedException()
     End Sub
 End Class
-</text>.Value.Replace(vbLf, vbCrLf), ignoreTrivia:=False)
+</text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <WorkItem(939941, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939941")>
@@ -2735,7 +2732,7 @@ Module Module1
         Call tc2.Goo(New Scenario11)
     End Sub
 End Module
-</text>.Value.Replace(vbLf, vbCrLf), ignoreTrivia:=False)
+</text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <WorkItem(939941, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939941")>
@@ -2805,7 +2802,7 @@ Module Module1
         Call tc2.Goo(sc11)
     End Sub
 End Module
-</text>.Value.Replace(vbLf, vbCrLf), ignoreTrivia:=False)
+</text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <WorkItem(939941, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939941")>
@@ -2877,7 +2874,7 @@ Module Module1
         Call tc3.Goo(dTmp)
     End Sub
 End Module
-</text>.Value.Replace(vbLf, vbCrLf), ignoreTrivia:=False)
+</text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <WorkItem(939941, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939941")>
@@ -2945,7 +2942,7 @@ Module Module1
         Call tc7.Goo(sample7C1(Of Long).E.e1)
     End Sub
 End Module
-</text>.Value.Replace(vbLf, vbCrLf), ignoreTrivia:=False)
+</text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <WorkItem(939941, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939941")>
@@ -3013,7 +3010,7 @@ Module Module1
         Call tc7.Goo(sample7C1(Of Short).E.e2)
     End Sub
 End Module
-</text>.Value.Replace(vbLf, vbCrLf), ignoreTrivia:=False)
+</text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <WorkItem(939941, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939941")>
@@ -3081,7 +3078,7 @@ Module Module1
         Call tc7.Goo(sc7.E.e3)
     End Sub
 End Module
-</text>.Value.Replace(vbLf, vbCrLf), ignoreTrivia:=False)
+</text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <WorkItem(939941, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939941")>
@@ -3141,7 +3138,7 @@ Module Module1
         Call C.Goo(New C2)
     End Sub
 End Module
-</text>.Value.Replace(vbLf, vbCrLf), ignoreTrivia:=False)
+</text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <WorkItem(1032176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176")>
@@ -4227,7 +4224,7 @@ Class C(Of T)
         Throw New NotImplementedException()
     End Operator
 End Class
-</text>.Value.Replace(vbLf, vbCrLf), ignoreTrivia:=False)
+</text>.Value.Replace(vbLf, vbCrLf))
             End Function
 
             <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
@@ -4256,7 +4253,7 @@ Class C
         Throw New NotImplementedException()
     End Operator
 End Class
-</text>.Value.Replace(vbLf, vbCrLf), ignoreTrivia:=False)
+</text>.Value.Replace(vbLf, vbCrLf))
             End Function
 
             <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
@@ -4291,7 +4288,7 @@ Class C
         Throw New NotImplementedException()
     End Operator
 End Class
-</text>.Value.Replace(vbLf, vbCrLf), ignoreTrivia:=False)
+</text>.Value.Replace(vbLf, vbCrLf))
             End Function
 
             <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
@@ -4337,7 +4334,7 @@ Class Digit
         Throw New NotImplementedException()
     End Operator
 End Class
-</text>.Value.Replace(vbLf, vbCrLf), ignoreTrivia:=False)
+</text>.Value.Replace(vbLf, vbCrLf))
             End Function
 
             <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
@@ -4366,7 +4363,7 @@ Class C(Of T)
         Throw New NotImplementedException()
     End Operator
 End Class
-</text>.Value.Replace(vbLf, vbCrLf), ignoreTrivia:=False)
+</text>.Value.Replace(vbLf, vbCrLf))
             End Function
 
             <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
@@ -4395,7 +4392,7 @@ Class C
         Throw New NotImplementedException()
     End Operator
 End Class
-</text>.Value.Replace(vbLf, vbCrLf), ignoreTrivia:=False)
+</text>.Value.Replace(vbLf, vbCrLf))
             End Function
 
             <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
@@ -4430,7 +4427,7 @@ Class C
         Throw New NotImplementedException()
     End Operator
 End Class
-</text>.Value.Replace(vbLf, vbCrLf), ignoreTrivia:=False)
+</text>.Value.Replace(vbLf, vbCrLf))
             End Function
 
             <WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")>
@@ -4476,7 +4473,7 @@ Class Digit
         Throw New NotImplementedException()
     End Operator
 End Class
-</text>.Value.Replace(vbLf, vbCrLf), ignoreTrivia:=False)
+</text>.Value.Replace(vbLf, vbCrLf))
             End Function
         End Class
     End Class

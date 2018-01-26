@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         }
 
         private static void Find<T>(
-            ImmutableDictionary<DocumentId, T> values,
+            IImmutableDictionary<DocumentId, T> values,
             HashSet<Checksum> searchingChecksumsLeft,
             Dictionary<Checksum, object> result,
             CancellationToken cancellationToken) where T : TextDocumentState

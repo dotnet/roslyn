@@ -395,8 +395,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 // root namespace
 
                 // a type decl can't come before usings/externs
-                var compilationUnit = syntaxTree.GetRoot(cancellationToken) as CompilationUnitSyntax;
-                if (compilationUnit != null &&
+                if (syntaxTree.GetRoot(cancellationToken) is CompilationUnitSyntax compilationUnit &&
                     (compilationUnit.Externs.Count > 0 ||
                     compilationUnit.Usings.Count > 0))
                 {
@@ -979,7 +978,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             int position,
             SyntaxToken tokenOnLeftOfPosition,
             CancellationToken cancellationToken,
-            int? allowableIndex = null)
+            bool includeOperators = false,
+            bool isThisKeyword = false)
         {
             // cases:
             //   Goo(|
@@ -989,31 +989,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             token = token.GetPreviousTokenIfTouchingWord(position);
 
             if (token.IsKind(SyntaxKind.OpenParenToken) &&
-                token.Parent.IsDelegateOrConstructorOrMethodParameterList())
+                token.Parent.IsDelegateOrConstructorOrLocalFunctionOrMethodOrOperatorParameterList(includeOperators))
             {
-                if (allowableIndex.HasValue)
-                {
-                    if (allowableIndex.Value != 0)
-                    {
-                        return false;
-                    }
-                }
-
                 return true;
             }
 
             if (token.IsKind(SyntaxKind.CommaToken) &&
-                token.Parent.IsDelegateOrConstructorOrMethodParameterList())
+                token.Parent.IsDelegateOrConstructorOrLocalFunctionOrMethodOrOperatorParameterList(includeOperators))
             {
-                if (allowableIndex.HasValue)
+                if (isThisKeyword)
                 {
                     var parameterList = token.GetAncestor<ParameterListSyntax>();
                     var commaIndex = parameterList.Parameters.GetWithSeparators().IndexOf(token);
                     var index = commaIndex / 2 + 1;
-                    if (index != allowableIndex.Value)
-                    {
-                        return false;
-                    }
+                    return index == 0;
                 }
 
                 return true;
@@ -1022,21 +1011,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             if (token.IsKind(SyntaxKind.CloseBracketToken) &&
                 token.Parent.IsKind(SyntaxKind.AttributeList) &&
                 token.Parent.IsParentKind(SyntaxKind.Parameter) &&
-                token.Parent.GetParent().GetParent().IsDelegateOrConstructorOrMethodParameterList())
+                token.Parent.GetParent().GetParent().IsDelegateOrConstructorOrLocalFunctionOrMethodOrOperatorParameterList(includeOperators))
             {
-                if (allowableIndex.HasValue)
+                if (isThisKeyword)
                 {
                     var parameter = token.GetAncestor<ParameterSyntax>();
                     var parameterList = parameter.GetAncestorOrThis<ParameterListSyntax>();
 
                     int parameterIndex = parameterList.Parameters.IndexOf(parameter);
-                    if (allowableIndex.Value != parameterIndex)
-                    {
-                        return false;
-                    }
+                    return parameterIndex == 0;
                 }
 
                 return true;
+            }
+
+            if (isThisKeyword &&
+                (token.IsKind(SyntaxKind.RefKeyword) || token.IsKind(SyntaxKind.InKeyword)) &&
+                token.Parent.GetParent().IsDelegateOrConstructorOrLocalFunctionOrMethodOrOperatorParameterList(includeOperators))
+            {
+                var parameter = token.GetAncestor<ParameterSyntax>();
+                var parameterList = parameter.GetAncestorOrThis<ParameterListSyntax>();
+
+                int parameterIndex = parameterList.Parameters.IndexOf(parameter);
+                return parameterIndex == 0;
             }
 
             return false;
@@ -1103,6 +1100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             if (token.IsKind(SyntaxKind.RefKeyword) ||
                 token.IsKind(SyntaxKind.OutKeyword) ||
+                token.IsKind(SyntaxKind.InKeyword) ||
                 token.IsKind(SyntaxKind.ParamsKeyword) ||
                 token.IsKind(SyntaxKind.ThisKeyword))
             {
@@ -1185,6 +1183,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             token = token.GetPreviousTokenIfTouchingWord(position);
 
             if (token.IsKind(SyntaxKind.RefKeyword) ||
+                token.IsKind(SyntaxKind.InKeyword) ||
                 token.IsKind(SyntaxKind.OutKeyword))
             {
                 position = token.SpanStart;
@@ -1731,8 +1730,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             if (token.IsKind(SyntaxKind.None))
             {
                 // global statements can't come before usings/externs
-                var compilationUnit = syntaxTree.GetRoot(cancellationToken) as CompilationUnitSyntax;
-                if (compilationUnit != null &&
+                if (syntaxTree.GetRoot(cancellationToken) is CompilationUnitSyntax compilationUnit &&
                     (compilationUnit.Externs.Count > 0 ||
                     compilationUnit.Usings.Count > 0))
                 {
@@ -2054,8 +2052,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                     // this as a pointer type.
                     if (token.IsKind(SyntaxKind.AsteriskToken) && semanticModelOpt != null)
                     {
-                        var type = binary.Left as TypeSyntax;
-                        if (type != null && type.IsPotentialTypeName(semanticModelOpt, cancellationToken))
+                        if (binary.Left is TypeSyntax type && type.IsPotentialTypeName(semanticModelOpt, cancellationToken))
                         {
                             return false;
                         }
@@ -2180,8 +2177,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             }
 
             // Goo(ref |
-            // Goo(bar |
+            // Goo(in |
+            // Goo(out |
             if (token.IsKind(SyntaxKind.RefKeyword) ||
+                token.IsKind(SyntaxKind.InKeyword) ||
                 token.IsKind(SyntaxKind.OutKeyword))
             {
                 if (token.Parent.IsKind(SyntaxKind.Argument))

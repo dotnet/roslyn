@@ -384,7 +384,7 @@ End Class"
             Dim source = <compilation>
                              <file name="a.vb"></file>
                          </compilation>
-            CompileAndVerify(source, emitOptions:=emitRefAssembly, verify:=True, validator:=assemblyValidator)
+            CompileAndVerify(source, emitOptions:=emitRefAssembly, verify:=Verification.Passes, validator:=assemblyValidator)
         End Sub
 
         <Fact>
@@ -400,7 +400,7 @@ End Class"
 
             Dim comp = CreateCompilation({Parse("")})
             comp.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_ReferenceAssemblyAttribute__ctor)
-            CompileAndVerify(comp, emitOptions:=emitRefAssembly, verify:=True, validator:=assemblyValidator)
+            CompileAndVerify(comp, emitOptions:=emitRefAssembly, verify:=Verification.Passes, validator:=assemblyValidator)
         End Sub
 
         <Fact>
@@ -425,7 +425,7 @@ End Class"
 <assembly:System.Runtime.CompilerServices.ReferenceAssembly()>
                          ]]></file>
                          </compilation>
-            CompileAndVerify(source, emitOptions:=emitRefAssembly, verify:=True, validator:=assemblyValidator)
+            CompileAndVerify(source, emitOptions:=emitRefAssembly, verify:=Verification.Passes, validator:=assemblyValidator)
         End Sub
 
         <Fact>
@@ -458,6 +458,11 @@ End Sub",
 
             CompareAssemblies(sourceTemplate,
 "Friend Sub M()
+End Sub",
+"", Match.RefOut)
+
+            CompareAssemblies(sourceTemplate,
+"Private Protected Sub M()
 End Sub",
 "", Match.RefOut)
 
@@ -712,7 +717,7 @@ End Class
         End Function
 
         <Fact>
-        Public Sub RefAssembly_InvariantToSomeChangesWithInternalsVisibleTo()
+        Public Sub RefAssembly_InvariantToSomeChangesWithInternalsVisibleTo_01()
             Dim sourceTemplate As String = "
 Imports System.Runtime.CompilerServices
 <assembly:InternalsVisibleToAttribute(""Friend"")>
@@ -722,6 +727,22 @@ End Class"
 
             CompareAssemblies(sourceTemplate,
 "Friend Function M() As Integer
+End Function",
+"", Match.Different)
+
+        End Sub
+
+        <Fact>
+        Public Sub RefAssembly_InvariantToSomeChangesWithInternalsVisibleTo_02()
+            Dim sourceTemplate As String = "
+Imports System.Runtime.CompilerServices
+<assembly:InternalsVisibleToAttribute(""Friend"")>
+Public Class C
+    CHANGE
+End Class"
+
+            CompareAssemblies(sourceTemplate,
+"Private Protected Function M() As Integer
 End Function",
 "", Match.Different)
 
@@ -746,12 +767,12 @@ End Function",
             Dim name As String = GetUniqueName()
             Dim source1 As String = sourceTemplate.Replace("CHANGE", change1)
             Dim comp1 = CreateCompilationWithMscorlib(source1,
-                options:=TestOptions.DebugDll.WithDeterministic(True), assemblyName:=name)
+                options:=TestOptions.DebugDll.WithDeterministic(True), assemblyName:=name, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest))
             Dim image1 As ImmutableArray(Of Byte) = comp1.EmitToArray(EmitOptions.Default.WithEmitMetadataOnly(True).WithIncludePrivateMembers(includePrivateMembers))
 
             Dim source2 = sourceTemplate.Replace("CHANGE", change2)
             Dim comp2 = CreateCompilationWithMscorlib(source2,
-                            options:=TestOptions.DebugDll.WithDeterministic(True), assemblyName:=name)
+                            options:=TestOptions.DebugDll.WithDeterministic(True), assemblyName:=name, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest))
             Dim image2 As ImmutableArray(Of Byte) = comp2.EmitToArray(EmitOptions.Default.WithEmitMetadataOnly(True).WithIncludePrivateMembers(includePrivateMembers))
 
             If expectMatch Then
@@ -990,14 +1011,21 @@ Public MustInherit Class PublicClass
     Friend Sub InternalMethod()
         System.Console.Write(""Hello"")
     End Sub
+    Protected Friend Sub ProtectedFriendMethod()
+        System.Console.Write(""Hello"")
+    End Sub
+    Private Protected Sub PrivateProtectedMethod()
+        System.Console.Write(""Hello"")
+    End Sub
     Public MustOverride Sub AbstractMethod()
     Public Event PublicEvent As System.Action
     Friend Event InternalEvent As System.Action
 End Class"
             Dim comp As Compilation = CreateCompilation(source, references:={MscorlibRef},
+                            parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_5),
                             options:=TestOptions.DebugDll.WithDeterministic(True))
 
-            Dim verifier = CompileAndVerify(comp, emitOptions:=EmitOptions.Default.WithEmitMetadataOnly(True), verify:=True)
+            Dim verifier = CompileAndVerify(comp, emitOptions:=EmitOptions.Default.WithEmitMetadataOnly(True), verify:=Verification.Passes)
 
             ' verify metadata (types, members, attributes) of the regular assembly
             Dim realImage = comp.EmitToImageReference(EmitOptions.Default)
@@ -1012,7 +1040,10 @@ End Class"
                 {"PublicClass.PublicEventEvent As System.Action", "PublicClass.InternalEventEvent As System.Action",
                     "Sub PublicClass..ctor()", "Sub PublicClass.PublicMethod()",
                     "Sub PublicClass.PrivateMethod()", "Sub PublicClass.ProtectedMethod()",
-                    "Sub PublicClass.InternalMethod()", "Sub PublicClass.AbstractMethod()",
+                    "Sub PublicClass.InternalMethod()",
+                    "Sub PublicClass.ProtectedFriendMethod()",
+                    "Sub PublicClass.PrivateProtectedMethod()",
+                    "Sub PublicClass.AbstractMethod()",
                     "Sub PublicClass.add_PublicEvent(obj As System.Action)", "Sub PublicClass.remove_PublicEvent(obj As System.Action)",
                     "Sub PublicClass.add_InternalEvent(obj As System.Action)", "Sub PublicClass.remove_InternalEvent(obj As System.Action)",
                     "Event PublicClass.PublicEvent As System.Action", "Event PublicClass.InternalEvent As System.Action"},
@@ -1027,7 +1058,7 @@ End Class"
 
             ' verify metadata (types, members, attributes) of the metadata-only assembly
             Dim emitMetadataOnly = EmitOptions.Default.WithEmitMetadataOnly(True)
-            CompileAndVerify(comp, emitOptions:=emitMetadataOnly, verify:=True)
+            CompileAndVerify(comp, emitOptions:=emitMetadataOnly, verify:=Verification.Passes)
 
             Dim metadataImage = comp.EmitToImageReference(emitMetadataOnly)
             Dim compWithMetadata = CreateCompilation("", references:={MscorlibRef, metadataImage},
@@ -1041,7 +1072,10 @@ End Class"
                 {"PublicClass.PublicEventEvent As System.Action", "PublicClass.InternalEventEvent As System.Action",
                     "Sub PublicClass..ctor()", "Sub PublicClass.PublicMethod()",
                     "Sub PublicClass.PrivateMethod()", "Sub PublicClass.ProtectedMethod()",
-                    "Sub PublicClass.InternalMethod()", "Sub PublicClass.AbstractMethod()",
+                    "Sub PublicClass.InternalMethod()",
+                    "Sub PublicClass.ProtectedFriendMethod()",
+                    "Sub PublicClass.PrivateProtectedMethod()",
+                    "Sub PublicClass.AbstractMethod()",
                     "Sub PublicClass.add_PublicEvent(obj As System.Action)", "Sub PublicClass.remove_PublicEvent(obj As System.Action)",
                     "Sub PublicClass.add_InternalEvent(obj As System.Action)", "Sub PublicClass.remove_InternalEvent(obj As System.Action)",
                     "Event PublicClass.PublicEvent As System.Action", "Event PublicClass.InternalEvent As System.Action"},
@@ -1058,7 +1092,7 @@ End Class"
 
             ' verify metadata (types, members, attributes) of the ref assembly
             Dim emitRefOnly = EmitOptions.Default.WithEmitMetadataOnly(True).WithIncludePrivateMembers(False)
-            CompileAndVerify(comp, emitOptions:=emitRefOnly, verify:=True)
+            CompileAndVerify(comp, emitOptions:=emitRefOnly, verify:=Verification.Passes)
 
             Dim refImage = comp.EmitToImageReference(emitRefOnly)
             Dim compWithRef = CreateCompilation("", references:={MscorlibRef, refImage},
@@ -1070,7 +1104,9 @@ End Class"
 
             AssertEx.SetEqual(
                 {"Sub PublicClass..ctor()", "Sub PublicClass.PublicMethod()",
-                    "Sub PublicClass.ProtectedMethod()", "Sub PublicClass.AbstractMethod()",
+                    "Sub PublicClass.ProtectedMethod()",
+                    "Sub PublicClass.ProtectedFriendMethod()",
+                    "Sub PublicClass.AbstractMethod()",
                     "Sub PublicClass.add_PublicEvent(obj As System.Action)", "Sub PublicClass.remove_PublicEvent(obj As System.Action)",
                     "Event PublicClass.PublicEvent As System.Action"},
                 compWithRef.GetMember(Of NamedTypeSymbol)("PublicClass").GetMembers().
@@ -1106,7 +1142,7 @@ End Class"
             Dim comp As Compilation = CreateCompilation(source, references:={MscorlibRef},
                             options:=TestOptions.DebugDll.WithDeterministic(True))
 
-            Dim verifier = CompileAndVerify(comp, emitOptions:=EmitOptions.Default.WithEmitMetadataOnly(True), verify:=True)
+            Dim verifier = CompileAndVerify(comp, emitOptions:=EmitOptions.Default.WithEmitMetadataOnly(True), verify:=Verification.Passes)
 
             ' verify metadata (types, members, attributes) of the regular assembly
             Dim realImage = comp.EmitToImageReference(EmitOptions.Default)
@@ -1124,7 +1160,7 @@ End Class"
 
             ' verify metadata (types, members, attributes) of the metadata-only assembly
             Dim emitMetadataOnly = EmitOptions.Default.WithEmitMetadataOnly(True)
-            CompileAndVerify(comp, emitOptions:=emitMetadataOnly, verify:=True)
+            CompileAndVerify(comp, emitOptions:=emitMetadataOnly, verify:=Verification.Passes)
 
             Dim metadataImage = comp.EmitToImageReference(emitMetadataOnly)
             Dim compWithMetadata = CreateCompilation("", references:={MscorlibRef, metadataImage},
@@ -1143,7 +1179,7 @@ End Class"
 
             ' verify metadata (types, members, attributes) of the ref assembly
             Dim emitRefOnly = EmitOptions.Default.WithEmitMetadataOnly(True).WithIncludePrivateMembers(False)
-            CompileAndVerify(comp, emitOptions:=emitRefOnly, verify:=True)
+            CompileAndVerify(comp, emitOptions:=emitRefOnly, verify:=Verification.Passes)
 
             Dim refImage = comp.EmitToImageReference(emitRefOnly)
             Dim compWithRef = CreateCompilation("", references:={MscorlibRef, refImage},
@@ -1184,7 +1220,7 @@ End Class"
             Dim comp As Compilation = CreateCompilation(source, references:={MscorlibRef},
                             options:=TestOptions.DebugDll.WithDeterministic(True))
 
-            Dim verifier = CompileAndVerify(comp, emitOptions:=EmitOptions.Default.WithEmitMetadataOnly(True), verify:=True)
+            Dim verifier = CompileAndVerify(comp, emitOptions:=EmitOptions.Default.WithEmitMetadataOnly(True), verify:=Verification.Passes)
 
             ' verify metadata (types, members, attributes) of the regular assembly
             Dim realImage = comp.EmitToImageReference(EmitOptions.Default)
@@ -1203,7 +1239,7 @@ End Class"
 
             ' verify metadata (types, members, attributes) of the metadata-only assembly
             Dim emitMetadataOnly = EmitOptions.Default.WithEmitMetadataOnly(True)
-            CompileAndVerify(comp, emitOptions:=emitMetadataOnly, verify:=True)
+            CompileAndVerify(comp, emitOptions:=emitMetadataOnly, verify:=Verification.Passes)
 
             Dim metadataImage = comp.EmitToImageReference(emitMetadataOnly)
             Dim compWithMetadata = CreateCompilation("", references:={MscorlibRef, metadataImage},
@@ -1223,7 +1259,7 @@ End Class"
 
             ' verify metadata (types, members, attributes) of the ref assembly
             Dim emitRefOnly = EmitOptions.Default.WithEmitMetadataOnly(True).WithIncludePrivateMembers(False)
-            CompileAndVerify(comp, emitOptions:=emitRefOnly, verify:=True)
+            CompileAndVerify(comp, emitOptions:=emitRefOnly, verify:=Verification.Passes)
 
             Dim refImage = comp.EmitToImageReference(emitRefOnly)
             Dim compWithRef = CreateCompilation("", references:={MscorlibRef, refImage},
@@ -1251,11 +1287,11 @@ End Structure"
             Dim comp As Compilation = CreateCompilation(source, references:={MscorlibRef},
                             options:=TestOptions.DebugDll.WithDeterministic(True))
 
-            Dim verifier = CompileAndVerify(comp, emitOptions:=EmitOptions.Default.WithEmitMetadataOnly(True), verify:=True)
+            Dim verifier = CompileAndVerify(comp, emitOptions:=EmitOptions.Default.WithEmitMetadataOnly(True), verify:=Verification.Passes)
 
             ' verify metadata (types, members, attributes) of the ref assembly
             Dim emitRefOnly = EmitOptions.Default.WithEmitMetadataOnly(True).WithIncludePrivateMembers(False)
-            CompileAndVerify(comp, emitOptions:=emitRefOnly, verify:=True)
+            CompileAndVerify(comp, emitOptions:=emitRefOnly, verify:=Verification.Passes)
 
             Dim refImage = comp.EmitToImageReference(emitRefOnly)
             Dim compWithRef = CreateCompilation("", references:={MscorlibRef, refImage},
@@ -3343,7 +3379,7 @@ End Class
 
             Dim comp = CreateCompilationWithMscorlib(source1, OutputKind.NetModule)
             Dim metadataRef = comp.EmitToImageReference()
-            CompileAndVerify(source2, additionalRefs:={metadataRef}, options:=TestOptions.ReleaseModule, verify:=False)
+            CompileAndVerify(source2, additionalRefs:={metadataRef}, options:=TestOptions.ReleaseModule, verify:=Verification.Fails)
         End Sub
 
         <Fact>
@@ -3789,7 +3825,7 @@ End interface
 
             Dim compilation = CreateCompilationWithReferences(source, {TestReferences.SymbolsTests.netModule.x64COFF}, TestOptions.DebugDll)
 
-            CompileAndVerify(compilation, verify:=False)
+            CompileAndVerify(compilation, verify:=Verification.Fails)
             Assert.NotSame(compilation.Assembly.CorLibrary, compilation.Assembly)
             compilation.GetSpecialType(SpecialType.System_Int32)
         End Sub

@@ -169,8 +169,7 @@ class C
     {
     }
 }";
-                await TestAddNamedTypeAsync(input, expected,
-                    ignoreTrivia: false);
+                await TestAddNamedTypeAsync(input, expected);
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]

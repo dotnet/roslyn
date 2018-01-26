@@ -264,6 +264,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             return SubjectBuffer.CurrentSnapshot.GetLineFromPosition(caretPosition).GetText();
         }
 
+        public (string TextBeforeCaret, string TextAfterCaret) GetLineTextAroundCaretPosition()
+        {
+            int bufferCaretPosition = GetCaretPoint().BufferPosition;
+            var line = SubjectBuffer.CurrentSnapshot.GetLineFromPosition(bufferCaretPosition);
+            var lineCaretPosition = bufferCaretPosition - line.Start.Position;
+
+            var text = line.GetText();
+            var textBeforeCaret = text.Substring(0, lineCaretPosition);
+            var textAfterCaret = text.Substring(lineCaretPosition, text.Length - lineCaretPosition);
+
+            return (textBeforeCaret, textAfterCaret);
+        }
+
         public string GetDocumentText()
         {
             return SubjectBuffer.CurrentSnapshot.GetText();
@@ -280,14 +293,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         /// </summary>
         public void AssertNoAsynchronousOperationsRunning()
         {
-            var waiters = Workspace.ExportProvider.GetExportedValues<IAsynchronousOperationWaiter>();
-            Assert.False(waiters.Any(x => x.HasPendingWork), "IAsyncTokens unexpectedly alive. Call WaitForAsynchronousOperationsAsync before this method");
+            var provider = Workspace.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
+            Assert.False(provider.HasPendingWaiter(FeatureAttribute.EventHookup, FeatureAttribute.CompletionSet, FeatureAttribute.SignatureHelp), "IAsyncTokens unexpectedly alive. Call WaitForAsynchronousOperationsAsync before this method");
         }
 
         public async Task WaitForAsynchronousOperationsAsync()
         {
-            var waiters = Workspace.ExportProvider.GetExportedValues<IAsynchronousOperationWaiter>();
-            await waiters.WaitAllAsync();
+            var provider = Workspace.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
+            await provider.WaitAllDispatcherOperationAndTasksAsync(FeatureAttribute.EventHookup, FeatureAttribute.CompletionSet, FeatureAttribute.SignatureHelp);
         }
 
         public void AssertMatchesTextStartingAtLine(int line, string text)

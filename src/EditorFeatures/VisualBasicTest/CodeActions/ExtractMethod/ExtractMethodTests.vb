@@ -150,8 +150,7 @@ End Module
     Sub Goo
     End Sub
 End Module
-</Text>.Value.Replace(vbLf, vbCrLf),
-ignoreTrivia:=False)
+</Text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <WorkItem(545262, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545262")>
@@ -242,8 +241,7 @@ End Module",
     Private Sub NewMethod(v As Object)
         System.Console.WriteLine($""{v}"")
     End Sub
-End Module",
-ignoreTrivia:=False)
+End Module")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
@@ -266,8 +264,7 @@ End Module",
     Private Function NewMethod(v As Object) As String
         Return $""{v}""
     End Function
-End Module",
-ignoreTrivia:=False)
+End Module")
         End Function
 
         <WorkItem(545829, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545829")>
@@ -335,8 +332,7 @@ End Class
         Throw New NotImplementedException()
     End Sub
 End Class
-</Text>.Value.Replace(vbLf, vbCrLf),
-ignoreTrivia:=False)
+</Text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <WorkItem(984831, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/984831")>
@@ -384,8 +380,7 @@ End Class
         Throw New NotImplementedException()
     End Sub
 End Class
-</Text>.Value.Replace(vbLf, vbCrLf),
-ignoreTrivia:=False)
+</Text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <WorkItem(984831, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/984831")>
@@ -438,8 +433,7 @@ End Class
         Throw New NotImplementedException()
     End Sub
 End Class
-</Text>.Value.Replace(vbLf, vbCrLf),
-ignoreTrivia:=False)
+</Text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)>

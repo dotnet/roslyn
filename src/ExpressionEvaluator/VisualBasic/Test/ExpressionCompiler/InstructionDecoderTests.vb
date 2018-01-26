@@ -515,7 +515,7 @@ End Class"
             ' async/ iterator "MoveNext" methods to the original source method.
             Dim method As MethodSymbol = compilation.GetSourceMethod(
                 DirectCast(frame.ContainingModule, PEModuleSymbol).Module.GetModuleVersionIdOrThrow(),
-                MetadataTokens.GetToken(frame.Handle))
+                frame.Handle)
             If serializedTypeArgumentNames IsNot Nothing Then
                 Assert.NotEmpty(serializedTypeArgumentNames)
                 Dim typeParameters = instructionDecoder.GetAllTypeParameters(method)

@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 SyntaxTrivia? startComment = null;
                 SyntaxTrivia? endComment = null;
 
-                Action completeSingleLineCommentGroup = () =>
+                void completeSingleLineCommentGroup()
                 {
                     if (startComment != null)
                     {
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                         startComment = null;
                         endComment = null;
                     }
-                };
+                }
 
                 // Iterate through trivia and collect the following:
                 //    1. Groups of contiguous single-line comments that are only separated by whitespace

@@ -28,7 +28,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             bool allowUnsafe = false,
             [CallerFilePath]string callerPath = null,
             [CallerLineNumber]int callerLine = 0,
-            CSharpParseOptions parseOptions = null)
+            CSharpParseOptions parseOptions = null,
+            Verification verify = Verification.Passes)
         {
             references = references ?? new[] { SystemCoreRef, CSharpRef };
 
@@ -36,8 +37,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             var unoptimizedCompilation = CreateCompilationWithMscorlib45(source, references, parseOptions: parseOptions, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All).WithAllowUnsafe(allowUnsafe));
             var optimizedCompilation = CreateCompilationWithMscorlib45(source, references, parseOptions: parseOptions, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All).WithAllowUnsafe(allowUnsafe));
 
-            var unoptimizedVerifier = CompileAndVerify(unoptimizedCompilation);
-            var optimizedVerifier = CompileAndVerify(optimizedCompilation);
+            var unoptimizedVerifier = CompileAndVerify(unoptimizedCompilation, verify: verify);
+            var optimizedVerifier = CompileAndVerify(optimizedCompilation, verify: verify);
 
             // check what IL we emit exactly:
             if (expectedUnoptimizedIL != null)
@@ -330,7 +331,7 @@ class C
 ";
             // Desired: the delegate is generated, no error is reported.
             // Actual: use the malformed Func`13 time and failed to PEVerify.  Not presently worthwhile to fix.
-            CompileAndVerify(source, new[] { systemCoreRef, csrtRef }, verify: false).VerifyIL("C.F", @"
+            CompileAndVerify(source, new[] { systemCoreRef, csrtRef }, verify: Verification.Fails).VerifyIL("C.F", @"
 {
   // Code size      189 (0xbd)
   .maxstack  13
@@ -587,7 +588,7 @@ public class C
                 {
                     Assert.Equal(Accessibility.Private, container.DeclaredAccessibility);
                     Assert.True(container.IsStatic);
-                    Assert.Equal(SpecialType.System_Object, container.BaseType.SpecialType);
+                    Assert.Equal(SpecialType.System_Object, container.BaseType().SpecialType);
                     AssertEx.SetEqual(new[] { "CompilerGeneratedAttribute" }, GetAttributeNames(container.GetAttributes()));
 
                     var members = container.GetMembers();
@@ -683,8 +684,17 @@ public class C
                             break;
 
                         case SymbolKind.Method:
-                            // Dev11 marks return type of GetEnumerator with DynamicAttribute, we don't
-                            Assert.Equal(0, ((MethodSymbol)member).GetReturnTypeAttributes().Length);
+                            var attributes = ((MethodSymbol)member).GetReturnTypeAttributes();
+                            switch (member.MetadataName)
+                            {
+                                case "System.Collections.Generic.IEnumerator<dynamic>.get_Current":
+                                case "System.Collections.Generic.IEnumerable<dynamic>.GetEnumerator":
+                                    Assert.Equal(1, attributes.Length);
+                                    break;
+                                default:
+                                    Assert.Equal(0, attributes.Length);
+                                    break;
+                            }
                             break;
 
                         case SymbolKind.Property:
@@ -814,8 +824,8 @@ public class C
                 Assert.Equal(4, d.TypeParameters.Length);
                 Assert.True(d.IsSealed);
                 Assert.Equal(CharSet.Ansi, d.MarshallingCharSet);
-                Assert.Equal(SpecialType.System_MulticastDelegate, d.BaseType.SpecialType);
-                Assert.Equal(0, d.Interfaces.Length);
+                Assert.Equal(SpecialType.System_MulticastDelegate, d.BaseType().SpecialType);
+                Assert.Equal(0, d.Interfaces().Length);
                 AssertEx.SetEqual(new[] { "CompilerGeneratedAttribute" }, GetAttributeNames(d.GetAttributes()));
 
                 // members:
@@ -1555,7 +1565,7 @@ public class C
   IL_0044:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, int>> C.<>o__0.<>p__0""
   IL_0049:  ldloc.1
   IL_004a:  callvirt   ""int System.Func<System.Runtime.CompilerServices.CallSite, object, int>.Invoke(System.Runtime.CompilerServices.CallSite, object)""
-  IL_004f:  call       ""void C.<Main>g__L10_0(int)""
+  IL_004f:  call       ""void C.<Main>g__L1|0_0(int)""
   IL_0054:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, int>> C.<>o__0.<>p__1""
   IL_0059:  brtrue.s   IL_007f
   IL_005b:  ldc.i4.0
@@ -1572,7 +1582,7 @@ public class C
   IL_008e:  ldloc.1
   IL_008f:  callvirt   ""int System.Func<System.Runtime.CompilerServices.CallSite, object, int>.Invoke(System.Runtime.CompilerServices.CallSite, object)""
   IL_0094:  ldloca.s   V_0
-  IL_0096:  call       ""System.Action<int> C.<Main>g__L20_1(int, ref C.<>c__DisplayClass0_0)""
+  IL_0096:  call       ""System.Action<int> C.<Main>g__L2|0_1(int, ref C.<>c__DisplayClass0_0)""
   IL_009b:  stloc.2
   IL_009c:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, object, object>> C.<>o__0.<>p__2""
   IL_00a1:  brtrue.s   IL_00db
@@ -9349,7 +9359,7 @@ public struct S
   IL_0063:  callvirt   ""void <>A{00000002}<System.Runtime.CompilerServices.CallSite, S, object>.Invoke(System.Runtime.CompilerServices.CallSite, ref S, object)""
   IL_0068:  ret
 }
-", allowUnsafe: true);
+", allowUnsafe: true, verify: Verification.Fails);
         }
 
         [Fact]
@@ -9418,7 +9428,7 @@ public struct S
   IL_0063:  callvirt   ""void <>A{00000002}<System.Runtime.CompilerServices.CallSite, S, object>.Invoke(System.Runtime.CompilerServices.CallSite, ref S, object)""
   IL_0068:  ret
 }
-", allowUnsafe: true);
+", allowUnsafe: true, verify: Verification.Fails);
         }
 
         [Fact]
@@ -9488,7 +9498,7 @@ public struct S
   IL_006a:  callvirt   ""void <>A{00000002}<System.Runtime.CompilerServices.CallSite, S, object>.Invoke(System.Runtime.CompilerServices.CallSite, ref S, object)""
   IL_006f:  ret
 }
-", allowUnsafe: true);
+", allowUnsafe: true, verify: Verification.Fails);
         }
 
         [Fact]

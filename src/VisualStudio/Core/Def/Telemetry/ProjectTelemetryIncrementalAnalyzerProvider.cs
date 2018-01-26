@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.LangaugeServices.Telemetry
     [ExportIncrementalAnalyzerProvider(WorkspaceKind.Host), Shared]
     internal sealed class ProjectTelemetryIncrementalAnalyzerProvider : IIncrementalAnalyzerProvider
     {
-        public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
+        public IIncrementalAnalyzer CreateIncrementalAnalyzer(Microsoft.CodeAnalysis.Workspace workspace)
         {
             return new Analyzer();
         }

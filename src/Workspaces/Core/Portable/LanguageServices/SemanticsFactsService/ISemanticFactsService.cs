@@ -68,6 +68,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsOnlyWrittenTo(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken);
         bool IsInOutContext(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken);
         bool IsInRefContext(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken);
+        bool IsInInContext(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken);
 
         bool CanReplaceWithRValue(SemanticModel semanticModel, SyntaxNode expression, CancellationToken cancellationToken);
 
@@ -88,6 +89,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         ImmutableHashSet<string> GetAliasNameSet(SemanticModel model, CancellationToken cancellationToken);
 
         ForEachSymbols GetForEachSymbols(SemanticModel semanticModel, SyntaxNode forEachStatement);
+
+        ImmutableArray<IMethodSymbol> GetDeconstructionAssignmentMethods(SemanticModel semanticModel, SyntaxNode node);
+
+        ImmutableArray<IMethodSymbol> GetDeconstructionForEachMethods(SemanticModel semanticModel, SyntaxNode node);
 
         bool IsAssignableTo(ITypeSymbol fromSymbol, ITypeSymbol toSymbol, Compilation compilation);
 

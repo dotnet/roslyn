@@ -5,6 +5,8 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -24,6 +26,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal readonly MethodSymbol OriginalContainingMethodOpt;
         internal readonly FieldSymbol SingletonCache;
         internal readonly MethodSymbol StaticConstructor;
+
+        private ArrayBuilder<Symbol> _membersBuilder = ArrayBuilder<Symbol>.GetInstance();
+        private ImmutableArray<Symbol> _members;
 
         public override TypeKind TypeKind { get; }
         internal override MethodSymbol Constructor { get; }
@@ -54,6 +59,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             AssertIsClosureScopeSyntax(scopeSyntaxOpt);
             this.ScopeSyntaxOpt = scopeSyntaxOpt;
         }
+
+        internal void AddHoistedField(LambdaCapturedVariable captured) => _membersBuilder.Add(captured);
 
         private static string MakeName(SyntaxNode scopeSyntaxOpt, DebugId methodId, DebugId closureId)
         {
@@ -89,14 +96,30 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override ImmutableArray<Symbol> GetMembers()
         {
-            var members = base.GetMembers();
-            if ((object)StaticConstructor != null)
+            if (_members.IsDefault)
             {
-                members = ImmutableArray.Create<Symbol>(StaticConstructor, SingletonCache).AddRange(members);
+                var builder = _membersBuilder;
+                if ((object)StaticConstructor != null)
+                {
+                    builder.Add(StaticConstructor);
+                    builder.Add(SingletonCache);
+                }
+                builder.AddRange(base.GetMembers());
+                _members = builder.ToImmutableAndFree();
+                _membersBuilder = null;
             }
 
-            return members;
+            return _members;
         }
+
+        /// <summary>
+        /// All fields should have already been added as synthesized members on the
+        /// <see cref="CommonPEModuleBuilder" />, so we don't want to duplicate them here.
+        /// </summary>
+        internal override IEnumerable<FieldSymbol> GetFieldsToEmit()
+            => (object)SingletonCache != null
+            ? SpecializedCollections.SingletonEnumerable(SingletonCache)
+            : SpecializedCollections.EmptyEnumerable<FieldSymbol>();
 
         // display classes for static lambdas do not have any data and can be serialized.
         internal override bool IsSerializable => (object)SingletonCache != null;

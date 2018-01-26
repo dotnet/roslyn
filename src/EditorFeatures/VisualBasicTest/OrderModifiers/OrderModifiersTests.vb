@@ -248,7 +248,7 @@ end class
 ''' Doc comment
 protected friend class C
 end class
-", ignoreTrivia:=False)
+")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)>
@@ -265,7 +265,7 @@ end class
 protected friend class C
 end class
 #end if
-", ignoreTrivia:=False)
+")
         End Function
     End Class
 End Namespace

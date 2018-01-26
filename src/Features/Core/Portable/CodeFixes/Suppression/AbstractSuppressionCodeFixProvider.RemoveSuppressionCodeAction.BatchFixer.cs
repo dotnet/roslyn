@@ -51,16 +51,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                         var removeSuppressionFix = removeSuppressionFixes.SingleOrDefault();
                         if (removeSuppressionFix != null)
                         {
-                            var codeAction = removeSuppressionFix.Action as RemoveSuppressionCodeAction;
-                            if (codeAction != null)
+                            if (removeSuppressionFix.Action is RemoveSuppressionCodeAction codeAction)
                             {
                                 if (fixAllState.IsFixMultiple)
                                 {
                                     codeAction = codeAction.CloneForFixMultipleContext();
                                 }
 
-                                var pragmaRemoveAction = codeAction as PragmaRemoveAction;
-                                if (pragmaRemoveAction != null)
+                                if (codeAction is PragmaRemoveAction pragmaRemoveAction)
                                 {
                                     pragmaActionsBuilder.Add(pragmaRemoveAction);
                                     pragmaDiagnosticsBuilder.Add(diagnostic);
@@ -95,8 +93,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     {
                         var removeSuppressionFixes = await _suppressionFixProvider.GetSuppressionsAsync(
                             project, SpecializedCollections.SingletonEnumerable(diagnostic), cancellationToken).ConfigureAwait(false);
-                        var removeSuppressionCodeAction = removeSuppressionFixes.SingleOrDefault()?.Action as RemoveSuppressionCodeAction;
-                        if (removeSuppressionCodeAction != null)
+                        if (removeSuppressionFixes.SingleOrDefault()?.Action is RemoveSuppressionCodeAction removeSuppressionCodeAction)
                         {
                             if (fixAllState.IsFixMultiple)
                             {
@@ -124,8 +121,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     var newBatchOfFixes = new List<(Diagnostic diagnostic, CodeAction action)>();
                     foreach (var codeAction in batchOfFixes)
                     {
-                        var attributeRemoveFix = codeAction.action as AttributeRemoveAction;
-                        if (attributeRemoveFix != null)
+                        if (codeAction.action is AttributeRemoveAction attributeRemoveFix)
                         {
                             attributeRemoveFixes.Add(attributeRemoveFix);
                         }

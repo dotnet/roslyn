@@ -63,8 +63,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 // Start token: Insert the #pragma disable directive just **before** the first end of line trivia prior to diagnostic location.
                 // End token: Insert the #pragma disable directive just **after** the first end of line trivia after diagnostic location.
 
-                Func<int, int> getNextIndex = cur => isStartToken ? cur - 1 : cur + 1;
-                Func<SyntaxTrivia, bool> shouldConsiderTrivia = trivia =>
+                int getNextIndex(int cur) => isStartToken ? cur - 1 : cur + 1;
+                bool shouldConsiderTrivia(SyntaxTrivia trivia) =>
                     isStartToken ?
                     trivia.FullSpan.End <= currentDiagnosticSpan.Start :
                     trivia.FullSpan.Start >= currentDiagnosticSpan.End;

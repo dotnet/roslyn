@@ -102,6 +102,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         }
 
                         break;
+                    case SyntaxKind.PrivateKeyword:
+                        if (seenAccessibility == Accessibility.NotApplicable)
+                        {
+                            seenAccessibility = Accessibility.Private;
+                        }
+
+                        // If we see private AND protected, filter for private protected
+                        else if (seenAccessibility == Accessibility.Protected)
+                        {
+                            seenAccessibility = Accessibility.ProtectedAndInternal;
+                        }
+
+                        break;
                     case SyntaxKind.InternalKeyword:
                         if (seenAccessibility == Accessibility.NotApplicable)
                         {
@@ -109,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         }
 
                         // If we see internal AND protected, filter for protected internal
-                        if (seenAccessibility == Accessibility.Protected)
+                        else if (seenAccessibility == Accessibility.Protected)
                         {
                             seenAccessibility = Accessibility.ProtectedOrInternal;
                         }
@@ -122,9 +135,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         }
 
                         // If we see protected AND internal, filter for protected internal
-                        if (seenAccessibility == Accessibility.Internal)
+                        else if (seenAccessibility == Accessibility.Internal)
                         {
                             seenAccessibility = Accessibility.ProtectedOrInternal;
+                        }
+
+                        // If we see private AND protected, filter for private protected
+                        else if (seenAccessibility == Accessibility.Private)
+                        {
+                            seenAccessibility = Accessibility.ProtectedAndInternal;
                         }
 
                         break;

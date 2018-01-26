@@ -763,8 +763,7 @@ namespace B
         {
             await TestInRegularAndScriptAsync(
 @"class Class { void Test() { /*goo*/[|Int32|] i; } }",
-@"class Class { void Test() { /*goo*/System.Int32 i; } }",
-ignoreTrivia: false);
+@"class Class { void Test() { /*goo*/System.Int32 i; } }");
         }
 
         [WorkItem(527395, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527395")]
@@ -773,8 +772,7 @@ ignoreTrivia: false);
         {
             await TestInRegularAndScriptAsync(
 @"class Class { void Test() { /*goo*/[|List<int>|] l; } }",
-@"class Class { void Test() { /*goo*/System.Collections.Generic.List<int> l; } }",
-ignoreTrivia: false);
+@"class Class { void Test() { /*goo*/System.Collections.Generic.List<int> l; } }");
         }
 
         [WorkItem(538740, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538740")]

@@ -501,13 +501,17 @@ End Namespace
                         ' Only present when embedding VB Core.
                         Continue For
                     Case WellKnownType.System_FormattableString,
-                         WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory
+                         WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory,
+                         WellKnownType.System_Span_T,
+                         WellKnownType.System_ReadOnlySpan_T
                         ' Not available on all platforms.
                         Continue For
                     Case WellKnownType.ExtSentinel
                         ' Not a real type
                         Continue For
-                    Case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation
+                    Case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation,
+                         WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute,
+                         WellKnownType.System_Runtime_CompilerServices_IsByRefLikeAttribute
                         ' Not always available.
                         Continue For
                 End Select
@@ -536,13 +540,17 @@ End Namespace
                         ' Not embedded, so not available.
                         Continue For
                     Case WellKnownType.System_FormattableString,
-                         WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory
+                         WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory,
+                         WellKnownType.System_Span_T,
+                         WellKnownType.System_ReadOnlySpan_T
                         ' Not available on all platforms.
                         Continue For
                     Case WellKnownType.ExtSentinel
                         ' Not a real type
                         Continue For
-                    Case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation
+                    Case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation,
+                         WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute,
+                         WellKnownType.System_Runtime_CompilerServices_IsByRefLikeAttribute
                         ' Not always available.
                         Continue For
                 End Select
@@ -577,11 +585,18 @@ End Namespace
                     Case WellKnownMember.Count
                         ' Not a real value.
                         Continue For
-                    Case WellKnownMember.System_Array__Empty
+                    Case WellKnownMember.System_Array__Empty,
+                         WellKnownMember.System_Span_T__ctor,
+                         WellKnownMember.System_Span_T__get_Item,
+                         WellKnownMember.System_Span_T__get_Length,
+                         WellKnownMember.System_ReadOnlySpan_T__get_Item,
+                         WellKnownMember.System_ReadOnlySpan_T__get_Length
                         ' Not available yet, but will be in upcoming release.
                         Continue For
                     Case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile,
-                         WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningMultipleFiles
+                         WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningMultipleFiles,
+                         WellKnownMember.System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor,
+                         WellKnownMember.System_Runtime_CompilerServices_IsByRefLikeAttribute__ctor
                         ' Not always available.
                         Continue For
                 End Select
@@ -658,11 +673,18 @@ End Namespace
                          WellKnownMember.Microsoft_VisualBasic_Interaction__CallByName
                         ' The type is not embedded, so the member is not available.
                         Continue For
-                    Case WellKnownMember.System_Array__Empty
+                    Case WellKnownMember.System_Array__Empty,
+                         WellKnownMember.System_Span_T__ctor,
+                         WellKnownMember.System_Span_T__get_Item,
+                         WellKnownMember.System_Span_T__get_Length,
+                         WellKnownMember.System_ReadOnlySpan_T__get_Item,
+                         WellKnownMember.System_ReadOnlySpan_T__get_Length
                         ' Not available yet, but will be in upcoming release.
                         Continue For
                     Case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile,
-                         WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningMultipleFiles
+                         WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningMultipleFiles,
+                         WellKnownMember.System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor,
+                         WellKnownMember.System_Runtime_CompilerServices_IsByRefLikeAttribute__ctor
                         ' Not always available.
                         Continue For
                 End Select

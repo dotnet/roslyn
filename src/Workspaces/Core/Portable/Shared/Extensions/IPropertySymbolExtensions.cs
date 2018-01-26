@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 property.DeclaredAccessibility,
                 property.GetSymbolModifiers(),
                 property.Type,
-                property.ReturnsByRef,
+                property.RefKind,
                 property.ExplicitInterfaceImplementations,
                 property.Name,
                 parameters,
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return property;
             }
 
-            Func<AttributeData, bool> shouldRemoveAttribute = a =>
+            bool shouldRemoveAttribute(AttributeData a) =>
                 attributesToRemove.Where(attr => attr != null).Any(attr => attr.Equals(a.AttributeClass));
 
             var someParameterHasAttribute = property.Parameters
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 property.DeclaredAccessibility,
                 property.GetSymbolModifiers(),
                 property.Type,
-                property.ReturnsByRef,
+                property.RefKind,
                 property.ExplicitInterfaceImplementations,
                 property.Name,
                 property.Parameters.SelectAsArray(p =>

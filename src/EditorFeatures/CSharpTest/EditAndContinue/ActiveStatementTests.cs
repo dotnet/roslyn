@@ -8656,8 +8656,7 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "M", CSharpFeaturesResources.local_function));
+            edits.VerifyRudeDiagnostics(active);
         }
 
         [Fact]

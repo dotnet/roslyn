@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 // operation has found
                 var list = new List<SuppressOperation>();
 
-                Predicate<SuppressOperation> predicate = o =>
+                bool predicate(SuppressOperation o)
                 {
                     if (o == null)
                     {
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                     }
 
                     return false;
-                };
+                }
 
                 var currentIndentationNode = startNode;
                 while (currentIndentationNode != null)

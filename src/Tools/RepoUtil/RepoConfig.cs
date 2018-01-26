@@ -61,8 +61,7 @@ namespace RepoUtil
             var map = new Dictionary<string, List<string>>();
             foreach (var nugetRef in fixedPackages)
             {
-                List<string> list;
-                if (!map.TryGetValue(nugetRef.Name, out list))
+                if (!map.TryGetValue(nugetRef.Name, out var list))
                 {
                     list = new List<string>(capacity: 1);
                     map[nugetRef.Name] = list;

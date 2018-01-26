@@ -5,6 +5,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -2831,7 +2832,28 @@ class Repro
                 // warning CS1685: The predefined type 'ExtensionAttribute' is defined in multiple assemblies in the global alias; using definition from 'System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
                 Diagnostic(ErrorCode.WRN_MultiplePredefTypes).WithArguments("System.Runtime.CompilerServices.ExtensionAttribute", "System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089").WithLocation(1, 1));
 
-            CompileAndVerify(comp, expectedOutput: "dynamic42");
+            var compiled = CompileAndVerify(comp, expectedOutput: "dynamic42", verify: Verification.Fails);
+
+            compiled.VerifyIL("MyAwaiter.OnCompleted(System.Action)", @"
+{
+  // Code size       43 (0x2b)
+  .maxstack  3
+  .locals init (MyAwaiter.<>c__DisplayClass5_0 V_0) //CS$<>8__locals0
+  IL_0000:  newobj     ""MyAwaiter.<>c__DisplayClass5_0..ctor()""
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  ldarg.1
+  IL_0008:  stfld      ""System.Action MyAwaiter.<>c__DisplayClass5_0.continuation""
+  IL_000d:  ldarg.0
+  IL_000e:  ldflda     ""MyTask MyAwaiter.task""
+  IL_0013:  ldfld      ""System.Threading.Tasks.Task MyTask.task""
+  IL_0018:  ldloc.0
+  IL_0019:  ldftn      ""void MyAwaiter.<>c__DisplayClass5_0.<OnCompleted>b__0(System.Threading.Tasks.Task)""
+  IL_001f:  newobj     ""System.Action<System.Threading.Tasks.Task>..ctor(object, System.IntPtr)""
+  IL_0024:  callvirt   ""System.Threading.Tasks.Task System.Threading.Tasks.Task.ContinueWith(System.Action<System.Threading.Tasks.Task>)""
+  IL_0029:  pop
+  IL_002a:  ret
+}");
         }
     }
 }

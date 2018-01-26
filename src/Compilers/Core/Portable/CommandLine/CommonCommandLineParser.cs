@@ -2,30 +2,29 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis
 {
     public abstract class CommandLineParser
     {
         private readonly CommonMessageProvider _messageProvider;
-        internal readonly bool IsScriptRunner;
+        internal readonly bool IsScriptCommandLineParser;
         private static readonly char[] s_searchPatternTrimChars = new char[] { '\t', '\n', '\v', '\f', '\r', ' ', '\x0085', '\x00a0' };
 
-        internal CommandLineParser(CommonMessageProvider messageProvider, bool isScriptRunner)
+        internal CommandLineParser(CommonMessageProvider messageProvider, bool isScriptCommandLineParser)
         {
             Debug.Assert(messageProvider != null);
             _messageProvider = messageProvider;
-            IsScriptRunner = isScriptRunner;
+            IsScriptCommandLineParser = isScriptCommandLineParser;
         }
 
         internal CommonMessageProvider MessageProvider
@@ -92,7 +91,7 @@ namespace Microsoft.CodeAnalysis
             // pattern /goo/*  or  //* will not be treated as a compiler option
             //
             // TODO: consider introducing "/s:path" to disambiguate paths starting with /
-            if (arg.Length > 1)
+            if (arg.Length > 1 && arg[0] != '-')
             {
                 int separator = arg.IndexOf('/', 1);
                 if (separator > 0 && (colon < 0 || separator < colon))
@@ -205,15 +204,17 @@ namespace Microsoft.CodeAnalysis
                     errors.Add(Diagnostic.Create(_messageProvider, _messageProvider.ERR_InvalidPathMap, kEqualsV));
                     continue;
                 }
-                var from = PathUtilities.TrimTrailingSeparators(kv[0]);
-                var to = PathUtilities.TrimTrailingSeparators(kv[1]);
+                var from = kv[0];
+                var to = kv[1];
 
-                if (from.Length == 0 || (to.Length == 0 && kv[1] != "/"))
+                if (from.Length == 0 || to.Length == 0)
                 {
                     errors.Add(Diagnostic.Create(_messageProvider, _messageProvider.ERR_InvalidPathMap, kEqualsV));
                 }
                 else
                 {
+                    from = PathUtilities.EnsureTrailingSeparator(from);
+                    to = PathUtilities.EnsureTrailingSeparator(to);
                     pathMapBuilder.Add(new KeyValuePair<string, string>(from, to));
                 }
             }
@@ -792,7 +793,7 @@ namespace Microsoft.CodeAnalysis
             string extension = PathUtilities.GetExtension(resolvedPath);
 
             bool isScriptFile;
-            if (IsScriptRunner)
+            if (IsScriptCommandLineParser)
             {
                 isScriptFile = !string.Equals(extension, RegularFileExtension, StringComparison.OrdinalIgnoreCase);
             }
@@ -808,7 +809,7 @@ namespace Microsoft.CodeAnalysis
 
         internal IEnumerable<CommandLineSourceFile> ParseFileArgument(string arg, string baseDirectory, IList<Diagnostic> errors)
         {
-            Debug.Assert(IsScriptRunner || !arg.StartsWith("-", StringComparison.Ordinal) && !arg.StartsWith("@", StringComparison.Ordinal));
+            Debug.Assert(IsScriptCommandLineParser || !arg.StartsWith("-", StringComparison.Ordinal) && !arg.StartsWith("@", StringComparison.Ordinal));
 
             // We remove all doubles quotes from a file name. So that, for example:
             //   "Path With Spaces"\goo.cs

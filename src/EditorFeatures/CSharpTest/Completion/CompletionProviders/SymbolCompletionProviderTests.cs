@@ -1924,6 +1924,56 @@ class C
             await VerifyItemExistsAsync(markup, "String");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(24326, "https://github.com/dotnet/roslyn/issues/24326")]
+        public async Task AfterInInLambda()
+        {
+            var markup = @"
+using System;
+class C
+{
+    void M()
+    {
+        Func<int, int> f = (in $$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "String");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(24326, "https://github.com/dotnet/roslyn/issues/24326")]
+        public async Task AfterInInMethodDeclaration()
+        {
+            var markup = @"
+using System;
+class C
+{
+    void M(in $$)
+    {
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "String");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(24326, "https://github.com/dotnet/roslyn/issues/24326")]
+        public async Task VariableAfterInInInvocation()
+        {
+            var markup = @"
+using System;
+class C
+{
+    void M(in String parameter)
+    {
+        M(in $$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "parameter");
+        }
+
         [WorkItem(539217, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539217")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NestedType1()
@@ -2056,6 +2106,48 @@ class Program
 }";
 
             await VerifyItemExistsAsync(markup, "CompareTo");
+        }
+
+        [WorkItem(21596, "https://github.com/dotnet/roslyn/issues/21596")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task AmbiguityBetweenExpressionAndLocalFunctionReturnType()
+        {
+            var markup = @"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        AwaitTest test = new AwaitTest();
+        test.Test1().Wait();
+    }
+}
+
+class AwaitTest
+{
+    List<string> stringList = new List<string>();
+
+    public async Task<bool> Test1()
+    {
+        stringList.$$
+
+        await Test2();
+
+        return true;
+    }
+
+    public async Task<bool> Test2()
+    {
+        return true;
+    }
+}";
+
+            await VerifyItemExistsAsync(markup, "Add");
         }
 
         [WorkItem(540750, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540750")]
@@ -2219,7 +2311,7 @@ class Program
             default:
                 goto $$";
 
-            await VerifyItemExistsAsync(markup, "default:");
+            await VerifyItemExistsAsync(markup, "default");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -9148,6 +9240,16 @@ class C
 }
 ";
             await VerifyNoItemsExistAsync(markup);
+        }
+
+        [WorkItem(420697, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=420697&_a=edit")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/21766"), Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task DoNotCrashInExtensionMethoWithExpressionBodiedMember()
+        {
+            var markup =
+@"public static class Extensions { public static T Get<T>(this object o) => $$}
+";
+            await VerifyItemExistsAsync(markup, "o");
         }
     }
 }

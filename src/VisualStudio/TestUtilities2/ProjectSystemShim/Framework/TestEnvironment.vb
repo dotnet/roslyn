@@ -47,7 +47,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
             Dim ruleSetFileProvider = New VisualStudioRuleSetManager(
                 DirectCast(_serviceProvider.GetService(GetType(SVsFileChangeEx)), IVsFileChangeEx),
                 New TestForegroundNotificationService(),
-                AggregateAsynchronousOperationListener.CreateEmptyListener())
+                AsynchronousOperationListenerProvider.NullListener)
 
             Dim documentTrackingService = New VisualStudioDocumentTrackingService(_serviceProvider)
             Dim documentProvider = New DocumentProvider(_projectTracker, _serviceProvider, documentTrackingService)
@@ -76,7 +76,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
             End Get
         End Property
 
-        Public ReadOnly Property Workspace As Workspace
+        Public ReadOnly Property Workspace As Microsoft.CodeAnalysis.Workspace
             Get
                 Return _workspace
             End Get

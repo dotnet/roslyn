@@ -105,8 +105,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             // Now send the reference paths we've collected to the repl.
             // The SetPathsAsync method is not available through an Interface.
             // Execute the method only if the cast to a concrete InteractiveEvaluator succeeds.
-            InteractiveEvaluator interactiveEvaluator = evaluator as InteractiveEvaluator;
-            if (interactiveEvaluator != null)
+            if (evaluator is InteractiveEvaluator interactiveEvaluator)
             {
                 await interactiveEvaluator.SetPathsAsync(referenceSearchPaths, sourceSearchPaths, projectDirectory).ConfigureAwait(true);
             }

@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertNume
             0b1, 0x2
         };
     }
-}", index: (int)Refactoring.ChangeBase2, ignoreTrivia: false);
+}", index: (int)Refactoring.ChangeBase2);
         }
 
         [WorkItem(19369, "https://github.com/dotnet/roslyn/issues/19369")]

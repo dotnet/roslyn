@@ -558,10 +558,8 @@ class Program
 
         private Task AssertSmartTokenFormatterOpenBraceWithBaseIndentationAsync(string markup, int baseIndentation, int expectedIndentation)
         {
-            string code;
-            int position;
-            TextSpan span;
-            MarkupTestFile.GetPositionAndSpan(markup, out code, out position, out span);
+            MarkupTestFile.GetPositionAndSpan(markup,
+                out var code, out var position, out TextSpan span);
 
             return AssertSmartTokenFormatterOpenBraceAsync(
                 code,
@@ -599,10 +597,8 @@ class Program
 
         private Task AssertSmartTokenFormatterCloseBraceWithBaseIndentation(string markup, int baseIndentation, int expectedIndentation)
         {
-            string code;
-            int position;
-            TextSpan span;
-            MarkupTestFile.GetPositionAndSpan(markup, out code, out position, out span);
+            MarkupTestFile.GetPositionAndSpan(markup,
+                out var code, out var position, out TextSpan span);
 
             return AssertSmartTokenFormatterCloseBraceAsync(
                 code,
