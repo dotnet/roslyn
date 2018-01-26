@@ -116,6 +116,10 @@ try {
             # This is handled by the Build.proj file directly
             break;
         }
+        "" {
+            # Explicit don't publish
+            break;
+        }
         default {
             throw "Unexpected publish type: $publishType"
             break;
