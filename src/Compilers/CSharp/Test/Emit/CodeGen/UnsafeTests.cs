@@ -4213,9 +4213,227 @@ static class FixAllExt
 ");
         }
 
+        [Fact]
+        public void CustomFixedStructSideeffects()
+        {
+            var text = @"
+    unsafe class C
+    {
+        public static void Main()
+        {
+            var b = new FixableStruct();
+            Test(ref b);
+            System.Console.WriteLine(b.x);
+        }
+
+        public static void Test(ref FixableStruct arg)
+        {
+            fixed (int* p = arg)
+            {
+                System.Console.Write(p[1]);
+            }
+        }
+    }
+
+    struct FixableStruct
+    {
+        public int x;
+
+        public ref int DangerousGetPinnableReference()
+        {
+            x = 456;
+            return ref (new int[] { 4, 5, 6 })[0];
+        }
+    }
+";
+
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails, expectedOutput: @"5456");
+
+            compVerifier.VerifyIL("C.Test(ref FixableStruct)", @"
+{
+  // Code size       21 (0x15)
+  .maxstack  2
+  .locals init (pinned int& V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""ref int FixableStruct.DangerousGetPinnableReference()""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  conv.u
+  IL_0009:  ldc.i4.4
+  IL_000a:  add
+  IL_000b:  ldind.i4
+  IL_000c:  call       ""void System.Console.Write(int)""
+  IL_0011:  ldc.i4.0
+  IL_0012:  conv.u
+  IL_0013:  stloc.0
+  IL_0014:  ret
+}
+");
+        }
+
+        [Fact]
+        public void CustomFixedClassSideeffects()
+        {
+            var text = @"
+    unsafe class C
+    {
+        public static void Main()
+        {
+            var b = new FixableClass();
+            Test(ref b);
+            System.Console.WriteLine(b.x);
+        }
+
+        public static void Test(ref FixableClass arg)
+        {
+            fixed (int* p = arg)
+            {
+                System.Console.Write(p[1]);
+            }
+        }
+    }
+
+    class FixableClass
+    {
+        public int x;
+
+        public ref int DangerousGetPinnableReference()
+        {
+            x = 456;
+            return ref (new int[] { 4, 5, 6 })[0];
+        }
+    }
+";
+
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails, expectedOutput: @"5456");
+
+            // note that defensive copy is created
+            compVerifier.VerifyIL("C.Test(ref FixableClass)", @"
+{
+  // Code size       30 (0x1e)
+  .maxstack  2
+  .locals init (pinned int& V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldind.ref
+  IL_0002:  dup
+  IL_0003:  brtrue.s   IL_000a
+  IL_0005:  pop
+  IL_0006:  ldc.i4.0
+  IL_0007:  conv.u
+  IL_0008:  br.s       IL_0012
+  IL_000a:  call       ""ref int FixableClass.DangerousGetPinnableReference()""
+  IL_000f:  stloc.0
+  IL_0010:  ldloc.0
+  IL_0011:  conv.u
+  IL_0012:  ldc.i4.4
+  IL_0013:  add
+  IL_0014:  ldind.i4
+  IL_0015:  call       ""void System.Console.Write(int)""
+  IL_001a:  ldc.i4.0
+  IL_001b:  conv.u
+  IL_001c:  stloc.0
+  IL_001d:  ret
+}
+");
+        }
+
+        [Fact]
+        public void CustomFixedGenericSideeffects()
+        {
+            var text = @"
+    unsafe class C
+    {
+        public static void Main()
+        {
+            var a = new FixableClass();
+            Test(ref a);
+            System.Console.WriteLine(a.x);
+            var b = new FixableStruct();
+            Test(ref b);
+            System.Console.WriteLine(b.x);
+        }
+
+        public static void Test<T>(ref T arg) where T: IFixable
+        {
+            fixed (int* p = arg)
+            {
+                System.Console.Write(p[1]);
+            }
+        }
+    }
+
+    interface IFixable
+    {
+        ref int DangerousGetPinnableReference();
+    }
+
+    class FixableClass : IFixable
+    {
+
+        public int x;
+
+        public ref int DangerousGetPinnableReference()
+        {
+            x = 123;
+            return ref (new int[] { 1, 2, 3 })[0];
+        }
+    }
+
+    struct FixableStruct : IFixable
+    {
+        public int x;
+
+        public ref int DangerousGetPinnableReference()
+        {
+            x = 456;
+            return ref (new int[] { 4, 5, 6 })[0];
+        }
+    }
+";
+
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails, expectedOutput: @"2123
+5456");
+
+            compVerifier.VerifyIL("C.Test<T>(ref T)", @"
+{
+  // Code size       64 (0x40)
+  .maxstack  2
+  .locals init (pinned int& V_0,
+                T V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldloca.s   V_1
+  IL_0003:  initobj    ""T""
+  IL_0009:  ldloc.1
+  IL_000a:  box        ""T""
+  IL_000f:  brtrue.s   IL_0026
+  IL_0011:  ldobj      ""T""
+  IL_0016:  stloc.1
+  IL_0017:  ldloca.s   V_1
+  IL_0019:  ldloc.1
+  IL_001a:  box        ""T""
+  IL_001f:  brtrue.s   IL_0026
+  IL_0021:  pop
+  IL_0022:  ldc.i4.0
+  IL_0023:  conv.u
+  IL_0024:  br.s       IL_0034
+  IL_0026:  constrained. ""T""
+  IL_002c:  callvirt   ""ref int IFixable.DangerousGetPinnableReference()""
+  IL_0031:  stloc.0
+  IL_0032:  ldloc.0
+  IL_0033:  conv.u
+  IL_0034:  ldc.i4.4
+  IL_0035:  add
+  IL_0036:  ldind.i4
+  IL_0037:  call       ""void System.Console.Write(int)""
+  IL_003c:  ldc.i4.0
+  IL_003d:  conv.u
+  IL_003e:  stloc.0
+  IL_003f:  ret
+}
+");
+        }
+
         // TODO: VS:
-        //           struct + sideeffects
-        //           interfaces + generic sideeffects
         //           in   extension
         //           in   generic
         //           ref  extension
