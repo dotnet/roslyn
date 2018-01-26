@@ -1970,9 +1970,9 @@ IBlockOperation (3 statements) (OperationKind.Block, Type: null) (Syntax: 'Publi
         Left: 
           IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: System.Int32) (Syntax: 'GetArray()(0)')
             Array reference: 
-              IInvocationOperation ( Function ClassLibrary2.C.GetArray() As System.Int32()) (OperationKind.Invocation, Type: System.Int32()) (Syntax: 'GetArray()')
+              IInvocationOperation ( Function C.GetArray() As System.Int32()) (OperationKind.Invocation, Type: System.Int32()) (Syntax: 'GetArray()')
                 Instance Receiver: 
-                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: ClassLibrary2.C, IsImplicit) (Syntax: 'GetArray')
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'GetArray')
                 Arguments(0)
             Indices(1):
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -2011,9 +2011,9 @@ Block[1] - Block
           Value: 
             IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: System.Int32) (Syntax: 'GetArray()(0)')
               Array reference: 
-                IInvocationOperation ( Function ClassLibrary2.C.GetArray() As System.Int32()) (OperationKind.Invocation, Type: System.Int32()) (Syntax: 'GetArray()')
+                IInvocationOperation ( Function C.GetArray() As System.Int32()) (OperationKind.Invocation, Type: System.Int32()) (Syntax: 'GetArray()')
                   Instance Receiver: 
-                    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: ClassLibrary2.C, IsImplicit) (Syntax: 'GetArray')
+                    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'GetArray')
                   Arguments(0)
               Indices(1):
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -2107,9 +2107,9 @@ IBlockOperation (3 statements) (OperationKind.Block, Type: null) (Syntax: 'Publi
         Left: 
           IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: System.Int32) (Syntax: 'GetArray()(0)')
             Array reference: 
-              IInvocationOperation ( Function ClassLibrary2.C.GetArray() As System.Int32()) (OperationKind.Invocation, Type: System.Int32()) (Syntax: 'GetArray()')
+              IInvocationOperation ( Function C.GetArray() As System.Int32()) (OperationKind.Invocation, Type: System.Int32()) (Syntax: 'GetArray()')
                 Instance Receiver: 
-                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: ClassLibrary2.C, IsImplicit) (Syntax: 'GetArray')
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'GetArray')
                 Arguments(0)
             Indices(1):
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -2148,9 +2148,9 @@ Block[1] - Block
           Value: 
             IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: System.Int32) (Syntax: 'GetArray()(0)')
               Array reference: 
-                IInvocationOperation ( Function ClassLibrary2.C.GetArray() As System.Int32()) (OperationKind.Invocation, Type: System.Int32()) (Syntax: 'GetArray()')
+                IInvocationOperation ( Function C.GetArray() As System.Int32()) (OperationKind.Invocation, Type: System.Int32()) (Syntax: 'GetArray()')
                   Instance Receiver: 
-                    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: ClassLibrary2.C, IsImplicit) (Syntax: 'GetArray')
+                    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'GetArray')
                   Arguments(0)
               Indices(1):
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -2225,7 +2225,7 @@ Block[5] - Exit
 
         <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
         <Fact()>
-        Public Sub XXXX()
+        Public Sub LogicalFlow_03()
             Dim source = <![CDATA[
 Imports System
 Public Class C
@@ -2248,9 +2248,9 @@ IBlockOperation (3 statements) (OperationKind.Block, Type: null) (Syntax: 'Publi
         Left: 
           IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: System.Int32) (Syntax: 'GetArray()(0)')
             Array reference: 
-              IInvocationOperation ( Function ClassLibrary2.C.GetArray() As System.Int32()) (OperationKind.Invocation, Type: System.Int32()) (Syntax: 'GetArray()')
+              IInvocationOperation ( Function C.GetArray() As System.Int32()) (OperationKind.Invocation, Type: System.Int32()) (Syntax: 'GetArray()')
                 Instance Receiver: 
-                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: ClassLibrary2.C, IsImplicit) (Syntax: 'GetArray')
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'GetArray')
                 Arguments(0)
             Indices(1):
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -2295,9 +2295,9 @@ Block[1] - Block
           Value: 
             IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: System.Int32) (Syntax: 'GetArray()(0)')
               Array reference: 
-                IInvocationOperation ( Function ClassLibrary2.C.GetArray() As System.Int32()) (OperationKind.Invocation, Type: System.Int32()) (Syntax: 'GetArray()')
+                IInvocationOperation ( Function C.GetArray() As System.Int32()) (OperationKind.Invocation, Type: System.Int32()) (Syntax: 'GetArray()')
                   Instance Receiver: 
-                    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: ClassLibrary2.C, IsImplicit) (Syntax: 'GetArray')
+                    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'GetArray')
                   Arguments(0)
               Indices(1):
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -2402,7 +2402,7 @@ Block[8] - Exit
 
         <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
         <Fact()>
-        Public Sub LogicalFlow_03()
+        Public Sub LogicalFlow_04()
             Dim source = <![CDATA[
 Imports System
 Public Class C
@@ -2429,30 +2429,30 @@ IBlockOperation (3 statements) (OperationKind.Block, Type: null) (Syntax: 'Publi
         Left: 
           IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: System.Int32) (Syntax: 'GetArray()(0)')
             Array reference: 
-              IInvocationOperation ( Function ClassLibrary2.C.GetArray() As System.Int32()) (OperationKind.Invocation, Type: System.Int32()) (Syntax: 'GetArray()')
+              IInvocationOperation ( Function C.GetArray() As System.Int32()) (OperationKind.Invocation, Type: System.Int32()) (Syntax: 'GetArray()')
                 Instance Receiver: 
-                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: ClassLibrary2.C, IsImplicit) (Syntax: 'GetArray')
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'GetArray')
                 Arguments(0)
             Indices(1):
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
         Right: 
-          IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperatorMethod: Function ClassLibrary2.C.op_Addition(c1 As ClassLibrary2.C, c2 As ClassLibrary2.C) As System.Int32) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'If(a, b) + If(a, b)')
+          IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperatorMethod: Function C.op_Addition(c1 As C, c2 As C) As System.Int32) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'If(a, b) + If(a, b)')
             Left: 
-              ICoalesceOperation (OperationKind.Coalesce, Type: ClassLibrary2.C) (Syntax: 'If(a, b)')
+              ICoalesceOperation (OperationKind.Coalesce, Type: C) (Syntax: 'If(a, b)')
                 Expression: 
-                  IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: ClassLibrary2.C) (Syntax: 'a')
+                  IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: C) (Syntax: 'a')
                 ValueConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   (Identity)
                 WhenNull: 
-                  IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: ClassLibrary2.C) (Syntax: 'b')
+                  IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: C) (Syntax: 'b')
             Right: 
-              ICoalesceOperation (OperationKind.Coalesce, Type: ClassLibrary2.C) (Syntax: 'If(a, b)')
+              ICoalesceOperation (OperationKind.Coalesce, Type: C) (Syntax: 'If(a, b)')
                 Expression: 
-                  IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: ClassLibrary2.C) (Syntax: 'a')
+                  IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: C) (Syntax: 'a')
                 ValueConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   (Identity)
                 WhenNull: 
-                  IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: ClassLibrary2.C) (Syntax: 'b')
+                  IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: C) (Syntax: 'b')
   ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
     Statement: 
       null
@@ -2476,19 +2476,19 @@ Block[1] - Block
           Value: 
             IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: System.Int32) (Syntax: 'GetArray()(0)')
               Array reference: 
-                IInvocationOperation ( Function ClassLibrary2.C.GetArray() As System.Int32()) (OperationKind.Invocation, Type: System.Int32()) (Syntax: 'GetArray()')
+                IInvocationOperation ( Function C.GetArray() As System.Int32()) (OperationKind.Invocation, Type: System.Int32()) (Syntax: 'GetArray()')
                   Instance Receiver: 
-                    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: ClassLibrary2.C, IsImplicit) (Syntax: 'GetArray')
+                    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'GetArray')
                   Arguments(0)
               Indices(1):
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
 
         IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
           Value: 
-            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: ClassLibrary2.C) (Syntax: 'a')
+            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: C) (Syntax: 'a')
 
     Jump if Null to Block[3]
-        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: ClassLibrary2.C, IsImplicit) (Syntax: 'a')
+        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'a')
 
     Next Block[2]
 Block[2] - Block
@@ -2497,7 +2497,7 @@ Block[2] - Block
     Statements (1)
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
           Value: 
-            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: ClassLibrary2.C, IsImplicit) (Syntax: 'a')
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'a')
 
     Next Block[4]
 Block[3] - Block
@@ -2506,7 +2506,7 @@ Block[3] - Block
     Statements (1)
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
           Value: 
-            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: ClassLibrary2.C) (Syntax: 'b')
+            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: C) (Syntax: 'b')
 
     Next Block[4]
 Block[4] - Block
@@ -2516,10 +2516,10 @@ Block[4] - Block
     Statements (1)
         IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
           Value: 
-            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: ClassLibrary2.C) (Syntax: 'a')
+            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: C) (Syntax: 'a')
 
     Jump if Null to Block[6]
-        IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: ClassLibrary2.C, IsImplicit) (Syntax: 'a')
+        IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'a')
 
     Next Block[5]
 Block[5] - Block
@@ -2528,7 +2528,7 @@ Block[5] - Block
     Statements (1)
         IFlowCaptureOperation: 4 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
           Value: 
-            IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: ClassLibrary2.C, IsImplicit) (Syntax: 'a')
+            IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'a')
 
     Next Block[7]
 Block[6] - Block
@@ -2537,7 +2537,7 @@ Block[6] - Block
     Statements (1)
         IFlowCaptureOperation: 4 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
           Value: 
-            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: ClassLibrary2.C) (Syntax: 'b')
+            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: C) (Syntax: 'b')
 
     Next Block[7]
 Block[7] - Block
@@ -2551,11 +2551,11 @@ Block[7] - Block
               Left: 
                 IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'GetArray()(0)')
               Right: 
-                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperatorMethod: Function ClassLibrary2.C.op_Addition(c1 As ClassLibrary2.C, c2 As ClassLibrary2.C) As System.Int32) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'If(a, b) + If(a, b)')
+                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperatorMethod: Function C.op_Addition(c1 As C, c2 As C) As System.Int32) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'If(a, b) + If(a, b)')
                   Left: 
-                    IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: ClassLibrary2.C, IsImplicit) (Syntax: 'If(a, b)')
+                    IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'If(a, b)')
                   Right: 
-                    IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: ClassLibrary2.C, IsImplicit) (Syntax: 'If(a, b)')
+                    IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'If(a, b)')
 
         ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
           Statement: 
@@ -2577,7 +2577,7 @@ Block[8] - Exit
 
         <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
         <Fact()>
-        Public Sub LogicalFlow_04()
+        Public Sub LogicalFlow_05()
             Dim source = <![CDATA[
 Imports System
 Public Class C
@@ -2600,9 +2600,9 @@ IBlockOperation (3 statements) (OperationKind.Block, Type: null) (Syntax: 'Publi
         Left: 
           IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: System.Int32) (Syntax: 'GetArray()(0)')
             Array reference: 
-              IInvocationOperation ( Function ClassLibrary2.C.GetArray() As System.Int32()) (OperationKind.Invocation, Type: System.Int32()) (Syntax: 'GetArray()')
+              IInvocationOperation ( Function C.GetArray() As System.Int32()) (OperationKind.Invocation, Type: System.Int32()) (Syntax: 'GetArray()')
                 Instance Receiver: 
-                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: ClassLibrary2.C, IsImplicit) (Syntax: 'GetArray')
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'GetArray')
                 Arguments(0)
             Indices(1):
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -2641,9 +2641,9 @@ Block[1] - Block
           Value: 
             IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: System.Int32) (Syntax: 'GetArray()(0)')
               Array reference: 
-                IInvocationOperation ( Function ClassLibrary2.C.GetArray() As System.Int32()) (OperationKind.Invocation, Type: System.Int32()) (Syntax: 'GetArray()')
+                IInvocationOperation ( Function C.GetArray() As System.Int32()) (OperationKind.Invocation, Type: System.Int32()) (Syntax: 'GetArray()')
                   Instance Receiver: 
-                    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: ClassLibrary2.C, IsImplicit) (Syntax: 'GetArray')
+                    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'GetArray')
                   Arguments(0)
               Indices(1):
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -2718,7 +2718,7 @@ Block[5] - Exit
 
         <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
         <Fact()>
-        Public Sub LogicalFlow_05()
+        Public Sub LogicalFlow_06()
             Dim source = <![CDATA[
 Imports System
 Public Class C
@@ -2741,9 +2741,9 @@ IBlockOperation (3 statements) (OperationKind.Block, Type: null) (Syntax: 'Publi
         Left: 
           IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: System.Int32) (Syntax: 'GetArray()(0)')
             Array reference: 
-              IInvocationOperation ( Function ClassLibrary2.C.GetArray() As System.Int32()) (OperationKind.Invocation, Type: System.Int32()) (Syntax: 'GetArray()')
+              IInvocationOperation ( Function C.GetArray() As System.Int32()) (OperationKind.Invocation, Type: System.Int32()) (Syntax: 'GetArray()')
                 Instance Receiver: 
-                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: ClassLibrary2.C, IsImplicit) (Syntax: 'GetArray')
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'GetArray')
                 Arguments(0)
             Indices(1):
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -2782,9 +2782,9 @@ Block[1] - Block
           Value: 
             IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: System.Int32) (Syntax: 'GetArray()(0)')
               Array reference: 
-                IInvocationOperation ( Function ClassLibrary2.C.GetArray() As System.Int32()) (OperationKind.Invocation, Type: System.Int32()) (Syntax: 'GetArray()')
+                IInvocationOperation ( Function C.GetArray() As System.Int32()) (OperationKind.Invocation, Type: System.Int32()) (Syntax: 'GetArray()')
                   Instance Receiver: 
-                    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: ClassLibrary2.C, IsImplicit) (Syntax: 'GetArray')
+                    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'GetArray')
                   Arguments(0)
               Indices(1):
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -2859,7 +2859,7 @@ Block[5] - Exit
 
         <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
         <Fact()>
-        Public Sub LogicalFlow_06()
+        Public Sub LogicalFlow_07()
             Dim source = <![CDATA[
 Imports System
 Public Class C
@@ -2882,9 +2882,9 @@ IBlockOperation (3 statements) (OperationKind.Block, Type: null) (Syntax: 'Publi
         Left: 
           IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: System.Int32) (Syntax: 'GetArray()(0)')
             Array reference: 
-              IInvocationOperation ( Function ClassLibrary2.C.GetArray() As System.Int32()) (OperationKind.Invocation, Type: System.Int32()) (Syntax: 'GetArray()')
+              IInvocationOperation ( Function C.GetArray() As System.Int32()) (OperationKind.Invocation, Type: System.Int32()) (Syntax: 'GetArray()')
                 Instance Receiver: 
-                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: ClassLibrary2.C, IsImplicit) (Syntax: 'GetArray')
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'GetArray')
                 Arguments(0)
             Indices(1):
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -2923,9 +2923,9 @@ Block[1] - Block
           Value: 
             IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: System.Int32) (Syntax: 'GetArray()(0)')
               Array reference: 
-                IInvocationOperation ( Function ClassLibrary2.C.GetArray() As System.Int32()) (OperationKind.Invocation, Type: System.Int32()) (Syntax: 'GetArray()')
+                IInvocationOperation ( Function C.GetArray() As System.Int32()) (OperationKind.Invocation, Type: System.Int32()) (Syntax: 'GetArray()')
                   Instance Receiver: 
-                    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: ClassLibrary2.C, IsImplicit) (Syntax: 'GetArray')
+                    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'GetArray')
                   Arguments(0)
               Indices(1):
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -3000,7 +3000,7 @@ Block[5] - Exit
 
         <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
         <Fact()>
-        Public Sub LogicalFlow_07()
+        Public Sub LogicalFlow_08()
             Dim source = <![CDATA[
 Imports System
 Public Class C
@@ -3023,9 +3023,9 @@ IBlockOperation (3 statements) (OperationKind.Block, Type: null) (Syntax: 'Publi
         Left: 
           IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: System.Int32) (Syntax: 'GetArray()(0)')
             Array reference: 
-              IInvocationOperation ( Function ClassLibrary2.C.GetArray() As System.Int32()) (OperationKind.Invocation, Type: System.Int32()) (Syntax: 'GetArray()')
+              IInvocationOperation ( Function C.GetArray() As System.Int32()) (OperationKind.Invocation, Type: System.Int32()) (Syntax: 'GetArray()')
                 Instance Receiver: 
-                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: ClassLibrary2.C, IsImplicit) (Syntax: 'GetArray')
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'GetArray')
                 Arguments(0)
             Indices(1):
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -3064,9 +3064,9 @@ Block[1] - Block
           Value: 
             IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: System.Int32) (Syntax: 'GetArray()(0)')
               Array reference: 
-                IInvocationOperation ( Function ClassLibrary2.C.GetArray() As System.Int32()) (OperationKind.Invocation, Type: System.Int32()) (Syntax: 'GetArray()')
+                IInvocationOperation ( Function C.GetArray() As System.Int32()) (OperationKind.Invocation, Type: System.Int32()) (Syntax: 'GetArray()')
                   Instance Receiver: 
-                    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: ClassLibrary2.C, IsImplicit) (Syntax: 'GetArray')
+                    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'GetArray')
                   Arguments(0)
               Indices(1):
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -3141,7 +3141,7 @@ Block[5] - Exit
 
         <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
         <Fact()>
-        Public Sub LogicalFlow_08()
+        Public Sub LogicalFlow_09()
             Dim source = <![CDATA[
 Imports System
 Public Class C
@@ -3164,9 +3164,9 @@ IBlockOperation (3 statements) (OperationKind.Block, Type: null) (Syntax: 'Publi
         Left: 
           IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: System.Int32) (Syntax: 'GetArray()(0)')
             Array reference: 
-              IInvocationOperation ( Function ClassLibrary2.C.GetArray() As System.Int32()) (OperationKind.Invocation, Type: System.Int32()) (Syntax: 'GetArray()')
+              IInvocationOperation ( Function C.GetArray() As System.Int32()) (OperationKind.Invocation, Type: System.Int32()) (Syntax: 'GetArray()')
                 Instance Receiver: 
-                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: ClassLibrary2.C, IsImplicit) (Syntax: 'GetArray')
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'GetArray')
                 Arguments(0)
             Indices(1):
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -3214,9 +3214,9 @@ Block[1] - Block
           Value: 
             IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: System.Int32) (Syntax: 'GetArray()(0)')
               Array reference: 
-                IInvocationOperation ( Function ClassLibrary2.C.GetArray() As System.Int32()) (OperationKind.Invocation, Type: System.Int32()) (Syntax: 'GetArray()')
+                IInvocationOperation ( Function C.GetArray() As System.Int32()) (OperationKind.Invocation, Type: System.Int32()) (Syntax: 'GetArray()')
                   Instance Receiver: 
-                    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: ClassLibrary2.C, IsImplicit) (Syntax: 'GetArray')
+                    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'GetArray')
                   Arguments(0)
               Indices(1):
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -3326,9 +3326,9 @@ IBlockOperation (3 statements) (OperationKind.Block, Type: null) (Syntax: 'Publi
         Left: 
           IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: System.Int32) (Syntax: 'GetArray()(0)')
             Array reference: 
-              IInvocationOperation ( Function ClassLibrary2.C.GetArray() As System.Int32()) (OperationKind.Invocation, Type: System.Int32()) (Syntax: 'GetArray()')
+              IInvocationOperation ( Function C.GetArray() As System.Int32()) (OperationKind.Invocation, Type: System.Int32()) (Syntax: 'GetArray()')
                 Instance Receiver: 
-                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: ClassLibrary2.C, IsImplicit) (Syntax: 'GetArray')
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'GetArray')
                 Arguments(0)
             Indices(1):
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -3367,9 +3367,9 @@ Block[1] - Block
           Value: 
             IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: System.Int32) (Syntax: 'GetArray()(0)')
               Array reference: 
-                IInvocationOperation ( Function ClassLibrary2.C.GetArray() As System.Int32()) (OperationKind.Invocation, Type: System.Int32()) (Syntax: 'GetArray()')
+                IInvocationOperation ( Function C.GetArray() As System.Int32()) (OperationKind.Invocation, Type: System.Int32()) (Syntax: 'GetArray()')
                   Instance Receiver: 
-                    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: ClassLibrary2.C, IsImplicit) (Syntax: 'GetArray')
+                    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'GetArray')
                   Arguments(0)
               Indices(1):
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')

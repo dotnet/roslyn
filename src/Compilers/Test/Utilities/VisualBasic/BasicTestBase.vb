@@ -906,6 +906,7 @@ Public MustInherit Class BasicTestBaseBase
         Optional useLatestFramework As Boolean = False)
 
         Dim fileName = "a.vb"
+        parseOptions = If(parseOptions?.WithFlowAnalysisFeature(), TestOptions.RegularWithFlowAnalysisFeature)
         Dim syntaxTree = Parse(testSrc, fileName, parseOptions)
         Dim defaultRefs = If(useLatestFramework, LatestVbReferences, DefaultVbReferences)
         Dim references = defaultRefs.Concat({ValueTupleRef, SystemRuntimeFacadeRef})
