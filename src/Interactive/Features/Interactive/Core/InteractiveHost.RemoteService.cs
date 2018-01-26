@@ -73,6 +73,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                             Process.Exited -= ProcessExitedHandler;
                             _processExitHandlerStatus = ProcessExitHandlerStatus.Handled;
                             // Should set _processExitHandlerStatus before calling OnProcessExited to avoid deadlocks.
+                            // Calling the host should be within the lock to prevent its disposing during the execution.
                             await _host.OnProcessExited(Process).ConfigureAwait(false);
                         }
                     }

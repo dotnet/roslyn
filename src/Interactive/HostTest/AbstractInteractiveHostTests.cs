@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
         internal static void DisposeInteractiveHostProcess(InteractiveHost process)
         {
             IpcServerChannel serverChannel = process._ServerChannel;
-            process.Dispose(disposing: true);
+            process.Dispose();
 
             var listenerThread = (Thread)s_ipcServerChannelListenerThread.GetValue(serverChannel);
             listenerThread.Join();

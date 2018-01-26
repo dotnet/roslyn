@@ -221,30 +221,22 @@ namespace Microsoft.CodeAnalysis.Interactive
 
         ~InteractiveHost()
         {
-            Dispose(disposing: false);
+            DisposeRemoteService(disposing: false);
         }
 
         public void Dispose()
         {
-            Dispose(disposing: true);
+            DisposeChannel();
+            DisposeRemoteService(disposing: true);
+            GC.SuppressFinalize(this);
         }
 
-        internal void Dispose(bool disposing)
+        private void DisposeRemoteService(bool disposing)
         {
-            if (disposing)
-            {
-                DisposeChannel();
-            }
-
             if (_lazyRemoteService != null)
             {
                 _lazyRemoteService.Dispose(disposing);
                 _lazyRemoteService = null;
-            }
-
-            if (disposing)
-            {
-                GC.SuppressFinalize(this);
             }
         }
 
