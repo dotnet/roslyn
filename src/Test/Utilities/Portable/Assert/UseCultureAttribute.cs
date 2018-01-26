@@ -24,8 +24,12 @@ namespace Roslyn.Test.Utilities
     {
         private readonly Lazy<CultureInfo> _culture;
         private readonly Lazy<CultureInfo> _uiCulture;
+        private readonly Lazy<CultureInfo> _defaultThreadCulture;
+        private readonly Lazy<CultureInfo> _defaultThreadUICulture;
         private CultureInfo _originalCulture;
         private CultureInfo _originalUICulture;
+        private CultureInfo _originalDefaultThreadCulture;
+        private CultureInfo _originalDefaultThreadUICulture;
 
         /// <summary>
         /// Replaces the culture and UI culture of the current thread with
@@ -51,6 +55,8 @@ namespace Roslyn.Test.Utilities
         /// <param name="uiCulture">The name of the UI culture.</param>
         public UseCultureAttribute(string culture, string uiCulture)
         {
+            _defaultThreadCulture = new Lazy<CultureInfo>(() => CultureInfo.DefaultThreadCurrentCulture);
+            _defaultThreadUICulture = new Lazy<CultureInfo>(() => CultureInfo.DefaultThreadCurrentUICulture);
 #if NET46 || NET461
             _culture = new Lazy<CultureInfo>(() => new CultureInfo(culture, useUserOverride: false));
             _uiCulture = new Lazy<CultureInfo>(() => new CultureInfo(uiCulture, useUserOverride: false));
@@ -73,6 +79,9 @@ namespace Roslyn.Test.Utilities
         /// </summary>
         public CultureInfo UICulture => _uiCulture.Value;
 
+        public CultureInfo DefaultThreadCulture => _defaultThreadCulture.Value;
+        public CultureInfo DefaultThreadUICulture => _defaultThreadUICulture.Value;
+
         /// <summary>
         /// Stores the current <see cref="CultureInfo.CurrentCulture" /> and <see cref="CultureInfo.CurrentUICulture" />
         /// and replaces them with the new cultures defined in the constructor.
@@ -82,6 +91,10 @@ namespace Roslyn.Test.Utilities
         {
             _originalCulture = CultureInfo.CurrentCulture;
             _originalUICulture = CultureInfo.CurrentUICulture;
+            _originalDefaultThreadCulture = CultureInfo.DefaultThreadCurrentCulture;
+            _originalDefaultThreadUICulture = CultureInfo.DefaultThreadCurrentUICulture;
+            CultureInfo.DefaultThreadCurrentCulture = Culture;
+            CultureInfo.DefaultThreadCurrentUICulture = Culture;
 
 #if NET46 || NET461 || NETCOREAPP2_0
             CultureInfo.CurrentCulture = Culture;
@@ -91,8 +104,6 @@ namespace Roslyn.Test.Utilities
             CultureInfo.CurrentCulture.ClearCachedData();
             CultureInfo.CurrentUICulture.ClearCachedData();
 #endif
-#else
-            throw new NotSupportedException("Cannot set the current culture on this framework target.");
 #endif
         }
 
@@ -103,6 +114,8 @@ namespace Roslyn.Test.Utilities
         /// <param name="methodUnderTest">The method under test</param>
         public override void After(MethodInfo methodUnderTest)
         {
+            CultureInfo.DefaultThreadCurrentCulture = _originalDefaultThreadCulture;
+            CultureInfo.DefaultThreadCurrentUICulture = _originalDefaultThreadUICulture;
 #if NET46 || NET461 || NETCOREAPP2_0
             CultureInfo.CurrentCulture = _originalCulture;
             CultureInfo.CurrentUICulture = _originalUICulture;
@@ -111,8 +124,6 @@ namespace Roslyn.Test.Utilities
             CultureInfo.CurrentCulture.ClearCachedData();
             CultureInfo.CurrentUICulture.ClearCachedData();
 #endif
-#else
-            throw new NotSupportedException("Cannot set the current culture on this framework target.");
 #endif
         }
     }
