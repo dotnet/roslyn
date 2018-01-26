@@ -1944,5 +1944,1502 @@ IBlockOperation (6 statements) (OperationKind.Block, Type: null) (Syntax: 'Sub M
 
             VerifyOperationTreeAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub LogicalFlow_01()
+            Dim source = <![CDATA[
+Imports System
+Public Class C
+    Public Sub M(a As Integer?, b As Integer)'BIND:"Public Sub M(a As Integer?, b As Integer)"
+        GetArray()(0) = If(a, b) + b
+    End Sub
+
+    Public Function GetArray() As Integer()
+        Return Nothing
+    End Function
+End Class]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            Dim expectedOperationTree = <![CDATA[
+IBlockOperation (3 statements) (OperationKind.Block, Type: null) (Syntax: 'Public Sub  ... End Sub')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'GetArray()( ... f(a, b) + b')
+    Expression: 
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'GetArray()( ... f(a, b) + b')
+        Left: 
+          IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: System.Int32) (Syntax: 'GetArray()(0)')
+            Array reference: 
+              IInvocationOperation ( Function ClassLibrary2.C.GetArray() As System.Int32()) (OperationKind.Invocation, Type: System.Int32()) (Syntax: 'GetArray()')
+                Instance Receiver: 
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: ClassLibrary2.C, IsImplicit) (Syntax: 'GetArray')
+                Arguments(0)
+            Indices(1):
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+        Right: 
+          IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'If(a, b) + b')
+            Left: 
+              ICoalesceOperation (OperationKind.Coalesce, Type: System.Int32) (Syntax: 'If(a, b)')
+                Expression: 
+                  IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'a')
+                ValueConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  (Identity)
+                WhenNull: 
+                  IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+            Right: 
+              IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+  ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
+    Statement: 
+      null
+  IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
+    ReturnedValue: 
+      null
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
+
+
+            Dim expectedGraph = <![CDATA[
+Block[0] - Entry
+    Statements (0)
+    Next Block[1]
+Block[1] - Block
+    Predecessors (1)
+        [0]
+    Statements (2)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'GetArray()(0)')
+          Value: 
+            IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: System.Int32) (Syntax: 'GetArray()(0)')
+              Array reference: 
+                IInvocationOperation ( Function ClassLibrary2.C.GetArray() As System.Int32()) (OperationKind.Invocation, Type: System.Int32()) (Syntax: 'GetArray()')
+                  Instance Receiver: 
+                    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: ClassLibrary2.C, IsImplicit) (Syntax: 'GetArray')
+                  Arguments(0)
+              Indices(1):
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+          Value: 
+            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'a')
+
+    Jump if Null to Block[3]
+        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
+
+    Next Block[2]
+Block[2] - Block
+    Predecessors (1)
+        [1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+          Value: 
+            IInvocationOperation ( Function System.Nullable(Of System.Int32).GetValueOrDefault() As System.Int32) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'a')
+              Instance Receiver: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
+              Arguments(0)
+
+    Next Block[4]
+Block[3] - Block
+    Predecessors (1)
+        [1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+          Value: 
+            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+
+    Next Block[4]
+Block[4] - Block
+    Predecessors (2)
+        [2]
+        [3]
+    Statements (3)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'GetArray()( ... f(a, b) + b')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'GetArray()( ... f(a, b) + b')
+              Left: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'GetArray()(0)')
+              Right: 
+                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'If(a, b) + b')
+                  Left: 
+                    IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(a, b)')
+                  Right: 
+                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+
+        ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
+          Statement: 
+            null
+
+        IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
+          ReturnedValue: 
+            null
+
+    Next Block[5]
+Block[5] - Exit
+    Predecessors (1)
+        [4]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub LogicalFlow_02()
+            Dim source = <![CDATA[
+Imports System
+Public Class C
+    Public Sub M(a As Integer?, b As Integer)'BIND:"Public Sub M(a As Integer?, b As Integer)"
+        GetArray()(0) = b + If(a, b)
+    End Sub
+
+    Public Function GetArray() As Integer()
+        Return Nothing
+    End Function
+End Class]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            Dim expectedOperationTree = <![CDATA[
+IBlockOperation (3 statements) (OperationKind.Block, Type: null) (Syntax: 'Public Sub  ... End Sub')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'GetArray()( ...  + If(a, b)')
+    Expression: 
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'GetArray()( ...  + If(a, b)')
+        Left: 
+          IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: System.Int32) (Syntax: 'GetArray()(0)')
+            Array reference: 
+              IInvocationOperation ( Function ClassLibrary2.C.GetArray() As System.Int32()) (OperationKind.Invocation, Type: System.Int32()) (Syntax: 'GetArray()')
+                Instance Receiver: 
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: ClassLibrary2.C, IsImplicit) (Syntax: 'GetArray')
+                Arguments(0)
+            Indices(1):
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+        Right: 
+          IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'b + If(a, b)')
+            Left: 
+              IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+            Right: 
+              ICoalesceOperation (OperationKind.Coalesce, Type: System.Int32) (Syntax: 'If(a, b)')
+                Expression: 
+                  IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'a')
+                ValueConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  (Identity)
+                WhenNull: 
+                  IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+  ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
+    Statement: 
+      null
+  IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
+    ReturnedValue: 
+      null
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
+
+
+            Dim expectedGraph = <![CDATA[
+Block[0] - Entry
+    Statements (0)
+    Next Block[1]
+Block[1] - Block
+    Predecessors (1)
+        [0]
+    Statements (3)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'GetArray()(0)')
+          Value: 
+            IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: System.Int32) (Syntax: 'GetArray()(0)')
+              Array reference: 
+                IInvocationOperation ( Function ClassLibrary2.C.GetArray() As System.Int32()) (OperationKind.Invocation, Type: System.Int32()) (Syntax: 'GetArray()')
+                  Instance Receiver: 
+                    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: ClassLibrary2.C, IsImplicit) (Syntax: 'GetArray')
+                  Arguments(0)
+              Indices(1):
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+          Value: 
+            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+          Value: 
+            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'a')
+
+    Jump if Null to Block[3]
+        IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
+
+    Next Block[2]
+Block[2] - Block
+    Predecessors (1)
+        [1]
+    Statements (1)
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+          Value: 
+            IInvocationOperation ( Function System.Nullable(Of System.Int32).GetValueOrDefault() As System.Int32) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'a')
+              Instance Receiver: 
+                IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
+              Arguments(0)
+
+    Next Block[4]
+Block[3] - Block
+    Predecessors (1)
+        [1]
+    Statements (1)
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+          Value: 
+            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+
+    Next Block[4]
+Block[4] - Block
+    Predecessors (2)
+        [2]
+        [3]
+    Statements (3)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'GetArray()( ...  + If(a, b)')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'GetArray()( ...  + If(a, b)')
+              Left: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'GetArray()(0)')
+              Right: 
+                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'b + If(a, b)')
+                  Left: 
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'b')
+                  Right: 
+                    IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(a, b)')
+
+        ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
+          Statement: 
+            null
+
+        IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
+          ReturnedValue: 
+            null
+
+    Next Block[5]
+Block[5] - Exit
+    Predecessors (1)
+        [4]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub XXXX()
+            Dim source = <![CDATA[
+Imports System
+Public Class C
+    Public Sub M(a As Integer?, b As Integer)'BIND:"Public Sub M(a As Integer?, b As Integer)"
+        GetArray()(0) = If(a, b) + If(a, b)
+    End Sub
+
+    Public Function GetArray() As Integer()
+        Return Nothing
+    End Function
+End Class]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            Dim expectedOperationTree = <![CDATA[
+IBlockOperation (3 statements) (OperationKind.Block, Type: null) (Syntax: 'Public Sub  ... End Sub')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'GetArray()( ...  + If(a, b)')
+    Expression: 
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'GetArray()( ...  + If(a, b)')
+        Left: 
+          IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: System.Int32) (Syntax: 'GetArray()(0)')
+            Array reference: 
+              IInvocationOperation ( Function ClassLibrary2.C.GetArray() As System.Int32()) (OperationKind.Invocation, Type: System.Int32()) (Syntax: 'GetArray()')
+                Instance Receiver: 
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: ClassLibrary2.C, IsImplicit) (Syntax: 'GetArray')
+                Arguments(0)
+            Indices(1):
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+        Right: 
+          IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'If(a, b) + If(a, b)')
+            Left: 
+              ICoalesceOperation (OperationKind.Coalesce, Type: System.Int32) (Syntax: 'If(a, b)')
+                Expression: 
+                  IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'a')
+                ValueConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  (Identity)
+                WhenNull: 
+                  IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+            Right: 
+              ICoalesceOperation (OperationKind.Coalesce, Type: System.Int32) (Syntax: 'If(a, b)')
+                Expression: 
+                  IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'a')
+                ValueConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  (Identity)
+                WhenNull: 
+                  IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+  ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
+    Statement: 
+      null
+  IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
+    ReturnedValue: 
+      null
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
+
+
+            Dim expectedGraph = <![CDATA[
+Block[0] - Entry
+    Statements (0)
+    Next Block[1]
+Block[1] - Block
+    Predecessors (1)
+        [0]
+    Statements (2)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'GetArray()(0)')
+          Value: 
+            IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: System.Int32) (Syntax: 'GetArray()(0)')
+              Array reference: 
+                IInvocationOperation ( Function ClassLibrary2.C.GetArray() As System.Int32()) (OperationKind.Invocation, Type: System.Int32()) (Syntax: 'GetArray()')
+                  Instance Receiver: 
+                    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: ClassLibrary2.C, IsImplicit) (Syntax: 'GetArray')
+                  Arguments(0)
+              Indices(1):
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+          Value: 
+            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'a')
+
+    Jump if Null to Block[3]
+        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
+
+    Next Block[2]
+Block[2] - Block
+    Predecessors (1)
+        [1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+          Value: 
+            IInvocationOperation ( Function System.Nullable(Of System.Int32).GetValueOrDefault() As System.Int32) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'a')
+              Instance Receiver: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
+              Arguments(0)
+
+    Next Block[4]
+Block[3] - Block
+    Predecessors (1)
+        [1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+          Value: 
+            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+
+    Next Block[4]
+Block[4] - Block
+    Predecessors (2)
+        [2]
+        [3]
+    Statements (1)
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+          Value: 
+            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'a')
+
+    Jump if Null to Block[6]
+        IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
+
+    Next Block[5]
+Block[5] - Block
+    Predecessors (1)
+        [4]
+    Statements (1)
+        IFlowCaptureOperation: 4 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+          Value: 
+            IInvocationOperation ( Function System.Nullable(Of System.Int32).GetValueOrDefault() As System.Int32) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'a')
+              Instance Receiver: 
+                IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
+              Arguments(0)
+
+    Next Block[7]
+Block[6] - Block
+    Predecessors (1)
+        [4]
+    Statements (1)
+        IFlowCaptureOperation: 4 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+          Value: 
+            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+
+    Next Block[7]
+Block[7] - Block
+    Predecessors (2)
+        [5]
+        [6]
+    Statements (3)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'GetArray()( ...  + If(a, b)')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'GetArray()( ...  + If(a, b)')
+              Left: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'GetArray()(0)')
+              Right: 
+                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'If(a, b) + If(a, b)')
+                  Left: 
+                    IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(a, b)')
+                  Right: 
+                    IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(a, b)')
+
+        ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
+          Statement: 
+            null
+
+        IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
+          ReturnedValue: 
+            null
+
+    Next Block[8]
+Block[8] - Exit
+    Predecessors (1)
+        [7]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub LogicalFlow_03()
+            Dim source = <![CDATA[
+Imports System
+Public Class C
+    Public Sub M(a As C, b As C)'BIND:"Public Sub M(a As C, b As C)"
+        GetArray()(0) = If(a, b) + If(a, b)
+    End Sub
+
+    Public Function GetArray() As Integer()
+        Return Nothing
+    End Function
+
+    Public Shared Operator +(c1 As C, c2 As C) As Integer
+        Return 0
+    End Operator
+End Class]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            Dim expectedOperationTree = <![CDATA[
+IBlockOperation (3 statements) (OperationKind.Block, Type: null) (Syntax: 'Public Sub  ... End Sub')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'GetArray()( ...  + If(a, b)')
+    Expression: 
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'GetArray()( ...  + If(a, b)')
+        Left: 
+          IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: System.Int32) (Syntax: 'GetArray()(0)')
+            Array reference: 
+              IInvocationOperation ( Function ClassLibrary2.C.GetArray() As System.Int32()) (OperationKind.Invocation, Type: System.Int32()) (Syntax: 'GetArray()')
+                Instance Receiver: 
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: ClassLibrary2.C, IsImplicit) (Syntax: 'GetArray')
+                Arguments(0)
+            Indices(1):
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+        Right: 
+          IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperatorMethod: Function ClassLibrary2.C.op_Addition(c1 As ClassLibrary2.C, c2 As ClassLibrary2.C) As System.Int32) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'If(a, b) + If(a, b)')
+            Left: 
+              ICoalesceOperation (OperationKind.Coalesce, Type: ClassLibrary2.C) (Syntax: 'If(a, b)')
+                Expression: 
+                  IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: ClassLibrary2.C) (Syntax: 'a')
+                ValueConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  (Identity)
+                WhenNull: 
+                  IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: ClassLibrary2.C) (Syntax: 'b')
+            Right: 
+              ICoalesceOperation (OperationKind.Coalesce, Type: ClassLibrary2.C) (Syntax: 'If(a, b)')
+                Expression: 
+                  IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: ClassLibrary2.C) (Syntax: 'a')
+                ValueConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  (Identity)
+                WhenNull: 
+                  IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: ClassLibrary2.C) (Syntax: 'b')
+  ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
+    Statement: 
+      null
+  IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
+    ReturnedValue: 
+      null
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
+
+
+            Dim expectedGraph = <![CDATA[
+Block[0] - Entry
+    Statements (0)
+    Next Block[1]
+Block[1] - Block
+    Predecessors (1)
+        [0]
+    Statements (2)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'GetArray()(0)')
+          Value: 
+            IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: System.Int32) (Syntax: 'GetArray()(0)')
+              Array reference: 
+                IInvocationOperation ( Function ClassLibrary2.C.GetArray() As System.Int32()) (OperationKind.Invocation, Type: System.Int32()) (Syntax: 'GetArray()')
+                  Instance Receiver: 
+                    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: ClassLibrary2.C, IsImplicit) (Syntax: 'GetArray')
+                  Arguments(0)
+              Indices(1):
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+          Value: 
+            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: ClassLibrary2.C) (Syntax: 'a')
+
+    Jump if Null to Block[3]
+        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: ClassLibrary2.C, IsImplicit) (Syntax: 'a')
+
+    Next Block[2]
+Block[2] - Block
+    Predecessors (1)
+        [1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+          Value: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: ClassLibrary2.C, IsImplicit) (Syntax: 'a')
+
+    Next Block[4]
+Block[3] - Block
+    Predecessors (1)
+        [1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+          Value: 
+            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: ClassLibrary2.C) (Syntax: 'b')
+
+    Next Block[4]
+Block[4] - Block
+    Predecessors (2)
+        [2]
+        [3]
+    Statements (1)
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+          Value: 
+            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: ClassLibrary2.C) (Syntax: 'a')
+
+    Jump if Null to Block[6]
+        IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: ClassLibrary2.C, IsImplicit) (Syntax: 'a')
+
+    Next Block[5]
+Block[5] - Block
+    Predecessors (1)
+        [4]
+    Statements (1)
+        IFlowCaptureOperation: 4 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+          Value: 
+            IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: ClassLibrary2.C, IsImplicit) (Syntax: 'a')
+
+    Next Block[7]
+Block[6] - Block
+    Predecessors (1)
+        [4]
+    Statements (1)
+        IFlowCaptureOperation: 4 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+          Value: 
+            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: ClassLibrary2.C) (Syntax: 'b')
+
+    Next Block[7]
+Block[7] - Block
+    Predecessors (2)
+        [5]
+        [6]
+    Statements (3)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'GetArray()( ...  + If(a, b)')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'GetArray()( ...  + If(a, b)')
+              Left: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'GetArray()(0)')
+              Right: 
+                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperatorMethod: Function ClassLibrary2.C.op_Addition(c1 As ClassLibrary2.C, c2 As ClassLibrary2.C) As System.Int32) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'If(a, b) + If(a, b)')
+                  Left: 
+                    IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: ClassLibrary2.C, IsImplicit) (Syntax: 'If(a, b)')
+                  Right: 
+                    IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: ClassLibrary2.C, IsImplicit) (Syntax: 'If(a, b)')
+
+        ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
+          Statement: 
+            null
+
+        IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
+          ReturnedValue: 
+            null
+
+    Next Block[8]
+Block[8] - Exit
+    Predecessors (1)
+        [7]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub LogicalFlow_04()
+            Dim source = <![CDATA[
+Imports System
+Public Class C
+    Public Sub M(a As Integer?, b As Integer)'BIND:"Public Sub M(a As Integer?, b As Integer)"
+        GetArray()(0) = b - If(a, b)
+    End Sub
+
+    Public Function GetArray() As Integer()
+        Return Nothing
+    End Function
+End Class]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            Dim expectedOperationTree = <![CDATA[
+IBlockOperation (3 statements) (OperationKind.Block, Type: null) (Syntax: 'Public Sub  ... End Sub')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'GetArray()( ...  - If(a, b)')
+    Expression: 
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'GetArray()( ...  - If(a, b)')
+        Left: 
+          IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: System.Int32) (Syntax: 'GetArray()(0)')
+            Array reference: 
+              IInvocationOperation ( Function ClassLibrary2.C.GetArray() As System.Int32()) (OperationKind.Invocation, Type: System.Int32()) (Syntax: 'GetArray()')
+                Instance Receiver: 
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: ClassLibrary2.C, IsImplicit) (Syntax: 'GetArray')
+                Arguments(0)
+            Indices(1):
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+        Right: 
+          IBinaryOperation (BinaryOperatorKind.Subtract, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'b - If(a, b)')
+            Left: 
+              IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+            Right: 
+              ICoalesceOperation (OperationKind.Coalesce, Type: System.Int32) (Syntax: 'If(a, b)')
+                Expression: 
+                  IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'a')
+                ValueConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  (Identity)
+                WhenNull: 
+                  IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+  ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
+    Statement: 
+      null
+  IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
+    ReturnedValue: 
+      null
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
+
+
+            Dim expectedGraph = <![CDATA[
+Block[0] - Entry
+    Statements (0)
+    Next Block[1]
+Block[1] - Block
+    Predecessors (1)
+        [0]
+    Statements (3)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'GetArray()(0)')
+          Value: 
+            IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: System.Int32) (Syntax: 'GetArray()(0)')
+              Array reference: 
+                IInvocationOperation ( Function ClassLibrary2.C.GetArray() As System.Int32()) (OperationKind.Invocation, Type: System.Int32()) (Syntax: 'GetArray()')
+                  Instance Receiver: 
+                    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: ClassLibrary2.C, IsImplicit) (Syntax: 'GetArray')
+                  Arguments(0)
+              Indices(1):
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+          Value: 
+            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+          Value: 
+            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'a')
+
+    Jump if Null to Block[3]
+        IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
+
+    Next Block[2]
+Block[2] - Block
+    Predecessors (1)
+        [1]
+    Statements (1)
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+          Value: 
+            IInvocationOperation ( Function System.Nullable(Of System.Int32).GetValueOrDefault() As System.Int32) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'a')
+              Instance Receiver: 
+                IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
+              Arguments(0)
+
+    Next Block[4]
+Block[3] - Block
+    Predecessors (1)
+        [1]
+    Statements (1)
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+          Value: 
+            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+
+    Next Block[4]
+Block[4] - Block
+    Predecessors (2)
+        [2]
+        [3]
+    Statements (3)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'GetArray()( ...  - If(a, b)')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'GetArray()( ...  - If(a, b)')
+              Left: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'GetArray()(0)')
+              Right: 
+                IBinaryOperation (BinaryOperatorKind.Subtract, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'b - If(a, b)')
+                  Left: 
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'b')
+                  Right: 
+                    IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(a, b)')
+
+        ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
+          Statement: 
+            null
+
+        IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
+          ReturnedValue: 
+            null
+
+    Next Block[5]
+Block[5] - Exit
+    Predecessors (1)
+        [4]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub LogicalFlow_05()
+            Dim source = <![CDATA[
+Imports System
+Public Class C
+    Public Sub M(a As Integer?, b As Integer)'BIND:"Public Sub M(a As Integer?, b As Integer)"
+        GetArray()(0) = b << If(a, b)
+    End Sub
+
+    Public Function GetArray() As Integer()
+        Return Nothing
+    End Function
+End Class]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            Dim expectedOperationTree = <![CDATA[
+IBlockOperation (3 statements) (OperationKind.Block, Type: null) (Syntax: 'Public Sub  ... End Sub')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'GetArray()( ... << If(a, b)')
+    Expression: 
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'GetArray()( ... << If(a, b)')
+        Left: 
+          IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: System.Int32) (Syntax: 'GetArray()(0)')
+            Array reference: 
+              IInvocationOperation ( Function ClassLibrary2.C.GetArray() As System.Int32()) (OperationKind.Invocation, Type: System.Int32()) (Syntax: 'GetArray()')
+                Instance Receiver: 
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: ClassLibrary2.C, IsImplicit) (Syntax: 'GetArray')
+                Arguments(0)
+            Indices(1):
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+        Right: 
+          IBinaryOperation (BinaryOperatorKind.LeftShift, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'b << If(a, b)')
+            Left: 
+              IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+            Right: 
+              ICoalesceOperation (OperationKind.Coalesce, Type: System.Int32) (Syntax: 'If(a, b)')
+                Expression: 
+                  IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'a')
+                ValueConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  (Identity)
+                WhenNull: 
+                  IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+  ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
+    Statement: 
+      null
+  IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
+    ReturnedValue: 
+      null
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
+
+
+            Dim expectedGraph = <![CDATA[
+Block[0] - Entry
+    Statements (0)
+    Next Block[1]
+Block[1] - Block
+    Predecessors (1)
+        [0]
+    Statements (3)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'GetArray()(0)')
+          Value: 
+            IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: System.Int32) (Syntax: 'GetArray()(0)')
+              Array reference: 
+                IInvocationOperation ( Function ClassLibrary2.C.GetArray() As System.Int32()) (OperationKind.Invocation, Type: System.Int32()) (Syntax: 'GetArray()')
+                  Instance Receiver: 
+                    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: ClassLibrary2.C, IsImplicit) (Syntax: 'GetArray')
+                  Arguments(0)
+              Indices(1):
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+          Value: 
+            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+          Value: 
+            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'a')
+
+    Jump if Null to Block[3]
+        IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
+
+    Next Block[2]
+Block[2] - Block
+    Predecessors (1)
+        [1]
+    Statements (1)
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+          Value: 
+            IInvocationOperation ( Function System.Nullable(Of System.Int32).GetValueOrDefault() As System.Int32) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'a')
+              Instance Receiver: 
+                IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
+              Arguments(0)
+
+    Next Block[4]
+Block[3] - Block
+    Predecessors (1)
+        [1]
+    Statements (1)
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+          Value: 
+            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+
+    Next Block[4]
+Block[4] - Block
+    Predecessors (2)
+        [2]
+        [3]
+    Statements (3)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'GetArray()( ... << If(a, b)')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'GetArray()( ... << If(a, b)')
+              Left: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'GetArray()(0)')
+              Right: 
+                IBinaryOperation (BinaryOperatorKind.LeftShift, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'b << If(a, b)')
+                  Left: 
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'b')
+                  Right: 
+                    IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(a, b)')
+
+        ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
+          Statement: 
+            null
+
+        IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
+          ReturnedValue: 
+            null
+
+    Next Block[5]
+Block[5] - Exit
+    Predecessors (1)
+        [4]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub LogicalFlow_06()
+            Dim source = <![CDATA[
+Imports System
+Public Class C
+    Public Sub M(a As Integer?, b As Integer)'BIND:"Public Sub M(a As Integer?, b As Integer)"
+        GetArray()(0) = b >> If(a, b)
+    End Sub
+
+    Public Function GetArray() As Integer()
+        Return Nothing
+    End Function
+End Class]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            Dim expectedOperationTree = <![CDATA[
+IBlockOperation (3 statements) (OperationKind.Block, Type: null) (Syntax: 'Public Sub  ... End Sub')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'GetArray()( ... >> If(a, b)')
+    Expression: 
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'GetArray()( ... >> If(a, b)')
+        Left: 
+          IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: System.Int32) (Syntax: 'GetArray()(0)')
+            Array reference: 
+              IInvocationOperation ( Function ClassLibrary2.C.GetArray() As System.Int32()) (OperationKind.Invocation, Type: System.Int32()) (Syntax: 'GetArray()')
+                Instance Receiver: 
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: ClassLibrary2.C, IsImplicit) (Syntax: 'GetArray')
+                Arguments(0)
+            Indices(1):
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+        Right: 
+          IBinaryOperation (BinaryOperatorKind.RightShift, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'b >> If(a, b)')
+            Left: 
+              IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+            Right: 
+              ICoalesceOperation (OperationKind.Coalesce, Type: System.Int32) (Syntax: 'If(a, b)')
+                Expression: 
+                  IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'a')
+                ValueConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  (Identity)
+                WhenNull: 
+                  IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+  ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
+    Statement: 
+      null
+  IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
+    ReturnedValue: 
+      null
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
+
+
+            Dim expectedGraph = <![CDATA[
+Block[0] - Entry
+    Statements (0)
+    Next Block[1]
+Block[1] - Block
+    Predecessors (1)
+        [0]
+    Statements (3)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'GetArray()(0)')
+          Value: 
+            IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: System.Int32) (Syntax: 'GetArray()(0)')
+              Array reference: 
+                IInvocationOperation ( Function ClassLibrary2.C.GetArray() As System.Int32()) (OperationKind.Invocation, Type: System.Int32()) (Syntax: 'GetArray()')
+                  Instance Receiver: 
+                    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: ClassLibrary2.C, IsImplicit) (Syntax: 'GetArray')
+                  Arguments(0)
+              Indices(1):
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+          Value: 
+            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+          Value: 
+            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'a')
+
+    Jump if Null to Block[3]
+        IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
+
+    Next Block[2]
+Block[2] - Block
+    Predecessors (1)
+        [1]
+    Statements (1)
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+          Value: 
+            IInvocationOperation ( Function System.Nullable(Of System.Int32).GetValueOrDefault() As System.Int32) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'a')
+              Instance Receiver: 
+                IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
+              Arguments(0)
+
+    Next Block[4]
+Block[3] - Block
+    Predecessors (1)
+        [1]
+    Statements (1)
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+          Value: 
+            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+
+    Next Block[4]
+Block[4] - Block
+    Predecessors (2)
+        [2]
+        [3]
+    Statements (3)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'GetArray()( ... >> If(a, b)')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'GetArray()( ... >> If(a, b)')
+              Left: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'GetArray()(0)')
+              Right: 
+                IBinaryOperation (BinaryOperatorKind.RightShift, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'b >> If(a, b)')
+                  Left: 
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'b')
+                  Right: 
+                    IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(a, b)')
+
+        ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
+          Statement: 
+            null
+
+        IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
+          ReturnedValue: 
+            null
+
+    Next Block[5]
+Block[5] - Exit
+    Predecessors (1)
+        [4]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub LogicalFlow_07()
+            Dim source = <![CDATA[
+Imports System
+Public Class C
+    Public Sub M(a As Integer?, b As Integer)'BIND:"Public Sub M(a As Integer?, b As Integer)"
+        GetArray()(0) = b * If(a, b)
+    End Sub
+
+    Public Function GetArray() As Integer()
+        Return Nothing
+    End Function
+End Class]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            Dim expectedOperationTree = <![CDATA[
+IBlockOperation (3 statements) (OperationKind.Block, Type: null) (Syntax: 'Public Sub  ... End Sub')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'GetArray()( ...  * If(a, b)')
+    Expression: 
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'GetArray()( ...  * If(a, b)')
+        Left: 
+          IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: System.Int32) (Syntax: 'GetArray()(0)')
+            Array reference: 
+              IInvocationOperation ( Function ClassLibrary2.C.GetArray() As System.Int32()) (OperationKind.Invocation, Type: System.Int32()) (Syntax: 'GetArray()')
+                Instance Receiver: 
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: ClassLibrary2.C, IsImplicit) (Syntax: 'GetArray')
+                Arguments(0)
+            Indices(1):
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+        Right: 
+          IBinaryOperation (BinaryOperatorKind.Multiply, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'b * If(a, b)')
+            Left: 
+              IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+            Right: 
+              ICoalesceOperation (OperationKind.Coalesce, Type: System.Int32) (Syntax: 'If(a, b)')
+                Expression: 
+                  IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'a')
+                ValueConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  (Identity)
+                WhenNull: 
+                  IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+  ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
+    Statement: 
+      null
+  IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
+    ReturnedValue: 
+      null
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
+
+
+            Dim expectedGraph = <![CDATA[
+Block[0] - Entry
+    Statements (0)
+    Next Block[1]
+Block[1] - Block
+    Predecessors (1)
+        [0]
+    Statements (3)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'GetArray()(0)')
+          Value: 
+            IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: System.Int32) (Syntax: 'GetArray()(0)')
+              Array reference: 
+                IInvocationOperation ( Function ClassLibrary2.C.GetArray() As System.Int32()) (OperationKind.Invocation, Type: System.Int32()) (Syntax: 'GetArray()')
+                  Instance Receiver: 
+                    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: ClassLibrary2.C, IsImplicit) (Syntax: 'GetArray')
+                  Arguments(0)
+              Indices(1):
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+          Value: 
+            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+          Value: 
+            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'a')
+
+    Jump if Null to Block[3]
+        IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
+
+    Next Block[2]
+Block[2] - Block
+    Predecessors (1)
+        [1]
+    Statements (1)
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+          Value: 
+            IInvocationOperation ( Function System.Nullable(Of System.Int32).GetValueOrDefault() As System.Int32) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'a')
+              Instance Receiver: 
+                IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
+              Arguments(0)
+
+    Next Block[4]
+Block[3] - Block
+    Predecessors (1)
+        [1]
+    Statements (1)
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+          Value: 
+            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+
+    Next Block[4]
+Block[4] - Block
+    Predecessors (2)
+        [2]
+        [3]
+    Statements (3)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'GetArray()( ...  * If(a, b)')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'GetArray()( ...  * If(a, b)')
+              Left: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'GetArray()(0)')
+              Right: 
+                IBinaryOperation (BinaryOperatorKind.Multiply, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'b * If(a, b)')
+                  Left: 
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'b')
+                  Right: 
+                    IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(a, b)')
+
+        ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
+          Statement: 
+            null
+
+        IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
+          ReturnedValue: 
+            null
+
+    Next Block[5]
+Block[5] - Exit
+    Predecessors (1)
+        [4]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub LogicalFlow_08()
+            Dim source = <![CDATA[
+Imports System
+Public Class C
+    Public Sub M(a As Integer?, b As Integer)'BIND:"Public Sub M(a As Integer?, b As Integer)"
+        GetArray()(0) = b / If(a, b)
+    End Sub
+
+    Public Function GetArray() As Integer()
+        Return Nothing
+    End Function
+End Class]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            Dim expectedOperationTree = <![CDATA[
+IBlockOperation (3 statements) (OperationKind.Block, Type: null) (Syntax: 'Public Sub  ... End Sub')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'GetArray()( ...  / If(a, b)')
+    Expression: 
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'GetArray()( ...  / If(a, b)')
+        Left: 
+          IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: System.Int32) (Syntax: 'GetArray()(0)')
+            Array reference: 
+              IInvocationOperation ( Function ClassLibrary2.C.GetArray() As System.Int32()) (OperationKind.Invocation, Type: System.Int32()) (Syntax: 'GetArray()')
+                Instance Receiver: 
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: ClassLibrary2.C, IsImplicit) (Syntax: 'GetArray')
+                Arguments(0)
+            Indices(1):
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+        Right: 
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'b / If(a, b)')
+            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Operand: 
+              IBinaryOperation (BinaryOperatorKind.Divide, Checked) (OperationKind.BinaryOperator, Type: System.Double) (Syntax: 'b / If(a, b)')
+                Left: 
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Double, IsImplicit) (Syntax: 'b')
+                    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    Operand: 
+                      IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+                Right: 
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Double, IsImplicit) (Syntax: 'If(a, b)')
+                    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    Operand: 
+                      ICoalesceOperation (OperationKind.Coalesce, Type: System.Int32) (Syntax: 'If(a, b)')
+                        Expression: 
+                          IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'a')
+                        ValueConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          (Identity)
+                        WhenNull: 
+                          IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+  ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
+    Statement: 
+      null
+  IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
+    ReturnedValue: 
+      null
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
+
+
+            Dim expectedGraph = <![CDATA[
+Block[0] - Entry
+    Statements (0)
+    Next Block[1]
+Block[1] - Block
+    Predecessors (1)
+        [0]
+    Statements (3)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'GetArray()(0)')
+          Value: 
+            IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: System.Int32) (Syntax: 'GetArray()(0)')
+              Array reference: 
+                IInvocationOperation ( Function ClassLibrary2.C.GetArray() As System.Int32()) (OperationKind.Invocation, Type: System.Int32()) (Syntax: 'GetArray()')
+                  Instance Receiver: 
+                    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: ClassLibrary2.C, IsImplicit) (Syntax: 'GetArray')
+                  Arguments(0)
+              Indices(1):
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+          Value: 
+            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Double, IsImplicit) (Syntax: 'b')
+              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                (WideningNumeric)
+              Operand: 
+                IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+          Value: 
+            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'a')
+
+    Jump if Null to Block[3]
+        IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
+
+    Next Block[2]
+Block[2] - Block
+    Predecessors (1)
+        [1]
+    Statements (1)
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+          Value: 
+            IInvocationOperation ( Function System.Nullable(Of System.Int32).GetValueOrDefault() As System.Int32) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'a')
+              Instance Receiver: 
+                IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
+              Arguments(0)
+
+    Next Block[4]
+Block[3] - Block
+    Predecessors (1)
+        [1]
+    Statements (1)
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+          Value: 
+            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+
+    Next Block[4]
+Block[4] - Block
+    Predecessors (2)
+        [2]
+        [3]
+    Statements (3)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'GetArray()( ...  / If(a, b)')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'GetArray()( ...  / If(a, b)')
+              Left: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'GetArray()(0)')
+              Right: 
+                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'b / If(a, b)')
+                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    (NarrowingNumeric)
+                  Operand: 
+                    IBinaryOperation (BinaryOperatorKind.Divide, Checked) (OperationKind.BinaryOperator, Type: System.Double) (Syntax: 'b / If(a, b)')
+                      Left: 
+                        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Double, IsImplicit) (Syntax: 'b')
+                      Right: 
+                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Double, IsImplicit) (Syntax: 'If(a, b)')
+                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            (WideningNumeric)
+                          Operand: 
+                            IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(a, b)')
+
+        ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
+          Statement: 
+            null
+
+        IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
+          ReturnedValue: 
+            null
+
+    Next Block[5]
+Block[5] - Exit
+    Predecessors (1)
+        [4]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub LogicalFlow_10()
+            Dim source = <![CDATA[
+Imports System
+Public Class C
+    Public Sub M(a As Integer?, b As Integer)'BIND:"Public Sub M(a As Integer?, b As Integer)"
+        GetArray()(0) = b Mod If(a, b)
+    End Sub
+
+    Public Function GetArray() As Integer()
+        Return Nothing
+    End Function
+End Class]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            Dim expectedOperationTree = <![CDATA[
+IBlockOperation (3 statements) (OperationKind.Block, Type: null) (Syntax: 'Public Sub  ... End Sub')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'GetArray()( ... od If(a, b)')
+    Expression: 
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'GetArray()( ... od If(a, b)')
+        Left: 
+          IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: System.Int32) (Syntax: 'GetArray()(0)')
+            Array reference: 
+              IInvocationOperation ( Function ClassLibrary2.C.GetArray() As System.Int32()) (OperationKind.Invocation, Type: System.Int32()) (Syntax: 'GetArray()')
+                Instance Receiver: 
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: ClassLibrary2.C, IsImplicit) (Syntax: 'GetArray')
+                Arguments(0)
+            Indices(1):
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+        Right: 
+          IBinaryOperation (BinaryOperatorKind.Remainder, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'b Mod If(a, b)')
+            Left: 
+              IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+            Right: 
+              ICoalesceOperation (OperationKind.Coalesce, Type: System.Int32) (Syntax: 'If(a, b)')
+                Expression: 
+                  IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'a')
+                ValueConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  (Identity)
+                WhenNull: 
+                  IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+  ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
+    Statement: 
+      null
+  IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
+    ReturnedValue: 
+      null
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
+
+
+            Dim expectedGraph = <![CDATA[
+Block[0] - Entry
+    Statements (0)
+    Next Block[1]
+Block[1] - Block
+    Predecessors (1)
+        [0]
+    Statements (3)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'GetArray()(0)')
+          Value: 
+            IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: System.Int32) (Syntax: 'GetArray()(0)')
+              Array reference: 
+                IInvocationOperation ( Function ClassLibrary2.C.GetArray() As System.Int32()) (OperationKind.Invocation, Type: System.Int32()) (Syntax: 'GetArray()')
+                  Instance Receiver: 
+                    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: ClassLibrary2.C, IsImplicit) (Syntax: 'GetArray')
+                  Arguments(0)
+              Indices(1):
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+          Value: 
+            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+          Value: 
+            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'a')
+
+    Jump if Null to Block[3]
+        IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
+
+    Next Block[2]
+Block[2] - Block
+    Predecessors (1)
+        [1]
+    Statements (1)
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+          Value: 
+            IInvocationOperation ( Function System.Nullable(Of System.Int32).GetValueOrDefault() As System.Int32) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'a')
+              Instance Receiver: 
+                IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
+              Arguments(0)
+
+    Next Block[4]
+Block[3] - Block
+    Predecessors (1)
+        [1]
+    Statements (1)
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+          Value: 
+            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+
+    Next Block[4]
+Block[4] - Block
+    Predecessors (2)
+        [2]
+        [3]
+    Statements (3)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'GetArray()( ... od If(a, b)')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'GetArray()( ... od If(a, b)')
+              Left: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'GetArray()(0)')
+              Right: 
+                IBinaryOperation (BinaryOperatorKind.Remainder, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'b Mod If(a, b)')
+                  Left: 
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'b')
+                  Right: 
+                    IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(a, b)')
+
+        ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
+          Statement: 
+            null
+
+        IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
+          ReturnedValue: 
+            null
+
+    Next Block[5]
+Block[5] - Exit
+    Predecessors (1)
+        [4]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedGraph, expectedDiagnostics)
+        End Sub
     End Class
 End Namespace

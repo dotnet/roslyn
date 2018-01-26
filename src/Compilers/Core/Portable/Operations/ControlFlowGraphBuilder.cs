@@ -317,8 +317,9 @@ namespace Microsoft.CodeAnalysis.Operations
                 return VisitBinaryConditionalOperator(operation, sense: true, captureIdForResult, fallToTrueOpt: null, fallToFalseOpt: null);
             }
 
-            // PROTOTYPE(dataflow): deal with stack spilling
-            return base.VisitBinaryOperator(operation, captureIdForResult);
+            _evalStack.Push(Visit(operation.LeftOperand));
+            IOperation rightOperand = Visit(operation.RightOperand);
+            return new BinaryOperatorExpression(operation.OperatorKind, _evalStack.Pop(), rightOperand, operation.IsLifted, operation.IsChecked, operation.IsCompareText, operation.OperatorMethod, null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitUnaryOperator(IUnaryOperation operation, int? captureIdForResult)
