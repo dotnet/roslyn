@@ -33,8 +33,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
         [ImportingConstructor]
         public LineSeparatorAdornmentManagerProvider(
             IViewTagAggregatorFactoryService tagAggregatorFactoryService,
-            IAsynchronousOperationListenerProvider listenerProvider)
-            : base(tagAggregatorFactoryService, listenerProvider)
+            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
+            : base(tagAggregatorFactoryService, asyncListeners)
         {
         }
 

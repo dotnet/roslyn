@@ -23,16 +23,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EncapsulateField
     internal abstract class AbstractEncapsulateFieldCommandHandler : VSCommanding.ICommandHandler<EncapsulateFieldCommandArgs>
     {
         private readonly ITextBufferUndoManagerProvider _undoManager;
-        private readonly IAsynchronousOperationListener _listener;
+        private readonly AggregateAsynchronousOperationListener _listener;
 
         public string DisplayName => EditorFeaturesResources.Encapsulate_Field_Command_Handler;
 
         public AbstractEncapsulateFieldCommandHandler(
             ITextBufferUndoManagerProvider undoManager,
-            IAsynchronousOperationListenerProvider listenerProvider)
+            IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
         {
             _undoManager = undoManager;
-            _listener = listenerProvider.GetListener(FeatureAttribute.EncapsulateField);
+            _listener = new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.EncapsulateField);
         }
 
         public bool ExecuteCommand(EncapsulateFieldCommandArgs args, CommandExecutionContext context)

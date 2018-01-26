@@ -87,7 +87,7 @@ commitPullList.each { isPr ->
     def myJob = job(jobName) {
       description("Windows CoreCLR unit tests")
             steps {
-              batchFile(""".\\build\\scripts\\cibuild.cmd ${(configuration == 'debug') ? '-debug' : '-release'} -testCoreClr""")
+              batchFile(""".\\build\\scripts\\cibuild.cmd ${(configuration == 'debug') ? '-debug' : '-release'} -buildCoreClr -testCoreClr""")
             }
     }
 

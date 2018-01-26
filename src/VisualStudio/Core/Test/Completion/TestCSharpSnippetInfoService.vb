@@ -16,8 +16,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Completion
         Inherits CSharpSnippetInfoService
 
         <ImportingConstructor>
-        Friend Sub New(listenerProvider As IAsynchronousOperationListenerProvider)
-            MyBase.New(Nothing, listenerProvider)
+        Friend Sub New(<ImportMany> asyncListeners As IEnumerable(Of Lazy(Of IAsynchronousOperationListener, FeatureMetadata)))
+            MyBase.New(Nothing, asyncListeners)
         End Sub
 
         Friend Sub SetSnippetShortcuts(newSnippetShortcuts As String())

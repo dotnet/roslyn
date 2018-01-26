@@ -26,11 +26,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         [ImportingConstructor]
         public VisualStudioInfoBarService(SVsServiceProvider serviceProvider,
             IForegroundNotificationService foregroundNotificationService,
-            IAsynchronousOperationListenerProvider listenerProvider)
+            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
         {
             _serviceProvider = serviceProvider;
             _foregroundNotificationService = foregroundNotificationService;
-            _listener = listenerProvider.GetListener(FeatureAttribute.InfoBar);
+            _listener = new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.InfoBar);
         }
 
         public void ShowInfoBarInActiveView(string message, params InfoBarUI[] items)
