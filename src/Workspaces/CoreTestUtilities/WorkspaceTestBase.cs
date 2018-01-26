@@ -115,6 +115,17 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 (@"Program.cs", Resources.SourceFiles.CSharp.NetCoreApp2_Program));
         }
 
+        protected FileSet GetNetCoreMultiTFMFiles_ProjectReference()
+        {
+            return new FileSet(
+                (@"Directory.Build.props", Resources.Directory_Build_props),
+                (@"Directory.Build.targets", Resources.Directory_Build_targets),
+                (@"Project\Project.csproj", Resources.ProjectFiles.CSharp.NetCoreMultiTFM_ProjectReference_Project),
+                (@"Project\Program.cs", Resources.SourceFiles.CSharp.NetCoreMultiTFM_ProjectReference_Program),
+                (@"Library\Library.csproj", Resources.ProjectFiles.CSharp.NetCoreMultiTFM_ProjectReference_Library),
+                (@"Library\Class1.cs", Resources.SourceFiles.CSharp.NetCoreMultiTFM_ProjectReference_Class1));
+        }
+
         protected FileSet GetMultiProjectSolutionFiles()
         {
             return new FileSet(
