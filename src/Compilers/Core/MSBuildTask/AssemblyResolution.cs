@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.CommandLine;
 using Roslyn.Utilities;
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 
@@ -30,7 +32,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             var name = new AssemblyName(assemblyDisplayName);
             try
             {
-                return TryRedirect(name) ? Assembly.Load(name) : null;
+                return TryRedirect(name) ? LoadAssemblyWithRedirects(name) : null;
             }
             catch
             {
@@ -68,9 +70,32 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 case "System.Reflection":
                     return TryRedirect(name, s_b03f5f7f11d50a3a, 4, 1, 1, 0);
 
+                // Assemblies in the runtimes directory. We're not concerned about
+                // redirecting versions for these assemblies, only location, so
+                // it's fine to always return true. The loading location override is
+                // found in the LoadAssemblyWithRedirects method.
+                case "System.IO.Pipes.AccessControl":
+                    return true;
             }
 
             return false;
+        }
+
+        private static Assembly LoadAssemblyWithRedirects(AssemblyName name)
+        {
+            // Check if we need to redirect the location of this assembly. This
+            // is necessary for assemblies in the runtimes/ subdirectory of the
+            // build task as this directory is not searched for dependencies by
+            // default. This is necessary because the CoreCLR shared loader doesn't
+            // provide a mechanism for nested assembly load policy:
+            // https://github.com/dotnet/coreclr/issues/15982
+            switch (name.Name)
+            {
+                case "System.IO.Pipes.AccessControl":
+                    return TryRedirectToRuntimesDir(name);
+            }
+
+            return Assembly.Load(name);
         }
 
         private static bool TryRedirect(AssemblyName name, byte[] token, int major, int minor, int build, int revision)
@@ -83,6 +108,34 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             }
 
             return false;
+        }
+
+        private static readonly string s_assemblyLocation = Utilities.TryGetAssemblyPath(typeof(AssemblyResolution).GetTypeInfo().Assembly);
+        private static Assembly TryRedirectToRuntimesDir(AssemblyName name)
+        {
+            CompilerServerLogger.Log($"Loading with redirect {name.Name}");
+            if (s_assemblyLocation == null)
+            {
+                return null;
+            }
+
+            var taskDir = Path.GetDirectoryName(s_assemblyLocation);
+            var osId = PlatformInformation.IsWindows ? "win" : "unix";
+            var runtimeDir = Path.Combine(taskDir, "runtimes", osId, "lib", "netstandard1.3");
+
+            var assemblyPath = Path.Combine(runtimeDir, name.Name) + ".dll";
+
+            if (File.Exists(assemblyPath))
+            {
+                CompilerServerLogger.Log($"Loading from: {assemblyPath}");
+                return (Assembly)typeof(Assembly).GetTypeInfo()
+                    .GetDeclaredMethod("LoadFile")
+                    ?.Invoke(null, parameters: new object[] { assemblyPath });
+            }
+
+            CompilerServerLogger.Log($"File not found: {assemblyPath}");
+
+            return null;
         }
 
         private static bool KeysEqual(byte[] left, byte[] right)

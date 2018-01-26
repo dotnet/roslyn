@@ -553,5 +553,50 @@ end class")
     Public Property [|P|] As Integer
 End Class")
         End Function
+
+        <WorkItem(23735, "https://github.com/dotnet/roslyn/issues/23735")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
+        Public Async Function ExplicitInterfaceImplementation() As Task
+            Await TestInRegularAndScriptAsync("
+Namespace RoslynSandbox
+    Public Interface IFoo
+        ReadOnly Property Bar() As Object
+    End Interface
+
+    Friend Class Foo
+        Implements IFoo
+
+        Private [|_bar|] As Object
+
+		Private ReadOnly Property Bar() As Object Implements IFoo.Bar
+            Get
+                Return _bar
+            End Get
+        End Property
+
+        Public Sub New(bar As Object)
+            _bar = bar
+        End Sub
+    End Class
+End Namespace
+",
+"
+Namespace RoslynSandbox
+    Public Interface IFoo
+        ReadOnly Property Bar() As Object
+    End Interface
+
+    Friend Class Foo
+        Implements IFoo
+
+		Private ReadOnly Property Bar() As Object Implements IFoo.Bar
+
+        Public Sub New(bar As Object)
+            Me.Bar = bar
+        End Sub
+    End Class
+End Namespace
+")
+        End Function
     End Class
 End Namespace
