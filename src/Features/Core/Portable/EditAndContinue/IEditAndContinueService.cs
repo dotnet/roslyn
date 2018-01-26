@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             ImmutableDictionary<ProjectId, ProjectReadOnlyReason> projects,
             bool stoppedAtException);
 
-        void EndEditSession(ImmutableDictionary<ActiveMethodId, ImmutableArray<NonRemappableRegion>> nonRemappableRegions);
+        void EndEditSession(ImmutableDictionary<ActiveMethodId, ImmutableArray<NonRemappableRegion>> newNonRemappableRegionsOpt);
 
         void EndDebuggingSession();
 

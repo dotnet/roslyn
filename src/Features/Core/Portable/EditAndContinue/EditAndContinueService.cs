@@ -105,10 +105,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             // TODO(tomat): document added
         }
 
-        public void EndEditSession(ImmutableDictionary<ActiveMethodId, ImmutableArray<NonRemappableRegion>> nonRemappableRegions)
+        public void EndEditSession(ImmutableDictionary<ActiveMethodId, ImmutableArray<NonRemappableRegion>> newRemappableRegionsOpt)
         {
-            Contract.ThrowIfNull(nonRemappableRegions);
-
             // first, publish null session:
             var session = Interlocked.Exchange(ref _editSession, null);
             Contract.ThrowIfNull(session, "Edit session has not started.");
@@ -119,8 +117,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             // then clear all reported rude edits:
             _diagnosticService.Reanalyze(_debuggingSession.InitialSolution.Workspace, documentIds: session.GetDocumentsWithReportedRudeEdits());
 
-            // save updated non-remappable regions for the next edit session:
-            _nonRemappableRegions = nonRemappableRegions;
+            // Save new non-remappable regions for the next edit session.
+            // If no edits were made keep the previous regions.
+            if (newRemappableRegionsOpt != null)
+            {
+                _nonRemappableRegions = newRemappableRegionsOpt;
+            }
 
             // TODO(tomat): allow changing documents
         }

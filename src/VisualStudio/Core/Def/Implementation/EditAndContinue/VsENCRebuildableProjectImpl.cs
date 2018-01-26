@@ -694,10 +694,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 
                         _encService.EditSession.LogEditSession(s_encDebuggingSessionInfo);
 
-                        _encService.EndEditSession(GroupToImmutable(
-                            from regionsPerModule in s_pendingNonRemappableRegions
-                            from region in regionsPerModule
-                            group region.Region by region.Method));
+                        // If no edits were made the pending list will be empty and we need to keep the previous regions.
+                        var newNonRemappableRegions = (s_pendingNonRemappableRegions.Count == 0) ? null : 
+                            GroupToImmutable(
+                                from regionsPerModule in s_pendingNonRemappableRegions
+                                from region in regionsPerModule
+                                group region.Region by region.Method);
+
+                        _encService.EndEditSession(newNonRemappableRegions);
 
                         s_pendingNonRemappableRegions.Clear();
 
