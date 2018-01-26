@@ -121,48 +121,35 @@ End Class", "1").EmitToArray())
 
         <Fact()>
         <WorkItem(7133, "https://github.com/dotnet/roslyn/issues/7133")>
-        <UseCulture("fr-FR")>
         Public Sub TestDisplayResultsWithCurrentUICulture1()
-            Dim logoAndHelpPrompt = String.Format(VBScriptingResources.LogoLine1, s_compilerVersion) + vbNewLine + VBScriptingResources.LogoLine2 + "
-
-" + ScriptingResources.HelpPrompt
-            ' The runner starts with DefaultThreadCurrentUICulture set to fr-FR (via UseCulture attribute), 
-            ' switches to en-US and after that to de-DE. A DateTime should be printed with the following formats:
-            ' fr-FR: #01/01/0001 00:00:00#
-            ' en-US: #1/1/0001 12:00:00 AM#
-            ' de-DE: #01.01.0001 00:00:00#
-            Dim runner = CreateRunner(args:={}, input:="Imports System.Globalization
-Dim d = New System.DateTime()
-? d
-? System.Math.PI
-System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = System.Globalization.CultureInfo.GetCultureInfo(""en-US"")
-? d
+            ' Save the current thread culture as it is changed in the test.
+            ' If the culture is not restored after the test all following tests
+            ' would run in the en-GB culture.
+            Dim currentCulture = CultureInfo.DefaultThreadCurrentCulture
+            Dim currentUICulture = CultureInfo.DefaultThreadCurrentUICulture
+            Try
+                Dim runner = CreateRunner(args:={}, input:="Imports System.Globalization
+System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = System.Globalization.CultureInfo.GetCultureInfo(""en-GB"")
 ? System.Math.PI
 System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = System.Globalization.CultureInfo.GetCultureInfo(""de-DE"")
-? d
 ? System.Math.PI")
 
-            runner.RunInteractive()
+                runner.RunInteractive()
 
-            AssertEx.AssertEqualToleratingWhitespaceDifferences(
-logoAndHelpPrompt + "
+                AssertEx.AssertEqualToleratingWhitespaceDifferences(
+    s_logoAndHelpPrompt + "
 > Imports System.Globalization
-> Dim d = New System.DateTime()
-> ? d
-#01/01/0001 00:00:00#
-> ? System.Math.PI
-3,1415926535897931
-> System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = System.Globalization.CultureInfo.GetCultureInfo(""en-US"")
-> ? d
-#1/1/0001 12:00:00 AM#
+> System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = System.Globalization.CultureInfo.GetCultureInfo(""en-GB"")
 > ? System.Math.PI
 3.1415926535897931
 > System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = System.Globalization.CultureInfo.GetCultureInfo(""de-DE"")
-> ? d
-#01.01.0001 00:00:00#
 > ? System.Math.PI
 3,1415926535897931
 >", runner.Console.Out.ToString())
+            Finally
+                CultureInfo.DefaultThreadCurrentCulture = currentCulture
+                CultureInfo.DefaultThreadCurrentUICulture = currentUICulture
+            End Try
         End Sub
 
         <Fact()>
