@@ -435,7 +435,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.SealedKeyword:
                 case SyntaxKind.StaticKeyword:
                 case SyntaxKind.UnsafeKeyword:
-                case SyntaxKind.RefKeyword:
                 case SyntaxKind.OpenBracketToken:
                     return true;
                 default:
@@ -1142,6 +1141,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     return DeclarationModifiers.Partial;
                 case SyntaxKind.AsyncKeyword:
                     return DeclarationModifiers.Async;
+                case SyntaxKind.RefKeyword:
+                    return DeclarationModifiers.Ref;
                 case SyntaxKind.IdentifierToken:
                     switch (contextualKind)
                     {
@@ -1156,18 +1157,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     return DeclarationModifiers.None;
             }
         }
-
-        private bool IsPossibleModifier()
-        {
-            return IsPossibleModifier(this.CurrentToken);
-        }
-
-        private static bool IsPossibleModifier(SyntaxToken token)
-        {
-            return GetModifier(token) != DeclarationModifiers.None;
-        }
-
-        private void ParseModifiers(SyntaxListBuilder tokens)
+        
+        private void ParseModifiers(SyntaxListBuilder tokens, bool forAccessors)
         {
             while (true)
             {
@@ -1191,14 +1182,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             modTok = CheckFeatureAvailability(modTok,
                                 isPartialType ? MessageID.IDS_FeaturePartialTypes : MessageID.IDS_FeaturePartialMethod);
                         }
+                        else if(nextToken.Kind == SyntaxKind.NamespaceKeyword)
+                        {
+                            // Error reported in binding
+                            modTok = ConvertToKeyword(this.EatToken());
+                        }
                         else if (
                             nextToken.Kind == SyntaxKind.EnumKeyword ||
                             nextToken.Kind == SyntaxKind.DelegateKeyword ||
-                            nextToken.Kind == SyntaxKind.NamespaceKeyword ||
                             (IsPossibleStartOfTypeDeclaration(nextToken.Kind) && GetModifier(nextToken) != DeclarationModifiers.None))
                         {
-                            // Error tolerance cases.  Will report an error about these post parsing.
-                            modTok = ConvertToKeyword(this.EatToken());
+                            // Misplaced partial
+                            // TODO(https://github.com/dotnet/roslyn/issues/22439):
+                            // We should consider moving this check into binding, but avoid holding on to trees
+                            modTok = AddError(ConvertToKeyword(this.EatToken()), ErrorCode.ERR_PartialMisplaced);
                         }
                         else
                         {
@@ -1206,6 +1203,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         }
 
                         break;
+
+                    case DeclarationModifiers.Ref:
+                        // 'ref' is only a modifier if used on a ref struct
+                        // it must be either immediately before the 'struct'
+                        // keyword, or immediately before 'partial struct' if
+                        // this is a partial ref struct declaration
+                        {
+                            var next = PeekToken(1);
+                            if (next.Kind == SyntaxKind.StructKeyword ||
+                                (next.ContextualKind == SyntaxKind.PartialKeyword &&
+                                 PeekToken(2).Kind == SyntaxKind.StructKeyword))
+                            {
+                                modTok = this.EatToken();
+                                modTok = CheckFeatureAvailability(modTok, MessageID.IDS_FeatureRefStructs);
+                            }
+                            else if (forAccessors && this.IsPossibleAccessorModifier())
+                            {
+                                // Accept ref as a modifier for properties and event accessors, to produce an error later during binding.
+                                modTok = this.EatToken();
+                            }
+                            else
+                            {
+                                return;
+                            }
+                            break;
+                        }
+
                     case DeclarationModifiers.Async:
                         if (!ShouldAsyncBeTreatedAsModifier(parsingStatementNotDeclaration: false))
                         {
@@ -1355,8 +1379,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword);
             switch (this.PeekToken(1).Kind)
             {
-                case SyntaxKind.RefKeyword:
-                    return this.PeekToken(2).Kind == SyntaxKind.StructKeyword;
                 case SyntaxKind.StructKeyword:
                 case SyntaxKind.ClassKeyword:
                 case SyntaxKind.InterfaceKeyword:
@@ -1436,7 +1458,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     CheckForVersionSpecificModifiers(modifiers, SyntaxKind.ReadOnlyKeyword, MessageID.IDS_FeatureReadOnlyStructs);
                     return this.ParseClassOrStructOrInterfaceDeclaration(attributes, modifiers);
 
-                case SyntaxKind.RefKeyword:
                 case SyntaxKind.InterfaceKeyword:
                     return this.ParseClassOrStructOrInterfaceDeclaration(attributes, modifiers);
 
@@ -1469,18 +1490,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.ClassKeyword ||
                 this.CurrentToken.Kind == SyntaxKind.StructKeyword ||
-                this.CurrentToken.Kind == SyntaxKind.InterfaceKeyword ||
-                (this.CurrentToken.Kind == SyntaxKind.RefKeyword && PeekToken(1).Kind == SyntaxKind.StructKeyword));
+                this.CurrentToken.Kind == SyntaxKind.InterfaceKeyword);
 
             // "top-level" expressions and statements should never occur inside an asynchronous context
             Debug.Assert(!IsInAsync);
-
-            if (this.CurrentToken.Kind == SyntaxKind.RefKeyword)
-            {
-                var refKeyword = this.EatToken();
-                refKeyword = CheckFeatureAvailability(refKeyword, MessageID.IDS_FeatureRefStructs);
-                modifiers.Add(refKeyword);
-            }
 
             var classOrStructOrInterface = this.EatToken();
             var saveTerm = _termState;
@@ -1968,8 +1981,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.InterfaceKeyword:
                 case SyntaxKind.StructKeyword:
                     return true;
-                case SyntaxKind.RefKeyword:
-                    return PeekToken(1).Kind == SyntaxKind.StructKeyword;
                 default:
                     return false;
             }
@@ -2086,7 +2097,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
 
                 // All modifiers that might start an expression are processed above.
-                this.ParseModifiers(modifiers);
+                this.ParseModifiers(modifiers, forAccessors: false);
                 if (modifiers.Count > 0)
                 {
                     acceptStatement = false;
@@ -3167,33 +3178,36 @@ parse_member_name:;
             // Note: we allow all modifiers here.  That's because we want to parse things like
             // "abstract get" as an accessor.  This way we can provide a good error message
             // to the user that this is not allowed.
-            if (IsPossibleModifier())
+
+            if (GetModifier(this.CurrentToken) == DeclarationModifiers.None)
             {
-                var peekIndex = 1;
-                while (IsPossibleModifier(this.PeekToken(peekIndex)))
-                {
-                    peekIndex++;
-                }
-
-                var token = this.PeekToken(peekIndex);
-                if (token.Kind == SyntaxKind.CloseBraceToken || token.Kind == SyntaxKind.EndOfFileToken)
-                {
-                    // If we see "{ get { } public }
-                    // then we will think that "public" likely starts an accessor.
-                    return true;
-                }
-
-                switch (token.ContextualKind)
-                {
-                    case SyntaxKind.GetKeyword:
-                    case SyntaxKind.SetKeyword:
-                    case SyntaxKind.AddKeyword:
-                    case SyntaxKind.RemoveKeyword:
-                        return true;
-                }
+                return false;
             }
 
-            return false;
+            var peekIndex = 1;
+            while (GetModifier(this.PeekToken(peekIndex)) != DeclarationModifiers.None)
+            {
+                peekIndex++;
+            }
+
+            var token = this.PeekToken(peekIndex);
+            if (token.Kind == SyntaxKind.CloseBraceToken || token.Kind == SyntaxKind.EndOfFileToken)
+            {
+                // If we see "{ get { } public }
+                // then we will think that "public" likely starts an accessor.
+                return true;
+            }
+
+            switch (token.ContextualKind)
+            {
+                case SyntaxKind.GetKeyword:
+                case SyntaxKind.SetKeyword:
+                case SyntaxKind.AddKeyword:
+                case SyntaxKind.RemoveKeyword:
+                    return true;
+                default:
+                    return false;
+            }
         }
 
         private enum PostSkipAction
@@ -3370,7 +3384,7 @@ parse_member_name:;
             try
             {
                 this.ParseAttributeDeclarations(accAttrs);
-                this.ParseModifiers(accMods);
+                this.ParseModifiers(accMods, forAccessors: true);
 
                 if (!isEvent)
                 {
@@ -3703,19 +3717,15 @@ tryAgain:
             switch (this.CurrentToken.Kind)
             {
                 case SyntaxKind.OpenBracketToken: // attribute
-                case SyntaxKind.RefKeyword:
-                case SyntaxKind.OutKeyword:
-                case SyntaxKind.ParamsKeyword:
                 case SyntaxKind.ArgListKeyword:
                 case SyntaxKind.OpenParenToken:   // tuple
-                case SyntaxKind.ThisKeyword:
                     return true;
 
                 case SyntaxKind.IdentifierToken:
                     return this.IsTrueIdentifier();
 
                 default:
-                    return IsPredefinedType(this.CurrentToken.Kind);
+                    return IsParameterModifier(this.CurrentToken.Kind) || IsPredefinedType(this.CurrentToken.Kind);
             }
         }
 
@@ -3827,8 +3837,8 @@ tryAgain:
                 case SyntaxKind.ThisKeyword:
                 case SyntaxKind.RefKeyword:
                 case SyntaxKind.OutKeyword:
+                case SyntaxKind.InKeyword:
                 case SyntaxKind.ParamsKeyword:
-                case SyntaxKind.ReadOnlyKeyword:
                     return true;
             }
 
@@ -3849,21 +3859,23 @@ tryAgain:
 
                     case SyntaxKind.RefKeyword:
                         {
-                            var nextKind = this.CurrentToken.Kind;
-
-                            // "ref readonly"
-                            if (nextKind == SyntaxKind.ReadOnlyKeyword)
-                            {
-                                modifier = CheckFeatureAvailability(modifier, MessageID.IDS_FeatureReadOnlyReferences);
-                                nextKind = PeekToken(1).Kind;
-                            }
-
-                            // "ref this"
-                            // "ref readonly this"
-                            if (nextKind == SyntaxKind.ThisKeyword)
+                            if (this.CurrentToken.Kind == SyntaxKind.ThisKeyword)
                             {
                                 modifier = CheckFeatureAvailability(modifier, MessageID.IDS_FeatureRefExtensionMethods);
                             }
+
+                            break;
+                        }
+
+                    case SyntaxKind.InKeyword:
+                        {
+                            modifier = CheckFeatureAvailability(modifier, MessageID.IDS_FeatureReadOnlyReferences);
+
+                            if (this.CurrentToken.Kind == SyntaxKind.ThisKeyword)
+                            {
+                                modifier = CheckFeatureAvailability(modifier, MessageID.IDS_FeatureRefExtensionMethods);
+                            }
+
                             break;
                         }
                 }
@@ -5114,6 +5126,8 @@ tryAgain:
             // This could be a type-argument list, or it could be an expression.  Need to see
             // what came after the last '>' to find out which it is.
 
+            // Scan for a type argument list. If we think it's a type argument list
+            // then assume it is unless we see specific tokens following it.
             SyntaxToken lastTokenOfList = null;
             ScanTypeFlags possibleTypeArgumentFlags = ScanPossibleTypeArgumentList(
                 ref lastTokenOfList, out bool isDefinitelyTypeArgumentList);
@@ -5128,8 +5142,12 @@ tryAgain:
                 return ScanTypeArgumentListKind.DefiniteTypeArgumentList;
             }
 
-            // Scan for a type argument list. If we think it's a type argument list
-            // then assume it is unless we see specific tokens following it.
+            // If we did not definitively determine from immediate syntax that it was or
+            // was not a type argument list, we must have scanned the entire thing up through
+            // the closing greater-than token. In that case we will disambiguate based on the
+            // token that follows it.
+            Debug.Assert(lastTokenOfList.Kind == SyntaxKind.GreaterThanToken);
+
             switch (this.CurrentToken.Kind)
             {
                 case SyntaxKind.IdentifierToken:
@@ -5174,14 +5192,20 @@ tryAgain:
                 case SyntaxKind.LessThanToken:           // e.g. `e is A<B> < C`
                 case SyntaxKind.LessThanEqualsToken:     // e.g. `e is A<B> <= C`
                 case SyntaxKind.GreaterThanEqualsToken:  // e.g. `e is A<B> >= C`
-                case SyntaxKind.GreaterThanToken when this.PeekToken(1).Kind != SyntaxKind.GreaterThanToken: // not >>
-                                                         // e.g. `e is A<B> > C`
                 case SyntaxKind.IsKeyword:               // e.g. `e is A<B> is bool`
                 case SyntaxKind.AsKeyword:               // e.g. `e is A<B> as bool`
-                    // These tokens are added to 7.5.4.2 Grammar Ambiguities in C#7 for a possible type following the `is` keyword
-                    return ((options & NameOptions.AfterIs) != 0)
-                        ? ScanTypeArgumentListKind.DefiniteTypeArgumentList
-                        : ScanTypeArgumentListKind.PossibleTypeArgumentList;
+                    // These tokens are added to 7.5.4.2 Grammar Ambiguities in C#7
+                    return ScanTypeArgumentListKind.DefiniteTypeArgumentList;
+
+                case SyntaxKind.GreaterThanToken when ((options & NameOptions.AfterIs) != 0) && this.PeekToken(1).Kind != SyntaxKind.GreaterThanToken:
+                    // This token is added to 7.5.4.2 Grammar Ambiguities in C#7 for the special case in which
+                    // the possible generic is following an `is` keyword, e.g. `e is A<B> > C`.
+                    // We test one further token ahead because a right-shift operator `>>` looks like a pair of greater-than
+                    // tokens at this stage, but we don't intend to be handling the right-shift operator.
+                    // The upshot is that we retain compatibility with the two previous behaviors:
+                    // `(x is A<B>>C)` is parsed as `(x is A<B>) > C`
+                    // `A<B>>C` elsewhere is parsed as `A < (B >> C)`
+                    return ScanTypeArgumentListKind.DefiniteTypeArgumentList;
 
                 case SyntaxKind.EndOfFileToken:          // e.g. `e is A<B>`
                     // This is useful for parsing expressions in isolation
@@ -5205,10 +5229,11 @@ tryAgain:
                 {
                     lastTokenOfList = this.EatToken();
 
-                    // We currently do not have the ability to scan attributes, so if this is an open square, we early out and assume it is an attribute
+                    // Type arguments cannot contain attributes, so if this is an open square, we early out and assume it is not a type argument
                     if (this.CurrentToken.Kind == SyntaxKind.OpenBracketToken)
                     {
-                        return result;
+                        lastTokenOfList = null;
+                        return ScanTypeFlags.NotType;
                     }
 
                     if (this.CurrentToken.Kind == SyntaxKind.GreaterThanToken)
@@ -5239,7 +5264,7 @@ tryAgain:
                             //
                             //  var v = ImmutableDictionary<Int32,
                             //
-                            // Here this might actualy be a relational expression and the comma is meant
+                            // Here this might actually be a relational expression and the comma is meant
                             // to separate out the variable declarator 'v' from the next variable.
                             //
                             // Note: we check if we got 'MustBeType' which triggers for predefined types,
@@ -5284,7 +5309,7 @@ tryAgain:
                             //
                             //      X < Y ? Z : W
                             //
-                            // We'd see a nullable type here, but htis is definitley not a type arg list.
+                            // We'd see a nullable type here, but htis is definitely not a type arg list.
 
                             break;
 
@@ -5423,7 +5448,7 @@ tryAgain:
 
                 // Consider the case where someone supplies an invalid type argument
                 // Such as Action<0> or Action<static>.  In this case we generate a missing 
-                // identifer in ParseType, but if we continue as is we'll immediately start to 
+                // identifier in ParseType, but if we continue as is we'll immediately start to 
                 // interpret 0 as the start of a new expression when we can tell it's most likely
                 // meant to be part of the type list.  
                 //
@@ -5881,10 +5906,11 @@ tryAgain:
         {
             ScanTypeFlags result;
 
-            // in a ref local or ref return, we treat "ref" and "ref readonly" as part of the type
             if (this.CurrentToken.Kind == SyntaxKind.RefKeyword)
             {
+                // in a ref local or ref return, we treat "ref" and "ref readonly" as part of the type
                 this.EatToken();
+
                 if (this.CurrentToken.Kind == SyntaxKind.ReadOnlyKeyword)
                 {
                     this.EatToken();
@@ -5958,7 +5984,12 @@ tryAgain:
                 case ParseTypeMode.FirstElementOfPossibleTupleLiteral:
                 case ParseTypeMode.AfterTupleComma:
                     // We are parsing the type for a declaration expression in a tuple, which does
-                    // not permit pointer types. In that context a `*` is parsed as a multiplication.
+                    // not permit pointer types except as an element type of an array type.
+                    // In that context a `*` is parsed as a multiplication.
+                    if (PointerTypeModsFollowedByRankAndDimensionSpecifier())
+                    {
+                        goto default;
+                    }
                     break;
                 default:
                     while (this.CurrentToken.Kind == SyntaxKind.AsteriskToken)
@@ -6181,14 +6212,17 @@ tryAgain:
                 }
             }
 
-            // Check for pointer types (only if pType is NOT an array type)
             switch (mode)
             {
                 case ParseTypeMode.AfterIs:
                 case ParseTypeMode.AfterCase:
                 case ParseTypeMode.AfterTupleComma:
                 case ParseTypeMode.FirstElementOfPossibleTupleLiteral:
-                    // these contexts do not permit a pointer type.
+                    // these contexts do not permit a pointer type except as an element type of an array.
+                    if (PointerTypeModsFollowedByRankAndDimensionSpecifier())
+                    {
+                        type = this.ParsePointerTypeMods(type);
+                    }
                     break;
                 case ParseTypeMode.Normal:
                 case ParseTypeMode.Parameter:
@@ -6225,28 +6259,26 @@ tryAgain:
             return type;
         }
 
+        private bool PointerTypeModsFollowedByRankAndDimensionSpecifier()
+        {
+            // Are pointer specifiers (if any) followed by an array specifier?
+            for (int i = 0; ; i++)
+            {
+                switch (this.PeekToken(i).Kind)
+                {
+                    case SyntaxKind.AsteriskToken:
+                        continue;
+                    case SyntaxKind.OpenBracketToken:
+                        return true;
+                    default:
+                        return false;
+                }
+            }
+        }
+
         private bool IsPossibleRankAndDimensionSpecifier()
         {
-            if (this.CurrentToken.Kind == SyntaxKind.OpenBracketToken)
-            {
-                // When specifying rank and dimension, only commas and close square
-                // brackets are valid after an open square bracket. However, we accept
-                // numbers as well as the user might (mistakenly) try to specify the
-                // array size here. This way, when the parser actually consumes these
-                // tokens it will be able to specify an appropriate error message.
-                /*
-                SyntaxKind k = this.PeekToken(1).Kind;
-                if (k == SyntaxKind.Comma ||
-                    k == SyntaxKind.CloseBracket ||
-                    k == SyntaxKind.NumericLiteral)
-                {
-                    return true;
-                }
-                 */
-                return true;
-            }
-
-            return false;
+            return this.CurrentToken.Kind == SyntaxKind.OpenBracketToken;
         }
 
         private ArrayRankSpecifierSyntax ParseArrayRankSpecifier(bool isArrayCreation, bool expectSizes, out bool sawNonOmittedSize)
@@ -6693,7 +6725,7 @@ tryAgain:
             //      Task.await Task
             //
             // This does not represent user intent, and it causes all sorts of problems to higher 
-            // layers.  This is because both the parse tree is strage, and the symbol tables have
+            // layers.  This is because both the parse tree is strange, and the symbol tables have
             // entries that throw things off (like a bogus 'Task' local).
             //
             // Note that we explicitly do this check when we see that the code spreads over multiple 
@@ -9027,9 +9059,23 @@ tryAgain:
             {
                 var questionToken = this.EatToken();
                 var colonLeft = this.ParsePossibleRefExpression();
-                var colon = this.EatToken(SyntaxKind.ColonToken);
-                var colonRight = this.ParsePossibleRefExpression();
-                leftOperand = _syntaxFactory.ConditionalExpression(leftOperand, questionToken, colonLeft, colon, colonRight);
+                if (this.CurrentToken.Kind == SyntaxKind.EndOfFileToken && this.lexer.InterpolationFollowedByColon)
+                {
+                    // We have an interpolated string with an interpolation that contains a conditional expression.
+                    // Unfortunately, the precedence demands that the colon is considered to signal the start of the
+                    // format string. Without this code, the compiler would complain about a missing colon, and point
+                    // to the colon that is present, which would be confusing. We aim to give a better error message.
+                    var colon = SyntaxFactory.MissingToken(SyntaxKind.ColonToken);
+                    var colonRight = _syntaxFactory.IdentifierName(SyntaxFactory.MissingToken(SyntaxKind.IdentifierToken));
+                    leftOperand = _syntaxFactory.ConditionalExpression(leftOperand, questionToken, colonLeft, colon, colonRight);
+                    leftOperand = this.AddError(leftOperand, ErrorCode.ERR_ConditionalInInterpolation);
+                }
+                else
+                {
+                    var colon = this.EatToken(SyntaxKind.ColonToken);
+                    var colonRight = this.ParsePossibleRefExpression();
+                    leftOperand = _syntaxFactory.ConditionalExpression(leftOperand, questionToken, colonLeft, colon, colonRight);
+                }
             }
 
             return leftOperand;
@@ -9565,13 +9611,19 @@ tryAgain:
 
         private bool IsPossibleArgumentExpression()
         {
-            switch (this.CurrentToken.Kind)
+            return IsValidArgumentRefKindKeyword(this.CurrentToken.Kind) || this.IsPossibleExpression();
+        }
+
+        private static bool IsValidArgumentRefKindKeyword(SyntaxKind kind)
+        {
+            switch (kind)
             {
                 case SyntaxKind.RefKeyword:
                 case SyntaxKind.OutKeyword:
+                case SyntaxKind.InKeyword:
                     return true;
                 default:
-                    return this.IsPossibleExpression();
+                    return false;
             }
         }
 
@@ -9586,10 +9638,10 @@ tryAgain:
                 nameColon = CheckFeatureAvailability(nameColon, MessageID.IDS_FeatureNamedArgument);
             }
 
-            SyntaxToken refOrOutKeyword = null;
-            if (this.CurrentToken.Kind == SyntaxKind.RefKeyword || this.CurrentToken.Kind == SyntaxKind.OutKeyword)
+            SyntaxToken refKindKeyword = null;
+            if (IsValidArgumentRefKindKeyword(this.CurrentToken.Kind))
             {
-                refOrOutKeyword = this.EatToken();
+                refKindKeyword = this.EatToken();
             }
 
             ExpressionSyntax expression;
@@ -9604,18 +9656,23 @@ tryAgain:
             }
             else
             {
+                if (refKindKeyword?.Kind == SyntaxKind.InKeyword)
+                {
+                    refKindKeyword = this.CheckFeatureAvailability(refKindKeyword, MessageID.IDS_FeatureReadOnlyReferences);
+                }
+
                 // According to Language Specification, section 7.6.7 Element access
                 //      The argument-list of an element-access is not allowed to contain ref or out arguments.
                 // However, we actually do support ref indexing of indexed properties in COM interop
                 // scenarios, and when indexing an object of static type "dynamic". So we enforce
                 // that the ref/out of the argument must match the parameter when binding the argument list.
 
-                expression = (refOrOutKeyword?.Kind == SyntaxKind.OutKeyword)
+                expression = (refKindKeyword?.Kind == SyntaxKind.OutKeyword)
                     ? ParseExpressionOrDeclaration(ParseTypeMode.Normal, feature: MessageID.IDS_FeatureOutVar, permitTupleDesignation: false)
                     : ParseSubExpression(Precedence.Expression);
             }
 
-            return _syntaxFactory.Argument(nameColon, refOrOutKeyword, expression);
+            return _syntaxFactory.Argument(nameColon, refKindKeyword, expression);
         }
 
         private TypeOfExpressionSyntax ParseTypeOfExpression()
@@ -9805,6 +9862,7 @@ tryAgain:
                             }
                             break;
                         case SyntaxKind.OutKeyword:
+                        case SyntaxKind.InKeyword:
                         case SyntaxKind.ParamsKeyword:
                             this.EatToken();
                             foundParameterModifier = true;
@@ -9901,7 +9959,7 @@ tryAgain:
                     //  ( <expr>,    must be a tuple
                     if (this.CurrentToken.Kind == SyntaxKind.CommaToken)
                     {
-                        var firstArg = _syntaxFactory.Argument(nameColon: null, refOrOutKeyword: default(SyntaxToken), expression: expression);
+                        var firstArg = _syntaxFactory.Argument(nameColon: null, refKindKeyword: default(SyntaxToken), expression: expression);
                         return ParseTupleExpressionTail(openParen, firstArg);
                     }
 
@@ -9911,7 +9969,7 @@ tryAgain:
                         var nameColon = _syntaxFactory.NameColon((IdentifierNameSyntax)expression, EatToken());
                         expression = this.ParseExpressionOrDeclaration(ParseTypeMode.FirstElementOfPossibleTupleLiteral, feature: 0, permitTupleDesignation: true);
 
-                        var firstArg = _syntaxFactory.Argument(nameColon, refOrOutKeyword: default(SyntaxToken), expression: expression);
+                        var firstArg = _syntaxFactory.Argument(nameColon, refKindKeyword: default(SyntaxToken), expression: expression);
                         return ParseTupleExpressionTail(openParen, firstArg);
                     }
 
@@ -9944,11 +10002,11 @@ tryAgain:
                     {
                         var nameColon = _syntaxFactory.NameColon((IdentifierNameSyntax)expression, EatToken());
                         expression = ParseExpressionOrDeclaration(ParseTypeMode.AfterTupleComma, feature: 0, permitTupleDesignation: true);
-                        arg = _syntaxFactory.Argument(nameColon, refOrOutKeyword: default(SyntaxToken), expression: expression);
+                        arg = _syntaxFactory.Argument(nameColon, refKindKeyword: default(SyntaxToken), expression: expression);
                     }
                     else
                     {
-                        arg = _syntaxFactory.Argument(nameColon: null, refOrOutKeyword: default(SyntaxToken), expression: expression);
+                        arg = _syntaxFactory.Argument(nameColon: null, refKindKeyword: default(SyntaxToken), expression: expression);
                     }
 
                     list.Add(arg);
@@ -9958,7 +10016,7 @@ tryAgain:
                 {
                     list.AddSeparator(SyntaxFactory.MissingToken(SyntaxKind.CommaToken));
                     var missing = this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_TupleTooFewElements);
-                    list.Add(_syntaxFactory.Argument(nameColon: null, refOrOutKeyword: default(SyntaxToken), expression: missing));
+                    list.Add(_syntaxFactory.Argument(nameColon: null, refKindKeyword: default(SyntaxToken), expression: missing));
                 }
 
                 var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
@@ -10803,6 +10861,7 @@ tryAgain:
                 // recovery purposes and then give an error during semantic analysis.
                 case SyntaxKind.RefKeyword:
                 case SyntaxKind.OutKeyword:
+                case SyntaxKind.InKeyword:
                 case SyntaxKind.OpenParenToken:   // tuple
                     return true;
 

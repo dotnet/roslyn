@@ -259,6 +259,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 /// </summary>
                 private readonly SmallDictionary<Symbol, Scope> _localToScope = new SmallDictionary<Symbol, Scope>();
 
+#if DEBUG
+                /// <summary>
+                /// Free variables are variables declared in expression statements that can then
+                /// be captured in nested lambdas. Normally, captured variables must lowered as
+                /// part of closure conversion, but expression tree variables are handled separately
+                /// by the expression tree rewriter and are considered free for the purposes of
+                /// closure conversion. For instance, an expression with a nested lambda, e.g.
+                ///     x => y => x + y
+                /// contains an expression variable, x, that should not be treated as a captured
+                /// variable to be replaced by closure conversion. Instead, it should be left for
+                /// expression tree conversion.
+                /// </summary>
+                private readonly HashSet<Symbol> _freeVariables = new HashSet<Symbol>();
+#endif
+
                 private readonly MethodSymbol _topLevelMethod;
 
                 /// <summary>
@@ -451,18 +466,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var oldScope = _currentScope;
                     _currentScope = CreateNestedScope(body, _currentScope, _currentClosure);
 
-                    BoundNode result;
-                    if (!_inExpressionTree)
-                    {
-                        // For the purposes of scoping, parameters live in the same scope as the
-                        // closure block
-                        DeclareLocals(_currentScope, closureSymbol.Parameters);
-                        result = VisitBlock(body);
-                    }
-                    else
-                    {
-                        result = base.VisitBlock(body);
-                    }
+                    // For the purposes of scoping, parameters live in the same scope as the
+                    // closure block. Expression tree variables are free variables for the
+                    // purposes of closure conversion
+                    DeclareLocals(_currentScope, closureSymbol.Parameters, _inExpressionTree);
+
+                    var result = _inExpressionTree
+                        ? base.VisitBlock(body)
+                        : VisitBlock(body);
 
                     _currentScope = oldScope;
                     _currentClosure = oldClosure;
@@ -530,9 +541,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
+#if DEBUG
                             // Parameters and locals from expression tree lambdas
-                            // don't get recorded
-                            Debug.Assert(_inExpressionTree);
+                            // are free variables
+                            Debug.Assert(_freeVariables.Contains(symbol));
+#endif
                         }
                     }
                 }
@@ -599,13 +612,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return newScope;
                 }
 
-                private void DeclareLocals<TSymbol>(Scope scope, ImmutableArray<TSymbol> locals)
+                private void DeclareLocals<TSymbol>(Scope scope, ImmutableArray<TSymbol> locals, bool declareAsFree = false)
                     where TSymbol : Symbol
                 {
                     foreach (var local in locals)
                     {
                         Debug.Assert(!_localToScope.ContainsKey(local));
-                        _localToScope[local] = scope;
+                        if (declareAsFree)
+                        {
+#if DEBUG
+                            Debug.Assert(_freeVariables.Add(local));
+#endif
+                        }
+                        else
+                        {
+                            _localToScope.Add(local, scope);
+                        }
                     }
                 }
             }

@@ -456,5 +456,81 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(Location.None, token.GetLocation());
             token.GetDiagnostics().Verify();
         }
+
+        [Fact]
+        [WorkItem(21231, "https://github.com/dotnet/roslyn/issues/21231")]
+        public void TestSpacingOnNullableIntType()
+        {
+            var syntaxNode =
+                SyntaxFactory.CompilationUnit()
+                .WithMembers(
+                    SyntaxFactory.SingletonList<MemberDeclarationSyntax>(
+                        SyntaxFactory.ClassDeclaration("C")
+                        .WithMembers(
+                            SyntaxFactory.SingletonList<MemberDeclarationSyntax>(
+                                SyntaxFactory.PropertyDeclaration(
+                                    SyntaxFactory.NullableType(
+                                        SyntaxFactory.PredefinedType(
+                                            SyntaxFactory.Token(SyntaxKind.IntKeyword))),
+                                    SyntaxFactory.Identifier("P"))
+                                    .WithAccessorList(
+                                        SyntaxFactory.AccessorList())))))
+                .NormalizeWhitespace();
+
+            // no space between int and ?
+            Assert.Equal("class C\r\n{\r\n    int? P\r\n    {\r\n    }\r\n}", syntaxNode.ToFullString());
+        }
+
+        [Fact]
+        [WorkItem(21231, "https://github.com/dotnet/roslyn/issues/21231")]
+        public void TestSpacingOnNullableDatetimeType()
+        {
+            var syntaxNode =
+                SyntaxFactory.CompilationUnit()
+                .WithMembers(
+                    SyntaxFactory.SingletonList<MemberDeclarationSyntax>(
+                        SyntaxFactory.ClassDeclaration("C")
+                        .WithMembers(
+                            SyntaxFactory.SingletonList<MemberDeclarationSyntax>(
+                                SyntaxFactory.PropertyDeclaration(
+                                    SyntaxFactory.NullableType(
+                                        SyntaxFactory.ParseTypeName("DateTime")),
+                                    SyntaxFactory.Identifier("P"))
+                                    .WithAccessorList(
+                                        SyntaxFactory.AccessorList())))))
+                .NormalizeWhitespace();
+
+            // no space between DateTime and ?
+            Assert.Equal("class C\r\n{\r\n    DateTime? P\r\n    {\r\n    }\r\n}", syntaxNode.ToFullString());
+        }
+
+        [Fact]
+        [WorkItem(21231, "https://github.com/dotnet/roslyn/issues/21231")]
+        public void TestSpacingOnTernary()
+        {
+            var syntaxNode = SyntaxFactory.ParseExpression("x is int? y: z").NormalizeWhitespace();
+
+            // space between int and ?
+            Assert.Equal("x is int ? y : z", syntaxNode.ToFullString());
+
+            var syntaxNode2 = SyntaxFactory.ParseExpression("x is DateTime? y: z").NormalizeWhitespace();
+
+            // space between DateTime and ?
+            Assert.Equal("x is DateTime ? y : z", syntaxNode2.ToFullString());
+        }
+
+        [Fact]
+        [WorkItem(21231, "https://github.com/dotnet/roslyn/issues/21231")]
+        public void TestSpacingOnCoalescing()
+        {
+            var syntaxNode = SyntaxFactory.ParseExpression("x is int??y").NormalizeWhitespace();
+            Assert.Equal("x is int ?? y", syntaxNode.ToFullString());
+
+            var syntaxNode2 = SyntaxFactory.ParseExpression("x is DateTime??y").NormalizeWhitespace();
+            Assert.Equal("x is DateTime ?? y", syntaxNode2.ToFullString());
+
+            var syntaxNode3 = SyntaxFactory.ParseExpression("x is object??y").NormalizeWhitespace();
+            Assert.Equal("x is object ?? y", syntaxNode3.ToFullString());
+        }
     }
 }

@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Semantics;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.InitializeParameter
@@ -27,9 +27,6 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         where TExpressionSyntax : SyntaxNode
         where TBinaryExpressionSyntax : TExpressionSyntax
     {
-        private static MethodInfo s_getOperationInfo =
-            typeof(SemanticModel).GetTypeInfo().GetDeclaredMethod("GetOperationInternal");
-
         protected abstract SyntaxNode GetBody(TMemberDeclarationSyntax containingMember);
         protected abstract bool IsImplicitConversion(Compilation compilation, ITypeSymbol source, ITypeSymbol destination);
         protected abstract SyntaxNode GetTypeBlock(SyntaxNode node);
@@ -40,7 +37,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
         protected abstract Task<ImmutableArray<CodeAction>> GetRefactoringsAsync(
             Document document, IParameterSymbol parameter, TMemberDeclarationSyntax containingMember,
-            IBlockStatement blockStatementOpt, CancellationToken cancellationToken);
+            IBlockOperation blockStatementOpt, CancellationToken cancellationToken);
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -106,10 +103,10 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             // We support initializing parameters, even when the containing member doesn't have a
             // body. This is useful for when the user is typing a new constructor and hasn't written
             // the body yet.
-            var blockStatementOpt = default(IBlockStatement);
+            var blockStatementOpt = default(IBlockOperation);
             if (bodyOpt != null)
             {
-                blockStatementOpt = GetOperation(semanticModel, bodyOpt, cancellationToken) as IBlockStatement;
+                blockStatementOpt = semanticModel.GetOperation(bodyOpt, cancellationToken) as IBlockOperation;
                 if (blockStatementOpt == null)
                 {
                     return;
@@ -141,11 +138,11 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         }
 
         protected static bool IsParameterReference(IOperation operation, IParameterSymbol parameter)
-            => UnwrapImplicitConversion(operation) is IParameterReferenceExpression parameterReference &&
+            => UnwrapImplicitConversion(operation) is IParameterReferenceOperation parameterReference &&
                parameter.Equals(parameterReference.Parameter);
 
         protected static IOperation UnwrapImplicitConversion(IOperation operation)
-            => operation is IConversionExpression conversion && !conversion.IsExplicitInCode
+            => operation is IConversionOperation conversion && conversion.IsImplicit
                 ? conversion.Operand
                 : operation;
 
@@ -157,7 +154,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         {
             foreach (var child in condition.Syntax.DescendantNodes().OfType<TExpressionSyntax>())
             {
-                var childOperation = GetOperation(semanticModel, child, cancellationToken);
+                var childOperation = semanticModel.GetOperation(child, cancellationToken);
                 if (IsParameterReference(childOperation, parameter))
                 {
                     return true;
@@ -167,16 +164,16 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             return false;
         }
 
-        protected static bool IsFieldOrPropertyAssignment(IOperation statement, INamedTypeSymbol containingType, out IAssignmentExpression assignmentExpression)
+        protected static bool IsFieldOrPropertyAssignment(IOperation statement, INamedTypeSymbol containingType, out IAssignmentOperation assignmentExpression)
             => IsFieldOrPropertyAssignment(statement, containingType, out assignmentExpression, out var fieldOrProperty);
 
         protected static bool IsFieldOrPropertyAssignment(
             IOperation statement, INamedTypeSymbol containingType, 
-            out IAssignmentExpression assignmentExpression, out ISymbol fieldOrProperty)
+            out IAssignmentOperation assignmentExpression, out ISymbol fieldOrProperty)
         {
-            if (statement is IExpressionStatement expressionStatement)
+            if (statement is IExpressionStatementOperation expressionStatement)
             {
-                assignmentExpression = expressionStatement.Expression as IAssignmentExpression;
+                assignmentExpression = expressionStatement.Operation as IAssignmentOperation;
                 return IsFieldOrPropertyReference(assignmentExpression?.Target, containingType, out fieldOrProperty);
             }
 
@@ -191,7 +188,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         protected static bool IsFieldOrPropertyReference(
             IOperation operation, INamedTypeSymbol containingType, out ISymbol fieldOrProperty)
         {
-            if (operation is IMemberReferenceExpression memberReference &&
+            if (operation is IMemberReferenceOperation memberReference &&
                 memberReference.Member.ContainingType.Equals(containingType))
             {
                 if (memberReference.Member is IFieldSymbol ||
@@ -204,15 +201,6 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
             fieldOrProperty = null;
             return false;
-        }
-
-        protected static IOperation GetOperation(
-            SemanticModel semanticModel,
-            SyntaxNode node,
-            CancellationToken cancellationToken)
-        {
-            return (IOperation)s_getOperationInfo.Invoke(
-                semanticModel, new object[] { node, cancellationToken });
         }
 
         protected class MyCodeAction : CodeAction.DocumentChangeAction

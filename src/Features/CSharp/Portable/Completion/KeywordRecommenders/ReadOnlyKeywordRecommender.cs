@@ -42,9 +42,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         {
             var previousToken = context.LeftToken.GetPreviousTokenIfTouchingWord(position);
 
-            return
-                previousToken.IsKind(SyntaxKind.RefKeyword) &&
-                previousToken.Parent.IsKind(SyntaxKind.Parameter, SyntaxKind.RefType);
+            return previousToken.IsKind(SyntaxKind.RefKeyword) &&
+                previousToken.Parent.IsKind(SyntaxKind.RefType) &&
+                previousToken.Parent.Parent.IsKind(
+                    SyntaxKind.PropertyDeclaration,
+                    SyntaxKind.MethodDeclaration,
+                    SyntaxKind.DelegateDeclaration,
+                    SyntaxKind.IncompleteMember);
         }
     }
 }

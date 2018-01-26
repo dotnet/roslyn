@@ -1040,7 +1040,7 @@ class C
 }";
             // Triage decision was made to have this be a parse error as the grammar specifies it as such.
             // TODO: vsadov, the error recovery would be much nicer here if we consumed "int", bu tneed to consider other cases.
-            CreateStandardCompilation(text, parseOptions: TestOptions.Regular).VerifyDiagnostics(
+            CreateCompilationWithMscorlib46(text, parseOptions: TestOptions.Regular).VerifyDiagnostics(
                 // (5,11): error CS1001: Identifier expected
                 //     int F<int>() { }  // CS0081
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "int").WithLocation(5, 11),
@@ -1091,7 +1091,7 @@ class C
   }
 }";
             // Triage decision was made to have this be a parse error as the grammar specifies it as such.
-            CreateStandardCompilation(Parse(text, options: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6))).VerifyDiagnostics(
+            CreateCompilationWithMscorlib46(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)).VerifyDiagnostics(
                 // (5,11): error CS1001: Identifier expected
                 //     int F<int>() { }  // CS0081
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "int").WithLocation(5, 11),
@@ -1609,7 +1609,7 @@ namespace n3
 
             var ns3 = comp.SourceModule.GlobalNamespace.GetMember<NamespaceSymbol>("n3");
             var classC = ns3.GetMember<NamedTypeSymbol>("C");
-            var classCInterface = classC.Interfaces.Single();
+            var classCInterface = classC.Interfaces().Single();
             Assert.Equal("IGoo", classCInterface.Name);
             Assert.Equal(TypeKind.Error, classCInterface.TypeKind);
 
@@ -2158,10 +2158,10 @@ class B : A
                 );
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
-            var baseType = ns.GetTypeMembers("A").Single().BaseType;
+            var baseType = ns.GetTypeMembers("A").Single().BaseType();
             Assert.Equal("Goo", baseType.Name);
             Assert.Equal(TypeKind.Error, baseType.TypeKind);
-            Assert.Null(baseType.BaseType);
+            Assert.Null(baseType.BaseType());
 
             var type2 = ns.GetTypeMembers("Bar").Single() as NamedTypeSymbol;
             var mem1 = type2.GetMembers("foundNamespaceInsteadOfType").Single() as FieldSymbol;
@@ -2399,18 +2399,18 @@ namespace NS
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CircularBase, Line = 9, Column = 18 });
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
-            var baseType = (NamedTypeSymbol)ns.GetTypeMembers("A").Single().BaseType;
-            Assert.Null(baseType.BaseType);
+            var baseType = (NamedTypeSymbol)ns.GetTypeMembers("A").Single().BaseType();
+            Assert.Null(baseType.BaseType());
             Assert.Equal("B", baseType.Name);
             Assert.Equal(TypeKind.Error, baseType.TypeKind);
 
-            baseType = (NamedTypeSymbol)ns.GetTypeMembers("DD").Single().BaseType;
-            Assert.Null(baseType.BaseType);
+            baseType = (NamedTypeSymbol)ns.GetTypeMembers("DD").Single().BaseType();
+            Assert.Null(baseType.BaseType());
             Assert.Equal("BB", baseType.Name);
             Assert.Equal(TypeKind.Error, baseType.TypeKind);
 
-            baseType = (NamedTypeSymbol)ns.GetTypeMembers("BB").Single().BaseType;
-            Assert.Null(baseType.BaseType);
+            baseType = (NamedTypeSymbol)ns.GetTypeMembers("BB").Single().BaseType();
+            Assert.Null(baseType.BaseType());
             Assert.Equal("CC", baseType.Name);
             Assert.Equal(TypeKind.Error, baseType.TypeKind);
         }
@@ -3169,7 +3169,7 @@ public class MyClass2 : MyClass
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
             var type1 = ns.GetTypeMembers("IGoo").Single() as NamedTypeSymbol;
             // bug: expected 1 but error symbol
-            // Assert.Equal(1, type1.Interfaces.Count());
+            // Assert.Equal(1, type1.Interfaces().Count());
 
             var type2 = ns.GetTypeMembers("IBar").Single() as NamedTypeSymbol;
             var mem1 = type2.GetMembers().First() as MethodSymbol;
@@ -3182,8 +3182,8 @@ public class MyClass2 : MyClass
             Assert.Equal("NoType", ptype.Name);
 
             var type3 = ns.GetTypeMembers("A").Single() as NamedTypeSymbol;
-            var base1 = type3.BaseType;
-            Assert.Null(base1.BaseType);
+            var base1 = type3.BaseType();
+            Assert.Null(base1.BaseType());
             Assert.Equal(TypeKind.Error, base1.TypeKind);
             Assert.Equal("CNotExist", base1.Name);
 
@@ -3416,8 +3416,8 @@ class BAttribute : System.Attribute { }
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
             var type1 = ns.GetTypeMembers("C").Single() as NamedTypeSymbol;
-            var base1 = type1.BaseType;
-            Assert.Null(base1.BaseType);
+            var base1 = type1.BaseType();
+            Assert.Null(base1.BaseType());
             Assert.Equal(TypeKind.Error, base1.TypeKind);
             Assert.Equal("B1", base1.Name);
         }
@@ -4124,7 +4124,7 @@ static class S
     internal static void E<T, U>(this object o) { }
 }
 ";
-            CreateStandardCompilation(source, references: new[] { SystemCoreRef }).VerifyDiagnostics(
+            CreateCompilationWithMscorlib46(source).VerifyDiagnostics(
 // (7,15): error CS0306: The type 'int*' may not be used as a type argument
 //         new C<int*>();
 Diagnostic(ErrorCode.ERR_BadTypeArgument, "int*").WithArguments("int*"),
@@ -4180,7 +4180,7 @@ class C<T>
         COfIntPtr.F<object>();
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib46(source).VerifyDiagnostics(
                 // (2,7): error CS0306: The type 'int*' may not be used as a type argument
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "COfIntPtr").WithArguments("int*").WithLocation(2, 7),
                 // (3,7): error CS0306: The type 'System.ArgIterator' may not be used as a type argument
@@ -6919,8 +6919,8 @@ public class CF3<T>
                     forwardedTypes1Ref
                 }, TestOptions.ReleaseDll);
 
-            // Exported types in .Net modules cause PEVerify to fail.
-            CompileAndVerify(compilation, verify: false).VerifyDiagnostics();
+            // Exported types in .Net modules cause PEVerify to fail on some platforms.
+            CompileAndVerify(compilation, verify: Verification.Skipped).VerifyDiagnostics();
 
             compilation = CreateStandardCompilation("[assembly: System.Runtime.CompilerServices.TypeForwardedToAttribute(typeof(CF3<byte>))]",
                 new List<MetadataReference>()
@@ -6929,7 +6929,7 @@ public class CF3<T>
                     forwardedTypes1Ref
                 }, TestOptions.ReleaseDll);
 
-            CompileAndVerify(compilation, verify: false).VerifyDiagnostics();
+            CompileAndVerify(compilation, verify: Verification.Skipped).VerifyDiagnostics();
 
             compilation = CreateStandardCompilation(modSource,
                 new List<MetadataReference>()
@@ -7000,7 +7000,7 @@ extern alias FT1;
                     forwardedTypes1Ref
                 }, TestOptions.ReleaseDll);
 
-            CompileAndVerify(compilation, verify: false).VerifyDiagnostics();
+            CompileAndVerify(compilation, verify: Verification.Skipped).VerifyDiagnostics();
 
             compilation = CreateStandardCompilation("",
                 new List<MetadataReference>()
@@ -14367,7 +14367,7 @@ namespace NS
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
             var type1 = ns.GetMembers("C").Single() as NamedTypeSymbol;
-            var b = type1.BaseType;
+            var b = type1.BaseType();
         }
 
         [Fact]
@@ -14430,7 +14430,7 @@ class C
     }
 }
 ";
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
 // (5,5): error CS1599: Method or delegate cannot return type 'System.ArgIterator'
 //     ArgIterator M(); // 1599
 Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "ArgIterator").WithArguments("System.ArgIterator"),
@@ -14475,7 +14475,7 @@ class MyClass
     MyClass(ref RuntimeArgumentHandle r5) {} // CS1601
 }
 ";
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
 // (6,23): error CS1601: Cannot make reference to variable of type 'System.TypedReference'
 //     public void Test1(ref TypedReference t2, RuntimeArgumentHandle r3)   // CS1601
 Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "ref TypedReference t2").WithArguments("System.TypedReference"),
@@ -16613,6 +16613,31 @@ partial struct A
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "j").WithArguments("A.j"));
         }
 
+        [Fact]
+        [WorkItem(23668, "https://github.com/dotnet/roslyn/issues/23668")]
+        public void CS0282WRN_PartialWithPropertyButSingleField()
+        {
+            string program =
+@"partial struct X // No warning CS0282
+{
+    // The only field of X is a backing field of A.
+    public int A { get; set; }
+}
+
+partial struct X : I
+{
+    // This partial definition has no field.
+    int I.A { get => A; set => A = value; }
+}
+
+interface I
+{
+    int A { get; set; }
+}";
+            var comp = CreateStandardCompilation(program);
+            comp.VerifyDiagnostics();
+        }
+
         /// <summary>
         /// import - Lib:  class A     { class B {} } 
         ///      vs. curr: Namespace A { class B {} } - use B
@@ -17457,7 +17482,7 @@ public class B : A
 ";
             var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll);
 
-            var verifier = CompileAndVerify(comp, verify: false).
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped).
                            VerifyDiagnostics(
     // (8,17): warning CS0824: Constructor 'B.B()' is marked external
     //   public extern B();
@@ -18364,7 +18389,7 @@ class Derived : Base<NotFound>{}";
 
             var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text, new ErrorDescription { Code = (int)ErrorCode.ERR_SingleTypeNameNotFound, Line = 3, Column = 22 });
             var derived = comp.SourceModule.GlobalNamespace.GetTypeMembers("Derived").Single();
-            var Base = derived.BaseType;
+            var Base = derived.BaseType();
             Assert.Equal(TypeKind.Class, Base.TypeKind);
         }
 
@@ -19976,7 +20001,7 @@ namespace UserSpace
         }
 
         [Fact, WorkItem(16484, "https://github.com/dotnet/roslyn/issues/16484")]
-        public void MultipleForwardsThatChainResultinTheSameAssemblyShouldStillProduceAnError()
+        public void MultipleForwardsThatChainResultInTheSameAssemblyShouldStillProduceAnError()
         {
             // The scenario is that assembly A is calling a method from assembly B. This method has a parameter of a type that lives
             // in assembly C. Now if assembly C is replaced with assembly C2, that forwards the type to both D and E, and D fowards it to E,

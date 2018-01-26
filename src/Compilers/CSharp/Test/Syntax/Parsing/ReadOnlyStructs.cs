@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Xunit;
 using System.Linq;
@@ -170,9 +170,9 @@ class Program
 
     readonly partial struct S1{}
 
-    readonly partial ref struct S2{}
+    readonly ref partial struct S2{}
 
-    readonly partial ref struct S2{}
+    readonly ref partial struct S2{}
 }
 ";
 
@@ -198,13 +198,13 @@ class Program
 {
     readonly partial struct S1{}
 
-    readonly partial ref struct S1{}
+    readonly ref partial struct S1{}
 
     readonly partial struct S2{}
 
     partial struct S2{}
 
-    readonly partial ref struct S3{}
+    readonly ref partial struct S3{}
 
     partial struct S3{}
 }

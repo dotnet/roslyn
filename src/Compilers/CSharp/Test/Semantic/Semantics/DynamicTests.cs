@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -1185,11 +1185,13 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: dynamic) (Syntax: 'd1.N<S>()')
-  Expression: IDynamicMemberReferenceExpression (Member Name: ""N"", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: dynamic) (Syntax: 'd1.N<S>')
+IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: dynamic) (Syntax: 'd1.N<S>()')
+  Expression: 
+    IDynamicMemberReferenceOperation (Member Name: ""N"", Containing Type: null) (OperationKind.DynamicMemberReference, Type: dynamic) (Syntax: 'd1.N<S>')
       Type Arguments(1):
         Symbol: S
-      Instance Receiver: ILocalReferenceExpression: d1 (OperationKind.LocalReferenceExpression, Type: dynamic) (Syntax: 'd1')
+      Instance Receiver: 
+        ILocalReferenceOperation: d1 (OperationKind.LocalReference, Type: dynamic) (Syntax: 'd1')
   Arguments(0)
   ArgumentNames(0)
   ArgumentRefKinds(0)
@@ -1249,13 +1251,16 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IDynamicInvocationExpression (OperationKind.DynamicInvocationExpression, Type: dynamic, IsInvalid) (Syntax: 'd.Goo(Syste ... riteLine())')
-  Expression: IDynamicMemberReferenceExpression (Member Name: ""Goo"", Containing Type: null) (OperationKind.DynamicMemberReferenceExpression, Type: dynamic) (Syntax: 'd.Goo')
+IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: dynamic, IsInvalid) (Syntax: 'd.Goo(Syste ... riteLine())')
+  Expression: 
+    IDynamicMemberReferenceOperation (Member Name: ""Goo"", Containing Type: null) (OperationKind.DynamicMemberReference, Type: dynamic) (Syntax: 'd.Goo')
       Type Arguments(0)
-      Instance Receiver: IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic) (Syntax: 'd')
+      Instance Receiver: 
+        IParameterReferenceOperation: d (OperationKind.ParameterReference, Type: dynamic) (Syntax: 'd')
   Arguments(1):
-      IInvocationExpression (void System.Console.WriteLine()) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'System.Cons ... WriteLine()')
-        Instance Receiver: null
+      IInvocationOperation (void System.Console.WriteLine()) (OperationKind.Invocation, Type: System.Void, IsInvalid) (Syntax: 'System.Cons ... WriteLine()')
+        Instance Receiver: 
+          null
         Arguments(0)
   ArgumentNames(0)
   ArgumentRefKinds(0)
@@ -1294,13 +1299,10 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IInvocationExpression ( void C.Goo()) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'c.Goo(d)')
-  Instance Receiver: IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C) (Syntax: 'c')
-  Arguments(1):
-      IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument) (Syntax: 'd')
-        IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic) (Syntax: 'd')
-        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid) (Syntax: 'c.Goo(d)')
+  Children(2):
+      IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C) (Syntax: 'c')
+      IParameterReferenceOperation: d (OperationKind.ParameterReference, Type: dynamic) (Syntax: 'd')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'C.Goo(int, int)'
@@ -1334,19 +1336,13 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IInvocationExpression ( ? C.()) (OperationKind.InvocationExpression, Type: ?, IsInvalid) (Syntax: 'c.Goo<short>(d, d)')
-  Instance Receiver: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'c.Goo<short>')
-      Children(1):
-          IParameterReferenceExpression: c (OperationKind.ParameterReferenceExpression, Type: C, IsInvalid) (Syntax: 'c')
-  Arguments(2):
-      IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: 'd')
-        IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic, IsInvalid) (Syntax: 'd')
-        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: 'd')
-        IParameterReferenceExpression: d (OperationKind.ParameterReferenceExpression, Type: dynamic, IsInvalid) (Syntax: 'd')
-        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'c.Goo<short>(d, d)')
+  Children(3):
+      IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'c.Goo<short>')
+        Children(1):
+            IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C, IsInvalid) (Syntax: 'c')
+      IParameterReferenceOperation: d (OperationKind.ParameterReference, Type: dynamic, IsInvalid) (Syntax: 'd')
+      IParameterReferenceOperation: d (OperationKind.ParameterReference, Type: dynamic, IsInvalid) (Syntax: 'd')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0452: The type 'short' must be a reference type in order to use it as parameter 'T' in the generic type or method 'C.Goo<T>(int, int)'
@@ -1383,13 +1379,10 @@ class A
 }
 ";
             string expectedOperationTree = @"
-IInvocationExpression ( ? A.B.()) (OperationKind.InvocationExpression, Type: ?, IsInvalid) (Syntax: 'M(d)')
-  Instance Receiver: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'M')
-  Arguments(1):
-      IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: 'd')
-        ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: dynamic, IsInvalid) (Syntax: 'd')
-        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'M(d)')
+  Children(2):
+      IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'M')
+      ILocalReferenceOperation: d (OperationKind.LocalReference, Type: dynamic, IsInvalid) (Syntax: 'd')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // file.cs(15,13): error CS0120: An object reference is required for the non-static field, method, or property 'A.F'
@@ -3405,7 +3398,7 @@ class Program
     static T Goo<T>(Action<T, T> x) { throw null; }
 }
 ";
-            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll.WithAllowUnsafe(true)).VerifyDiagnostics();
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll.WithAllowUnsafe(true), verify: Verification.Fails).VerifyDiagnostics();
 
             var tree = verifier.Compilation.SyntaxTrees.Single();
             var model = verifier.Compilation.GetSemanticModel(tree);
@@ -3432,7 +3425,7 @@ class Program
     static T Goo<T>(Action<T, T> x) { throw null; }
 }
 ";
-            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll.WithAllowUnsafe(true)).VerifyDiagnostics();
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll.WithAllowUnsafe(true), verify: Verification.Fails).VerifyDiagnostics();
 
             var tree = verifier.Compilation.SyntaxTrees.Single();
             var model = verifier.Compilation.GetSemanticModel(tree);
@@ -3906,6 +3899,167 @@ class Test
                 // (8,30): error CS1545: Property, indexer, or event 'WithIndexer.Indexer[object, object]' is not supported by the language; try directly calling accessor methods 'WithIndexer.get_Indexer(object, object)' or 'WithIndexer.set_Indexer(object, object, object)'
                 //         var z1 = WithIndexer.Indexer[x, y];
                 Diagnostic(ErrorCode.ERR_BindToBogusProp2, "Indexer").WithArguments("WithIndexer.Indexer[object, object]", "WithIndexer.get_Indexer(object, object)", "WithIndexer.set_Indexer(object, object, object)").WithLocation(8, 30)
+                );
+        }
+
+        [WorkItem(22813, "https://github.com/dotnet/roslyn/issues/22813")]
+        [Fact]
+        public void InArgumentDynamic()
+        {
+            string source = @"
+class C
+{
+    static void M1()
+    {
+        int x = 42;
+        dynamic d = null;
+        d.M2(in x);
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib45AndCSruntime(source, parseOptions: TestOptions.Regular7_2);
+
+            comp.VerifyEmitDiagnostics(
+                // (8,17): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.
+                //         d.M2(in x);
+                Diagnostic(ErrorCode.ERR_InDynamicMethodArg, "x").WithLocation(8, 17)
+                );
+        }
+
+        [WorkItem(22813, "https://github.com/dotnet/roslyn/issues/22813")]
+        [Fact]
+        public void InArgumentDynamic2()
+        {
+            string source = @"
+class C
+{
+    static void M1()
+    {
+        int x = 42;
+        dynamic d = null;
+        d.M2(1, in d, 123, in x);
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib45AndCSruntime(source, parseOptions: TestOptions.Regular7_2);
+
+            comp.VerifyEmitDiagnostics(
+                // (8,20): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.
+                //         d.M2(1, in d, 123, in x);
+                Diagnostic(ErrorCode.ERR_InDynamicMethodArg, "d").WithLocation(8, 20),
+                // (8,31): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.
+                //         d.M2(1, in d, 123, in x);
+                Diagnostic(ErrorCode.ERR_InDynamicMethodArg, "x").WithLocation(8, 31)
+                );
+        }
+
+        [WorkItem(22813, "https://github.com/dotnet/roslyn/issues/22813")]
+        [Fact]
+        public void InArgumentDynamicLocalFunction()
+        {
+            string source = @"
+class C
+{
+    private static void M1(in dynamic x, int y, in dynamic z) => System.Console.WriteLine(x == y);
+
+    static void Main()
+    {
+        dynamic d = 1;
+
+        // Produce an error. This cannot work correctly right now
+        M1(in d, d = 2, in d);
+
+        void M2(in dynamic x, int y, in dynamic z) => System.Console.WriteLine(x == y);
+
+        // NOTE: the following could work!!!
+        //
+        // Currently any kind of overloading that would require dynamic dispatch is not permitted
+        // for locals functions and dynamic dispatch is bypassed.
+        // 
+        // We will still give an error for consistency with the case where the method is an ordinary private method. 
+        // (and also in case if overloading restrictions are relaxed in the future and dispatch becomes necessary)
+        //
+        M2(in d, d = 3, in d);
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib45AndCSruntime(source, parseOptions: TestOptions.Regular7_2);
+
+            comp.VerifyEmitDiagnostics(
+                // (11,15): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.
+                //         M1(in d, d = 2, in d);
+                Diagnostic(ErrorCode.ERR_InDynamicMethodArg, "d").WithLocation(11, 15),
+                // (11,28): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.
+                //         M1(in d, d = 2, in d);
+                Diagnostic(ErrorCode.ERR_InDynamicMethodArg, "d").WithLocation(11, 28),
+                // (23,15): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.
+                //         M2(in d, d = 3, in d);
+                Diagnostic(ErrorCode.ERR_InDynamicMethodArg, "d").WithLocation(23, 15),
+                // (23,28): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.
+                //         M2(in d, d = 3, in d);
+                Diagnostic(ErrorCode.ERR_InDynamicMethodArg, "d").WithLocation(23, 28)
+                );
+        }
+
+        [WorkItem(22813, "https://github.com/dotnet/roslyn/issues/22813")]
+        [Fact]
+        public void InArgumentDynamicCtor()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        int x = 42;
+        dynamic d = 1;
+        var y = new M2(d, in x);
+    }
+
+    class M2
+    {
+        public M2(int a, in int d) => System.Console.Write(1);
+        public M2(int a, int d) => System.Console.Write(2);
+    }
+}";
+
+            var comp = CreateCompilationWithMscorlib45AndCSruntime(source, parseOptions: TestOptions.Regular7_2);
+
+            comp.VerifyEmitDiagnostics(
+                // (8,30): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.
+                //         var y = new M2(d, in x);
+                Diagnostic(ErrorCode.ERR_InDynamicMethodArg, "x").WithLocation(8, 30)
+                );
+        }
+
+        [WorkItem(22813, "https://github.com/dotnet/roslyn/issues/22813")]
+        [Fact]
+        public void InArgumentDynamicIndexer()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        int x = 42;
+        dynamic d = new C1();
+        System.Console.WriteLine(d[in x]);
+    }
+
+    class C1
+    {
+        public int this[in int x] => x;
+    }
+}";
+
+            var comp = CreateCompilationWithMscorlib45AndCSruntime(source, parseOptions: TestOptions.Regular7_2);
+
+            comp.VerifyEmitDiagnostics(
+                // (8,39): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.
+                //         System.Console.WriteLine(d[in x]);
+                Diagnostic(ErrorCode.ERR_InDynamicMethodArg, "x").WithLocation(8, 39)
                 );
         }
     }

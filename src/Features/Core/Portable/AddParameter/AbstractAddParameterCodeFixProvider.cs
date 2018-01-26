@@ -19,7 +19,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddParameter
 {
+#pragma warning disable RS1016 // Code fix providers should provide FixAll support. https://github.com/dotnet/roslyn/issues/23528
     internal abstract class AbstractAddParameterCodeFixProvider<
+#pragma warning restore RS1016 // Code fix providers should provide FixAll support.
         TArgumentSyntax,
         TAttributeArgumentSyntax,
         TArgumentListSyntax,
@@ -613,10 +615,14 @@ namespace Microsoft.CodeAnalysis.AddParameter
 
                     // Now check the type of the argument versus the type of the parameter.  If they
                     // don't match, then this is the argument we should make the parameter for.
-                    var expressionOfArgumment = syntaxFacts.GetExpressionOfArgument(argument);
-                    var argumentTypeInfo = semanticModel.GetTypeInfo(expressionOfArgumment);
-                    var isNullLiteral = syntaxFacts.IsNullLiteralExpression(expressionOfArgumment);
-                    var isDefaultLiteral = syntaxFacts.IsDefaultLiteralExpression(expressionOfArgumment);
+                    var expressionOfArgument = syntaxFacts.GetExpressionOfArgument(argument);
+                    if (expressionOfArgument is null)
+                    {
+                        return null;
+                    }
+                    var argumentTypeInfo = semanticModel.GetTypeInfo(expressionOfArgument);
+                    var isNullLiteral = syntaxFacts.IsNullLiteralExpression(expressionOfArgument);
+                    var isDefaultLiteral = syntaxFacts.IsDefaultLiteralExpression(expressionOfArgument);
 
                     if (argumentTypeInfo.Type == null && argumentTypeInfo.ConvertedType == null)
                     {

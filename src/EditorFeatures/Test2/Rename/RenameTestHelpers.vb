@@ -23,13 +23,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
 
         <ThreadStatic>
         Friend _exportProvider As ExportProvider = MinimalTestExportProvider.CreateExportProvider(
-            TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(GetType(MockDocumentNavigationServiceFactory), GetType(RenameWaiter)))
+            TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(GetType(MockDocumentNavigationServiceFactory)))
 
         Friend ReadOnly Property ExportProvider As ExportProvider
             Get
                 If _exportProvider Is Nothing Then
                     _exportProvider = MinimalTestExportProvider.CreateExportProvider(
-                        TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(GetType(MockDocumentNavigationServiceFactory), GetType(RenameWaiter)))
+                        TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(GetType(MockDocumentNavigationServiceFactory)))
                 End If
 
                 Return _exportProvider
@@ -111,8 +111,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
         End Function
 
         Public Async Function WaitForRename(workspace As TestWorkspace) As Task
-            Dim waiters = workspace.ExportProvider.GetExportedValues(Of IAsynchronousOperationWaiter)
-            Await waiters.WaitAllAsync()
+            Dim provider = workspace.ExportProvider.GetExportedValue(Of AsynchronousOperationListenerProvider)
+            Await provider.WaitAllDispatcherOperationAndTasksAsync(FeatureAttribute.EventHookup, FeatureAttribute.Rename)
         End Function
 
         Public Function CreateRenameTrackingTagger(workspace As TestWorkspace, document As TestHostDocument) As ITagger(Of RenameTrackingTag)
@@ -122,7 +122,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 workspace.ExportProvider.GetExport(Of IInlineRenameService)().Value,
                 workspace.ExportProvider.GetExport(Of IDiagnosticAnalyzerService)().Value,
                 {New MockRefactorNotifyService()},
-                DirectCast(workspace.ExportProvider.GetExports(Of IAsynchronousOperationListener, FeatureMetadata), IEnumerable(Of Lazy(Of IAsynchronousOperationListener, FeatureMetadata))))
+                workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider))
 
             Return tracker.CreateTagger(Of RenameTrackingTag)(document.GetTextBuffer())
         End Function

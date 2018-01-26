@@ -3710,17 +3710,17 @@ public class Required : ValidatorBase<object>
             var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe);
 
             var validatorBaseT = compilation.GetTypeByMetadataName("ValidatorBase`1");
-            var doVaidateT = validatorBaseT.GetMember<MethodSymbol>("DoValidate");
+            var doValidateT = validatorBaseT.GetMember<MethodSymbol>("DoValidate");
 
-            Assert.Equal(1, doVaidateT.OverriddenOrHiddenMembers.OverriddenMembers.Length);
-            Assert.Equal("void Validator<T>.DoValidate(T objectToValidate)", doVaidateT.OverriddenMethod.ToTestDisplayString());
+            Assert.Equal(1, doValidateT.OverriddenOrHiddenMembers.OverriddenMembers.Length);
+            Assert.Equal("void Validator<T>.DoValidate(T objectToValidate)", doValidateT.OverriddenMethod.ToTestDisplayString());
             Assert.False(validatorBaseT.AbstractMembers.Any());
 
             var validatorBaseObject = validatorBaseT.Construct(compilation.ObjectType);
-            var doVaidateObject = validatorBaseObject.GetMember<MethodSymbol>("DoValidate");
+            var doValidateObject = validatorBaseObject.GetMember<MethodSymbol>("DoValidate");
 
-            Assert.Equal(2, doVaidateObject.OverriddenOrHiddenMembers.OverriddenMembers.Length);
-            Assert.Equal("void Validator<T>.DoValidate(T objectToValidate)", doVaidateObject.OverriddenMethod.OriginalDefinition.ToTestDisplayString());
+            Assert.Equal(2, doValidateObject.OverriddenOrHiddenMembers.OverriddenMembers.Length);
+            Assert.Equal("void Validator<T>.DoValidate(T objectToValidate)", doValidateObject.OverriddenMethod.OriginalDefinition.ToTestDisplayString());
             Assert.False(validatorBaseObject.AbstractMembers.Any());
 
             CompileAndVerify(compilation, expectedOutput: @"void Validator<T>.DoValidate(object objectToValidate)
@@ -3966,17 +3966,17 @@ public class Required : ValidatorBase<object>
             var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe);
 
             var validatorBaseT = compilation.GetTypeByMetadataName("ValidatorBase`1");
-            var doVaidateT = validatorBaseT.GetMember<MethodSymbol>("DoValidate");
+            var doValidateT = validatorBaseT.GetMember<MethodSymbol>("DoValidate");
 
-            Assert.Equal(1, doVaidateT.OverriddenOrHiddenMembers.OverriddenMembers.Length);
-            Assert.Equal("void Validator<T>.DoValidate(T objectToValidate)", doVaidateT.OverriddenMethod.ToTestDisplayString());
+            Assert.Equal(1, doValidateT.OverriddenOrHiddenMembers.OverriddenMembers.Length);
+            Assert.Equal("void Validator<T>.DoValidate(T objectToValidate)", doValidateT.OverriddenMethod.ToTestDisplayString());
             Assert.False(validatorBaseT.AbstractMembers.Any());
 
             var validatorBaseObject = validatorBaseT.Construct(compilation.ObjectType);
-            var doVaidateObject = validatorBaseObject.GetMember<MethodSymbol>("DoValidate");
+            var doValidateObject = validatorBaseObject.GetMember<MethodSymbol>("DoValidate");
 
-            Assert.Equal(2, doVaidateObject.OverriddenOrHiddenMembers.OverriddenMembers.Length);
-            Assert.Equal("void Validator<T>.DoValidate(T objectToValidate)", doVaidateObject.OverriddenMethod.OriginalDefinition.ToTestDisplayString());
+            Assert.Equal(2, doValidateObject.OverriddenOrHiddenMembers.OverriddenMembers.Length);
+            Assert.Equal("void Validator<T>.DoValidate(T objectToValidate)", doValidateObject.OverriddenMethod.OriginalDefinition.ToTestDisplayString());
             Assert.False(validatorBaseObject.AbstractMembers.Any());
 
             CompileAndVerify(compilation, expectedOutput: @"void Validator<T>.DoValidate(object objectToValidate)
@@ -3987,22 +3987,22 @@ void ValidatorBase<T>.DoValidate(T objectToValidate)");
 
         [Fact]
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
-        public void HidingMethodWithRefReadOnlyParameter()
+        public void HidingMethodWithInParameter()
         {
             var code = @"
 class A
 {
-    public void M(ref readonly int x) { }
+    public void M(in int x) { }
 }
 class B : A
 {
-    public void M(ref readonly int x) { }
+    public void M(in int x) { }
 }";
 
             var comp = CreateStandardCompilation(code).VerifyDiagnostics(
-                // (8,17): warning CS0108: 'B.M(ref readonly int)' hides inherited member 'A.M(ref readonly int)'. Use the new keyword if hiding was intended.
-                //     public void M(ref readonly int x) { }
-                Diagnostic(ErrorCode.WRN_NewRequired, "M").WithArguments("B.M(ref readonly int)", "A.M(ref readonly int)").WithLocation(8, 17));
+                // (8,17): warning CS0108: 'B.M(in int)' hides inherited member 'A.M(in int)'. Use the new keyword if hiding was intended.
+                //     public void M(in int x) { }
+                Diagnostic(ErrorCode.WRN_NewRequired, "M").WithArguments("B.M(in int)", "A.M(in int)").WithLocation(8, 17));
 
             var aMethod = comp.GetMember<MethodSymbol>("A.M");
             var bMethod = comp.GetMember<MethodSymbol>("B.M");
@@ -4196,16 +4196,16 @@ class B : A
 
         [Fact]
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
-        public void HidingMethodWithRefReadOnlyParameterAndNewKeyword()
+        public void HidingMethodWithInParameterAndNewKeyword()
         {
             var code = @"
 class A
 {
-    public void M(ref readonly int x) { }
+    public void M(in int x) { }
 }
 class B : A
 {
-    public new void M(ref readonly int x) { }
+    public new void M(in int x) { }
 }";
 
             var comp = CreateStandardCompilation(code).VerifyDiagnostics();
@@ -4276,16 +4276,16 @@ class B : A
 
         [Fact]
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
-        public void OverridingMethodWithRefReadOnlyParameter()
+        public void OverridingMethodWithInParameter()
         {
             var code = @"
 class A
 {
-    public virtual void M(ref readonly int x) { }
+    public virtual void M(in int x) { }
 }
 class B : A
 {
-    public override void M(ref readonly int x) { }
+    public override void M(in int x) { }
 }";
 
             var comp = CreateStandardCompilation(code).VerifyDiagnostics();
@@ -4361,7 +4361,7 @@ class B : A
             var code = @"
 class A
 {
-    public void M(ref readonly int x) { }
+    public void M(in int x) { }
 }
 class B : A
 {
@@ -4390,14 +4390,14 @@ class B : A
 class BaseClass
 {
     protected int field;
-    public virtual ref readonly int Method1(ref readonly BaseClass a) { return ref field; }
+    public virtual ref readonly int Method1(in BaseClass a) { return ref field; }
     public virtual ref readonly int Property1 { get { return ref field; } }
     public virtual ref readonly int this[int a] { get { return ref field; } }
 }
 
 class DerivedClass : BaseClass
 {
-    public override ref readonly int Method1(ref readonly BaseClass a) { return ref field; }
+    public override ref readonly int Method1(in BaseClass a) { return ref field; }
     public override ref readonly int Property1 { get { return ref field; } }
     public override ref readonly int this[int a] { get { return ref field; } }
 }";
@@ -4439,11 +4439,11 @@ class DerivedClass : BaseClass
 abstract class BaseClass
 {
     public virtual void Method1(ref int x) { }
-    public virtual void Method2(ref readonly int x) { }
+    public virtual void Method2(in int x) { }
 }
 class ChildClass : BaseClass
 {
-    public override void Method1(ref readonly int x) { }
+    public override void Method1(in int x) { }
     public override void Method2(ref int x) { }
 }";
 
@@ -4451,9 +4451,9 @@ class ChildClass : BaseClass
                 // (10,26): error CS0115: 'ChildClass.Method2(ref int)': no suitable method found to override
                 //     public override void Method2(ref int x) { }
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "Method2").WithArguments("ChildClass.Method2(ref int)").WithLocation(10, 26),
-                // (9,26): error CS0115: 'ChildClass.Method1(ref readonly int)': no suitable method found to override
-                //     public override void Method1(ref readonly int x) { }
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "Method1").WithArguments("ChildClass.Method1(ref readonly int)").WithLocation(9, 26));
+                // (9,26): error CS0115: 'ChildClass.Method1(in int)': no suitable method found to override
+                //     public override void Method1(in int x) { }
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "Method1").WithArguments("ChildClass.Method1(in int)").WithLocation(9, 26));
         }
 
         [Fact]
@@ -4478,7 +4478,7 @@ class ChildClass : BaseClass
                 //     public override ref int Method2() { return ref x; }
                 Diagnostic(ErrorCode.ERR_CantChangeRefReturnOnOverride, "Method2").WithArguments("ChildClass.Method2()", "BaseClass.Method2()").WithLocation(11, 29),
                 // (10,38): error CS8148: 'ChildClass.Method1()' must match by reference return of overridden member 'BaseClass.Method1()'
-                //     public override ref readonly int Method1() { return ref x; }
+                //     public override in int Method1() { return ref x; }
                 Diagnostic(ErrorCode.ERR_CantChangeRefReturnOnOverride, "Method1").WithArguments("ChildClass.Method1()", "BaseClass.Method1()").WithLocation(10, 38));
         }
 
@@ -4557,11 +4557,11 @@ class B : A
             var code = @"
 abstract class A
 {
-    public abstract int this[ref readonly int p] { get; }
+    public abstract int this[in int p] { get; }
 }
 class B : A
 {
-    public override int this[ref readonly int p] { get { return p; } }
+    public override int this[in int p] { get { return p; } }
 }";
 
             var comp = CreateStandardCompilation(code).VerifyDiagnostics();
@@ -4574,7 +4574,7 @@ class B : A
             var code = @"
 abstract class A
 {
-    public abstract int this[ref readonly int p] { get; }
+    public abstract int this[in int p] { get; }
 }
 class B : A
 {
@@ -4585,9 +4585,9 @@ class B : A
                 // (8,25): error CS0115: 'B.this[int]': no suitable method found to override
                 //     public override int this[int p] { get { return p; } }
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "this").WithArguments("B.this[int]").WithLocation(8, 25),
-                // (6,7): error CS0534: 'B' does not implement inherited abstract member 'A.this[ref readonly int].get'
+                // (6,7): error CS0534: 'B' does not implement inherited abstract member 'A.this[in int].get'
                 // class B : A
-                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "B").WithArguments("B", "A.this[ref readonly int].get").WithLocation(6, 7));
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "B").WithArguments("B", "A.this[in int].get").WithLocation(6, 7));
         }
 
         [Fact]
@@ -4601,13 +4601,13 @@ abstract class A
 }
 class B : A
 {
-    public override int this[ref readonly int p] { get { return p; } }
+    public override int this[in int p] { get { return p; } }
 }";
 
             var comp = CreateStandardCompilation(code).VerifyDiagnostics(
-                // (8,25): error CS0115: 'B.this[ref readonly int]': no suitable method found to override
-                //     public override int this[ref readonly int p] { get { return p; } }
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "this").WithArguments("B.this[ref readonly int]").WithLocation(8, 25),
+                // (8,25): error CS0115: 'B.this[in int]': no suitable method found to override
+                //     public override int this[in int p] { get { return p; } }
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "this").WithArguments("B.this[in int]").WithLocation(8, 25),
                 // (6,7): error CS0534: 'B' does not implement inherited abstract member 'A.this[int].get'
                 // class B : A
                 Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "B").WithArguments("B", "A.this[int].get").WithLocation(6, 7));

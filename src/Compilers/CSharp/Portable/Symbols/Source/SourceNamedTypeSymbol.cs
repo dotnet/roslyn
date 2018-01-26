@@ -757,7 +757,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (_lazyIsExplicitDefinitionOfNoPiaLocalType == ThreeState.Unknown)
                 {
-                    GetAttributes();
+                    CheckPresenceOfTypeIdentifierAttribute();
 
                     if (_lazyIsExplicitDefinitionOfNoPiaLocalType == ThreeState.Unknown)
                     {
@@ -767,6 +767,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 Debug.Assert(_lazyIsExplicitDefinitionOfNoPiaLocalType != ThreeState.Unknown);
                 return _lazyIsExplicitDefinitionOfNoPiaLocalType == ThreeState.True;
+            }
+        }
+
+        private void CheckPresenceOfTypeIdentifierAttribute()
+        {
+            // We want this function to be as cheap as possible, it is called for every top level type
+            // and we don't want to bind attributes attached to the declaration unless there is a chance
+            // that one of them is TypeIdentifier attribute.
+            ImmutableArray<SyntaxList<AttributeListSyntax>> attributeLists = GetAttributeDeclarations();
+
+            foreach (SyntaxList<AttributeListSyntax> list in attributeLists)
+            {
+                var syntaxTree = list.Node.SyntaxTree;
+                QuickAttributeChecker checker = this.DeclaringCompilation.GetBinderFactory(list.Node.SyntaxTree).GetBinder(list.Node).QuickAttributeChecker;
+
+                foreach (AttributeListSyntax attrList in list)
+                {
+                    foreach (AttributeSyntax attr in attrList.Attributes)
+                    {
+                        if (checker.IsPossibleMatch(attr, QuickAttributes.TypeIdentifier))
+                        {
+                            // This attribute syntax might be an application of TypeIdentifierAttribute.
+                            // Let's bind it.
+                            // For simplicity we bind all attributes.
+                            GetAttributes();
+                            return;
+                        }
+                    }
+                }
             }
         }
 
@@ -1126,7 +1155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var obsoleteData = ObsoleteAttributeData;
                 Debug.Assert(obsoleteData != ObsoleteAttributeData.Uninitialized, "getting synthesized attributes before attributes are decoded");
 
-                // If user specified an Obsolete atribute, we cannot emit ours.
+                // If user specified an Obsolete attribute, we cannot emit ours.
                 // NB: we do not check the kind of deprecation. 
                 //     we will not emit Obsolete even if Deprecated or Experimental was used.
                 //     we do not want to get into a scenario where different kinds of deprecation are combined together.
@@ -1135,8 +1164,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_ObsoleteAttribute__ctor,
                         ImmutableArray.Create(
-                                       new TypedConstant(compilation.GetSpecialType(SpecialType.System_String), TypedConstantKind.Primitive, PEModule.ByRefLikeMarker),
-                                       new TypedConstant(compilation.GetSpecialType(SpecialType.System_Boolean), TypedConstantKind.Primitive, false)), 
+                            new TypedConstant(compilation.GetSpecialType(SpecialType.System_String), TypedConstantKind.Primitive, PEModule.ByRefLikeMarker), // message
+                            new TypedConstant(compilation.GetSpecialType(SpecialType.System_Boolean), TypedConstantKind.Primitive, true)), // error=true
                         isOptionalUse: true));
                 }
             }

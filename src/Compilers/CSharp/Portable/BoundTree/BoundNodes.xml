@@ -87,6 +87,7 @@
   It is used to perform intermediate binding, and will not survive the local rewriting.
   -->
   <Node Name="BoundDeconstructValuePlaceholder" Base="BoundValuePlaceholderBase">
+    <Field Name="ValEscape" Type="uint" Null="NotApplicable"/>
   </Node>
 
   <!-- only used by codegen -->
@@ -355,7 +356,7 @@
   <Node Name="BoundAssignmentOperator" Base="BoundExpression">
     <Field Name="Left" Type="BoundExpression"/>
     <Field Name="Right" Type="BoundExpression" Null="NotApplicable"/>
-    <!--  This is almost always RefKind.None.
+    <!--  This is almost always false.
     In C# most assignments to a variable are simply writes to the
     logical variable. For example, when you say 
     
@@ -378,7 +379,7 @@
     through addr. We therefore need to disambiguate what kind of assignment
     we are doing based on something other than the refness of the left hand side. 
     -->
-    <Field Name="RefKind" Type="RefKind" Null="NotApplicable"/>
+    <Field Name="IsRef" Type="bool" Null="NotApplicable"/>
   </Node>
 
   <Node Name="BoundDeconstructionAssignmentOperator" Base="BoundExpression">
@@ -399,7 +400,7 @@
   <Node Name="BoundConditionalOperator" Base="BoundExpression">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
-    <Field Name="IsByRef" Type="bool"/>
+    <Field Name="IsRef" Type="bool"/>
     <Field Name="Condition" Type="BoundExpression"/>
     <Field Name="Consequence" Type="BoundExpression"/>
     <Field Name="Alternative" Type="BoundExpression"/>
@@ -788,6 +789,9 @@
 
   <Node Name="BoundPatternSwitchStatement" Base="BoundStatement">
     <Field Name="Expression" Type="BoundExpression"/>
+    
+    <!-- SomeValueMatched is true if some case label would always match. -->
+    <Field Name="SomeLabelAlwaysMatches" Type="bool"/>
 
     <!-- Locals declared immediately within the switch block. -->
     <Field Name="InnerLocals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
@@ -1322,6 +1326,9 @@
     <Field Name="Expanded" Type="bool"/>
     <Field Name="ArgsToParamsOpt" Type="ImmutableArray&lt;int&gt;" Null="allow"/>
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
+
+    <!-- Used by IOperation to reconstruct the receiver for this expression. -->
+    <Field Name="ReceiverType" Type="TypeSymbol" Null="disallow"/>
     
     <!-- BinderOpt is a temporary solution for IOperation implementation and should probably be removed in the future -->
     <!-- Tracked by https://github.com/dotnet/roslyn/issues/20787 -->

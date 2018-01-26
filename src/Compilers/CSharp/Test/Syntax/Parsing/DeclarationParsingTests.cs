@@ -5549,6 +5549,9 @@ partial class PartialPartial
             CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
                 // (1,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
                 // partial enum E{}
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 1),
+                // (1,14): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
+                // partial enum E{}
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "E").WithLocation(1, 14));
         }
 
@@ -6329,6 +6332,134 @@ class C<T> : where T : X
                 N(SyntaxKind.EndOfFileToken);
             }
             EOF();
+        }
+
+        [Fact]
+        [WorkItem(23833, "https://github.com/dotnet/roslyn/issues/23833")]
+        public void ProduceErrorsOnRef_Properties_Ref_Get()
+        {
+            var code = @"
+class Program
+{
+    public int P
+    {
+        ref get => throw null;
+    }
+}";
+
+            CreateStandardCompilation(code).VerifyDiagnostics(
+                // (6,13): error CS0106: The modifier 'ref' is not valid for this item
+                //         ref get => throw null;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("ref").WithLocation(6, 13));
+        }
+
+        [Fact]
+        [WorkItem(23833, "https://github.com/dotnet/roslyn/issues/23833")]
+        public void ProduceErrorsOnRef_Properties_Ref_Get_SecondModifier()
+        {
+            var code = @"
+class Program
+{
+    public int P
+    {
+        abstract ref get => throw null;
+    }
+}";
+
+            CreateStandardCompilation(code).VerifyDiagnostics(
+                // (6,22): error CS0106: The modifier 'abstract' is not valid for this item
+                //         abstract ref get => throw null;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("abstract").WithLocation(6, 22),
+                // (6,22): error CS0106: The modifier 'ref' is not valid for this item
+                //         abstract ref get => throw null;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("ref").WithLocation(6, 22));
+        }
+
+        [Fact]
+        [WorkItem(23833, "https://github.com/dotnet/roslyn/issues/23833")]
+        public void ProduceErrorsOnRef_Properties_Ref_Set()
+        {
+            var code = @"
+class Program
+{
+    public int P
+    {
+        ref set => throw null;
+    }
+}";
+
+            CreateStandardCompilation(code).VerifyDiagnostics(
+                // (6,13): error CS0106: The modifier 'ref' is not valid for this item
+                //         ref set => throw null;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "set").WithArguments("ref").WithLocation(6, 13));
+        }
+
+        [Fact]
+        [WorkItem(23833, "https://github.com/dotnet/roslyn/issues/23833")]
+        public void ProduceErrorsOnRef_Properties_Ref_Set_SecondModifier()
+        {
+            var code = @"
+class Program
+{
+    public int P
+    {
+        abstract ref set => throw null;
+    }
+}";
+
+            CreateStandardCompilation(code).VerifyDiagnostics(
+                // (6,22): error CS0106: The modifier 'abstract' is not valid for this item
+                //         abstract ref set => throw null;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "set").WithArguments("abstract").WithLocation(6, 22),
+                // (6,22): error CS0106: The modifier 'ref' is not valid for this item
+                //         abstract ref set => throw null;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "set").WithArguments("ref").WithLocation(6, 22));
+        }
+
+        [Fact]
+        [WorkItem(23833, "https://github.com/dotnet/roslyn/issues/23833")]
+        public void ProduceErrorsOnRef_Events_Ref()
+        {
+            var code = @"
+public class Program
+{
+    event System.EventHandler E
+    {
+        ref add => throw null; 
+        ref remove => throw null; 
+    }
+}";
+
+            CreateStandardCompilation(code).VerifyDiagnostics(
+                // (6,9): error CS1609: Modifiers cannot be placed on event accessor declarations
+                //         ref add => throw null; 
+                Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "ref").WithLocation(6, 9),
+                // (7,9): error CS1609: Modifiers cannot be placed on event accessor declarations
+                //         ref remove => throw null; 
+                Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "ref").WithLocation(7, 9));
+        }
+
+        [Fact]
+        [WorkItem(23833, "https://github.com/dotnet/roslyn/issues/23833")]
+        public void ProduceErrorsOnRef_Events_Ref_SecondModifier()
+        {
+            var code = @"
+public class Program
+{
+    event System.EventHandler E
+    {
+        abstract ref add => throw null; 
+        abstract ref remove => throw null; 
+    }
+}";
+
+            CreateStandardCompilation(code).VerifyDiagnostics(
+                // (6,9): error CS1609: Modifiers cannot be placed on event accessor declarations
+                //         abstract ref add => throw null; 
+                Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "abstract").WithLocation(6, 9),
+                // (7,9): error CS1609: Modifiers cannot be placed on event accessor declarations
+                //         abstract ref remove => throw null; 
+                Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "abstract").WithLocation(7, 9));
         }
     }
 }

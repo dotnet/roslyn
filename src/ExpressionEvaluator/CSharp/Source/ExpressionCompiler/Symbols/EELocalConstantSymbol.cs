@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return _value;
         }
 
-        internal override RefKind RefKind
+        public override RefKind RefKind
         {
             get { return RefKind.None; }
         }

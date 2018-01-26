@@ -24,10 +24,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             return CreateCompilationWithMscorlib45(source, options: options, references: references);
         }
 
-        private CompilationVerifier CompileAndVerify(string source, string expectedOutput, IEnumerable<MetadataReference> references = null, CSharpCompilationOptions options = null)
+        private CompilationVerifier CompileAndVerify(string source, string expectedOutput, IEnumerable<MetadataReference> references = null, CSharpCompilationOptions options = null, Verification verify = Verification.Passes)
         {
             var compilation = CreateCompilation(source, references: references, options: options);
-            return base.CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            return base.CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: verify);
         }
 
         [Fact]
@@ -865,7 +865,7 @@ class Driver
         Console.WriteLine(Result);
     }
 }";
-            CompileAndVerify(source, "0", options: TestOptions.UnsafeReleaseExe);
+            CompileAndVerify(source, expectedOutput: "0", options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails);
         }
 
         [Fact]
@@ -937,7 +937,7 @@ class Driver
         Console.WriteLine(Driver.Result);
     }
 }";
-            CompileAndVerify(source, "0", options: TestOptions.UnsafeDebugExe);
+            CompileAndVerify(source, expectedOutput: "0", options: TestOptions.UnsafeDebugExe, verify: Verification.Passes);
         }
 
         [Fact]
@@ -998,7 +998,7 @@ class Driver
         Console.Write(Driver.Result);
     }
 }";
-            CompileAndVerify(source, "0", options: TestOptions.UnsafeDebugExe);
+            CompileAndVerify(source, expectedOutput: "0", options: TestOptions.UnsafeDebugExe, verify: Verification.Passes);
         }
 
         [Fact]
@@ -1039,7 +1039,7 @@ class Driver
 
     public static int Result = -1;
 }";
-            CompileAndVerify(source, "0", options: TestOptions.UnsafeDebugExe);
+            CompileAndVerify(source, expectedOutput: "0", options: TestOptions.UnsafeDebugExe, verify: Verification.Passes);
         }
 
         [Fact]
@@ -5013,6 +5013,52 @@ public class C {
 }";
             var expectedOutput = @"1=1 2=2 3 X";
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            base.CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact, WorkItem(19831, "https://github.com/dotnet/roslyn/issues/19831")]
+        public void CaptureAssignedInOuterFinally()
+        {
+            var source = @"
+
+    using System;
+    using System.Threading.Tasks;
+
+    public class Program
+    {
+        static void Main(string[] args)
+        {
+            Test().Wait();
+            System.Console.WriteLine(""success"");
+        }
+
+        public static async Task Test()
+        {
+            // declaring variable before try/finally and nulling it in finally cause NRE in try's body
+            var obj = new Object();
+
+            try
+            {
+                for(int i = 0; i < 3; i++)
+                {
+                    // NRE on second iteration
+                    obj.ToString();
+                    await Task.Yield();
+                }
+            }
+            finally
+            {
+                obj = null;
+            }
+        }
+    }
+";
+            var expectedOutput = @"success";
+
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
+            base.CompileAndVerify(compilation, expectedOutput: expectedOutput);
+
+            compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             base.CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
     }

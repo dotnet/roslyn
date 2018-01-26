@@ -51,7 +51,9 @@
     </contentFiles>
   </metadata>
   <files>
+    <!-- Include PDB unless embedded into DLL -->
     <file src="Dlls\MSBuildTask\Microsoft.Build.Tasks.CodeAnalysis.dll" target="lib\netstandard1.3" />
+    <file src="Dlls\MSBuildTask\Microsoft.Build.Tasks.CodeAnalysis.pdb*" target="lib\netstandard1.3" />
     <file src="Dlls\MSBuildTask\Microsoft.CSharp.Core.targets" target="contentFiles\any\any" />
     <file src="Dlls\MSBuildTask\Microsoft.VisualBasic.Core.targets" target="contentFiles\any\any" />
     <file src="$thirdPartyNoticesPath$" target="" />

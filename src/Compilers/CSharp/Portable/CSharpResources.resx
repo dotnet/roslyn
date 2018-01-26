@@ -759,11 +759,11 @@
   <data name="ERR_UnreachableCatch" xml:space="preserve">
     <value>A previous catch clause already catches all exceptions of this or of a super type ('{0}')</value>
   </data>
-  <data name="WRN_FilterIsConstant" xml:space="preserve">
-    <value>Filter expression is a constant, consider removing the filter</value>
+  <data name="WRN_FilterIsConstantTrue" xml:space="preserve">
+    <value>Filter expression is a constant 'true', consider removing the filter</value>
   </data>
-  <data name="WRN_FilterIsConstant_Title" xml:space="preserve">
-    <value>Filter expression is a constant</value>
+  <data name="WRN_FilterIsConstantTrue_Title" xml:space="preserve">
+    <value>Filter expression is a constant 'true'</value>
   </data>
   <data name="ERR_ReturnExpected" xml:space="preserve">
     <value>'{0}': not all code paths return a value</value>
@@ -1356,11 +1356,11 @@
   <data name="WRN_AlwaysNull_Title" xml:space="preserve">
     <value>The result of the expression is always 'null'</value>
   </data>
-  <data name="ERR_AddrOnReadOnlyLocal" xml:space="preserve">
-    <value>Cannot take the address of a read-only local variable</value>
-  </data>
   <data name="ERR_RefReturnThis" xml:space="preserve">
     <value>Cannot return 'this' by reference.</value>
+  </data>
+  <data name="ERR_AttributeCtorInParameter" xml:space="preserve">
+    <value>Cannot use attribute constructor '{0}' because it is has 'in' parameters.</value>
   </data>
   <data name="ERR_OverrideWithConstraints" xml:space="preserve">
     <value>Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly</value>
@@ -1473,7 +1473,11 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>Predefined type '{0}' is not defined or imported</value>
   </data>
   <data name="ERR_PredefinedValueTupleTypeNotFound" xml:space="preserve">
-    <value>Predefined type '{0}' is not defined or imported, or is declared in multiple referenced assemblies</value>
+    <!-- We need a specific error code for ValueTuple as an IDE codefix depends on it (AddNuget) -->
+    <value>Predefined type '{0}' is not defined or imported</value>
+  </data>
+  <data name="ERR_PredefinedValueTupleTypeAmbiguous3" xml:space="preserve">
+    <value>Predefined type '{0}' is declared in multiple referenced assemblies: '{1}' and '{2}'</value>
   </data>
   <data name="ERR_StructWithBaseConstructorCall" xml:space="preserve">
     <value>'{0}': structs cannot call base class constructors</value>
@@ -1549,6 +1553,9 @@ If such a class is used as a base class and if the deriving class defines a dest
   </data>
   <data name="ERR_PropertyWithNoAccessors" xml:space="preserve">
     <value>'{0}': property or indexer must have at least one accessor</value>
+  </data>
+  <data name="ERR_CantUseVoidInArglist" xml:space="preserve">
+    <value>__arglist cannot have an argument of void type</value>
   </data>
   <data name="ERR_NewVirtualInSealed" xml:space="preserve">
     <value>'{0}' is a new virtual member in sealed class '{1}'</value>
@@ -1836,7 +1843,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>Type defines operator == or operator != but does not override Object.GetHashCode()</value>
   </data>
   <data name="ERR_OutAttrOnRefParam" xml:space="preserve">
-    <value>Cannot specify only Out attribute on a ref parameter. Use both In and Out attributes, or neither.</value>
+    <value>Cannot specify the Out attribute on a ref parameter without also specifying the In attribute.</value>
   </data>
   <data name="ERR_OverloadRefKind" xml:space="preserve">
     <value>'{0}' cannot define an overloaded {1} that differs only on parameter modifiers '{2}' and '{3}'</value>
@@ -3899,8 +3906,11 @@ You should consider suppressing the warning only if you're sure that you don't w
   <data name="ERR_InvalidVersionFormat" xml:space="preserve">
     <value>The specified version string does not conform to the required format - major[.minor[.build[.revision]]]</value>
   </data>
+  <data name="ERR_InvalidVersionFormatDeterministic" xml:space="preserve">
+    <value>The specified version string contains wildcards, which are not compatible with determinism. Either remove wildcards from the version string, or disable determinism for this compilation</value>
+  </data>
   <data name="ERR_InvalidVersionFormat2" xml:space="preserve">
-    <value>The specified version string does not conform to the required format - major.minor.build.revision</value>
+    <value>The specified version string does not conform to the required format - major.minor.build.revision (without wildcards)</value>
   </data>
   <data name="WRN_InvalidVersionFormat" xml:space="preserve">
     <value>The specified version string does not conform to the recommended format - major.minor.build.revision</value>
@@ -4254,6 +4264,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureRefStructs" xml:space="preserve">
     <value>ref structs</value>
   </data>
+  <data name="IDS_FeatureRefConditional" xml:space="preserve">
+    <value>ref conditional expression</value>
+  </data>
   <data name="CompilationC" xml:space="preserve">
     <value>Compilation (C#): </value>
   </data>
@@ -4403,9 +4416,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_FeatureNotAvailableInVersion7" xml:space="preserve">
     <value>Feature '{0}' is not available in C# 7.0. Please use language version {1} or greater.</value>
-  </data>
-  <data name="ERR_FeatureIsExperimental" xml:space="preserve">
-    <value>Feature '{0}' is experimental and unsupported; use '/features:{1}' to enable.</value>
   </data>
   <data name="ERR_FeatureIsUnimplemented" xml:space="preserve">
     <value>Feature '{0}' is not implemented in this compiler.</value>
@@ -4818,7 +4828,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>An expression tree lambda may not contain a call to a method, property, or indexer that returns by reference</value>
   </data>
   <data name="ERR_RefReturnLvalueExpected" xml:space="preserve">
-    <value>An expression cannot be used in this context because it may not be returned by reference</value>
+    <value>An expression cannot be used in this context because it may not be passed or returned by reference</value>
   </data>
   <data name="ERR_RefReturnNonreturnableLocal" xml:space="preserve">
     <value>Cannot return '{0}' by reference because it was initialized to a value that cannot be returned by reference</value>
@@ -5144,11 +5154,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_TupleInferredNamesNotAvailable" xml:space="preserve">
     <value>Tuple element name '{0}' is inferred. Please use language version {1} or greater to access an element by its inferred name.</value>
   </data>
-  <data name="WRN_DefaultInSwitch" xml:space="preserve">
-    <value>Did you mean to use the default switch label (`default:`) rather than `case default:`? If you really mean to use the default literal, consider `case (default):` or another literal (`case 0:` or `case null:`) as appropriate.</value>
-  </data>
-  <data name="WRN_DefaultInSwitch_Title" xml:space="preserve">
-    <value>Did you mean to use the default switch label (`default:`) rather than `case default:`? If you really mean to use the default literal, consider `case (default):` or another literal (`case 0:` or `case null:`) as appropriate.</value>
+  <data name="ERR_DefaultInSwitch" xml:space="preserve">
+    <value>A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.</value>
   </data>
   <data name="ERR_VoidInTuple" xml:space="preserve">
     <value>A tuple may not contain a value of type 'void'.</value>
@@ -5186,14 +5193,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_TypeReserved" xml:space="preserve">
     <value>The type name '{0}' is reserved to be used by the compiler.</value>
   </data>
-  <data name="ERR_RefExtensionMustBeValueTypeOrConstrainedToOne" xml:space="preserve">
-    <value>The first parameter of the reference extension method '{0}' must be a value type or a generic type constrained to struct.</value>
-  </data>
-  <data name="ERR_RefReadOnlyExtensionMustBeValueType" xml:space="preserve">
-    <value>The first parameter of the readonly reference extension method '{0}' must be a value type.</value>
-  </data>
-  <data name="ERR_BadParameterModifiersOrder" xml:space="preserve">
-    <value>The parameter modifier '{0}' cannot be used after the modifier '{1}'</value>
+  <data name="ERR_InExtensionMustBeValueType" xml:space="preserve">
+    <value>The first parameter of an 'in' extension method '{0}' must be a value type.</value>
   </data>
   <data name="ERR_FieldsInRoStruct" xml:space="preserve">
     <value>Instance fields of readonly structs must be readonly.</value>
@@ -5212,5 +5213,35 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="IDS_StackAllocExpression" xml:space="preserve">
     <value>stackalloc {0}[{1}]</value>
+  </data>
+  <data name="ERR_RefExtensionMustBeValueTypeOrConstrainedToOne" xml:space="preserve">
+    <value>The first parameter of a 'ref' extension method '{0}' must be a value type or a generic type constrained to struct.</value>
+  </data>
+  <data name="ERR_OutAttrOnInParam" xml:space="preserve">
+    <value>An in parameter cannot have the Out attribute.</value>
+  </data>
+  <data name="ICompoundAssignmentOperationIsNotCSharpCompoundAssignment" xml:space="preserve">
+    <value>{0} is not a valid C# compound assignment operation</value>
+  </data>
+  <data name="WRN_FilterIsConstantFalse" xml:space="preserve">
+    <value>Filter expression is a constant 'false', consider removing the catch clause</value>
+  </data>
+  <data name="WRN_FilterIsConstantFalse_Title" xml:space="preserve">
+    <value>Filter expression is a constant 'false'</value>
+  </data>
+  <data name="WRN_FilterIsConstantFalseRedundantTryCatch" xml:space="preserve">
+    <value>Filter expression is a constant 'false', consider removing the try-catch block</value>
+  </data>
+  <data name="WRN_FilterIsConstantFalseRedundantTryCatch_Title" xml:space="preserve">
+    <value>Filter expression is a constant 'false'. </value>
+  </data>
+  <data name="ERR_ConditionalInInterpolation" xml:space="preserve">
+    <value>A conditional expression cannot be used directly in a string interpolation because the ':' ends the interpolation. Parenthesize the conditional expression.</value>
+  </data>
+  <data name="ERR_DefaultInPattern" xml:space="preserve">
+    <value>A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.</value>
+  </data>
+  <data name="ERR_InDynamicMethodArg" xml:space="preserve">
+    <value>Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.</value>
   </data>
 </root>

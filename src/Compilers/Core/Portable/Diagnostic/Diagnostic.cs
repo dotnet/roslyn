@@ -105,15 +105,44 @@ namespace Microsoft.CodeAnalysis
             ImmutableDictionary<string, string> properties,
             params object[] messageArgs)
         {
+            return Create(descriptor, location, effectiveSeverity: descriptor.DefaultSeverity, additionalLocations, properties, messageArgs);
+        }
+
+        /// <summary>
+        /// Creates a <see cref="Diagnostic"/> instance.
+        /// </summary>
+        /// <param name="descriptor">A <see cref="DiagnosticDescriptor"/> describing the diagnostic.</param>
+        /// <param name="location">An optional primary location of the diagnostic. If null, <see cref="Location"/> will return <see cref="Location.None"/>.</param>
+        /// <param name="effectiveSeverity">Effective severity of the diagnostic.</param>
+        /// <param name="additionalLocations">
+        /// An optional set of additional locations related to the diagnostic.
+        /// Typically, these are locations of other items referenced in the message.
+        /// If null, <see cref="AdditionalLocations"/> will return an empty list.
+        /// </param>
+        /// <param name="properties">
+        /// An optional set of name-value pairs by means of which the analyzer that creates the diagnostic
+        /// can convey more detailed information to the fixer. If null, <see cref="Properties"/> will return
+        /// <see cref="ImmutableDictionary{TKey, TValue}.Empty"/>.
+        /// </param>
+        /// <param name="messageArgs">Arguments to the message of the diagnostic.</param>
+        /// <returns>The <see cref="Diagnostic"/> instance.</returns>
+        public static Diagnostic Create(
+            DiagnosticDescriptor descriptor,
+            Location location,
+            DiagnosticSeverity effectiveSeverity,
+            IEnumerable<Location> additionalLocations,
+            ImmutableDictionary<string, string> properties,
+            params object[] messageArgs)
+        {
             if (descriptor == null)
             {
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
-            var warningLevel = GetDefaultWarningLevel(descriptor.DefaultSeverity);
+            var warningLevel = GetDefaultWarningLevel(effectiveSeverity);
             return SimpleDiagnostic.Create(
                 descriptor,
-                severity: descriptor.DefaultSeverity,
+                severity: effectiveSeverity,
                 warningLevel: warningLevel,
                 location: location ?? Location.None,
                 additionalLocations: additionalLocations,
@@ -483,6 +512,19 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        /// <summary>
+        /// Gets the default warning level for a diagnostic severity. Warning levels are used with the <c>/warn:N</c>
+        /// command line option to suppress diagnostics over a severity of interest. When N is 0, only error severity
+        /// messages are produced by the compiler. Values greater than 0 indicated that warnings up to and including
+        /// level N should also be included.
+        /// </summary>
+        /// <remarks>
+        /// <see cref="DiagnosticSeverity.Info"/> and <see cref="DiagnosticSeverity.Hidden"/> are treated as warning
+        /// level 1. In other words, these diagnostics which typically interact with editor features are enabled unless
+        /// the special <c>/warn:0</c> option is set.
+        /// </remarks>
+        /// <param name="severity">A <see cref="DiagnosticSeverity"/> value.</param>
+        /// <returns>The default compiler warning level for <paramref name="severity"/>.</returns>
         internal static int GetDefaultWarningLevel(DiagnosticSeverity severity)
         {
             switch (severity)
@@ -491,10 +533,8 @@ namespace Microsoft.CodeAnalysis
                     return 0;
 
                 case DiagnosticSeverity.Warning:
-                    return 1;
-
                 default:
-                    return HighestValidWarningLevel;
+                    return 1;
             }
         }
 

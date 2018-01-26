@@ -513,6 +513,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property IPropertySymbol_RefKind As RefKind Implements IPropertySymbol.RefKind
+            Get
+                Return If(Me.ReturnsByRef, RefKind.Ref, RefKind.None)
+            End Get
+        End Property
+
         Private ReadOnly Property IPropertySymbol_Type As ITypeSymbol Implements IPropertySymbol.Type
             Get
                 Return Me.Type

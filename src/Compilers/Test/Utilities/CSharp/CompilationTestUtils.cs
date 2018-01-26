@@ -267,24 +267,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return summary;
         }
 
-        internal static ImmutableArray<SynthesizedAttributeData> GetSynthesizedAttributes(this Symbol symbol, bool forReturnType = false)
-        {
-            var builder = CSharpTestBase.GetDefaultPEBuilder(symbol.DeclaringCompilation);
-            ArrayBuilder<SynthesizedAttributeData> attributes = null;
-
-            if (!forReturnType)
-            {
-                symbol.AddSynthesizedAttributes(builder, ref attributes);
-            }
-            else
-            {
-                Assert.True(symbol.Kind == SymbolKind.Method, "Incorrect usage of GetSynthesizedAttributes");
-                ((MethodSymbol)symbol).AddSynthesizedReturnTypeAttributes(builder, ref attributes);
-            }
-            
-            return attributes != null ? attributes.ToImmutableAndFree() : ImmutableArray.Create<SynthesizedAttributeData>();
-        }
-
         public static List<string> LookupNames(this SemanticModel model, int position, INamespaceOrTypeSymbol container = null, bool namespacesAndTypesOnly = false, bool useBaseReferenceAccessibility = false)
         {
             Assert.True(!useBaseReferenceAccessibility || (object)container == null);

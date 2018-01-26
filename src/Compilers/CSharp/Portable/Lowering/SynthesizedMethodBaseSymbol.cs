@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return builder.ToImmutableAndFree();
         }
 
-        internal sealed override RefKind RefKind
+        public sealed override RefKind RefKind
         {
             get { return this.BaseMethod.RefKind; }
         }

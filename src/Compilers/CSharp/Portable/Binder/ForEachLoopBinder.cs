@@ -168,7 +168,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasErrors = !GetEnumeratorInfoAndInferCollectionElementType(ref builder, ref collectionExpr, diagnostics, out inferredType);
 
             ExpressionSyntax variables = ((ForEachVariableStatementSyntax)_syntax).Variable;
-            var valuePlaceholder = new BoundDeconstructValuePlaceholder(_syntax.Expression, inferredType ?? CreateErrorType("var"));
+
+            // Tracking narrowest safe-to-escape scope by default, the proper val escape will be set when doing full binding of the foreach statement
+            var valuePlaceholder = new BoundDeconstructValuePlaceholder(_syntax.Expression, this.LocalScopeDepth, inferredType ?? CreateErrorType("var"));
+
             DeclarationExpressionSyntax declaration = null;
             ExpressionSyntax expression = null;
             BoundDeconstructionAssignmentOperator deconstruction = BindDeconstruction(
@@ -202,6 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundTypeExpression boundIterationVariableType;
             bool hasNameConflicts = false;
             BoundForEachDeconstructStep deconstructStep = null;
+            uint collectionEscape = GetValEscape(collectionExpr, this.LocalScopeDepth);
             switch (_syntax.Kind())
             {
                 case SyntaxKind.ForEachStatement:
@@ -230,7 +234,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         boundIterationVariableType = new BoundTypeExpression(typeSyntax, alias, iterationVariableType);
-                        this.IterationVariable.SetType(iterationVariableType);
+
+                        SourceLocalSymbol local = this.IterationVariable;
+                        local.SetType(iterationVariableType);
+                        local.SetValEscape(collectionEscape);
+
                         break;
                     }
                 case SyntaxKind.ForEachVariableStatement:
@@ -241,7 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var variables = node.Variable;
                         if (variables.IsDeconstructionLeft())
                         {
-                            var valuePlaceholder = new BoundDeconstructValuePlaceholder(_syntax.Expression, iterationVariableType);
+                            var valuePlaceholder = new BoundDeconstructValuePlaceholder(_syntax.Expression, collectionEscape, iterationVariableType).MakeCompilerGenerated();
                             DeclarationExpressionSyntax declaration = null;
                             ExpressionSyntax expression = null;
                             BoundDeconstructionAssignmentOperator deconstruction = BindDeconstruction(
@@ -260,7 +268,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 hasErrors = true;
                             }
 
-                            deconstructStep = new BoundForEachDeconstructStep(variables, deconstruction, valuePlaceholder);
+                            deconstructStep = new BoundForEachDeconstructStep(variables, deconstruction, valuePlaceholder).MakeCompilerGenerated();
                         }
                         else if (!node.HasErrors)
                         {
@@ -269,7 +277,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             hasErrors = true;
                         }
 
-                        boundIterationVariableType = new BoundTypeExpression(variables, aliasOpt: null, type: iterationVariableType);
+                        boundIterationVariableType = new BoundTypeExpression(variables, aliasOpt: null, type: iterationVariableType).MakeCompilerGenerated();
                         break;
                     }
                 default:
@@ -283,8 +291,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             //       I.E. - they will be considered declared and assigned in each iteration step. 
             ImmutableArray<LocalSymbol> iterationVariables = this.Locals;
 
-            Debug.Assert(hasErrors || 
-                _syntax.HasErrors || 
+            Debug.Assert(hasErrors ||
+                _syntax.HasErrors ||
                 iterationVariables.All(local => local.DeclarationKind == LocalDeclarationKind.ForEachIterationVariable),
                 "Should not have iteration variables that are not ForEachIterationVariable in valid code");
 
@@ -349,8 +357,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var getEnumeratorType = builder.GetEnumeratorMethod.ReturnType;
             // we never convert struct enumerators to object - it is done only for null-checks.
-            builder.EnumeratorConversion = getEnumeratorType.IsValueType?
-                                                Conversion.Identity: 
+            builder.EnumeratorConversion = getEnumeratorType.IsValueType ?
+                                                Conversion.Identity :
                                                 this.Conversions.ClassifyConversionFromType(getEnumeratorType, GetSpecialType(SpecialType.System_Object, diagnostics, _syntax), ref useSiteDiagnostics);
 
             if (getEnumeratorType.IsRestrictedType() && (IsDirectlyInIterator || IsInAsyncMethod()))

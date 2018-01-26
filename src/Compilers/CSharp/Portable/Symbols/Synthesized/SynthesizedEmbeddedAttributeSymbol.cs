@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// This type has the following properties:
     /// 1) It is non-generic, sealed, internal, non-static class.
     /// 2) It derives from System.Attribute
-    /// 3) It has Microsoft.CodeAnalysis.EmbdeddedAttribute
+    /// 3) It has Microsoft.CodeAnalysis.EmbeddedAttribute
     /// 4) It has System.Runtime.CompilerServices.CompilerGeneratedAttribute
     /// 5) It has a parameter-less constructor
     /// </summary>
@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
             {
-                if (ContainingType.BaseType is MissingMetadataTypeSymbol)
+                if (ContainingType.BaseTypeNoUseSiteDiagnostics is MissingMetadataTypeSymbol)
                 {
                     // System_Attribute is missing. Don't generate anything
                     return;

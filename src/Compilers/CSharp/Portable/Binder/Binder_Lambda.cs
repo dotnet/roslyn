@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     hasSignature = true;
                     var paren = (ParenthesizedLambdaExpressionSyntax)syntax;
                     parameterSyntaxList = paren.ParameterList.Parameters;
-                    CheckParanthesizedLambdaParameters(parameterSyntaxList.Value, diagnostics);
+                    CheckParenthesizedLambdaParameters(parameterSyntaxList.Value, diagnostics);
                     isAsync = (paren.AsyncKeyword.Kind() == SyntaxKind.AsyncKeyword);
                     break;
                 case SyntaxKind.AnonymousMethodExpression:
@@ -125,8 +125,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         type = BindType(typeSyntax, diagnostics);
                         foreach (var modifier in p.Modifiers)
                         {
-                            var modKind = modifier.Kind();
-
                             switch (modifier.Kind())
                             {
                                 case SyntaxKind.RefKeyword:
@@ -139,9 +137,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     allValue = false;
                                     break;
 
-                                case SyntaxKind.ReadOnlyKeyword:
-                                    Debug.Assert(refKind == RefKind.Ref || syntax.HasErrors);
-                                    refKind = RefKind.RefReadOnly;
+                                case SyntaxKind.InKeyword:
+                                    refKind = RefKind.In;
                                     allValue = false;
                                     break;
 
@@ -188,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Tuple.Create(refKinds, types, names, isAsync);
         }
 
-        private void CheckParanthesizedLambdaParameters(
+        private void CheckParenthesizedLambdaParameters(
             SeparatedSyntaxList<ParameterSyntax> parameterSyntaxList, DiagnosticBag diagnostics)
         {
             if (parameterSyntaxList.Count > 0)

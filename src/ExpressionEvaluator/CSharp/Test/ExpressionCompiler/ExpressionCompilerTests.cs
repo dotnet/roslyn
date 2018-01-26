@@ -18,6 +18,7 @@ using Microsoft.DiaSymReader;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Roslyn.Test.PdbUtilities;
+using static Roslyn.Test.Utilities.SigningTestHelpers;
 using Roslyn.Test.Utilities;
 using Xunit;
 using CommonResources = Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests.Resources;
@@ -2010,14 +2011,14 @@ class C<T>
                 var containingType = method.ContainingType;
                 var returnType = (NamedTypeSymbol)method.ReturnType;
                 // Return type E<T> with type argument T from <>c<T>.
-                Assert.Equal(returnType.TypeArguments[0].ContainingSymbol, containingType.ContainingType);
+                Assert.Equal(returnType.TypeArguments()[0].ContainingSymbol, containingType.ContainingType);
                 var locals = methodData.ILBuilder.LocalSlotManager.LocalsInOrder();
                 Assert.Equal(1, locals.Length);
                 // All locals of type E<T> with type argument T from <>c<T>.
                 foreach (var local in locals)
                 {
                     var localType = (NamedTypeSymbol)local.Type;
-                    var typeArg = localType.TypeArguments[0];
+                    var typeArg = localType.TypeArguments()[0];
                     Assert.Equal(typeArg.ContainingSymbol, containingType.ContainingType);
                 }
 
@@ -5437,7 +5438,7 @@ public class C
         {
             var signedDllOptions = TestOptions.ReleaseDll.
                 WithCryptoKeyFile(SigningTestHelpers.KeyPairFile).
-                WithStrongNameProvider(new SigningTestHelpers.VirtualizedStrongNameProvider(ImmutableArray.Create<string>()));
+                WithStrongNameProvider(s_defaultDesktopProvider);
 
             var libBTemplate = @"
 [assembly: System.Reflection.AssemblyVersion(""{0}.0.0.0"")]
@@ -6311,10 +6312,10 @@ class C
         }
 
         [Fact]
-        public void RefReadOnlyLambdasEvaluationWillSynthesizeRequiredAttributes_Parameters()
+        public void InLambdasEvaluationWillSynthesizeRequiredAttributes_Parameters()
         {
             var reference = CreateStandardCompilation(@"
-public delegate void D(ref readonly int p);");
+public delegate void D(in int p);");
 
             CompileAndVerify(reference, symbolValidator: module =>
             {
@@ -6339,7 +6340,7 @@ public class Test
             var testData = Evaluate(
                 comp,
                 methodName: "Test.M",
-                expr: "M((ref readonly int p) => {})");
+                expr: "M((in int p) => {})");
 
             var methodsGenerated = testData.GetMethodsByName().Keys;
             Assert.Contains(AttributeDescription.CodeAnalysisEmbeddedAttribute.FullName + "..ctor()", methodsGenerated);
@@ -6381,6 +6382,32 @@ public class Test
             var methodsGenerated = testData.GetMethodsByName().Keys;
             Assert.Contains(AttributeDescription.CodeAnalysisEmbeddedAttribute.FullName + "..ctor()", methodsGenerated);
             Assert.Contains(AttributeDescription.IsReadOnlyAttribute.FullName + "..ctor()", methodsGenerated);
+        }
+
+        [Fact]
+        [WorkItem(22206, "https://github.com/dotnet/roslyn/issues/22206")]
+        public void RefReturnNonRefLocal()
+        {
+            var source = @"
+delegate ref int D();
+class C
+{
+    static void Main()
+    {
+        int local = 0;
+    }
+    static ref int M(D d)
+    {
+        return ref d();
+    }
+}";
+            var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            WithRuntimeInstance(comp, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.Main");
+                context.CompileExpression("M(() => ref local)", out var error);
+                Assert.Equal("error CS8168: Cannot return local 'local' by reference because it is not a ref local", error);
+            });
         }
     }
 }

@@ -1,13 +1,13 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Semantics
+Imports Microsoft.CodeAnalysis.Operations
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend MustInherit Class BaseVisualBasicArgument
         Inherits BaseArgument
 
-        Protected Sub New(argumentKind As ArgumentKind, parameter As IParameterSymbol, inConversion As Conversion, outConversion As Conversion, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
-            MyBase.New(argumentKind, parameter, semanticModel, syntax, type, constantValue, isImplicit)
+        Protected Sub New(argumentKind As ArgumentKind, parameter As IParameterSymbol, inConversion As Conversion, outConversion As Conversion, semanticModel As SemanticModel, syntax As SyntaxNode, constantValue As [Optional](Of Object), isImplicit As Boolean)
+            MyBase.New(argumentKind, parameter, semanticModel, syntax, constantValue, isImplicit)
 
             InConversionInternal = inConversion
             OutConversionInternal = outConversion
@@ -33,8 +33,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend NotInheritable Class VisualBasicArgument
         Inherits BaseVisualBasicArgument
 
-        Public Sub New(argumentKind As ArgumentKind, parameter As IParameterSymbol, value As IOperation, inConversion As Conversion, outConversion As Conversion, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
-            MyBase.New(argumentKind, parameter, inConversion, outConversion, semanticModel, syntax, type, constantValue, isImplicit)
+        Public Sub New(argumentKind As ArgumentKind, parameter As IParameterSymbol, value As IOperation, inConversion As Conversion, outConversion As Conversion, semanticModel As SemanticModel, syntax As SyntaxNode, constantValue As [Optional](Of Object), isImplicit As Boolean)
+            MyBase.New(argumentKind, parameter, inConversion, outConversion, semanticModel, syntax, constantValue, isImplicit)
 
             Me.ValueImpl = value
         End Sub
@@ -47,8 +47,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly _valueLazy As Lazy(Of IOperation)
 
-        Public Sub New(argumentKind As ArgumentKind, parameter As IParameterSymbol, valueLazy As Lazy(Of IOperation), inConversion As Conversion, outConversion As Conversion, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
-            MyBase.New(argumentKind, parameter, inConversion, outConversion, semanticModel, syntax, type, constantValue, isImplicit)
+        Public Sub New(argumentKind As ArgumentKind, parameter As IParameterSymbol, valueLazy As Lazy(Of IOperation), inConversion As Conversion, outConversion As Conversion, semanticModel As SemanticModel, syntax As SyntaxNode, constantValue As [Optional](Of Object), isImplicit As Boolean)
+            MyBase.New(argumentKind, parameter, inConversion, outConversion, semanticModel, syntax, constantValue, isImplicit)
 
             _valueLazy = valueLazy
         End Sub

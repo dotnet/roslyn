@@ -22,8 +22,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 
             var projectTracker = Workspace.GetProjectTrackerAndInitializeIfNecessary(SystemServiceProvider);
 
-            projectTracker.TryDisconnectExistingDeferredProject(hierarchy, projectName);
-
             var project = new CSharpProjectShimWithServices(
                 projectRoot,
                 projectTracker,

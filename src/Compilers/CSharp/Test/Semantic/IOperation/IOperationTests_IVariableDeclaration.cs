@@ -1,6 +1,8 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -13,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
-        public void SingleVariableDeclaration()
+        public void VariableDeclarator()
         {
             string source = @"
 class Program
@@ -25,10 +27,14 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int i1;')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1')
-    Variables: Local_1: System.Int32 i1
-    Initializer: null
+IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'int i1;')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'int i1')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Int32 i1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i1')
+          Initializer: 
+            null
+    Initializer: 
+      null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0168: The variable 'i1' is declared but never used
@@ -41,7 +47,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
-        public void SingleVariableDeclarationWithInitializer()
+        public void VariableDeclaratorWithInitializer()
         {
             string source = @"
 class Program
@@ -53,10 +59,15 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int i1 = 1;')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1 = 1')
-    Variables: Local_1: System.Int32 i1
-    Initializer: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'int i1 = 1;')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'int i1 = 1')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Int32 i1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i1 = 1')
+          Initializer: 
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 1')
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+    Initializer: 
+      null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0219: The variable 'i1' is assigned but its value is never used
@@ -69,7 +80,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
-        public void SingleVariableDeclarationWithInvalidInitializer()
+        public void VariableDeclaratorWithInvalidInitializer()
         {
             string source = @"
 class Program
@@ -81,11 +92,16 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'int i1 = ;')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'i1 = ')
-    Variables: Local_1: System.Int32 i1
-    Initializer: IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
-        Children(0)
+IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'int i1 = ;')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'int i1 = ')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Int32 i1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'i1 = ')
+          Initializer: 
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= ')
+              IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
+                Children(0)
+    Initializer: 
+      null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1525: Invalid expression term ';'
@@ -110,13 +126,17 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int i1, i2;')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1')
-    Variables: Local_1: System.Int32 i1
-    Initializer: null
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i2')
-    Variables: Local_1: System.Int32 i2
-    Initializer: null
+IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'int i1, i2;')
+  IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'int i1, i2')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Int32 i1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i1')
+          Initializer: 
+            null
+        IVariableDeclaratorOperation (Symbol: System.Int32 i2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i2')
+          Initializer: 
+            null
+    Initializer: 
+      null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0168: The variable 'i1' is declared but never used
@@ -144,13 +164,19 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int i1 = 2, i2 = 2;')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1 = 2')
-    Variables: Local_1: System.Int32 i1
-    Initializer: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i2 = 2')
-    Variables: Local_1: System.Int32 i2
-    Initializer: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'int i1 = 2, i2 = 2;')
+  IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'int i1 = 2, i2 = 2')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Int32 i1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i1 = 2')
+          Initializer: 
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 2')
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+        IVariableDeclaratorOperation (Symbol: System.Int32 i2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i2 = 2')
+          Initializer: 
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 2')
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+    Initializer: 
+      null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0219: The variable 'i1' is assigned but its value is never used
@@ -178,14 +204,20 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'int i1 = , i2 = 2;')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'i1 = ')
-    Variables: Local_1: System.Int32 i1
-    Initializer: IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
-        Children(0)
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i2 = 2')
-    Variables: Local_1: System.Int32 i2
-    Initializer: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'int i1 = , i2 = 2;')
+  IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'int i1 = , i2 = 2')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Int32 i1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'i1 = ')
+          Initializer: 
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= ')
+              IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
+                Children(0)
+        IVariableDeclaratorOperation (Symbol: System.Int32 i2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i2 = 2')
+          Initializer: 
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 2')
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+    Initializer: 
+      null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1525: Invalid expression term ','
@@ -213,13 +245,17 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'int i,;')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i')
-    Variables: Local_1: System.Int32 i
-    Initializer: null
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: '')
-    Variables: Local_1: System.Int32 
-    Initializer: null
+IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'int i,;')
+  IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'int i,')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Int32 i) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i')
+          Initializer: 
+            null
+        IVariableDeclaratorOperation (Symbol: System.Int32 ) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: '')
+          Initializer: 
+            null
+    Initializer: 
+      null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1001: Identifier expected
@@ -235,7 +271,7 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
-        public void SingleVariableDeclarationExpressionInitializer()
+        public void VariableDeclaratorExpressionInitializer()
         {
             string source = @"
 class Program
@@ -249,12 +285,18 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int i = GetInt();')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i = GetInt()')
-    Variables: Local_1: System.Int32 i
-    Initializer: IInvocationExpression (System.Int32 Program.GetInt()) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'GetInt()')
-        Instance Receiver: null
-        Arguments(0)
+IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'int i = GetInt();')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'int i = GetInt()')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Int32 i) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i = GetInt()')
+          Initializer: 
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= GetInt()')
+              IInvocationOperation (System.Int32 Program.GetInt()) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'GetInt()')
+                Instance Receiver: 
+                  null
+                Arguments(0)
+    Initializer: 
+      null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -263,7 +305,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
-        public void MutlipleVariableDeclarationsExpressionInitializers()
+        public void MultipleVariableDeclarationsExpressionInitializers()
         {
             string source = @"
 class Program
@@ -277,17 +319,25 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int i = Get ... = GetInt();')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i = GetInt()')
-    Variables: Local_1: System.Int32 i
-    Initializer: IInvocationExpression (System.Int32 Program.GetInt()) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'GetInt()')
-        Instance Receiver: null
-        Arguments(0)
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'j = GetInt()')
-    Variables: Local_1: System.Int32 j
-    Initializer: IInvocationExpression (System.Int32 Program.GetInt()) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'GetInt()')
-        Instance Receiver: null
-        Arguments(0)
+IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'int i = Get ... = GetInt();')
+  IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'int i = Get ...  = GetInt()')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Int32 i) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i = GetInt()')
+          Initializer: 
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= GetInt()')
+              IInvocationOperation (System.Int32 Program.GetInt()) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'GetInt()')
+                Instance Receiver: 
+                  null
+                Arguments(0)
+        IVariableDeclaratorOperation (Symbol: System.Int32 j) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'j = GetInt()')
+          Initializer: 
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= GetInt()')
+              IInvocationOperation (System.Int32 Program.GetInt()) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'GetInt()')
+                Instance Receiver: 
+                  null
+                Arguments(0)
+    Initializer: 
+      null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -296,7 +346,7 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
-        public void SingleVariableDeclarationLocalReferenceInitializer()
+        public void VariableDeclaratorLocalReferenceInitializer()
         {
             string source = @"
 class Program
@@ -311,10 +361,15 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int i1 = i;')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1 = i')
-    Variables: Local_1: System.Int32 i1
-    Initializer: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'int i1 = i;')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'int i1 = i')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Int32 i1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i1 = i')
+          Initializer: 
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= i')
+              ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
+    Initializer: 
+      null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -338,13 +393,19 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int i1 = i, i2 = i1;')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1 = i')
-    Variables: Local_1: System.Int32 i1
-    Initializer: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i2 = i1')
-    Variables: Local_1: System.Int32 i2
-    Initializer: ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i1')
+IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'int i1 = i, i2 = i1;')
+  IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'int i1 = i, i2 = i1')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Int32 i1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i1 = i')
+          Initializer: 
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= i')
+              ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
+        IVariableDeclaratorOperation (Symbol: System.Int32 i2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i2 = i1')
+          Initializer: 
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= i1')
+              ILocalReferenceOperation: i1 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i1')
+    Initializer: 
+      null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -365,10 +426,14 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'int[2, 3] a;')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
-    Variables: Local_1: System.Int32[,] a
-    Initializer: null
+IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'int[2, 3] a;')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'int[2, 3] a')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Int32[,] a) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'a')
+          Initializer: 
+            null
+    Initializer: 
+      null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
@@ -399,13 +464,17 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'int[2, 3] a, b;')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'a')
-    Variables: Local_1: System.Int32[,] a
-    Initializer: null
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'b')
-    Variables: Local_1: System.Int32[,] b
-    Initializer: null
+IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'int[2, 3] a, b;')
+  IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'int[2, 3] a, b')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Int32[,] a) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'a')
+          Initializer: 
+            null
+        IVariableDeclaratorOperation (Symbol: System.Int32[,] b) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'b')
+          Initializer: 
+            null
+    Initializer: 
+      null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
@@ -425,12 +494,189 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TestGetOperationForVariableInitializer()
+        {
+            string source = @"
+class Test
+{
+    void M()
+    {
+        var x /*<bind>*/= 1/*</bind>*/;
+        System.Console.WriteLine(x);
+    }
+}
+";
+            string expectedOperationTree = @"
+IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 1')
+  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void IVariableDeclaration_InvalidIgnoredArguments_WithInitializer()
+        {
+            string source = @"
+class C
+{
+    void M1()
+    {
+        int /*<bind>*/x[10] = 1/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclaratorOperation (Symbol: System.Int32 x) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'x[10] = 1')
+  Initializer: 
+    IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 1')
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+  IgnoredArguments(1):
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10, IsInvalid) (Syntax: '10')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0650: Bad array declarator: To declare a managed array the rank specifier precedes the variable's identifier. To declare a fixed size buffer field, use the fixed keyword before the field type.
+                //         int /*<bind>*/x[10] = 1/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_CStyleArray, "[10]").WithLocation(6, 24),
+                // CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                //         int /*<bind>*/x[10] = 1/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "10").WithLocation(6, 25),
+                // CS0219: The variable 'x' is assigned but its value is never used
+                //         int /*<bind>*/x[10] = 1/*</bind>*/;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(6, 23)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void IVariableDeclaration_InvalidIgnoredArguments_NoInitializer()
+        {
+            string source = @"
+class C
+{
+    void M1()
+    {
+        int /*<bind>*/x[10]/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclaratorOperation (Symbol: System.Int32 x) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'x[10]')
+  Initializer: 
+    null
+  IgnoredArguments(1):
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10, IsInvalid) (Syntax: '10')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0650: Bad array declarator: To declare a managed array the rank specifier precedes the variable's identifier. To declare a fixed size buffer field, use the fixed keyword before the field type.
+                //         int /*<bind>*/x[10]/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_CStyleArray, "[10]").WithLocation(6, 24),
+                // CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                //         int /*<bind>*/x[10]/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "10").WithLocation(6, 25),
+                // CS0168: The variable 'x' is declared but never used
+                //         int /*<bind>*/x[10]/*</bind>*/;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithLocation(6, 23)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void IVariableDeclaration_InvalidIgnoredArgumentsWithInitializer_VerifyChildren()
+        {
+            string source = @"
+class C
+{
+    void M1()
+    {
+        int /*<bind>*/x[10] = 1/*</bind>*/;
+    }
+}
+";
+
+            var compilation = CreateCompilation(source);
+            (var operation, _) = GetOperationAndSyntaxForTest<VariableDeclaratorSyntax>(compilation);
+            var declarator = (IVariableDeclaratorOperation)operation;
+            Assert.Equal(2, declarator.Children.Count());
+            Assert.Equal(OperationKind.Literal, declarator.Children.First().Kind);
+            Assert.Equal(OperationKind.VariableInitializer, declarator.Children.ElementAt(1).Kind);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void IVariableDeclaration_InvalidIgnoredArguments_VerifyChildren()
+        {
+            string source = @"
+class C
+{
+    void M1()
+    {
+        int /*<bind>*/x[10]/*</bind>*/;
+    }
+}
+";
+
+            var compilation = CreateCompilation(source);
+            (var operation, _) = GetOperationAndSyntaxForTest<VariableDeclaratorSyntax>(compilation);
+            var declarator = (IVariableDeclaratorOperation)operation;
+            Assert.Equal(1, declarator.Children.Count());
+            Assert.Equal(OperationKind.Literal, declarator.Children.First().Kind);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void IVariableDeclaration_WithInitializer_VerifyChildren()
+        {
+            string source = @"
+class C
+{
+    void M1()
+    {
+        int /*<bind>*/x = 1/*</bind>*/;
+    }
+}
+";
+
+            var compilation = CreateCompilation(source);
+            (var operation, _) = GetOperationAndSyntaxForTest<VariableDeclaratorSyntax>(compilation);
+            var declarator = (IVariableDeclaratorOperation)operation;
+            Assert.Equal(1, declarator.Children.Count());
+            Assert.Equal(OperationKind.VariableInitializer, declarator.Children.ElementAt(0).Kind);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void IVariableDeclaration_NoChildren()
+        {
+            string source = @"
+class C
+{
+    void M1()
+    {
+        int /*<bind>*/x/*</bind>*/;
+    }
+}
+";
+
+            var compilation = CreateCompilation(source);
+            (var operation, _) = GetOperationAndSyntaxForTest<VariableDeclaratorSyntax>(compilation);
+            Assert.Empty(operation.Children);
+        }
+
         #endregion
 
         #region Fixed Statements
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18061"), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
+        [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
         public void FixedStatementDeclaration()
         {
             string source = @"
@@ -453,12 +699,20 @@ class Program
 
 
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int* p = &reference.i1')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'p = &reference.i1')
-    Variables: Local_1: System.Int32* p
-    Initializer: IAddressOfExpression (OperationKind.AddressOfExpression, Type: System.Int32*) (Syntax: '&reference.i1')
-        IFieldReferenceExpression: System.Int32 Program.i1 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'reference.i1')
-          Instance Receiver: ILocalReferenceExpression: reference (OperationKind.LocalReferenceExpression, Type: Program) (Syntax: 'reference')
+IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'int* p = &reference.i1')
+  Declarators:
+      IVariableDeclaratorOperation (Symbol: System.Int32* p) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'p = &reference.i1')
+        Initializer: 
+          IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= &reference.i1')
+            IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: '&reference.i1')
+              Children(1):
+                  IAddressOfOperation (OperationKind.AddressOf, Type: System.Int32*) (Syntax: '&reference.i1')
+                    Reference: 
+                      IFieldReferenceOperation: System.Int32 Program.i1 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'reference.i1')
+                        Instance Receiver: 
+                          ILocalReferenceOperation: reference (OperationKind.LocalReference, Type: Program) (Syntax: 'reference')
+  Initializer: 
+    null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0227: Unsafe code may only appear if compiling with /unsafe
@@ -470,7 +724,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18061"), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
+        [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
         public void FixedStatementMultipleDeclaration()
         {
             string source = @"
@@ -491,17 +745,30 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int* p1 = & ... eference.i2')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'p1 = &reference.i1')
-    Variables: Local_1: System.Int32* p1
-    Initializer: IAddressOfExpression (OperationKind.AddressOfExpression, Type: System.Int32*) (Syntax: '&reference.i1')
-        IFieldReferenceExpression: System.Int32 Program.i1 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'reference.i1')
-          Instance Receiver: ILocalReferenceExpression: reference (OperationKind.LocalReferenceExpression, Type: Program) (Syntax: 'reference')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'p2 = &reference.i2')
-    Variables: Local_1: System.Int32* p2
-    Initializer: IAddressOfExpression (OperationKind.AddressOfExpression, Type: System.Int32*) (Syntax: '&reference.i2')
-        IFieldReferenceExpression: System.Int32 Program.i2 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'reference.i2')
-          Instance Receiver: ILocalReferenceExpression: reference (OperationKind.LocalReferenceExpression, Type: Program) (Syntax: 'reference')
+IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'int* p1 = & ... eference.i2')
+  Declarators:
+      IVariableDeclaratorOperation (Symbol: System.Int32* p1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'p1 = &reference.i1')
+        Initializer: 
+          IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= &reference.i1')
+            IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: '&reference.i1')
+              Children(1):
+                  IAddressOfOperation (OperationKind.AddressOf, Type: System.Int32*) (Syntax: '&reference.i1')
+                    Reference: 
+                      IFieldReferenceOperation: System.Int32 Program.i1 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'reference.i1')
+                        Instance Receiver: 
+                          ILocalReferenceOperation: reference (OperationKind.LocalReference, Type: Program) (Syntax: 'reference')
+      IVariableDeclaratorOperation (Symbol: System.Int32* p2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'p2 = &reference.i2')
+        Initializer: 
+          IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= &reference.i2')
+            IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: '&reference.i2')
+              Children(1):
+                  IAddressOfOperation (OperationKind.AddressOf, Type: System.Int32*) (Syntax: '&reference.i2')
+                    Reference: 
+                      IFieldReferenceOperation: System.Int32 Program.i2 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'reference.i2')
+                        Instance Receiver: 
+                          ILocalReferenceOperation: reference (OperationKind.LocalReference, Type: Program) (Syntax: 'reference')
+  Initializer: 
+    null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0227: Unsafe code may only appear if compiling with /unsafe
@@ -513,7 +780,7 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18061"), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
+        [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
         public void FixedStatementInvalidAssignment()
         {
             string source = @"
@@ -534,11 +801,15 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'int* p = /*</bind>*/')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'p = /*</bind>*/')
-    Variables: Local_1: System.Int32* p
-    Initializer: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Int32*, IsInvalid) (Syntax: '')
-        IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '')
+IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'int* p = /*</bind>*/')
+  Declarators:
+      IVariableDeclaratorOperation (Symbol: System.Int32* p) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'p = /*</bind>*/')
+        Initializer: 
+          IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= /*</bind>*/')
+            IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
+              Children(0)
+  Initializer: 
+    null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1525: Invalid expression term ')'
@@ -556,7 +827,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18061"), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
+        [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
         public void FixedStatementMultipleDeclarationsInvalidInitializers()
         {
             string source = @"
@@ -577,15 +848,20 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'int* p1 = , ... /*</bind>*/')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'p1 = ')
-    Variables: Local_1: System.Int32* p1
-    Initializer: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Int32*, IsInvalid) (Syntax: '')
-        IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'p2 = /*</bind>*/')
-    Variables: Local_1: System.Int32* p2
-    Initializer: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Int32*, IsInvalid) (Syntax: '')
-        IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '')
+IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'int* p1 = , ... /*</bind>*/')
+  Declarators:
+      IVariableDeclaratorOperation (Symbol: System.Int32* p1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'p1 = ')
+        Initializer: 
+          IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= ')
+            IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
+              Children(0)
+      IVariableDeclaratorOperation (Symbol: System.Int32* p2) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'p2 = /*</bind>*/')
+        Initializer: 
+          IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= /*</bind>*/')
+            IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
+              Children(0)
+  Initializer: 
+    null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1525: Invalid expression term ','
@@ -609,7 +885,7 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18061"), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
+        [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
         public void FixedStatementNoInitializer()
         {
             string source = @"
@@ -630,9 +906,13 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'int* p')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'p')
-    Variables: Local_1: System.Int32* p
+IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'int* p')
+  Declarators:
+      IVariableDeclaratorOperation (Symbol: System.Int32* p) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'p')
+        Initializer: 
+          null
+  Initializer: 
+    null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0227: Unsafe code may only appear if compiling with /unsafe
@@ -650,7 +930,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18061"), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
+        [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
         public void FixedStatementMultipleDeclarationsNoInitializers()
         {
             string source = @"
@@ -671,11 +951,16 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'int* p1, p2')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'p1')
-    Variables: Local_1: System.Int32* p1
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'p2')
-    Variables: Local_1: System.Int32* p2
+IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'int* p1, p2')
+  Declarators:
+      IVariableDeclaratorOperation (Symbol: System.Int32* p1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'p1')
+        Initializer: 
+          null
+      IVariableDeclaratorOperation (Symbol: System.Int32* p2) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'p2')
+        Initializer: 
+          null
+  Initializer: 
+    null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0227: Unsafe code may only appear if compiling with /unsafe
@@ -699,7 +984,7 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18061"), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
+        [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
         public void FixedStatementInvalidMulipleDeclarations()
         {
             string source = @"
@@ -720,14 +1005,23 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'int* p1 = & ... /*</bind>*/')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'p1 = &reference.i1')
-    Variables: Local_1: System.Int32* p1
-    Initializer: IAddressOfExpression (OperationKind.AddressOfExpression, Type: System.Int32*) (Syntax: '&reference.i1')
-        IFieldReferenceExpression: System.Int32 Program.i1 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'reference.i1')
-          Instance Receiver: ILocalReferenceExpression: reference (OperationKind.LocalReferenceExpression, Type: Program) (Syntax: 'reference')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: '')
-    Variables: Local_1: System.Int32* 
+IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'int* p1 = & ... /*</bind>*/')
+  Declarators:
+      IVariableDeclaratorOperation (Symbol: System.Int32* p1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'p1 = &reference.i1')
+        Initializer: 
+          IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= &reference.i1')
+            IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: '&reference.i1')
+              Children(1):
+                  IAddressOfOperation (OperationKind.AddressOf, Type: System.Int32*) (Syntax: '&reference.i1')
+                    Reference: 
+                      IFieldReferenceOperation: System.Int32 Program.i1 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'reference.i1')
+                        Instance Receiver: 
+                          ILocalReferenceOperation: reference (OperationKind.LocalReference, Type: Program) (Syntax: 'reference')
+      IVariableDeclaratorOperation (Symbol: System.Int32* ) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: '')
+        Initializer: 
+          null
+  Initializer: 
+    null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1001: Identifier expected
@@ -752,7 +1046,7 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
         #region Using Statements
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18062"), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
+        [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
         public void UsingStatementDeclaration()
         {
             string source = @"
@@ -771,10 +1065,17 @@ class Program : IDisposable
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Program p1  ... w Program()')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'p1 = new Program()')
-    Variables: Local_1: Program p1
-    Initializer: IObjectCreationExpression (Constructor: Program..ctor()) (OperationKind.ObjectCreationExpression, Type: Program) (Syntax: 'new Program()')
+IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'Program p1  ... w Program()')
+  Declarators:
+      IVariableDeclaratorOperation (Symbol: Program p1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'p1 = new Program()')
+        Initializer: 
+          IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new Program()')
+            IObjectCreationOperation (Constructor: Program..ctor()) (OperationKind.ObjectCreation, Type: Program) (Syntax: 'new Program()')
+              Arguments(0)
+              Initializer: 
+                null
+  Initializer: 
+    null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -782,7 +1083,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18062"), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
+        [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
         public void UsingStatementMultipleDeclarations()
         {
             string source = @"
@@ -801,13 +1102,24 @@ class Program : IDisposable
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Program p1  ... w Program()')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'p1 = new Program()')
-    Variables: Local_1: Program p1
-    Initializer: IObjectCreationExpression (Constructor: Program..ctor()) (OperationKind.ObjectCreationExpression, Type: Program) (Syntax: 'new Program()')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'p2 = new Program()')
-    Variables: Local_1: Program p2
-    Initializer: IObjectCreationExpression (Constructor: Program..ctor()) (OperationKind.ObjectCreationExpression, Type: Program) (Syntax: 'new Program()')
+IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'Program p1  ... w Program()')
+  Declarators:
+      IVariableDeclaratorOperation (Symbol: Program p1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'p1 = new Program()')
+        Initializer: 
+          IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new Program()')
+            IObjectCreationOperation (Constructor: Program..ctor()) (OperationKind.ObjectCreation, Type: Program) (Syntax: 'new Program()')
+              Arguments(0)
+              Initializer: 
+                null
+      IVariableDeclaratorOperation (Symbol: Program p2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'p2 = new Program()')
+        Initializer: 
+          IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new Program()')
+            IObjectCreationOperation (Constructor: Program..ctor()) (OperationKind.ObjectCreation, Type: Program) (Syntax: 'new Program()')
+              Arguments(0)
+              Initializer: 
+                null
+  Initializer: 
+    null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -815,7 +1127,7 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18062"), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
+        [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
         public void UsingStatementInvalidInitializer()
         {
             string source = @"
@@ -834,11 +1146,15 @@ class Program : IDisposable
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Program p1 =/*</bind>*/')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'p1 =/*</bind>*/')
-    Variables: Local_1: Program p1
-    Initializer: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: Program, IsInvalid) (Syntax: '')
-        IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '')
+IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'Program p1 =/*</bind>*/')
+  Declarators:
+      IVariableDeclaratorOperation (Symbol: Program p1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'p1 =/*</bind>*/')
+        Initializer: 
+          IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '=/*</bind>*/')
+            IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
+              Children(0)
+  Initializer: 
+    null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1525: Invalid expression term ')'
@@ -850,7 +1166,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18062"), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
+        [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
         public void UsingStatementMultipleDeclarationsInvalidInitializers()
         {
             string source = @"
@@ -869,15 +1185,20 @@ class Program : IDisposable
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Program p1  ... /*</bind>*/')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'p1 =')
-    Variables: Local_1: Program p1
-    Initializer: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: Program, IsInvalid) (Syntax: '')
-        IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'p2 =/*</bind>*/')
-    Variables: Local_1: Program p2
-    Initializer: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: Program, IsInvalid) (Syntax: '')
-        IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '')
+IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'Program p1  ... /*</bind>*/')
+  Declarators:
+      IVariableDeclaratorOperation (Symbol: Program p1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'p1 =')
+        Initializer: 
+          IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '=')
+            IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
+              Children(0)
+      IVariableDeclaratorOperation (Symbol: Program p2) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'p2 =/*</bind>*/')
+        Initializer: 
+          IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '=/*</bind>*/')
+            IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
+              Children(0)
+  Initializer: 
+    null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1525: Invalid expression term ','
@@ -892,7 +1213,7 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18062"), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
+        [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
         public void UsingStatementNoInitializer()
         {
             string source = @"
@@ -911,9 +1232,13 @@ class Program : IDisposable
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Program p1')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'p1')
-    Variables: Local_1: Program p1
+IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'Program p1')
+  Declarators:
+      IVariableDeclaratorOperation (Symbol: Program p1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'p1')
+        Initializer: 
+          null
+  Initializer: 
+    null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0210: You must provide an initializer in a fixed or using statement declaration
@@ -925,7 +1250,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18062"), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
+        [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
         public void UsingStatementMultipleDeclarationsNoInitializers()
         {
             string source = @"
@@ -944,11 +1269,16 @@ class Program : IDisposable
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Program p1, p2')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'p1')
-    Variables: Local_1: Program p1
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'p2')
-    Variables: Local_1: Program p2
+IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'Program p1, p2')
+  Declarators:
+      IVariableDeclaratorOperation (Symbol: Program p1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'p1')
+        Initializer: 
+          null
+      IVariableDeclaratorOperation (Symbol: Program p2) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'p2')
+        Initializer: 
+          null
+  Initializer: 
+    null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0210: You must provide an initializer in a fixed or using statement declaration
@@ -963,7 +1293,7 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18062"), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
+        [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
         public void UsingStatementInvalidMultipleDeclarations()
         {
             string source = @"
@@ -982,12 +1312,20 @@ class Program : IDisposable
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Program p1  ... /*</bind>*/')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'p1 = new Program()')
-    Variables: Local_1: Program p1
-    Initializer: IObjectCreationExpression (Constructor: Program..ctor()) (OperationKind.ObjectCreationExpression, Type: Program) (Syntax: 'new Program()')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: '')
-    Variables: Local_1: Program 
+IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'Program p1  ... /*</bind>*/')
+  Declarators:
+      IVariableDeclaratorOperation (Symbol: Program p1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'p1 = new Program()')
+        Initializer: 
+          IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new Program()')
+            IObjectCreationOperation (Constructor: Program..ctor()) (OperationKind.ObjectCreation, Type: Program) (Syntax: 'new Program()')
+              Arguments(0)
+              Initializer: 
+                null
+      IVariableDeclaratorOperation (Symbol: Program ) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: '')
+        Initializer: 
+          null
+  Initializer: 
+    null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1001: Identifier expected
@@ -1002,7 +1340,7 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18062"), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
+        [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
         public void UsingStatementExpressionInitializer()
         {
             string source = @"
@@ -1023,10 +1361,17 @@ class Program : IDisposable
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Program p1  ... etProgram()')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'p1 = GetProgram()')
-    Variables: Local_1: Program p1
-    Initializer: IInvocationExpression (static Program Program.GetProgram()) (OperationKind.InvocationExpression, Type: Program) (Syntax: 'GetProgram()')
+IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'Program p1  ... etProgram()')
+  Declarators:
+      IVariableDeclaratorOperation (Symbol: Program p1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'p1 = GetProgram()')
+        Initializer: 
+          IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= GetProgram()')
+            IInvocationOperation (Program Program.GetProgram()) (OperationKind.Invocation, Type: Program) (Syntax: 'GetProgram()')
+              Instance Receiver: 
+                null
+              Arguments(0)
+  Initializer: 
+    null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -1034,7 +1379,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18062"), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
+        [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
         public void UsingStatementMultipleDeclarationsExpressionInitializers()
         {
             string source = @"
@@ -1055,13 +1400,24 @@ class Program : IDisposable
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Program p1  ... etProgram()')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'p1 = GetProgram()')
-    Variables: Local_1: Program p1
-    Initializer: IInvocationExpression (static Program Program.GetProgram()) (OperationKind.InvocationExpression, Type: Program) (Syntax: 'GetProgram()')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'p2 = GetProgram()')
-    Variables: Local_1: Program p2
-    Initializer: IInvocationExpression (static Program Program.GetProgram()) (OperationKind.InvocationExpression, Type: Program) (Syntax: 'GetProgram()')
+IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'Program p1  ... etProgram()')
+  Declarators:
+      IVariableDeclaratorOperation (Symbol: Program p1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'p1 = GetProgram()')
+        Initializer: 
+          IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= GetProgram()')
+            IInvocationOperation (Program Program.GetProgram()) (OperationKind.Invocation, Type: Program) (Syntax: 'GetProgram()')
+              Instance Receiver: 
+                null
+              Arguments(0)
+      IVariableDeclaratorOperation (Symbol: Program p2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'p2 = GetProgram()')
+        Initializer: 
+          IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= GetProgram()')
+            IInvocationOperation (Program Program.GetProgram()) (OperationKind.Invocation, Type: Program) (Syntax: 'GetProgram()')
+              Instance Receiver: 
+                null
+              Arguments(0)
+  Initializer: 
+    null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -1069,7 +1425,7 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18062"), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
+        [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
         public void UsingStatementLocalReferenceInitializer()
         {
             string source = @"
@@ -1089,10 +1445,14 @@ class Program : IDisposable
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Program p2 = p1')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'p2 = p1')
-    Variables: Local_1: Program p2
-    Initializer: ILocalReferenceExpression: p1 (OperationKind.LocalReferenceExpression, Type: Program) (Syntax: 'p1')
+IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'Program p2 = p1')
+  Declarators:
+      IVariableDeclaratorOperation (Symbol: Program p2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'p2 = p1')
+        Initializer: 
+          IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= p1')
+            ILocalReferenceOperation: p1 (OperationKind.LocalReference, Type: Program) (Syntax: 'p1')
+  Initializer: 
+    null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -1100,7 +1460,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18062"), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
+        [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
         public void UsingStatementMultipleDeclarationsLocalReferenceInitializers()
         {
             string source = @"
@@ -1120,13 +1480,18 @@ class Program : IDisposable
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Program p2 = p1, p3 = p1')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'p2 = p1')
-    Variables: Local_1: Program p2
-    Initializer: ILocalReferenceExpression: p1 (OperationKind.LocalReferenceExpression, Type: Program) (Syntax: 'p1')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'p3 = p1')
-    Variables: Local_1: Program p3
-    Initializer: ILocalReferenceExpression: p1 (OperationKind.LocalReferenceExpression, Type: Program) (Syntax: 'p1')
+IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'Program p2 = p1, p3 = p1')
+  Declarators:
+      IVariableDeclaratorOperation (Symbol: Program p2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'p2 = p1')
+        Initializer: 
+          IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= p1')
+            ILocalReferenceOperation: p1 (OperationKind.LocalReference, Type: Program) (Syntax: 'p1')
+      IVariableDeclaratorOperation (Symbol: Program p3) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'p3 = p1')
+        Initializer: 
+          IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= p1')
+            ILocalReferenceOperation: p1 (OperationKind.LocalReference, Type: Program) (Syntax: 'p1')
+  Initializer: 
+    null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -1138,7 +1503,7 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
         #region For Loops
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18063"), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
+        [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
         public void ForLoopDeclaration()
         {
             string source = @"
@@ -1154,10 +1519,14 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'i = 0')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i = 0')
-    Variables: Local_1: System.Int32 i
-    Initializer: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'int i = 0')
+  Declarators:
+      IVariableDeclaratorOperation (Symbol: System.Int32 i) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i = 0')
+        Initializer: 
+          IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 0')
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+  Initializer: 
+    null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -1165,7 +1534,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18063"), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
+        [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
         public void ForLoopMultipleDeclarations()
         {
             string source = @"
@@ -1180,13 +1549,18 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int i = 0, j = 0')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i = 0')
-    Variables: Local_1: System.Int32 i
-    Initializer: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'j = 0')
-    Variables: Local_1: System.Int32 j
-    Initializer: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'int i = 0, j = 0')
+  Declarators:
+      IVariableDeclaratorOperation (Symbol: System.Int32 i) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i = 0')
+        Initializer: 
+          IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 0')
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+      IVariableDeclaratorOperation (Symbol: System.Int32 j) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'j = 0')
+        Initializer: 
+          IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 0')
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+  Initializer: 
+    null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0219: The variable 'j' is assigned but its value is never used
@@ -1198,7 +1572,7 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18063"), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
+        [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
         public void ForLoopInvalidInitializer()
         {
             string source = @"
@@ -1214,11 +1588,15 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'i =/*</bind>*/')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'i =/*</bind>*/')
-    Variables: Local_1: System.Int32 i
-    Initializer: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: '')
-        IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '')
+IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'int i =/*</bind>*/')
+  Declarators:
+      IVariableDeclaratorOperation (Symbol: System.Int32 i) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'i =/*</bind>*/')
+        Initializer: 
+          IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '=/*</bind>*/')
+            IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
+              Children(0)
+  Initializer: 
+    null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1525: Invalid expression term ';'
@@ -1230,7 +1608,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18063"), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
+        [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
         public void ForLoopMultipleDeclarationsInvalidInitializers()
         {
             string source = @"
@@ -1246,15 +1624,20 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'int i =, j =/*</bind>*/')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'i =')
-    Variables: Local_1: System.Int32 i
-    Initializer: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: '')
-        IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'j =/*</bind>*/')
-    Variables: Local_1: System.Int32 j
-    Initializer: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: '')
-        IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '')
+IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'int i =, j =/*</bind>*/')
+  Declarators:
+      IVariableDeclaratorOperation (Symbol: System.Int32 i) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'i =')
+        Initializer: 
+          IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '=')
+            IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
+              Children(0)
+      IVariableDeclaratorOperation (Symbol: System.Int32 j) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'j =/*</bind>*/')
+        Initializer: 
+          IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '=/*</bind>*/')
+            IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
+              Children(0)
+  Initializer: 
+    null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1525: Invalid expression term ','
@@ -1269,7 +1652,7 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18063"), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
+        [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
         public void ForLoopNoInitializer()
         {
             string source = @"
@@ -1285,9 +1668,13 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'i')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i')
-    Variables: Local_1: System.Int32 i
+IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'int i')
+  Declarators:
+      IVariableDeclaratorOperation (Symbol: System.Int32 i) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i')
+        Initializer: 
+          null
+  Initializer: 
+    null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0165: Use of unassigned local variable 'i'
@@ -1299,7 +1686,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18063"), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
+        [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
         public void ForLoopMultipleDeclarationsNoInitializer()
         {
             string source = @"
@@ -1315,11 +1702,16 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int i, j')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i')
-    Variables: Local_1: System.Int32 i
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'j')
-    Variables: Local_1: System.Int32 j
+IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'int i, j')
+  Declarators:
+      IVariableDeclaratorOperation (Symbol: System.Int32 i) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i')
+        Initializer: 
+          null
+      IVariableDeclaratorOperation (Symbol: System.Int32 j) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'j')
+        Initializer: 
+          null
+  Initializer: 
+    null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0165: Use of unassigned local variable 'i'
@@ -1334,7 +1726,7 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18063"), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
+        [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
         public void ForLoopInvalidMultipleDeclarations()
         {
             string source = @"
@@ -1350,13 +1742,18 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'int i =,/*</bind>*/')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'i =')
-    Variables: Local_1: System.Int32 i
-    Initializer: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: '')
-        IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: '')
-    Variables: Local_1: System.Int32 
+IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'int i =,/*</bind>*/')
+  Declarators:
+      IVariableDeclaratorOperation (Symbol: System.Int32 i) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'i =')
+        Initializer: 
+          IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '=')
+            IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
+              Children(0)
+      IVariableDeclaratorOperation (Symbol: System.Int32 ) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: '')
+        Initializer: 
+          null
+  Initializer: 
+    null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1525: Invalid expression term ','
@@ -1371,7 +1768,7 @@ IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclaratio
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18063"), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
+        [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
         public void ForLoopExpressionInitializer()
         {
             string source = @"
@@ -1389,10 +1786,17 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'i = GetInt()')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i = GetInt()')
-    Variables: Local_1: System.Int32 i
-    Initializer: IInvocationExpression (static System.Int32 Program.GetInt()) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'GetInt()')
+IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'int i = GetInt()')
+  Declarators:
+      IVariableDeclaratorOperation (Symbol: System.Int32 i) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i = GetInt()')
+        Initializer: 
+          IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= GetInt()')
+            IInvocationOperation (System.Int32 Program.GetInt()) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'GetInt()')
+              Instance Receiver: 
+                null
+              Arguments(0)
+  Initializer: 
+    null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -1400,7 +1804,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18063"), WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
+        [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
         public void ForLoopMultipleDeclarationsExpressionInitializers()
         {
             string source = @"
@@ -1418,13 +1822,24 @@ class Program
 }
 ";
             string expectedOperationTree = @"
- IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int i = Get ...  = GetInt()')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i = GetInt()')
-    Variables: Local_1: System.Int32 i
-    Initializer: IInvocationExpression (static System.Int32 Program.GetInt()) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'GetInt()')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'j = GetInt()')
-    Variables: Local_1: System.Int32 j
-    Initializer: IInvocationExpression (static System.Int32 Program.GetInt()) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'GetInt()')
+IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'int i = Get ...  = GetInt()')
+  Declarators:
+      IVariableDeclaratorOperation (Symbol: System.Int32 i) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i = GetInt()')
+        Initializer: 
+          IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= GetInt()')
+            IInvocationOperation (System.Int32 Program.GetInt()) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'GetInt()')
+              Instance Receiver: 
+                null
+              Arguments(0)
+      IVariableDeclaratorOperation (Symbol: System.Int32 j) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'j = GetInt()')
+        Initializer: 
+          IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= GetInt()')
+            IInvocationOperation (System.Int32 Program.GetInt()) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'GetInt()')
+              Instance Receiver: 
+                null
+              Arguments(0)
+  Initializer: 
+    null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -1449,10 +1864,15 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'const int i1 = 1;')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1 = 1')
-    Variables: Local_1: System.Int32 i1
-    Initializer: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'const int i1 = 1;')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'int i1 = 1')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Int32 i1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i1 = 1')
+          Initializer: 
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 1')
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+    Initializer: 
+      null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0219: The variable 'i1' is assigned but its value is never used
@@ -1480,13 +1900,19 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'const int i ...  1, i2 = 2;')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1 = 1')
-    Variables: Local_1: System.Int32 i1
-    Initializer: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i2 = 2')
-    Variables: Local_1: System.Int32 i2
-    Initializer: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
+IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'const int i ...  1, i2 = 2;')
+  IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'int i1 = 1, i2 = 2')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Int32 i1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i1 = 1')
+          Initializer: 
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 1')
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+        IVariableDeclaratorOperation (Symbol: System.Int32 i2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i2 = 2')
+          Initializer: 
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 2')
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+    Initializer: 
+      null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0219: The variable 'i1' is assigned but its value is never used
@@ -1514,11 +1940,16 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'const int i1 = ;')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'i1 = ')
-    Variables: Local_1: System.Int32 i1
-    Initializer: IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
-        Children(0)
+IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'const int i1 = ;')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'int i1 = ')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Int32 i1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'i1 = ')
+          Initializer: 
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= ')
+              IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
+                Children(0)
+    Initializer: 
+      null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1525: Invalid expression term ';'
@@ -1543,15 +1974,21 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'const int i1 = , i2 = ;')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'i1 = ')
-    Variables: Local_1: System.Int32 i1
-    Initializer: IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
-        Children(0)
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'i2 = ')
-    Variables: Local_1: System.Int32 i2
-    Initializer: IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: '')
-        Children(0)
+IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'const int i1 = , i2 = ;')
+  IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'int i1 = , i2 = ')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Int32 i1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'i1 = ')
+          Initializer: 
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= ')
+              IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
+                Children(0)
+        IVariableDeclaratorOperation (Symbol: System.Int32 i2) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'i2 = ')
+          Initializer: 
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= ')
+              IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
+                Children(0)
+    Initializer: 
+      null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1525: Invalid expression term ','
@@ -1579,10 +2016,14 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'const int i1;')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'i1')
-    Variables: Local_1: System.Int32 i1
-    Initializer: null
+IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'const int i1;')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'int i1')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Int32 i1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'i1')
+          Initializer: 
+            null
+    Initializer: 
+      null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0145: A const field requires a value to be provided
@@ -1598,7 +2039,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
-        public void ConstLocalMutlipleDeclarationsNoInitializers()
+        public void ConstLocalMultipleDeclarationsNoInitializers()
         {
             string source = @"
 class Program
@@ -1610,13 +2051,17 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'const int i1, i2;')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'i1')
-    Variables: Local_1: System.Int32 i1
-    Initializer: null
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'i2')
-    Variables: Local_1: System.Int32 i2
-    Initializer: null
+IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'const int i1, i2;')
+  IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'int i1, i2')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Int32 i1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'i1')
+          Initializer: 
+            null
+        IVariableDeclaratorOperation (Symbol: System.Int32 i2) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'i2')
+          Initializer: 
+            null
+    Initializer: 
+      null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0145: A const field requires a value to be provided
@@ -1650,13 +2095,17 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'const int i1,;')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'i1')
-    Variables: Local_1: System.Int32 i1
-    Initializer: null
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: '')
-    Variables: Local_1: System.Int32 
-    Initializer: null
+IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'const int i1,;')
+  IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'int i1,')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Int32 i1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'i1')
+          Initializer: 
+            null
+        IVariableDeclaratorOperation (Symbol: System.Int32 ) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: '')
+          Initializer: 
+            null
+    Initializer: 
+      null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0145: A const field requires a value to be provided
@@ -1692,12 +2141,18 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'const int i1 = GetInt();')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'i1 = GetInt()')
-    Variables: Local_1: System.Int32 i1
-    Initializer: IInvocationExpression (System.Int32 Program.GetInt()) (OperationKind.InvocationExpression, Type: System.Int32, IsInvalid) (Syntax: 'GetInt()')
-        Instance Receiver: null
-        Arguments(0)
+IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'const int i1 = GetInt();')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'int i1 = GetInt()')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Int32 i1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'i1 = GetInt()')
+          Initializer: 
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= GetInt()')
+              IInvocationOperation (System.Int32 Program.GetInt()) (OperationKind.Invocation, Type: System.Int32, IsInvalid) (Syntax: 'GetInt()')
+                Instance Receiver: 
+                  null
+                Arguments(0)
+    Initializer: 
+      null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0133: The expression being assigned to 'i1' must be constant
@@ -1724,17 +2179,25 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'const int i ... = GetInt();')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'i1 = GetInt()')
-    Variables: Local_1: System.Int32 i1
-    Initializer: IInvocationExpression (System.Int32 Program.GetInt()) (OperationKind.InvocationExpression, Type: System.Int32, IsInvalid) (Syntax: 'GetInt()')
-        Instance Receiver: null
-        Arguments(0)
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'i2 = GetInt()')
-    Variables: Local_1: System.Int32 i2
-    Initializer: IInvocationExpression (System.Int32 Program.GetInt()) (OperationKind.InvocationExpression, Type: System.Int32, IsInvalid) (Syntax: 'GetInt()')
-        Instance Receiver: null
-        Arguments(0)
+IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'const int i ... = GetInt();')
+  IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'int i1 = Ge ...  = GetInt()')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Int32 i1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'i1 = GetInt()')
+          Initializer: 
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= GetInt()')
+              IInvocationOperation (System.Int32 Program.GetInt()) (OperationKind.Invocation, Type: System.Int32, IsInvalid) (Syntax: 'GetInt()')
+                Instance Receiver: 
+                  null
+                Arguments(0)
+        IVariableDeclaratorOperation (Symbol: System.Int32 i2) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'i2 = GetInt()')
+          Initializer: 
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= GetInt()')
+              IInvocationOperation (System.Int32 Program.GetInt()) (OperationKind.Invocation, Type: System.Int32, IsInvalid) (Syntax: 'GetInt()')
+                Instance Receiver: 
+                  null
+                Arguments(0)
+    Initializer: 
+      null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0133: The expression being assigned to 'i1' must be constant
@@ -1765,10 +2228,15 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'const int i1 = i;')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1 = i')
-    Variables: Local_1: System.Int32 i1
-    Initializer: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32, Constant: 1) (Syntax: 'i')
+IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'const int i1 = i;')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'int i1 = i')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Int32 i1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i1 = i')
+          Initializer: 
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= i')
+              ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32, Constant: 1) (Syntax: 'i')
+    Initializer: 
+      null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0219: The variable 'i1' is assigned but its value is never used
@@ -1796,13 +2264,19 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (2 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'const int i ... i, i2 = i1;')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i1 = i')
-    Variables: Local_1: System.Int32 i1
-    Initializer: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32, Constant: 1) (Syntax: 'i')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'i2 = i1')
-    Variables: Local_1: System.Int32 i2
-    Initializer: ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Int32, Constant: 1) (Syntax: 'i1')
+IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'const int i ... i, i2 = i1;')
+  IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'int i1 = i, i2 = i1')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: System.Int32 i1) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i1 = i')
+          Initializer: 
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= i')
+              ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32, Constant: 1) (Syntax: 'i')
+        IVariableDeclaratorOperation (Symbol: System.Int32 i2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i2 = i1')
+          Initializer: 
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= i1')
+              ILocalReferenceOperation: i1 (OperationKind.LocalReference, Type: System.Int32, Constant: 1) (Syntax: 'i1')
+    Initializer: 
+      null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0219: The variable 'i2' is assigned but its value is never used

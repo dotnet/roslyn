@@ -79,6 +79,8 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             public bool ReturnsByRefReadonly => _symbol.ReturnsByRefReadonly;
 
+            public RefKind RefKind => _symbol.RefKind;
+
             public ITypeSymbol ReturnType => _symbol.ReturnType;
 
             public ImmutableArray<AttributeData> GetReturnTypeAttributes()

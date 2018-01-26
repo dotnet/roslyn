@@ -2084,21 +2084,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend NotOverridable Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData
             Get
-                ' If there are no attributes then this symbol is not Obsolete.
-                If Not GetAttributeDeclarations().Any() Then
-                    Return Nothing
-                End If
-
-                If m_lazyCustomAttributesBag Is Nothing Then
-                    Return ObsoleteAttributeData.Uninitialized
-                End If
-
-                If m_lazyCustomAttributesBag.IsEarlyDecodedWellKnownAttributeDataComputed Then
-                    Dim data = DirectCast(m_lazyCustomAttributesBag.EarlyDecodedWellKnownAttributeData, TypeEarlyWellKnownAttributeData)
+                Dim lazyCustomAttributesBag = m_lazyCustomAttributesBag
+                If lazyCustomAttributesBag IsNot Nothing AndAlso lazyCustomAttributesBag.IsEarlyDecodedWellKnownAttributeDataComputed Then
+                    Dim data = DirectCast(lazyCustomAttributesBag.EarlyDecodedWellKnownAttributeData, CommonTypeEarlyWellKnownAttributeData)
                     Return If(data IsNot Nothing, data.ObsoleteAttributeData, Nothing)
-                Else
-                    Return ObsoleteAttributeData.Uninitialized
                 End If
+
+                For Each decl In TypeDeclaration.Declarations
+                    If decl.HasAnyAttributes Then
+                        Return ObsoleteAttributeData.Uninitialized
+                    End If
+                Next
+
+                Return Nothing
             End Get
         End Property
 
@@ -2281,7 +2279,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Overrides ReadOnly Property IsExplicitDefinitionOfNoPiaLocalType As Boolean
             Get
                 If _lazyIsExplicitDefinitionOfNoPiaLocalType = ThreeState.Unknown Then
-                    GetAttributes()
+                    CheckPresenceOfTypeIdentifierAttribute()
+
                     If _lazyIsExplicitDefinitionOfNoPiaLocalType = ThreeState.Unknown Then
                         _lazyIsExplicitDefinitionOfNoPiaLocalType = ThreeState.False
                     End If
@@ -2291,6 +2290,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return _lazyIsExplicitDefinitionOfNoPiaLocalType = ThreeState.True
             End Get
         End Property
+
+        Private Sub CheckPresenceOfTypeIdentifierAttribute()
+
+            ' We want this function to be as cheap as possible, it is called for every top level type
+            ' and we don't want to bind attributes attached to the declaration unless there is a chance
+            ' that one of them is TypeIdentifier attribute.
+            Dim attributeLists As ImmutableArray(Of SyntaxList(Of AttributeListSyntax)) = GetAttributeDeclarations()
+
+            For Each list As SyntaxList(Of AttributeListSyntax) In attributeLists
+                Dim sourceFile = ContainingSourceModule.TryGetSourceFile(list.Node.SyntaxTree)
+
+                For Each attrList As AttributeListSyntax In list
+                    For Each attr As AttributeSyntax In attrList.Attributes
+                        If (sourceFile.QuickAttributeChecker.CheckAttribute(attr) And QuickAttributes.TypeIdentifier) <> 0 Then
+                            ' This attribute syntax might be an application of TypeIdentifierAttribute.
+                            ' Let's bind it.
+                            ' For simplicity we bind all attributes.
+                            GetAttributes()
+                            Return
+                        End If
+                    Next
+                Next
+            Next
+        End Sub
 
         Private Function FindDefaultEvent(eventName As String) As Boolean
             Dim current As NamedTypeSymbol = Me

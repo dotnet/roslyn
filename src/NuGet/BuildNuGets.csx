@@ -132,6 +132,10 @@ string[] NonRedistPackageNames = {
     "Microsoft.NETCore.Compilers",
     "Microsoft.VisualStudio.IntegrationTest.Utilities",
     "Microsoft.VisualStudio.LanguageServices.Razor.RemoteClient",
+
+    // Right now there is no public surface area in this assembly, and the expectation is it will be able to go away
+    // as the editor continues to refactor its surface area better.
+    "Microsoft.CodeAnalysis.EditorFeatures.Wpf"
 };
 
 string[] TestPackageNames = {
@@ -143,15 +147,31 @@ string[] TestPackageNames = {
 // or they will not be published anywhere at all
 var PreReleaseOnlyPackages = new HashSet<string>
 {
+    // Contains the compiler build task, but Microsoft.NET.Compilers
+    // should be preferred. Used to construct a standalone compiler for
+    // dotnet CLI.
     "Microsoft.CodeAnalysis.Build.Tasks",
+    
+    "Microsoft.CodeAnalysis.CSharp.CodeStyle",
+    "Microsoft.CodeAnalysis.VisualBasic.CodeStyle",
     "Microsoft.CodeAnalysis.VisualBasic.Scripting",
+    
+    // Only contains exes. Only used for insertion into dotnet CLI
     "Microsoft.Net.Compilers.netcore",
+    
+    // C# Interactive on CoreCLR is pre-release
     "Microsoft.Net.CSharp.Interactive.netcore",
+    
+    // Pre-release package, API and structure not finalized
     "Microsoft.NETCore.Compilers",
+    
     "Microsoft.CodeAnalysis.Remote.Razor.ServiceHub",
     "Microsoft.CodeAnalysis.Remote.ServiceHub",
     "Microsoft.CodeAnalysis.Remote.Workspaces",
+    
+    // Only used in Roslyn testing code
     "Microsoft.CodeAnalysis.Test.Resources.Proprietary",
+    
     "Microsoft.VisualStudio.IntegrationTest.Utilities",
     "Microsoft.VisualStudio.LanguageServices.Razor.RemoteClient",
     "Microsoft.CodeAnalysis.PooledObjects",

@@ -12,6 +12,8 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Extensions;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -223,7 +225,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         private static void AppendOperationTree(SemanticModel model, SyntaxNode node, StringBuilder actualTextBuilder, int initialIndent = 0)
         {
-            IOperation operation = model.GetOperationInternal(node);
+            IOperation operation = model.GetOperation(node);
             if (operation != null)
             {
                 string operationTree = OperationTreeVerifier.GetOperationTree(model.Compilation, operation, initialIndent);
@@ -251,5 +253,76 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
+        public static void ValidateIOperations(Func<Compilation> createCompilation)
+        {
+#if TEST_IOPERATION_INTERFACE
+            var compilation = createCompilation();
+            var roots = ArrayBuilder<IOperation>.GetInstance();
+            var stopWatch = new Stopwatch();
+            if (!System.Diagnostics.Debugger.IsAttached)
+            {
+                stopWatch.Start();
+            }
+
+            void checkTimeout()
+            {
+                const int timeout = 10000;
+                Assert.False(stopWatch.ElapsedMilliseconds > timeout, "ValidateIOperations took too long");
+            }
+
+            foreach (var tree in compilation.SyntaxTrees)
+            {
+                var semanticModel = compilation.GetSemanticModel(tree);
+                var root = tree.GetRoot();
+
+                foreach (var node in root.DescendantNodesAndSelf())
+                {
+                    checkTimeout();
+
+                    var operation = semanticModel.GetOperation(node);
+                    if (operation != null)
+                    {
+                        // Make sure IOperation returned by GetOperation(syntaxnode) will have same syntaxnode as the given syntaxnode(IOperation.Syntax == syntaxnode).
+                        Assert.True(node == operation.Syntax, $"Expected : {node} - Actual : {operation.Syntax}");
+
+                        Assert.True(operation.Type == null || !operation.MustHaveNullType(), $"Unexpected non-null type: {operation.Type}");
+
+                        if (operation.Parent == null)
+                        {
+                            roots.Add(operation);
+                        }
+                    }
+                }
+            }
+
+            var explictNodeMap = new Dictionary<SyntaxNode, IOperation>();
+            var visitor = TestOperationVisitor.GetInstance();
+
+            foreach (var root in roots)
+            {
+                foreach (var operation in root.DescendantsAndSelf())
+                {
+                    checkTimeout();
+
+                    if (!operation.IsImplicit)
+                    {
+                        try
+                        {
+                            explictNodeMap.Add(operation.Syntax, operation);
+                        }
+                        catch (ArgumentException)
+                        {
+                            Assert.False(true, $"Duplicate explicit node for syntax ({operation.Syntax.RawKind}): {operation.Syntax.ToString()}");
+                        }
+                    }
+                    
+                    visitor.Visit(operation);
+                }
+            }
+
+            roots.Free();
+            stopWatch.Stop();
+#endif
+        }
     }
 }

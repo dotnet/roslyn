@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -575,6 +576,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.FieldAccess:
                     return true;
 
+                case BoundKind.ConditionalOperator:
+                    return ((BoundConditionalOperator)receiver).IsRef;
+
                 case BoundKind.Call:
                     return ((BoundCall)receiver).Method.RefKind == RefKind.Ref;
             }
@@ -584,25 +588,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void CheckRefReadOnlySymbols(MethodSymbol symbol)
         {
-            var foundRefReadOnly = false;
-
-            if (symbol.ReturnsByRefReadonly)
-            {
-                foundRefReadOnly = true;
-            }
-            else
-            {
-                foreach (var parameter in symbol.Parameters)
-                {
-                    if (parameter.RefKind == RefKind.RefReadOnly)
-                    {
-                        foundRefReadOnly = true;
-                        break;
-                    }
-                }
-            }
-
-            if (foundRefReadOnly)
+            if (symbol.ReturnsByRefReadonly ||
+                symbol.Parameters.Any(p => p.RefKind == RefKind.In))
             {
                 _factory.CompilationState.ModuleBuilderOpt?.EnsureIsReadOnlyAttributeExists();
             }

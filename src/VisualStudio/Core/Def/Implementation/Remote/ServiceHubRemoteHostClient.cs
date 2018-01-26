@@ -2,9 +2,11 @@
 
 using System;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -90,9 +92,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     workspace, primary.Logger, await RequestServiceAsync(primary, WellKnownServiceHubServices.SnapshotService, hostGroup, timeout, cancellationToken).ConfigureAwait(false));
                 client = new ServiceHubRemoteHostClient(workspace, primary, hostGroup, new ReferenceCountedDisposable<RemotableDataJsonRpc>(remotableDataRpc), remoteHostStream);
 
+                var uiCultureLCID = CultureInfo.CurrentUICulture.LCID;
+                var cultureLCID = CultureInfo.CurrentCulture.LCID;
+
                 // make sure connection is done right
                 var host = await client._rpc.InvokeWithCancellationAsync<string>(
-                    nameof(IRemoteHostService.Connect), new object[] { current, TelemetryService.DefaultSession.SerializeSettings() }, cancellationToken).ConfigureAwait(false);
+                    nameof(IRemoteHostService.Connect), new object[] { current, uiCultureLCID, cultureLCID, TelemetryService.DefaultSession.SerializeSettings() }, cancellationToken).ConfigureAwait(false);
 
                 return client;
             }
@@ -301,27 +306,46 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         {
             const int retry_delayInMS = 50;
 
-            var start = DateTime.UtcNow;
-            while (DateTime.UtcNow - start < timeout)
+            using (var pooledStopwatch = SharedPools.Default<Stopwatch>().GetPooledObject())
             {
-                cancellationToken.ThrowIfCancellationRequested();
+                var watch = pooledStopwatch.Object;
+                watch.Start();
 
-                try
+                while (watch.Elapsed < timeout)
                 {
-                    return await funcAsync().ConfigureAwait(false);
-                }
-                catch (TException)
-                {
-                    // throw cancellation token if operation is cancelled
                     cancellationToken.ThrowIfCancellationRequested();
-                }
 
-                // wait for retry_delayInMS before next try
-                await Task.Delay(retry_delayInMS, cancellationToken).ConfigureAwait(false);
+                    try
+                    {
+                        return await funcAsync().ConfigureAwait(false);
+                    }
+                    catch (TException)
+                    {
+                        // throw cancellation token if operation is cancelled
+                        cancellationToken.ThrowIfCancellationRequested();
+                    }
+
+                    // wait for retry_delayInMS before next try
+                    await Task.Delay(retry_delayInMS, cancellationToken).ConfigureAwait(false);
+
+                    ReportTimeout(watch);
+                }
             }
 
             // operation timed out, more than we are willing to wait
-            throw new TimeoutException("RequestServiceAsync timed out");
+            RemoteHostCrashInfoBar.ShowInfoBar();
+
+            // user didn't ask for cancellation, but we can't fullfill this request. so we
+            // create our own cancellation token and then throw it. this doesn't guarantee
+            // 100% that we won't crash, but this is at least safest way we know until user
+            // restart VS (with info bar)
+            using (var ownCancellationSource = new CancellationTokenSource())
+            {
+                ownCancellationSource.Cancel();
+                ownCancellationSource.Token.ThrowIfCancellationRequested();
+            }
+
+            throw ExceptionUtilities.Unreachable;
         }
 
         private static async Task<Stream> RequestServiceAsync(
@@ -381,5 +405,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             // unreachable
             throw ExceptionUtilities.Unreachable;
         }
+
+        #region code related to make diagnosis easier later
+
+        private static readonly TimeSpan s_reportTimeout = TimeSpan.FromMinutes(10);
+        private static bool s_timeoutReported = false;
+
+        private static void ReportTimeout(Stopwatch watch)
+        {
+            // if we tried for 10 min and still couldn't connect. NFW (non fatal watson) some data
+            if (!s_timeoutReported && watch.Elapsed > s_reportTimeout)
+            {
+                s_timeoutReported = true;
+
+                // report service hub logs along with dump
+                (new Exception("RequestServiceAsync Timeout")).ReportServiceHubNFW("RequestServiceAsync Timeout");
+            }
+        }
+        #endregion
     }
 }

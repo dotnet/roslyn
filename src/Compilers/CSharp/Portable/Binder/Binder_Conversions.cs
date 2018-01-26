@@ -584,10 +584,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (invokedAsExtensionMethod)
                 {
-                    if (receiverOpt?.Kind == BoundKind.QueryClause && IsMemberAccessedThroughType(receiverOpt))
+                    if (IsMemberAccessedThroughType(receiverOpt))
                     {
-                        // Could not find an implementation of the query pattern for source type '{0}'.  '{1}' not found.
-                        diagnostics.Add(ErrorCode.ERR_QueryNoProvider, node.Location, receiverOpt.Type, memberSymbol.Name);
+                        if (receiverOpt.Kind == BoundKind.QueryClause)
+                        {
+                            // Could not find an implementation of the query pattern for source type '{0}'.  '{1}' not found.
+                            diagnostics.Add(ErrorCode.ERR_QueryNoProvider, node.Location, receiverOpt.Type, memberSymbol.Name);
+                        }
+                        else
+                        {
+                            // An object reference is required for the non-static field, method, or property '{0}'
+                            diagnostics.Add(ErrorCode.ERR_ObjectRequired, node.Location, memberSymbol);
+                        }
                         return true;
                     }
                 }
@@ -740,10 +748,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             for (int i = 0; i < numParams; i++)
             {
-                var delegateParameterType = delegateParameters[i].Type;
-                var methodParameterType = methodParameters[isExtensionMethod ? i + 1 : i].Type;
+                var delegateParameter = delegateParameters[i];
+                var methodParameter = methodParameters[isExtensionMethod ? i + 1 : i];
 
-                if (!Conversions.HasIdentityOrImplicitReferenceConversion(delegateParameterType, methodParameterType, ref useSiteDiagnostics))
+                if (delegateParameter.RefKind != methodParameter.RefKind ||
+                    !Conversions.HasIdentityOrImplicitReferenceConversion(delegateParameter.Type, methodParameter.Type, ref useSiteDiagnostics))
                 {
                     // No overload for '{0}' matches delegate '{1}'
                     Error(diagnostics, ErrorCode.ERR_MethDelegateMismatch, errorLocation, method, delegateType);
@@ -752,14 +761,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (delegateMethod.ReturnsByRef != method.ReturnsByRef)
+            if (delegateMethod.RefKind != method.RefKind)
             {
                 Error(diagnostics, ErrorCode.ERR_DelegateRefMismatch, errorLocation, method, delegateType);
                 diagnostics.Add(errorLocation, useSiteDiagnostics);
                 return false;
             }
 
-            bool returnsMatch = delegateMethod.ReturnsByRef?
+            bool returnsMatch = delegateMethod.RefKind != RefKind.None ?
                                     // - Return types identity-convertible
                                     Conversions.HasIdentityConversion(method.ReturnType, delegateMethod.ReturnType):
                                     // - Return types "match"

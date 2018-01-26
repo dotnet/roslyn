@@ -47,6 +47,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 DeclarationModifiers.Static |
                 syntax.Modifiers.ToDeclarationModifiers(diagnostics: _declarationDiagnostics);
 
+            this.CheckUnsafeModifier(_declarationModifiers, _declarationDiagnostics);
+
             ScopeBinder = binder;
 
             binder = binder.WithUnsafeRegionIfNecessary(syntax.Modifiers);
@@ -199,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override RefKind RefKind => _refKind;
+        public override RefKind RefKind => _refKind;
         
         internal void ComputeReturnType()
         {

@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             string source,
             string expectedOutput = null,
             CSharpCompilationOptions options = null,
-            bool verify = true)
+            Verification verify = Verification.Passes)
         {
             return CompileAndVerify(
                 source,
@@ -65,7 +65,7 @@ class Program
 }
 ";
 
-            CompileAndVerifyRef(text, verify: false).VerifyIL("Program.M(ref int)", @"
+            CompileAndVerifyRef(text, verify: Verification.Skipped).VerifyIL("Program.M(ref int)", @"
 {
   // Code size        2 (0x2)
   .maxstack  1
@@ -88,7 +88,7 @@ class Program
 }
 ";
 
-            CompileAndVerifyRef(text, verify: false).VerifyIL("Program.M(out int)", @"
+            CompileAndVerifyRef(text, verify: Verification.Fails).VerifyIL("Program.M(out int)", @"
 {
   // Code size        5 (0x5)
   .maxstack  2
@@ -115,7 +115,7 @@ class Program
 }
 ";
 
-            CompileAndVerifyRef(text, verify: false).VerifyIL("Program.M(ref int)", @"
+            CompileAndVerifyRef(text, verify: Verification.Fails).VerifyIL("Program.M(ref int)", @"
 {
   // Code size        5 (0x5)
   .maxstack  3
@@ -268,7 +268,7 @@ class Program3
 }
 ";
 
-            var compilation = CompileAndVerifyRef(text, verify: false);
+            var compilation = CompileAndVerifyRef(text, verify: Verification.Passes);
             compilation.VerifyIL("Program.M()", @"
 {
   // Code size        7 (0x7)
@@ -460,7 +460,7 @@ class Program3
 }
 ";
 
-            var compilation = CompileAndVerifyRef(text, verify: false);
+            var compilation = CompileAndVerifyRef(text, verify: Verification.Passes);
             compilation.VerifyIL("Program.M()", @"
 {
   // Code size        8 (0x8)
@@ -723,7 +723,7 @@ class Program2
 }
 ";
 
-            var compilation = CompileAndVerifyRef(text, verify: false);
+            var compilation = CompileAndVerifyRef(text, verify: Verification.Fails);
             compilation.VerifyIL("Program2.M(ref Program)", @"
 {
   // Code size        7 (0x7)
@@ -1261,7 +1261,7 @@ class Program
 }
 ";
 
-            CompileAndVerifyRef(text, options: TestOptions.UnsafeReleaseDll).VerifyIL("Program.Main()", @"
+            CompileAndVerifyRef(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).VerifyIL("Program.Main()", @"
 {
   // Code size      291 (0x123)
   .maxstack  4
@@ -1450,7 +1450,7 @@ class Program
 }
 ";
 
-            CompileAndVerifyRef(text, options: TestOptions.UnsafeReleaseDll).VerifyIL("Program.Main()", @"
+            CompileAndVerifyRef(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).VerifyIL("Program.Main()", @"
 {
   // Code size      168 (0xa8)
   .maxstack  4
@@ -1601,7 +1601,7 @@ class Program
 }
 ";
 
-            CompileAndVerify(text, parseOptions: TestOptions.Regular, expectedOutput: "42", verify: false).VerifyIL("Program.M()", @"
+            CompileAndVerify(text, parseOptions: TestOptions.Regular, expectedOutput: "42", verify: Verification.Fails).VerifyIL("Program.M()", @"
 {
   // Code size       26 (0x1a)
   .maxstack  5
@@ -1674,7 +1674,7 @@ class Program
 }
 ";
 
-            CompileAndVerify(text, parseOptions: TestOptions.Regular, expectedOutput: "42", verify: false).VerifyIL("Program.M()", @"
+            CompileAndVerify(text, parseOptions: TestOptions.Regular, expectedOutput: "42", verify: Verification.Fails).VerifyIL("Program.M()", @"
 {
   // Code size       36 (0x24)
   .maxstack  5
@@ -1860,7 +1860,7 @@ struct Mutable : IDisposable
 }
 ";
 
-            CompileAndVerifyRef(text, expectedOutput: "12", verify: false)
+            CompileAndVerifyRef(text, expectedOutput: "12", verify: Verification.Fails)
                 .VerifyIL("Program.C1<T>.Test()", @"
 {
   // Code size      115 (0x73)
@@ -1958,7 +1958,7 @@ struct Mutable : IDisposable
 }
 ";
 
-            CompileAndVerifyRef(text, expectedOutput: "1234", verify: false)
+            CompileAndVerifyRef(text, expectedOutput: "1234", verify: Verification.Fails)
                 .VerifyIL("Program.C1<T>.Test()", @"
 {
   // Code size      129 (0x81)
@@ -2063,7 +2063,7 @@ class Goo : IGoo<Goo>
 }
 ";
 
-            CompileAndVerifyRef(text, expectedOutput: "1True", verify: false)
+            CompileAndVerifyRef(text, expectedOutput: "1True", verify: Verification.Fails)
                 .VerifyIL("Program.C1<T>.Test()", @"
 {
   // Code size       84 (0x54)
@@ -2161,7 +2161,7 @@ class Goo : IGoo<Goo>
 }
 ";
 
-            CompileAndVerifyRef(text, expectedOutput: "1TrueTrue1TrueTrueTrueTrue1TrueTrue", verify: false)
+            CompileAndVerifyRef(text, expectedOutput: "1TrueTrue1TrueTrueTrueTrue1TrueTrue", verify: Verification.Fails)
                 .VerifyIL("Program.C1<T>.Test()", @"
 {
   // Code size      215 (0xd7)
@@ -2912,7 +2912,7 @@ public class C
 
             var comp = CreateCompilationWithMscorlib45AndCSruntime(source, options: TestOptions.ReleaseExe);
 
-            var v = CompileAndVerify(comp, verify: false, expectedOutput: "2");
+            var v = CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: "2");
 
             v.VerifyIL("C.F(ref dynamic)", @"
 {
@@ -3009,7 +3009,7 @@ public class C
             return temp1;
         }
 
-        public static ref dynamic F1(ref readonly int arg1, ref dynamic d, ref readonly int arg2)
+        public static ref dynamic F1(in int arg1, ref dynamic d, in int arg2)
         {
             if (arg1 == arg2) throw null;
 
@@ -3025,7 +3025,7 @@ public class C
 
             var comp = CreateCompilationWithMscorlib45AndCSruntime(source, options: TestOptions.ReleaseExe);
 
-            var v = CompileAndVerify(comp, verify: false, expectedOutput: "2");
+            var v = CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: "2");
         }
 
         [Fact]
@@ -3390,7 +3390,7 @@ class Program
 }
 ";
 
-            CompileAndVerify(source, parseOptions: TestOptions.Regular, expectedOutput: "Base", verify: true);
+            CompileAndVerify(source, parseOptions: TestOptions.Regular, expectedOutput: "Base", verify: Verification.Passes);
         }
 
         [Fact]
@@ -3481,7 +3481,7 @@ class Program
 
 ";
 
-            CompileAndVerify(source, parseOptions: TestOptions.Regular, expectedOutput: "Program+RefFunc1`2[Derived2,Derived1]", verify: true);
+            CompileAndVerify(source, parseOptions: TestOptions.Regular, expectedOutput: "Program+RefFunc1`2[Derived2,Derived1]", verify: Verification.Passes);
         }
 
         [Fact]
@@ -3522,7 +3522,7 @@ class Program
 ";
 
             CompileAndVerify(source, parseOptions: TestOptions.Regular, expectedOutput: @"System.Func`2[Derived1,Base]
-Program+RefFunc1`2[Derived1,Base]", verify: true);
+Program+RefFunc1`2[Derived1,Base]", verify: Verification.Passes);
         }
 
     }

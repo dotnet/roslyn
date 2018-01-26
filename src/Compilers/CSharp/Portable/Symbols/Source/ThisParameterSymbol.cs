@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (ContainingType.IsReadOnly)
                 {
-                    return RefKind.RefReadOnly;
+                    return RefKind.In;
                 }
 
                 return RefKind.Ref;

@@ -311,7 +311,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ConWithValCon = 456,
         ERR_AmbigUDConv = 457,
         WRN_AlwaysNull = 458,
-        ERR_AddrOnReadOnlyLocal = 459,
+        // ERR_AddrOnReadOnlyLocal = 459, // no longer an error
         ERR_OverrideWithConstraints = 460,
         ERR_AmbigOverride = 462,
         ERR_DecConstError = 463,
@@ -1232,7 +1232,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_FixedBufferTooManyDimensions = 7092,
         ERR_CantReadConfigFile = 7093,
         ERR_BadAwaitInCatchFilter = 7094,
-        WRN_FilterIsConstant = 7095,
+        WRN_FilterIsConstantTrue = 7095,
         ERR_EncNoPIAReference = 7096,
         //ERR_EncNoDynamicOperation = 7097,   // dynamic operations are now allowed
         ERR_LinkedNetmoduleMetadataMustProvideFullPEImage = 7098,
@@ -1294,7 +1294,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_EncodinglessSyntaxTree = 8055,
         // ERR_AccessorListAndExpressionBody = 8056, Deprecated in favor of ERR_BlockBodyAndExpressionBody
         ERR_BlockBodyAndExpressionBody = 8057,
-        ERR_FeatureIsExperimental = 8058,
+        //ERR_FeatureIsExperimental = 8058, No experimental feature
         ERR_FeatureNotAvailableInVersion6 = 8059,
         // available 8062-8069
         ERR_SwitchFallOut = 8070,
@@ -1487,7 +1487,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadOpOnNullOrDefault = 8310,
         ERR_BadDynamicMethodArgDefaultLiteral = 8311,
         ERR_DefaultLiteralNotValid = 8312,
-        WRN_DefaultInSwitch = 8313,
+        ERR_DefaultInSwitch = 8313,
         ERR_PatternWrongGenericTypeInVersion = 8314,
         ERR_AmbigBinaryOpsOnDefault = 8315,
 
@@ -1516,8 +1516,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ExplicitReservedAttr = 8335,
         ERR_TypeReserved = 8336,
         ERR_RefExtensionMustBeValueTypeOrConstrainedToOne = 8337,
-        ERR_RefReadOnlyExtensionMustBeValueType = 8338,
-        ERR_BadParameterModifiersOrder = 8339,
+        ERR_InExtensionMustBeValueType = 8338,
+        // ERR_BadParameterModifiersOrder = 8339, // Modifier ordering is relaxed
 
         ERR_FieldsInRoStruct = 8340,
         ERR_AutoPropsInRoStruct = 8341,
@@ -1536,6 +1536,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_EscapeLocal = 8352,
         ERR_EscapeStackAlloc = 8353,
         ERR_RefReturnThis = 8354,
+        ERR_OutAttrOnInParam = 8355,
         #endregion diagnostics introduced for `ref readonly`, `ref ternary` and `ref-like` features in C# 7.2
+
+        ERR_PredefinedValueTupleTypeAmbiguous3 = 8356,
+        ERR_InvalidVersionFormatDeterministic = 8357,
+
+        ERR_AttributeCtorInParameter = 8358,
+
+        #region diagnostics for FilterIsConstant warning message fix
+        WRN_FilterIsConstantFalse = 8359,
+        WRN_FilterIsConstantFalseRedundantTryCatch = 8360,
+        #endregion diagnostics for FilterIsConstant warning message fix
+
+        ERR_ConditionalInInterpolation = 8361,
+        ERR_CantUseVoidInArglist = 8362,
+        ERR_DefaultInPattern = 8363,
+        ERR_InDynamicMethodArg = 8364,
     }
 }

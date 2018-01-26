@@ -64,7 +64,7 @@ class C7 : A<string>.B<object> { }";
             var allTypes = compilation.GlobalNamespace.GetTypeMembers();
 
             // Get base class for each type named "C?".
-            var types = new[] { "C1", "C2", "C3", "C4", "C5", "C6", "C7" }.Select(name => allTypes.First(t => t.Name == name).BaseType).ToArray();
+            var types = new[] { "C1", "C2", "C3", "C4", "C5", "C6", "C7" }.Select(name => allTypes.First(t => t.Name == name).BaseType()).ToArray();
             foreach (var type in types)
             {
                 var constructedFrom = type.ConstructedFrom;

@@ -134,9 +134,18 @@ function Ensure-NuGet() {
 }
 
 # Ensure the proper SDK in installed in our %PATH%. This is how MSBuild locates the 
-# SDK.
-function Ensure-SdkInPathAndData() { 
+# SDK. Returns the location to the dotnet exe
+function Ensure-DotnetSdk() {
+
+    # Check to see if the specified dotnet installations meets our build requirements
+    function Test-DotnetDir([string]$dotnetDir, [string]$runtimeVersion, [string]$sdkVersion) {
+        $sdkPath = Join-Path $dotnetDir "sdk\$sdkVersion"
+        $runtimePath = Join-Path $dotnetDir "shared\Microsoft.NETCore.App\$runtimeVersion"
+        return (Test-Path $sdkPath) -and (Test-Path $runtimePath)
+    }
+
     $sdkVersion = Get-ToolVersion "dotnetSdk"
+    $runtimeVersion = Get-ToolVersion "dotnetRuntime"
 
     # Get the path to dotnet.exe. This is the first path on %PATH% that contains the 
     # dotnet.exe instance. Many SDK tools use this to locate items like the SDK.
@@ -153,21 +162,15 @@ function Ensure-SdkInPathAndData() {
 
     # First check that dotnet is already on the path with the correct SDK version
     $dotnetDir = Get-DotnetDir
-    if ($dotnetDir -ne $null) { 
-        $sdkPath = Join-Path $dotnetDir "sdk\$sdkVersion"
-        if (Test-Path $sdkPath) {
-            Write-Output (Join-Path $dotnetDir "dotnet.exe")
-            Write-Output $sdkPath
-            return        
-        }
+    if (($dotnetDir -ne $null) -and (Test-DotnetDir $dotnetDir $runtimeVersion $sdkVersion)) { 
+        return (Join-Path $dotnetDir "dotnet.exe")
     }
 
     # Ensure the downloaded dotnet of the appropriate version is located in the 
     # Binaries\Tools directory
     $toolsDir = Join-Path $binariesDir "Tools"
     $cliDir = Join-Path $toolsDir "dotnet"
-    $dotnetExe = Join-Path $cliDir "dotnet.exe"
-    if (-not (Test-Path $dotnetExe)) { 
+    if (-not (Test-DotnetDir $cliDir $runtimeVersion $sdkVersion)) {
         Write-Host "Downloading CLI $sdkVersion"
         Create-Directory $cliDir
         Create-Directory $toolsDir
@@ -175,20 +178,10 @@ function Ensure-SdkInPathAndData() {
         $webClient = New-Object -TypeName "System.Net.WebClient"
         $webClient.DownloadFile("https://dot.net/v1/dotnet-install.ps1", $destFile)
         Exec-Block { & $destFile -Version $sdkVersion -InstallDir $cliDir } | Out-Null
+        Exec-Block { & $destFile -Version $runtimeVersion -SharedRuntime -InstallDir $cliDir } | Out-Null
     }
 
-    ${env:PATH} = "$cliDir;${env:PATH}"
-    $sdkPath = Join-Path $cliDir "sdk\$sdkVersion"
-    Write-Host $dotnetExe
-    Write-Host $sdkPath
-    return
-}
-
-# Ensure the proper SDK in installed in our %PATH%. This is how MSBuild locates the 
-# SDK.
-function Ensure-SdkInPath() { 
-    $dotnet, $sdkDir = Ensure-SdkInPathAndData
-    return
+    return (Join-Path $cliDir "dotnet.exe")
 }
 
 # Ensure a basic tool used for building our Repo is installed and 
@@ -198,10 +191,12 @@ function Ensure-BasicTool([string]$name, [string]$version = "") {
         $version = Get-PackageVersion $name
     }
 
-    $p = Join-Path (Get-PackagesDir) "$($name).$($version)"
+    $p = Join-Path (Get-PackagesDir) "$($name)\$($version)"
     if (-not (Test-Path $p)) {
-        $nuget = Ensure-NuGet
-        Exec-Block { & $nuget install $name -OutputDirectory (Get-PackagesDir) -Version $version } | Out-Null
+        $toolsetProject = Join-Path $repoDir "build\ToolsetPackages\RoslynToolset.csproj"
+        $dotnet = Ensure-DotnetSdk
+        Write-Host "Downloading $name"
+        Restore-Project $dotnet $toolsetProject
     }
     
     return $p
@@ -222,7 +217,7 @@ function Ensure-MSBuild([switch]$xcopy = $false) {
     }
 
     $p = Join-Path $msbuildDir "msbuild.exe"
-    Ensure-SdkInPath
+    $dotnetExe = Ensure-DotnetSdk
     return $p
 }
 
@@ -396,54 +391,50 @@ function Get-VisualStudioDir() {
 
 # Clear out the NuGet package cache
 function Clear-PackageCache() {
-    $nuget = Ensure-NuGet
-    Exec-Block { & $nuget locals all -clear } | Out-Host
+    $dotnet = Ensure-DotnetSdk
+    Exec-Console $dotnet "nuget locals all --clear"
 }
 
 # Restore a single project
-function Restore-Project([string]$fileName, [string]$nuget, [string]$msbuildDir) {
+function Restore-Project([string]$dotnetExe, [string]$projectFileName) {
     $nugetConfig = Join-Path $repoDir "nuget.config"
 
-    $filePath = $fileName
-    if (-not (Test-Path $filePath)) {
-        $filePath = Join-Path $repoDir $fileName
+    $projectFilePath = $projectFileName
+    if (-not (Test-Path $projectFilePath)) {
+        $projectFilePath = Join-Path $repoDir $projectFileName
     }
 
-    Exec-Block { & $nuget restore -verbosity quiet -configfile $nugetConfig -MSBuildPath $msbuildDir -Project2ProjectTimeOut 1200 $filePath } | Write-Host
+    Exec-Console $dotnet "restore --verbosity quiet --configfile $nugetConfig $projectFilePath"
 }
 
 # Restore all of the projects that the repo consumes
-function Restore-Packages([string]$msbuildDir = "", [string]$project = "") {
-    $nuget = Ensure-NuGet
-    if ($msbuildDir -eq "") {
-        $msbuildDir = Get-MSBuildDir
+function Restore-Packages([string]$dotnetExe = "", [string]$project = "") {
+    if ($dotnetExe -eq "") { 
+        $dotnetExe = Ensure-DotnetSdk
     }
 
-    Write-Host "Restore using MSBuild at $msbuildDir"
+    Write-Host "Restore using dotnet at $dotnetExe"
 
     if ($project -ne "") {
         Write-Host "Restoring project $project"
-        Restore-Project -fileName $project -msbuildDir $msbuildDir -nuget $nuget
+        Restore-Project $dotnetExe $project
     }
     else {
         $all = @(
-            "Base Toolset:build\ToolsetPackages\BaseToolset.csproj",
-            "CoreClr Toolset:build\ToolsetPackages\CoreToolset.csproj",
+            "Roslyn Toolset:build\ToolsetPackages\RoslynToolset.csproj",
             "Roslyn:Roslyn.sln",
-            "Samples:src\Samples\Samples.sln",
-            "Templates:src\Setup\Templates\Templates.sln",
             "DevDivInsertionFiles:src\Setup\DevDivInsertionFiles\DevDivInsertionFiles.sln")
 
         foreach ($cur in $all) {
             $both = $cur.Split(':')
             Write-Host "Restoring $($both[0])"
-            Restore-Project -fileName $both[1] -msbuildDir $msbuildDir -nuget $nuget
+            Restore-Project $dotnetExe $both[1]
         }
     }
 }
 
 # Restore all of the projects that the repo consumes
-function Restore-All([string]$msbuildDir = "") {
-    Restore-Packages -msbuildDir $msbuildDir
+function Restore-All([string]$dotnetExe = "") {
+    Restore-Packages -dotnetExe $dotnetExe
 }
 

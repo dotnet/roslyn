@@ -2815,6 +2815,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("error CS1013: Invalid number", errors[0].ToString(EnsureEnglishUICulture.PreferredOrNull));
             Assert.Equal(text, token.Text);
 
+            text = "0x_2_";
+            token = LexToken(text, _options72);
+
+            Assert.NotNull(token);
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
+            errors = token.Errors();
+            Assert.Equal(1, errors.Length);
+            Assert.Equal((int)ErrorCode.ERR_InvalidNumber, errors[0].Code);
+            Assert.Equal("error CS1013: Invalid number", errors[0].ToString(EnsureEnglishUICulture.PreferredOrNull));
+            Assert.Equal(text, token.Text);
+
             text = "1E+_2";
             token = LexToken(text, _options72);
 

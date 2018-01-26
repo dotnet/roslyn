@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -226,9 +227,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     diagnostics.Add(ErrorCode.ERR_RefExtensionMustBeValueTypeOrConstrainedToOne, location, Name);
                 }
-                else if (parameter0RefKind == RefKind.RefReadOnly && parameter0Type.TypeKind != TypeKind.Struct)
+                else if (parameter0RefKind == RefKind.In && parameter0Type.TypeKind != TypeKind.Struct)
                 {
-                    diagnostics.Add(ErrorCode.ERR_RefReadOnlyExtensionMustBeValueType, location, Name);
+                    diagnostics.Add(ErrorCode.ERR_InExtensionMustBeValueType, location, Name);
                 }
                 else if ((object)ContainingType.ContainingType != null)
                 {
@@ -546,7 +547,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override RefKind RefKind
+        public override RefKind RefKind
         {
             get
             {
@@ -994,6 +995,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             base.ForceComplete(locationOpt, cancellationToken);
+        }
+
+        internal override bool IsDefinedInSourceTree(
+            SyntaxTree tree,
+            TextSpan? definedWithinSpan,
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
+            // Since only the declaring (and not the implementing) part of a partial method appears in the member
+            // list, we need to ensure we complete the implementation part when needed.
+            return
+                base.IsDefinedInSourceTree(tree, definedWithinSpan, cancellationToken) ||
+                this.SourcePartialImplementation?.IsDefinedInSourceTree(tree, definedWithinSpan, cancellationToken) == true;
         }
 
         internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, DiagnosticBag diagnostics)

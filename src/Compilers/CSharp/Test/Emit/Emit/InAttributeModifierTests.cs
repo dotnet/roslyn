@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
             var reference = CreateStandardCompilation(@"
 public class TestRef
 {
-    public void M(ref readonly int p)
+    public void M(in int p)
     {
         System.Console.WriteLine(p);
     }
@@ -96,7 +96,7 @@ public class Test
             var reference = CreateStandardCompilation(@"
 public class TestRef
 {
-    public int this[ref readonly int p]
+    public int this[in int p]
     {
         set { System.Console.WriteLine(p); }
     }
@@ -145,7 +145,7 @@ public class Test
         public void InAttributeModReqIsConsumedInRefCustomModifiersPosition_Delegates_Parameters()
         {
             var reference = CreateStandardCompilation(@"
-public delegate void D(ref readonly int p);
+public delegate void D(in int p);
 ");
 
             var code = @"
@@ -153,7 +153,7 @@ public class Test
 {
     public static void Main()
     {
-        Process((ref readonly int p) => System.Console.WriteLine(p));
+        Process((in int p) => System.Console.WriteLine(p));
     }
 
     private static void Process(D func)
@@ -506,7 +506,7 @@ public class Test
 {
     public static void Main()
     {
-        Process((ref readonly int p) => System.Console.WriteLine(p));
+        Process((in int p) => System.Console.WriteLine(p));
     }
 
     private static void Process(D func)
@@ -619,9 +619,9 @@ public class Test
 }";
 
             CreateStandardCompilation(code, references: new[] { reference }).VerifyDiagnostics(
-                // (8,13): error CS0570: 'TestRef.M(ref readonly ?)' is not supported by the language
+                // (8,13): error CS0570: 'TestRef.M(in ?)' is not supported by the language
                 //         obj.M(value);
-                Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("TestRef.M(ref readonly ?)").WithLocation(8, 13));
+                Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("TestRef.M(in ?)").WithLocation(8, 13));
         }
 
         [Fact]
@@ -805,9 +805,9 @@ public class Test
 }";
 
             CreateStandardCompilation(code, references: new[] { reference }).VerifyDiagnostics(
-                // (8,9): error CS1546: Property, indexer, or event 'TestRef.this[ref readonly ?]' is not supported by the language; try directly calling accessor method 'TestRef.set_Item(ref readonly ?, ?)'
+                // (8,9): error CS1546: Property, indexer, or event 'TestRef.this[in ?]' is not supported by the language; try directly calling accessor method 'TestRef.set_Item(in ?, ?)'
                 //         obj[value] = 0;
-                Diagnostic(ErrorCode.ERR_BindToBogusProp1, "obj[value]").WithArguments("TestRef.this[ref readonly ?]", "TestRef.set_Item(ref readonly ?, ?)").WithLocation(8, 9));
+                Diagnostic(ErrorCode.ERR_BindToBogusProp1, "obj[value]").WithArguments("TestRef.this[in ?]", "TestRef.set_Item(in ?, ?)").WithLocation(8, 9));
 
             code = @"
 public class Test
@@ -821,9 +821,9 @@ public class Test
 }";
 
             CreateStandardCompilation(code, references: new[] { reference }).VerifyDiagnostics(
-                // (8,13): error CS0570: 'TestRef.set_Item(ref readonly ?, ?)' is not supported by the language
+                // (8,13): error CS0570: 'TestRef.set_Item(in ?, ?)' is not supported by the language
                 //         obj.set_Item(value, 0);
-                Diagnostic(ErrorCode.ERR_BindToBogus, "set_Item").WithArguments("TestRef.set_Item(ref readonly ?, ?)").WithLocation(8, 13));
+                Diagnostic(ErrorCode.ERR_BindToBogus, "set_Item").WithArguments("TestRef.set_Item(in ?, ?)").WithLocation(8, 13));
         }
 
         [Fact]
@@ -945,7 +945,7 @@ public class Test
 {
     public static void Main()
     {
-        Process((ref readonly int p) => System.Console.WriteLine(p));
+        Process((in int p) => System.Console.WriteLine(p));
     }
 
     private static void Process(D func)
@@ -956,12 +956,12 @@ public class Test
 }";
 
             CreateStandardCompilation(code, references: new[] { reference }).VerifyDiagnostics(
-                // (6,17): error CS0570: 'D.Invoke(ref readonly ?)' is not supported by the language
-                //         Process((ref readonly int p) => System.Console.WriteLine(p));
-                Diagnostic(ErrorCode.ERR_BindToBogus, "(ref readonly int p) => System.Console.WriteLine(p)").WithArguments("D.Invoke(ref readonly ?)").WithLocation(6, 17),
-                // (12,9): error CS0570: 'D.Invoke(ref readonly ?)' is not supported by the language
+                // (6,17): error CS0570: 'D.Invoke(in ?)' is not supported by the language
+                //         Process((in int p) => System.Console.WriteLine(p));
+                Diagnostic(ErrorCode.ERR_BindToBogus, "(in int p) => System.Console.WriteLine(p)").WithArguments("D.Invoke(in ?)").WithLocation(6, 17),
+                // (12,9): error CS0570: 'D.Invoke(in ?)' is not supported by the language
                 //         func(value);
-                Diagnostic(ErrorCode.ERR_BindToBogus, "func(value)").WithArguments("D.Invoke(ref readonly ?)").WithLocation(12, 9));
+                Diagnostic(ErrorCode.ERR_BindToBogus, "func(value)").WithArguments("D.Invoke(in ?)").WithLocation(12, 9));
         }
 
         [Fact]
@@ -1024,7 +1024,7 @@ public class Test
         }
 
         [Fact]
-        public void OtherModReqsAreNotAllowedOnRefCustomModifiersForRefReadOnlySignatures_Methods_Parameters()
+        public void OtherModReqsAreNotAllowedOnRefCustomModifiersForInSignatures_Methods_Parameters()
         {
             var ilSource = IsReadOnlyAttributeIL + @"
 .class public auto ansi beforefieldinit TestRef
@@ -1206,7 +1206,7 @@ public class Test
         }
 
         [Fact]
-        public void OtherModReqsAreNotAllowedOnRefCustomModifiersForRefReadOnlySignatures_Indexers_Parameters()
+        public void OtherModReqsAreNotAllowedOnRefCustomModifiersForInSignatures_Indexers_Parameters()
         {
             var ilSource = IsReadOnlyAttributeIL + @"
 .class public auto ansi beforefieldinit TestRef
@@ -1356,7 +1356,7 @@ public class Test
         }
 
         [Fact]
-        public void OtherModReqsAreNotAllowedOnRefCustomModifiersForRefReadOnlySignatures_Delegates_Parameters()
+        public void OtherModReqsAreNotAllowedOnRefCustomModifiersForInSignatures_Delegates_Parameters()
         {
             var ilSource = IsReadOnlyAttributeIL + @"
 .class public auto ansi sealed D
@@ -1396,7 +1396,7 @@ public class Test
 {
     public static void Main()
     {
-        Process((ref readonly int p) => System.Console.WriteLine(p));
+        Process((in int p) => System.Console.WriteLine(p));
     }
 
     private static void Process(D func)
@@ -1408,8 +1408,8 @@ public class Test
 
             CreateStandardCompilation(code, references: new[] { reference }).VerifyDiagnostics(
                 // (6,17): error CS0570: 'D.Invoke(?)' is not supported by the language
-                //         Process((ref readonly int p) => System.Console.WriteLine(p));
-                Diagnostic(ErrorCode.ERR_BindToBogus, "(ref readonly int p) => System.Console.WriteLine(p)").WithArguments("D.Invoke(?)").WithLocation(6, 17),
+                //         Process((in int p) => System.Console.WriteLine(p));
+                Diagnostic(ErrorCode.ERR_BindToBogus, "(in int p) => System.Console.WriteLine(p)").WithArguments("D.Invoke(?)").WithLocation(6, 17),
                 // (12,9): error CS0570: 'D.Invoke(?)' is not supported by the language
                 //         func(value);
                 Diagnostic(ErrorCode.ERR_BindToBogus, "func(value)").WithArguments("D.Invoke(?)").WithLocation(12, 9));
@@ -1485,13 +1485,13 @@ namespace System
 }
 class Test
 {
-    public virtual void M(ref readonly object x) { }
+    public virtual void M(in object x) { }
 }";
 
             CreateCompilation(code).VerifyDiagnostics(
                 // (9,27): error CS0518: Predefined type 'System.Runtime.InteropServices.InAttribute' is not defined or imported
-                //     public virtual void M(ref readonly object x) { }
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "ref readonly object x").WithArguments("System.Runtime.InteropServices.InAttribute").WithLocation(9, 27));
+                //     public virtual void M(in object x) { }
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "in object x").WithArguments("System.Runtime.InteropServices.InAttribute").WithLocation(9, 27));
         }
 
         [Fact]
@@ -1547,13 +1547,13 @@ namespace System
 }
 class Test
 {
-    public virtual object this[ref readonly object p] => null;
+    public virtual object this[in object p] => null;
 }";
 
             CreateCompilation(code).VerifyDiagnostics(
                 // (9,32): error CS0518: Predefined type 'System.Runtime.InteropServices.InAttribute' is not defined or imported
-                //     public virtual object this[ref readonly object p] => null;
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "ref readonly object p").WithArguments("System.Runtime.InteropServices.InAttribute").WithLocation(9, 32));
+                //     public virtual object this[in object p] => null;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "in object p").WithArguments("System.Runtime.InteropServices.InAttribute").WithLocation(9, 32));
         }
 
         [Fact]
@@ -1590,12 +1590,12 @@ namespace System
     public class Delegate {}
     public class MulticastDelegate : Delegate {}
 }
-public delegate void D(ref readonly int p);";
+public delegate void D(in int p);";
 
             CreateCompilation(code).VerifyDiagnostics(
                 // (11,24): error CS0518: Predefined type 'System.Runtime.InteropServices.InAttribute' is not defined or imported
-                // public delegate void D(ref readonly int p);
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "ref readonly int p").WithArguments("System.Runtime.InteropServices.InAttribute").WithLocation(11, 24));
+                // public delegate void D(in int p);
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "in int p").WithArguments("System.Runtime.InteropServices.InAttribute").WithLocation(11, 24));
         }
 
         [Fact]
@@ -1620,12 +1620,12 @@ public delegate ref readonly int D();";
         }
 
         [Fact]
-        public void InAttributeIsWrittenOnRefReadOnlyMembers_Methods_Parameters_Virtual()
+        public void InAttributeIsWrittenOnInMembers_Methods_Parameters_Virtual()
         {
             var code = @"
 class Test
 {
-    public virtual void Method(ref readonly int x) { }
+    public virtual void Method(in int x) { }
 }";
 
             Action<ModuleSymbol> validator = module =>
@@ -1636,16 +1636,16 @@ class Test
                 AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             };
 
-            CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
+            CompileAndVerify(code, verify: Verification.Passes, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
-        public void InAttributeIsWrittenOnRefReadOnlyMembers_Methods_Parameters_Abstract()
+        public void InAttributeIsWrittenOnInMembers_Methods_Parameters_Abstract()
         {
             var code = @"
 abstract class Test
 {
-    public abstract void Method(ref readonly int x);
+    public abstract void Method(in int x);
 }";
 
             Action<ModuleSymbol> validator = module =>
@@ -1656,7 +1656,7 @@ abstract class Test
                 AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             };
 
-            CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
+            CompileAndVerify(code, verify: Verification.Passes, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
@@ -1677,7 +1677,7 @@ class Test
                 AssertSingleInAttributeRequiredModifier(method.RefCustomModifiers);
             };
 
-            CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
+            CompileAndVerify(code, verify: Verification.Passes, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
@@ -1697,7 +1697,7 @@ abstract class Test
                 AssertSingleInAttributeRequiredModifier(method.RefCustomModifiers);
             };
 
-            CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
+            CompileAndVerify(code, verify: Verification.Passes, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
@@ -1718,7 +1718,7 @@ class Test
                 AssertSingleInAttributeRequiredModifier(method.RefCustomModifiers);
             };
 
-            CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
+            CompileAndVerify(code, verify: Verification.Passes, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
@@ -1739,7 +1739,7 @@ class Test
                 AssertSingleInAttributeRequiredModifier(method.RefCustomModifiers);
             };
 
-            CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
+            CompileAndVerify(code, verify: Verification.Passes, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
@@ -1760,7 +1760,7 @@ class Test
                 AssertSingleInAttributeRequiredModifier(property.RefCustomModifiers);
             };
 
-            CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
+            CompileAndVerify(code, verify: Verification.Passes, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
@@ -1780,7 +1780,7 @@ abstract class Test
                 AssertSingleInAttributeRequiredModifier(property.RefCustomModifiers);
             };
 
-            CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
+            CompileAndVerify(code, verify: Verification.Passes, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
@@ -1801,7 +1801,7 @@ class Test
                 AssertSingleInAttributeRequiredModifier(property.RefCustomModifiers);
             };
 
-            CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
+            CompileAndVerify(code, verify: Verification.Passes, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
@@ -1822,16 +1822,16 @@ class Test
                 AssertSingleInAttributeRequiredModifier(property.RefCustomModifiers);
             };
 
-            CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
+            CompileAndVerify(code, verify: Verification.Passes, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
-        public void InAttributeIsWrittenOnRefReadOnlyMembers_Indexers_Parameters_Virtual()
+        public void InAttributeIsWrittenOnInMembers_Indexers_Parameters_Virtual()
         {
             var code = @"
 class Test
 {
-    public virtual int this[ref readonly int x] => x;
+    public virtual int this[in int x] => x;
 }";
 
             Action<ModuleSymbol> validator = module =>
@@ -1842,16 +1842,16 @@ class Test
                 AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             };
 
-            CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
+            CompileAndVerify(code, verify: Verification.Passes, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
-        public void InAttributeIsWrittenOnRefReadOnlyMembers_Indexers_Parameters_Abstract()
+        public void InAttributeIsWrittenOnInMembers_Indexers_Parameters_Abstract()
         {
             var code = @"
 abstract class Test
 {
-    public abstract int this[ref readonly int x] { get; }
+    public abstract int this[in int x] { get; }
 }";
 
             Action<ModuleSymbol> validator = module =>
@@ -1862,7 +1862,7 @@ abstract class Test
                 AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             };
 
-            CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
+            CompileAndVerify(code, verify: Verification.Passes, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
@@ -1883,7 +1883,7 @@ class Test
                 AssertSingleInAttributeRequiredModifier(indexer.RefCustomModifiers);
             };
 
-            CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
+            CompileAndVerify(code, verify: Verification.Passes, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
@@ -1904,7 +1904,7 @@ abstract class Test
                 AssertSingleInAttributeRequiredModifier(indexer.RefCustomModifiers);
             };
 
-            CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
+            CompileAndVerify(code, verify: Verification.Passes, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
@@ -1925,13 +1925,13 @@ class Test
                 AssertSingleInAttributeRequiredModifier(indexer.RefCustomModifiers);
             };
 
-            CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
+            CompileAndVerify(code, verify: Verification.Passes, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
-        public void InAttributeIsWrittenOnRefReadOnlyMembers_Delegates_Parameters()
+        public void InAttributeIsWrittenOnInMembers_Delegates_Parameters()
         {
-            var code = "public delegate void D(ref readonly int p);";
+            var code = "public delegate void D(in int p);";
 
             Action<ModuleSymbol> validator = module =>
             {
@@ -1950,7 +1950,7 @@ class Test
                 AssertSingleInAttributeRequiredModifier(endInvokeParameter.RefCustomModifiers);
             };
 
-            CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
+            CompileAndVerify(code, verify: Verification.Passes, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
@@ -1971,16 +1971,16 @@ class Test
                 AssertSingleInAttributeRequiredModifier(endInvokeMethod.RefCustomModifiers);
             };
 
-            CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
+            CompileAndVerify(code, verify: Verification.Passes, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
-        public void InAttributeIsNotWrittenOnRefReadOnlyMembers_Methods_Parameters_NoModifiers()
+        public void InAttributeIsNotWrittenOnInMembers_Methods_Parameters_NoModifiers()
         {
             var code = @"
 class Test
 {
-    public void Method(ref readonly int x) { }
+    public void Method(in int x) { }
 }";
 
             Action<ModuleSymbol> validator = module =>
@@ -1991,16 +1991,16 @@ class Test
                 Assert.Empty(parameter.RefCustomModifiers);
             };
 
-            CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
+            CompileAndVerify(code, verify: Verification.Passes, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
-        public void InAttributeIsNotWrittenOnRefReadOnlyMembers_Methods_Parameters_Static()
+        public void InAttributeIsNotWrittenOnInMembers_Methods_Parameters_Static()
         {
             var code = @"
 class Test
 {
-    public static void Method(ref readonly int x) { }
+    public static void Method(in int x) { }
 }";
 
             Action<ModuleSymbol> validator = module =>
@@ -2011,16 +2011,16 @@ class Test
                 Assert.Empty(parameter.RefCustomModifiers);
             };
 
-            CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
+            CompileAndVerify(code, verify: Verification.Passes, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
-        public void InAttributeIsNotWrittenOnRefReadOnlyMembers_Indexers_Parameters_NoModifiers()
+        public void InAttributeIsNotWrittenOnInMembers_Indexers_Parameters_NoModifiers()
         {
             var code = @"
 class Test
 {
-    public int this[ref readonly int x] => x;
+    public int this[in int x] => x;
 }";
 
             Action<ModuleSymbol> validator = module =>
@@ -2031,7 +2031,7 @@ class Test
                 Assert.Empty(parameter.RefCustomModifiers);
             };
 
-            CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
+            CompileAndVerify(code, verify: Verification.Passes, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
@@ -2040,7 +2040,7 @@ class Test
             var code = @"
 public class Test
 {
-    public static bool operator!(ref readonly Test obj) => false;
+    public static bool operator!(in Test obj) => false;
 }";
 
             Action<ModuleSymbol> validator = module =>
@@ -2051,7 +2051,7 @@ public class Test
                 Assert.Empty(parameter.RefCustomModifiers);
             };
 
-            CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
+            CompileAndVerify(code, verify: Verification.Passes, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
@@ -2060,7 +2060,7 @@ public class Test
             var code = @"
 public class Test
 {
-    public static bool operator+(ref readonly Test obj1, ref readonly Test obj2) => false;
+    public static bool operator+(in Test obj1, in Test obj2) => false;
 }";
 
             Action<ModuleSymbol> validator = module =>
@@ -2075,7 +2075,7 @@ public class Test
                 Assert.Empty(parameters[1].RefCustomModifiers);
             };
 
-            CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
+            CompileAndVerify(code, verify: Verification.Passes, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
@@ -2084,7 +2084,7 @@ public class Test
             var code = @"
 public class Test
 {
-    public Test(ref readonly int x) { }
+    public Test(in int x) { }
 }";
 
             Action<ModuleSymbol> validator = module =>
@@ -2095,7 +2095,7 @@ public class Test
                 Assert.Empty(parameter.RefCustomModifiers);
             };
 
-            CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
+            CompileAndVerify(code, verify: Verification.Passes, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
@@ -2392,7 +2392,7 @@ public class Test
 {
     public static void Main()
     {
-        Process((ref readonly int p) => System.Console.WriteLine(p));
+        Process((in int p) => System.Console.WriteLine(p));
     }
 
     private static void Process(D func)
@@ -2404,8 +2404,8 @@ public class Test
 
             CreateStandardCompilation(code, references: new[] { CompileIL(ilSource) }).VerifyDiagnostics(
                 // (6,17): error CS0570: 'D.Invoke(ref int)' is not supported by the language
-                //         Process((ref readonly int p) => System.Console.WriteLine(p));
-                Diagnostic(ErrorCode.ERR_BindToBogus, "(ref readonly int p) => System.Console.WriteLine(p)").WithArguments("D.Invoke(ref int)").WithLocation(6, 17),
+                //         Process((in int p) => System.Console.WriteLine(p));
+                Diagnostic(ErrorCode.ERR_BindToBogus, "(in int p) => System.Console.WriteLine(p)").WithArguments("D.Invoke(ref int)").WithLocation(6, 17),
                 // (12,9): error CS0570: 'D.Invoke(ref int)' is not supported by the language
                 //         func(value);
                 Diagnostic(ErrorCode.ERR_BindToBogus, "func(value)").WithArguments("D.Invoke(ref int)").WithLocation(12, 9));
@@ -2470,7 +2470,7 @@ public class Test
             var reference = CreateStandardCompilation(@"
 public abstract class Parent
 {
-    public abstract void M(ref readonly int p);
+    public abstract void M(in int p);
 }");
 
             CompileAndVerify(reference, symbolValidator: module =>
@@ -2485,7 +2485,7 @@ public abstract class Parent
             var code = @"
 public class Child : Parent
 {
-    public override void M(ref readonly int p)
+    public override void M(in int p)
     {
         System.Console.WriteLine(p);
     }
@@ -2518,7 +2518,7 @@ public class Program
             var reference = CreateStandardCompilation(@"
 public class Parent
 {
-    public virtual void M(ref readonly int p) {}
+    public virtual void M(in int p) {}
 }");
 
             CompileAndVerify(reference, symbolValidator: module =>
@@ -2533,7 +2533,7 @@ public class Parent
             var code = @"
 public class Child : Parent
 {
-    public override void M(ref readonly int p)
+    public override void M(in int p)
     {
         System.Console.WriteLine(p);
     }
@@ -2565,7 +2565,7 @@ public class Program
             var reference = CreateStandardCompilation(@"
 public interface Parent
 {
-    void M(ref readonly int p);
+    void M(in int p);
 }");
 
             CompileAndVerify(reference, symbolValidator: module =>
@@ -2580,7 +2580,7 @@ public interface Parent
             var code = @"
 public class Child : Parent
 {
-    public void M(ref readonly int p)
+    public void M(in int p)
     {
         System.Console.WriteLine(p);
     }
@@ -2603,7 +2603,7 @@ public class Program
                 Assert.Empty(implicitParameter.RefCustomModifiers);
 
                 var explicitImplementation = type.GetMethod("Parent.M");
-                Assert.Equal("void Parent.M(ref readonly modreq(System.Runtime.InteropServices.InAttribute) System.Int32 p)", explicitImplementation.ExplicitInterfaceImplementations.Single().ToTestDisplayString());
+                Assert.Equal("void Parent.M(in modreq(System.Runtime.InteropServices.InAttribute) System.Int32 p)", explicitImplementation.ExplicitInterfaceImplementations.Single().ToTestDisplayString());
 
                 var explicitParameter = explicitImplementation.Parameters.Single();
                 Assert.Empty(explicitParameter.CustomModifiers);
@@ -2620,7 +2620,7 @@ public class Program
             var reference = CreateStandardCompilation(@"
 public interface Parent
 {
-    void M(ref readonly int p);
+    void M(in int p);
 }");
 
             CompileAndVerify(reference, symbolValidator: module =>
@@ -2635,7 +2635,7 @@ public interface Parent
             var code = @"
 public class Child : Parent
 {
-    public virtual void M(ref readonly int p)
+    public virtual void M(in int p)
     {
         System.Console.WriteLine(p);
     }
@@ -2668,7 +2668,7 @@ public class Program
             var reference = CreateStandardCompilation(@"
 public interface Parent
 {
-    void M(ref readonly int p);
+    void M(in int p);
 }");
 
             CompileAndVerify(reference, symbolValidator: module =>
@@ -2683,7 +2683,7 @@ public interface Parent
             var code = @"
 public class Child : Parent
 {
-    void Parent.M(ref readonly int p)
+    void Parent.M(in int p)
     {
         System.Console.WriteLine(p);
     }
@@ -3169,7 +3169,7 @@ public class Program
             var reference = CreateStandardCompilation(@"
 public abstract class Parent
 {
-    public abstract int this[ref readonly int p] { set; }
+    public abstract int this[in int p] { set; }
 }");
 
             CompileAndVerify(reference, symbolValidator: module =>
@@ -3184,7 +3184,7 @@ public abstract class Parent
             var code = @"
 public class Child : Parent
 {
-    public override int this[ref readonly int p]
+    public override int this[in int p]
     {
         set { System.Console.WriteLine(p); }
     }
@@ -3217,7 +3217,7 @@ public class Program
             var reference = CreateStandardCompilation(@"
 public class Parent
 {
-    public virtual int this[ref readonly int p] { set { } }
+    public virtual int this[in int p] { set { } }
 }");
 
             CompileAndVerify(reference, symbolValidator: module =>
@@ -3232,7 +3232,7 @@ public class Parent
             var code = @"
 public class Child : Parent
 {
-    public override int this[ref readonly int p]
+    public override int this[in int p]
     {
         set { System.Console.WriteLine(p); }
     }
@@ -3265,7 +3265,7 @@ public class Program
             var reference = CreateStandardCompilation(@"
 public interface Parent
 {
-    int this[ref readonly int p] { set; }
+    int this[in int p] { set; }
 }");
 
             CompileAndVerify(reference, symbolValidator: module =>
@@ -3280,7 +3280,7 @@ public interface Parent
             var code = @"
 public class Child : Parent
 {
-    public int this[ref readonly int p]
+    public int this[in int p]
     {
         set { System.Console.WriteLine(p); }
     }
@@ -3303,7 +3303,7 @@ public class Program
                 Assert.Empty(implicitParameter.RefCustomModifiers);
 
                 var explicitImplementation = type.GetMethod("Parent.set_Item");
-                Assert.Equal("void Parent.this[ref readonly modreq(System.Runtime.InteropServices.InAttribute) System.Int32 p].set", explicitImplementation.ExplicitInterfaceImplementations.Single().ToTestDisplayString());
+                Assert.Equal("void Parent.this[in modreq(System.Runtime.InteropServices.InAttribute) System.Int32 p].set", explicitImplementation.ExplicitInterfaceImplementations.Single().ToTestDisplayString());
 
                 var explicitParameter = explicitImplementation.Parameters.First();
                 Assert.Empty(explicitParameter.CustomModifiers);
@@ -3320,7 +3320,7 @@ public class Program
             var reference = CreateStandardCompilation(@"
 public interface Parent
 {
-    int this[ref readonly int p] { set; }
+    int this[in int p] { set; }
 }");
 
             CompileAndVerify(reference, symbolValidator: module =>
@@ -3335,7 +3335,7 @@ public interface Parent
             var code = @"
 public class Child : Parent
 {
-    public virtual int this[ref readonly int p]
+    public virtual int this[in int p]
     {
         set { System.Console.WriteLine(p); }
     }
@@ -3368,7 +3368,7 @@ public class Program
             var reference = CreateStandardCompilation(@"
 public interface Parent
 {
-    int this[ref readonly int p] { set; }
+    int this[in int p] { set; }
 }");
 
             CompileAndVerify(reference, symbolValidator: module =>
@@ -3383,7 +3383,7 @@ public interface Parent
             var code = @"
 public class Child : Parent
 {
-    int Parent.this[ref readonly int p]
+    int Parent.this[in int p]
     {
         set { System.Console.WriteLine(p); }
     }
@@ -3643,7 +3643,7 @@ public class Program
         [Fact]
         public void CreatingLambdasOfDelegatesWithModifiersCanBeExecuted_Parameters()
         {
-            var reference = CreateStandardCompilation("public delegate void D(ref readonly int p);");
+            var reference = CreateStandardCompilation("public delegate void D(in int p);");
 
             CompileAndVerify(reference, symbolValidator: module =>
             {
@@ -3658,7 +3658,7 @@ public class Test
 {
     public static void Main()
     {
-        Run((ref readonly int p) => System.Console.WriteLine(p));
+        Run((in int p) => System.Console.WriteLine(p));
     }
 
     public static void Run(D lambda)
@@ -3715,7 +3715,7 @@ namespace System.Runtime.InteropServices
 {
     public class InAttribute {}
 }
-public delegate void D(ref readonly int p);");
+public delegate void D(in int p);");
 
             CompileAndVerify(reference, symbolValidator: module =>
             {
@@ -3734,7 +3734,7 @@ public class Test
 {
     public static void Main()
     {
-        Run((ref readonly int p) => System.Console.WriteLine(p));
+        Run((in int p) => System.Console.WriteLine(p));
     }
 
     public static void Run(D lambda)
@@ -4403,6 +4403,88 @@ public class Test
                 // (4,12): error CS0518: Predefined type 'System.Runtime.InteropServices.InAttribute' is not defined or imported
                 //     public ref readonly int M() => throw null;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "ref readonly int").WithArguments("System.Runtime.InteropServices.InAttribute").WithLocation(4, 12));
+        }
+
+        [Fact]
+        public void ParentClassOfProxiedInterfaceFunctionHasNoModreq_ImplementedInChild()
+        {
+            var code = @"
+class Parent
+{
+    public void M(in int x) { }
+}
+interface IM
+{
+    void M(in int x);
+}
+class Child: Parent, IM
+{
+    public void M(in int x) { }
+}";
+
+            CompileAndVerify(code, verify: Verification.Passes, symbolValidator: module =>
+            {
+                // Nothing on Parent
+                var parentMethod = module.ContainingAssembly.GetTypeByMetadataName("Parent").GetMethod("M");
+                Assert.False(parentMethod.IsMetadataVirtual());
+                Assert.Empty(parentMethod.Parameters.Single().RefCustomModifiers);
+
+                // Nothing on Child
+                var childMethod = module.ContainingAssembly.GetTypeByMetadataName("Child").GetMethod("M");
+                Assert.False(childMethod.IsMetadataVirtual());
+                Assert.Empty(childMethod.Parameters.Single().RefCustomModifiers);
+
+                // Modreq on Interface
+                var interfaceMethod = module.ContainingAssembly.GetTypeByMetadataName("IM").GetMethod("M");
+                Assert.True(interfaceMethod.IsMetadataVirtual());
+                AssertSingleInAttributeRequiredModifier(interfaceMethod.Parameters.Single().RefCustomModifiers);
+
+                // Modreq on proxy
+                var proxyMethod = module.ContainingAssembly.GetTypeByMetadataName("Child").GetMethod("IM.M");
+                Assert.True(proxyMethod.IsMetadataVirtual());
+                AssertSingleInAttributeRequiredModifier(proxyMethod.Parameters.Single().RefCustomModifiers);
+            }).VerifyDiagnostics(
+                // (12,17): warning CS0108: 'Child.M(in int)' hides inherited member 'Parent.M(in int)'. Use the new keyword if hiding was intended.
+                //     public void M(in int x) { }
+                Diagnostic(ErrorCode.WRN_NewRequired, "M").WithArguments("Child.M(in int)", "Parent.M(in int)").WithLocation(12, 17));
+        }
+
+        [Fact]
+        public void ParentClassOfProxiedInterfaceFunctionHasNoModreq_NotImplementedInChild()
+        {
+            var code = @"
+class Parent
+{
+    public void M(in int x) { }
+}
+interface IM
+{
+    void M(in int x);
+}
+class Child: Parent, IM
+{
+}";
+
+            CompileAndVerify(code, verify: Verification.Passes, symbolValidator: module =>
+            {
+                // Nothing on Parent
+                var parentMethod = module.ContainingAssembly.GetTypeByMetadataName("Parent").GetMethod("M");
+                Assert.False(parentMethod.IsMetadataVirtual());
+                Assert.Empty(parentMethod.Parameters.Single().RefCustomModifiers);
+
+                // No method on Child
+                Assert.DoesNotContain("M", module.ContainingAssembly.GetTypeByMetadataName("Child").MemberNames);
+
+                // Modreq on Interface
+                var interfaceMethod = module.ContainingAssembly.GetTypeByMetadataName("IM").GetMethod("M");
+                Assert.True(interfaceMethod.IsMetadataVirtual());
+                AssertSingleInAttributeRequiredModifier(interfaceMethod.Parameters.Single().RefCustomModifiers);
+
+                // Modreq on proxy
+                var proxyMethod = module.ContainingAssembly.GetTypeByMetadataName("Child").GetMethod("IM.M");
+                Assert.True(proxyMethod.IsMetadataVirtual());
+                AssertSingleInAttributeRequiredModifier(proxyMethod.Parameters.Single().RefCustomModifiers);
+            }).VerifyDiagnostics();
         }
 
         private void AssertSingleInAttributeRequiredModifier(ImmutableArray<CustomModifier> modifiers)

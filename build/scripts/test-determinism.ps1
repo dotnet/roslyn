@@ -16,7 +16,7 @@ $script:skipList = @()
 [string]$script:errorDirLeft = ""
 [string]$script:errorDirRight = ""
 
-function Run-Build([string]$rootDir, [string]$pathMapBuildOption, [switch]$restore = $false, [string]$logFile = $null) {
+function Run-Build([string]$rootDir, [switch]$restore = $false, [string]$logFile = $null) {
     Push-Location $rootDir
     try {
 
@@ -26,10 +26,10 @@ function Run-Build([string]$rootDir, [string]$pathMapBuildOption, [switch]$resto
 
         if ($restore) {
             Write-Host "Restoring the packages"
-            Restore-Project -fileName "Roslyn.sln" -nuget (Ensure-NuGet) -msbuildDir (Split-Path -parent $msbuild)
+            Restore-Project $dotnet "Roslyn.sln"
         }
 
-        $args = "/nologo /v:m /nodeReuse:false /m /p:DebugDeterminism=true /p:BootstrapBuildPath=$script:bootstrapDir /p:Features=`"debug-determinism`" /p:UseRoslynAnalyzers=false $pathMapBuildOption Roslyn.sln"
+        $args = "/nologo /v:m /nodeReuse:false /m /p:DebugDeterminism=true /p:BootstrapBuildPath=$script:bootstrapDir /p:Features=`"debug-determinism`" /p:UseRoslynAnalyzers=false Roslyn.sln"
         if ($logFile -ne $null) {
             $logFile = Join-Path $binariesDir $logFile
             $args += " /bl:$logFile"
@@ -51,7 +51,7 @@ function Get-ObjDir([string]$rootDir) {
 # directory.
 function Get-FilesToProcess([string]$rootDir) {
     $objDir = Get-ObjDir $rootDir
-    foreach ($item in Get-ChildItem -re -in *.dll,*.exe $objDir) {
+    foreach ($item in Get-ChildItem -re -in *.dll,*.exe,*.pdb $objDir) {
         $fileFullName = $item.FullName 
         $fileName = Split-Path -leaf $fileFullName
 
@@ -117,8 +117,8 @@ function Test-MapContents($dataMap) {
     }
 }
 
-function Test-Build([string]$rootDir, $dataMap, [string]$pathMapBuildOption, [string]$logFile, [switch]$restore = $false) {
-    Run-Build $rootDir $pathMapBuildOption -logFile $logFile -restore:$restore
+function Test-Build([string]$rootDir, $dataMap, [string]$logFile, [switch]$restore = $false) {
+    Run-Build $rootDir -logFile $logFile -restore:$restore
 
     $errorList = @()
     $allGood = $true
@@ -191,13 +191,13 @@ function Run-Test() {
     $altRootDir = Join-Path "$repoDir\Binaries" "q"
     Remove-Item -re -fo $altRootDir -ErrorAction SilentlyContinue
     & robocopy $repoDir $altRootDir /E /XD $binariesDir /XD ".git" /njh /njs /ndl /nc /ns /np /nfl
-    $pathMapBuildOption = "/p:PathMap=`"$altRootDir=$repoDir`""
-    Test-Build -rootDir $altRootDir -dataMap $dataMap -pathMapBuildOption $pathMapBuildOption -logFile "test2.binlog" -restore
+    Test-Build -rootDir $altRootDir -dataMap $dataMap -logFile "test2.binlog" -restore
 }
 
 try {
     . (Join-Path $PSScriptRoot "build-utils.ps1")
 
+    $dotnet = Ensure-DotnetSdk
     $msbuild = Ensure-MSBuild
     if (($bootstrapDir -eq "") -or (-not ([IO.Path]::IsPathRooted($script:bootstrapDir)))) {
         Write-Host "The bootstrap build path must be absolute"

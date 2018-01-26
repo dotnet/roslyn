@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
+Imports Roslyn.Test.Utilities.SigningTestHelpers
 Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
@@ -1555,6 +1556,7 @@ End Module
             ]]>)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub SimpleTupleTargetTyped003()
 
@@ -1590,6 +1592,30 @@ End Module
   IL_001b:  ret
 }
 ]]>)
+            Dim compilation = verifier.Compilation
+
+            Dim tree = compilation.SyntaxTrees.Single()
+            Dim node = tree.GetRoot().DescendantNodes().OfType(Of CTypeExpressionSyntax)().Single()
+
+            Assert.Equal("CType((Nothing, 1),(String, Byte))", node.ToString())
+
+            compilation.VerifyOperationTree(node, expectedOperationTree:=
+            <![CDATA[
+IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: (System.String, System.Byte)) (Syntax: 'CType((Noth ... ing, Byte))')
+  Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Operand: 
+    ITupleOperation (OperationKind.Tuple, Type: (System.String, System.Byte)) (Syntax: '(Nothing, 1)')
+      NaturalType: null
+      Elements(2):
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, Constant: null, IsImplicit) (Syntax: 'Nothing')
+            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Operand: 
+              ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'Nothing')
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Byte, Constant: 1, IsImplicit) (Syntax: '1')
+            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Operand: 
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+]]>.Value)
         End Sub
 
         <Fact>
@@ -1672,6 +1698,7 @@ End Module
 ]]>)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub SimpleTupleTargetTyped006()
 
@@ -1712,8 +1739,34 @@ End Module
   IL_001f:  ret
 }
 ]]>)
+
+            Dim compilation = verifier.Compilation
+
+            Dim tree = compilation.SyntaxTrees.Single()
+            Dim node = tree.GetRoot().DescendantNodes().OfType(Of DirectCastExpressionSyntax)().Single()
+
+            Assert.Equal("DirectCast((Nothing, i),(String, byte))", node.ToString())
+
+            compilation.VerifyOperationTree(node, expectedOperationTree:=
+            <![CDATA[
+IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: (System.String, System.Byte)) (Syntax: 'DirectCast( ... ing, byte))')
+  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Operand: 
+    ITupleOperation (OperationKind.Tuple, Type: (System.String, i As System.Byte)) (Syntax: '(Nothing, i)')
+      NaturalType: null
+      Elements(2):
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, Constant: null, IsImplicit) (Syntax: 'Nothing')
+            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Operand: 
+              ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'Nothing')
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Byte, IsImplicit) (Syntax: 'i')
+            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Operand: 
+              ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
+]]>.Value)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub SimpleTupleTargetTyped007()
 
@@ -1754,6 +1807,35 @@ End Module
   IL_001f:  ret
 }
 ]]>)
+            Dim compilation = verifier.Compilation
+
+            Dim tree = compilation.SyntaxTrees.Single()
+            Dim node = tree.GetRoot().DescendantNodes().OfType(Of TryCastExpressionSyntax)().Single()
+
+            Assert.Equal("TryCast((Nothing, i),(String, byte))", node.ToString())
+
+            compilation.VerifyOperationTree(node, expectedOperationTree:=
+            <![CDATA[
+IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: (System.String, System.Byte)) (Syntax: 'TryCast((No ... ing, byte))')
+  Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Operand: 
+    ITupleOperation (OperationKind.Tuple, Type: (System.String, i As System.Byte)) (Syntax: '(Nothing, i)')
+      NaturalType: null
+      Elements(2):
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, Constant: null, IsImplicit) (Syntax: 'Nothing')
+            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Operand: 
+              ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'Nothing')
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Byte, IsImplicit) (Syntax: 'i')
+            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Operand: 
+              ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
+]]>.Value)
+            Dim model = compilation.GetSemanticModel(tree)
+            Dim typeInfo = model.GetTypeInfo(node.Expression)
+            Assert.Null(typeInfo.Type)
+            Assert.Equal("(System.String, i As System.Byte)", typeInfo.ConvertedType.ToTestDisplayString())
+            Assert.Equal(ConversionKind.Identity, model.GetConversion(node.Expression).Kind)
         End Sub
 
         <Fact>
@@ -5556,7 +5638,7 @@ End Class
 
         End Sub
 
-        <Fact>
+        <NoIOperationValidationFact>
         Public Sub HugeTupleCreationParses()
 
             Dim b = New StringBuilder()
@@ -5582,7 +5664,7 @@ End Class
 
         End Sub
 
-        <Fact>
+        <NoIOperationValidationFact>
         Public Sub HugeTupleDeclarationParses()
 
             Dim b = New StringBuilder()
@@ -6556,7 +6638,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub TupleUnsupportedInUsingStatment()
+        Public Sub TupleUnsupportedInUsingStatement()
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -6639,9 +6721,9 @@ End Module
 <%= s_trivial2uple %></file>
 </compilation>
 
-            Dim comp1 = CreateCompilationWithMscorlibAndVBRuntime(source1, additionalRefs:={MscorlibRef_v46})
+            Dim comp1 = CreateCompilationWithMscorlibAndVBRuntime(source1, additionalRefs:={MscorlibRef_v46}, assemblyName:="comp1")
             comp1.AssertNoDiagnostics()
-            Dim comp2 = CreateCompilationWithMscorlibAndVBRuntime(source2, additionalRefs:={MscorlibRef_v46})
+            Dim comp2 = CreateCompilationWithMscorlibAndVBRuntime(source2, additionalRefs:={MscorlibRef_v46}, assemblyName:="comp2")
             comp2.AssertNoDiagnostics()
 
             Dim source =
@@ -6667,7 +6749,7 @@ BC30521: Overload resolution failed because no accessible 'Extension' is most sp
     Extension method 'Public Sub Extension(y As (Integer, Integer))' defined in 'M2': Not most specific.
         x.Extension((1, 1))
           ~~~~~~~~~
-BC37267: Predefined type 'ValueTuple(Of ,)' is not defined or imported.
+BC37305: Predefined type 'ValueTuple(Of ,)' is declared in multiple referenced assemblies: 'comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'
         x.Extension((1, 1))
                     ~~~~~~
 </errors>)
@@ -7983,6 +8065,7 @@ BC30512: Option Strict On disallows implicit conversions from 'Double' to 'Strin
 
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub TupleCTypeNullableConversionWithTypelessTuple()
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
@@ -8013,6 +8096,27 @@ End Class
             Assert.Equal("System.Nullable(Of (System.Int32, System.String))", model.GetTypeInfo(node.Parent).Type.ToTestDisplayString())
             Assert.Equal("System.Nullable(Of (System.Int32, System.String))", model.GetTypeInfo(node.Parent).ConvertedType.ToTestDisplayString())
 
+            Dim [ctype] = tree.GetRoot().DescendantNodes().OfType(Of CTypeExpressionSyntax)().Single()
+
+            Assert.Equal("CType((1, Nothing), (Integer, String)?)", [ctype].ToString())
+
+            comp.VerifyOperationTree([ctype], expectedOperationTree:=
+            <![CDATA[
+IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Nullable(Of (System.Int32, System.String))) (Syntax: 'CType((1, N ... , String)?)')
+  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Operand: 
+    ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.String)) (Syntax: '(1, Nothing)')
+      NaturalType: null
+      Elements(2):
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '1')
+            Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Operand: 
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, Constant: null, IsImplicit) (Syntax: 'Nothing')
+            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Operand: 
+              ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'Nothing')
+]]>.Value)
         End Sub
 
         <Fact>
@@ -8738,6 +8842,28 @@ End Class
             Assert.Equal("Alice", sym.Symbol.Name)
             Assert.Equal(SymbolKind.Field, sym.Symbol.Kind) ' Incorrectly returns Local
             Assert.Equal(nc.Name.GetLocation(), sym.Symbol.Locations(0)) ' Incorrect location
+        End Sub
+
+        <Fact>
+        <WorkItem(23651, "https://github.com/dotnet/roslyn/issues/23651")>
+        Public Sub GetSymbolInfo_WithDuplicateInferredNames()
+            Dim source = "
+ Class C
+    Shared Sub M(Bob As String)
+         Dim x1 = (Bob, Bob)
+    End Sub
+End Class
+ "
+
+            Dim tree = Parse(source, options:=TestOptions.Regular)
+            Dim comp = CreateCompilationWithMscorlib(tree)
+
+            Dim model = comp.GetSemanticModel(tree, ignoreAccessibility:=False)
+            Dim nodes = tree.GetCompilationUnitRoot().DescendantNodes()
+
+            Dim tuple = nodes.OfType(Of TupleExpressionSyntax)().Single()
+            Dim type = DirectCast(model.GetTypeInfo(tuple).Type, TypeSymbol)
+            Assert.True(type.TupleElementNames.IsDefault)
         End Sub
 
         <Fact>
@@ -13862,7 +13988,6 @@ Public Class C
     Shared Sub Main()
         Test1((a:=1, b:=(a:=1, b:=2)), (a:=1, b:=DirectCast(1, Object)))
         Test1(Nullable((a:=1, b:=(a:=1, b:=2))), (a:=1, b:=DirectCast(1, Object)))
-        Test2(Nullable((a:=1, b:=(a:=1, b:=2))), (a:=1, b:=DirectCast(1, Object)))
         Test1((a:=1, b:=(a:=1, b:=2)), (a:=1, b:=(c:=1, d:=2)))
         Test1((a:=1, b:=(a:=1, b:=2)), (a:=1, b:=(1, 2)))
         Test1((a:=1, b:=(a:=1, b:=2)), (a:=1, b:=(a:=1, b:=2)))
@@ -13875,6 +14000,38 @@ Public Class C
     Shared Sub Test1(Of T, U)(x As (T, U)?, y As (T, U))
         Console.WriteLine(GetType(U))
     End Sub
+End Class
+    </file>
+</compilation>,
+options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
+
+            CompileAndVerify(comp, expectedOutput:="
+System.Object
+System.Object
+System.ValueTuple`2[System.Int32,System.Int32]
+System.ValueTuple`2[System.Int32,System.Int32]
+System.ValueTuple`2[System.Int32,System.Int32]
+")
+        End Sub
+
+        <Fact>
+        <WorkItem(22329, "https://github.com/dotnet/roslyn/issues/22329")>
+        <WorkItem(14152, "https://github.com/dotnet/roslyn/issues/14152")>
+        Public Sub Inference13a()
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Imports System
+Public Class C
+    Shared Sub Main()
+        Test2(Nullable((a:=1, b:=(a:=1, b:=2))), (a:=1, b:=DirectCast(1, Object)))
+        Test2((a:=1, b:=(a:=1, b:=2)), Nullable((a:=1, b:=DirectCast((a:=1, b:=2), Object))))
+    End Sub
+
+    Shared Function Nullable(Of T as structure)(x as T) as T?
+        return x
+    End Function
 
     Shared Sub Test2(Of T, U)(x As (T, U), y As (T, U))
         Console.WriteLine(GetType(U))
@@ -13884,15 +14041,15 @@ End Class
 </compilation>,
 options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
 
-            CompileAndVerify(comp, expectedOutput:="
-System.Object
-System.Object
-System.Object
-System.ValueTuple`2[System.Int32,System.Int32]
-System.ValueTuple`2[System.Int32,System.Int32]
-System.ValueTuple`2[System.Int32,System.Int32]
-")
-            ' Compiled code fails at runtime, trying to convert the object to a ValueTuple
+            AssertTheseDiagnostics(comp,
+<expected>
+BC36645: Data type(s) of the type parameter(s) in method 'Public Shared Sub Test2(Of T, U)(x As (T, U), y As (T, U))' cannot be inferred from these arguments. Specifying the data type(s) explicitly might correct this error.
+        Test2(Nullable((a:=1, b:=(a:=1, b:=2))), (a:=1, b:=DirectCast(1, Object)))
+        ~~~~~
+BC36645: Data type(s) of the type parameter(s) in method 'Public Shared Sub Test2(Of T, U)(x As (T, U), y As (T, U))' cannot be inferred from these arguments. Specifying the data type(s) explicitly might correct this error.
+        Test2((a:=1, b:=(a:=1, b:=2)), Nullable((a:=1, b:=DirectCast((a:=1, b:=2), Object))))
+        ~~~~~
+</expected>)
 
         End Sub
 
@@ -18539,7 +18696,7 @@ BC30652: Reference required to assembly '5a03232e-1a0f-4d1b-99ba-5d7b40ea931e, V
         Public Sub ValueTupleBase_AssemblyUnification()
             Dim signedDllOptions = TestOptions.ReleaseDll.
                 WithCryptoKeyFile(SigningTestHelpers.KeyPairFile).
-                WithStrongNameProvider(New SigningTestHelpers.VirtualizedStrongNameProvider(ImmutableArray(Of String).Empty))
+                WithStrongNameProvider(s_defaultDesktopProvider)
             Dim comp0v1 = CreateCompilationWithMscorlib(
 <compilation name="A">
     <file name="a.vb"><![CDATA[
@@ -20848,6 +21005,300 @@ End Module
     </file>
 </compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[
 4
+]]>)
+        End Sub
+
+        <Fact>
+        <WorkItem(20494, "https://github.com/dotnet/roslyn/issues/20494")>
+        <WorkItem(20583, "https://github.com/dotnet/roslyn/issues/20583")>
+        Public Sub MoreGenericTieBreaker_02a1()
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Option Strict On
+
+Imports System
+Imports int = System.Int32
+
+Module Module1
+    Public Sub Main()
+        ' Dim b = (1, 2, 3, 4, 5, 6, 7, 8)
+        Dim b = new ValueTuple(Of int, int, int, int, int, int, int, ValueTuple(Of int))(1, 2, 3, 4, 5, 6, 7, new ValueTuple(Of int)(8))
+        M1(b)
+        M2(b) 
+    End Sub
+
+    Public Sub M1(Of T1, T2, T3, T4, T5, T6, T7, TRest as Structure)(a As ValueTuple(Of T1, T2, T3, T4, T5, T6, T7, TRest))
+        Console.Write(1) 
+    End Sub
+
+    Public Sub M2(Of T1, T2, T3, T4, T5, T6, T7, T8)(a As ValueTuple(Of T1, T2, T3, T4, T5, T6, T7, ValueTuple(Of T8)))
+        Console.Write(2) 
+    End Sub
+
+    Public Sub M2(Of T1, T2, T3, T4, T5, T6, T7, TRest As Structure)(a As ValueTuple(Of T1, T2, T3, T4, T5, T6, T7, TRest))
+        Console.Write(3) 
+    End Sub
+End Module
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[
+12
+]]>)
+        End Sub
+
+        <Fact>
+        <WorkItem(20494, "https://github.com/dotnet/roslyn/issues/20494")>
+        <WorkItem(20583, "https://github.com/dotnet/roslyn/issues/20583")>
+        Public Sub MoreGenericTieBreaker_02a2()
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Option Strict On
+
+Imports System
+Imports int = System.Int32
+
+Module Module1
+    Public Sub Main()
+        ' Dim b = (1, 2, 3, 4, 5, 6, 7, 8)
+        Dim b = new ValueTuple(Of int, int, int, int, int, int, int, ValueTuple(Of int))(1, 2, 3, 4, 5, 6, 7, new ValueTuple(Of int)(8))
+        M1(b)
+        M2(b) 
+    End Sub
+
+    Public Sub M1(Of T1, T2, T3, T4, T5, T6, T7, TRest as Structure)(ByRef a As ValueTuple(Of T1, T2, T3, T4, T5, T6, T7, TRest))
+        Console.Write(1) 
+    End Sub
+
+    Public Sub M2(Of T1, T2, T3, T4, T5, T6, T7, T8)(ByRef a As ValueTuple(Of T1, T2, T3, T4, T5, T6, T7, ValueTuple(Of T8)))
+        Console.Write(2) 
+    End Sub
+
+    Public Sub M2(Of T1, T2, T3, T4, T5, T6, T7, TRest As Structure)(ByRef a As ValueTuple(Of T1, T2, T3, T4, T5, T6, T7, TRest))
+        Console.Write(3) 
+    End Sub
+End Module
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[
+12
+]]>)
+        End Sub
+
+        <Fact>
+        <WorkItem(20494, "https://github.com/dotnet/roslyn/issues/20494")>
+        <WorkItem(20583, "https://github.com/dotnet/roslyn/issues/20583")>
+        Public Sub MoreGenericTieBreaker_02a3()
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Option Strict On
+
+Imports System
+Imports int = System.Int32
+
+Module Module1
+    Public Sub Main()
+        Dim b As I(Of ValueTuple(Of int, int, int, int, int, int, int, ValueTuple(Of int))) = Nothing
+        M1(b)
+        M2(b) 
+    End Sub
+
+    Public Sub M1(Of T1, T2, T3, T4, T5, T6, T7, TRest as Structure)(a As I(Of ValueTuple(Of T1, T2, T3, T4, T5, T6, T7, TRest)))
+        Console.Write(1) 
+    End Sub
+
+    Public Sub M2(Of T1, T2, T3, T4, T5, T6, T7, T8)(a As I(Of ValueTuple(Of T1, T2, T3, T4, T5, T6, T7, ValueTuple(Of T8))))
+        Console.Write(2) 
+    End Sub
+
+    Public Sub M2(Of T1, T2, T3, T4, T5, T6, T7, TRest As Structure)(a As I(Of ValueTuple(Of T1, T2, T3, T4, T5, T6, T7, TRest)))
+        Console.Write(3) 
+    End Sub
+End Module
+
+Interface I(Of in T)
+End Interface
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[
+12
+]]>)
+        End Sub
+
+        <Fact>
+        <WorkItem(20494, "https://github.com/dotnet/roslyn/issues/20494")>
+        <WorkItem(20583, "https://github.com/dotnet/roslyn/issues/20583")>
+        Public Sub MoreGenericTieBreaker_02a4()
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Option Strict On
+
+Imports System
+Imports int = System.Int32
+
+Module Module1
+    Public Sub Main()
+        Dim b As I(Of ValueTuple(Of int, int, int, int, int, int, int, ValueTuple(Of int))) = Nothing
+        M1(b)
+        M2(b) 
+    End Sub
+
+    Public Sub M1(Of T1, T2, T3, T4, T5, T6, T7, TRest as Structure)(a As I(Of ValueTuple(Of T1, T2, T3, T4, T5, T6, T7, TRest)))
+        Console.Write(1) 
+    End Sub
+
+    Public Sub M2(Of T1, T2, T3, T4, T5, T6, T7, T8)(a As I(Of ValueTuple(Of T1, T2, T3, T4, T5, T6, T7, ValueTuple(Of T8))))
+        Console.Write(2) 
+    End Sub
+
+    Public Sub M2(Of T1, T2, T3, T4, T5, T6, T7, TRest As Structure)(a As I(Of ValueTuple(Of T1, T2, T3, T4, T5, T6, T7, TRest)))
+        Console.Write(3) 
+    End Sub
+End Module
+
+Interface I(Of out T)
+End Interface
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[
+12
+]]>)
+        End Sub
+
+        <Fact>
+        <WorkItem(20494, "https://github.com/dotnet/roslyn/issues/20494")>
+        <WorkItem(20583, "https://github.com/dotnet/roslyn/issues/20583")>
+        Public Sub MoreGenericTieBreaker_02a5()
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Option Strict On
+
+Imports System
+Imports int = System.Int32
+
+Module Module1
+    Public Sub Main()
+        M1((1, 2, 3, 4, 5, 6, 7, 8))
+        M2((1, 2, 3, 4, 5, 6, 7, 8)) 
+    End Sub
+
+    Public Sub M1(Of T1, T2, T3, T4, T5, T6, T7, TRest as Structure)(a As ValueTuple(Of T1, T2, T3, T4, T5, T6, T7, TRest))
+        Console.Write(1) 
+    End Sub
+
+    Public Sub M2(Of T1, T2, T3, T4, T5, T6, T7, T8)(a As ValueTuple(Of T1, T2, T3, T4, T5, T6, T7, ValueTuple(Of T8)))
+        Console.Write(2) 
+    End Sub
+
+    Public Sub M2(Of T1, T2, T3, T4, T5, T6, T7, TRest As Structure)(a As ValueTuple(Of T1, T2, T3, T4, T5, T6, T7, TRest))
+        Console.Write(3) 
+    End Sub
+End Module
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[
+12
+]]>)
+        End Sub
+
+        <Fact>
+        <WorkItem(20494, "https://github.com/dotnet/roslyn/issues/20494")>
+        <WorkItem(20583, "https://github.com/dotnet/roslyn/issues/20583")>
+        Public Sub MoreGenericTieBreaker_02a6()
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Option Strict On
+
+Imports System
+Imports int = System.Int32
+
+Module Module1
+    Public Sub Main()
+        M2((Function() 1, Function() 2, Function() 3, Function() 4, Function() 5, Function() 6, Function() 7, Function() 8))
+    End Sub
+
+    Public Sub M2(Of T1, T2, T3, T4, T5, T6, T7, T8)(a As ValueTuple(Of Func(Of T1), Func(Of T2), Func(Of T3), Func(Of T4), Func(Of T5), Func(Of T6), Func(Of T7), ValueTuple(Of Func(Of T8))))
+        Console.Write(2) 
+    End Sub
+
+    Public Sub M2(Of T1, T2, T3, T4, T5, T6, T7, TRest As Structure)(a As ValueTuple(Of Func(Of T1), Func(Of T2), Func(Of T3), Func(Of T4), Func(Of T5), Func(Of T6), Func(Of T7), TRest))
+        Console.Write(3) 
+    End Sub
+End Module
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[
+2
+]]>)
+        End Sub
+
+        <Fact>
+        <WorkItem(20494, "https://github.com/dotnet/roslyn/issues/20494")>
+        <WorkItem(20583, "https://github.com/dotnet/roslyn/issues/20583")>
+        Public Sub MoreGenericTieBreaker_02a7()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+Option Strict On
+
+Imports System
+Imports int = System.Int32
+
+Module Module1
+    Public Sub Main()
+        M1((Function() 1, Function() 2, Function() 3, Function() 4, Function() 5, Function() 6, Function() 7, Function() 8))
+    End Sub
+
+    Public Sub M1(Of T1, T2, T3, T4, T5, T6, T7, TRest as Structure)(a As ValueTuple(Of Func(Of T1), Func(Of T2), Func(Of T3), Func(Of T4), Func(Of T5), Func(Of T6), Func(Of T7), TRest))
+        Console.Write(1) 
+    End Sub
+End Module
+    </file>
+</compilation>
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, additionalRefs:=s_valueTupleRefs)
+            comp.AssertTheseDiagnostics(
+<expected>
+BC36645: Data type(s) of the type parameter(s) in method 'Public Sub M1(Of T1, T2, T3, T4, T5, T6, T7, TRest As Structure)(a As ValueTuple(Of Func(Of T1), Func(Of T2), Func(Of T3), Func(Of T4), Func(Of T5), Func(Of T6), Func(Of T7), TRest))' cannot be inferred from these arguments. Specifying the data type(s) explicitly might correct this error.
+        M1((Function() 1, Function() 2, Function() 3, Function() 4, Function() 5, Function() 6, Function() 7, Function() 8))
+        ~~
+</expected>
+            )
+        End Sub
+
+        <Fact>
+        <WorkItem(20494, "https://github.com/dotnet/roslyn/issues/20494")>
+        <WorkItem(20583, "https://github.com/dotnet/roslyn/issues/20583")>
+        Public Sub MoreGenericTieBreaker_02b()
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Option Strict On
+
+Imports System
+Imports int = System.Int32
+
+Module Module1
+    Public Sub Main()
+        Dim b = (1, 2, 3, 4, 5, 6, 7, 8)
+        M1(b)
+        M2(b) 
+    End Sub
+
+    Public Sub M1(Of T1, T2, T3, T4, T5, T6, T7, TRest as Structure)(a As ValueTuple(Of T1, T2, T3, T4, T5, T6, T7, TRest))
+        Console.Write(1) 
+    End Sub
+
+    Public Sub M2(Of T1, T2, T3, T4, T5, T6, T7, T8)(a As ValueTuple(Of T1, T2, T3, T4, T5, T6, T7, ValueTuple(Of T8)))
+        Console.Write(2) 
+    End Sub
+
+    Public Sub M2(Of T1, T2, T3, T4, T5, T6, T7, TRest As Structure)(a As ValueTuple(Of T1, T2, T3, T4, T5, T6, T7, TRest))
+        Console.Write(3) 
+    End Sub
+End Module
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs, expectedOutput:=<![CDATA[
+12
 ]]>)
         End Sub
 

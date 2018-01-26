@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return WellKnownMemberNames.InstanceConstructorName; }
             }
 
-            internal override RefKind RefKind
+            public override RefKind RefKind
             {
                 get { return RefKind.None; }
             }
@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return WellKnownMemberNames.DelegateInvokeName; }
             }
 
-            internal override RefKind RefKind
+            public override RefKind RefKind
             {
                 get { return _refKind; }
             }
@@ -344,7 +344,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return WellKnownMemberNames.DelegateBeginInvokeName; }
             }
 
-            internal override RefKind RefKind
+            public override RefKind RefKind
             {
                 get { return RefKind.None; }
             }
@@ -390,7 +390,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override string Name => WellKnownMemberNames.DelegateEndInvokeName;
 
-            internal override RefKind RefKind => _invoke.RefKind;
+            public override RefKind RefKind => _invoke.RefKind;
 
             public override ImmutableArray<CustomModifier> RefCustomModifiers => _invoke.RefCustomModifiers;
         }

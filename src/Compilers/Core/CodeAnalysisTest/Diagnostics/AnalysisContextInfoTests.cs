@@ -6,7 +6,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Semantics;
+using Microsoft.CodeAnalysis.Operations;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 c.RegisterCodeBlockStartAction<SyntaxKind>(b => ThrowIfMatch(nameof(c.RegisterCodeBlockStartAction), new AnalysisContextInfo(b.SemanticModel.Compilation, b.OwningSymbol, b.CodeBlock)));
                 c.RegisterCompilationAction(b => ThrowIfMatch(nameof(c.RegisterCompilationAction), new AnalysisContextInfo(b.Compilation)));
                 c.RegisterCompilationStartAction(b => ThrowIfMatch(nameof(c.RegisterCompilationStartAction), new AnalysisContextInfo(b.Compilation)));
-                c.RegisterOperationAction(b => ThrowIfMatch(nameof(c.RegisterOperationAction), new AnalysisContextInfo(b.Compilation, b.Operation)), OperationKind.ReturnStatement);
+                c.RegisterOperationAction(b => ThrowIfMatch(nameof(c.RegisterOperationAction), new AnalysisContextInfo(b.Compilation, b.Operation)), OperationKind.Return);
                 c.RegisterOperationBlockAction(b => ThrowIfMatch(nameof(c.RegisterOperationBlockAction), new AnalysisContextInfo(b.Compilation, b.OwningSymbol)));
                 c.RegisterSemanticModelAction(b => ThrowIfMatch(nameof(c.RegisterSemanticModelAction), new AnalysisContextInfo(b.SemanticModel)));
                 c.RegisterSymbolAction(b => ThrowIfMatch(nameof(c.RegisterSymbolAction), new AnalysisContextInfo(b.Compilation, b.Symbol)), SymbolKind.NamedType);

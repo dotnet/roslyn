@@ -4,7 +4,7 @@ Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.PooledObjects
-Imports Microsoft.CodeAnalysis.Semantics
+Imports Microsoft.CodeAnalysis.Operations
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -131,12 +131,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                  TypeOf (node) Is ExpressionRangeVariableSyntax OrElse
                  TypeOf (node) Is OrderingSyntax)
         End Function
-
-        Friend Enum GetOperationOptions
-            Lowest
-            Highest
-            Parent
-        End Enum
 
         Protected Overrides Function GetOperationCore(node As SyntaxNode, cancellationToken As CancellationToken) As IOperation
             Dim vbnode = DirectCast(node, VisualBasicSyntaxNode)

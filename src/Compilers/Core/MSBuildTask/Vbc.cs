@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
     /// meaning that the code is compiled by using the Roslyn compiler server, rather
     /// than vbc.exe. The two should be functionally identical, but the compiler server
     /// should be significantly faster with larger projects and have a smaller memory
-    /// gootprint.
+    /// footprint.
     /// </summary>
     public class Vbc : ManagedCompiler
     {

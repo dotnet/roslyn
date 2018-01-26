@@ -2731,9 +2731,9 @@ public class D : B<char>, I<char>
 
             var global = comp.GlobalNamespace;
             var derivedType = global.GetMember<NamedTypeSymbol>("D");
-            var interfaceType = derivedType.Interfaces.Single();
+            var interfaceType = derivedType.Interfaces().Single();
             Assert.Equal(global.GetMember<NamedTypeSymbol>("I"), interfaceType.OriginalDefinition);
-            var baseType = derivedType.BaseType;
+            var baseType = derivedType.BaseType();
             Assert.Equal(global.GetMember<NamedTypeSymbol>("B"), baseType.OriginalDefinition);
 
             var baseMethods = Enumerable.Range(1, 4).Select(i => baseType.GetMember<MethodSymbol>("M" + i)).ToArray();

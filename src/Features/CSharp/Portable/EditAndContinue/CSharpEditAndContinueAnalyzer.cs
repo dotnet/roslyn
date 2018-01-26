@@ -520,12 +520,21 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                 // We use the parent node as a root:
                 // - for field/property initializers the root is EqualsValueClause. 
-                // - for expression-bodies the root is ArrowExpressionClauseSyntax. 
+                // - for member expression-bodies the root is ArrowExpressionClauseSyntax.
                 // - for block bodies the root is a method/operator/accessor declaration (only happens when matching expression body with a block body)
                 // - for lambdas the root is a LambdaExpression.
                 // - for query lambdas the root is the query clause containing the lambda (e.g. where).
+                // - for local functions the root is LocalFunctionStatement.
 
-                return new StatementSyntaxComparer(oldBody, newBody).ComputeMatch(oldBody.Parent, newBody.Parent, knownMatches);
+                SyntaxNode GetMatchingRoot(SyntaxNode body)
+                {
+                    var parent = body.Parent;
+                    // We could apply this change across all ArrowExpressionClause consistently not just for ones with LocalFunctionStatement parents
+                    // but it would require an essential refactoring. 
+                    return parent.IsKind(SyntaxKind.ArrowExpressionClause) && parent.Parent.IsKind(SyntaxKind.LocalFunctionStatement) ? parent.Parent : parent;
+                }
+
+                return new StatementSyntaxComparer(oldBody, newBody).ComputeMatch(GetMatchingRoot(oldBody), GetMatchingRoot(newBody), knownMatches);
             }
 
             if (oldBody.Parent.IsKind(SyntaxKind.ConstructorDeclaration))
@@ -564,6 +573,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 default:
                     // TODO: Consider mapping an expression body to an equivalent statement expression or return statement and vice versa.
                     // It would benefit transformations of expression bodies to block bodies of lambdas, methods, operators and properties.
+                    // See https://github.com/dotnet/roslyn/issues/22696
 
                     // field initializer, lambda and query expressions:
                     if (oldStatement == oldBody && !newBody.IsKind(SyntaxKind.Block))
@@ -1908,7 +1918,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     case SyntaxKind.DelegateDeclaration:
                         var delegateDeclaration = (DelegateDeclarationSyntax)node;
                         ClassifyPossibleReadOnlyRefAttributesForType(delegateDeclaration, delegateDeclaration.ReturnType);
-                        ClassifyPossibleReadOnlyRefAttributesForParameters(delegateDeclaration.ParameterList);
+                        ClassifyPossibleInModifierForParameters(delegateDeclaration.ParameterList);
                         return;
 
                     case SyntaxKind.PropertyDeclaration:
@@ -1920,7 +1930,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         var indexerDeclaration = (IndexerDeclarationSyntax)node;
                         ClassifyModifiedMemberInsert(indexerDeclaration.Modifiers);
                         ClassifyPossibleReadOnlyRefAttributesForType(indexerDeclaration, indexerDeclaration.Type);
-                        ClassifyPossibleReadOnlyRefAttributesForParameters(indexerDeclaration.ParameterList);
+                        ClassifyPossibleInModifierForParameters(indexerDeclaration.ParameterList);
                         return;
 
                     case SyntaxKind.ConversionOperatorDeclaration:
@@ -1949,7 +1959,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         }
 
                         ClassifyModifiedMemberInsert(method.Modifiers);
-                        ClassifyPossibleReadOnlyRefAttributesForParameters(method.ParameterList);
+                        ClassifyPossibleInModifierForParameters(method.ParameterList);
                         return;
 
                     case SyntaxKind.GetAccessorDeclaration:
@@ -2030,28 +2040,17 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 }
             }
 
-            private void ClassifyPossibleReadOnlyRefAttributesForParameters(BaseParameterListSyntax list)
+            private void ClassifyPossibleInModifierForParameters(BaseParameterListSyntax list)
             {
                 foreach (var parameter in list.Parameters)
                 {
-                    bool foundRef = false, foundReadonly = false;
-
                     foreach (var modifier in parameter.Modifiers)
                     {
-                        switch (modifier.Kind())
+                        if (modifier.IsKind(SyntaxKind.InKeyword))
                         {
-                            case SyntaxKind.RefKeyword:
-                                foundRef = true;
-                                break;
-                            case SyntaxKind.ReadOnlyKeyword:
-                                foundReadonly = true;
-                                break;
+                            ReportError(RudeEditKind.ReadOnlyReferences, parameter, parameter);
+                            return;
                         }
-                    }
-
-                    if (foundRef && foundReadonly)
-                    {
-                        ReportError(RudeEditKind.ReadOnlyReferences, parameter, parameter);
                     }
                 }
             }
@@ -2104,7 +2103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 }
 
                 ClassifyPossibleReadOnlyRefAttributesForType(method, method.ReturnType);
-                ClassifyPossibleReadOnlyRefAttributesForParameters(method.ParameterList);
+                ClassifyPossibleInModifierForParameters(method.ParameterList);
             }
 
             private void ClassifyAccessorInsert(AccessorDeclarationSyntax accessor)
@@ -2876,7 +2875,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         case SyntaxKind.LocalFunctionStatement:
                             var localFunction = (LocalFunctionStatementSyntax)node;
                             ClassifyPossibleReadOnlyRefAttributesForType(localFunction, localFunction.ReturnType);
-                            ClassifyPossibleReadOnlyRefAttributesForParameters(localFunction.ParameterList);
+                            ClassifyPossibleInModifierForParameters(localFunction.ParameterList);
                             break;
                     }
                 }

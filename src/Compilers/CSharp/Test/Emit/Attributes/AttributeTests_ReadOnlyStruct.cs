@@ -30,7 +30,7 @@ class Test
 }
 ";
 
-            CompileAndVerify(text, verify: false, symbolValidator: module =>
+            CompileAndVerify(text, verify: Verification.Passes, symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
                 Assert.True(type.IsReadOnly);
@@ -46,7 +46,7 @@ class Test
 readonly struct S1{}
 ";
 
-            CompileAndVerify(text, verify: false, symbolValidator: module =>
+            CompileAndVerify(text, verify: Verification.Passes, symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("S1");
                 Assert.True(type.IsReadOnly);
@@ -65,7 +65,7 @@ class Test
 }
 ";
 
-            CompileAndVerify(text, verify: false, symbolValidator: module =>
+            CompileAndVerify(text, verify: Verification.Passes, symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
                 Assert.True(type.IsReadOnly);
@@ -84,7 +84,7 @@ class Test
 }
 ";
 
-            CompileAndVerify(text, verify: false, symbolValidator: module =>
+            CompileAndVerify(text, verify: Verification.Passes, symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Test+S1`1");
                 Assert.True(type.IsReadOnly);
@@ -103,7 +103,7 @@ class Test<T>
 }
 ";
 
-            CompileAndVerify(text, verify: false, symbolValidator: module =>
+            CompileAndVerify(text, verify: Verification.Passes, symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Test`1").GetTypeMember("S1");
                 Assert.True(type.IsReadOnly);
@@ -130,7 +130,7 @@ class Test
 }
 ";
 
-            CompileAndVerify(codeB, verify: false, additionalRefs: new[] { referenceA }, symbolValidator: module =>
+            CompileAndVerify(codeB, verify: Verification.Passes, additionalRefs: new[] { referenceA }, symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
                 Assert.True(type.IsReadOnly);
@@ -155,7 +155,7 @@ namespace System.Runtime.CompilerServices
 using System.Runtime.CompilerServices;
 
 [IsReadOnly]
-public delegate ref readonly int D([IsReadOnly]ref readonly int x);
+public delegate ref readonly int D([IsReadOnly]in int x);
 ";
 
             CreateStandardCompilation(codeB, references: new[] { referenceA }).VerifyDiagnostics(
@@ -163,7 +163,7 @@ public delegate ref readonly int D([IsReadOnly]ref readonly int x);
                 // [IsReadOnly]
                 Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsReadOnly").WithArguments("System.Runtime.CompilerServices.IsReadOnlyAttribute").WithLocation(4, 2),
                 // (5,37): error CS8335: Do not use 'System.Runtime.CompilerServices.IsReadOnlyAttribute'. This is reserved for compiler usage.
-                // public delegate ref readonly int D([IsReadOnly]ref readonly int x);
+                // public delegate ref readonly int D([IsReadOnly]in int x);
                 Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsReadOnly").WithArguments("System.Runtime.CompilerServices.IsReadOnlyAttribute").WithLocation(5, 37));
         }
 
@@ -269,7 +269,7 @@ public class Test
 {
     [IsReadOnly]
     [return: IsReadOnly]
-    public ref readonly int Method([IsReadOnly]ref readonly int x)
+    public ref readonly int Method([IsReadOnly]in int x)
     {
         return ref x;
     }
@@ -284,7 +284,7 @@ public class Test
                 //     [return: IsReadOnly]
                 Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsReadOnly").WithArguments("System.Runtime.CompilerServices.IsReadOnlyAttribute").WithLocation(7, 14),
                 // (8,37): error CS8335: Do not use 'System.Runtime.CompilerServices.IsReadOnlyAttribute'. This is reserved for compiler usage.
-                //     public ref readonly int Method([IsReadOnly]ref readonly int x)
+                //     public ref readonly int Method([IsReadOnly]in int x)
                 Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsReadOnly").WithArguments("System.Runtime.CompilerServices.IsReadOnlyAttribute").WithLocation(8, 37));
         }
 
@@ -305,7 +305,7 @@ using System.Runtime.CompilerServices;
 public class Test
 {
     [IsReadOnly]
-    public ref readonly int this[[IsReadOnly]ref readonly int x] { get { return ref x; } }
+    public ref readonly int this[[IsReadOnly]in int x] { get { return ref x; } }
 }
 ";
 
@@ -314,7 +314,7 @@ public class Test
                 //     [IsReadOnly]
                 Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsReadOnly").WithArguments("System.Runtime.CompilerServices.IsReadOnlyAttribute").WithLocation(6, 6),
                 // (7,35): error CS8335: Do not use 'System.Runtime.CompilerServices.IsReadOnlyAttribute'. This is reserved for compiler usage.
-                //     public ref readonly int this[[IsReadOnly]ref readonly int x] { get { return ref x; } }
+                //     public ref readonly int this[[IsReadOnly]in int x] { get { return ref x; } }
                 Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsReadOnly").WithArguments("System.Runtime.CompilerServices.IsReadOnlyAttribute").WithLocation(7, 35));
         }
 
@@ -355,7 +355,7 @@ public class Test1
 	public readonly struct S1{}
 }", references: new[] { code1.ToMetadataReference() }, options: options);
 
-            CompileAndVerify(code2, verify: false, symbolValidator: module =>
+            CompileAndVerify(code2, verify: Verification.Passes, symbolValidator: module =>
             {
                 // IsReadOnly is not generated in assembly
                 var isReadOnlyAttributeName = WellKnownTypes.GetMetadataName(WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute);
@@ -425,7 +425,7 @@ public class Test
     public readonly struct S1{}
 }";
 
-            CompileAndVerify(code, verify: false, additionalRefs: new[] { reference }, options: TestOptions.ReleaseModule, symbolValidator: module =>
+            CompileAndVerify(code, verify: Verification.Fails, additionalRefs: new[] { reference }, options: TestOptions.ReleaseModule, symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
                 Assert.True(type.IsReadOnly);
@@ -447,7 +447,7 @@ public class Test1
 	public readonly struct S1{}
 }";
 
-            var comp1 = CompileAndVerify(code1, options: options, verify: false, symbolValidator: module =>
+            var comp1 = CompileAndVerify(code1, options: options, verify: Verification.Passes, symbolValidator: module =>
             {
                 AssertGeneratedEmbeddedAttribute(module.ContainingAssembly, AttributeDescription.CodeAnalysisEmbeddedAttribute.FullName);
                 AssertGeneratedEmbeddedAttribute(module.ContainingAssembly, AttributeDescription.IsReadOnlyAttribute.FullName);
@@ -480,7 +480,7 @@ class Test
 }
 ";
 
-            CompileAndVerify(text, verify: false, symbolValidator: module =>
+            CompileAndVerify(text, verify: Verification.Passes, symbolValidator: module =>
             {
                 Assert.Null(module.ContainingAssembly.GetTypeByMetadataName(AttributeDescription.CodeAnalysisEmbeddedAttribute.FullName));
             });

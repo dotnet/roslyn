@@ -77,6 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private DirectiveStack _directives;
         private readonly LexerCache _cache;
         private readonly bool _allowPreprocessorDirectives;
+        private readonly bool _interpolationFollowedByColon;
         private DocumentationCommentParser _xmlParser;
         private int _badTokenCount; // cumulative count of bad tokens produced
 
@@ -101,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             internal bool IsVerbatim;
         }
 
-        public Lexer(SourceText text, CSharpParseOptions options, bool allowPreprocessorDirectives = true)
+        public Lexer(SourceText text, CSharpParseOptions options, bool allowPreprocessorDirectives = true, bool interpolationFollowedByColon = false)
             : base(text)
         {
             Debug.Assert(options != null);
@@ -112,6 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             _cache = new LexerCache();
             _createQuickTokenFunction = this.CreateQuickToken;
             _allowPreprocessorDirectives = allowPreprocessorDirectives;
+            _interpolationFollowedByColon = interpolationFollowedByColon;
         }
 
         public override void Dispose()
@@ -139,6 +141,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public DirectiveStack Directives
         {
             get { return _directives; }
+        }
+
+        /// <summary>
+        /// The lexer is for the contents of an interpolation that is followed by a colon that signals the start of the format string.
+        /// </summary>
+        public bool InterpolationFollowedByColon
+        {
+            get
+            {
+                return _interpolationFollowedByColon;
+            }
         }
 
         public void Reset(int position, DirectiveStack directives)
@@ -901,17 +914,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return;
             }
 
-            string requiredFeature = feature.RequiredFeature();
-            if (requiredFeature != null)
-            {
-                if (!options.IsFeatureEnabled(feature))
-                {
-                    this.AddError(ErrorCode.ERR_FeatureIsExperimental, feature.Localize(), requiredFeature);
-                }
-
-                return;
-            }
-
             LanguageVersion availableVersion = this.Options.LanguageVersion;
             var requiredVersion = feature.RequiredVersion();
             if (availableVersion >= requiredVersion) return;
@@ -933,9 +935,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         // Allows underscores in integers, except at beginning for decimal and end
-        private void ScanNumericLiteralSingleInteger(ref bool underscoreInWrongPlace, ref bool usedUnderscore, bool isHex, bool isBinary)
+        private void ScanNumericLiteralSingleInteger(ref bool underscoreInWrongPlace, ref bool usedUnderscore, ref bool firstCharWasUnderscore, bool isHex, bool isBinary)
         {
-            bool firstCharWasUnderscore = false;
             if (TextWindow.PeekChar() == '_')
             {
                 if (isHex || isBinary)
@@ -971,13 +972,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 TextWindow.AdvanceChar();
             }
 
-            if (firstCharWasUnderscore)
-            {
-                CheckFeatureAvailability(MessageID.IDS_FeatureLeadingDigitSeparator);
-                // No need for cascading feature error
-                usedUnderscore = false;
-            }
-            else if (lastCharWasUnderscore)
+            if (lastCharWasUnderscore)
             {
                 underscoreInWrongPlace = true;
             }
@@ -998,6 +993,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             bool hasLSuffix = false;
             bool underscoreInWrongPlace = false;
             bool usedUnderscore = false;
+            bool firstCharWasUnderscore = false;
 
             ch = TextWindow.PeekChar();
             if (ch == '0')
@@ -1020,7 +1016,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 // It's OK if it has no digits after the '0x' -- we'll catch it in ScanNumericLiteral
                 // and give a proper error then.
-                ScanNumericLiteralSingleInteger(ref underscoreInWrongPlace, ref usedUnderscore, isHex, isBinary);
+                ScanNumericLiteralSingleInteger(ref underscoreInWrongPlace, ref usedUnderscore, ref firstCharWasUnderscore, isHex, isBinary);
 
                 if ((ch = TextWindow.PeekChar()) == 'L' || ch == 'l')
                 {
@@ -1050,7 +1046,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
             else
             {
-                ScanNumericLiteralSingleInteger(ref underscoreInWrongPlace, ref usedUnderscore, isHex: false, isBinary: false);
+                ScanNumericLiteralSingleInteger(ref underscoreInWrongPlace, ref usedUnderscore, ref firstCharWasUnderscore, isHex: false, isBinary: false);
 
                 if (this.ModeIs(LexerMode.DebuggerSyntax) && TextWindow.PeekChar() == '#')
                 {
@@ -1071,7 +1067,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         _builder.Append(ch);
                         TextWindow.AdvanceChar();
 
-                        ScanNumericLiteralSingleInteger(ref underscoreInWrongPlace, ref usedUnderscore, isHex: false, isBinary: false);
+                        ScanNumericLiteralSingleInteger(ref underscoreInWrongPlace, ref usedUnderscore, ref firstCharWasUnderscore, isHex: false, isBinary: false);
                     }
                     else if (_builder.Length == 0)
                     {
@@ -1102,7 +1098,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     }
                     else
                     {
-                        ScanNumericLiteralSingleInteger(ref underscoreInWrongPlace, ref usedUnderscore, isHex: false, isBinary: false);
+                        ScanNumericLiteralSingleInteger(ref underscoreInWrongPlace, ref usedUnderscore, ref firstCharWasUnderscore, isHex: false, isBinary: false);
                     }
                 }
 
@@ -1174,7 +1170,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 this.AddError(MakeError(start, TextWindow.Position - start, ErrorCode.ERR_InvalidNumber));
             }
-            if (usedUnderscore)
+            else if (firstCharWasUnderscore)
+            {
+                CheckFeatureAvailability(MessageID.IDS_FeatureLeadingDigitSeparator);
+            }
+            else if (usedUnderscore)
             {
                 CheckFeatureAvailability(MessageID.IDS_FeatureDigitSeparator);
             }
@@ -1198,7 +1198,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 default:
                     if (string.IsNullOrEmpty(valueText))
                     {
-                        this.AddError(MakeError(ErrorCode.ERR_InvalidNumber));
+                        if (!underscoreInWrongPlace)
+                        {
+                            this.AddError(MakeError(ErrorCode.ERR_InvalidNumber));
+                        }
                         val = 0; //safe default
                     }
                     else

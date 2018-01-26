@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Xunit;
 using System.Linq;
@@ -95,18 +95,118 @@ class Program
         }
 
         [Fact]
-        public void RefStructPartial()
+        public void PartialRefStruct()
         {
             var text = @"
 class Program
 {
-    partial ref struct S1{}
-
-    partial ref struct S1{}
+    partial ref struct S {}
+    partial ref struct S {}
 }
 ";
+            var comp = CreateStandardCompilation(text);
+            comp.VerifyDiagnostics(
+                // (4,13): error CS1585: Member modifier 'ref' must precede the member type and name
+                //     partial ref struct S {}
+                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(4, 13),
+                // (5,13): error CS1585: Member modifier 'ref' must precede the member type and name
+                //     partial ref struct S {}
+                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(5, 13),
+                // (5,24): error CS0102: The type 'Program' already contains a definition for 'S'
+                //     partial ref struct S {}
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "S").WithArguments("Program", "S").WithLocation(5, 24));
+        }
 
-            var comp = CreateCompilationWithMscorlib45(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest), options: TestOptions.DebugDll);
+        [Fact]
+        public void RefPartialStruct()
+        {
+            var comp = CreateStandardCompilation(@"
+class C
+{
+    ref partial struct S {}
+    ref partial struct S {}
+}");
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void RefPartialReadonlyStruct()
+        {
+            var comp = CreateStandardCompilation(@"
+class C
+{
+    ref partial readonly struct S {}
+    ref partial readonly struct S {}
+}");
+            comp.VerifyDiagnostics(
+                // (4,17): error CS1585: Member modifier 'readonly' must precede the member type and name
+                //     ref partial readonly struct S {}
+                Diagnostic(ErrorCode.ERR_BadModifierLocation, "readonly").WithArguments("readonly").WithLocation(4, 17),
+                // (5,17): error CS1585: Member modifier 'readonly' must precede the member type and name
+                //     ref partial readonly struct S {}
+                Diagnostic(ErrorCode.ERR_BadModifierLocation, "readonly").WithArguments("readonly").WithLocation(5, 17),
+                // (5,33): error CS0102: The type 'C' already contains a definition for 'S'
+                //     ref partial readonly struct S {}
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "S").WithArguments("C", "S").WithLocation(5, 33));
+        }
+
+        [Fact]
+        public void RefReadonlyPartialStruct()
+        {
+            var comp = CreateStandardCompilation(@"
+class C
+{
+    partial ref readonly struct S {}
+    partial ref readonly struct S {}
+}");
+            comp.VerifyDiagnostics(
+                // (4,13): error CS1585: Member modifier 'ref' must precede the member type and name
+                //     partial ref readonly struct S {}
+                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(4, 13),
+                // (4,26): error CS1031: Type expected
+                //     partial ref readonly struct S {}
+                Diagnostic(ErrorCode.ERR_TypeExpected, "struct").WithLocation(4, 26),
+                // (5,13): error CS1585: Member modifier 'ref' must precede the member type and name
+                //     partial ref readonly struct S {}
+                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(5, 13),
+                // (5,26): error CS1031: Type expected
+                //     partial ref readonly struct S {}
+                Diagnostic(ErrorCode.ERR_TypeExpected, "struct").WithLocation(5, 26),
+                // (5,33): error CS0102: The type 'C' already contains a definition for 'S'
+                //     partial ref readonly struct S {}
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "S").WithArguments("C", "S").WithLocation(5, 33));
+        }
+
+        [Fact]
+        public void ReadonlyPartialRefStruct()
+        {
+            var comp = CreateStandardCompilation(@"
+class C
+{
+    readonly partial ref struct S {}
+    readonly partial ref struct S {}
+}");
+            comp.VerifyDiagnostics(
+                // (4,22): error CS1585: Member modifier 'ref' must precede the member type and name
+                //     readonly partial ref struct S {}
+                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(4, 22),
+                // (5,22): error CS1585: Member modifier 'ref' must precede the member type and name
+                //     readonly partial ref struct S {}
+                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(5, 22),
+                // (5,33): error CS0102: The type 'C' already contains a definition for 'S'
+                //     readonly partial ref struct S {}
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "S").WithArguments("C", "S").WithLocation(5, 33));
+        }
+
+        [Fact]
+        public void ReadonlyRefPartialStruct()
+        {
+            var comp = CreateStandardCompilation(@"
+class C
+{
+    readonly ref partial struct S {}
+    readonly ref partial struct S {}
+}");
             comp.VerifyDiagnostics();
         }
 

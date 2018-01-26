@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // SPEC: The parameters of an operator must be value parameters.
             foreach (var p in this.Parameters)
             {
-                if (p.RefKind != RefKind.None && p.RefKind != RefKind.RefReadOnly)
+                if (p.RefKind != RefKind.None && p.RefKind != RefKind.In)
                 {
                     diagnostics.Add(ErrorCode.ERR_IllegalRefParam, this.Locations[0]);
                     break;
@@ -612,7 +612,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public sealed override ImmutableArray<TypeParameterConstraintClause> TypeParameterConstraintClauses
             => ImmutableArray<TypeParameterConstraintClause>.Empty;
 
-        internal override RefKind RefKind
+        public override RefKind RefKind
         {
             get { return RefKind.None; }
         }

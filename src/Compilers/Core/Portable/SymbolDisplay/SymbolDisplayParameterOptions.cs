@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis
         IncludeExtensionThis = 1 << 0,
 
         /// <summary>
-        /// Includes the <c>params</c>, <c>ref</c>, <c>ref readonly</c>, <c>out</c>, <c>ByRef</c>, <c>ByVal</c> keywords before parameters.
+        /// Includes the <c>params</c>, <c>ref</c>, <c>in</c>, <c>out</c>, <c>ByRef</c>, <c>ByVal</c> keywords before parameters.
         /// </summary>
         IncludeParamsRefOut = 1 << 1,
 

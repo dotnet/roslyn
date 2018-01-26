@@ -370,7 +370,7 @@ End Module
 
         <WorkItem(543501, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543501")>
         <Fact()>
-        Public Sub BC31502_DuplicateMainfestResourceIdentifier()
+        Public Sub BC31502_DuplicateManifestResourceIdentifier()
             Dim c1 As VisualBasicCompilation = CreateCompilationWithMscorlibAndVBRuntime(
                 <compilation><file name="a.vb">
 Module Module1
@@ -655,7 +655,7 @@ BC31502: Resource name 'some.dotted.NAME' cannot be used more than once.
 
         <WorkItem(543501, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543501")>
         <Fact()>
-        Public Sub BC31502_DuplicateMainfestResourceIdentifier_EmbeddedResource()
+        Public Sub BC31502_DuplicateManifestResourceIdentifier_EmbeddedResource()
             Dim c1 As VisualBasicCompilation = CreateCompilationWithMscorlibAndVBRuntime(
                 <compilation><file name="a.vb">
 Module Module1
@@ -690,7 +690,7 @@ End Module
 
         <WorkItem(543501, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543501"), WorkItem(546298, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546298")>
         <Fact()>
-        Public Sub BC35003_DuplicateMainfestResourceFileName()
+        Public Sub BC35003_DuplicateManifestResourceFileName()
             Dim c1 As Compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
     <file name="a.vb">
@@ -738,7 +738,7 @@ End Module
 
         <WorkItem(543501, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543501")>
         <Fact()>
-        Public Sub NoDuplicateMainfestResourceFileNameDiagnosticForEmbeddedResources()
+        Public Sub NoDuplicateManifestResourceFileNameDiagnosticForEmbeddedResources()
             Dim c1 As VisualBasicCompilation = CreateCompilationWithMscorlibAndVBRuntime(
                               <compilation><file name="a.vb">
 Module Module1
@@ -771,7 +771,7 @@ End Module
 
         <WorkItem(543501, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543501")>
         <Fact()>
-        Public Sub BC31502_BC35003_DuplicateMainfestResourceDiagnostics()
+        Public Sub BC31502_BC35003_DuplicateManifestResourceDiagnostics()
             Dim c1 As VisualBasicCompilation = CreateCompilationWithMscorlibAndVBRuntime(
                                  <compilation><file name="a.vb">
 Module Module1

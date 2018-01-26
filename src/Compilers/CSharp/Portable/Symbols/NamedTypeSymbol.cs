@@ -48,19 +48,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public abstract ImmutableArray<TypeParameterSymbol> TypeParameters { get; }
 
         /// <summary>
-        /// Returns the type arguments that have been substituted for the type parameters. 
-        /// If nothing has been substituted for a give type parameters,
-        /// then the type parameter itself is consider the type argument.
-        /// </summary>
-        public ImmutableArray<TypeSymbol> TypeArguments
-        {
-            get
-            {
-                return TypeArgumentsNoUseSiteDiagnostics;
-            }
-        }
-
-        /// <summary>
         /// Returns custom modifiers for the type argument that has been substituted for the type parameter. 
         /// The modifiers correspond to the type argument at the same ordinal within the <see cref="TypeArgumentsNoUseSiteDiagnostics"/>
         /// array.
@@ -79,6 +66,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal abstract bool HasTypeArgumentsCustomModifiers { get; }
 
+        /// <summary>
+        /// Returns the type arguments that have been substituted for the type parameters. 
+        /// If nothing has been substituted for a give type parameters,
+        /// then the type parameter itself is consider the type argument.
+        /// </summary>
         internal abstract ImmutableArray<TypeSymbol> TypeArgumentsNoUseSiteDiagnostics { get; }
 
         internal ImmutableArray<TypeSymbol> TypeArgumentsWithDefinitionUseSiteDiagnostics(ref HashSet<DiagnosticInfo> useSiteDiagnostics)
@@ -378,7 +370,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         var thisParam = method.Parameters.First();
 
                         if ((thisParam.RefKind == RefKind.Ref && !thisParam.Type.IsValueType) ||
-                            (thisParam.RefKind == RefKind.RefReadOnly && thisParam.Type.TypeKind != TypeKind.Struct))
+                            (thisParam.RefKind == RefKind.In && thisParam.Type.TypeKind != TypeKind.Struct))
                         {
                             // For ref and ref-readonly extension methods, receivers need to be of the correct types to be considered in lookup
                             continue;
@@ -1158,7 +1150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         #endregion
 
         /// <summary>
-        /// True if the type itself is excluded from code covarage instrumentation.
+        /// True if the type itself is excluded from code coverage instrumentation.
         /// True for source types marked with <see cref="AttributeDescription.ExcludeFromCodeCoverageAttribute"/>.
         /// </summary>
         internal virtual bool IsDirectlyExcludedFromCodeCoverage { get => false; }

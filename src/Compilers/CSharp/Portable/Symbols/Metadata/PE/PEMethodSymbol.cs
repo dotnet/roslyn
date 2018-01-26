@@ -5,13 +5,13 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
-using System.Threading;
 using System.Reflection;
 using System.Reflection.Metadata;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.CSharp.Emit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 {
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 // 1) Verify that the range of method kinds doesn't fall outside the bounds of the
                 // method kind mask.
-                var methodKinds = EnumExtensions.GetValues<MethodKind>();
+                var methodKinds = EnumUtilities.GetValues<MethodKind>();
                 var maxMethodKind = (int)System.Linq.Enumerable.Aggregate(methodKinds, (m1, m2) => m1 | m2);
                 Debug.Assert((maxMethodKind & MethodKindMask) == maxMethodKind);
             }
@@ -503,7 +503,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         internal PEParameterSymbol ReturnTypeParameter => Signature.ReturnParam;
 
-        internal override RefKind RefKind => Signature.ReturnParam.RefKind;
+        public override RefKind RefKind => Signature.ReturnParam.RefKind;
 
         public override TypeSymbol ReturnType => Signature.ReturnParam.Type;
 
@@ -796,20 +796,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 case RefKind.None:
                 case RefKind.Ref:
-                case RefKind.RefReadOnly:
+                case RefKind.In:
                     return !parameter.IsParams;
                 default:
                     return false;
             }
         }
 
-        private bool IsValidUserDefinedOperatorSignature(int parameterCount) =>
-                !this.ReturnsVoid &&
-                !this.IsGenericMethod &&
-                !this.IsVararg &&
-                this.ParameterCount == parameterCount &&
-                this.ParameterRefKinds.IsDefault && // No 'ref' or 'out'
-                !this.IsParams();
+        private bool IsValidUserDefinedOperatorSignature(int parameterCount)
+        {
+            if (this.ReturnsVoid || this.IsGenericMethod || this.IsVararg || this.ParameterCount != parameterCount || this.IsParams())
+            {
+                return false;
+            }
+
+            if (this.ParameterRefKinds.IsDefault)
+            {
+                return true;
+            }
+
+            foreach (var kind in this.ParameterRefKinds)
+            {
+                switch (kind)
+                {
+                    case RefKind.None:
+                    case RefKind.In:
+                        continue;
+                    case RefKind.Out:
+                    case RefKind.Ref:
+                        return false;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(kind);
+                }
+            }
+
+            return true;
+        }
 
         private MethodKind ComputeMethodKind()
         {
@@ -1119,6 +1141,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 return uncommonFields._lazyOverriddenOrHiddenMembersResult ?? InterlockedOperations.Initialize(ref uncommonFields._lazyOverriddenOrHiddenMembersResult, OverriddenOrHiddenMembersResult.Empty);
             }
+        }
+
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        internal override void AddSynthesizedReturnTypeAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        {
+            throw ExceptionUtilities.Unreachable;
         }
 
         // perf, not correctness

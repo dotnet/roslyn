@@ -80,6 +80,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         void GetPartsOfBinaryExpression(SyntaxNode node, out SyntaxNode left, out SyntaxNode right);
         void GetPartsOfConditionalExpression(SyntaxNode node, out SyntaxNode condition, out SyntaxNode whenTrue, out SyntaxNode whenFalse);
 
+        bool IsCastExpression(SyntaxNode node);
+        void GetPartsOfCastExpression(SyntaxNode node, out SyntaxNode type, out SyntaxNode expression);
+
         bool IsInvocationExpression(SyntaxNode node);
         bool IsExpressionOfInvocationExpression(SyntaxNode node);
         SyntaxNode GetExpressionOfInvocationExpression(SyntaxNode node);
@@ -193,6 +196,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsStatement(SyntaxNode node);
         bool IsParameter(SyntaxNode node);
         bool IsVariableDeclarator(SyntaxNode node);
+        bool IsDeconstructionAssignment(SyntaxNode node);
+        bool IsDeconstructionForEachStatement(SyntaxNode node);
 
         /// <summary>
         /// Returns true for nodes that represent the body of a method.
@@ -334,6 +339,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         SyntaxTokenList GetModifiers(SyntaxNode node);
         SyntaxNode WithModifiers(SyntaxNode node, SyntaxTokenList modifiers);
+
+        Location GetDeconstructionReferenceLocation(SyntaxNode node);
+
+        SyntaxToken? GetDeclarationIdentifierIfOverride(SyntaxToken token);
     }
 
     [Flags]

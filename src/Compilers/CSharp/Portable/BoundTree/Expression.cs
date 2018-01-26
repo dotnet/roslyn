@@ -4,11 +4,6 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal partial class BoundDelegateCreationExpression
-    {
-        protected override ImmutableArray<BoundNode> Children => ImmutableArray.Create<BoundNode>(this.Argument);
-    }
-
     internal partial class BoundObjectCreationExpression
     {
         internal static ImmutableArray<BoundExpression> GetChildInitializers(BoundExpression objectOrCollectionInitializer)

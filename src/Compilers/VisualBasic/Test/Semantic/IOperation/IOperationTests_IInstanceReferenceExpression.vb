@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -27,7 +27,7 @@ Public Class C2
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: C1) (Syntax: 'MyBase')
+IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C1) (Syntax: 'MyBase')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -48,7 +48,7 @@ Public Class C1
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IInstanceReferenceExpression (OperationKind.InstanceReferenceExpression, Type: System.Object, IsInvalid) (Syntax: 'MyBase')
+IInstanceReferenceOperation (OperationKind.InstanceReference, Type: System.Object, IsInvalid) (Syntax: 'MyBase')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[

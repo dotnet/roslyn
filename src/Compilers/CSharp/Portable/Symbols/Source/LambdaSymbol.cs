@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return (object)this.ReturnType != null && this.ReturnType.SpecialType == SpecialType.System_Void; }
         }
 
-        internal override RefKind RefKind
+        public override RefKind RefKind
         {
             get { return _refKind; }
         }

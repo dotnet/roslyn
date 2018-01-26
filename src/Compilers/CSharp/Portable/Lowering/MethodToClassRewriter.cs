@@ -385,7 +385,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             BoundExpression originalRight = node.Right;
 
             if (leftLocal.LocalSymbol.RefKind != RefKind.None &&
-                node.RefKind != RefKind.None &&
+                node.IsRef &&
                 NeedsProxy(leftLocal.LocalSymbol))
             {
                 Debug.Assert(!proxies.ContainsKey(leftLocal.LocalSymbol));
@@ -422,8 +422,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 BoundAssignmentOperator tempAssignment;
                 BoundLocal tempLocal = factory.StoreToTemp(rewrittenRight, out tempAssignment);
 
-                Debug.Assert(node.RefKind == RefKind.None);
-                BoundAssignmentOperator rewrittenAssignment = node.Update(rewrittenLeft, tempLocal, node.RefKind, rewrittenType);
+                Debug.Assert(!node.IsRef);
+                BoundAssignmentOperator rewrittenAssignment = node.Update(rewrittenLeft, tempLocal, node.IsRef, rewrittenType);
 
                 return new BoundSequence(
                     node.Syntax,
@@ -433,7 +433,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     rewrittenType);
             }
 
-            return node.Update(rewrittenLeft, rewrittenRight, node.RefKind, rewrittenType);
+            return node.Update(rewrittenLeft, rewrittenRight, node.IsRef, rewrittenType);
         }
 
         public override BoundNode VisitFieldInfo(BoundFieldInfo node)
@@ -614,6 +614,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             ImmutableArray<BoundExpression> arguments = (ImmutableArray<BoundExpression>)this.VisitList(node.Arguments);
             TypeSymbol type = this.VisitType(node.Type);
+            TypeSymbol receiverType = this.VisitType(node.ReceiverType);
 
             var member = node.MemberSymbol;
 
@@ -627,7 +628,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     break;
             }
 
-            return node.Update(member, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.ResultKind, node.BinderOpt, type);
+            return node.Update(member, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.ResultKind, receiverType, node.BinderOpt, type);
         }
 
         private static bool BaseReferenceInReceiverWasRewritten(BoundExpression originalReceiver, BoundExpression rewrittenReceiver)

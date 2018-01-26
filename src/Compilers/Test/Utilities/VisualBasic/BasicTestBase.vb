@@ -48,7 +48,7 @@ Public MustInherit Class BasicTestBase
         Optional options As VisualBasicCompilationOptions = Nothing,
         Optional parseOptions As VisualBasicParseOptions = Nothing,
         Optional emitOptions As EmitOptions = Nothing,
-        Optional verify As Boolean = True
+        Optional verify As Verification = Verification.Passes
     ) As CompilationVerifier
 
         Return CompileAndVerify(
@@ -80,7 +80,7 @@ Public MustInherit Class BasicTestBase
         Optional expectedReturnCode As Integer? = Nothing,
         Optional args As String() = Nothing,
         Optional emitOptions As EmitOptions = Nothing,
-        Optional verify As Boolean = True) As CompilationVerifier
+        Optional verify As Verification = Verification.Passes) As CompilationVerifier
 
         Return MyBase.CompileAndVerify(
             compilation,
@@ -108,7 +108,7 @@ Public MustInherit Class BasicTestBase
         Optional symbolValidator As Action(Of ModuleSymbol) = Nothing,
         Optional expectedSignatures As SignatureDescription() = Nothing,
         Optional emitOptions As EmitOptions = Nothing,
-        Optional verify As Boolean = True) As CompilationVerifier
+        Optional verify As Verification = Verification.Passes) As CompilationVerifier
 
         Return CompileAndVerify(
             compilation,
@@ -139,7 +139,7 @@ Public MustInherit Class BasicTestBase
         Optional options As VisualBasicCompilationOptions = Nothing,
         Optional parseOptions As VisualBasicParseOptions = Nothing,
         Optional emitOptions As EmitOptions = Nothing,
-        Optional verify As Boolean = True,
+        Optional verify As Verification = Verification.Passes,
         Optional useLatestFramework As Boolean = False
     ) As CompilationVerifier
 
@@ -177,7 +177,7 @@ Public MustInherit Class BasicTestBase
         Optional options As VisualBasicCompilationOptions = Nothing,
         Optional parseOptions As VisualBasicParseOptions = Nothing,
         Optional emitOptions As EmitOptions = Nothing,
-        Optional verify As Boolean = True
+        Optional verify As Verification = Verification.Passes
     ) As CompilationVerifier
 
         If options Is Nothing Then
@@ -185,7 +185,7 @@ Public MustInherit Class BasicTestBase
         End If
 
         Dim assemblyName As String = Nothing
-        Dim sourceTrees = ParseSouceXml(source, parseOptions, assemblyName)
+        Dim sourceTrees = ParseSourceXml(source, parseOptions, assemblyName)
         Dim compilation = CreateCompilation(sourceTrees, allReferences, options, assemblyName)
 
         Return MyBase.CompileAndVerify(
@@ -218,7 +218,7 @@ Public MustInherit Class BasicTestBase
         Optional parseOptions As VisualBasicParseOptions = Nothing,
         Optional emitOptions As EmitOptions = Nothing,
         Optional assemblyName As String = Nothing,
-        Optional verify As Boolean = True
+        Optional verify As Verification = Verification.Passes
     ) As CompilationVerifier
 
         If options Is Nothing Then
@@ -255,7 +255,7 @@ Public MustInherit Class BasicTestBase
         Optional expectedSignatures As SignatureDescription() = Nothing,
         Optional options As VisualBasicCompilationOptions = Nothing,
         Optional parseOptions As VisualBasicParseOptions = Nothing,
-        Optional verify As Boolean = True
+        Optional verify As Verification = Verification.Passes
     ) As CompilationVerifier
         Return Me.CompileAndVerify(
             source,
@@ -270,7 +270,7 @@ Public MustInherit Class BasicTestBase
             expectedSignatures,
             options,
             parseOptions,
-            verify:=OSVersion.IsWin8)
+            verify:=If(OSVersion.IsWin8, verify, Verification.Skipped))
     End Function
 
     Friend Shadows Function CompileAndVerifyOnWin8Only(
@@ -286,7 +286,7 @@ Public MustInherit Class BasicTestBase
         Optional expectedSignatures As SignatureDescription() = Nothing,
         Optional options As VisualBasicCompilationOptions = Nothing,
         Optional parseOptions As VisualBasicParseOptions = Nothing,
-        Optional verify As Boolean = True
+        Optional verify As Verification = Verification.Passes
     ) As CompilationVerifier
         Return CompileAndVerifyOnWin8Only(
             source,
@@ -315,7 +315,7 @@ Public MustInherit Class BasicTestBase
         Optional expectedSignatures As SignatureDescription() = Nothing,
         Optional options As VisualBasicCompilationOptions = Nothing,
         Optional parseOptions As VisualBasicParseOptions = Nothing,
-        Optional verify As Boolean = True,
+        Optional verify As Verification = Verification.Passes,
         Optional useLatestFramework As Boolean = False
     ) As CompilationVerifier
         Return CompileAndVerify(
@@ -329,7 +329,7 @@ Public MustInherit Class BasicTestBase
             expectedSignatures:=expectedSignatures,
             options:=options,
             parseOptions:=parseOptions,
-            verify:=OSVersion.IsWin8 AndAlso verify,
+            verify:=If(OSVersion.IsWin8, verify, Verification.Skipped),
             useLatestFramework:=useLatestFramework)
     End Function
 
@@ -798,7 +798,7 @@ Public MustInherit Class BasicTestBaseBase
 
         Dim tree = (From t In compilation.SyntaxTrees Where t.FilePath = fileName).Single()
         Dim semanticModel = compilation.GetSemanticModel(tree)
-        Dim operation = semanticModel.GetOperationInternal(node)
+        Dim operation = semanticModel.GetOperation(node)
         If operation IsNot Nothing Then
             Return (OperationTreeVerifier.GetOperationTree(compilation, operation), node, operation)
         Else
@@ -806,10 +806,17 @@ Public MustInherit Class BasicTestBaseBase
         End If
     End Function
 
-    Friend Shared Function GetOperationTreeForTest(Of TSyntaxNode As SyntaxNode)(testSrc As String, Optional compilationOptions As VisualBasicCompilationOptions = Nothing, Optional parseOptions As VisualBasicParseOptions = Nothing, Optional which As Integer = 0) As (tree As String, syntax As SyntaxNode, operation As IOperation, compilation As Compilation)
+    Friend Shared Function GetOperationTreeForTest(Of TSyntaxNode As SyntaxNode)(
+        testSrc As String,
+        Optional compilationOptions As VisualBasicCompilationOptions = Nothing,
+        Optional parseOptions As VisualBasicParseOptions = Nothing,
+        Optional which As Integer = 0,
+        Optional useLatestFrameworkReferences As Boolean = False) As (tree As String, syntax As SyntaxNode, operation As IOperation, compilation As Compilation)
+
         Dim fileName = "a.vb"
         Dim syntaxTree = Parse(testSrc, fileName, parseOptions)
-        Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime({syntaxTree}, references:=DefaultVbReferences.Append({ValueTupleRef, SystemRuntimeFacadeRef}), options:=If(compilationOptions, TestOptions.ReleaseDll))
+        Dim defaultRefs = If(useLatestFrameworkReferences, LatestVbReferences, DefaultVbReferences)
+        Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime({syntaxTree}, references:=defaultRefs.Append({ValueTupleRef, SystemRuntimeFacadeRef}), options:=If(compilationOptions, TestOptions.ReleaseDll))
         Dim operationTree = GetOperationTreeForTest(Of TSyntaxNode)(compilation, fileName, which)
         Return (operationTree.tree, operationTree.syntax, operationTree.operation, compilation)
     End Function
@@ -822,16 +829,30 @@ Public MustInherit Class BasicTestBaseBase
         End If
     End Sub
 
-    Friend Shared Sub VerifyOperationTreeForTest(Of TSyntaxNode As SyntaxNode)(testSrc As String, expectedOperationTree As String, Optional compilationOptions As VisualBasicCompilationOptions = Nothing, Optional parseOptions As VisualBasicParseOptions = Nothing, Optional which As Integer = 0, Optional additionalOperationTreeVerifier As Action(Of IOperation, Compilation, SyntaxNode) = Nothing)
-        Dim operationTree = GetOperationTreeForTest(Of TSyntaxNode)(testSrc, compilationOptions, parseOptions, which)
+    Friend Shared Sub VerifyOperationTreeForTest(Of TSyntaxNode As SyntaxNode)(
+        testSrc As String,
+        expectedOperationTree As String,
+        Optional compilationOptions As VisualBasicCompilationOptions = Nothing,
+        Optional parseOptions As VisualBasicParseOptions = Nothing,
+        Optional which As Integer = 0,
+        Optional additionalOperationTreeVerifier As Action(Of IOperation, Compilation, SyntaxNode) = Nothing,
+        Optional useLatestFrameworkReferences As Boolean = False)
+
+        Dim operationTree = GetOperationTreeForTest(Of TSyntaxNode)(testSrc, compilationOptions, parseOptions, which, useLatestFrameworkReferences)
         OperationTreeVerifier.Verify(expectedOperationTree, operationTree.tree)
         If additionalOperationTreeVerifier IsNot Nothing Then
             additionalOperationTreeVerifier(operationTree.operation, operationTree.compilation, operationTree.syntax)
         End If
     End Sub
 
-    Friend Shared Sub VerifyNoOperationTreeForTest(Of TSyntaxNode As SyntaxNode)(testSrc As String, Optional compilationOptions As VisualBasicCompilationOptions = Nothing, Optional parseOptions As VisualBasicParseOptions = Nothing, Optional which As Integer = 0)
-        Dim operationTree = GetOperationTreeForTest(Of TSyntaxNode)(testSrc, compilationOptions, parseOptions, which)
+    Friend Shared Sub VerifyNoOperationTreeForTest(Of TSyntaxNode As SyntaxNode)(
+        testSrc As String,
+        Optional compilationOptions As VisualBasicCompilationOptions = Nothing,
+        Optional parseOptions As VisualBasicParseOptions = Nothing,
+        Optional which As Integer = 0,
+        Optional useLatestFrameworkReferences As Boolean = False)
+
+        Dim operationTree = GetOperationTreeForTest(Of TSyntaxNode)(testSrc, compilationOptions, parseOptions, which, useLatestFrameworkReferences)
         Assert.Null(operationTree.tree)
     End Sub
 
@@ -840,10 +861,21 @@ Public MustInherit Class BasicTestBaseBase
         VerifyOperationTreeForTest(Of TSyntaxNode)(compilation, fileName, expectedOperationTree, which, additionalOperationTreeVerifier)
     End Sub
 
-    Friend Shared Sub VerifyOperationTreeAndDiagnosticsForTest(Of TSyntaxNode As SyntaxNode)(testSrc As String, expectedOperationTree As String, expectedDiagnostics As String, Optional compilationOptions As VisualBasicCompilationOptions = Nothing, Optional parseOptions As VisualBasicParseOptions = Nothing, Optional which As Integer = 0, Optional additionalReferences As IEnumerable(Of MetadataReference) = Nothing, Optional additionalOperationTreeVerifier As Action(Of IOperation, Compilation, SyntaxNode) = Nothing)
+    Friend Shared Sub VerifyOperationTreeAndDiagnosticsForTest(Of TSyntaxNode As SyntaxNode)(
+        testSrc As String,
+        expectedOperationTree As String,
+        expectedDiagnostics As String,
+        Optional compilationOptions As VisualBasicCompilationOptions = Nothing,
+        Optional parseOptions As VisualBasicParseOptions = Nothing,
+        Optional which As Integer = 0,
+        Optional additionalReferences As IEnumerable(Of MetadataReference) = Nothing,
+        Optional additionalOperationTreeVerifier As Action(Of IOperation, Compilation, SyntaxNode) = Nothing,
+        Optional useLatestFramework As Boolean = False)
+
         Dim fileName = "a.vb"
         Dim syntaxTree = Parse(testSrc, fileName, parseOptions)
-        Dim references = DefaultVbReferences.Concat({ValueTupleRef, SystemRuntimeFacadeRef})
+        Dim defaultRefs = If(useLatestFramework, LatestVbReferences, DefaultVbReferences)
+        Dim references = defaultRefs.Concat({ValueTupleRef, SystemRuntimeFacadeRef})
         references = If(additionalReferences IsNot Nothing, references.Concat(additionalReferences), references)
         Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime({syntaxTree}, references:=references, options:=If(compilationOptions, TestOptions.ReleaseDll))
         VerifyOperationTreeAndDiagnosticsForTest(Of TSyntaxNode)(compilation, fileName, expectedOperationTree, expectedDiagnostics, which, additionalOperationTreeVerifier)
@@ -853,14 +885,14 @@ Public MustInherit Class BasicTestBaseBase
         Return DumpAllDiagnostics(allDiagnostics, suppressInfos)
     End Function
 
-    Friend Shared Function GetOperationAndSyntaxForTest(Of TSyntaxNode As SyntaxNode)(compilation As Compilation, fileName As String, Optional which As integer  = 0) As (operation as IOperation, synxtaxNode As SyntaxNode)
+    Friend Shared Function GetOperationAndSyntaxForTest(Of TSyntaxNode As SyntaxNode)(compilation As Compilation, fileName As String, Optional which As Integer = 0) As (operation As IOperation, syntaxNode As SyntaxNode)
         Dim node As SyntaxNode = CompilationUtils.FindBindingText(Of TSyntaxNode)(compilation, fileName, which, prefixMatch:=True)
         If node Is Nothing Then
             Return (Nothing, Nothing)
         End If
-        
+
         Dim semanticModel = compilation.GetSemanticModel(node.SyntaxTree)
-        Dim operation = semanticModel.GetOperationInternal(node)
+        Dim operation = semanticModel.GetOperation(node)
         Return (operation, node)
     End Function
 

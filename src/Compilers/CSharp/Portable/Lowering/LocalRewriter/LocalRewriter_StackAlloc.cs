@@ -1,9 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using System.Collections.Immutable;
-using Roslyn.Utilities;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -32,10 +32,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var stackSize = RewriteStackAllocCountToSize(rewrittenCount, elementType);
                 return new BoundConvertedStackAllocExpression(stackAllocNode.Syntax, elementType, stackSize, stackAllocNode.Type);
             }
-            else if (type.IsSpanType())
+            else if (type.OriginalDefinition == _compilation.GetWellKnownType(WellKnownType.System_Span_T))
             {
                 var spanType = (NamedTypeSymbol)stackAllocNode.Type;
-                var countTemp = _factory.StoreToTemp(rewrittenCount, out BoundAssignmentOperator countTempAssignment);
+                var sideEffects = ArrayBuilder<BoundExpression>.GetInstance();
+                var locals = ArrayBuilder<LocalSymbol>.GetInstance();
+                var countTemp = CaptureExpressionInTempIfNeeded(rewrittenCount, sideEffects, locals);
                 var stackSize = RewriteStackAllocCountToSize(countTemp, elementType);
                 stackAllocNode = new BoundConvertedStackAllocExpression(stackAllocNode.Syntax, elementType, stackSize, spanType);
 
@@ -44,8 +46,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return new BoundSequence(
                     syntax: stackAllocNode.Syntax,
-                    locals: ImmutableArray.Create(countTemp.LocalSymbol),
-                    sideEffects: ImmutableArray.Create<BoundExpression>(countTempAssignment),
+                    locals: locals.ToImmutableAndFree(),
+                    sideEffects: sideEffects.ToImmutableAndFree(),
                     value: ctorCall,
                     type: spanType);
             }

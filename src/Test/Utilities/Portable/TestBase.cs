@@ -248,12 +248,12 @@ namespace Roslyn.Test.Utilities
         public static MetadataReference DesktopCSharpRef => s_desktopCSharpRef.Value;
 
         private static readonly Lazy<MetadataReference> s_stdCSharpRef = new Lazy<MetadataReference>(
-            () => AssemblyMetadata.CreateFromFile(Path.Combine(AppContext.BaseDirectory, "ref/Microsoft.CSharp.dll")).GetReference(display: "Microsoft.CSharp.dll (netstandard 1.0 ref)"),
+            () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.netstandard10.Microsoft_CSharp).GetReference(display: "Microsoft.CSharp.dll (netstandard 1.0 ref)"),
             LazyThreadSafetyMode.PublicationOnly);
         public static MetadataReference StandardCSharpRef => s_stdCSharpRef.Value;
 
         private static readonly Lazy<MetadataReference> s_systemDynamicRuntimeRef = new Lazy<MetadataReference>(
-            () => AssemblyMetadata.CreateFromFile(Path.Combine(AppContext.BaseDirectory, "ref/System.Dynamic.Runtime.dll")).GetReference(display: "System.Dynamic.Runtime.dll (netstandard 1.3 ref)"),
+            () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.netstandard13.System_Dynamic_Runtime).GetReference(display: "System.Dynamic.Runtime.dll (netstandard 1.3 ref)"),
             LazyThreadSafetyMode.PublicationOnly);
         public static MetadataReference SystemDynamicRuntimeRef => s_systemDynamicRuntimeRef.Value;
 

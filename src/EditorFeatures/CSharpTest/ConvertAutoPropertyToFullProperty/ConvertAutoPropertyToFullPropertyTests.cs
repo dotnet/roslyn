@@ -1,9 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -1009,5 +1012,129 @@ struct goo
 ";
             await TestInRegularAndScriptAsync(text, expected, options: DoNotPreferExpressionBodiedAccessors);
         }
+
+        [WorkItem(22146, "https://github.com/dotnet/roslyn/issues/22146")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        public async Task PartialClasses()
+        {
+           var text = @"
+partial class Program
+{
+    int P { get; set; }
+}
+
+partial class Program
+{
+    int [||]Q { get; set; }
+}
+";
+            var expected = @"
+partial class Program
+{
+    int P { get; set; }
+}
+
+partial class Program
+{
+    private int _q;
+
+    int Q { get => _q; set => _q = value; }
+}
+";
+            await TestInRegularAndScriptAsync(text, expected);
+        }
+
+        [WorkItem(22146, "https://github.com/dotnet/roslyn/issues/22146")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        public async Task PartialClassInSeparateFiles1()
+        {
+            var file1 = @"
+partial class Program
+{
+    int [||]P { get; set; }
+}";
+            var file2 = @"
+partial class Program
+{
+    int Q { get; set; }
+}";
+            var file1AfterRefactor = @"
+partial class Program
+{
+    private int _p;
+
+    int P { get => _p; set => _p = value; }
+}";
+
+            var xmlString = string.Format(@"
+<Workspace>
+    <Project Language=""{0}"" CommonReferences=""true"">
+        <Document FilePath=""file1"">{1}</Document>
+        <Document FilePath=""file2"">{2}</Document>
+    </Project>
+</Workspace>", LanguageNames.CSharp, file1, file2);
+
+            using (var testWorkspace = TestWorkspace.Create(xmlString))
+            {
+                // refactor file1 and check
+                var actions = await GetCodeActionsAsync(testWorkspace, parameters: (default));
+                await TestActionsAsync(
+                    testWorkspace,
+                    file1AfterRefactor,
+                    index: 0,
+                    actions: actions,
+                    conflictSpans: ImmutableArray<TextSpan>.Empty,
+                    renameSpans: ImmutableArray<TextSpan>.Empty,
+                    warningSpans: ImmutableArray<TextSpan>.Empty,
+                    navigationSpans: ImmutableArray<TextSpan>.Empty);
+            }
+        }
+
+        [WorkItem(22146, "https://github.com/dotnet/roslyn/issues/22146")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        public async Task PartialClassInSeparateFiles2()
+        {
+            var file1 = @"
+partial class Program
+{
+    int P { get; set; }
+}";
+            var file2 = @"
+partial class Program
+{
+    int Q[||] { get; set; }
+}";
+            var file2AfterRefactor = @"
+partial class Program
+{
+    private int _q;
+
+    int Q { get => _q; set => _q = value; }
+}";
+
+            var xmlString = string.Format(@"
+<Workspace>
+    <Project Language=""{0}"" CommonReferences=""true"">
+        <Document FilePath=""file1"">{1}</Document>
+        <Document FilePath=""file2"">{2}</Document>
+    </Project>
+</Workspace>", LanguageNames.CSharp, file1, file2);
+
+            using (var testWorkspace = TestWorkspace.Create(xmlString))
+            {
+                // refactor file2 and check
+                var actions = await GetCodeActionsAsync(testWorkspace, parameters: (default));
+                await TestActionsAsync(
+                    testWorkspace,
+                    file2AfterRefactor,
+                    index: 0,
+                    actions: actions,
+                    conflictSpans: ImmutableArray<TextSpan>.Empty,
+                    renameSpans: ImmutableArray<TextSpan>.Empty,
+                    warningSpans: ImmutableArray<TextSpan>.Empty,
+                    navigationSpans: ImmutableArray<TextSpan>.Empty);
+            }
+        }
+
     }
 }

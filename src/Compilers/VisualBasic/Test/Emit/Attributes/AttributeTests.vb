@@ -63,6 +63,54 @@ End Class
             CompilationUtils.AssertNoDiagnostics(comp)
         End Sub
 
+        <Fact>
+        <WorkItem(20741, "https://github.com/dotnet/roslyn/issues/20741")>
+        Public Sub TestNamedArgumentOnStringParamsArgument()
+            Dim source =
+                <compilation>
+                    <file name="a.vb">
+                        <![CDATA[
+Imports System
+
+Class MarkAttribute
+    Inherits Attribute
+
+    Public Sub New(ByVal otherArg As Boolean, ParamArray args As Object())
+    End Sub
+End Class
+
+<Mark(args:=New String() {"Hello", "World"}, otherArg:=True)>
+Module Program
+
+    Private Sub Test(ByVal otherArg As Boolean, ParamArray args As Object())
+    End Sub
+
+    Sub Main()
+        Console.WriteLine("Method call")
+        Test(args:=New String() {"Hello", "World"}, otherArg:=True)
+    End Sub
+End Module
+]]>
+                    </file>
+                </compilation>
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source)
+            comp.AssertTheseDiagnostics(<errors><![CDATA[
+BC30455: Argument not specified for parameter 'otherArg' of 'Public Sub New(otherArg As Boolean, ParamArray args As Object())'.
+<Mark(args:=New String() {"Hello", "World"}, otherArg:=True)>
+ ~~~~
+BC30661: Field or property 'args' is not found.
+<Mark(args:=New String() {"Hello", "World"}, otherArg:=True)>
+      ~~~~
+BC30661: Field or property 'otherArg' is not found.
+<Mark(args:=New String() {"Hello", "World"}, otherArg:=True)>
+                                             ~~~~~~~~
+BC30587: Named argument cannot match a ParamArray parameter.
+        Test(args:=New String() {"Hello", "World"}, otherArg:=True)
+             ~~~~
+                                        ]]></errors>)
+        End Sub
+
         ''' <summary>
         ''' This function is the same as PEParameterSymbolParamArray
         ''' except that we check attributes first (to check for race
@@ -3538,7 +3586,7 @@ BC31143: Method 'Public Declare Ansi Function GetWindowsDirectory4 Lib "kernel32
         <Fact()>
         Public Sub TestFriendEnumInAttribute()
             Dim source =
-                <conpilation>
+                <compilation>
                     <file name="a.vb">
                         <![CDATA[
         ' Friend Enum in an array in an attribute should be an error.
@@ -3563,7 +3611,7 @@ BC31143: Method 'Public Declare Ansi Function GetWindowsDirectory4 Lib "kernel32
         End Namespace
 ]]>
                     </file>
-                </conpilation>
+                </compilation>
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib(source)
             comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_BadAttributeNonPublicType1, "MyAttr1").WithArguments("e2()"))
@@ -3574,7 +3622,7 @@ BC31143: Method 'Public Declare Ansi Function GetWindowsDirectory4 Lib "kernel32
         <Fact()>
         Public Sub TestUndefinedEnumInAttribute()
             Dim source =
-                <conpilation>
+                <compilation>
                     <file name="a.vb">
                         <![CDATA[
 Imports System.ComponentModel
@@ -3586,7 +3634,7 @@ Module Program
 End Module
 ]]>
                     </file>
-                </conpilation>
+                </compilation>
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
             comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_NameNotMember2, "EditorBrowsableState.n").WithArguments("n", "System.ComponentModel.EditorBrowsableState"))
@@ -3597,7 +3645,7 @@ End Module
         <Fact>
         Public Sub TestUnboundLambdaInNamedAttributeArgument()
             Dim source =
-                <conpilation>
+                <compilation>
                     <file name="a.vb">
                         <![CDATA[
 Imports System
@@ -3615,7 +3663,7 @@ Module Program
 End Module
 ]]>
                     </file>
-                </conpilation>
+                </compilation>
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, additionalRefs:={SystemCoreRef})
             comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_UndefinedType1, "A").WithArguments("A"),
@@ -3628,7 +3676,7 @@ End Module
         <Fact>
         Public Sub SpecialNameAttributeFromSource()
             Dim source =
-                <conpilation>
+                <compilation>
                     <file name="a.vb">
                         <![CDATA[
 Imports System.Runtime.CompilerServices
@@ -3649,7 +3697,7 @@ Public Structure S
 End Structure
 ]]>
                     </file>
-                </conpilation>
+                </compilation>
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source)
             Dim globalNS = comp.SourceAssembly.GlobalNamespace

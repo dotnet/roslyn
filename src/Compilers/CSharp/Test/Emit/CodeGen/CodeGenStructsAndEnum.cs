@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -1545,7 +1546,7 @@ public class D
     }
 ";
 
-            var compilation = CompileAndVerify(source, expectedOutput: "S1", verify: false);
+            var compilation = CompileAndVerify(source, expectedOutput: "S1", verify: Verification.Skipped);
 
             compilation.VerifyIL("Program.Main",
 @"
@@ -2042,17 +2043,17 @@ readonly struct S
         // named argument reordering introduces a sequence with temps
         // and we cannot know whether RefMethod returns a ref to a sequence local
         // so we must assume that it can, and therefore must keep all the sequence the locals in use 
-        // for the duration of the most-encompasing expression.
+        // for the duration of the most-encompassing expression.
         Console.WriteLine(RefMethod(arg2: I(5), arg1: I(3)).GreaterThan(
                           RefMethod(arg2: I(0), arg1: I(0))));
     }
 
-    public static ref readonly S RefMethod(ref readonly S arg1, ref readonly S arg2)
+    public static ref readonly S RefMethod(in S arg1, in S arg2)
     {
         return ref arg2;
     }
 
-    public bool GreaterThan(ref readonly S arg)
+    public bool GreaterThan(in S arg)
     {
         return this.x > arg.x;
     }
@@ -2065,7 +2066,7 @@ readonly struct S
 
 ";
 
-            var compilation = CompileAndVerify(source, verify: false, expectedOutput: "True");
+            var compilation = CompileAndVerify(source, verify: Verification.Fails, expectedOutput: "True");
 
             compilation.VerifyIL("S.Main",
 @"
@@ -2088,7 +2089,7 @@ readonly struct S
   IL_0010:  stloc.2
   IL_0011:  ldloca.s   V_2
   IL_0013:  ldloc.0
-  IL_0014:  call       ""ref readonly S S.RefMethod(ref readonly S, ref readonly S)""
+  IL_0014:  call       ""ref readonly S S.RefMethod(in S, in S)""
   IL_0019:  ldc.i4.0
   IL_001a:  call       ""S S.I(int)""
   IL_001f:  stloc.s    V_4
@@ -2099,8 +2100,8 @@ readonly struct S
   IL_002a:  stloc.s    V_5
   IL_002c:  ldloca.s   V_5
   IL_002e:  ldloc.3
-  IL_002f:  call       ""ref readonly S S.RefMethod(ref readonly S, ref readonly S)""
-  IL_0034:  call       ""bool S.GreaterThan(ref readonly S)""
+  IL_002f:  call       ""ref readonly S S.RefMethod(in S, in S)""
+  IL_0034:  call       ""bool S.GreaterThan(in S)""
   IL_0039:  call       ""void System.Console.WriteLine(bool)""
   IL_003e:  ret
 }
@@ -2143,7 +2144,7 @@ readonly struct S
         }
     }
 
-    public static ref readonly S RefMethodRO(ref readonly S arg1, ref readonly S arg2)
+    public static ref readonly S RefMethodRO(in S arg1, in S arg2)
     {
         System.Console.Write(arg2.x);
         return ref arg2;
@@ -2186,7 +2187,7 @@ readonly struct S
 
 ";
 
-            var compilation = CompileAndVerify(source, verify: false, expectedOutput: @"353
+            var compilation = CompileAndVerify(source, verify: Verification.Fails, expectedOutput: @"353
 353");
 
             compilation.VerifyIL("S.TestRO",
@@ -2205,7 +2206,7 @@ readonly struct S
     IL_0007:  ldc.i4.3
     IL_0008:  call       ""ref S S.I(int)""
     IL_000d:  ldloc.0
-    IL_000e:  call       ""ref readonly S S.RefMethodRO(ref readonly S, ref readonly S)""
+    IL_000e:  call       ""ref readonly S S.RefMethodRO(in S, in S)""
     IL_0013:  stloc.1
     IL_0014:  leave.s    IL_002e
   }
@@ -2219,7 +2220,7 @@ readonly struct S
     IL_0020:  ldc.i4.3
     IL_0021:  call       ""ref S S.I(int)""
     IL_0026:  ldloc.0
-    IL_0027:  call       ""ref readonly S S.RefMethodRO(ref readonly S, ref readonly S)""
+    IL_0027:  call       ""ref readonly S S.RefMethodRO(in S, in S)""
     IL_002c:  pop
     IL_002d:  endfinally
   }

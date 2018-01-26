@@ -956,6 +956,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property IMethodSymbol_RefKind As RefKind Implements IMethodSymbol.RefKind
+            Get
+                Return If(Me.ReturnsByRef, RefKind.Ref, RefKind.None)
+            End Get
+        End Property
+
         Private ReadOnly Property IMethodSymbol_ReturnType As ITypeSymbol Implements IMethodSymbol.ReturnType
             Get
                 Return Me.ReturnType

@@ -23,6 +23,361 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
         }
 
         [Fact]
+        public void RefReadonlyOnlyIn72()
+        {
+            var tree = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        int x = 0;
+        ref readonly int y = ref x;
+    }
+}", options: TestOptions.Regular7_1);
+            var comp = CreateStandardCompilation(tree);
+            comp.VerifyDiagnostics(
+                // (7,13): error CS8302: Feature 'readonly references' is not available in C# 7.1. Please use language version 7.2 or greater.
+                //         ref readonly int y = ref x;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "readonly").WithArguments("readonly references", "7.2").WithLocation(7, 13));
+        }
+
+        [Fact]
+        public void CovariantConversionRefReadonly()
+        {
+            var comp = CreateStandardCompilation(@"
+class C
+{
+    void M()
+    {
+        string s = string.Empty;
+        ref readonly object x = ref s;
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (7,37): error CS8173: The expression must be of type 'object' because it is being assigned by reference
+                //         ref readonly object x = ref s;
+                Diagnostic(ErrorCode.ERR_RefAssignmentMustHaveIdentityConversion, "s").WithArguments("object").WithLocation(7, 37));
+        }
+
+        [Fact]
+        public void ImplicitNumericRefReadonlyConversion()
+        {
+            var comp = CreateStandardCompilation(@"
+class C
+{
+    void M()
+    {
+        int x = 0;
+        ref readonly long y = ref x;
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (7,35): error CS8173: The expression must be of type 'long' because it is being assigned by reference
+                //         ref readonly long y = ref x;
+                Diagnostic(ErrorCode.ERR_RefAssignmentMustHaveIdentityConversion, "x").WithArguments("long").WithLocation(7, 35));
+        }
+
+        [Fact]
+        public void RefReadonlyLocalToLiteral()
+        {
+            var comp = CreateStandardCompilation(@"
+class C
+{
+    void M()
+    {
+        ref readonly int x = ref 42;
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (6,34): error CS8156: An expression cannot be used in this context because it may not be returned by reference
+                //         ref readonly int x = ref 42;
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "42").WithLocation(6, 34));
+        }
+
+        [Fact]
+        public void RefReadonlyNoCaptureInLambda()
+        {
+            var comp = CreateStandardCompilation(@"
+using System;
+class C
+{
+    void M()
+    {
+        ref readonly int x = ref (new int[1])[0];
+        Action a = () =>
+        {
+            int i = x;
+        };
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (10,21): error CS8175: Cannot use ref local 'x' inside an anonymous method, lambda expression, or query expression
+                //             int i = x;
+                Diagnostic(ErrorCode.ERR_AnonDelegateCantUseLocal, "x").WithArguments("x").WithLocation(10, 21));
+        }
+
+        [Fact]
+        public void RefReadonlyInLambda()
+        {
+            var comp = CreateStandardCompilation(@"
+using System;
+class C
+{
+    void M()
+    {
+        Action a = () =>
+        {
+            ref readonly int x = ref (new int[1])[0];
+            int i = x;
+        };
+    }
+}");
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void RefReadonlyNoCaptureInLocalFunction()
+        {
+            var comp = CreateStandardCompilation(@"
+class C
+{
+    void M()
+    {
+        ref readonly int x = ref (new int[1])[0];
+        void Local()
+        {
+            int i = x;
+        }
+        Local();
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (9,21): error CS8175: Cannot use ref local 'x' inside an anonymous method, lambda expression, or query expression
+                //             int i = x;
+                Diagnostic(ErrorCode.ERR_AnonDelegateCantUseLocal, "x").WithArguments("x").WithLocation(9, 21));
+        }
+
+        [Fact]
+        public void RefReadonlyInLocalFunction()
+        {
+            var comp = CreateStandardCompilation(@"
+class C
+{
+    void M()
+    {
+        void Local()
+        {
+            ref readonly int x = ref (new int[1])[0];
+            int i = x;
+        }
+        Local();
+    }
+}");
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void RefReadonlyInAsync()
+        {
+            var comp = CreateCompilationWithMscorlib46(@"
+using System.Threading.Tasks;
+class C
+{
+    async Task M()
+    {
+        ref readonly int x = ref (new int[1])[0];
+        int i = x;
+        await Task.FromResult(false);
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (7,26): error CS8177: Async methods cannot have by reference locals
+                //         ref readonly int x = ref (new int[1])[0];
+                Diagnostic(ErrorCode.ERR_BadAsyncLocalType, "x = ref (new int[1])[0]").WithLocation(7, 26));
+        }
+
+        [Fact]
+        public void RefReadonlyInIterator()
+        {
+            var comp = CreateStandardCompilation(@"
+using System.Collections.Generic;
+class C
+{
+    IEnumerable<int> M()
+    {
+        ref readonly int x = ref (new int[1])[0];
+        int i = x;
+        yield return i;
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (7,26): error CS8176: Iterators cannot have by reference locals
+                //         ref readonly int x = ref (new int[1])[0];
+                Diagnostic(ErrorCode.ERR_BadIteratorLocalType, "x").WithLocation(7, 26));
+        }
+
+        [Fact]
+        public void RefReadonlyLocalNotWritable()
+        {
+            var comp = CreateStandardCompilation(@"
+struct S
+{
+    public int X;
+    public S(int x) => X = x;
+    
+    public void AddOne() => this.X++;
+}
+
+class C
+{
+    void M()
+    {
+        S s = new S(0);
+        ref readonly S rs = ref s;
+        s.X++;
+        rs.X++;
+        s.AddOne();
+        rs.AddOne();
+        s.X = 0;
+        rs.X = 0;
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (17,9): error CS1059: The operand of an increment or decrement operator must be a variable, property or indexer
+                //         rs.X++;
+                Diagnostic(ErrorCode.ERR_IncrementLvalueExpected, "rs.X").WithLocation(17, 9),
+                // (21,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                //         rs.X = 0;
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "rs.X").WithLocation(21, 9));
+        }
+
+        [Fact]
+        public void StripReadonlyInReturn()
+        {
+            var comp = CreateStandardCompilation(@"
+class C
+{
+    ref int M(ref int p)
+    {
+        ref readonly int rp = ref p;
+        return ref rp;
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (7,20): error CS8156: An expression cannot be used in this context because it may not be returned by reference
+                //         return ref rp;
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "rp").WithLocation(7, 20));
+        }
+
+        [Fact]
+        public void MixingRefParams()
+        {
+            var comp = CreateStandardCompilation(@"
+class C
+{
+    void M()
+    {
+        void L(ref int x, in int y)
+        {
+            L(ref x, y);
+            L(ref y, x);
+            L(ref x, ref x);
+
+            ref readonly int xr = ref x;
+            L(ref x, xr);
+            L(ref x, ref xr);
+            L(ref xr, y);
+        }
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (9,19): error CS8329: Cannot use variable 'in int' as a ref or out value because it is a readonly variable
+                //             L(ref y, x);
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "y").WithArguments("variable", "in int").WithLocation(9, 19),
+                // (10,26): error CS1615: Argument 2 may not be passed with the 'ref' keyword
+                //             L(ref x, ref x);
+                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "x").WithArguments("2", "ref").WithLocation(10, 26),
+                // (14,26): error CS1510: A ref or out value must be an assignable variable
+                //             L(ref x, ref xr);
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "xr").WithLocation(14, 26),
+                // (15,19): error CS1510: A ref or out value must be an assignable variable
+                //             L(ref xr, y);
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "xr").WithLocation(15, 19));
+        }
+
+        [Fact]
+        public void AssignRefReadonlyToRefParam()
+        {
+            var comp = CreateCompilationRef(@"
+class C
+{
+    void M()
+    {
+        void L(ref int p) { }
+
+        L(ref 42);
+        int x = 0;
+        ref readonly int xr = ref x;
+        L(xr);
+        L(ref xr);
+
+        ref readonly int L2() => ref (new int[1])[0];
+
+        L(L2());
+        L(ref L2());
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (8,15): error CS1510: A ref or out value must be an assignable variable
+                //         L(ref 42);
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "42").WithLocation(8, 15),
+                // (11,11): error CS1620: Argument 1 must be passed with the 'ref' keyword
+                //         L(xr);
+                Diagnostic(ErrorCode.ERR_BadArgRef, "xr").WithArguments("1", "ref").WithLocation(11, 11),
+                // (12,15): error CS1510: A ref or out value must be an assignable variable
+                //         L(ref xr);
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "xr").WithLocation(12, 15),
+                // (16,11): error CS1620: Argument 1 must be passed with the 'ref' keyword
+                //         L(L2());
+                Diagnostic(ErrorCode.ERR_BadArgRef, "L2()").WithArguments("1", "ref").WithLocation(16, 11),
+                // (17,15): error CS8406: Cannot use method 'L2()' as a ref or out value because it is a readonly variable
+                //         L(ref L2());
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "L2()").WithArguments("method", "L2()").WithLocation(17, 15));
+        }
+
+        [Fact]
+        public void AssignRefReadonlyLocalToRefLocal()
+        {
+            var comp = CreateCompilationRef(@"
+class C
+{
+    void M()
+    {
+        ref readonly int L() => ref (new int[1])[0];
+
+        ref int w = ref L();
+        ref readonly int x = ref L();
+        ref int y = x;
+        ref int z = ref x;
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (8,25): error CS8406: Cannot use method 'L()' as a ref or out value because it is a readonly variable
+                //         ref int w = ref L();
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "L()").WithArguments("method", "L()").WithLocation(8, 25),
+                // (10,17): error CS8172: Cannot initialize a by-reference variable with a value
+                //         ref int y = x;
+                Diagnostic(ErrorCode.ERR_InitializeByReferenceVariableWithValue, "y = x").WithLocation(10, 17),
+                // (10,21): error CS1510: A ref or out value must be an assignable variable
+                //         ref int y = x;
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "x").WithLocation(10, 21),
+                // (11,25): error CS1510: A ref or out value must be an assignable variable
+                //         ref int z = ref x;
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "x").WithLocation(11, 25)
+            );
+        }
+
+        [Fact]
         public void RefLocalMissingInitializer()
         {
             var text = @"
@@ -1382,15 +1737,24 @@ class TestClass
     {
         Console.WriteLine(y);
     }
+    void Write(ref int y, int z)
+    {
+        Console.WriteLine(z);
+    }
     async Task TestMethod()
     {
+        // this is OK. `ref` is not spilled.
         Write(ref Save(await Task.FromResult(0)));
+
+        // ERROR. `ref` is spilled because it must survive until after the second `await.
+        Write(ref Save(await Task.FromResult(0)), await Task.FromResult(1));
     }
 }";
             CreateCompilationWithMscorlib45(code).VerifyEmitDiagnostics(
-                // (18,24): error CS8178: 'await' cannot be used in an expression containing a call to 'TestClass.Save(int)' because it returns by reference
-                //         Write(ref Save(await Task.FromResult(0)));
-                Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "await Task.FromResult(0)").WithArguments("TestClass.Save(int)").WithLocation(18, 24));
+                // (26,51): error CS8178: 'await' cannot be used in an expression containing a call to 'TestClass.Save(int)' because it returns by reference
+                //         Write(ref Save(await Task.FromResult(0)), await Task.FromResult(1));
+                Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "await Task.FromResult(1)").WithArguments("TestClass.Save(int)").WithLocation(26, 51)
+            );
         }
 
         [Fact]
@@ -2292,7 +2656,7 @@ class C
         }
 
         [Fact]
-        public void CannotUseAwaitExpressionToAssignRefReturing()
+        public void CannotUseAwaitExpressionToAssignRefReturning()
         {
             var code = @"
 using System;
@@ -2340,6 +2704,78 @@ class TestClass
                     //         inst[1, 2] = await Task.FromResult(1);
                     Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "await Task.FromResult(1)").WithArguments("TestClass.this[int, int].get").WithLocation(36, 22)
             );
+        }
+
+        [Fact]
+        public void RefReadOnlyInAsyncMethodDisallowed()
+        {
+            CreateCompilationWithMscorlib45(@"
+using System.Threading.Tasks;
+class Test
+{
+    async Task Method(in int p)
+    {
+        await Task.FromResult(0);
+    }
+}").VerifyDiagnostics(
+                // (5,30): error CS1988: Async methods cannot have ref or out parameters
+                //     async Task Method(in int p)
+                Diagnostic(ErrorCode.ERR_BadAsyncArgType, "p").WithLocation(5, 30));
+        }
+
+        [Fact]
+        public void RefReadOnlyInIteratorMethodsDisallowed()
+        {
+            CreateCompilationWithMscorlib45(@"
+using System.Collections.Generic;
+class Test
+{
+    IEnumerable<int> Method(in int p)
+    {
+        yield return 0;
+        yield return 1;
+        yield return 2;
+    }
+}").VerifyDiagnostics(
+                // (5,36): error CS1623: Iterators cannot have ref or out parameters
+                //     IEnumerable<int> Method(in int p)
+                Diagnostic(ErrorCode.ERR_BadIteratorArgType, "p").WithLocation(5, 36));
+        }
+
+        [Fact]
+        public void RefReadOnlyInEnumeratorMethodsDisallowed()
+        {
+            CreateStandardCompilation(@"
+using System.Collections.Generic;
+class Test
+{
+    public IEnumerator<int> GetEnumerator(in int p)
+    {
+        yield return 0;
+    }
+}").VerifyDiagnostics(
+                // (5,50): error CS1623: Iterators cannot have ref or out parameters
+                //     public IEnumerator<int> GetEnumerator(in int p)
+                Diagnostic(ErrorCode.ERR_BadIteratorArgType, "p").WithLocation(5, 50));
+        }
+
+        [Fact]
+        public void CannotCallRefReadOnlyMethodsUsingDiscardParameter()
+        {
+            CreateStandardCompilation(@"
+class Test
+{
+	void M(in int p)
+    {
+    }
+    void N()
+    {
+        M(_);
+    }
+}").VerifyDiagnostics(
+                // (9,11): error CS0103: The name '_' does not exist in the current context
+                //         M(_);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(9, 11));
         }
     }
 }

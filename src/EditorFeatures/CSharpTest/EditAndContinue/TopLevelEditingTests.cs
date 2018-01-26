@@ -1484,47 +1484,47 @@ public interface I
         public void Delegates_ReadOnlyRef_Parameter_InsertWhole()
         {
             var src1 = "";
-            var src2 = "public delegate int D(ref readonly int b);";
+            var src2 = "public delegate int D(in int b);";
 
             var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
 
             edits.VerifyEdits(
-                "Insert [public delegate int D(ref readonly int b);]@0",
-                "Insert [(ref readonly int b)]@21",
-                "Insert [ref readonly int b]@22");
+                "Insert [public delegate int D(in int b);]@0",
+                "Insert [(in int b)]@21",
+                "Insert [in int b]@22");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ReadOnlyReferences, "ref readonly int b", FeaturesResources.parameter));
+                Diagnostic(RudeEditKind.ReadOnlyReferences, "in int b", FeaturesResources.parameter));
         }
 
         [Fact]
         public void Delegates_ReadOnlyRef_Parameter_InsertParameter()
         {
             var src1 = "public delegate int D();";
-            var src2 = "public delegate int D(ref readonly int b);";
+            var src2 = "public delegate int D(in int b);";
 
             var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
 
             edits.VerifyEdits(
-                "Insert [ref readonly int b]@22");
+                "Insert [in int b]@22");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "ref readonly int b", FeaturesResources.parameter));
+                Diagnostic(RudeEditKind.Insert, "in int b", FeaturesResources.parameter));
         }
 
         [Fact]
         public void Delegates_ReadOnlyRef_Parameter_Update()
         {
             var src1 = "public delegate int D(int b);";
-            var src2 = "public delegate int D(ref readonly int b);";
+            var src2 = "public delegate int D(in int b);";
 
             var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
 
             edits.VerifyEdits(
-                "Update [int b]@22 -> [ref readonly int b]@22");
+                "Update [int b]@22 -> [in int b]@22");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ModifiersUpdate, "ref readonly int b", FeaturesResources.parameter));
+                Diagnostic(RudeEditKind.ModifiersUpdate, "in int b", FeaturesResources.parameter));
         }
 
         [Fact]
@@ -3374,47 +3374,47 @@ class C
         public void Method_ReadOnlyRef_Parameter_InsertWhole()
         {
             var src1 = "class Test { }";
-            var src2 = "class Test { int M(ref readonly int b) => throw null; }";
+            var src2 = "class Test { int M(in int b) => throw null; }";
 
             var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
 
             edits.VerifyEdits(
-                "Insert [int M(ref readonly int b) => throw null;]@13",
-                "Insert [(ref readonly int b)]@18",
-                "Insert [ref readonly int b]@19");
+                "Insert [int M(in int b) => throw null;]@13",
+                "Insert [(in int b)]@18",
+                "Insert [in int b]@19");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ReadOnlyReferences, "ref readonly int b", FeaturesResources.parameter));
+                Diagnostic(RudeEditKind.ReadOnlyReferences, "in int b", FeaturesResources.parameter));
         }
 
         [Fact]
         public void Method_ReadOnlyRef_Parameter_InsertParameter()
         {
             var src1 = "class Test { int M() => throw null; }";
-            var src2 = "class Test { int M(ref readonly int b) => throw null; }";
+            var src2 = "class Test { int M(in int b) => throw null; }";
 
             var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
 
             edits.VerifyEdits(
-                "Insert [ref readonly int b]@19");
+                "Insert [in int b]@19");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "ref readonly int b", FeaturesResources.parameter));
+                Diagnostic(RudeEditKind.Insert, "in int b", FeaturesResources.parameter));
         }
 
         [Fact]
         public void Method_ReadOnlyRef_Parameter_Update()
         {
             var src1 = "class Test { int M(int b) => throw null; }";
-            var src2 = "class Test { int M(ref readonly int b) => throw null; }";
+            var src2 = "class Test { int M(in int b) => throw null; }";
 
             var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
 
             edits.VerifyEdits(
-                "Update [int b]@19 -> [ref readonly int b]@19");
+                "Update [int b]@19 -> [in int b]@19");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ModifiersUpdate, "ref readonly int b", FeaturesResources.parameter));
+                Diagnostic(RudeEditKind.ModifiersUpdate, "in int b", FeaturesResources.parameter));
         }
 
         [Fact]
@@ -3656,32 +3656,32 @@ class C
         public void Operator_ReadOnlyRef_Parameter_InsertWhole()
         {
             var src1 = "class Test { }";
-            var src2 = "class Test { public static bool operator !(ref readonly Test b) => throw null; }";
+            var src2 = "class Test { public static bool operator !(in Test b) => throw null; }";
 
             var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
 
             edits.VerifyEdits(
-                "Insert [public static bool operator !(ref readonly Test b) => throw null;]@13",
-                "Insert [(ref readonly Test b)]@42",
-                "Insert [ref readonly Test b]@43");
+                "Insert [public static bool operator !(in Test b) => throw null;]@13",
+                "Insert [(in Test b)]@42",
+                "Insert [in Test b]@43");
 
             edits.VerifyRudeDiagnostics(
-                 Diagnostic(RudeEditKind.InsertOperator, "public static bool operator !(ref readonly Test b)", FeaturesResources.operator_));
+                 Diagnostic(RudeEditKind.InsertOperator, "public static bool operator !(in Test b)", FeaturesResources.operator_));
         }
 
         [Fact]
         public void Operator_ReadOnlyRef_Parameter_Update()
         {
             var src1 = "class Test { public static bool operator !(Test b) => throw null; }";
-            var src2 = "class Test { public static bool operator !(ref readonly Test b) => throw null; }";
+            var src2 = "class Test { public static bool operator !(in Test b) => throw null; }";
 
             var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
 
             edits.VerifyEdits(
-                "Update [Test b]@43 -> [ref readonly Test b]@43");
+                "Update [Test b]@43 -> [in Test b]@43");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ModifiersUpdate, "ref readonly Test b", FeaturesResources.parameter));
+                Diagnostic(RudeEditKind.ModifiersUpdate, "in Test b", FeaturesResources.parameter));
         }
 
         #endregion
@@ -4909,47 +4909,47 @@ public class C
         public void Constructor_ReadOnlyRef_Parameter_InsertWhole()
         {
             var src1 = "class Test { }";
-            var src2 = "class Test { Test(ref readonly int b) => throw null; }";
+            var src2 = "class Test { Test(in int b) => throw null; }";
 
             var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
 
             edits.VerifyEdits(
-                "Insert [Test(ref readonly int b) => throw null;]@13",
-                "Insert [(ref readonly int b)]@17",
-                "Insert [ref readonly int b]@18");
+                "Insert [Test(in int b) => throw null;]@13",
+                "Insert [(in int b)]@17",
+                "Insert [in int b]@18");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ReadOnlyReferences, "ref readonly int b", FeaturesResources.parameter));
+                Diagnostic(RudeEditKind.ReadOnlyReferences, "in int b", FeaturesResources.parameter));
         }
 
         [Fact]
         public void Constructor_ReadOnlyRef_Parameter_InsertParameter()
         {
             var src1 = "class Test { Test() => throw null; }";
-            var src2 = "class Test { Test(ref readonly int b) => throw null; }";
+            var src2 = "class Test { Test(in int b) => throw null; }";
 
             var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
 
             edits.VerifyEdits(
-                "Insert [ref readonly int b]@18");
+                "Insert [in int b]@18");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "ref readonly int b", FeaturesResources.parameter));
+                Diagnostic(RudeEditKind.Insert, "in int b", FeaturesResources.parameter));
         }
 
         [Fact]
         public void Constructor_ReadOnlyRef_Parameter_Update()
         {
             var src1 = "class Test { Test(int b) => throw null; }";
-            var src2 = "class Test { Test(ref readonly int b) => throw null; }";
+            var src2 = "class Test { Test(in int b) => throw null; }";
 
             var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
 
             edits.VerifyEdits(
-                "Update [int b]@18 -> [ref readonly int b]@18");
+                "Update [int b]@18 -> [in int b]@18");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ModifiersUpdate, "ref readonly int b", FeaturesResources.parameter));
+                Diagnostic(RudeEditKind.ModifiersUpdate, "in int b", FeaturesResources.parameter));
         }
 
         #endregion
@@ -7976,32 +7976,32 @@ class SampleCollection<T>
         public void Indexer_ReadOnlyRef_Parameter_InsertWhole()
         {
             var src1 = "class Test { }";
-            var src2 = "class Test { int this[ref readonly int i] => throw null; }";
+            var src2 = "class Test { int this[in int i] => throw null; }";
 
             var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
 
             edits.VerifyEdits(
-                "Insert [int this[ref readonly int i] => throw null;]@13",
-                "Insert [[ref readonly int i]]@21",
-                "Insert [ref readonly int i]@22");
+                "Insert [int this[in int i] => throw null;]@13",
+                "Insert [[in int i]]@21",
+                "Insert [in int i]@22");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ReadOnlyReferences, "ref readonly int i", FeaturesResources.parameter));
+                Diagnostic(RudeEditKind.ReadOnlyReferences, "in int i", FeaturesResources.parameter));
         }
         
         [Fact]
         public void Indexer_ReadOnlyRef_Parameter_Update()
         {
             var src1 = "class Test { int this[int i] => throw null; }";
-            var src2 = "class Test { int this[ref readonly int i] => throw null; }";
+            var src2 = "class Test { int this[in int i] => throw null; }";
 
             var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
 
             edits.VerifyEdits(
-                "Update [int i]@22 -> [ref readonly int i]@22");
+                "Update [int i]@22 -> [in int i]@22");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ModifiersUpdate, "ref readonly int i", FeaturesResources.parameter));
+                Diagnostic(RudeEditKind.ModifiersUpdate, "in int i", FeaturesResources.parameter));
         }
 
         [Fact]

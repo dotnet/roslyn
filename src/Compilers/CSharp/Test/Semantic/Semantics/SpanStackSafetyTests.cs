@@ -1,12 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -20,6 +14,319 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
     public class SpanStackSafetyTests : CompilingTestBase
     {
+        [Fact]
+        public void SpanToSpanSwitch()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+class C
+{
+    void M(Span<string> s)
+    {
+        switch (s)
+        {
+            case Span<string> span:
+                break;
+        }
+    }
+}");
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void SpanToObjectPatternSwitch()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+
+class C
+{
+    void M(object o)
+    {
+        switch (o)
+        {
+            case Span<int> span:
+                break;
+            default:
+                break;
+        }
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (10,18): error CS8121: An expression of type 'object' cannot be handled by a pattern of type 'Span<int>'.
+                //             case Span<int> span:
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "Span<int>").WithArguments("object", "System.Span<int>").WithLocation(10, 18),
+                // (11,17): warning CS0162: Unreachable code detected
+                //                 break;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(11, 17));
+        }
+
+        [Fact]
+        public void SpanToGenericPatternSwitch()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+class C
+{
+    void M<T>(T t)
+    {
+        switch (t)
+        {
+            case Span<int> span:
+                break;
+            default:
+                break;
+        }
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (9,18): error CS8121: An expression of type 'T' cannot be handled by a pattern of type 'Span<int>'.
+                //             case Span<int> span:
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "Span<int>").WithArguments("T", "System.Span<int>").WithLocation(9, 18),
+                // (10,17): warning CS0162: Unreachable code detected
+                //                 break;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(10, 17));
+        }
+
+        [Fact]
+        public void SpanToGenericPatternSwitch2()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+class C
+{
+    void M<T>(T t) where T : struct
+    {
+        switch (t)
+        {
+            case Span<int> span:
+                break;
+            default:
+                break;
+        }
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (9,18): error CS8121: An expression of type 'T' cannot be handled by a pattern of type 'Span<int>'.
+                //             case Span<int> span:
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "Span<int>").WithArguments("T", "System.Span<int>").WithLocation(9, 18),
+                // (10,17): warning CS0162: Unreachable code detected
+                //                 break;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(10, 17));
+        }
+
+        [Fact]
+        public void ObjectToSpanPatternSwitch()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+class C
+{
+    void M(Span<string> s)
+    {
+        switch (s)
+        {
+            case Span<object> span:
+                break;
+            case object o:
+                break;
+        }
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (9,18): error CS8121: An expression of type 'Span<string>' cannot be handled by a pattern of type 'Span<object>'.
+                //             case Span<object> span:
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "Span<object>").WithArguments("System.Span<string>", "System.Span<object>").WithLocation(9, 18),
+                // (11,18): error CS8121: An expression of type 'Span<string>' cannot be handled by a pattern of type 'object'.
+                //             case object o:
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "object").WithArguments("System.Span<string>", "object").WithLocation(11, 18),
+                // (10,17): warning CS0162: Unreachable code detected
+                //                 break;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(10, 17),
+                // (12,17): warning CS0162: Unreachable code detected
+                //                 break;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(12, 17));
+        }
+
+        [Fact]
+        public void GenericToSpanPatternSwitch()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+class C
+{
+    void M<T>(Span<string> s)
+    {
+        switch (s)
+        {
+            case T t:
+                break;
+        }
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (9,18): error CS8121: An expression of type 'Span<string>' cannot be handled by a pattern of type 'T'.
+                //             case T t:
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "T").WithArguments("System.Span<string>", "T").WithLocation(9, 18),
+                // (10,17): warning CS0162: Unreachable code detected
+                //                 break;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(10, 17));
+        }
+
+        [Fact]
+        public void GenericToSpanPatternSwitch2()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+class C
+{
+    void M<T>(Span<string> s) where T : struct
+    {
+        switch (s)
+        {
+            case T t:
+                break;
+        }
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (9,18): error CS8121: An expression of type 'Span<string>' cannot be handled by a pattern of type 'T'.
+                //             case T t:
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "T").WithArguments("System.Span<string>", "T").WithLocation(9, 18),
+                // (10,17): warning CS0162: Unreachable code detected
+                //                 break;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(10, 17));
+        }
+
+        [Fact]
+        public void SpanToSpanIsExpr()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+class C
+{
+    bool M(Span<string> s) => s is Span<string> && s is Span<string> span;
+}");
+            comp.VerifyDiagnostics(
+                // (5,31): warning CS0183: The given expression is always of the provided ('Span<string>') type
+                //     bool M(Span<string> s) => s is Span<string> && s is Span<string> span;
+                Diagnostic(ErrorCode.WRN_IsAlwaysTrue, "s is Span<string>").WithArguments("System.Span<string>").WithLocation(5, 31));
+        }
+
+        [Fact]
+        public void ObjectToSpanIsExpr()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+class C
+{
+    void M(object o)
+    {
+        if (o is Span<int>)
+        { }
+        if (o is Span<int> s)
+        { }
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (7,13): warning CS0184: The given expression is never of the provided ('Span<int>') type
+                //         if (o is Span<int>)
+                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "o is Span<int>").WithArguments("System.Span<int>").WithLocation(7, 13),
+                // (9,18): error CS8121: An expression of type 'object' cannot be handled by a pattern of type 'Span<int>'.
+                //         if (o is Span<int> s)
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "Span<int>").WithArguments("object", "System.Span<int>").WithLocation(9, 18));
+        }
+
+        [Fact]
+        public void GenericToSpanIsExpr()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+class C
+{
+    void M<T>(T t)
+    {
+        if (t is Span<int>)
+        { }
+        if (t is Span<int> s)
+        { }
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (7,13): warning CS0184: The given expression is never of the provided ('Span<int>') type
+                //         if (t is Span<int>)
+                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "t is Span<int>").WithArguments("System.Span<int>").WithLocation(7, 13),
+                // (9,18): error CS8121: An expression of type 'T' cannot be handled by a pattern of type 'Span<int>'.
+                //         if (t is Span<int> s)
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "Span<int>").WithArguments("T", "System.Span<int>").WithLocation(9, 18));
+        }
+
+        [Fact]
+        public void SpanToObjectIsExpr()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+class C
+{
+    void M(Span<int> s)
+    {
+        if (s is object) { }
+        if (s is object o) { }
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (7,13): warning CS0184: The given expression is never of the provided ('object') type
+                //         if (s is object) { }
+                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "s is object").WithArguments("object").WithLocation(7, 13),
+                // (8,18): error CS8121: An expression of type 'Span<int>' cannot be handled by a pattern of type 'object'.
+                //         if (s is object o) { }
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "object").WithArguments("System.Span<int>", "object").WithLocation(8, 18));
+        }
+
+        [Fact]
+        public void SpanToGenericIsExpr()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+class C
+{
+    void M<T>(Span<int> s)
+    {
+        if (s is T) { }
+        if (s is T t) { }
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (7,13): warning CS0184: The given expression is never of the provided ('T') type
+                //         if (s is T) { }
+                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "s is T").WithArguments("T").WithLocation(7, 13),
+                // (8,18): error CS8121: An expression of type 'Span<int>' cannot be handled by a pattern of type 'T'.
+                //         if (s is T t) { }
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "T").WithArguments("System.Span<int>", "T").WithLocation(8, 18));
+        }
+
+        [Fact]
+        public void SpanToGenericIsExpr2()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+class C
+{
+    void M<T>(Span<int> s) where T : struct
+    {
+        if (s is T) { }
+        if (s is T t) { }
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (7,13): warning CS0184: The given expression is never of the provided ('T') type
+                //         if (s is T) { }
+                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "s is T").WithArguments("T").WithLocation(7, 13),
+                // (8,18): error CS8121: An expression of type 'Span<int>' cannot be handled by a pattern of type 'T'.
+                //         if (s is T t) { }
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "T").WithArguments("System.Span<int>", "T").WithLocation(8, 18));
+        }
+
         [Fact]
         public void TrivialBoxing()
         {
@@ -188,19 +495,19 @@ class Program
     }
 
     // OK
-    static void M3(ref readonly Span<string> ss)
+    static void M3(in Span<string> ss)
     {
     }
 
     // OK
-    static void M3l(ref readonly SpanLike<string> ss)
+    static void M3l(in SpanLike<string> ss)
     {
     }
 
-    // Not OK
+    // OK
     static ref Span<string> M4(ref Span<string> ss) { return ref ss; }
 
-    // Not OK
+    // OK
     static ref readonly Span<string> M5(ref Span<string> ss) => ref ss;
 
     // Not OK
@@ -217,13 +524,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "ref TypedReference ss").WithArguments("System.TypedReference").WithLocation(39, 34),
                 // (39,12): error CS1599: Method or delegate cannot return type 'TypedReference'
                 //     static ref TypedReference M1(ref TypedReference ss) => ref ss;
-                Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "ref TypedReference").WithArguments("System.TypedReference").WithLocation(39, 12),
-                // (32,66): error CS8166: Cannot return a parameter by reference 'ss' because it is not a ref or out parameter
-                //     static ref Span<string> M4(ref Span<string> ss) { return ref ss; }
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "ss").WithArguments("ss").WithLocation(32, 66),
-                // (35,69): error CS8166: Cannot return a parameter by reference 'ss' because it is not a ref or out parameter
-                //     static ref readonly Span<string> M5(ref Span<string> ss) => ref ss;
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "ss").WithArguments("ss").WithLocation(35, 69)
+                Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "ref TypedReference").WithArguments("System.TypedReference").WithLocation(39, 12)
             );
         }
 
@@ -820,6 +1121,7 @@ public class Program
             );
         }
 
+        [WorkItem(21979, "https://github.com/dotnet/roslyn/issues/21979")]
         [Fact]
         public void MethodConversion()
         {
@@ -830,7 +1132,7 @@ public class Program
 {
     static void Main()
     {
-        // we allow this. Is that because it would be a breaking change?
+        // we no longer allow this.
         // see https://github.com/dotnet/roslyn/issues/21979
         Func<int> d0 = default(TypedReference).GetHashCode;
 
@@ -847,6 +1149,9 @@ public class Program
             CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
 
             comp.VerifyEmitDiagnostics(
+                // (10,48): error CS0123: No overload for 'GetHashCode' matches delegate 'Func<int>'
+                //         Func<int> d0 = default(TypedReference).GetHashCode;
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "GetHashCode").WithArguments("GetHashCode", "System.Func<int>").WithLocation(10, 48),
                 // (13,43): error CS0123: No overload for 'GetHashCode' matches delegate 'Func<int>'
                 //         Func<int> d1 = default(Span<int>).GetHashCode;
                 Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "GetHashCode").WithArguments("GetHashCode", "System.Func<int>").WithLocation(13, 43),
@@ -860,80 +1165,62 @@ public class Program
         }
 
         [Fact]
-        public void SpanDetect()
+        public void RefSpanDetectBoxing_NoRef()
         {
-
-            //span structs are not marked as "ref"
-            string spanSourceNoRefs = @"
+            string spanSource = @"
 namespace System
 {
-    public struct Span<T> 
-    {
-        public ref T this[int i] => throw null;
-        public override int GetHashCode() => 1;
-    }
-
-    public struct ReadOnlySpan<T>
-    {
-        public ref readonly T this[int i] => throw null;
-        public override int GetHashCode() => 2;
-    }
-
-    public struct RegularStruct<T>
-    {
-    }
-
-    // arity 0 - not a span
-    public struct Span 
-    {
-    }
-
-    // arity 2 - not a span
-    public struct Span<T, U> 
-    {
-        public ref T this[int i] => throw null;
-        public override int GetHashCode() => 1;
-    }
-}
-
-// nested
-public struct S1
-{
-    public struct Span<T> 
-    {
-        public ref T this[int i] => throw null;
-        public override int GetHashCode() => 1;
-    }
-}
-
-public struct Span<T> 
-{
-    public ref T this[int i] => throw null;
-    public override int GetHashCode() => 1;
-}
-
-";
+    public struct Span<T> { }
+    public struct ReadOnlySpan<T> { }
+}";
             var reference = CreateCompilation(
-                spanSourceNoRefs,
+                spanSource,
                 references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef },
                 options: TestOptions.ReleaseDll);
 
             reference.VerifyDiagnostics();
 
             var text = @"
-using System;
-
 class Program
 {
     static void Main()
     {
         object x = new System.Span<int>();
-        object y = new ReadOnlySpan<byte>();
+        object y = new System.ReadOnlySpan<byte>();
+    }
+}
+";
+            var comp = CreateCompilation(
+                text,
+                references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef, reference.EmitToImageReference() },
+                options: TestOptions.ReleaseExe);
 
-        object z1 = new Span();
-        object z2 = new Span<int, int>();
-        object z3 = new S1.Span<int>();
-        object z4 = new Span<int>();
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void RefSpanDetectBoxing_Ref()
+        {
+            string spanSource = @"
+namespace System
+{
+    public ref struct Span<T> { }
+    public ref struct ReadOnlySpan<T> { }
+}";
+            var reference = CreateCompilation(
+                spanSource,
+                references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef },
+                options: TestOptions.ReleaseDll);
+
+            reference.VerifyDiagnostics();
+
+            var text = @"
+class Program
+{
+    static void Main()
+    {
+        object x = new System.Span<int>();
+        object y = new System.ReadOnlySpan<byte>();
     }
 }
 ";
@@ -943,13 +1230,157 @@ class Program
                 options: TestOptions.ReleaseExe);
 
             comp.VerifyDiagnostics(
-                // (8,20): error CS0029: Cannot implicitly convert type 'System.Span<int>' to 'object'
+                // (6,20): error CS0029: Cannot implicitly convert type 'System.Span<int>' to 'object'
                 //         object x = new System.Span<int>();
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "new System.Span<int>()").WithArguments("System.Span<int>", "object").WithLocation(8, 20),
-                // (9,20): error CS0029: Cannot implicitly convert type 'System.ReadOnlySpan<byte>' to 'object'
-                //         object y = new ReadOnlySpan<byte>();
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "new ReadOnlySpan<byte>()").WithArguments("System.ReadOnlySpan<byte>", "object").WithLocation(9, 20)
-            );
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "new System.Span<int>()").WithArguments("System.Span<int>", "object").WithLocation(6, 20),
+                // (7,20): error CS0029: Cannot implicitly convert type 'System.ReadOnlySpan<byte>' to 'object'
+                //         object y = new System.ReadOnlySpan<byte>();
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "new System.ReadOnlySpan<byte>()").WithArguments("System.ReadOnlySpan<byte>", "object").WithLocation(7, 20));
+        }
+
+        [Fact]
+        public void CannotUseNonRefSpan()
+        {
+            string spanSource = @"
+namespace System
+{
+    public struct Span<T> 
+    {
+        unsafe public Span(void* pointer, int length)
+        {
+        }
+    }
+}";
+            var reference = CreateCompilation(
+                spanSource,
+                references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef },
+                options: TestOptions.UnsafeReleaseDll);
+
+            reference.VerifyDiagnostics();
+
+            var text = @"
+using System;
+class Program
+{
+    static void Main()
+    {
+        Span<int> x = stackalloc int [10];
+    }
+}
+";
+            var comp = CreateCompilation(
+                text,
+                references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef, reference.EmitToImageReference() },
+                options: TestOptions.ReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (7,23): error CS8346: Conversion of a stackalloc expression of type 'int' to type 'Span<int>' is not possible.
+                //         Span<int> x = stackalloc int [10];
+                Diagnostic(ErrorCode.ERR_StackAllocConversionNotPossible, "stackalloc int [10]").WithArguments("int", "System.Span<int>").WithLocation(7, 23));
+        }
+
+        [Fact]
+        public void CannotUseNonStructSpan()
+        {
+            string spanSource = @"
+namespace System
+{
+    public class Span<T> 
+    {
+        unsafe public Span(void* pointer, int length)
+        {
+        }
+    }
+}";
+            var reference = CreateCompilation(
+                spanSource,
+                references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef },
+                options: TestOptions.UnsafeReleaseDll);
+
+            reference.VerifyDiagnostics();
+
+            var text = @"
+using System;
+class Program
+{
+    static void Main()
+    {
+        Span<int> x = stackalloc int [10];
+    }
+}
+";
+            var comp = CreateCompilation(
+                text,
+                references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef, reference.EmitToImageReference() },
+                options: TestOptions.ReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (7,23): error CS8346: Conversion of a stackalloc expression of type 'int' to type 'Span<int>' is not possible.
+                //         Span<int> x = stackalloc int [10];
+                Diagnostic(ErrorCode.ERR_StackAllocConversionNotPossible, "stackalloc int [10]").WithArguments("int", "System.Span<int>").WithLocation(7, 23));
+        }
+
+        [Fact]
+        [WorkItem(23627, "https://github.com/dotnet/roslyn/issues/23627")]
+        public void CreateVariableFromRefStructFieldInNonRefStruct()
+        {
+            var code = @"
+public ref struct Point
+{
+}
+class Program
+{
+    public Point field1 = new Point();
+    public static Point field2 = new Point();
+
+    void Check()
+    {
+        var temp1 = field1;
+        var temp2 = field2;
+    }
+}";
+
+            CreateStandardCompilation(code).VerifyDiagnostics(
+                // (8,19): error CS8345: Field or auto-implemented property cannot be of type 'Point' unless it is an instance member of a ref struct.
+                //     public static Point field2 = new Point();
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "Point").WithArguments("Point").WithLocation(8, 19),
+                // (7,12): error CS8345: Field or auto-implemented property cannot be of type 'Point' unless it is an instance member of a ref struct.
+                //     public Point field1 = new Point();
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "Point").WithArguments("Point").WithLocation(7, 12));
+        }
+
+        [Fact]
+        [WorkItem(23627, "https://github.com/dotnet/roslyn/issues/23627")]
+        public void CreateVariableFromRefStructFieldInRefStruct()
+        {
+            var code = @"
+public ref struct Point
+{
+}
+ref struct Program
+{
+    public static Point field1;
+    public static Point field2 = new Point();
+
+    public Program(Point p)
+    {
+        field1 = p;
+    }
+
+    void Check()
+    {
+        var temp1 = field1;
+        var temp2 = field2;
+    }
+}";
+
+            CreateStandardCompilation(code).VerifyDiagnostics(
+                // (8,19): error CS8345: Field or auto-implemented property cannot be of type 'Point' unless it is an instance member of a ref struct.
+                //     public static Point field2 = new Point();
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "Point").WithArguments("Point").WithLocation(8, 19),
+                // (7,19): error CS8345: Field or auto-implemented property cannot be of type 'Point' unless it is an instance member of a ref struct.
+                //     public static Point field1;
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "Point").WithArguments("Point").WithLocation(7, 19));
         }
     }
 }
