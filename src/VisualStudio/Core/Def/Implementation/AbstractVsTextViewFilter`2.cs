@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         where TPackage : AbstractPackage<TPackage, TLanguageService>
         where TLanguageService : AbstractLanguageService<TPackage, TLanguageService>
     {
-        private readonly AbstractLanguageService<TPackage, TLanguageService> _languageService;
+        protected readonly AbstractLanguageService<TPackage, TLanguageService> _languageService;
 
         protected AbstractVsTextViewFilter(
             AbstractLanguageService<TPackage, TLanguageService> languageService,

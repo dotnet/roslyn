@@ -4,6 +4,7 @@ using System;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
 using Microsoft.VisualStudio.OLE.Interop;
@@ -44,6 +45,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
         internal void SetCommandHandlers(ITextBuffer buffer)
         {
             this.CurrentHandlers = _commandFactory.GetService(buffer);
+            // Chain in editor command handler service. It will execute all our command handlers migrated to the modern editor commanding.
+            var componentModel = (IComponentModel)_languageService.SystemServiceProvider.GetService(typeof(SComponentModel));
+            var vsCommandHandlerServiceAdapterFactory = componentModel.GetService<IVsCommandHandlerServiceAdapterFactory>();
+            var vsCommandHandlerServiceAdapter = vsCommandHandlerServiceAdapterFactory.Create(ConvertTextView(), GetSubjectBufferContainingCaret(), NextCommandTarget);
+            NextCommandTarget = vsCommandHandlerServiceAdapter;
         }
 
         // If they haven't given us a context, or we aren't enabled, we should pass along to the next thing in the chain,
@@ -110,7 +116,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
                             // target isn't the one we want, because we've
                             // definitely remapped buffers. Ask our context for
                             // the real subject buffer.
-                            this.ExecuteInvokeCompletionList(_context.Buffer, _context.ContentType, executeNextCommandTarget);
+                            this.ExecuteInvokeCompletionList(_context.Buffer, _context.ContentType, () =>
+                            {
+                                var cmdGroupId = VSConstants.VSStd2K;
+                                NextCommandTarget.Exec(ref cmdGroupId, (uint)VSConstants.VSStd2KCmdID.SHOWMEMBERLIST, executeInformation, pvaIn, pvaOut);
+                            });
                         }
                     }
 
