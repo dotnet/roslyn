@@ -16,16 +16,16 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public string GetText()
         {
             IVsUIShell vsUIShell = (IVsUIShell)ServiceProvider.GlobalProvider.GetService(typeof(SVsUIShell));
-            Guid guid = new Guid("ECB7191A-597B-41F5-9843-03A4CF275DDE");
-            IVsWindowFrame windowFrame;
-            int result = vsUIShell.FindToolWindow((uint)__VSFINDTOOLWIN.FTW_fFindFirst, ref guid, out windowFrame);
-            windowFrame.Show();
-            windowFrame.GetProperty((int)__VSFPROPID.VSFPROPID_DocView, out object docView);
-            var textView = docView as IVsTextView;
-            textView.GetBuffer(out IVsTextLines vsTextLines);
-            vsTextLines.GetLineCount(out int lineCount);
-            vsTextLines.GetLengthOfLine(lineCount - 1, out int lastLineLength);
-            vsTextLines.GetLineText(0, 0, lineCount - 1, lastLineLength, out string text);
+            Guid immediateWindowGuid = VSConstants.StandardToolWindows.Immediate;
+            IVsWindowFrame immediateWindowFrame;
+            ErrorHandler.ThrowOnFailure(vsUIShell.FindToolWindow((uint)__VSFINDTOOLWIN.FTW_fFindFirst, ref immediateWindowGuid, out immediateWindowFrame));
+            ErrorHandler.ThrowOnFailure(immediateWindowFrame.Show());
+            ErrorHandler.ThrowOnFailure(immediateWindowFrame.GetProperty((int)__VSFPROPID.VSFPROPID_DocView, out object docView));
+            var vsTextView = (IVsTextView)docView;
+            ErrorHandler.ThrowOnFailure(vsTextView.GetBuffer(out IVsTextLines vsTextLines));
+            ErrorHandler.ThrowOnFailure(vsTextLines.GetLineCount(out int lineCount));
+            ErrorHandler.ThrowOnFailure(vsTextLines.GetLengthOfLine(lineCount - 1, out int lastLineLength));
+            ErrorHandler.ThrowOnFailure(vsTextLines.GetLineText(0, 0, lineCount - 1, lastLineLength, out string text));
             return text;
         }
 
