@@ -220,9 +220,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
 
             // See if inlining this variable would make it so that some variables were no
             // longer definitely assigned.
-            if (WouldCauseDefiniteAssignmentErrors(
-                    semanticModel, localDeclaration, localDeclarator, 
-                    enclosingBlockOfLocalStatement, outLocalSymbol, cancellationToken))
+            if (WouldCauseDefiniteAssignmentErrors(semanticModel, localStatement, 
+                                                   enclosingBlockOfLocalStatement, outLocalSymbol))
             {
                 return;
             }
@@ -248,12 +247,10 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
         }
 
         private bool WouldCauseDefiniteAssignmentErrors(
-            SemanticModel semanticModel, 
-            VariableDeclarationSyntax localDeclaration,
-            VariableDeclaratorSyntax localDeclarator, 
+            SemanticModel semanticModel,
+            LocalDeclarationStatementSyntax localStatement,
             BlockSyntax enclosingBlock,
-            ILocalSymbol outLocalSymbol,
-            CancellationToken cancellationToken)
+            ILocalSymbol outLocalSymbol)
         {
             // See if we have something like:
             //
@@ -266,73 +263,10 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             // In this case, inlining the 'i' would cause it to longer be definitely
             // assigned in the WriteLine invocation.
 
-            // Find all the current read-references to the local.
-            var query = from t in enclosingBlock.DescendantTokens()
-                        where t.Kind() == SyntaxKind.IdentifierToken
-                        where t.ValueText == outLocalSymbol.Name
-                        let id = t.Parent as IdentifierNameSyntax
-                        where id != null
-                        where !id.IsOnlyWrittenTo()
-                        let symbol = semanticModel.GetSymbolInfo(id).GetAnySymbol()
-                        where outLocalSymbol.Equals(symbol)
-                        select id;
-
-            var references = query.ToImmutableArray<SyntaxNode>();
-
-            var root = semanticModel.SyntaxTree.GetCompilationUnitRoot(cancellationToken);
-
-            // Ensure we can track the references and the local variable as we make edits
-            // to the tree.
-            var rootWithTrackedNodes = root.TrackNodes(
-                references.Concat(ImmutableArray.Create<SyntaxNode>(localDeclarator, localDeclaration, enclosingBlock)));
-
-            // Now, take the local variable and remove it's initializer.  Then go to all
-            // the locations where we read from it.  If they're definitely assigned, then
-            // that means the out-var did it's work and assigned the variable across all
-            // paths. If it's not definitely assigned, then we can't inline this variable.
-            var currentLocalDeclarator = rootWithTrackedNodes.GetCurrentNode(localDeclarator);
-            var currentLocalDeclaration = rootWithTrackedNodes.GetCurrentNode(localDeclaration);
-            var updatedDeclaration = currentLocalDeclaration
-                .ReplaceNode(currentLocalDeclarator, currentLocalDeclarator.WithInitializer(null));
-
-            // If the declaration was a "var" declaration, then replace "var" with the actual
-            // type of the local.  This way we don't get a "'var v' requires an initializer" which
-            // will suppress the message about definite assignment later.
-            if (updatedDeclaration.Type.IsVar)
-            {
-                updatedDeclaration = updatedDeclaration.WithType(
-                    outLocalSymbol.Type.GenerateTypeSyntax());
-            }
-
-            var rootWithoutInitializer = rootWithTrackedNodes.ReplaceNode(
-                currentLocalDeclaration, updatedDeclaration);
-
-            var rootWithoutInitializerTree = root.SyntaxTree.WithRootAndOptions(
-                rootWithoutInitializer, root.SyntaxTree.Options);
-
-            // Fork the compilation so we can do this analysis.
-            var newCompilation = semanticModel.Compilation.ReplaceSyntaxTree(
-                root.SyntaxTree, rootWithoutInitializerTree);
-            var newSemanticModel = newCompilation.GetSemanticModel(rootWithoutInitializerTree);
-
-            // NOTE: there is no current compiler API to determine if a variable is definitely
-            // assigned or not.  So, for now, we just get diagnostics for this block and see if
-            // we get any definite assignment errors where we have a reference to the symbol. If
-            // so, then we don't offer the fix.
-
-            rootWithoutInitializer = (CompilationUnitSyntax)rootWithoutInitializerTree.GetRoot(cancellationToken);
-            var currentBlock = rootWithoutInitializer.GetCurrentNode(enclosingBlock);
-            var diagnostics = newSemanticModel.GetDiagnostics(currentBlock.Span, cancellationToken);
-
-            var diagnosticSpans = diagnostics.Where(d => d.Id == CS0165)
-                                             .Select(d => d.Location.SourceSpan)
-                                             .Distinct();
-
-            var newReferenceSpans = rootWithoutInitializer.GetCurrentNodes<SyntaxNode>(references)
-                                                          .Select(n => n.Span)
-                                                          .Distinct();
-
-            return diagnosticSpans.Intersect(newReferenceSpans).Any();
+            var dataFlow = semanticModel.AnalyzeDataFlow(
+                localStatement.GetNextStatement(),
+                enclosingBlock.Statements[enclosingBlock.Statements.Count - 1]);
+            return dataFlow.DataFlowsIn.Contains(outLocalSymbol);
         }
 
         private SyntaxNode GetOutArgumentScope(SyntaxNode argumentExpression)

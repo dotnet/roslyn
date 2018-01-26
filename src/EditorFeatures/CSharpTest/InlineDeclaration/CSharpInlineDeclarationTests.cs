@@ -71,9 +71,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
         public async Task InlineVariableWithConstructor1()
         {
             await TestInRegularAndScriptAsync(
-@"class C
+@"class C1
 {
-    void M()
+    public C1(int v, out int i) {}
+
+    void M(int v)
     {
         [|int|] i;
         if (new C1(v, out i))
@@ -81,9 +83,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
         }
     }
 }",
-@"class C
+@"class C1
 {
-    void M()
+    public C1(int v, out int i) {}
+
+    void M(int v)
     {
         if (new C1(v, out int i))
         {
