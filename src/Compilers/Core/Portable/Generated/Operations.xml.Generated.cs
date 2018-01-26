@@ -201,13 +201,13 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal abstract partial class BaseArgument : Operation, IArgumentOperation
     {
-        protected BaseArgument(ArgumentKind argumentKind, IParameterSymbol parameter, IConvertibleConversion inConversion, IConvertibleConversion outConversion,  SemanticModel semanticModel, SyntaxNode syntax, Optional<object> constantValue, bool isImplicit) :
+        protected BaseArgument(ArgumentKind argumentKind, IParameterSymbol parameter, IConvertibleConversion inConversionOpt, IConvertibleConversion outConversionOpt, SemanticModel semanticModel, SyntaxNode syntax, Optional<object> constantValue, bool isImplicit) :
                     base(OperationKind.Argument, semanticModel, syntax, type: null, constantValue: constantValue, isImplicit: isImplicit)
         {
             ArgumentKind = argumentKind;
             Parameter = parameter;
-            InConversionConvertible = inConversion;
-            OutConversionConvertible = outConversion;
+            InConversionConvertibleOpt = inConversionOpt;
+            OutConversionConvertibleOpt = outConversionOpt;
         }
         /// <summary>
         /// Kind of argument.
@@ -218,10 +218,16 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         public IParameterSymbol Parameter { get; }
         protected abstract IOperation ValueImpl { get; }
-        internal IConvertibleConversion InConversionConvertible { get; }
-        internal IConvertibleConversion OutConversionConvertible { get; }
-        public CommonConversion InConversion => InConversionConvertible.ToCommonConversion();
-        public CommonConversion OutConversion => OutConversionConvertible.ToCommonConversion();
+        internal IConvertibleConversion InConversionConvertibleOpt { get; }
+        internal IConvertibleConversion OutConversionConvertibleOpt { get; }
+        public CommonConversion InConversion => InConversionConvertibleOpt?.ToCommonConversion() ?? Identity();
+        public CommonConversion OutConversion => OutConversionConvertibleOpt?.ToCommonConversion() ?? Identity();
+
+        private static CommonConversion Identity()
+        {
+            return new CommonConversion(exists: true, isIdentity: true, isNumeric: false, isReference: false, methodSymbol: null);
+        }
+
         public override IEnumerable<IOperation> Children
         {
             get
@@ -248,7 +254,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
     internal sealed partial class ArgumentOperation : BaseArgument
     {
-        public ArgumentOperation(IOperation value, ArgumentKind argumentKind, IParameterSymbol parameter, IConvertibleConversion inConversion, IConvertibleConversion outConversion, SemanticModel semanticModel, SyntaxNode syntax, Optional<object> constantValue, bool isImplicit) : base(argumentKind, parameter, inConversion, outConversion, semanticModel, syntax, constantValue, isImplicit)
+        public ArgumentOperation(IOperation value, ArgumentKind argumentKind, IParameterSymbol parameter, IConvertibleConversion inConversionOpt, IConvertibleConversion outConversionOpt, SemanticModel semanticModel, SyntaxNode syntax, Optional<object> constantValue, bool isImplicit) : base(argumentKind, parameter, inConversionOpt, outConversionOpt, semanticModel, syntax, constantValue, isImplicit)
         {
             ValueImpl = value;
         }
@@ -260,7 +266,7 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         private readonly Lazy<IOperation> _lazyValue;
 
-        public LazyArgumentOperation(Lazy<IOperation> value, ArgumentKind argumentKind, IConvertibleConversion inConversion, IConvertibleConversion outConversion, IParameterSymbol parameter, SemanticModel semanticModel, SyntaxNode syntax, Optional<object> constantValue, bool isImplicit) : base(argumentKind, parameter, inConversion, outConversion, semanticModel, syntax, constantValue, isImplicit)
+        public LazyArgumentOperation(Lazy<IOperation> value, ArgumentKind argumentKind, IConvertibleConversion inConversionOpt, IConvertibleConversion outConversionOpt, IParameterSymbol parameter, SemanticModel semanticModel, SyntaxNode syntax, Optional<object> constantValue, bool isImplicit) : base(argumentKind, parameter, inConversionOpt, outConversionOpt, semanticModel, syntax, constantValue, isImplicit)
         {
             _lazyValue = value;
         }
