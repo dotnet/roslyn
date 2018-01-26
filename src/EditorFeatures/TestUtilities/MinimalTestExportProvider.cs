@@ -6,7 +6,6 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SymbolMapping;
 using Microsoft.VisualStudio.Composition;
 using Roslyn.Utilities;
@@ -125,9 +124,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
 
         public static ExportProvider CreateExportProvider(ComposableCatalog catalog)
         {
-            // make sure we enable this for all unit tests
-            AsynchronousOperationListenerProvider.Enable(true);
-
             var configuration = CompositionConfiguration.Create(catalog.WithDesktopSupport().WithCompositionService());
             var runtimeComposition = RuntimeComposition.CreateRuntimeComposition(configuration);
             return runtimeComposition.CreateExportProviderFactory().CreateExportProvider();

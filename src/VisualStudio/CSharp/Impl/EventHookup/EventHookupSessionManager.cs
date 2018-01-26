@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
             EventHookupCommandHandler eventHookupCommandHandler,
             ITextView textView,
             ITextBuffer subjectBuffer,
-            IAsynchronousOperationListener asyncListener,
+            AggregateAsynchronousOperationListener asyncListener,
             Mutex testSessionHookupMutex)
         {
             CurrentSession = new EventHookupSession(this, eventHookupCommandHandler, textView, subjectBuffer, asyncListener, testSessionHookupMutex);

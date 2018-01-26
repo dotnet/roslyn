@@ -33,16 +33,17 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
             IWaitIndicator waitIndicator,
             [ImportMany] IEnumerable<IDefinitionsAndReferencesPresenter> synchronousPresenters,
             [ImportMany] IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters,
-            IAsynchronousOperationListenerProvider listenerProvider)
+            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
         {
             Contract.ThrowIfNull(synchronousPresenters);
             Contract.ThrowIfNull(streamingPresenters);
-            Contract.ThrowIfNull(listenerProvider);
+            Contract.ThrowIfNull(asyncListeners);
 
             _waitIndicator = waitIndicator;
             _synchronousPresenters = synchronousPresenters;
             _streamingPresenters = streamingPresenters;
-            _asyncListener = listenerProvider.GetListener(FeatureAttribute.FindReferences);
+            _asyncListener = new AggregateAsynchronousOperationListener(
+                asyncListeners, FeatureAttribute.FindReferences);
         }
 
         public CommandState GetCommandState(FindReferencesCommandArgs args, Func<CommandState> nextHandler)
