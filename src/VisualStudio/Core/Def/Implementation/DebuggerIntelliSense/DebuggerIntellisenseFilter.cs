@@ -45,7 +45,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
         internal void SetCommandHandlers(ITextBuffer buffer)
         {
             this.CurrentHandlers = _commandFactory.GetService(buffer);
-            // Chain in editor command handler service. It will execute all our command handlers migrated to the modern editor commanding.
+            // Chain in editor command handler service. It will execute all our command handlers migrated to the modern editor commanding
+            // on the same text view and buffer as this.CurrentHandlers.
             var componentModel = (IComponentModel)_languageService.SystemServiceProvider.GetService(typeof(SComponentModel));
             var vsCommandHandlerServiceAdapterFactory = componentModel.GetService<IVsCommandHandlerServiceAdapterFactory>();
             var vsCommandHandlerServiceAdapter = vsCommandHandlerServiceAdapterFactory.Create(ConvertTextView(), 
@@ -127,7 +128,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
                             {
                                 // We cannot just pass executeNextCommandTarget becuase it would execute TYPECHAR
                                 var showMemberListCmdGroupId = VSConstants.VSStd2K;
-                                NextCommandTarget.Exec(ref showMemberListCmdGroupId, (uint)VSConstants.VSStd2KCmdID.SHOWMEMBERLIST, executeInformation, pvaIn, pvaOut);
+                                NextCommandTarget.Exec(ref showMemberListCmdGroupId, (uint)VSConstants.VSStd2KCmdID.SHOWMEMBERLIST, 
+                                    executeInformation, pvaIn, pvaOut);
                             });
                         }
                     }
