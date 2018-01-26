@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis
         /// Specifies whether to import members with accessibility other than public or protected by default. 
         /// Default value is <see cref="MetadataImportOptions.Public"/>. The value specified is not going to 
         /// affect correctness of analysis performed by compilers because all members needed for correctness 
-        /// are going to be imported regadless. This setting can force compilation to import members that it 
+        /// are going to be imported regardless. This setting can force compilation to import members that it 
         /// normally doesn't.
         /// </summary>
         public MetadataImportOptions MetadataImportOptions { get; protected set; }
