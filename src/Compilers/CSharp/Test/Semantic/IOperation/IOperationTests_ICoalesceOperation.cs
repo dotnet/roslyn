@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public partial class IOperationTests : SemanticModelTestBase
     {
-        [CompilerTrait(CompilerFeature.IOperation)]
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
         [Fact]
         public void CoalesceOperation_01()
         {
@@ -105,7 +105,7 @@ Block[5] - Exit
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
         }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
         [Fact]
         public void CoalesceOperation_02()
         {
@@ -203,7 +203,7 @@ Block[5] - Exit
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
         }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
         [Fact]
         public void CoalesceOperation_03()
         {
@@ -301,7 +301,7 @@ Block[5] - Exit
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
         }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
         [Fact]
         public void CoalesceOperation_04()
         {
@@ -396,7 +396,7 @@ Block[5] - Exit
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
         }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
         [Fact]
         public void CoalesceOperation_05()
         {
@@ -497,7 +497,7 @@ Block[5] - Exit
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
         }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
         [Fact]
         public void CoalesceOperation_06()
         {
@@ -595,7 +595,7 @@ Block[5] - Exit
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
         }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
         [Fact]
         public void CoalesceOperation_07()
         {
@@ -690,7 +690,7 @@ Block[5] - Exit
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
         }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
         [Fact]
         public void CoalesceOperation_08()
         {
@@ -791,7 +791,7 @@ Block[5] - Exit
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
         }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
         [Fact]
         public void CoalesceOperation_09()
         {
@@ -886,7 +886,7 @@ Block[5] - Exit
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
         }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
         [Fact]
         public void CoalesceOperation_10()
         {
@@ -984,7 +984,7 @@ Block[5] - Exit
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
         }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
         [Fact]
         public void CoalesceOperation_11()
         {
@@ -1075,7 +1075,7 @@ Block[5] - Exit
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
         }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
         [Fact]
         public void CoalesceOperation_12()
         {

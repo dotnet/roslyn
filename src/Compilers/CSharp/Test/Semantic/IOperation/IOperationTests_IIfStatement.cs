@@ -1165,6 +1165,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (d.Ge
             VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
         [Fact]
         public void IfFlow_01()
         {
@@ -1231,6 +1232,7 @@ Block[3] - Exit
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
         [Fact]
         public void IfFlow_02()
         {
@@ -1311,6 +1313,7 @@ Block[4] - Exit
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
         [Fact]
         public void IfFlow_03()
         {

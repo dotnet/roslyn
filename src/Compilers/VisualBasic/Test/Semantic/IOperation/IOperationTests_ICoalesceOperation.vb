@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     Partial Public Class IOperationTests
         Inherits SemanticModelTestBase
 
-        <CompilerTrait(CompilerFeature.IOperation)>
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
         <Fact()>
         Public Sub CoalesceOperation_01()
             Dim source =
@@ -116,7 +116,7 @@ Block[5] - Exit
             VerifyFlowGraphForTest(Of MethodBlockSyntax)(compilation, expectedGraph)
         End Sub
 
-        <CompilerTrait(CompilerFeature.IOperation)>
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
         <Fact()>
         Public Sub CoalesceOperation_02()
             Dim source =
@@ -227,7 +227,7 @@ Block[5] - Exit
             VerifyFlowGraphForTest(Of MethodBlockSyntax)(compilation, expectedGraph)
         End Sub
 
-        <CompilerTrait(CompilerFeature.IOperation)>
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
         <Fact()>
         Public Sub CoalesceOperation_03()
             Dim source =
@@ -338,7 +338,7 @@ Block[5] - Exit
             VerifyFlowGraphForTest(Of MethodBlockSyntax)(compilation, expectedGraph)
         End Sub
 
-        <CompilerTrait(CompilerFeature.IOperation)>
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
         <Fact()>
         Public Sub CoalesceOperation_04()
             Dim source =
@@ -446,7 +446,7 @@ Block[5] - Exit
             VerifyFlowGraphForTest(Of MethodBlockSyntax)(compilation, expectedGraph)
         End Sub
 
-        <CompilerTrait(CompilerFeature.IOperation)>
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
         <Fact()>
         Public Sub CoalesceOperation_05()
             Dim source =
@@ -564,7 +564,7 @@ Block[5] - Exit
             VerifyFlowGraphForTest(Of MethodBlockSyntax)(compilation, expectedGraph)
         End Sub
 
-        <CompilerTrait(CompilerFeature.IOperation)>
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
         <Fact()>
         Public Sub CoalesceOperation_06()
             Dim source =
@@ -675,7 +675,7 @@ Block[5] - Exit
             VerifyFlowGraphForTest(Of MethodBlockSyntax)(compilation, expectedGraph)
         End Sub
 
-        <CompilerTrait(CompilerFeature.IOperation)>
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
         <Fact()>
         Public Sub CoalesceOperation_07()
             Dim source =
@@ -783,7 +783,7 @@ Block[5] - Exit
             VerifyFlowGraphForTest(Of MethodBlockSyntax)(compilation, expectedGraph)
         End Sub
 
-        <CompilerTrait(CompilerFeature.IOperation)>
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
         <Fact()>
         Public Sub CoalesceOperation_08()
             Dim source =
@@ -891,7 +891,7 @@ Block[5] - Exit
             VerifyFlowGraphForTest(Of MethodBlockSyntax)(compilation, expectedGraph)
         End Sub
 
-        <CompilerTrait(CompilerFeature.IOperation)>
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
         <Fact()>
         Public Sub CoalesceOperation_09()
             Dim source =
@@ -999,7 +999,7 @@ Block[5] - Exit
             VerifyFlowGraphForTest(Of MethodBlockSyntax)(compilation, expectedGraph)
         End Sub
 
-        <CompilerTrait(CompilerFeature.IOperation)>
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
         <Fact()>
         Public Sub CoalesceOperation_10()
             Dim source =
@@ -1110,7 +1110,7 @@ Block[5] - Exit
             VerifyFlowGraphForTest(Of MethodBlockSyntax)(compilation, expectedGraph)
         End Sub
 
-        <CompilerTrait(CompilerFeature.IOperation)>
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
         <Fact()>
         Public Sub CoalesceOperation_11()
             Dim source =
@@ -1214,7 +1214,7 @@ Block[5] - Exit
             VerifyFlowGraphForTest(Of MethodBlockSyntax)(compilation, expectedGraph)
         End Sub
 
-        <CompilerTrait(CompilerFeature.IOperation)>
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
         <Fact()>
         Public Sub CoalesceOperation_12()
             Dim source =

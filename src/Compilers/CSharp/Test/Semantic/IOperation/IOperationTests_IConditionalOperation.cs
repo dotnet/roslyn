@@ -68,6 +68,7 @@ IConditionalOperation (IsRef) (OperationKind.Conditional, Type: System.Int32) (S
             VerifyOperationTreeAndDiagnosticsForTest<ConditionalExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
         [Fact]
         public void ConditionalExpressionFlow_01()
         {
@@ -156,6 +157,7 @@ Block[6] - Exit
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
         [Fact]
         public void ConditionalExpressionFlow_02()
         {
@@ -271,6 +273,7 @@ Block[9] - Exit
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
         [Fact]
         public void ConditionalExpressionFlow_03()
         {
