@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
                 if (!genericParameterSymbol.HasReferenceTypeConstraint)
                 {
                     // Needs special casing for C# as long as
-                    // https://github.com/dotnet/csharplang/issues/1261
+                    // https://github.com/dotnet/csharplang/issues/1284
                     // is not implemented.
                     properties = properties.Add(AbstractUseIsNullCheckCodeFixProvider.UnconstrainedGeneric, "");
                 }
