@@ -2743,7 +2743,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return BindStackAllocWithInitializer(
                 node, 
                 initializer, 
-                type: GetStackAllocType(node, bestType, inLegalPosition, diagnostics), 
+                type: inLegalPosition ? GetStackAllocType(node, bestType, diagnostics) : null, 
                 elementType: bestType,
                 sizeOpt: null, 
                 diagnostics,
@@ -3132,7 +3132,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     new PointerTypeSymbol(elementType));
             }
 
-            TypeSymbol type = GetStackAllocType(node, elementType, inLegalPosition, diagnostics);
+            TypeSymbol type = inLegalPosition ? GetStackAllocType(node, elementType, diagnostics) : null;
 
             ExpressionSyntax countSyntax = rankSpecifiers[0].Sizes[0];
             BoundExpression count = null;
@@ -3178,9 +3178,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return inLegalPosition;
         }
 
-        private TypeSymbol GetStackAllocType(SyntaxNode node, TypeSymbol elementType, bool inLegalPosition, DiagnosticBag diagnostics)
+        private TypeSymbol GetStackAllocType(SyntaxNode node, TypeSymbol elementType, DiagnosticBag diagnostics)
         {
-            if (inLegalPosition && !node.IsVariableDeclarationInitialization())
+            if (!node.IsVariableDeclarationInitialization())
             {
                 CheckFeatureAvailability(node, MessageID.IDS_FeatureRefStructs, diagnostics);
                 GetWellKnownTypeMember(Compilation, WellKnownMember.System_Span_T__ctor, diagnostics, syntax: node);

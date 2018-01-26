@@ -151,6 +151,8 @@ unsafe class Test
     public void Method1()
     {
         var obj1 = stackalloc[] {{1}};
+        var obj2 = stackalloc int[] {{1}};
+        var obj3 = stackalloc int[1] {{1}};
     }
 }", TestOptions.UnsafeReleaseDll);
 
@@ -160,7 +162,49 @@ unsafe class Test
                 Diagnostic(ErrorCode.ERR_ArrayInitInBadPlace, "{1}").WithLocation(6, 34),
                 // (6,34): error CS0623: Array initializers can only be used in a variable or field initializer. Try using a new expression instead.
                 //         var obj1 = stackalloc[] {{1}};
-                Diagnostic(ErrorCode.ERR_ArrayInitInBadPlace, "{1}").WithLocation(6, 34)
+                Diagnostic(ErrorCode.ERR_ArrayInitInBadPlace, "{1}").WithLocation(6, 34),
+                // (7,38): error CS0623: Array initializers can only be used in a variable or field initializer. Try using a new expression instead.
+                //         var obj2 = stackalloc int[] {{1}};
+                Diagnostic(ErrorCode.ERR_ArrayInitInBadPlace, "{1}").WithLocation(7, 38),
+                // (8,39): error CS0623: Array initializers can only be used in a variable or field initializer. Try using a new expression instead.
+                //         var obj3 = stackalloc int[1] {{1}};
+                Diagnostic(ErrorCode.ERR_ArrayInitInBadPlace, "{1}").WithLocation(8, 39)
+                );
+        }
+
+        [Fact]
+        public void AsStatement()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+unsafe class Test
+{
+    public void Method1()
+    {
+        stackalloc[] {1};
+        stackalloc int[] {1};
+        stackalloc int[1] {1};
+    }
+}", TestOptions.UnsafeReleaseDll);
+
+            comp.VerifyDiagnostics(
+                // (6,9): error CS1525: Invalid expression term 'stackalloc'
+                //         stackalloc[] {1};
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(6, 9),
+                // (6,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                //         stackalloc[] {1};
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "stackalloc[] {1}").WithLocation(6, 9),
+                // (7,9): error CS1525: Invalid expression term 'stackalloc'
+                //         stackalloc int[] {1};
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(7, 9),
+                // (7,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                //         stackalloc int[] {1};
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "stackalloc int[] {1}").WithLocation(7, 9),
+                // (8,9): error CS1525: Invalid expression term 'stackalloc'
+                //         stackalloc int[1] {1};
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(8, 9),
+                // (8,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                //         stackalloc int[1] {1};
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "stackalloc int[1] {1}").WithLocation(8, 9)
                 );
         }
 

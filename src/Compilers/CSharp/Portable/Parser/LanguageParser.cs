@@ -10712,21 +10712,19 @@ tryAgain:
         {
             var @stackalloc = this.EatToken(SyntaxKind.StackAllocKeyword);
             var elementType = this.ParseType(expectSizes: true);
-            InitializerExpressionSyntax initializer;
+            InitializerExpressionSyntax initializer = null;
             if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken)
             {
                 @stackalloc = CheckFeatureAvailability(@stackalloc, MessageID.IDS_FeatureStackAllocInitializer);
                 initializer = this.ParseArrayInitializer();
             }
-            else
+            else if (elementType.Kind == SyntaxKind.ArrayType)
             {
                 var rankSpec = ((ArrayTypeSyntax)elementType).RankSpecifiers[0];
                 if (GetNumberOfNonOmittedArraySizes(rankSpec) == 0)
                 {
                     elementType = this.AddError(elementType, rankSpec, ErrorCode.ERR_MissingArraySize);
                 }
-
-                initializer = null;
             }
 
             return _syntaxFactory.StackAllocArrayCreationExpression(@stackalloc, elementType, initializer);
