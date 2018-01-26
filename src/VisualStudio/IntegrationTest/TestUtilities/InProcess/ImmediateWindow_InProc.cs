@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             IVsUIShell vsUIShell = (IVsUIShell)ServiceProvider.GlobalProvider.GetService(typeof(SVsUIShell));
             Guid immediateWindowGuid = VSConstants.StandardToolWindows.Immediate;
             IVsWindowFrame immediateWindowFrame;
-            ErrorHandler.ThrowOnFailure(vsUIShell.FindToolWindow((uint)__VSFINDTOOLWIN.FTW_fFindFirst, ref immediateWindowGuid, out immediateWindowFrame));
+            ErrorHandler.ThrowOnFailure(vsUIShell.FindToolWindow((uint)__VSFINDTOOLWIN.FTW_fForceCreate, ref immediateWindowGuid, out immediateWindowFrame));
             ErrorHandler.ThrowOnFailure(immediateWindowFrame.Show());
             ErrorHandler.ThrowOnFailure(immediateWindowFrame.GetProperty((int)__VSFPROPID.VSFPROPID_DocView, out object docView));
             var vsTextView = (IVsTextView)docView;
