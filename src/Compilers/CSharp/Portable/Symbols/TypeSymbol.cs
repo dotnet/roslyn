@@ -1073,13 +1073,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (implicitImpl.ContainsTupleNames() && MemberSignatureComparer.ConsideringTupleNamesCreatesDifference(implicitImpl, interfaceMember))
             {
                 // it is ok to implement implicitly with no tuple names, for compatibility with C# 6, but otherwise names should match
-                if (implicitImpl.ContainingType == implementingType)
+                diagnostics.Add(ErrorCode.ERR_ImplBadTupleNames, GetDiagnosticLocation(), implicitImpl, interfaceMember);
+
+                Location GetDiagnosticLocation()
                 {
-                    diagnostics.Add(ErrorCode.ERR_ImplBadTupleNames, implicitImpl.Locations[0], implicitImpl, interfaceMember);
-                }
-                else
-                {
-                    diagnostics.Add(ErrorCode.ERR_ImplBadTupleNames, implementingType.Locations[0], implicitImpl, interfaceMember);
+                    if (implicitImpl.ContainingType == implementingType)
+                    {
+                        return implicitImpl.Locations[0];
+                    }
+                    else
+                    {
+                        var @interface = interfaceMember.ContainingType;
+                        SourceMemberContainerTypeSymbol snt = implementingType as SourceMemberContainerTypeSymbol;
+                        return snt.GetImplementsLocation(@interface) ?? implementingType.Locations[0];
+                    }
                 }
             }
 
