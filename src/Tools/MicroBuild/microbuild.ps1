@@ -113,10 +113,11 @@ try {
             break;
         }
         "blob" {
-            Exec-Block { & .\publish-blob.ps1 -configDir $configDir -blobFeedUrl $blobFeedUrl -blobFeedKey $blobFeedKey }
+            # This is handled by the Build.proj file directly
             break;
         }
         default {
+            throw "Unexpected publish type: $publishType"
             break;
         }
     }
