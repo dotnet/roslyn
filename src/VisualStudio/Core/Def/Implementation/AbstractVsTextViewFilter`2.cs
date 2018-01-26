@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         where TPackage : AbstractPackage<TPackage, TLanguageService>
         where TLanguageService : AbstractLanguageService<TPackage, TLanguageService>
     {
-        protected readonly AbstractLanguageService<TPackage, TLanguageService> _languageService;
+        protected AbstractLanguageService<TPackage, TLanguageService> LanguageService { get; }
 
         protected AbstractVsTextViewFilter(
             AbstractLanguageService<TPackage, TLanguageService> languageService,
@@ -31,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             ICommandHandlerServiceFactory commandHandlerServiceFactory)
             : base(wpfTextView, commandHandlerServiceFactory, editorAdaptersFactoryService, languageService.SystemServiceProvider)
         {
-            _languageService = languageService;
+            LanguageService = languageService;
         }
 
         int IVsTextViewFilter.GetDataTipText(TextSpan[] pSpan, out string pbstrText)
@@ -50,7 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             pbstrText = null;
 
-            var debugInfo = _languageService.LanguageDebugInfo;
+            var debugInfo = LanguageService.LanguageDebugInfo;
             if (debugInfo != null)
             {
                 var subjectBuffer = WpfTextView.GetBufferContainingCaret();
@@ -78,7 +78,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             try
             {
                 int result = VSConstants.S_OK;
-                _languageService.Package.ComponentModel.GetService<IWaitIndicator>().Wait(
+                LanguageService.Package.ComponentModel.GetService<IWaitIndicator>().Wait(
                     "Intellisense",
                     allowCancel: true,
                     action: c => result = GetPairExtentsWorker(iLine, iIndex, pSpan, c.CancellationToken));
@@ -93,10 +93,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         private int GetPairExtentsWorker(int iLine, int iIndex, TextSpan[] pSpan, CancellationToken cancellationToken)
         {
-            var braceMatcher = _languageService.Package.ComponentModel.GetService<IBraceMatchingService>();
+            var braceMatcher = LanguageService.Package.ComponentModel.GetService<IBraceMatchingService>();
             return GetPairExtentsWorker(
                 WpfTextView,
-                _languageService.Workspace,
+                LanguageService.Workspace,
                 braceMatcher,
                 iLine,
                 iIndex,

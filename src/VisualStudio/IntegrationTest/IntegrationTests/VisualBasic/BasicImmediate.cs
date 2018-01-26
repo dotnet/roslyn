@@ -27,8 +27,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
             VisualStudio.Editor.SetText(@"
 Module Module1
     Sub Main()
-        Dim n1 As Integer = 42
-        Dim n2 As Integer = 43
+        Dim n1Var As Integer = 42
+        Dim n2Var As Integer = 43
     End Sub
 End Module
 ");
@@ -39,8 +39,8 @@ End Module
             VisualStudio.ImmediateWindow.ShowImmediateWindow(clearAll: true);
             VisualStudio.SendKeys.Send("?");
             VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.CompletionSet);
-            VisualStudio.SendKeys.Send("n1", VirtualKey.Enter);
-            Assert.Contains("?n1\r\n42", VisualStudio.ImmediateWindow.GetText());
+            VisualStudio.SendKeys.Send("n1", VirtualKey.Tab, VirtualKey.Enter);
+            Assert.Contains("?n1Var\r\n42", VisualStudio.ImmediateWindow.GetText());
         }
     }
 }

@@ -29,8 +29,8 @@ class Program
 {
     static void Main(string[] args)
     {
-        int n1 = 42;
-        int n2 = 43;
+        int n1Var = 42;
+        int n2Var = 43;
     }
 }
 ");
@@ -41,8 +41,8 @@ class Program
             VisualStudio.ImmediateWindow.ShowImmediateWindow(clearAll: true);
             VisualStudio.SendKeys.Send("?n");
             VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.CompletionSet);
-            VisualStudio.SendKeys.Send("1", VirtualKey.Enter);
-            Assert.Contains("?n1\r\n42", VisualStudio.ImmediateWindow.GetText());
+            VisualStudio.SendKeys.Send("1", VirtualKey.Tab, VirtualKey.Enter);
+            Assert.Contains("?n1Var\r\n42", VisualStudio.ImmediateWindow.GetText());
         }
     }
 }

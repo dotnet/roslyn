@@ -23,6 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
         private readonly ICommandHandlerServiceFactory _commandFactory;
         private readonly IWpfTextView _wpfTextView;
         private AbstractDebuggerIntelliSenseContext _context;
+        private IOleCommandTarget _originalNextCommandFilter;
 
         internal bool Enabled { get; set; }
 
@@ -39,20 +40,37 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
 
         internal void SetNextFilter(IOleCommandTarget nextFilter)
         {
-            this.NextCommandTarget = nextFilter;
+            _originalNextCommandFilter = nextFilter;
+            SetNextFilterWorker();
+        }
+
+        private void SetNextFilterWorker()
+        {
+            // We have a new _originalNextCommandFilter or new _context, reset NextCommandTarget chain based on their values.
+            // The chain is formed like this: 
+            // this.CurrentHandlers (legacy command handlers) 
+            //     -> IVsCommandHandlerServiceAdapter (our command handlers migrated to the modern editor commanding)
+            //            -> original next command filter
+            var nextCommandFilter = _originalNextCommandFilter;
+            if (_context != null)
+            {
+                // Chain in editor command handler service. It will execute all our command handlers migrated to the modern editor commanding
+                // on the same text view and buffer as this.CurrentHandlers.
+                var componentModel = (IComponentModel)LanguageService.SystemServiceProvider.GetService(typeof(SComponentModel));
+                var vsCommandHandlerServiceAdapterFactory = componentModel.GetService<IVsCommandHandlerServiceAdapterFactory>();
+                var vsCommandHandlerServiceAdapter = vsCommandHandlerServiceAdapterFactory.Create(ConvertTextView(),
+                    GetSubjectBufferContainingCaret(), // our override doesn't actually check the caret and always returns _context.Buffer
+                    nextCommandFilter);
+                nextCommandFilter = vsCommandHandlerServiceAdapter;
+            }
+
+            this.NextCommandTarget = nextCommandFilter;
         }
 
         internal void SetCommandHandlers(ITextBuffer buffer)
         {
             this.CurrentHandlers = _commandFactory.GetService(buffer);
-            // Chain in editor command handler service. It will execute all our command handlers migrated to the modern editor commanding
-            // on the same text view and buffer as this.CurrentHandlers.
-            var componentModel = (IComponentModel)_languageService.SystemServiceProvider.GetService(typeof(SComponentModel));
-            var vsCommandHandlerServiceAdapterFactory = componentModel.GetService<IVsCommandHandlerServiceAdapterFactory>();
-            var vsCommandHandlerServiceAdapter = vsCommandHandlerServiceAdapterFactory.Create(ConvertTextView(), 
-                GetSubjectBufferContainingCaret(), // our override doesn't actually check the caret and always returns _context.Buffer
-                NextCommandTarget);
-            NextCommandTarget = vsCommandHandlerServiceAdapter;
+            SetNextFilterWorker();
         }
 
         // If they haven't given us a context, or we aren't enabled, we should pass along to the next thing in the chain,
