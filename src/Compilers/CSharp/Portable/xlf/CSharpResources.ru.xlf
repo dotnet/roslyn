@@ -8610,6 +8610,11 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <target state="new">ref conditional expression</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExprCannotBeFixed">
+        <source>The given expression cannot be used in a fixed statement</source>
+        <target state="new">The given expression cannot be used in a fixed statement</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>
