@@ -5345,6 +5345,48 @@ class C
                 SymbolDisplayPartKind.Punctuation);
         }
 
+        [Fact]
+        [WorkItem(23970, "https://github.com/dotnet/roslyn/pull/23970")]
+        public void ThisDisplayParts()
+        {
+            var text =
+@"
+class A
+{
+    void M(int @this)
+    {
+        this.M(@this);
+    }
+}";
+            var comp = CreateStandardCompilation(text);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var invocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+            Assert.Equal("this.M(@this)", invocation.ToString());
+
+            var actualThis = ((MemberAccessExpressionSyntax)invocation.Expression).Expression;
+            Assert.Equal("this", actualThis.ToString());
+
+            Verify(
+                SymbolDisplay.ToDisplayParts(model.GetSymbolInfo(actualThis).Symbol, SymbolDisplayFormat.MinimallyQualifiedFormat),
+                "A this",
+                SymbolDisplayPartKind.ClassName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword);
+
+            var escapedThis = invocation.ArgumentList.Arguments[0].Expression;
+            Assert.Equal("@this", escapedThis.ToString());
+
+            Verify(
+                SymbolDisplay.ToDisplayParts(model.GetSymbolInfo(escapedThis).Symbol, SymbolDisplayFormat.MinimallyQualifiedFormat),
+                "int @this",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName);
+        }
+
         [WorkItem(11356, "https://github.com/dotnet/roslyn/issues/11356")]
         [Fact]
         public void RefReturn()

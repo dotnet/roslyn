@@ -1508,7 +1508,6 @@ class C
         [WorkItem(15532, "https://github.com/dotnet/roslyn/issues/15532")]
         public async Task ExtractLocalFunctionCallWithCapture()
         {
-            // PROTOTYPE: doesn't properly extract local function
             await TestInRegularAndScriptAsync(@"
 class C
 {
