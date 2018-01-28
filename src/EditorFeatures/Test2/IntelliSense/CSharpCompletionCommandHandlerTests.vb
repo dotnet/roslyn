@@ -758,7 +758,7 @@ class Class
 }]]></Document>)
 
                 state.SendTypeChars("new ")
-                Await state.AssertSelectedCompletionItem(displayText:="Class", isHardSelected:=True)
+                Await state.AssertSelectedCompletionItem(displayText:="Class", isSoftSelected:=True)
                 state.SendTypeChars("C")
                 Await state.AssertSelectedCompletionItem(displayText:="Class", isHardSelected:=True)
                 state.SendTypeChars("[")
@@ -781,14 +781,12 @@ class Class
     }
 }]]></Document>)
 
-                ' Although this is not necessarily what the user wants, typing `[` is ambiguous and in the common case
-                ' completing the type seems desirable
                 state.SendTypeChars("new ")
-                Await state.AssertSelectedCompletionItem(displayText:="Class", isHardSelected:=True)
+                Await state.AssertSelectedCompletionItem(displayText:="Class", isSoftSelected:=True)
                 state.SendTypeChars("[")
-                Assert.Contains("Class[] x = new Class[", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+                Assert.Contains("Class[] x = new [", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
                 state.SendTypeChars("] {")
-                Assert.Contains("Class[] x = new Class[] {", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+                Assert.Contains("Class[] x = new [] {", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Function
 
