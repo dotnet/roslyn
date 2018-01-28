@@ -745,6 +745,76 @@ class C
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(24432, "https://github.com/dotnet/roslyn/issues/24432")>
+        Public Async Function TestArrayInitialization() As Task
+            Using state = TestState.CreateCSharpTestState(
+                  <Document><![CDATA[
+class Class
+{
+    public void M()
+    {
+        Class[] x = $$
+    }
+}]]></Document>)
+
+                state.SendTypeChars("new ")
+                Await state.AssertSelectedCompletionItem(displayText:="Class", isHardSelected:=True)
+                state.SendTypeChars("C")
+                Await state.AssertSelectedCompletionItem(displayText:="Class", isHardSelected:=True)
+                state.SendTypeChars("[")
+                Assert.Contains("Class[] x = new Class[", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+                state.SendTypeChars("] {")
+                Assert.Contains("Class[] x = new Class[] {", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(24432, "https://github.com/dotnet/roslyn/issues/24432")>
+        Public Async Function TestImplicitArrayInitialization() As Task
+            Using state = TestState.CreateCSharpTestState(
+                  <Document><![CDATA[
+class Class
+{
+    public void M()
+    {
+        Class[] x = $$
+    }
+}]]></Document>)
+
+                ' Although this is not necessarily what the user wants, typing `[` is ambiguous and in the common case
+                ' completing the type seems desirable
+                state.SendTypeChars("new ")
+                Await state.AssertSelectedCompletionItem(displayText:="Class", isHardSelected:=True)
+                state.SendTypeChars("[")
+                Assert.Contains("Class[] x = new Class[", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+                state.SendTypeChars("] {")
+                Assert.Contains("Class[] x = new Class[] {", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(24432, "https://github.com/dotnet/roslyn/issues/24432")>
+        Public Async Function TestTypelessImplicitArrayInitialization() As Task
+            Using state = TestState.CreateCSharpTestState(
+                  <Document><![CDATA[
+class Class
+{
+    public void M()
+    {
+        var x = $$
+    }
+}]]></Document>)
+
+                state.SendTypeChars("new ")
+                Await state.AssertNoCompletionSession()
+                state.SendTypeChars("[")
+                Assert.Contains("var x = new [", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+                state.SendTypeChars("] {")
+                Assert.Contains("var x = new [] {", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(13527, "https://github.com/dotnet/roslyn/issues/13527")>
         Public Async Function TestSymbolInTupleLiteral() As Task
             Using state = TestState.CreateCSharpTestState(
