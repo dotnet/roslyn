@@ -781,7 +781,11 @@ class Class
     }
 }]]></Document>)
 
-                state.SendTypeChars("new ")
+                state.SendTypeChars("n")
+                Await state.AssertSelectedCompletionItem(displayText:="nameof", isHardSelected:=True)
+                state.SendTypeChars("e")
+                Await state.AssertSelectedCompletionItem(displayText:="new", isHardSelected:=True)
+                state.SendTypeChars(" ")
                 Await state.AssertSelectedCompletionItem(displayText:="Class", isSoftSelected:=True)
                 state.SendTypeChars("[")
                 Assert.Contains("Class[] x = new [", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
@@ -803,12 +807,56 @@ class Class
     }
 }]]></Document>)
 
-                state.SendTypeChars("new ")
+                state.SendTypeChars("ne")
+                Await state.AssertSelectedCompletionItem(displayText:="new", isHardSelected:=True)
+                state.SendTypeChars(" ")
                 Await state.AssertNoCompletionSession()
                 state.SendTypeChars("[")
                 Assert.Contains("var x = new [", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
                 state.SendTypeChars("] {")
                 Assert.Contains("var x = new [] {", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(24432, "https://github.com/dotnet/roslyn/issues/24432")>
+        Public Async Function TestTypelessImplicitArrayInitialization2() As Task
+            Using state = TestState.CreateCSharpTestState(
+                  <Document><![CDATA[
+class Class
+{
+    public void M()
+    {
+        var x = $$
+    }
+}]]></Document>)
+
+                state.SendTypeChars("ne")
+                Await state.AssertSelectedCompletionItem(displayText:="new", isHardSelected:=True)
+                state.SendTypeChars("[")
+                Assert.Contains("var x = new[", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(24432, "https://github.com/dotnet/roslyn/issues/24432")>
+        Public Async Function TestTypelessImplicitArrayInitialization3() As Task
+            Using state = TestState.CreateCSharpTestState(
+                  <Document><![CDATA[
+class Class
+{
+    public void M()
+    {
+        var x = $$
+    }
+}]]></Document>)
+
+                state.SendTypeChars("ne")
+                Await state.AssertSelectedCompletionItem(displayText:="new", isHardSelected:=True)
+                state.SendTypeChars(" ")
+                Assert.Contains("var x = new ", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+                state.SendTypeChars("[")
+                Assert.Contains("var x = new [", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Function
 
