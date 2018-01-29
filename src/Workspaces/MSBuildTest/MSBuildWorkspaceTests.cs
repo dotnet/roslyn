@@ -1523,7 +1523,7 @@ class C1
                 Assert.Equal(1, project.Solution.ProjectIds.Count);
                 Assert.Equal(0, project.ProjectReferences.Count());
                 Assert.Equal(1, project.AllProjectReferences.Count());
-                Assert.Equal(1, workspace.Diagnostics.Count);
+                Assert.Equal(2, workspace.Diagnostics.Count);
             }
         }
 
