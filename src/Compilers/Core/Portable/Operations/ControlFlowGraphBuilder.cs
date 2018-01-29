@@ -255,6 +255,22 @@ namespace Microsoft.CodeAnalysis.Operations
             CaptureResultIfNotAlready(operation.Syntax, captureId, result);
         }
 
+        private int VisitAndCapture(IOperation operation)
+        {
+            int saveAvailableCaptureId = _availableCaptureId;
+            IOperation rewritten = Visit(operation);
+
+            int captureId;
+            if (rewritten.Kind != OperationKind.FlowCaptureReference ||
+                saveAvailableCaptureId > (captureId = ((IFlowCaptureReferenceOperation)rewritten).Id))
+            {
+                captureId = _availableCaptureId++;
+                AddStatement(new FlowCapture(captureId, operation.Syntax, rewritten));
+            }
+
+            return captureId;
+        }
+
         private void CaptureResultIfNotAlready(SyntaxNode syntax, int captureId, IOperation result)
         {
             if (result.Kind != OperationKind.FlowCaptureReference ||
@@ -648,22 +664,6 @@ oneMoreTime:
             return null;
         }
 
-        private int VisitAndCapture(IOperation operation)
-        {
-            int saveAvailableCaptureId = _availableCaptureId;
-            IOperation rewritten = Visit(operation);
-
-            int captureId;
-            if (rewritten.Kind != OperationKind.FlowCaptureReference ||
-                saveAvailableCaptureId > (captureId = ((IFlowCaptureReferenceOperation)rewritten).Id))
-            {
-                captureId = _availableCaptureId++;
-                AddStatement(new FlowCapture(captureId, operation.Syntax, rewritten));
-            }
-
-            return captureId;
-        }
-
         public override IOperation VisitConditionalAccess(IConditionalAccessOperation operation, int? captureIdForResult)
         {
             // PROTOTYPE(dataflow): Consider to avoid nullable wrap/unwrap operations by merging conditional access
@@ -678,19 +678,21 @@ oneMoreTime:
             var whenNull = new BasicBlock(BasicBlockKind.Block);
 
             IConditionalAccessOperation currentConditionalAccess = operation;
+            IOperation testExpression; 
 
             while (true)
             {
-                SyntaxNode valueSyntax = currentConditionalAccess.Operation.Syntax;
-                ITypeSymbol testExpressionType = currentConditionalAccess.Operation.Type;
+                testExpression = currentConditionalAccess.Operation;
+                SyntaxNode testExpressionSyntax = testExpression.Syntax;
+                ITypeSymbol testExpressionType = testExpression.Type;
 
-                int testExpressionCaptureId = VisitAndCapture(currentConditionalAccess.Operation);
+                int testExpressionCaptureId = VisitAndCapture(testExpression);
                 LinkBlocks(CurrentBasicBlock,
-                           (Operation.SetParentOperation(new FlowCaptureReference(testExpressionCaptureId, valueSyntax, testExpressionType, currentConditionalAccess.Operation.ConstantValue), null),
+                           (Operation.SetParentOperation(new FlowCaptureReference(testExpressionCaptureId, testExpressionSyntax, testExpressionType, testExpression.ConstantValue), null),
                             ConditionalBranchKind.IfNull, whenNull));
                 _currentBasicBlock = null;
 
-                IOperation receiver = new FlowCaptureReference(testExpressionCaptureId, valueSyntax, testExpressionType, currentConditionalAccess.Operation.ConstantValue);
+                IOperation receiver = new FlowCaptureReference(testExpressionCaptureId, testExpressionSyntax, testExpressionType, testExpression.ConstantValue);
 
                 if (IsNullableType(testExpressionType))
                 {
@@ -716,7 +718,7 @@ oneMoreTime:
             {
                 IOperation access = Visit(currentConditionalAccess.WhenNotNull);
                 AddStatement(new FlowCapture(resultCaptureId, currentConditionalAccess.WhenNotNull.Syntax,
-                                             TryMakeNullableValue(operation.Type, access) ??
+                                             TryMakeNullableValue((INamedTypeSymbol)operation.Type, access) ??
                                              // PROTOTYPE(dataflow): The scenario with missing constructor is not covered by unit-tests.
                                              MakeInvalidOperation(operation.Type, access)));
             }
@@ -733,7 +735,7 @@ oneMoreTime:
 
             AppendNewBlock(whenNull);
 
-            SyntaxNode defaultValueSyntax = (whenNull.Predecessors.Count > 1 ? operation : currentConditionalAccess.Operation).Syntax;
+            SyntaxNode defaultValueSyntax = (operation.Operation == testExpression ? testExpression : operation).Syntax;
 
             AddStatement(new FlowCapture(resultCaptureId,
                                          defaultValueSyntax,
@@ -747,35 +749,31 @@ oneMoreTime:
             return new FlowCaptureReference(resultCaptureId, operation.Syntax, operation.Type, operation.ConstantValue);
         }
 
-        private IOperation TryMakeNullableValue(ITypeSymbol type, IOperation underlyingValue)
+        private static IOperation TryMakeNullableValue(INamedTypeSymbol type, IOperation underlyingValue)
         {
             Debug.Assert(IsNullableType(type));
 
-            foreach (ISymbol candidate in type.GetMembers(".ctor"))
+            foreach (IMethodSymbol method in type.InstanceConstructors)
             {
-                if (candidate.Kind == SymbolKind.Method && !candidate.IsStatic && candidate.DeclaredAccessibility == Accessibility.Public)
+                if (method.DeclaredAccessibility == Accessibility.Public && method.Parameters.Length == 1 &&
+                    method.OriginalDefinition.Parameters[0].Type.Equals(((INamedTypeSymbol)type).OriginalDefinition.TypeParameters[0]))
                 {
-                    var method = (IMethodSymbol)candidate;
-                    if (method.MethodKind == MethodKind.Constructor && method.Parameters.Length == 1 && method.ReturnsVoid &&
-                        method.OriginalDefinition.Parameters[0].Type.Equals(((INamedTypeSymbol)type).OriginalDefinition.TypeParameters[0]))
-                    {
-                        return new ObjectCreationExpression(method, initializer: null,
-                                                            ImmutableArray.Create<IArgumentOperation>(
-                                                                     new ArgumentOperation(underlyingValue,
-                                                                                           ArgumentKind.Explicit,
-                                                                                           method.Parameters[0],
-                                                                                           inConversionOpt: null,
-                                                                                           outConversionOpt: null,
-                                                                                           semanticModel: null,
-                                                                                           underlyingValue.Syntax,
-                                                                                           constantValue: null,
-                                                                                           isImplicit: true)),
-                                                            semanticModel: null,
-                                                            underlyingValue.Syntax,
-                                                            type,
-                                                            constantValue: null,
-                                                            isImplicit: true);
-                    }
+                    return new ObjectCreationExpression(method, initializer: null,
+                                                        ImmutableArray.Create<IArgumentOperation>(
+                                                                    new ArgumentOperation(underlyingValue,
+                                                                                        ArgumentKind.Explicit,
+                                                                                        method.Parameters[0],
+                                                                                        inConversionOpt: null,
+                                                                                        outConversionOpt: null,
+                                                                                        semanticModel: null,
+                                                                                        underlyingValue.Syntax,
+                                                                                        constantValue: null,
+                                                                                        isImplicit: true)),
+                                                        semanticModel: null,
+                                                        underlyingValue.Syntax,
+                                                        type,
+                                                        constantValue: null,
+                                                        isImplicit: true);
                 }
             }
 
