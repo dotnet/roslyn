@@ -3058,7 +3058,7 @@ Block[5] - Exit
 Imports System
 Public Class C
     Public Sub M(a As Integer?, b As Integer, c As Integer)'BIND:"Public Sub M(a As Integer?, b As Integer, c As Integer)"
-        c = If(a, b) ^ b
+        c = b ^ If(a, b)
     End Sub
 End Class]]>.Value
 
@@ -3071,28 +3071,36 @@ Block[0] - Entry
 Block[1] - Block
     Predecessors (1)
         [0]
-    Statements (2)
+    Statements (3)
         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
           Value: 
             IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'c')
 
-        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+          Value: 
+            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Double, IsImplicit) (Syntax: 'b')
+              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                (WideningNumeric)
+              Operand: 
+                IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
           Value: 
             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'a')
 
     Jump if Null to Block[3]
-        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
+        IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
 
     Next Block[2]
 Block[2] - Block
     Predecessors (1)
         [1]
     Statements (1)
-        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
           Value: 
             IInvocationOperation ( Function System.Nullable(Of System.Int32).GetValueOrDefault() As System.Int32) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'a')
               Instance Receiver: 
-                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
+                IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
               Arguments(0)
 
     Next Block[4]
@@ -3100,7 +3108,7 @@ Block[3] - Block
     Predecessors (1)
         [1]
     Statements (1)
-        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
           Value: 
             IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
 
@@ -3110,29 +3118,25 @@ Block[4] - Block
         [2]
         [3]
     Statements (3)
-        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'c = If(a, b) ^ b')
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'c = b ^ If(a, b)')
           Expression: 
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'c = If(a, b) ^ b')
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'c = b ^ If(a, b)')
               Left: 
                 IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'c')
               Right: 
-                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'If(a, b) ^ b')
+                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'b ^ If(a, b)')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     (NarrowingNumeric)
                   Operand: 
-                    IBinaryOperation (BinaryOperatorKind.Power, Checked) (OperationKind.BinaryOperator, Type: System.Double) (Syntax: 'If(a, b) ^ b')
+                    IBinaryOperation (BinaryOperatorKind.Power, Checked) (OperationKind.BinaryOperator, Type: System.Double) (Syntax: 'b ^ If(a, b)')
                       Left: 
+                        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Double, IsImplicit) (Syntax: 'b')
+                      Right: 
                         IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Double, IsImplicit) (Syntax: 'If(a, b)')
                           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                             (WideningNumeric)
                           Operand: 
-                            IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(a, b)')
-                      Right: 
-                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Double, IsImplicit) (Syntax: 'b')
-                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                            (WideningNumeric)
-                          Operand: 
-                            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+                            IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(a, b)')
 
         ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
           Statement: 
@@ -3159,7 +3163,7 @@ Block[5] - Exit
 Imports System
 Public Class C
     Public Sub M(a As Integer?, b As Integer, c As Boolean)'BIND:"Public Sub M(a As Integer?, b As Integer, c As Boolean)"
-        c = If(a, b) = b
+        c = b = If(a, b)
     End Sub
 End Class]]>.Value
 
@@ -3172,28 +3176,32 @@ Block[0] - Entry
 Block[1] - Block
     Predecessors (1)
         [0]
-    Statements (2)
+    Statements (3)
         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
           Value: 
             IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'c')
 
-        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+          Value: 
+            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
           Value: 
             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'a')
 
     Jump if Null to Block[3]
-        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
+        IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
 
     Next Block[2]
 Block[2] - Block
     Predecessors (1)
         [1]
     Statements (1)
-        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
           Value: 
             IInvocationOperation ( Function System.Nullable(Of System.Int32).GetValueOrDefault() As System.Int32) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'a')
               Instance Receiver: 
-                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
+                IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
               Arguments(0)
 
     Next Block[4]
@@ -3201,7 +3209,7 @@ Block[3] - Block
     Predecessors (1)
         [1]
     Statements (1)
-        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
           Value: 
             IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
 
@@ -3211,17 +3219,17 @@ Block[4] - Block
         [2]
         [3]
     Statements (3)
-        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'c = If(a, b) = b')
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'c = b = If(a, b)')
           Expression: 
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'c = If(a, b) = b')
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'c = b = If(a, b)')
               Left: 
                 IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'c')
               Right: 
-                IBinaryOperation (BinaryOperatorKind.Equals, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'If(a, b) = b')
+                IBinaryOperation (BinaryOperatorKind.Equals, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'b = If(a, b)')
                   Left: 
-                    IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(a, b)')
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'b')
                   Right: 
-                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+                    IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(a, b)')
 
         ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
           Statement: 
@@ -3248,7 +3256,7 @@ Block[5] - Exit
 Imports System
 Public Class C
     Public Sub M(a As Integer?, b As Integer, c As Boolean)'BIND:"Public Sub M(a As Integer?, b As Integer, c As Boolean)"
-        c = If(a, b) <> b
+        c = b <> If(a, b)
     End Sub
 End Class]]>.Value
 
@@ -3261,28 +3269,32 @@ Block[0] - Entry
 Block[1] - Block
     Predecessors (1)
         [0]
-    Statements (2)
+    Statements (3)
         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
           Value: 
             IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'c')
 
-        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+          Value: 
+            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
           Value: 
             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'a')
 
     Jump if Null to Block[3]
-        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
+        IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
 
     Next Block[2]
 Block[2] - Block
     Predecessors (1)
         [1]
     Statements (1)
-        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
           Value: 
             IInvocationOperation ( Function System.Nullable(Of System.Int32).GetValueOrDefault() As System.Int32) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'a')
               Instance Receiver: 
-                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
+                IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
               Arguments(0)
 
     Next Block[4]
@@ -3290,7 +3302,7 @@ Block[3] - Block
     Predecessors (1)
         [1]
     Statements (1)
-        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
           Value: 
             IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
 
@@ -3300,17 +3312,17 @@ Block[4] - Block
         [2]
         [3]
     Statements (3)
-        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'c = If(a, b) <> b')
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'c = b <> If(a, b)')
           Expression: 
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'c = If(a, b) <> b')
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'c = b <> If(a, b)')
               Left: 
                 IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'c')
               Right: 
-                IBinaryOperation (BinaryOperatorKind.NotEquals, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'If(a, b) <> b')
+                IBinaryOperation (BinaryOperatorKind.NotEquals, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'b <> If(a, b)')
                   Left: 
-                    IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(a, b)')
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'b')
                   Right: 
-                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+                    IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(a, b)')
 
         ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
           Statement: 
@@ -3337,7 +3349,7 @@ Block[5] - Exit
 Imports System
 Public Class C
     Public Sub M(a As Integer?, b As Integer, c As Boolean)'BIND:"Public Sub M(a As Integer?, b As Integer, c As Boolean)"
-        c = If(a, b) < b
+        c = b < If(a, b)
     End Sub
 End Class]]>.Value
 
@@ -3350,28 +3362,32 @@ Block[0] - Entry
 Block[1] - Block
     Predecessors (1)
         [0]
-    Statements (2)
+    Statements (3)
         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
           Value: 
             IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'c')
 
-        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+          Value: 
+            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
           Value: 
             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'a')
 
     Jump if Null to Block[3]
-        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
+        IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
 
     Next Block[2]
 Block[2] - Block
     Predecessors (1)
         [1]
     Statements (1)
-        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
           Value: 
             IInvocationOperation ( Function System.Nullable(Of System.Int32).GetValueOrDefault() As System.Int32) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'a')
               Instance Receiver: 
-                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
+                IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
               Arguments(0)
 
     Next Block[4]
@@ -3379,7 +3395,7 @@ Block[3] - Block
     Predecessors (1)
         [1]
     Statements (1)
-        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
           Value: 
             IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
 
@@ -3389,17 +3405,17 @@ Block[4] - Block
         [2]
         [3]
     Statements (3)
-        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'c = If(a, b) < b')
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'c = b < If(a, b)')
           Expression: 
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'c = If(a, b) < b')
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'c = b < If(a, b)')
               Left: 
                 IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'c')
               Right: 
-                IBinaryOperation (BinaryOperatorKind.LessThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'If(a, b) < b')
+                IBinaryOperation (BinaryOperatorKind.LessThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'b < If(a, b)')
                   Left: 
-                    IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(a, b)')
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'b')
                   Right: 
-                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+                    IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(a, b)')
 
         ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
           Statement: 
@@ -3426,7 +3442,7 @@ Block[5] - Exit
 Imports System
 Public Class C
     Public Sub M(a As Integer?, b As Integer, c As Boolean)'BIND:"Public Sub M(a As Integer?, b As Integer, c As Boolean)"
-        c = If(a, b) > b
+        c = b > If(a, b)
     End Sub
 End Class]]>.Value
 
@@ -3439,28 +3455,32 @@ Block[0] - Entry
 Block[1] - Block
     Predecessors (1)
         [0]
-    Statements (2)
+    Statements (3)
         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
           Value: 
             IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'c')
 
-        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+          Value: 
+            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
           Value: 
             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'a')
 
     Jump if Null to Block[3]
-        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
+        IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
 
     Next Block[2]
 Block[2] - Block
     Predecessors (1)
         [1]
     Statements (1)
-        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
           Value: 
             IInvocationOperation ( Function System.Nullable(Of System.Int32).GetValueOrDefault() As System.Int32) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'a')
               Instance Receiver: 
-                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
+                IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
               Arguments(0)
 
     Next Block[4]
@@ -3468,7 +3488,7 @@ Block[3] - Block
     Predecessors (1)
         [1]
     Statements (1)
-        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
           Value: 
             IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
 
@@ -3478,17 +3498,17 @@ Block[4] - Block
         [2]
         [3]
     Statements (3)
-        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'c = If(a, b) > b')
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'c = b > If(a, b)')
           Expression: 
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'c = If(a, b) > b')
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'c = b > If(a, b)')
               Left: 
                 IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'c')
               Right: 
-                IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'If(a, b) > b')
+                IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'b > If(a, b)')
                   Left: 
-                    IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(a, b)')
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'b')
                   Right: 
-                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+                    IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(a, b)')
 
         ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
           Statement: 
@@ -3515,7 +3535,7 @@ Block[5] - Exit
 Imports System
 Public Class C
     Public Sub M(a As Integer?, b As Integer, c As Boolean)'BIND:"Public Sub M(a As Integer?, b As Integer, c As Boolean)"
-        c = If(a, b) <= b
+        c = b <= If(a, b)
     End Sub
 End Class]]>.Value
 
@@ -3528,28 +3548,32 @@ Block[0] - Entry
 Block[1] - Block
     Predecessors (1)
         [0]
-    Statements (2)
+    Statements (3)
         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
           Value: 
             IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'c')
 
-        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+          Value: 
+            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
           Value: 
             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'a')
 
     Jump if Null to Block[3]
-        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
+        IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
 
     Next Block[2]
 Block[2] - Block
     Predecessors (1)
         [1]
     Statements (1)
-        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
           Value: 
             IInvocationOperation ( Function System.Nullable(Of System.Int32).GetValueOrDefault() As System.Int32) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'a')
               Instance Receiver: 
-                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
+                IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
               Arguments(0)
 
     Next Block[4]
@@ -3557,7 +3581,7 @@ Block[3] - Block
     Predecessors (1)
         [1]
     Statements (1)
-        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
           Value: 
             IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
 
@@ -3567,17 +3591,17 @@ Block[4] - Block
         [2]
         [3]
     Statements (3)
-        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'c = If(a, b) <= b')
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'c = b <= If(a, b)')
           Expression: 
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'c = If(a, b) <= b')
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'c = b <= If(a, b)')
               Left: 
                 IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'c')
               Right: 
-                IBinaryOperation (BinaryOperatorKind.LessThanOrEqual, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'If(a, b) <= b')
+                IBinaryOperation (BinaryOperatorKind.LessThanOrEqual, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'b <= If(a, b)')
                   Left: 
-                    IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(a, b)')
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'b')
                   Right: 
-                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+                    IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(a, b)')
 
         ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
           Statement: 
@@ -3604,7 +3628,7 @@ Block[5] - Exit
 Imports System
 Public Class C
     Public Sub M(a As Integer?, b As Integer, c As Boolean)'BIND:"Public Sub M(a As Integer?, b As Integer, c As Boolean)"
-        c = If(a, b) >= b
+        c = b >= If(a, b)
     End Sub
 End Class]]>.Value
 
@@ -3617,28 +3641,32 @@ Block[0] - Entry
 Block[1] - Block
     Predecessors (1)
         [0]
-    Statements (2)
+    Statements (3)
         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
           Value: 
             IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'c')
 
-        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+          Value: 
+            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
           Value: 
             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'a')
 
     Jump if Null to Block[3]
-        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
+        IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
 
     Next Block[2]
 Block[2] - Block
     Predecessors (1)
         [1]
     Statements (1)
-        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
           Value: 
             IInvocationOperation ( Function System.Nullable(Of System.Int32).GetValueOrDefault() As System.Int32) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'a')
               Instance Receiver: 
-                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
+                IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
               Arguments(0)
 
     Next Block[4]
@@ -3646,7 +3674,7 @@ Block[3] - Block
     Predecessors (1)
         [1]
     Statements (1)
-        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
           Value: 
             IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
 
@@ -3656,17 +3684,17 @@ Block[4] - Block
         [2]
         [3]
     Statements (3)
-        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'c = If(a, b) >= b')
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'c = b >= If(a, b)')
           Expression: 
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'c = If(a, b) >= b')
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'c = b >= If(a, b)')
               Left: 
                 IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'c')
               Right: 
-                IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'If(a, b) >= b')
+                IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'b >= If(a, b)')
                   Left: 
-                    IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(a, b)')
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'b')
                   Right: 
-                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+                    IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(a, b)')
 
         ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
           Statement: 
@@ -3693,7 +3721,7 @@ Block[5] - Exit
 Imports System
 Public Class C
     Public Sub M(a As String, b As String, c As String)'BIND:"Public Sub M(a As String, b As String, c As String)"
-        c = If(a, b) + b
+        c = b + If(a, b)
     End Sub
 End Class]]>.Value
 
@@ -3706,33 +3734,37 @@ Block[0] - Entry
 Block[1] - Block
     Predecessors (1)
         [0]
-    Statements (2)
+    Statements (3)
         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
           Value: 
             IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.String) (Syntax: 'c')
 
-        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+          Value: 
+            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.String) (Syntax: 'b')
+
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
           Value: 
             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.String) (Syntax: 'a')
 
     Jump if Null to Block[3]
-        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'a')
+        IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'a')
 
     Next Block[2]
 Block[2] - Block
     Predecessors (1)
         [1]
     Statements (1)
-        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
           Value: 
-            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'a')
+            IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'a')
 
     Next Block[4]
 Block[3] - Block
     Predecessors (1)
         [1]
     Statements (1)
-        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
           Value: 
             IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.String) (Syntax: 'b')
 
@@ -3742,17 +3774,17 @@ Block[4] - Block
         [2]
         [3]
     Statements (3)
-        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'c = If(a, b) + b')
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'c = b + If(a, b)')
           Expression: 
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String, IsImplicit) (Syntax: 'c = If(a, b) + b')
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String, IsImplicit) (Syntax: 'c = b + If(a, b)')
               Left: 
                 IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'c')
               Right: 
-                IBinaryOperation (BinaryOperatorKind.Concatenate, Checked) (OperationKind.BinaryOperator, Type: System.String) (Syntax: 'If(a, b) + b')
+                IBinaryOperation (BinaryOperatorKind.Concatenate, Checked) (OperationKind.BinaryOperator, Type: System.String) (Syntax: 'b + If(a, b)')
                   Left: 
-                    IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'If(a, b)')
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'b')
                   Right: 
-                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.String) (Syntax: 'b')
+                    IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'If(a, b)')
 
         ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
           Statement: 
@@ -3779,7 +3811,7 @@ Block[5] - Exit
 Imports System
 Public Class C
     Public Sub M(a As String, b As String, c As String)'BIND:"Public Sub M(a As String, b As String, c As String)"
-        c = If(a, b) & b
+        c = b & If(a, b)
     End Sub
 End Class]]>.Value
 
@@ -3792,33 +3824,37 @@ Block[0] - Entry
 Block[1] - Block
     Predecessors (1)
         [0]
-    Statements (2)
+    Statements (3)
         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
           Value: 
             IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.String) (Syntax: 'c')
 
-        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+          Value: 
+            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.String) (Syntax: 'b')
+
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
           Value: 
             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.String) (Syntax: 'a')
 
     Jump if Null to Block[3]
-        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'a')
+        IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'a')
 
     Next Block[2]
 Block[2] - Block
     Predecessors (1)
         [1]
     Statements (1)
-        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
           Value: 
-            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'a')
+            IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'a')
 
     Next Block[4]
 Block[3] - Block
     Predecessors (1)
         [1]
     Statements (1)
-        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
           Value: 
             IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.String) (Syntax: 'b')
 
@@ -3828,17 +3864,17 @@ Block[4] - Block
         [2]
         [3]
     Statements (3)
-        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'c = If(a, b) & b')
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'c = b & If(a, b)')
           Expression: 
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String, IsImplicit) (Syntax: 'c = If(a, b) & b')
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String, IsImplicit) (Syntax: 'c = b & If(a, b)')
               Left: 
                 IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'c')
               Right: 
-                IBinaryOperation (BinaryOperatorKind.Concatenate, Checked) (OperationKind.BinaryOperator, Type: System.String) (Syntax: 'If(a, b) & b')
+                IBinaryOperation (BinaryOperatorKind.Concatenate, Checked) (OperationKind.BinaryOperator, Type: System.String) (Syntax: 'b & If(a, b)')
                   Left: 
-                    IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'If(a, b)')
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'b')
                   Right: 
-                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.String) (Syntax: 'b')
+                    IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'If(a, b)')
 
         ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
           Statement: 
@@ -3865,7 +3901,7 @@ Block[5] - Exit
 Imports System
 Public Class C
     Public Sub M(a As Boolean?, b As Boolean, c As Boolean)'BIND:"Public Sub M(a As Boolean?, b As Boolean, c As Boolean)"
-        c = If(a, b) And b
+        c = b And If(a, b)
     End Sub
 End Class]]>.Value
 
@@ -3878,28 +3914,32 @@ Block[0] - Entry
 Block[1] - Block
     Predecessors (1)
         [0]
-    Statements (2)
+    Statements (3)
         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
           Value: 
             IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'c')
 
-        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+          Value: 
+            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
           Value: 
             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Nullable(Of System.Boolean)) (Syntax: 'a')
 
     Jump if Null to Block[3]
-        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: 'a')
+        IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: 'a')
 
     Next Block[2]
 Block[2] - Block
     Predecessors (1)
         [1]
     Statements (1)
-        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
           Value: 
             IInvocationOperation ( Function System.Nullable(Of System.Boolean).GetValueOrDefault() As System.Boolean) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'a')
               Instance Receiver: 
-                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: 'a')
+                IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: 'a')
               Arguments(0)
 
     Next Block[4]
@@ -3907,7 +3947,7 @@ Block[3] - Block
     Predecessors (1)
         [1]
     Statements (1)
-        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
           Value: 
             IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
 
@@ -3917,17 +3957,17 @@ Block[4] - Block
         [2]
         [3]
     Statements (3)
-        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'c = If(a, b) And b')
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'c = b And If(a, b)')
           Expression: 
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'c = If(a, b) And b')
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'c = b And If(a, b)')
               Left: 
                 IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'c')
               Right: 
-                IBinaryOperation (BinaryOperatorKind.And, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'If(a, b) And b')
+                IBinaryOperation (BinaryOperatorKind.And, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'b And If(a, b)')
                   Left: 
-                    IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'If(a, b)')
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'b')
                   Right: 
-                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+                    IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'If(a, b)')
 
         ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
           Statement: 
@@ -3954,7 +3994,7 @@ Block[5] - Exit
 Imports System
 Public Class C
     Public Sub M(a As Boolean?, b As Boolean, c As Boolean)'BIND:"Public Sub M(a As Boolean?, b As Boolean, c As Boolean)"
-        c = If(a, b) Or b
+        c = b Or If(a, b)
     End Sub
 End Class]]>.Value
 
@@ -3967,28 +4007,32 @@ Block[0] - Entry
 Block[1] - Block
     Predecessors (1)
         [0]
-    Statements (2)
+    Statements (3)
         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
           Value: 
             IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'c')
 
-        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+          Value: 
+            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
           Value: 
             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Nullable(Of System.Boolean)) (Syntax: 'a')
 
     Jump if Null to Block[3]
-        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: 'a')
+        IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: 'a')
 
     Next Block[2]
 Block[2] - Block
     Predecessors (1)
         [1]
     Statements (1)
-        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
           Value: 
             IInvocationOperation ( Function System.Nullable(Of System.Boolean).GetValueOrDefault() As System.Boolean) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'a')
               Instance Receiver: 
-                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: 'a')
+                IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: 'a')
               Arguments(0)
 
     Next Block[4]
@@ -3996,7 +4040,7 @@ Block[3] - Block
     Predecessors (1)
         [1]
     Statements (1)
-        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
           Value: 
             IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
 
@@ -4006,17 +4050,17 @@ Block[4] - Block
         [2]
         [3]
     Statements (3)
-        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'c = If(a, b) Or b')
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'c = b Or If(a, b)')
           Expression: 
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'c = If(a, b) Or b')
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'c = b Or If(a, b)')
               Left: 
                 IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'c')
               Right: 
-                IBinaryOperation (BinaryOperatorKind.Or, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'If(a, b) Or b')
+                IBinaryOperation (BinaryOperatorKind.Or, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'b Or If(a, b)')
                   Left: 
-                    IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'If(a, b)')
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'b')
                   Right: 
-                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+                    IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'If(a, b)')
 
         ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
           Statement: 
@@ -4043,7 +4087,7 @@ Block[5] - Exit
 Imports System
 Public Class C
     Public Sub M(a As Boolean?, b As Boolean, c As Boolean)'BIND:"Public Sub M(a As Boolean?, b As Boolean, c As Boolean)"
-        c = If(a, b) Xor b
+        c = b Xor If(a, b)
     End Sub
 End Class]]>.Value
 
@@ -4056,28 +4100,32 @@ Block[0] - Entry
 Block[1] - Block
     Predecessors (1)
         [0]
-    Statements (2)
+    Statements (3)
         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
           Value: 
             IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'c')
 
-        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+          Value: 
+            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
           Value: 
             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Nullable(Of System.Boolean)) (Syntax: 'a')
 
     Jump if Null to Block[3]
-        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: 'a')
+        IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: 'a')
 
     Next Block[2]
 Block[2] - Block
     Predecessors (1)
         [1]
     Statements (1)
-        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
           Value: 
             IInvocationOperation ( Function System.Nullable(Of System.Boolean).GetValueOrDefault() As System.Boolean) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'a')
               Instance Receiver: 
-                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: 'a')
+                IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: 'a')
               Arguments(0)
 
     Next Block[4]
@@ -4085,7 +4133,7 @@ Block[3] - Block
     Predecessors (1)
         [1]
     Statements (1)
-        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
           Value: 
             IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
 
@@ -4095,17 +4143,17 @@ Block[4] - Block
         [2]
         [3]
     Statements (3)
-        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'c = If(a, b) Xor b')
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'c = b Xor If(a, b)')
           Expression: 
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'c = If(a, b) Xor b')
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'c = b Xor If(a, b)')
               Left: 
                 IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'c')
               Right: 
-                IBinaryOperation (BinaryOperatorKind.ExclusiveOr, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'If(a, b) Xor b')
+                IBinaryOperation (BinaryOperatorKind.ExclusiveOr, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'b Xor If(a, b)')
                   Left: 
-                    IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'If(a, b)')
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'b')
                   Right: 
-                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+                    IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'If(a, b)')
 
         ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
           Statement: 
@@ -4124,7 +4172,5 @@ Block[5] - Exit
 
             VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
         End Sub
-
-
     End Class
 End Namespace

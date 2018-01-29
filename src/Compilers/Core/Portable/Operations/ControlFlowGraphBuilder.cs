@@ -319,8 +319,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
             _evalStack.Push(Visit(operation.LeftOperand));
             IOperation rightOperand = Visit(operation.RightOperand);
-            SemanticModel model = null;
-            return new BinaryOperatorExpression(operation.OperatorKind, _evalStack.Pop(), rightOperand, operation.IsLifted, operation.IsChecked, operation.IsCompareText, operation.OperatorMethod, model, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new BinaryOperatorExpression(operation.OperatorKind, _evalStack.Pop(), rightOperand, operation.IsLifted, operation.IsChecked, operation.IsCompareText, operation.OperatorMethod, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitUnaryOperator(IUnaryOperation operation, int? captureIdForResult)
