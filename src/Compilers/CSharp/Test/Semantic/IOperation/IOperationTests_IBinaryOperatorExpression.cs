@@ -906,7 +906,7 @@ Block[9] - Exit
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
         [Fact]
-        public void LogicalFlow_06()
+        public void NonLogicalFlow_01()
         {
             string source = @"
 using System;
@@ -921,35 +921,6 @@ class C
 }
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
-
-            string expectedOperationTree = @"
-IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
-  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'GetArray()[ ...  ?? b) + b;')
-    Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'GetArray()[ ... a ?? b) + b')
-        Left: 
-          IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: System.Int32) (Syntax: 'GetArray()[0]')
-            Array reference: 
-              IInvocationOperation (System.Int32[] C.GetArray()) (OperationKind.Invocation, Type: System.Int32[]) (Syntax: 'GetArray()')
-                Instance Receiver: 
-                  null
-                Arguments(0)
-            Indices(1):
-                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
-        Right: 
-          IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: '(a ?? b) + b')
-            Left: 
-              ICoalesceOperation (OperationKind.Coalesce, Type: System.Int32) (Syntax: 'a ?? b')
-                Expression: 
-                  IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'a')
-                ValueConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                  (Identity)
-                WhenNull: 
-                  IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
-            Right: 
-              IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
-";
-            VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);
 
             string expectedGraph = @"
 Block[0] - Entry
@@ -1027,7 +998,7 @@ Block[5] - Exit
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
         [Fact]
-        public void LogicalFlow_07()
+        public void NonLogicalFlow_02()
         {
             string source = @"
 using System;
@@ -1042,36 +1013,6 @@ class C
 }
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
-
-            string expectedOperationTree = @"
-IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
-  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'GetArray()[ ... + (a ?? b);')
-    Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'GetArray()[ ...  + (a ?? b)')
-        Left: 
-          IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: System.Int32) (Syntax: 'GetArray()[0]')
-            Array reference: 
-              IInvocationOperation (System.Int32[] C.GetArray()) (OperationKind.Invocation, Type: System.Int32[]) (Syntax: 'GetArray()')
-                Instance Receiver: 
-                  null
-                Arguments(0)
-            Indices(1):
-                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
-        Right: 
-          IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'b + (a ?? b)')
-            Left: 
-              IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
-            Right: 
-              ICoalesceOperation (OperationKind.Coalesce, Type: System.Int32) (Syntax: 'a ?? b')
-                Expression: 
-                  IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'a')
-                ValueConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                  (Identity)
-                WhenNull: 
-                  IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
-";
-            VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);
-
             string expectedGraph = @"
 Block[0] - Entry
     Statements (0)
@@ -1152,7 +1093,7 @@ Block[5] - Exit
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
         [Fact]
-        public void LogicalFlow_08()
+        public void NonLogicalFlow_03()
         {
             string source = @"
 using System;
@@ -1167,41 +1108,6 @@ class C
 }
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
-
-            string expectedOperationTree = @"
-IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
-  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'GetArray()[ ... + (a ?? b);')
-    Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'GetArray()[ ...  + (a ?? b)')
-        Left: 
-          IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: System.Int32) (Syntax: 'GetArray()[0]')
-            Array reference: 
-              IInvocationOperation (System.Int32[] C.GetArray()) (OperationKind.Invocation, Type: System.Int32[]) (Syntax: 'GetArray()')
-                Instance Receiver: 
-                  null
-                Arguments(0)
-            Indices(1):
-                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
-        Right: 
-          IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: '(a ?? b) + (a ?? b)')
-            Left: 
-              ICoalesceOperation (OperationKind.Coalesce, Type: System.Int32) (Syntax: 'a ?? b')
-                Expression: 
-                  IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'a')
-                ValueConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                  (Identity)
-                WhenNull: 
-                  IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
-            Right: 
-              ICoalesceOperation (OperationKind.Coalesce, Type: System.Int32) (Syntax: 'a ?? b')
-                Expression: 
-                  IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'a')
-                ValueConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                  (Identity)
-                WhenNull: 
-                  IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
-";
-            VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);
 
             string expectedGraph = @"
 Block[0] - Entry
@@ -1313,7 +1219,7 @@ Block[8] - Exit
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
         [Fact]
-        public void LogicalFlow_09()
+        public void NonLogicalFlow_04()
         {
             string source = @"
 using System;
@@ -1330,41 +1236,6 @@ class C
 }
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
-
-            string expectedOperationTree = @"
-IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
-  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'GetArray()[ ... + (a ?? b);')
-    Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'GetArray()[ ...  + (a ?? b)')
-        Left: 
-          IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: System.Int32) (Syntax: 'GetArray()[0]')
-            Array reference: 
-              IInvocationOperation (System.Int32[] C.GetArray()) (OperationKind.Invocation, Type: System.Int32[]) (Syntax: 'GetArray()')
-                Instance Receiver: 
-                  null
-                Arguments(0)
-            Indices(1):
-                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
-        Right: 
-          IBinaryOperation (BinaryOperatorKind.Add) (OperatorMethod: System.Int32 C.op_Addition(C c1, C c2)) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: '(a ?? b) + (a ?? b)')
-            Left: 
-              ICoalesceOperation (OperationKind.Coalesce, Type: C) (Syntax: 'a ?? b')
-                Expression: 
-                  IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: C) (Syntax: 'a')
-                ValueConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                  (Identity)
-                WhenNull: 
-                  IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: C) (Syntax: 'b')
-            Right: 
-              ICoalesceOperation (OperationKind.Coalesce, Type: C) (Syntax: 'a ?? b')
-                Expression: 
-                  IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: C) (Syntax: 'a')
-                ValueConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                  (Identity)
-                WhenNull: 
-                  IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: C) (Syntax: 'b')
-";
-            VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);
 
             string expectedGraph = @"
 Block[0] - Entry
@@ -1470,7 +1341,7 @@ Block[8] - Exit
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
         [Fact]
-        public void LogicalFlow_10()
+        public void NonLogicalFlow_05()
         {
             string source = @"
 using System;
@@ -1485,35 +1356,6 @@ class C
 }
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
-
-            string expectedOperationTree = @"
-IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
-  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'GetArray()[ ... - (a ?? b);')
-    Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'GetArray()[ ...  - (a ?? b)')
-        Left: 
-          IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: System.Int32) (Syntax: 'GetArray()[0]')
-            Array reference: 
-              IInvocationOperation (System.Int32[] C.GetArray()) (OperationKind.Invocation, Type: System.Int32[]) (Syntax: 'GetArray()')
-                Instance Receiver: 
-                  null
-                Arguments(0)
-            Indices(1):
-                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
-        Right: 
-          IBinaryOperation (BinaryOperatorKind.Subtract) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'b - (a ?? b)')
-            Left: 
-              IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
-            Right: 
-              ICoalesceOperation (OperationKind.Coalesce, Type: System.Int32) (Syntax: 'a ?? b')
-                Expression: 
-                  IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'a')
-                ValueConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                  (Identity)
-                WhenNull: 
-                  IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
-";
-            VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);
 
             string expectedGraph = @"
 Block[0] - Entry
@@ -1595,7 +1437,7 @@ Block[5] - Exit
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
         [Fact]
-        public void LogicalFlow_11()
+        public void NonLogicalFlow_06()
         {
             string source = @"
 using System;
@@ -1610,35 +1452,6 @@ class C
 }
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
-
-            string expectedOperationTree = @"
-IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
-  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'GetArray()[ ... < (a ?? b);')
-    Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'GetArray()[ ... << (a ?? b)')
-        Left: 
-          IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: System.Int32) (Syntax: 'GetArray()[0]')
-            Array reference: 
-              IInvocationOperation (System.Int32[] C.GetArray()) (OperationKind.Invocation, Type: System.Int32[]) (Syntax: 'GetArray()')
-                Instance Receiver: 
-                  null
-                Arguments(0)
-            Indices(1):
-                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
-        Right: 
-          IBinaryOperation (BinaryOperatorKind.LeftShift) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'b << (a ?? b)')
-            Left: 
-              IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
-            Right: 
-              ICoalesceOperation (OperationKind.Coalesce, Type: System.Int32) (Syntax: 'a ?? b')
-                Expression: 
-                  IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'a')
-                ValueConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                  (Identity)
-                WhenNull: 
-                  IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
-";
-            VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);
 
             string expectedGraph = @"
 Block[0] - Entry
@@ -1720,7 +1533,7 @@ Block[5] - Exit
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
         [Fact]
-        public void LogicalFlow_12()
+        public void NonLogicalFlow_07()
         {
             string source = @"
 using System;
@@ -1735,35 +1548,6 @@ class C
 }
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
-
-            string expectedOperationTree = @"
-IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
-  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'GetArray()[ ... * (a ?? b);')
-    Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'GetArray()[ ...  * (a ?? b)')
-        Left: 
-          IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: System.Int32) (Syntax: 'GetArray()[0]')
-            Array reference: 
-              IInvocationOperation (System.Int32[] C.GetArray()) (OperationKind.Invocation, Type: System.Int32[]) (Syntax: 'GetArray()')
-                Instance Receiver: 
-                  null
-                Arguments(0)
-            Indices(1):
-                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
-        Right: 
-          IBinaryOperation (BinaryOperatorKind.Multiply) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'b * (a ?? b)')
-            Left: 
-              IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
-            Right: 
-              ICoalesceOperation (OperationKind.Coalesce, Type: System.Int32) (Syntax: 'a ?? b')
-                Expression: 
-                  IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'a')
-                ValueConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                  (Identity)
-                WhenNull: 
-                  IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
-";
-            VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);
 
             string expectedGraph = @"
 Block[0] - Entry
@@ -1845,7 +1629,7 @@ Block[5] - Exit
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
         [Fact]
-        public void LogicalFlow_13()
+        public void NonLogicalFlow_08()
         {
             string source = @"
 using System;
@@ -1860,35 +1644,6 @@ class C
 }
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
-
-            string expectedOperationTree = @"
-IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
-  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'GetArray()[ ... / (a ?? b);')
-    Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'GetArray()[ ...  / (a ?? b)')
-        Left: 
-          IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: System.Int32) (Syntax: 'GetArray()[0]')
-            Array reference: 
-              IInvocationOperation (System.Int32[] C.GetArray()) (OperationKind.Invocation, Type: System.Int32[]) (Syntax: 'GetArray()')
-                Instance Receiver: 
-                  null
-                Arguments(0)
-            Indices(1):
-                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
-        Right: 
-          IBinaryOperation (BinaryOperatorKind.Divide) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'b / (a ?? b)')
-            Left: 
-              IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
-            Right: 
-              ICoalesceOperation (OperationKind.Coalesce, Type: System.Int32) (Syntax: 'a ?? b')
-                Expression: 
-                  IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'a')
-                ValueConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                  (Identity)
-                WhenNull: 
-                  IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
-";
-            VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);
 
             string expectedGraph = @"
 Block[0] - Entry
@@ -1970,7 +1725,7 @@ Block[5] - Exit
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
         [Fact]
-        public void LogicalFlow_14()
+        public void NonLogicalFlow_09()
         {
             string source = @"
 using System;
@@ -1985,35 +1740,6 @@ class C
 }
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
-
-            string expectedOperationTree = @"
-IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
-  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'GetArray()[ ... % (a ?? b);')
-    Expression: 
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'GetArray()[ ...  % (a ?? b)')
-        Left: 
-          IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: System.Int32) (Syntax: 'GetArray()[0]')
-            Array reference: 
-              IInvocationOperation (System.Int32[] C.GetArray()) (OperationKind.Invocation, Type: System.Int32[]) (Syntax: 'GetArray()')
-                Instance Receiver: 
-                  null
-                Arguments(0)
-            Indices(1):
-                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
-        Right: 
-          IBinaryOperation (BinaryOperatorKind.Remainder) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'b % (a ?? b)')
-            Left: 
-              IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
-            Right: 
-              ICoalesceOperation (OperationKind.Coalesce, Type: System.Int32) (Syntax: 'a ?? b')
-                Expression: 
-                  IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'a')
-                ValueConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                  (Identity)
-                WhenNull: 
-                  IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
-";
-            VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);
 
             string expectedGraph = @"
 Block[0] - Entry
