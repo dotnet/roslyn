@@ -25,10 +25,8 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
 
         public AsynchronousOperationListener(string featureName, bool enableDiagnosticTokens)
         {
-            TrackActiveTokens = Debugger.IsAttached;
-
             _featureName = featureName;
-            TrackActiveTokens = enableDiagnosticTokens;
+            TrackActiveTokens = Debugger.IsAttached || enableDiagnosticTokens;
         }
 
         public IAsyncToken BeginAsyncOperation(string name, object tag = null, [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
