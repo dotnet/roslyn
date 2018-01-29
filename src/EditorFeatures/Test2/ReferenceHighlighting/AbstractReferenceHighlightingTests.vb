@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
                 Dim tagProducer = New ReferenceHighlightingViewTaggerProvider(
                     workspace.GetService(Of IForegroundNotificationService),
                     workspace.GetService(Of ISemanticChangeNotificationService),
-                    AsynchronousOperationListenerProvider.NullProvider)
+                    AggregateAsynchronousOperationListener.EmptyListeners)
 
                 Dim hostDocument = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue)
                 Dim caretPosition = hostDocument.CursorPosition.Value

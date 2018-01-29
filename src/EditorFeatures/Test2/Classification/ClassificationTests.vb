@@ -33,13 +33,14 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
                     GetType(NoCompilationEditorClassificationService)))
 
             Using workspace = TestWorkspace.Create(workspaceDefinition, exportProvider:=exportProvider)
-                Dim listenerProvider = New AsynchronousOperationListenerProvider()
-
+                Dim waiter = New AsynchronousOperationListener()
                 Dim provider = New SemanticClassificationViewTaggerProvider(
                     workspace.GetService(Of IForegroundNotificationService),
                     workspace.GetService(Of ISemanticChangeNotificationService),
                     workspace.GetService(Of ClassificationTypeMap),
-                    listenerProvider)
+                    SpecializedCollections.SingletonEnumerable(
+                        New Lazy(Of IAsynchronousOperationListener, FeatureMetadata)(
+                            Function() waiter, New FeatureMetadata(New Dictionary(Of String, Object)() From {{"FeatureName", FeatureAttribute.Classification}}))))
 
                 Dim buffer = workspace.Documents.First().GetTextBuffer()
                 Dim tagger = provider.CreateTagger(Of IClassificationTag)(
@@ -52,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
                 End Using
 
                 Using DirectCast(tagger, IDisposable)
-                    Await listenerProvider.GetWaiter(FeatureAttribute.Classification).CreateWaitTask()
+                    Await waiter.CreateWaitTask()
 
                     ' Note: we don't actually care what results we get back.  We're just
                     ' verifying that we don't crash because the SemanticViewTagger ends up

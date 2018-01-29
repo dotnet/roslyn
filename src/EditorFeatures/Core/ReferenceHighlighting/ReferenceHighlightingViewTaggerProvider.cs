@@ -46,8 +46,8 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
         public ReferenceHighlightingViewTaggerProvider(
             IForegroundNotificationService notificationService,
             ISemanticChangeNotificationService semanticChangeNotificationService,
-            IAsynchronousOperationListenerProvider listenerProvider)
-            : base(listenerProvider.GetListener(FeatureAttribute.ReferenceHighlighting), notificationService)
+            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
+            : base(new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.ReferenceHighlighting), notificationService)
         {
             _semanticChangeNotificationService = semanticChangeNotificationService;
         }
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
         private Task TryOldServiceAsync(TaggerContext<NavigableHighlightTag> context, SnapshotPoint position, Document document)
         {
             return TryServiceAsync<IDocumentHighlightsService>(
-                context, position, document,
+                context, position, document, 
                 (s, d, p, ds, c) => s.GetDocumentHighlightsAsync(d, p, ds, c));
         }
 

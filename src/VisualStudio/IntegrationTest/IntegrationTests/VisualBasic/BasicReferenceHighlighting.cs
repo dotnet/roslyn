@@ -44,12 +44,11 @@ End Class";
         private void Verify(string marker, IDictionary<string, ImmutableArray<TextSpan>> spans)
         {
             VisualStudio.Editor.PlaceCaret(marker, charsOffset: -1);
-            VisualStudio.Workspace.WaitForAllAsyncOperations(
-                FeatureAttribute.Workspace,
-                FeatureAttribute.SolutionCrawler,
-                FeatureAttribute.DiagnosticService,
-                FeatureAttribute.Classification,
-                FeatureAttribute.ReferenceHighlighting);
+            VisualStudio.Workspace.WaitForAsyncOperations(string.Concat(
+               FeatureAttribute.SolutionCrawler,
+               FeatureAttribute.DiagnosticService,
+               FeatureAttribute.Classification,
+               FeatureAttribute.ReferenceHighlighting));
 
             AssertEx.SetEqual(spans["reference"], VisualStudio.Editor.GetTagSpans(ReferenceHighlightTag.TagId), message: "Testing 'reference'\r\n");
             AssertEx.SetEqual(spans["writtenReference"], VisualStudio.Editor.GetTagSpans(WrittenReferenceHighlightTag.TagId), message: "Testing 'writtenReference'\r\n");
@@ -59,12 +58,11 @@ End Class";
         private void VerifyNone(string marker)
         {
             VisualStudio.Editor.PlaceCaret(marker, charsOffset: -1);
-            VisualStudio.Workspace.WaitForAllAsyncOperations(
-                FeatureAttribute.Workspace,
-                FeatureAttribute.SolutionCrawler,
-                FeatureAttribute.DiagnosticService,
-                FeatureAttribute.Classification,
-                FeatureAttribute.ReferenceHighlighting);
+            VisualStudio.Workspace.WaitForAsyncOperations(string.Concat(
+               FeatureAttribute.SolutionCrawler,
+               FeatureAttribute.DiagnosticService,
+               FeatureAttribute.Classification,
+               FeatureAttribute.ReferenceHighlighting));
 
             Assert.Empty(VisualStudio.Editor.GetTagSpans(ReferenceHighlightTag.TagId));
             Assert.Empty(VisualStudio.Editor.GetTagSpans(WrittenReferenceHighlightTag.TagId));
