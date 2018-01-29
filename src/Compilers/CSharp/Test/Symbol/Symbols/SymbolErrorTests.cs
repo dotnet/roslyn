@@ -865,7 +865,7 @@ interface i1
     event myDelegate myevent { add {} remove {} }
 }
 ";
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateStandardCompilation(text, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
                 // (5,32): error CS8107: Feature 'default interface implementation' is not available in C# 7.  Please use language version 7.1 or greater.
                 //     event myDelegate myevent { add {} remove {} }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "7.1").WithLocation(5, 32),
@@ -885,7 +885,7 @@ interface i1
     event myDelegate myevent { add {} }
 }
 ";
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateStandardCompilation(text, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
                 // (5,32): error CS8107: Feature 'default interface implementation' is not available in C# 7.  Please use language version 7.1 or greater.
                 //     event myDelegate myevent { add {} }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "7.1").WithLocation(5, 32),
@@ -8981,14 +8981,7 @@ struct S6<T>
 }
 ";
             var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_SemicolonExpected, Line = 14, Column = 39 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_FeatureNotAvailableInVersion7, Line = 5, Column = 13 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_FeatureNotAvailableInVersion7, Line = 6, Column = 14 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_FeatureNotAvailableInVersion7, Line = 7, Column = 20 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_FeatureNotAvailableInVersion7, Line = 12, Column = 11 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_FeatureNotAvailableInVersion7, Line = 13, Column = 14 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_FeatureNotAvailableInVersion7, Line = 14, Column = 15 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_FeatureNotAvailableInVersion7, Line = 14, Column = 41 });
+                new ErrorDescription { Code = (int)ErrorCode.ERR_SemicolonExpected, Line = 14, Column = 39 });
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
             // TODO...

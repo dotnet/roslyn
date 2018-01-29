@@ -409,11 +409,14 @@ struct Struct
 {
     private protected int M();
 }";
-            CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_2)
+            CreateStandardCompilation(source, parseOptions: TestOptions.Regular7) // PROTOTYPE(DefaultInterfaceImplementation): Change to TestOptions.Regular7_2
                 .VerifyDiagnostics(
-                // (3,27): error CS0106: The modifier 'private protected' is not valid for this item
+                // (3,27): error CS8107: Feature 'private protected' is not available in C# 7.0. Please use language version 7.2 or greater.
                 //     private protected int M();
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M").WithArguments("private protected").WithLocation(3, 27)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "M").WithArguments("private protected", "7.2").WithLocation(3, 27),
+                // (3,27): error CS8503: The modifier 'private protected' is not valid for this item in C# 7.0. Please use language version 7.1 or greater.
+                //     private protected int M();
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M").WithArguments("private protected", "7.0", "7.1").WithLocation(3, 27)
                 );
         }
 

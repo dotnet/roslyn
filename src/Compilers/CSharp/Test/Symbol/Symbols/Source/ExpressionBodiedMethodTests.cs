@@ -84,7 +84,7 @@ class C
 interface C
 {
     int M() => 1;
-}");
+}", parseOptions: TestOptions.Regular7);
             comp.VerifyDiagnostics(
                 // (4,9): error CS8107: Feature 'default interface implementation' is not available in C# 7.  Please use language version 7.1 or greater.
                 //     int M() => 1;
