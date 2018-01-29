@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using RoslynCompletion = Microsoft.CodeAnalysis.Completion;
 using VSCompletion = Microsoft.VisualStudio.Language.Intellisense.Completion;
 using CompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem;
 
@@ -31,8 +32,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         protected readonly CompletionPresenterSession CompletionPresenterSession;
         private CompletionHelper _completionHelper;
 
-        protected Dictionary<CompletionItem, VSCompletion> CompletionItemMap;
-        protected CompletionItem SuggestionModeItem;
+        protected Dictionary<RoslynCompletion.CompletionItem, VSCompletion> CompletionItemMap;
+        protected RoslynCompletion.CompletionItem SuggestionModeItem;
 
         private readonly Dictionary<string, string> _displayTextToBoldingTextMap = new Dictionary<string, string>();
 
@@ -87,9 +88,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         }
 
         public void SetCompletionItems(
-            IList<CompletionItem> completionItems,
-            CompletionItem selectedItem,
-            CompletionItem suggestionModeItem,
+            IList<RoslynCompletion.CompletionItem> completionItems,
+            RoslynCompletion.CompletionItem selectedItem,
+            RoslynCompletion.CompletionItem suggestionModeItem,
             bool suggestionMode,
             bool isSoftSelected,
             ImmutableArray<CompletionItemFilter> completionItemFilters,
@@ -106,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             }
 
             // Initialize the completion map to a reasonable default initial size (+1 for the builder)
-            CompletionItemMap = CompletionItemMap ?? new Dictionary<CompletionItem, VSCompletion>(completionItems.Count + 1);
+            CompletionItemMap = CompletionItemMap ?? new Dictionary<RoslynCompletion.CompletionItem, VSCompletion>(completionItems.Count + 1);
             FilterText = filterText;
             SuggestionModeItem = suggestionModeItem;
 
@@ -127,8 +128,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         }
 
         private void CreateCompletionListBuilder(
-            CompletionItem selectedItem,
-            CompletionItem suggestionModeItem,
+            RoslynCompletion.CompletionItem selectedItem,
+            RoslynCompletion.CompletionItem suggestionModeItem,
             bool suggestionMode)
         {
             try
@@ -153,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             }
         }
 
-        private void CreateNormalCompletionListItems(IList<CompletionItem> completionItems)
+        private void CreateNormalCompletionListItems(IList<RoslynCompletion.CompletionItem> completionItems)
         {
             try
             {
@@ -172,7 +173,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             }
         }
 
-        private VSCompletion GetVSCompletion(CompletionItem item, string displayText = null)
+        private VSCompletion GetVSCompletion(RoslynCompletion.CompletionItem item, string displayText = null)
         {
             if (!CompletionItemMap.TryGetValue(item, out var value))
             {
@@ -185,7 +186,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             return value;
         }
 
-        public CompletionItem GetCompletionItem(VSCompletion completion)
+        public RoslynCompletion.CompletionItem GetCompletionItem(VSCompletion completion)
         {
             // Linear search is ok since this is only called by the user manually selecting 
             // an item.  Creating a reverse mapping uses too much memory and affects GCs.
