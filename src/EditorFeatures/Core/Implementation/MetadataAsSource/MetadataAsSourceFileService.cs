@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -200,13 +201,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
             var isReferenceAssembly = symbol.ContainingAssembly.GetAttributes().Any(attribute => attribute.AttributeClass.Name == nameof(ReferenceAssemblyAttribute));
             if (isReferenceAssembly)
             {
-                // Attempt to resolve the assembly via the current process' binding path
                 try
                 {
                     var fullAssemblyName = symbol.ContainingAssembly.Identity.GetDisplayName();
-                    var loadedAssembly = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(x => x.FullName == fullAssemblyName);
-                    var assembly = loadedAssembly ?? Assembly.ReflectionOnlyLoad(fullAssemblyName);
-                    assemblyLocation = assembly.Location;
+                    GlobalAssemblyCache.Instance.ResolvePartialName(fullAssemblyName, out assemblyLocation, preferredCulture: CultureInfo.CurrentCulture);
                 }
                 catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
                 {
