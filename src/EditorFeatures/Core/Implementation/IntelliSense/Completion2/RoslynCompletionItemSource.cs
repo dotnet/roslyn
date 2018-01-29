@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -12,33 +13,41 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
-using Microsoft.VisualStudio.Language.Intellisense.Prototype.Definition;
+using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
-using Prototype = Microsoft.VisualStudio.Language.Intellisense.Prototype.Definition;
+using Roslyn.Utilities;
+using EditorCompletion = Microsoft.VisualStudio.Language.Intellisense;
 using RoslynCompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem;
 using RoslynTrigger = Microsoft.CodeAnalysis.Completion.CompletionTrigger;
 
 namespace RoslynCompletionPrototype
 {
     [Export(typeof(IAsyncCompletionItemSource))]
-    [Name("C# completion item source")]
-    [ContentType(ContentTypeNames.CSharpContentType)]
+    [Name("C# and Visual Basic Completion Item Source")]
     [ContentType(ContentTypeNames.VisualBasicContentType)]
-    class RoslynCompletionItemSource : IAsyncCompletionItemSource
+    [ContentType(ContentTypeNames.CSharpContentType)]
+    internal class RoslynCompletionItemSource : IAsyncCompletionItemSource
     {
-        private static readonly ImmutableArray<string> CommitChars = ImmutableArray.Create<string>(".", ",", "(", ")", "[", "]", " ", "\t");
+        private ImmutableArray<char> CommitChars => ImmutableArray.Create(
+            ' ', '{', '}', '[', ']', '(', ')', '.', ',', ':',
+            ';', '+', '-', '*', '/', '%', '&', '|', '^', '!',
+            '~', '=', '<', '>', '?', '@', '#', '\'', '\"', '\\');
         private const string RoslynItem = nameof(RoslynItem);
         private const string TriggerSnapshot = nameof(TriggerSnapshot);
 
-        public async Task<Prototype.CompletionContext> GetCompletionContextAsync(Prototype.CompletionTrigger trigger, SnapshotPoint triggerLocation)
+        public async Task<EditorCompletion.CompletionContext> GetCompletionContextAsync(
+            EditorCompletion.CompletionTrigger trigger, 
+            SnapshotPoint triggerLocation,
+            CancellationToken cancellationToken)
         {
             var snapshot = triggerLocation.Snapshot;
             var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
             {
-                return default;
+                // TODO: return default;
+                return new EditorCompletion.CompletionContext(ImmutableArray<EditorCompletion.CompletionItem>.Empty, new SnapshotSpan(triggerLocation.Snapshot, new Span(0, 0)));
             }
 
             var completionService = document.GetLanguageService<CompletionService>();
@@ -46,7 +55,8 @@ namespace RoslynCompletionPrototype
             var completionList = await completionService.GetCompletionsAsync(document, triggerLocation.Position).ConfigureAwait(false);
             if (completionList == null)
             {
-                return default;
+                // TODO: return default;
+                return new EditorCompletion.CompletionContext(ImmutableArray<EditorCompletion.CompletionItem>.Empty, new SnapshotSpan(triggerLocation.Snapshot, new Span(0, 0)));
             }
 
             var text = await document.GetTextAsync().ConfigureAwait(false);
@@ -56,36 +66,46 @@ namespace RoslynCompletionPrototype
 
             Dictionary<string, CompletionFilter> filterCache = new Dictionary<string, CompletionFilter>();
 
+            var service = GetCompletionService(triggerLocation.Snapshot.TextBuffer.CurrentSnapshot) as CompletionServiceWithProviders;
+
             var items = completionList.Items.SelectAsArray(roslynItem =>
             {
-                var item = Convert(roslynItem, imageIdService, completionService, filterCache);
+                var needsCustomCommit = service.GetProvider(roslynItem) is ICustomCommitCompletionProvider;
+
+                var item = Convert(roslynItem, imageIdService, completionService, filterCache, needsCustomCommit);
                 item.Properties.AddProperty(TriggerSnapshot, triggerLocation.Snapshot);
                 return item;
             });
 
-            return new Prototype.CompletionContext(
+            return new EditorCompletion.CompletionContext(
                 items,
                 applicableSpan, 
-                filterCache.Values.ToImmutableArray(), 
                 useSoftSelection: false, 
                 useSuggestionMode: completionList.SuggestionModeItem != null,
                 suggestionModeDescription: completionList.SuggestionModeItem?.DisplayText);
         }
 
-        private Prototype.CompletionItem Convert(RoslynCompletionItem roslynItem, IImageIdService imageService, CompletionService completionService, Dictionary<string, CompletionFilter> filterCache)
+        private EditorCompletion.CompletionItem Convert(
+            RoslynCompletionItem roslynItem, 
+            IImageIdService imageService, 
+            CompletionService completionService, 
+            Dictionary<string, CompletionFilter> filterCache,
+            bool needsCustomCommit)
         {
             var imageId = imageService.GetImageId(roslynItem.Tags.GetGlyph());
-            var insertionText = "BAD"; // because reasons, we can't specify this up front
+            var insertionText = roslynItem.DisplayText; // TODO
             var filters = GetFilters(roslynItem, imageService, filterCache);
-            var item = new Prototype.CompletionItem(
+            var item = new EditorCompletion.CompletionItem(
                 roslynItem.DisplayText,
-                insertionText,
+                this,
+                imageId,
+                filters,
+                suffix: "Test Suffix",
+                useCustomCommit: needsCustomCommit,
+                insertText: insertionText,
                 roslynItem.SortText,
                 roslynItem.FilterText,
-                this,
-                filters,
-                customCommit: true, //always true, sadly
-                imageId);
+                attributeIcons: ImmutableArray<AccessibleImage>.Empty);
 
             item.Properties.AddProperty(RoslynItem, roslynItem);
             return item;
@@ -114,17 +134,30 @@ namespace RoslynCompletionPrototype
             return result.ToImmutableArray();
         }
 
-        public Task<object> GetDescriptionAsync(Prototype.CompletionItem item)
+        public async Task<object> GetDescriptionAsync(EditorCompletion.CompletionItem item, CancellationToken cancellationToken)
         {
-            return Task.FromResult<object>("Documentation!"); // Editor doesn't call this yet
+            item.Properties.TryGetProperty<RoslynCompletionItem>("RoslynItem", out var roslynItem);
+            item.Properties.TryGetProperty<ITextSnapshot>("TriggerSnapshot", out var triggerSnapshot);
+
+            Workspace.TryGetWorkspace(triggerSnapshot.TextBuffer.AsTextContainer(), out var workspace);
+
+            var document = workspace.CurrentSolution.GetDocument(workspace.GetDocumentIdInCurrentContext(triggerSnapshot.TextBuffer.AsTextContainer()));
+            var service = document.GetLanguageService<CompletionService>() as CompletionServiceWithProviders;
+            var provider = service.GetProvider(roslynItem);
+
+            var description = await provider.GetDescriptionAsync(document, roslynItem, cancellationToken).ConfigureAwait(false);
+
+            // TODO: Tagged Text
+            // TODO: Snippet invocation part?
+
+            return description.Text;
         }
 
-        public void CustomCommit(ITextView view, ITextBuffer buffer, Prototype.CompletionItem item, ITrackingSpan applicableSpan, string textEdit)
+        public void CustomCommit(ITextView view, ITextBuffer buffer, EditorCompletion.CompletionItem item, ITrackingSpan applicableSpan, char commitCharacter)
         {
-            // We should crash if this fails
             var service = GetCompletionService(buffer.CurrentSnapshot) as CompletionServiceWithProviders;
 
-            var roslynItem = item.Properties.GetProperty<Microsoft.CodeAnalysis.Completion.CompletionItem>(RoslynItem); // We're using custom data we deposited in GetCompletionContextAsync
+            var roslynItem = item.Properties.GetProperty<RoslynCompletionItem>(RoslynItem); // We're using custom data we deposited in GetCompletionContextAsync
             var triggerSnapshot = item.Properties.GetProperty<ITextSnapshot>(TriggerSnapshot);
 
             var edit = buffer.CreateEdit();
@@ -136,7 +169,6 @@ namespace RoslynCompletionPrototype
             else
             {
                 var document = buffer.GetRelatedDocuments().First();
-                char? commitCharacter = String.IsNullOrEmpty(textEdit) ? null : new char?(textEdit[0]);
                 var roslynChange = service.GetChangeAsync(document, roslynItem, commitCharacter, CancellationToken.None).Result;
 
                 // TODO: Editor to reapply inserted trigger after we commit
@@ -149,21 +181,21 @@ namespace RoslynCompletionPrototype
             edit.Apply();
         }
 
-        public ImmutableArray<string> GetPotentialCommitCharacters()
+        public ImmutableArray<char> GetPotentialCommitCharacters()
         {
             return CommitChars;
         }
 
-        public bool ShouldCommitCompletion(string typedChar, SnapshotPoint location)
+        public bool ShouldCommitCompletion(char typedChar, SnapshotPoint location)
         {
             return CommitChars.Contains(typedChar);
         }
 
-        public bool ShouldTriggerCompletion(string edit, SnapshotPoint location)
+        public bool ShouldTriggerCompletion(char edit, SnapshotPoint location)
         {
             var text = SourceText.From(location.Snapshot.GetText());
             var service = GetCompletionService(location.Snapshot);
-            return service?.ShouldTriggerCompletion(text, location.Position, RoslynTrigger.CreateInsertionTrigger(edit[0])) ?? false;
+            return service?.ShouldTriggerCompletion(text, location.Position, RoslynTrigger.CreateInsertionTrigger(edit)) ?? false;
         }
 
         private CompletionService GetCompletionService(ITextSnapshot snapshot)
@@ -178,6 +210,6 @@ namespace RoslynCompletionPrototype
             return workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetService<CompletionService>();
         }
 
-        public Task HandleViewClosedAsync(ITextView view) => throw new NotImplementedException();
+        public Task HandleViewClosedAsync(ITextView view) => Task.CompletedTask;
     }
 }

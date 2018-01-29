@@ -72,7 +72,7 @@
     <MicrosoftVisualStudioCodeAnalysisSdkUIVersion>15.0.26730-alpha</MicrosoftVisualStudioCodeAnalysisSdkUIVersion>
     <MicrosoftVisualStudioComponentModelHostVersion>15.0.26730-alpha</MicrosoftVisualStudioComponentModelHostVersion>
     <MicrosoftVisualStudioCompositionVersion>15.5.23</MicrosoftVisualStudioCompositionVersion>
-    <MicrosoftVisualStudioCoreUtilityVersion>15.6.253-preview</MicrosoftVisualStudioCoreUtilityVersion>
+    <MicrosoftVisualStudioCoreUtilityVersion>15.6.382-preview-gad8ad5f026</MicrosoftVisualStudioCoreUtilityVersion>
     <MicrosoftVisualStudioDebuggerEngineVersion>15.0.26811-vsucorediag</MicrosoftVisualStudioDebuggerEngineVersion>
     <MicrosoftVisualStudioDebuggerMetadataVersion>15.0.26811-vsucorediag</MicrosoftVisualStudioDebuggerMetadataVersion>
     <MicrosoftVisualStudioDebuggerInterop100Version>10.0.30319</MicrosoftVisualStudioDebuggerInterop100Version>
@@ -85,7 +85,8 @@
     <MicrosoftVisualStudioImagingInterop140DesignTimeVersion>15.0.25726-Preview5</MicrosoftVisualStudioImagingInterop140DesignTimeVersion>
     <MicrosoftVisualStudioInteractiveWindowVersion>2.0.0-rc3-61304-01</MicrosoftVisualStudioInteractiveWindowVersion>
     <MicrosoftVisualStudioLanguageCallHierarchyVersion>15.3.1710.203</MicrosoftVisualStudioLanguageCallHierarchyVersion>
-    <MicrosoftVisualStudioLanguageIntellisenseVersion>15.6.253-preview</MicrosoftVisualStudioLanguageIntellisenseVersion>
+    <MicrosoftVisualStudioLanguageVersion>15.6.382-preview-gad8ad5f026</MicrosoftVisualStudioLanguageVersion>
+    <MicrosoftVisualStudioLanguageIntellisenseVersion>15.6.382-preview-gad8ad5f026</MicrosoftVisualStudioLanguageIntellisenseVersion>
     <MicrosoftVisualStudioLanguageNavigateToInterfacesVersion>15.6.253-preview</MicrosoftVisualStudioLanguageNavigateToInterfacesVersion>
     <MicrosoftVisualStudioLanguageStandardClassificationVersion>15.6.253-preview</MicrosoftVisualStudioLanguageStandardClassificationVersion>
     <MicrosoftVisualStudioOLEInteropVersion>7.10.6070</MicrosoftVisualStudioOLEInteropVersion>
@@ -115,11 +116,11 @@
     <MicrosoftVisualStudioShellInterop90Version>9.0.30729</MicrosoftVisualStudioShellInterop90Version>
     <MicrosoftVisualStudioTelemetryVersion>15.0.26730-alpha</MicrosoftVisualStudioTelemetryVersion>
     <MicrosoftVisualStudioTemplateWizardInterfaceVersion>8.0.0.0-alpha</MicrosoftVisualStudioTemplateWizardInterfaceVersion>
-    <MicrosoftVisualStudioTextDataVersion>15.6.253-preview</MicrosoftVisualStudioTextDataVersion>
-    <MicrosoftVisualStudioTextInternalVersion>15.6.253-preview</MicrosoftVisualStudioTextInternalVersion>
-    <MicrosoftVisualStudioTextLogicVersion>15.6.253-preview</MicrosoftVisualStudioTextLogicVersion>
-    <MicrosoftVisualStudioTextUIVersion>15.6.253-preview</MicrosoftVisualStudioTextUIVersion>
-    <MicrosoftVisualStudioTextUIWpfVersion>15.6.253-preview</MicrosoftVisualStudioTextUIWpfVersion>
+    <MicrosoftVisualStudioTextDataVersion>15.6.382-preview-gad8ad5f026</MicrosoftVisualStudioTextDataVersion>
+    <MicrosoftVisualStudioTextInternalVersion>15.6.382-preview-gad8ad5f026</MicrosoftVisualStudioTextInternalVersion>
+    <MicrosoftVisualStudioTextLogicVersion>15.6.382-preview-gad8ad5f026</MicrosoftVisualStudioTextLogicVersion>
+    <MicrosoftVisualStudioTextUIVersion>15.6.382-preview-gad8ad5f026</MicrosoftVisualStudioTextUIVersion>
+    <MicrosoftVisualStudioTextUIWpfVersion>15.6.382-preview-gad8ad5f026</MicrosoftVisualStudioTextUIWpfVersion>
     <MicrosoftVisualStudioTextManagerInteropVersion>7.10.6070</MicrosoftVisualStudioTextManagerInteropVersion>
     <MicrosoftVisualStudioTextManagerInterop100Version>10.0.30319</MicrosoftVisualStudioTextManagerInterop100Version>
     <MicrosoftVisualStudioTextManagerInterop120Version>12.0.30110</MicrosoftVisualStudioTextManagerInterop120Version>

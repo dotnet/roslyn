@@ -5,18 +5,19 @@ using System.ComponentModel.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using VisualStudioIndicator = Microsoft.VisualStudio.Language.Intellisense.Utilities;
+// using VisualStudioIndicator = Microsoft.VisualStudio.Language.Intellisense.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 {
     [Export(typeof(IWaitIndicator))]
-    [Export(typeof(VisualStudioIndicator.IWaitIndicator))]
-    public sealed class TestWaitIndicator : IWaitIndicator, VisualStudioIndicator.IWaitIndicator
+    // TODO: Replace with IUIThreadOperationExecutor
+    // [Export(typeof(VisualStudioIndicator.IWaitIndicator))]
+    public sealed class TestWaitIndicator : IWaitIndicator //, VisualStudioIndicator.IWaitIndicator
     {
         public static readonly TestWaitIndicator Default = new TestWaitIndicator();
 
         private readonly IWaitContext _waitContext;
-        private readonly Microsoft.VisualStudio.Language.Intellisense.Utilities.IWaitContext _platformWaitContext = new UncancellableWaitContext();
+        // private readonly Microsoft.VisualStudio.Language.Intellisense.Utilities.IWaitContext _platformWaitContext = new UncancellableWaitContext();
 
         public TestWaitIndicator()
             : this(new UncancellableWaitContext())
@@ -47,26 +48,26 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             return WaitIndicatorResult.Completed;
         }
 
-        VisualStudioIndicator.IWaitContext VisualStudioIndicator.IWaitIndicator.StartWait(string title, string message, bool allowCancel)
-        {
-            return _platformWaitContext;
-        }
+        //VisualStudioIndicator.IWaitContext VisualStudioIndicator.IWaitIndicator.StartWait(string title, string message, bool allowCancel)
+        //{
+        //    return _platformWaitContext;
+        //}
 
-        VisualStudioIndicator.WaitIndicatorResult VisualStudioIndicator.IWaitIndicator.Wait(string title, string message, bool allowCancel, Action<VisualStudioIndicator.IWaitContext> action)
-        {
-            try
-            {
-                action(_platformWaitContext);
-            }
-            catch (OperationCanceledException)
-            {
-                return VisualStudioIndicator.WaitIndicatorResult.Canceled;
-            }
+        //VisualStudioIndicator.WaitIndicatorResult VisualStudioIndicator.IWaitIndicator.Wait(string title, string message, bool allowCancel, Action<VisualStudioIndicator.IWaitContext> action)
+        //{
+        //    try
+        //    {
+        //        action(_platformWaitContext);
+        //    }
+        //    catch (OperationCanceledException)
+        //    {
+        //        return VisualStudioIndicator.WaitIndicatorResult.Canceled;
+        //    }
 
-            return VisualStudioIndicator.WaitIndicatorResult.Completed;
-        }
+        //    return VisualStudioIndicator.WaitIndicatorResult.Completed;
+        //}
 
-        private sealed class UncancellableWaitContext : IWaitContext, VisualStudioIndicator.IWaitContext
+        private sealed class UncancellableWaitContext : IWaitContext // , VisualStudioIndicator.IWaitContext
         {
             public CancellationToken CancellationToken
             {

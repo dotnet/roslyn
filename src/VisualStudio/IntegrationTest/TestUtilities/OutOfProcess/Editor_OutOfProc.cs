@@ -141,8 +141,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void ReplaceText(string oldText, string newText)
             => _editorInProc.ReplaceText(oldText, newText);
 
-        public bool IsCaretOnScreen()
-            => _editorInProc.IsCaretOnScreen();
+        //public bool IsCaretOnScreen()
+        //    => _editorInProc.IsCaretOnScreen();
 
         public void AddWinFormButton(string buttonName)
             => _editorInProc.AddWinFormButton(buttonName);
