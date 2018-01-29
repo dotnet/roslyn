@@ -171,12 +171,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                                 if ((constraints & (TypeParameterConstraintKind.ReferenceType | TypeParameterConstraintKind.ValueType)) != 0)
                                 {
-                                    // System.Enum is allowed to exist with class and struct constraints
-                                    if (type.SpecialType != SpecialType.System_Enum)
+                                    switch (type.SpecialType)
                                     {
-                                        // "'{0}': cannot specify both a constraint class and the 'class' or 'struct' constraint"
-                                        Error(diagnostics, ErrorCode.ERR_RefValBoundWithClass, syntax, type);
-                                        continue;
+                                        case SpecialType.System_Enum:
+                                        case SpecialType.System_Delegate:
+                                        case SpecialType.System_MulticastDelegate:
+                                            break;
+
+                                        default:
+                                            // "'{0}': cannot specify both a constraint class and the 'class' or 'struct' constraint"
+                                            Error(diagnostics, ErrorCode.ERR_RefValBoundWithClass, syntax, type);
+                                            continue;
                                     }
                                 }
                             }
@@ -204,10 +209,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     CheckFeatureAvailability(syntax, MessageID.IDS_FeatureEnumGenericTypeConstraint, diagnostics);
                     break;
 
-                case SpecialType.System_Object:
-                case SpecialType.System_ValueType:
                 case SpecialType.System_Delegate:
                 case SpecialType.System_MulticastDelegate:
+                    CheckFeatureAvailability(syntax, MessageID.IDS_FeatureDelegateGenericTypeConstraint, diagnostics);
+                    break;
+
+                case SpecialType.System_Object:
+                case SpecialType.System_ValueType:
                 case SpecialType.System_Array:
                     // "Constraint cannot be special class '{0}'"
                     Error(diagnostics, ErrorCode.ERR_SpecialTypeAsBound, syntax, type);

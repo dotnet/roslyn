@@ -12282,8 +12282,7 @@ class C
 interface IA<T> where T : object { }
 interface IB<T> where T : System.Object { }
 interface IC<T, U> where T : ValueType { }
-interface ID<T> where T : Array { }
-interface IE<T, U> where T : Delegate where U : MulticastDelegate { }";
+interface ID<T> where T : Array { }";
             CreateStandardCompilation(source).VerifyDiagnostics(
                 // (2,27): error CS0702: Constraint cannot be special class 'object'
                 Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object").WithArguments("object").WithLocation(2, 27),
@@ -12292,11 +12291,7 @@ interface IE<T, U> where T : Delegate where U : MulticastDelegate { }";
                 // (4,30): error CS0702: Constraint cannot be special class 'System.ValueType'
                 Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "ValueType").WithArguments("System.ValueType").WithLocation(4, 30),
                 // (5,27): error CS0702: Constraint cannot be special class 'System.Array'
-                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "Array").WithArguments("System.Array").WithLocation(5, 27),
-                // (6,30): error CS0702: Constraint cannot be special class 'System.Delegate'
-                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "Delegate").WithArguments("System.Delegate").WithLocation(6, 30),
-                // (6,49): error CS0702: Constraint cannot be special class 'System.MulticastDelegate'
-                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "MulticastDelegate").WithArguments("System.MulticastDelegate").WithLocation(6, 49));
+                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "Array").WithArguments("System.Array").WithLocation(5, 27));
         }
 
         [Fact]

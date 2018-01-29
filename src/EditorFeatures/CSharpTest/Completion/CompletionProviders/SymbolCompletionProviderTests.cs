@@ -9210,5 +9210,23 @@ class C
 ";
             await VerifyItemExistsAsync(markup, "Enum");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task DelegateConstraint()
+        {
+            var markup =
+@"public class X<T> where T : System.$$
+";
+            await VerifyItemExistsAsync(markup, "Delegate");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task MulticastDelegateConstraint()
+        {
+            var markup =
+@"public class X<T> where T : System.$$
+";
+            await VerifyItemExistsAsync(markup, "MulticastDelegate");
+        }
     }
 }

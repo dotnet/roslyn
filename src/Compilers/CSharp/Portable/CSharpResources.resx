@@ -5249,4 +5249,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureEnumGenericTypeConstraint" xml:space="preserve">
     <value>enum generic type constraints</value>
   </data>
+  <data name="IDS_FeatureDelegateGenericTypeConstraint" xml:space="preserve">
+    <value>delegate generic type constraints</value>
+  </data>
 </root>

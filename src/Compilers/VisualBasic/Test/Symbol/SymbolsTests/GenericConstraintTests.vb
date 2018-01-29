@@ -5754,6 +5754,74 @@ BC32044: Type argument 'String' does not inherit from or implement the constrain
 </expected>)
         End Sub
 
+        <Fact>
+        Public Sub DelegateConstraint_FromCSharp()
+            Dim reference = CreateCSharpCompilation("
+public class Test<T> where T : System.Delegate
+{
+}", parseOptions:=New CSharp.CSharpParseOptions(CSharp.LanguageVersion.CSharp7_3)).EmitToImageReference()
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Delegate Sub D1()
+
+Public Class Test2
+    Public Sub M()
+        Dim a = new Test(Of D1)()                   ' delegate
+        Dim b = new Test(Of Integer)()              ' value type
+        Dim c = new Test(Of string)()               ' reference type
+        Dim d = new Test(Of System.Delegate)()      ' Delegate type
+    End Sub
+End Class
+    </file>
+</compilation>, {reference})
+
+            AssertTheseDiagnostics(compilation,
+<expected>
+BC32044: Type argument 'Integer' does not inherit from or implement the constraint type '[Delegate]'.
+        Dim b = new Test(Of Integer)()              ' value type
+                            ~~~~~~~
+BC32044: Type argument 'String' does not inherit from or implement the constraint type '[Delegate]'.
+        Dim c = new Test(Of string)()               ' reference type
+                            ~~~~~~
+</expected>)
+        End Sub
+
+        <Fact>
+        Public Sub MulticastDelegateConstraint_FromCSharp()
+            Dim reference = CreateCSharpCompilation("
+public class Test<T> where T : System.MulticastDelegate
+{
+}", parseOptions:=New CSharp.CSharpParseOptions(CSharp.LanguageVersion.CSharp7_3)).EmitToImageReference()
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Delegate Sub D1()
+
+Public Class Test2
+    Public Sub M()
+        Dim a = new Test(Of D1)()                           ' delegate
+        Dim b = new Test(Of Integer)()                      ' value type
+        Dim c = new Test(Of string)()                       ' reference type
+        Dim d = new Test(Of System.MulticastDelegate)()     ' MulticastDelegate type
+    End Sub
+End Class
+    </file>
+</compilation>, {reference})
+
+            AssertTheseDiagnostics(compilation,
+<expected>
+BC32044: Type argument 'Integer' does not inherit from or implement the constraint type 'MulticastDelegate'.
+        Dim b = new Test(Of Integer)()                      ' value type
+                            ~~~~~~~
+BC32044: Type argument 'String' does not inherit from or implement the constraint type 'MulticastDelegate'.
+        Dim c = new Test(Of string)()                       ' reference type
+                            ~~~~~~
+</expected>)
+        End Sub
+
     End Class
 
 End Namespace
