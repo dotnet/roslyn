@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Roslyn.Utilities;
+using RoslynCompletion = Microsoft.CodeAnalysis.Completion;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.Presentation
 {
@@ -18,12 +19,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
     {
         private const string s_glyphCompletionWarning = "GlyphCompletionWarning";
         private readonly CompletionPresenterSession _completionPresenterSession;
-        internal readonly CompletionItem CompletionItem;
+        internal readonly RoslynCompletion.CompletionItem CompletionItem;
         private readonly ImageMoniker _imageMoniker;
 
         public CustomCommitCompletion(
             CompletionPresenterSession completionPresenterSession,
-            CompletionItem completionItem)
+            RoslynCompletion.CompletionItem completionItem)
         {
             // PERF: Note that the base class contains a constructor taking the displayText string
             // but we're intentionally NOT using that here because it allocates a private CompletionState
