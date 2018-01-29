@@ -1818,5 +1818,754 @@ Block[5] - Exit
 ";
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
         }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void NonLogicalFlow_10()
+        {
+            string source = @"
+using System;
+class C
+{
+    void M(int? a, int b, bool c)
+    /*<bind>*/{
+        c = (a ?? b) < b;
+    }/*</bind>*/
+}
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            string expectedFlowGraph = @"
+Block[0] - Entry
+    Statements (0)
+    Next Block[1]
+Block[1] - Block
+    Predecessors (1)
+        [0]
+    Statements (2)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
+          Value: 
+            IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'c')
+
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+          Value: 
+            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'a')
+
+    Jump if Null to Block[3]
+        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'a')
+
+    Next Block[2]
+Block[2] - Block
+    Predecessors (1)
+        [1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+          Value: 
+            IInvocationOperation ( System.Int32 System.Int32?.GetValueOrDefault()) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'a')
+              Instance Receiver: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'a')
+              Arguments(0)
+
+    Next Block[4]
+Block[3] - Block
+    Predecessors (1)
+        [1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+          Value: 
+            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+
+    Next Block[4]
+Block[4] - Block
+    Predecessors (2)
+        [2]
+        [3]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'c = (a ?? b) < b;')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'c = (a ?? b) < b')
+              Left: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'c')
+              Right: 
+                IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: '(a ?? b) < b')
+                  Left: 
+                    IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'a ?? b')
+                  Right: 
+                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+
+    Next Block[5]
+Block[5] - Exit
+    Predecessors (1)
+        [4]
+    Statements (0)
+";
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void NonLogicalFlow_12()
+        {
+            string source = @"
+using System;
+class C
+{
+    void M(int? a, int b, bool c)
+    /*<bind>*/{
+        c = (a ?? b) > b;
+    }/*</bind>*/
+}
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            string expectedFlowGraph = @"
+Block[0] - Entry
+    Statements (0)
+    Next Block[1]
+Block[1] - Block
+    Predecessors (1)
+        [0]
+    Statements (2)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
+          Value: 
+            IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'c')
+
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+          Value: 
+            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'a')
+
+    Jump if Null to Block[3]
+        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'a')
+
+    Next Block[2]
+Block[2] - Block
+    Predecessors (1)
+        [1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+          Value: 
+            IInvocationOperation ( System.Int32 System.Int32?.GetValueOrDefault()) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'a')
+              Instance Receiver: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'a')
+              Arguments(0)
+
+    Next Block[4]
+Block[3] - Block
+    Predecessors (1)
+        [1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+          Value: 
+            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+
+    Next Block[4]
+Block[4] - Block
+    Predecessors (2)
+        [2]
+        [3]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'c = (a ?? b) > b;')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'c = (a ?? b) > b')
+              Left: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'c')
+              Right: 
+                IBinaryOperation (BinaryOperatorKind.GreaterThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: '(a ?? b) > b')
+                  Left: 
+                    IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'a ?? b')
+                  Right: 
+                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+
+    Next Block[5]
+Block[5] - Exit
+    Predecessors (1)
+        [4]
+    Statements (0)
+";
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void NonLogicalFlow_13()
+        {
+            string source = @"
+using System;
+class C
+{
+    void M(int? a, int b, bool c)
+    /*<bind>*/{
+        c = (a ?? b) <= b;
+    }/*</bind>*/
+}
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            string expectedFlowGraph = @"
+Block[0] - Entry
+    Statements (0)
+    Next Block[1]
+Block[1] - Block
+    Predecessors (1)
+        [0]
+    Statements (2)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
+          Value: 
+            IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'c')
+
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+          Value: 
+            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'a')
+
+    Jump if Null to Block[3]
+        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'a')
+
+    Next Block[2]
+Block[2] - Block
+    Predecessors (1)
+        [1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+          Value: 
+            IInvocationOperation ( System.Int32 System.Int32?.GetValueOrDefault()) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'a')
+              Instance Receiver: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'a')
+              Arguments(0)
+
+    Next Block[4]
+Block[3] - Block
+    Predecessors (1)
+        [1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+          Value: 
+            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+
+    Next Block[4]
+Block[4] - Block
+    Predecessors (2)
+        [2]
+        [3]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'c = (a ?? b) <= b;')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'c = (a ?? b) <= b')
+              Left: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'c')
+              Right: 
+                IBinaryOperation (BinaryOperatorKind.LessThanOrEqual) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: '(a ?? b) <= b')
+                  Left: 
+                    IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'a ?? b')
+                  Right: 
+                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+
+    Next Block[5]
+Block[5] - Exit
+    Predecessors (1)
+        [4]
+    Statements (0)
+";
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void NonLogicalFlow_14()
+        {
+            string source = @"
+using System;
+class C
+{
+    void M(int? a, int b, bool c)
+    /*<bind>*/{
+        c = (a ?? b) >= b;
+    }/*</bind>*/
+}
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            string expectedFlowGraph = @"
+Block[0] - Entry
+    Statements (0)
+    Next Block[1]
+Block[1] - Block
+    Predecessors (1)
+        [0]
+    Statements (2)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
+          Value: 
+            IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'c')
+
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+          Value: 
+            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'a')
+
+    Jump if Null to Block[3]
+        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'a')
+
+    Next Block[2]
+Block[2] - Block
+    Predecessors (1)
+        [1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+          Value: 
+            IInvocationOperation ( System.Int32 System.Int32?.GetValueOrDefault()) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'a')
+              Instance Receiver: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'a')
+              Arguments(0)
+
+    Next Block[4]
+Block[3] - Block
+    Predecessors (1)
+        [1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+          Value: 
+            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+
+    Next Block[4]
+Block[4] - Block
+    Predecessors (2)
+        [2]
+        [3]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'c = (a ?? b) >= b;')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'c = (a ?? b) >= b')
+              Left: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'c')
+              Right: 
+                IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: '(a ?? b) >= b')
+                  Left: 
+                    IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'a ?? b')
+                  Right: 
+                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+
+    Next Block[5]
+Block[5] - Exit
+    Predecessors (1)
+        [4]
+    Statements (0)
+";
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void NonLogicalFlow_15()
+        {
+            string source = @"
+using System;
+class C
+{
+    void M(int? a, int b, bool c)
+    /*<bind>*/{
+        c = (a ?? b) == b;
+    }/*</bind>*/
+}
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            string expectedFlowGraph = @"
+Block[0] - Entry
+    Statements (0)
+    Next Block[1]
+Block[1] - Block
+    Predecessors (1)
+        [0]
+    Statements (2)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
+          Value: 
+            IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'c')
+
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+          Value: 
+            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'a')
+
+    Jump if Null to Block[3]
+        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'a')
+
+    Next Block[2]
+Block[2] - Block
+    Predecessors (1)
+        [1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+          Value: 
+            IInvocationOperation ( System.Int32 System.Int32?.GetValueOrDefault()) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'a')
+              Instance Receiver: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'a')
+              Arguments(0)
+
+    Next Block[4]
+Block[3] - Block
+    Predecessors (1)
+        [1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+          Value: 
+            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+
+    Next Block[4]
+Block[4] - Block
+    Predecessors (2)
+        [2]
+        [3]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'c = (a ?? b) == b;')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'c = (a ?? b) == b')
+              Left: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'c')
+              Right: 
+                IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: '(a ?? b) == b')
+                  Left: 
+                    IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'a ?? b')
+                  Right: 
+                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+
+    Next Block[5]
+Block[5] - Exit
+    Predecessors (1)
+        [4]
+    Statements (0)
+";
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void NonLogicalFlow_16()
+        {
+            string source = @"
+using System;
+class C
+{
+    void M(int? a, int b, bool c)
+    /*<bind>*/{
+        c = (a ?? b) != b;
+    }/*</bind>*/
+}
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            string expectedFlowGraph = @"
+Block[0] - Entry
+    Statements (0)
+    Next Block[1]
+Block[1] - Block
+    Predecessors (1)
+        [0]
+    Statements (2)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
+          Value: 
+            IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'c')
+
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+          Value: 
+            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'a')
+
+    Jump if Null to Block[3]
+        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'a')
+
+    Next Block[2]
+Block[2] - Block
+    Predecessors (1)
+        [1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+          Value: 
+            IInvocationOperation ( System.Int32 System.Int32?.GetValueOrDefault()) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'a')
+              Instance Receiver: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'a')
+              Arguments(0)
+
+    Next Block[4]
+Block[3] - Block
+    Predecessors (1)
+        [1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+          Value: 
+            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+
+    Next Block[4]
+Block[4] - Block
+    Predecessors (2)
+        [2]
+        [3]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'c = (a ?? b) != b;')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'c = (a ?? b) != b')
+              Left: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'c')
+              Right: 
+                IBinaryOperation (BinaryOperatorKind.NotEquals) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: '(a ?? b) != b')
+                  Left: 
+                    IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'a ?? b')
+                  Right: 
+                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+
+    Next Block[5]
+Block[5] - Exit
+    Predecessors (1)
+        [4]
+    Statements (0)
+";
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void NonLogicalFlow_17()
+        {
+            string source = @"
+using System;
+class C
+{
+    void M(int? a, int b, int c)
+    /*<bind>*/{
+        c = (a ?? b) & b;
+    }/*</bind>*/
+}
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            string expectedFlowGraph = @"
+Block[0] - Entry
+    Statements (0)
+    Next Block[1]
+Block[1] - Block
+    Predecessors (1)
+        [0]
+    Statements (2)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
+          Value: 
+            IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'c')
+
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+          Value: 
+            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'a')
+
+    Jump if Null to Block[3]
+        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'a')
+
+    Next Block[2]
+Block[2] - Block
+    Predecessors (1)
+        [1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+          Value: 
+            IInvocationOperation ( System.Int32 System.Int32?.GetValueOrDefault()) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'a')
+              Instance Receiver: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'a')
+              Arguments(0)
+
+    Next Block[4]
+Block[3] - Block
+    Predecessors (1)
+        [1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+          Value: 
+            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+
+    Next Block[4]
+Block[4] - Block
+    Predecessors (2)
+        [2]
+        [3]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'c = (a ?? b) & b;')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'c = (a ?? b) & b')
+              Left: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'c')
+              Right: 
+                IBinaryOperation (BinaryOperatorKind.And) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: '(a ?? b) & b')
+                  Left: 
+                    IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'a ?? b')
+                  Right: 
+                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+
+    Next Block[5]
+Block[5] - Exit
+    Predecessors (1)
+        [4]
+    Statements (0)
+";
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void NonLogicalFlow_18()
+        {
+            string source = @"
+using System;
+class C
+{
+    void M(int? a, int b, int c)
+    /*<bind>*/{
+        c = (a ?? b) | b;
+    }/*</bind>*/
+}
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            string expectedFlowGraph = @"
+Block[0] - Entry
+    Statements (0)
+    Next Block[1]
+Block[1] - Block
+    Predecessors (1)
+        [0]
+    Statements (2)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
+          Value: 
+            IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'c')
+
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+          Value: 
+            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'a')
+
+    Jump if Null to Block[3]
+        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'a')
+
+    Next Block[2]
+Block[2] - Block
+    Predecessors (1)
+        [1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+          Value: 
+            IInvocationOperation ( System.Int32 System.Int32?.GetValueOrDefault()) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'a')
+              Instance Receiver: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'a')
+              Arguments(0)
+
+    Next Block[4]
+Block[3] - Block
+    Predecessors (1)
+        [1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+          Value: 
+            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+
+    Next Block[4]
+Block[4] - Block
+    Predecessors (2)
+        [2]
+        [3]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'c = (a ?? b) | b;')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'c = (a ?? b) | b')
+              Left: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'c')
+              Right: 
+                IBinaryOperation (BinaryOperatorKind.Or) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: '(a ?? b) | b')
+                  Left: 
+                    IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'a ?? b')
+                  Right: 
+                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+
+    Next Block[5]
+Block[5] - Exit
+    Predecessors (1)
+        [4]
+    Statements (0)
+";
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void NonLogicalFlow_19()
+        {
+            string source = @"
+using System;
+class C
+{
+    void M(int? a, int b, int c)
+    /*<bind>*/{
+        c = (a ?? b) ^ b;
+    }/*</bind>*/
+}
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            string expectedFlowGraph = @"
+Block[0] - Entry
+    Statements (0)
+    Next Block[1]
+Block[1] - Block
+    Predecessors (1)
+        [0]
+    Statements (2)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
+          Value: 
+            IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'c')
+
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+          Value: 
+            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'a')
+
+    Jump if Null to Block[3]
+        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'a')
+
+    Next Block[2]
+Block[2] - Block
+    Predecessors (1)
+        [1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+          Value: 
+            IInvocationOperation ( System.Int32 System.Int32?.GetValueOrDefault()) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'a')
+              Instance Receiver: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'a')
+              Arguments(0)
+
+    Next Block[4]
+Block[3] - Block
+    Predecessors (1)
+        [1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+          Value: 
+            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+
+    Next Block[4]
+Block[4] - Block
+    Predecessors (2)
+        [2]
+        [3]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'c = (a ?? b) ^ b;')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'c = (a ?? b) ^ b')
+              Left: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'c')
+              Right: 
+                IBinaryOperation (BinaryOperatorKind.ExclusiveOr) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: '(a ?? b) ^ b')
+                  Left: 
+                    IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'a ?? b')
+                  Right: 
+                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+
+    Next Block[5]
+Block[5] - Exit
+    Predecessors (1)
+        [4]
+    Statements (0)
+";
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
+
+
     }
 }
