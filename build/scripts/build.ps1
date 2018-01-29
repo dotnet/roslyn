@@ -421,6 +421,32 @@ function Test-XUnitCoreClr() {
         }
     }
 
+    # PROTOTYPE(DefaultInterfaceImplementation): We are duplicating the loop from above for netcoreapp2.1
+    $tf = "netcoreapp2.1"
+    foreach ($dir in Get-ChildItem $unitDir) {
+        $testDir = Join-Path $unitDir (Join-Path $dir $tf)
+        if (Test-Path $testDir) { 
+            $dllName = Get-ChildItem -name "*.UnitTests.dll" -path $testDir
+            $dllPath = Join-Path $testDir $dllName
+
+            $args = "exec"
+            $args += " --depsfile " + [IO.Path]::ChangeExtension($dllPath, ".deps.json")
+            $args += " --runtimeconfig " + [IO.Path]::ChangeExtension($dllPath, ".runtimeconfig.json")
+            $args += " $xunitConsole"
+            $args += " $dllPath"
+            $args += " -xml " + (Join-Path $logDir ([IO.Path]::ChangeExtension($dllName, ".xml")))
+
+            try {
+                Write-Host "Running $dllName"
+                Exec-Console $dotnet $args
+            }
+            catch {
+                Write-Host "Failed"
+                $allGood = $false
+            }
+        }
+    }
+
     if (-not $allGood) { 
         throw "Unit tests failed"
     }

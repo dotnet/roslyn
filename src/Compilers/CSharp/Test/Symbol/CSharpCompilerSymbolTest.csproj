@@ -9,7 +9,8 @@
     <RootNamespace>Microsoft.CodeAnalysis.CSharp.Symbol.UnitTests</RootNamespace>
     <AssemblyName>Roslyn.Compilers.CSharp.Symbol.UnitTests</AssemblyName>
     <NoStdLib>true</NoStdLib>
-    <TargetFrameworks>$(RoslynPortableTargetFrameworks)</TargetFrameworks>
+    <!-- PROTOTYPE(DefaultInterfaceImplementation): TargetFrameworks simply used to inherit $(RoslynPortableTargetFrameworks) -->
+    <TargetFrameworks>net461;netcoreapp2.1</TargetFrameworks>
     <RoslynProjectType>UnitTestPortable</RoslynProjectType>
     <RuntimeIdentifiers>$(RoslynPortableRuntimeIdentifiers)</RuntimeIdentifiers>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -33,6 +34,7 @@
     <PackageReference Include="xunit" Version="$(xunitVersion)" />
     <PackageReference Include="xunit.analyzers" Version="$(xunitanalyzersVersion)" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="$(MicrosoftNETTestSdkVersion)" />
-    <PackageReference Include="Microsoft.NETCore.App" Version="$(MicrosoftNETCoreAppVersion)" Condition="'$(TargetFramework)' == 'netcoreapp2.0'" />
+    <!-- PROTOTYPE(DefaultInterfaceImplementation): The Version used to use value of $(MicrosoftNETCoreAppVersion), but that doesn't give us the right version in runtimeconfig.json file -->
+    <PackageReference Include="Microsoft.NETCore.App" Version="$(MicrosoftNETCoreAppFixedVersion)" Condition="'$(TargetFramework)' == 'netcoreapp2.1'" />
   </ItemGroup>
 </Project>

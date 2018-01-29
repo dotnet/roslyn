@@ -28,8 +28,8 @@
   <Target Name="AddDefaultTestAppConfig">
     <PropertyGroup>
       <_AlreadyHasAppConfig Condition="'%(None.Filename)%(None.Extension)' == 'app.config'">true</_AlreadyHasAppConfig>
-      <_DefaultAppConfigFile Condition="'$(TargetFramework)' != 'netcoreapp2.0'">$(MSBuildThisFileDirectory)..\Defaults\Desktop\app.config</_DefaultAppConfigFile>
-      <_DefaultAppConfigFile Condition="'$(TargetFramework)' == 'netcoreapp2.0'">$(MSBuildThisFileDirectory)..\Defaults\Portable\app.config</_DefaultAppConfigFile>
+      <_DefaultAppConfigFile Condition="'$(TargetFramework)' != 'netcoreapp2.0' AND '$(TargetFramework)' != 'netcoreapp2.1'">$(MSBuildThisFileDirectory)..\Defaults\Desktop\app.config</_DefaultAppConfigFile>
+      <_DefaultAppConfigFile Condition="'$(TargetFramework)' == 'netcoreapp2.0' OR '$(TargetFramework)' == 'netcoreapp2.1'">$(MSBuildThisFileDirectory)..\Defaults\Portable\app.config</_DefaultAppConfigFile>
     </PropertyGroup>
 
     <ItemGroup Condition="'$(_AlreadyHasAppConfig)' != 'true'">

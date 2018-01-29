@@ -102,7 +102,7 @@
     <ProjectAssetsFile Condition="'$(BuildingForLiveUnitTesting)' == 'true'">$(LiveUnitTestingOriginalBaseIntermediateOutputPath)project.assets.json</ProjectAssetsFile>
 
     <!-- https://github.com/dotnet/roslyn/issues/21272 -->
-    <GenerateResourceMSBuildRuntime Condition="'$(TargetFramework)' == 'netcoreapp2.0'">CurrentRuntime</GenerateResourceMSBuildRuntime>
+    <GenerateResourceMSBuildRuntime Condition="'$(TargetFramework)' == 'netcoreapp2.0' OR '$(TargetFramework)' == 'netcoreapp2.1'">CurrentRuntime</GenerateResourceMSBuildRuntime>
 
     <!--
       Official build:
