@@ -756,7 +756,7 @@ oneMoreTime:
             foreach (IMethodSymbol method in type.InstanceConstructors)
             {
                 if (method.DeclaredAccessibility == Accessibility.Public && method.Parameters.Length == 1 &&
-                    method.OriginalDefinition.Parameters[0].Type.Equals(((INamedTypeSymbol)type).OriginalDefinition.TypeParameters[0]))
+                    method.OriginalDefinition.Parameters[0].Type.Equals(type.OriginalDefinition.TypeParameters[0]))
                 {
                     return new ObjectCreationExpression(method, initializer: null,
                                                         ImmutableArray.Create<IArgumentOperation>(
