@@ -839,6 +839,26 @@ class Class
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(24432, "https://github.com/dotnet/roslyn/issues/24432")>
+        Public Async Function TestImplicitArrayInitialization4() As Task
+            Using state = TestState.CreateCSharpTestState(
+                  <Document><![CDATA[
+class Class
+{
+    public void M()
+    {
+        Class[] x =$$
+    }
+}]]></Document>)
+
+                state.SendTypeChars(" ")
+                Await state.AssertNoCompletionSession()
+                state.SendTypeChars("{")
+                Assert.Contains("Class[] x = {", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(24432, "https://github.com/dotnet/roslyn/issues/24432")>
         Public Async Function TestImplicitArrayInitialization_WithTab() As Task
             Using state = TestState.CreateCSharpTestState(
                   <Document><![CDATA[
