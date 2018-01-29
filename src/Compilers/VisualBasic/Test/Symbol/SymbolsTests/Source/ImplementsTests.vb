@@ -2549,7 +2549,7 @@ End Class
 
             Dim fooSOfIntTU = DirectCast(outerOfInt.GetMembers("FooS").First(), NamedTypeSymbol)
             Assert.IsType(Of SubstitutedNamedType.SpecializedGenericType)(fooSOfIntTU)
-            Assert.True(fooSOfIntTU.IsSerializable)
+            Assert.True(DirectCast(fooSOfIntTU, INamedTypeSymbol).IsSerializable)
 
             Dim iFooOfIntIntListOfString = iFooOfIntTU.Construct(comp.GetSpecialType(SpecialType.System_Int32), listOfString)
             Dim fooOfIntY = DirectCast(outerOfInt.GetMembers("Foo").First(), NamedTypeSymbol)

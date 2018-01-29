@@ -267,22 +267,22 @@ End Class
             Dim c6 = c3.GetTypeMembers("C6").Single()
 
             Dim u_c3 = c3.ConstructUnboundGenericType()
-            Assert.IsType(Of UnboundGenericType.ConstructedSymbol)(u_c3)
+            Assert.Equal("Microsoft.CodeAnalysis.VisualBasic.Symbols.UnboundGenericType+ConstructedSymbol", u_c3.GetType().FullName)
             Assert.False(DirectCast(u_c3, INamedTypeSymbol).IsSerializable)
 
             Dim c3c6 = u_c3.GetMember("C6")
-            Assert.IsType(Of UnboundGenericType.ConstructedFromSymbol)(c3c6)
+            Assert.Equal("Microsoft.CodeAnalysis.VisualBasic.Symbols.UnboundGenericType+ConstructedFromSymbol", c3c6.GetType().FullName)
             Assert.False(DirectCast(c3c6, INamedTypeSymbol).IsSerializable)
 
             Dim c3s = compilation.GetTypeByMetadataName("C3S`1")
             Dim c6s = c3s.GetTypeMembers("C6S").Single()
 
             Dim u_c3s = c3s.ConstructUnboundGenericType()
-            Assert.IsType(Of UnboundGenericType.ConstructedSymbol)(u_c3s)
+            Assert.Equal("Microsoft.CodeAnalysis.VisualBasic.Symbols.UnboundGenericType+ConstructedSymbol", u_c3s.GetType().FullName)
             Assert.True(DirectCast(u_c3s, INamedTypeSymbol).IsSerializable)
 
             Dim c3c6s = u_c3s.GetMember("C6S")
-            Assert.IsType(Of UnboundGenericType.ConstructedFromSymbol)(c3c6s)
+            Assert.Equal("Microsoft.CodeAnalysis.VisualBasic.Symbols.UnboundGenericType+ConstructedFromSymbol", c3c6s.GetType().FullName)
             Assert.True(DirectCast(c3c6s, INamedTypeSymbol).IsSerializable)
         End Sub
 

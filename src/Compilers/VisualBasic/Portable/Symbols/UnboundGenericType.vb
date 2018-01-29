@@ -326,7 +326,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return SpecializedCollections.EmptyEnumerable(Of PropertySymbol)()
         End Function
 
-        Friend NotInheritable Class ConstructedSymbol
+        Private NotInheritable Class ConstructedSymbol
             Inherits UnboundGenericType
 
             Private ReadOnly _originalDefinition As NamedTypeSymbol
@@ -536,7 +536,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         End Class
 
-        Friend NotInheritable Class ConstructedFromSymbol
+        Private NotInheritable Class ConstructedFromSymbol
             Inherits UnboundGenericType
 
             Public ReadOnly Constructed As ConstructedSymbol

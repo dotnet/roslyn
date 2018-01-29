@@ -408,6 +408,7 @@ End Module
 
         Private Sub CheckAnonymousTypeImplicit(local As LocalSymbol, location As Location, anotherType As TypeSymbol, isType As Boolean, ParamArray locations() As Location)
             Dim localType = local.Type
+            Assert.True(localType.IsAnonymousType)
 
             ' IsImplicitlyDeclared: Return true. The new { } clause is 
             '                       a reference to an implicit declaration.
