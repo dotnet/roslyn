@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     using static DocumentationCommentXmlNames;
 
-    internal abstract class AbstractDocCommentCompletionProvider<TSyntax> : CommonCompletionProvider
+    internal abstract class AbstractDocCommentCompletionProvider<TSyntax> : CommonCompletionProvider, IFeaturesCustomCommitCompletionProvider
         where TSyntax : SyntaxNode
     {
         // Tag names

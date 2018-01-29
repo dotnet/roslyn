@@ -21,6 +21,7 @@ using Moq;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using RoslynCompletion = Microsoft.CodeAnalysis.Completion;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 {
@@ -74,9 +75,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             return CompletionHelper.GetHelper(document);
         }
 
-        internal Task<CompletionList> GetCompletionListAsync(
+        internal Task<RoslynCompletion.CompletionList> GetCompletionListAsync(
             CompletionService service,
-            Document document, int position, CompletionTrigger triggerInfo, OptionSet options = null)
+            Document document, int position, RoslynCompletion.CompletionTrigger triggerInfo, OptionSet options = null)
         {
             return service.GetCompletionsAsync(document, position, triggerInfo, options: options);
         }
@@ -89,16 +90,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         {
             var code = (await document.GetTextAsync()).ToString();
 
-            var trigger = CompletionTrigger.Invoke;
+            var trigger = RoslynCompletion.CompletionTrigger.Invoke;
 
             if (usePreviousCharAsTrigger)
             {
-                trigger = CompletionTrigger.CreateInsertionTrigger(insertedCharacter: code.ElementAt(position - 1));
+                trigger = RoslynCompletion.CompletionTrigger.CreateInsertionTrigger(insertedCharacter: code.ElementAt(position - 1));
             }
 
             var completionService = GetCompletionService(document.Project.Solution.Workspace);
             var completionList = await GetCompletionListAsync(completionService, document, position, trigger);
-            var items = completionList == null ? ImmutableArray<CompletionItem>.Empty : completionList.Items;
+            var items = completionList == null ? ImmutableArray<RoslynCompletion.CompletionItem>.Empty : completionList.Items;
 
             if (hasSuggestionModeItem != null)
             {
@@ -312,7 +313,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             var textBuffer = workspace.Documents.Single().TextBuffer;
 
             var service = GetCompletionService(workspace);
-            var items = (await GetCompletionListAsync(service, document, position, CompletionTrigger.Invoke)).Items;
+            var items = (await GetCompletionListAsync(service, document, position, RoslynCompletion.CompletionTrigger.Invoke)).Items;
             var firstItem = items.First(i => CompareItems(i.DisplayText, itemToCommit));
 
             if (service.ExclusiveProviders?[0] is ICustomCommitCompletionProvider customCommitCompletionProvider)
@@ -334,7 +335,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         internal async Task VerifyCustomCommitWorkerAsync(
             CompletionServiceWithProviders service,
             Document document,
-            CompletionItem completionItem,
+            RoslynCompletion.CompletionItem completionItem,
             string codeBeforeCommit,
             string expectedCodeAfterCommit,
             char? commitChar = null)
@@ -368,7 +369,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         internal virtual void VerifyCustomCommitWorker(
             CompletionService service,
             ICustomCommitCompletionProvider customCommitCompletionProvider,
-            CompletionItem completionItem,
+            RoslynCompletion.CompletionItem completionItem,
             CompletionHelper completionRules,
             ITextView textView,
             ITextBuffer textBuffer,
@@ -422,7 +423,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             var textSnapshot = textBuffer.CurrentSnapshot.AsText();
 
             var service = GetCompletionService(workspace);
-            var items = (await GetCompletionListAsync(service, document, position, CompletionTrigger.Invoke)).Items;
+            var items = (await GetCompletionListAsync(service, document, position, RoslynCompletion.CompletionTrigger.Invoke)).Items;
             var firstItem = items.First(i => CompareItems(i.DisplayText, itemToCommit));
 
             var completionRules = GetCompletionHelper(document);
@@ -557,7 +558,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 
                 testWorkspace.Options = testWorkspace.Options.WithChangedOption(CompletionOptions.HideAdvancedMembers, document.Project.Language, hideAdvancedMembers);
 
-                var triggerInfo = CompletionTrigger.Invoke;
+                var triggerInfo = RoslynCompletion.CompletionTrigger.Invoke;
 
                 var completionService = GetCompletionService(testWorkspace);
                 var completionList = await GetCompletionListAsync(completionService, document, position, triggerInfo);
@@ -612,7 +613,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 var documentId = testWorkspace.Documents.Single(d => d.Name == "SourceDocument").Id;
                 var document = solution.GetDocument(documentId);
 
-                var triggerInfo = CompletionTrigger.Invoke;
+                var triggerInfo = RoslynCompletion.CompletionTrigger.Invoke;
                 var completionService = GetCompletionService(testWorkspace);
                 var completionList = await GetCompletionListAsync(completionService, document, position, triggerInfo);
 
@@ -643,7 +644,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 var currentContextDocumentId = testWorkspace.GetDocumentIdInCurrentContext(textContainer);
                 var document = solution.GetDocument(currentContextDocumentId);
 
-                var triggerInfo = CompletionTrigger.Invoke;
+                var triggerInfo = RoslynCompletion.CompletionTrigger.Invoke;
                 var completionService = GetCompletionService(testWorkspace);
                 var completionList = await GetCompletionListAsync(completionService, document, position, triggerInfo);
 
@@ -757,7 +758,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 var text = document.TextBuffer.CurrentSnapshot.AsText();
                 var options = workspace.Options.WithChangedOption(
                     CompletionOptions.TriggerOnTypingLetters, document.Project.Language, triggerOnLetter);
-                var trigger = CompletionTrigger.CreateInsertionTrigger(text[position]);
+                var trigger = RoslynCompletion.CompletionTrigger.CreateInsertionTrigger(text[position]);
 
                 var service = GetCompletionService(workspace);
                 var isTextualTriggerCharacterResult = service.ShouldTriggerCompletion(text, position + 1, trigger, options: options);
@@ -800,7 +801,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 var position = hostDocument.CursorPosition.Value;
 
                 var service = GetCompletionService(workspace);
-                var completionList = await GetCompletionListAsync(service, document, position, CompletionTrigger.Invoke);
+                var completionList = await GetCompletionListAsync(service, document, position, RoslynCompletion.CompletionTrigger.Invoke);
                 var item = completionList.Items.First(i => i.DisplayText.StartsWith(textTypedSoFar));
 
                 foreach (var ch in validChars)
