@@ -35,33 +35,13 @@ namespace Microsoft.CodeAnalysis.VisualBasic
             return ".vb";
         }
 
-        public override async Task<ProjectFileInfo> GetProjectFileInfoAsync(CancellationToken cancellationToken)
-        {
-            var buildInfo = await BuildAsync(cancellationToken).ConfigureAwait(false);
-
-            if (buildInfo.Project == null)
-            {
-                return new ProjectFileInfo(
-                    outputFilePath: null,
-                    commandLineArgs: SpecializedCollections.EmptyEnumerable<string>(),
-                    documents: SpecializedCollections.EmptyEnumerable<DocumentFileInfo>(),
-                    additionalDocuments: SpecializedCollections.EmptyEnumerable<DocumentFileInfo>(),
-                    projectReferences: SpecializedCollections.EmptyEnumerable<ProjectFileReference>(),
-                    log: this.Log);
-            }
-
-            return CreateProjectFileInfo(buildInfo);
-        }
-
         protected override IEnumerable<MSB.Framework.ITaskItem> GetCommandLineArgsFromModel(MSB.Execution.ProjectInstance executedProject)
         {
             return executedProject.GetItems("VbcCommandLineArgs");
         }
 
-        private ProjectFileInfo CreateProjectFileInfo(BuildInfo buildInfo)
+        protected override ProjectFileInfo CreateProjectFileInfo(MSB.Execution.ProjectInstance project)
         {
-            var project = buildInfo.Project;
-
             var projectDirectory = GetProjectDirectory(project);
 
             var commandLineArgs = this.GetCommandLineArgsFromModel(project)
@@ -101,7 +81,7 @@ namespace Microsoft.CodeAnalysis.VisualBasic
                 commandLineArgs,
                 docs,
                 additionalDocs,
-                this.GetProjectReferences(buildInfo.Project),
+                this.GetProjectReferences(project),
                 this.Log);
         }
 

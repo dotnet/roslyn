@@ -19,7 +19,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
     {
         private readonly ProjectFileLoader _loader;
         private readonly MSB.Evaluation.Project _loadedProject;
+
         public DiagnosticLog Log { get; }
+        public virtual string FilePath => _loadedProject.FullPath;
 
         protected ProjectFile(ProjectFileLoader loader, MSB.Evaluation.Project loadedProject, DiagnosticLog log)
         {
@@ -40,49 +42,43 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
         }
 
-        public virtual string FilePath
-        {
-            get { return _loadedProject.FullPath; }
-        }
-
         public abstract SourceCodeKind GetSourceCodeKind(string documentFileName);
         public abstract string GetDocumentExtension(SourceCodeKind kind);
-        public abstract Task<ProjectFileInfo> GetProjectFileInfoAsync(CancellationToken cancellationToken);
+        protected abstract ProjectFileInfo CreateProjectFileInfo(MSB.Execution.ProjectInstance project);
 
-        public struct BuildInfo
+        public async Task<ProjectFileInfo> GetProjectFileInfoAsync(CancellationToken cancellationToken)
         {
-            public readonly MSB.Execution.ProjectInstance Project;
+            var project = await BuildProjectAsync(cancellationToken).ConfigureAwait(false);
 
-            public BuildInfo(MSB.Execution.ProjectInstance project)
-            {
-                this.Project = project;
-            }
+            return project != null
+                ? CreateProjectFileInfo(project)
+                : ProjectFileInfo.CreateEmpty(this.Log);
         }
 
-        protected async Task<BuildInfo> BuildAsync(CancellationToken cancellationToken)
+        private async Task<MSB.Execution.ProjectInstance> BuildProjectAsync(CancellationToken cancellationToken)
         {
             // create a project instance to be executed by build engine.
             // The executed project will hold the final model of the project after execution via msbuild.
-            var executedProject = _loadedProject.CreateProjectInstance();
+            var projectInstance = _loadedProject.CreateProjectInstance();
 
-            if (!executedProject.Targets.ContainsKey("Compile") &&
-                !executedProject.Targets.ContainsKey("CoreCompile"))
+            if (!projectInstance.Targets.ContainsKey("Compile") &&
+                !projectInstance.Targets.ContainsKey("CoreCompile"))
             {
-                Log.Add("MSBuildWorkspace can only build projects which contain Compile and CoreCompile targets", executedProject.FullPath);
-                return new BuildInfo(executedProject);
+                Log.Add("MSBuildWorkspace can only build projects which contain Compile and CoreCompile targets", projectInstance.FullPath);
+                return projectInstance;
             }
 
             var buildParameters = new MSB.Execution.BuildParameters(_loadedProject.ProjectCollection);
 
             // capture errors that are output in the build log
-            var logger = new MSBuildDiagnosticLogger(Log, executedProject.FullPath)
+            var logger = new MSBuildDiagnosticLogger(Log, projectInstance.FullPath)
             {
                 Verbosity = MSB.Framework.LoggerVerbosity.Normal
             };
 
             buildParameters.Loggers = new MSB.Framework.ILogger[] { logger };
 
-            var buildRequestData = new MSB.Execution.BuildRequestData(executedProject, new string[] { "Compile", "CoreCompile" });
+            var buildRequestData = new MSB.Execution.BuildRequestData(projectInstance, new string[] { "Compile", "CoreCompile" });
 
             var result = await this.BuildAsync(buildParameters, buildRequestData, cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
 
@@ -90,11 +86,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
             {
                 if (result.Exception != null)
                 {
-                    Log.Add(result.Exception, executedProject.FullPath);
+                    Log.Add(result.Exception, projectInstance.FullPath);
                 }
             }
 
-            return new BuildInfo(executedProject);
+            return projectInstance;
         }
 
         // this lock is static because we are using the default build manager, and there is only one per process

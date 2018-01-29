@@ -57,5 +57,14 @@ namespace Microsoft.CodeAnalysis.MSBuild
             this.ProjectReferences = projectReferences.ToImmutableReadOnlyListOrEmpty();
             this.Log = log;
         }
+
+        public static ProjectFileInfo CreateEmpty(DiagnosticLog log)
+            => new ProjectFileInfo(
+                outputFilePath: null,
+                commandLineArgs: SpecializedCollections.EmptyEnumerable<string>(),
+                documents: SpecializedCollections.EmptyEnumerable<DocumentFileInfo>(),
+                additionalDocuments: SpecializedCollections.EmptyEnumerable<DocumentFileInfo>(),
+                projectReferences: SpecializedCollections.EmptyEnumerable<ProjectFileReference>(),
+                log);
     }
 }

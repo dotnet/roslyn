@@ -36,24 +36,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ".cs";
         }
 
-        public override async Task<ProjectFileInfo> GetProjectFileInfoAsync(CancellationToken cancellationToken)
-        {
-            var buildInfo = await this.BuildAsync(cancellationToken).ConfigureAwait(false);
-
-            if (buildInfo.Project == null)
-            {
-                return new ProjectFileInfo(
-                    outputFilePath: null,
-                    commandLineArgs: SpecializedCollections.EmptyEnumerable<string>(),
-                    documents: SpecializedCollections.EmptyEnumerable<DocumentFileInfo>(),
-                    additionalDocuments: SpecializedCollections.EmptyEnumerable<DocumentFileInfo>(),
-                    projectReferences: SpecializedCollections.EmptyEnumerable<ProjectFileReference>(),
-                    log: this.Log);
-            }
-
-            return CreateProjectFileInfo(buildInfo);
-        }
-
         protected override IEnumerable<MSB.Framework.ITaskItem> GetCommandLineArgsFromModel(MSB.Execution.ProjectInstance executedProject)
         {
             return executedProject.GetItems("CscCommandLineArgs");
@@ -67,9 +49,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new ProjectFileReference(filePath, aliases);
         }
 
-        private ProjectFileInfo CreateProjectFileInfo(BuildInfo buildInfo)
+        protected override ProjectFileInfo CreateProjectFileInfo(MSB.Execution.ProjectInstance project)
         {
-            var project = buildInfo.Project;
             var projectDirectory = GetProjectDirectory(project);
 
             var commandLineArgs = this.GetCommandLineArgsFromModel(project)
