@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
                 //    return KnownMonikers.ValueTypePrivate;
                 //case Glyph.StructureInternal:
                 //    return KnownMonikers.ValueTypeInternal;
-                
+
                 case Glyph.StructurePublic:
                     return new ImageId(KnownImageIds.ImageCatalogGuid, KnownImageIds.ValueTypePublic);
                 case Glyph.StructureProtected:
@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
                 case Glyph.StatusInformation:
                     return new ImageId(KnownImageIds.ImageCatalogGuid, KnownImageIds.StatusInformation);
 
-                case Glyph.NuGet:                    
+                case Glyph.NuGet:
                     return new ImageId(KnownImageIds.ImageCatalogGuid, KnownImageIds.NuGet);
 
                 default:
@@ -449,8 +449,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
                     case WellKnownTags.Warning:
                         return Glyph.CompletionWarning;
 
-                case WellKnownTags.StatusInformation:
-                    return Glyph.StatusInformation;
+                    case WellKnownTags.StatusInformation:
+                        return Glyph.StatusInformation;
                 }
             }
 

@@ -70,6 +70,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 {New Lazy(Of IIntelliSensePresenter(Of ICompletionPresenterSession, ICompletionSession), OrderableMetadata)(Function() New TestCompletionPresenter(Me), New OrderableMetadata("Presenter"))},
                 GetExports(Of IBraceCompletionSessionProvider, BraceCompletionMetadata)())
 
+
+            Dim EP = MinimalTestExportProvider.CreateExportProvider(MinimalTestExportProvider.CreateAssemblyCatalog(MinimalTestExportProvider.GetVisualStudioAssemblies()))
+            Dim handlers = EP.GetExportedValues(Of Microsoft.VisualStudio.Commanding.ICommandHandler)()
+
             Me.CompletionCommandHandler = New CompletionCommandHandler(Me.AsyncCompletionService)
 
             Me.SignatureHelpCommandHandler = New SignatureHelpCommandHandler(
@@ -118,7 +122,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                         </Document>
                     </Project>
                 </Workspace>,
-                CreateLazyProviders(extraCompletionProviders, LanguageNames.CSharp, roles:=Nothing),
+                CreateLazyProviders(extraCompletionProviders, LanguageNames.CSharp, roles:=Nothing), ' Add in the Editor Completion mef components; Get the completion iolecommandtarget to send commands to and do normal assertions based on the old (/current) CompletionBroker
                 CreateLazyProviders(extraSignatureHelpProviders, LanguageNames.CSharp),
                 extraExportedTypes,
                 includeFormatCommandHandler)
@@ -196,7 +200,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             CurrentCompletionPresenterSession.SetSelectedItem(item)
         End Sub
 
-        Public Overloads Sub SendSelectCompletionItemThroughPresenterSession(item As CompletionItem)
+        Public Overloads Sub SendSelectCompletionItemThroughPresenterSession(item As Microsoft.CodeAnalysis.Completion.CompletionItem)
             CurrentCompletionPresenterSession.SetSelectedItem(item)
         End Sub
 
