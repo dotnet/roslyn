@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using ICSharpCode.Decompiler;
@@ -114,6 +115,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
                                                                      .GetDocument(temporaryProjectInfoAndDocumentId.Item2);
 
                     var useDecompiler = allowDecompilation;
+                    if (useDecompiler)
+                    {
+                        useDecompiler = !symbol.ContainingAssembly.GetAttributes().Any(attribute => attribute.AttributeClass.Name == nameof(SuppressIldasmAttribute));
+                    }
+
                     if (useDecompiler)
                     {
                         try
