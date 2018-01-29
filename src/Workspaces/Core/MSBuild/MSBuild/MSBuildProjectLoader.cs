@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.MSBuild.Logging;
 using Roslyn.Utilities;
 using MSB = Microsoft.Build;
 
@@ -230,19 +231,22 @@ namespace Microsoft.CodeAnalysis.MSBuild
             var projectName = Path.GetFileNameWithoutExtension(projectFilePath);
 
             var projectFile = await loader.LoadProjectFileAsync(projectFilePath, _properties, cancellationToken).ConfigureAwait(false);
-            if (projectFile.ErrorMessage != null)
-            {
-                ReportFailure(ReportMode.Log, GetMsbuildFailedMessage(projectFilePath, projectFile.ErrorMessage));
 
-                // if we failed during load there won't be any project file info, so bail early with empty project.
+            // If there were any failures during load, we won't be able to build the project. So, bail early with an empty project.
+            if (projectFile.Log.HasFailure)
+            {
+                ReportDiagnosticLog(projectFile.Log);
+
                 loadedProjects.Add(CreateEmptyProjectInfo(projectId, projectFilePath, loader.Language));
                 return projectId;
             }
 
             var projectFileInfo = await projectFile.GetProjectFileInfoAsync(cancellationToken).ConfigureAwait(false);
-            if (projectFileInfo.ErrorMessage != null)
+
+            // If any diagnostics were logged during build, we'll carry on and try to produce a meaningful project.
+            if (!projectFileInfo.Log.IsEmpty)
             {
-                ReportFailure(ReportMode.Log, GetMsbuildFailedMessage(projectFilePath, projectFileInfo.ErrorMessage));
+                ReportDiagnosticLog(projectFileInfo.Log);
             }
 
             var outputFilePath = projectFileInfo.OutputFilePath;
@@ -734,6 +738,14 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 case ReportMode.Ignore:
                 default:
                     break;
+            }
+        }
+
+        private void ReportDiagnosticLog(DiagnosticLog log)
+        {
+            foreach (var logItem in log)
+            {
+                ReportFailure(ReportMode.Log, GetMsbuildFailedMessage(logItem.ProjectFilePath, logItem.ToString()));
             }
         }
     }

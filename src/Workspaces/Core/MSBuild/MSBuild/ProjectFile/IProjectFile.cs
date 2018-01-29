@@ -1,8 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.MSBuild.Logging;
 
 namespace Microsoft.CodeAnalysis.MSBuild
 {
@@ -18,9 +20,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         /// <summary>
         /// The error message produced when a failure occurred attempting to access the project file. 
-        /// If a failure occurred the projectd file info will be inaccessible.
+        /// If a failure occurred the project file info will be inaccessible.
         /// </summary>
-        string ErrorMessage { get; }
+        DiagnosticLog Log { get; }
 
         /// <summary>
         /// Gets the project file info asynchronously.

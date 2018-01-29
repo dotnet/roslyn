@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.MSBuild;
+using Microsoft.CodeAnalysis.MSBuild.Logging;
 using Roslyn.Utilities;
 using MSB = Microsoft.Build;
 
@@ -13,8 +14,8 @@ namespace Microsoft.CodeAnalysis.VisualBasic
 {
     internal class VisualBasicProjectFile : ProjectFile
     {
-        public VisualBasicProjectFile(VisualBasicProjectFileLoader loader, MSB.Evaluation.Project loadedProject, string errorMessage)
-            : base(loader, loadedProject, errorMessage)
+        public VisualBasicProjectFile(VisualBasicProjectFileLoader loader, MSB.Evaluation.Project loadedProject, DiagnosticLog log)
+            : base(loader, loadedProject, log)
         {
         }
 
@@ -46,7 +47,7 @@ namespace Microsoft.CodeAnalysis.VisualBasic
                     documents: SpecializedCollections.EmptyEnumerable<DocumentFileInfo>(),
                     additionalDocuments: SpecializedCollections.EmptyEnumerable<DocumentFileInfo>(),
                     projectReferences: SpecializedCollections.EmptyEnumerable<ProjectFileReference>(),
-                    errorMessage: buildInfo.ErrorMessage);
+                    log: this.Log);
             }
 
             return CreateProjectFileInfo(buildInfo);
@@ -101,7 +102,7 @@ namespace Microsoft.CodeAnalysis.VisualBasic
                 docs,
                 additionalDocs,
                 this.GetProjectReferences(buildInfo.Project),
-                buildInfo.ErrorMessage);
+                this.Log);
         }
 
         private ImmutableArray<string> FixPlatform(ImmutableArray<string> commandLineArgs)

@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.MSBuild.Logging;
 using Roslyn.Utilities;
 using MSB = Microsoft.Build;
 
@@ -18,13 +19,13 @@ namespace Microsoft.CodeAnalysis.MSBuild
     {
         private readonly ProjectFileLoader _loader;
         private readonly MSB.Evaluation.Project _loadedProject;
-        private readonly string _errorMessage;
+        public DiagnosticLog Log { get; }
 
-        public ProjectFile(ProjectFileLoader loader, MSB.Evaluation.Project loadedProject, string errorMessage)
+        protected ProjectFile(ProjectFileLoader loader, MSB.Evaluation.Project loadedProject, DiagnosticLog log)
         {
             _loader = loader;
             _loadedProject = loadedProject;
-            _errorMessage = errorMessage;
+            Log = log;
         }
 
         ~ProjectFile()
@@ -44,11 +45,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
             get { return _loadedProject.FullPath; }
         }
 
-        public string ErrorMessage
-        {
-            get { return _errorMessage; }
-        }
-
         public abstract SourceCodeKind GetSourceCodeKind(string documentFileName);
         public abstract string GetDocumentExtension(SourceCodeKind kind);
         public abstract Task<ProjectFileInfo> GetProjectFileInfoAsync(CancellationToken cancellationToken);
@@ -56,12 +52,10 @@ namespace Microsoft.CodeAnalysis.MSBuild
         public struct BuildInfo
         {
             public readonly MSB.Execution.ProjectInstance Project;
-            public readonly string ErrorMessage;
 
-            public BuildInfo(MSB.Execution.ProjectInstance project, string errorMessage)
+            public BuildInfo(MSB.Execution.ProjectInstance project)
             {
                 this.Project = project;
-                this.ErrorMessage = errorMessage;
             }
         }
 
@@ -74,16 +68,19 @@ namespace Microsoft.CodeAnalysis.MSBuild
             if (!executedProject.Targets.ContainsKey("Compile") &&
                 !executedProject.Targets.ContainsKey("CoreCompile"))
             {
-                return new BuildInfo(executedProject, 
-                    errorMessage: "MSBuildWorkspace can only build projects which contain Compile and CoreCompile targets");
+                Log.Add("MSBuildWorkspace can only build projects which contain Compile and CoreCompile targets", executedProject.FullPath);
+                return new BuildInfo(executedProject);
             }
 
             var buildParameters = new MSB.Execution.BuildParameters(_loadedProject.ProjectCollection);
 
             // capture errors that are output in the build log
-            var errorBuilder = new StringWriter();
-            var errorLogger = new ErrorLogger(errorBuilder) { Verbosity = MSB.Framework.LoggerVerbosity.Normal };
-            buildParameters.Loggers = new MSB.Framework.ILogger[] { errorLogger };
+            var logger = new MSBuildDiagnosticLogger(Log, executedProject.FullPath)
+            {
+                Verbosity = MSB.Framework.LoggerVerbosity.Normal
+            };
+
+            buildParameters.Loggers = new MSB.Framework.ILogger[] { logger };
 
             var buildRequestData = new MSB.Execution.BuildRequestData(executedProject, new string[] { "Compile", "CoreCompile" });
 
@@ -93,57 +90,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
             {
                 if (result.Exception != null)
                 {
-                    return new BuildInfo(executedProject, result.Exception.Message);
-                }
-                else
-                {
-                    return new BuildInfo(executedProject, errorBuilder.ToString());
+                    Log.Add(result.Exception, executedProject.FullPath);
                 }
             }
-            else
-            {
-                return new BuildInfo(executedProject, null);
-            }
-        }
 
-        private class ErrorLogger : MSB.Framework.ILogger
-        {
-            private readonly TextWriter _writer;
-            private bool _hasError;
-            private MSB.Framework.IEventSource _eventSource;
-
-            public string Parameters { get; set; }
-            public MSB.Framework.LoggerVerbosity Verbosity { get; set; }
-
-            public ErrorLogger(TextWriter writer)
-            {
-                _writer = writer;
-            }
-
-            public void Initialize(MSB.Framework.IEventSource eventSource)
-            {
-                _eventSource = eventSource;
-                _eventSource.ErrorRaised += OnErrorRaised;
-            }
-
-            private void OnErrorRaised(object sender, MSB.Framework.BuildErrorEventArgs e)
-            {
-                if (_hasError)
-                {
-                    _writer.WriteLine();
-                }
-
-                _writer.Write($"{e.File}: ({e.LineNumber}, {e.ColumnNumber}): {e.Message}");
-                _hasError = true;
-            }
-
-            public void Shutdown()
-            {
-                if (_eventSource != null)
-                {
-                    _eventSource.ErrorRaised -= OnErrorRaised;
-                }
-            }
+            return new BuildInfo(executedProject);
         }
 
         // this lock is static because we are using the default build manager, and there is only one per process

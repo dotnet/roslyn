@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.MSBuild.Logging;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MSBuild
@@ -39,7 +40,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// The error message produced when a failure occurred attempting to get the info. 
         /// If a failure occurred some or all of the information may be inaccurate or incomplete.
         /// </summary>
-        public string ErrorMessage { get; }
+        public DiagnosticLog Log { get; }
 
         public ProjectFileInfo(
             string outputFilePath,
@@ -47,14 +48,14 @@ namespace Microsoft.CodeAnalysis.MSBuild
             IEnumerable<DocumentFileInfo> documents,
             IEnumerable<DocumentFileInfo> additionalDocuments,
             IEnumerable<ProjectFileReference> projectReferences,
-            string errorMessage)
+            DiagnosticLog log)
         {
             this.OutputFilePath = outputFilePath;
             this.CommandLineArgs = commandLineArgs.ToImmutableArrayOrEmpty();
             this.Documents = documents.ToImmutableReadOnlyListOrEmpty();
             this.AdditionalDocuments = additionalDocuments.ToImmutableArrayOrEmpty();
             this.ProjectReferences = projectReferences.ToImmutableReadOnlyListOrEmpty();
-            this.ErrorMessage = errorMessage;
+            this.Log = log;
         }
     }
 }

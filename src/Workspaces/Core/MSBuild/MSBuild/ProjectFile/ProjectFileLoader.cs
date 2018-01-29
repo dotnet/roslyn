@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.MSBuild.Logging;
 using Roslyn.Utilities;
 using MSB = Microsoft.Build;
 
@@ -42,12 +43,12 @@ namespace Microsoft.CodeAnalysis.MSBuild
         public struct LoadedProjectInfo
         {
             public readonly MSB.Evaluation.Project Project;
-            public readonly string ErrorMessage;
+            public readonly DiagnosticLog Log;
 
-            public LoadedProjectInfo(MSB.Evaluation.Project project, string errorMessage)
+            public LoadedProjectInfo(MSB.Evaluation.Project project, DiagnosticLog log)
             {
                 this.Project = project;
-                this.ErrorMessage = errorMessage;
+                this.Log = log;
             }
         }
 
@@ -66,6 +67,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 { "ContinueOnError", "ErrorAndContinue" }
             };
 
+            var log = new DiagnosticLog();
+
             try
             {
                 var xmlReader = XmlReader.Create(await ReadFileAsync(path, cancellationToken).ConfigureAwait(false), s_xmlSettings);
@@ -77,12 +80,12 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 xml.FullPath = path;
 
                 return new LoadedProjectInfo(
-                    new MSB.Evaluation.Project(xml, globalProperties: null, toolsVersion: null, projectCollection: collection),
-                    errorMessage: null);
+                    new MSB.Evaluation.Project(xml, globalProperties: null, toolsVersion: null, projectCollection: collection), log);
             }
             catch (Exception e)
             {
-                return new LoadedProjectInfo(project: null, errorMessage: e.Message);
+                log.Add(e, path);
+                return new LoadedProjectInfo(project: null, log);
             }
         }
 

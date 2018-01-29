@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.VisualBasic
 
         protected override ProjectFile CreateProjectFile(LoadedProjectInfo info)
         {
-            return new VisualBasicProjectFile(this, info.Project, info.ErrorMessage);
+            return new VisualBasicProjectFile(this, info.Project, info.Log);
         }
     }
 }

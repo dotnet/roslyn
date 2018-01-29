@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.MSBuild;
+using Microsoft.CodeAnalysis.MSBuild.Logging;
 using Roslyn.Utilities;
 using MSB = Microsoft.Build;
 
@@ -14,8 +15,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal class CSharpProjectFile : ProjectFile
     {
-        public CSharpProjectFile(CSharpProjectFileLoader loader, MSB.Evaluation.Project project, string errorMessage)
-            : base(loader, project, errorMessage)
+        public CSharpProjectFile(CSharpProjectFileLoader loader, MSB.Evaluation.Project project, DiagnosticLog log)
+            : base(loader, project, log)
         {
         }
 
@@ -47,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     documents: SpecializedCollections.EmptyEnumerable<DocumentFileInfo>(),
                     additionalDocuments: SpecializedCollections.EmptyEnumerable<DocumentFileInfo>(),
                     projectReferences: SpecializedCollections.EmptyEnumerable<ProjectFileReference>(),
-                    errorMessage: buildInfo.ErrorMessage);
+                    log: this.Log);
             }
 
             return CreateProjectFileInfo(buildInfo);
@@ -104,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 docs,
                 additionalDocs,
                 this.GetProjectReferences(project),
-                buildInfo.ErrorMessage);
+                this.Log);
         }
 
         private ImmutableArray<string> FixPlatform(ImmutableArray<string> commandLineArgs)
