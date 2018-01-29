@@ -367,8 +367,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasAnyRefOmittedArgument: false,
                 ignoreOpenTypes: false,
                 completeResults: completeResults,
-                useSiteDiagnostics: ref useSiteDiagnostics,
-                binder: _binder);
+                useSiteDiagnostics: ref useSiteDiagnostics);
         }
 
         private MemberAnalysisResult IsConstructorApplicableInExpandedForm(
@@ -403,8 +402,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasAnyRefOmittedArgument: false,
                 ignoreOpenTypes: false,
                 completeResults: completeResults,
-                useSiteDiagnostics: ref useSiteDiagnostics,
-                binder: _binder);
+                useSiteDiagnostics: ref useSiteDiagnostics);
 
             return result.IsValid ? MemberAnalysisResult.ExpandedForm(result.ArgsToParamsOpt, result.ConversionsOpt, hasAnyRefOmittedArgument: false) : result;
         }
@@ -534,8 +532,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     allowRefOmittedArguments: allowRefOmittedArguments,
                     inferWithDynamic: inferWithDynamic,
                     completeResults: completeResults,
-                    useSiteDiagnostics: ref useSiteDiagnostics,
-                    binder: _binder)
+                    useSiteDiagnostics: ref useSiteDiagnostics)
                 : default(MemberResolutionResult<TMember>);
 
             var result = normalResult;
@@ -555,8 +552,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         arguments,
                         allowRefOmittedArguments: allowRefOmittedArguments,
                         completeResults: completeResults,
-                        useSiteDiagnostics: ref useSiteDiagnostics,
-                        binder: _binder);
+                        useSiteDiagnostics: ref useSiteDiagnostics);
 
                     if (PreferExpandedFormOverNormalForm(normalResult.Result, expandedResult.Result))
                     {
@@ -2647,7 +2643,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new EffectiveParameters(types.ToImmutableAndFree(), refKinds);
         }
 
-        internal static MemberResolutionResult<TMember> IsMemberApplicableInNormalForm<TMember>(
+        private MemberResolutionResult<TMember> IsMemberApplicableInNormalForm<TMember>(
             TMember member,                // method or property
             TMember leastOverriddenMember, // method or property
             ArrayBuilder<TypeSymbolWithAnnotations> typeArguments,
@@ -2656,8 +2652,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool allowRefOmittedArguments,
             bool inferWithDynamic,
             bool completeResults,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics,
-            Binder binder)
+            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
             where TMember : Symbol
         {
             // AnalyzeArguments matches arguments to parameter names and positions. 
@@ -2695,7 +2690,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argumentAnalysis.ArgsToParamsOpt,
                 arguments.RefKinds,
                 allowRefOmittedArguments,
-                binder,
+                _binder,
                 out hasAnyRefOmittedArgument);
 
             Debug.Assert(!hasAnyRefOmittedArgument || allowRefOmittedArguments);
@@ -2707,7 +2702,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argumentAnalysis.ArgsToParamsOpt,
                 arguments.RefKinds,
                 allowRefOmittedArguments,
-                binder,
+                _binder,
                 out _);
 
             // The member passed to the following call is returned in the result (possibly a constructed version of it).
@@ -2719,8 +2714,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasAnyRefOmittedArgument: hasAnyRefOmittedArgument,
                 inferWithDynamic: inferWithDynamic,
                 completeResults: completeResults,
-                useSiteDiagnostics: ref useSiteDiagnostics,
-                binder: binder);
+                useSiteDiagnostics: ref useSiteDiagnostics);
 
             // If we were producing complete results and had missing arguments, we pushed on in order to call IsApplicable for
             // type inference and lambda binding. In that case we still need to return the argument mismatch failure here.
@@ -2732,15 +2726,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return applicableResult;
         }
 
-        internal static MemberResolutionResult<TMember> IsMemberApplicableInExpandedForm<TMember>(
+        private MemberResolutionResult<TMember> IsMemberApplicableInExpandedForm<TMember>(
             TMember member,                // method or property
             TMember leastOverriddenMember, // method or property
             ArrayBuilder<TypeSymbolWithAnnotations> typeArguments,
             AnalyzedArguments arguments,
             bool allowRefOmittedArguments,
             bool completeResults,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics,
-            Binder binder)
+            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
             where TMember : Symbol
         {
             // AnalyzeArguments matches arguments to parameter names and positions. 
@@ -2767,7 +2760,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argumentAnalysis.ArgsToParamsOpt,
                 arguments.RefKinds,
                 allowRefOmittedArguments,
-                binder,
+                _binder,
                 out hasAnyRefOmittedArgument);
 
             Debug.Assert(!hasAnyRefOmittedArgument || allowRefOmittedArguments);
@@ -2779,7 +2772,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argumentAnalysis.ArgsToParamsOpt,
                 arguments.RefKinds,
                 allowRefOmittedArguments,
-                binder,
+                _binder,
                 out _);
 
             // The member passed to the following call is returned in the result (possibly a constructed version of it).
@@ -2791,8 +2784,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasAnyRefOmittedArgument: hasAnyRefOmittedArgument,
                 inferWithDynamic: false,
                 completeResults: completeResults,
-                useSiteDiagnostics: ref useSiteDiagnostics,
-                binder: binder);
+                useSiteDiagnostics: ref useSiteDiagnostics);
 
             return result.Result.IsValid ?
                 new MemberResolutionResult<TMember>(
@@ -2802,7 +2794,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 result;
         }
 
-        private static MemberResolutionResult<TMember> IsApplicable<TMember>(
+        private MemberResolutionResult<TMember> IsApplicable<TMember>(
             TMember member,                // method or property
             TMember leastOverriddenMember, // method or property 
             ArrayBuilder<TypeSymbolWithAnnotations> typeArgumentsBuilder,
@@ -2813,8 +2805,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasAnyRefOmittedArgument,
             bool inferWithDynamic,
             bool completeResults,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics,
-            Binder binder)
+            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
             where TMember : Symbol
         {
             bool ignoreOpenTypes;
@@ -2855,8 +2846,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                             arguments,
                                             originalEffectiveParameters,
                                             out inferenceError,
-                                            ref useSiteDiagnostics,
-                                            binder);
+                                            ref useSiteDiagnostics);
                         if (typeArguments.IsDefault)
                         {
                             return new MemberResolutionResult<TMember>(member, leastOverriddenMember, inferenceError);
@@ -2895,7 +2885,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var parameterTypes = leastOverriddenMember.GetParameterTypes();
                     for (int i = 0; i < parameterTypes.Length; i++)
                     {
-                        if (!parameterTypes[i].TypeSymbol.CheckAllConstraints(binder.Conversions))
+                        if (!parameterTypes[i].TypeSymbol.CheckAllConstraints(Conversions))
                         {
                             return new MemberResolutionResult<TMember>(member, leastOverriddenMember, MemberAnalysisResult.ConstructedParameterFailedConstraintsCheck(i));
                         }
@@ -2930,19 +2920,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasAnyRefOmittedArgument: hasAnyRefOmittedArgument,
                 ignoreOpenTypes: ignoreOpenTypes,
                 completeResults: completeResults,
-                useSiteDiagnostics: ref useSiteDiagnostics,
-                binder: binder);
+                useSiteDiagnostics: ref useSiteDiagnostics);
             return new MemberResolutionResult<TMember>(member, leastOverriddenMember, applicableResult);
         }
 
-        private static ImmutableArray<TypeSymbolWithAnnotations> InferMethodTypeArguments(
+        private ImmutableArray<TypeSymbolWithAnnotations> InferMethodTypeArguments(
             MethodSymbol method,
             ImmutableArray<TypeParameterSymbol> originalTypeParameters,
             AnalyzedArguments arguments,
             EffectiveParameters originalEffectiveParameters,
             out MemberAnalysisResult error,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics,
-            Binder binder)
+            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             var args = arguments.Arguments.ToImmutable();
 
@@ -2952,8 +2940,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // in "Infer" for details.
 
             var inferenceResult = MethodTypeInferrer.Infer(
-                binder,
-                binder.Conversions,
+                _binder,
+                _binder.Conversions,
                 originalTypeParameters,
                 method.ContainingType,
                 originalEffectiveParameters.ParameterTypes,
@@ -2970,7 +2958,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (arguments.IsExtensionMethodInvocation)
             {
                 var inferredFromFirstArgument = MethodTypeInferrer.InferTypeArgumentsFromFirstArgument(
-                    binder.Conversions,
+                    _binder.Conversions,
                     method,
                     args,
                     useSiteDiagnostics: ref useSiteDiagnostics);
@@ -2985,7 +2973,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return default(ImmutableArray<TypeSymbolWithAnnotations>);
         }
 
-        private static MemberAnalysisResult IsApplicable(
+        private MemberAnalysisResult IsApplicable(
             Symbol candidate, // method or property
             EffectiveParameters parameters,
             AnalyzedArguments arguments,
@@ -2994,8 +2982,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasAnyRefOmittedArgument,
             bool ignoreOpenTypes,
             bool completeResults,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics,
-            Binder binder)
+            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             // The effective parameters are in the right order with respect to the arguments.
             //
@@ -3069,8 +3056,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         parameterRefKind,
                         ignoreOpenTypes,
                         ref useSiteDiagnostics,
-                        forExtensionMethodThisArg,
-                        binder);
+                        forExtensionMethodThisArg);
 
                     if (forExtensionMethodThisArg && !Conversions.IsValidExtensionMethodThisArgConversion(conversion))
                     {
@@ -3123,7 +3109,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        private static Conversion CheckArgumentForApplicability(
+        private Conversion CheckArgumentForApplicability(
             Symbol candidate, // method or property
             BoundExpression argument,
             RefKind argRefKind,
@@ -3131,8 +3117,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             RefKind parRefKind,
             bool ignoreOpenTypes,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics,
-            bool forExtensionMethodThisArg,
-            Binder binder)
+            bool forExtensionMethodThisArg)
         {
             // Spec 7.5.3.1
             // For each argument in A, the parameter passing mode of the argument (i.e., value, ref, or out) is identical
@@ -3178,8 +3163,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (argRefKind == RefKind.None)
             {
                 var conversion = forExtensionMethodThisArg ?
-                    binder.Conversions.ClassifyImplicitExtensionMethodThisArgConversion(argument, argument.Type, parameterType, ref useSiteDiagnostics) :
-                    binder.Conversions.ClassifyImplicitConversionFromExpression(argument, parameterType, ref useSiteDiagnostics);
+                    Conversions.ClassifyImplicitExtensionMethodThisArgConversion(argument, argument.Type, parameterType, ref useSiteDiagnostics) :
+                    Conversions.ClassifyImplicitConversionFromExpression(argument, parameterType, ref useSiteDiagnostics);
                 Debug.Assert((!conversion.Exists) || conversion.IsImplicit, "ClassifyImplicitConversion should only return implicit conversions");
                 return conversion;
             }

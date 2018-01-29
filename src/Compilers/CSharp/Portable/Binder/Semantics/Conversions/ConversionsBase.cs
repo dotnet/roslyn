@@ -1348,14 +1348,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static bool HasTopLevelNullabilityIdentityConversion(TypeSymbolWithAnnotations source, TypeSymbolWithAnnotations destination)
         {
-            var sourceIsNullable = source.IsNullable;
-            var destinationIsNullable = destination.IsNullable;
+            return HasTopLevelNullabilityIdentityConversion(source.IsNullable, destination.IsNullable);
+        }
+
+        internal static bool HasTopLevelNullabilityIdentityConversion(bool? sourceIsNullable, bool? destinationIsNullable)
+        {
             return sourceIsNullable == null || destinationIsNullable == null || sourceIsNullable == destinationIsNullable;
         }
 
         internal static bool HasTopLevelNullabilityImplicitConversion(TypeSymbolWithAnnotations source, TypeSymbolWithAnnotations destination)
         {
-            return source.IsNullable != true || destination.IsNullable != false;
+            return HasTopLevelNullabilityImplicitConversion(source.IsNullable, destination.IsNullable);
+        }
+
+        internal static bool HasTopLevelNullabilityImplicitConversion(bool? sourceIsNullable, bool? destinationIsNullable)
+        {
+            return sourceIsNullable != true || destinationIsNullable != false;
         }
 
         public static bool HasIdentityConversionToAny<T>(T type, ArrayBuilder<T> targetTypes)
@@ -2096,11 +2104,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool HasImplicitReferenceConversion(TypeSymbolWithAnnotations source, TypeSymbolWithAnnotations destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            if (!HasImplicitReferenceConversion(source.TypeSymbol, destination.TypeSymbol, ref useSiteDiagnostics))
+            if (IncludeNullability)
             {
-                return false;
+                if (!HasTopLevelNullabilityImplicitConversion(source, destination))
+                {
+                    return false;
+                }
+                return HasIdentityOrImplicitReferenceConversion(source.TypeSymbol, destination.TypeSymbol, ref useSiteDiagnostics);
             }
-            return !IncludeNullability || HasTopLevelNullabilityImplicitConversion(source, destination);
+            return HasImplicitReferenceConversion(source.TypeSymbol, destination.TypeSymbol, ref useSiteDiagnostics);
         }
 
         private bool HasImplicitReferenceConversion(TypeSymbol source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)

@@ -831,9 +831,33 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(b ?? c)[0]").WithLocation(15, 13));
         }
 
-        // PROTOTYPE(NullableReferenceType): NullableWalker.VisitAnonymousObjectCreationExpression
-        // should support initializers with inferred nullability.
-        [Fact(Skip = "TODO")]
+        [Fact]
+        public void NullCoalescingOperator_07()
+        {
+            var source =
+@"interface I<T> { }
+class C
+{
+    static object? F((I<object>, I<object?>)? x, (I<object?>, I<object>)? y)
+    {
+        return x ?? y;
+    }
+    static object F((I<object>, I<object?>)? x, (I<object?>, I<object>) y)
+    {
+        return x ?? y;
+    }
+}";
+            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (6,21): warning CS8619: Nullability of reference types in value of type '(I<object?>, I<object>)?' doesn't match target type '(I<object>, I<object?>)?'.
+                //         return x ?? y;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("(I<object?>, I<object>)?", "(I<object>, I<object?>)?").WithLocation(6, 21),
+                // (10,21): warning CS8619: Nullability of reference types in value of type '(I<object?>, I<object>)' doesn't match target type '(I<object>, I<object?>)'.
+                //         return x ?? y;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("(I<object?>, I<object>)", "(I<object>, I<object?>)").WithLocation(10, 21));
+        }
+
+        [Fact]
         public void AnonymousObjectCreation_01()
         {
             var source =
@@ -1764,7 +1788,8 @@ class C
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("IOut<object?>", "IOut<object>").WithLocation(22, 9));
         }
 
-        [Fact]
+        // PROTOTYPE(NullableReferenceTypes): Assign each of the deconstructed values.
+        [Fact(Skip = "TODO")]
         public void IdentityConversion_DeconstructionAssignment()
         {
             var source =
@@ -2277,56 +2302,6 @@ class C
                 // (11,23): warning CS8619: Nullability of reference types in value of type 'A<string>' doesn't match target type 'I<object>'.
                 //         I<object> y = x;
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("A<string>", "I<object>").WithLocation(11, 23));
-        }
-
-        [Fact]
-        public void MultipleConversions_01()
-        {
-            var source =
-@"class A
-{
-    public static implicit operator C(A a) => new C();
-}
-class B : A
-{
-}
-class C
-{
-    static void F(B? b)
-    {
-        C c = b; // (ImplicitUserDefined)(ImplicitReference)b
-    }
-}";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
-            comp.VerifyDiagnostics(
-                // (12,15): warning CS8604: Possible null reference argument for parameter 'a' in 'A.implicit operator C(A a)'.
-                //         C c = b; // (ImplicitUserDefined)(ImplicitReference)b
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "b").WithArguments("a", "A.implicit operator C(A a)").WithLocation(12, 15));
-        }
-
-        [Fact]
-        public void MultipleConversions_02()
-        {
-            var source =
-@"class A
-{
-}
-class B : A
-{
-}
-class C
-{
-    public static implicit operator B?(C c) => null;
-    static void F(C c)
-    {
-        A a = c; // (ImplicitReference)(ImplicitUserDefined)c
-    }
-}";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
-            comp.VerifyDiagnostics(
-                // (12,15): warning CS8601: Possible null reference assignment.
-                //         A a = c; // (ImplicitReference)(ImplicitUserDefined)c
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "c").WithLocation(12, 15));
         }
     }
 }

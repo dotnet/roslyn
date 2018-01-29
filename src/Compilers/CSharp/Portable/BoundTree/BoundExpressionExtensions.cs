@@ -243,9 +243,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var constant = expr.ConstantValue;
-            if (constant != null && constant.IsNull)
+            if (constant != null)
             {
-                return true;
+                if (constant.IsNull)
+                {
+                    return true;
+                }
+                if (expr.Type?.IsReferenceType == true)
+                {
+                    return false;
+                }
             }
 
             return null;
