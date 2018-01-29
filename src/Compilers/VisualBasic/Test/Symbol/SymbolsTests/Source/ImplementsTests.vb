@@ -2545,7 +2545,7 @@ End Class
             Dim outerOfInt = outerOfX.Construct(comp.GetSpecialType(SpecialType.System_Int32))
             Dim iFooOfIntTU = DirectCast(outerOfInt.GetMembers("IFoo").First(), NamedTypeSymbol)
             Assert.IsType(Of SubstitutedNamedType.SpecializedGenericType)(iFooOfIntTU)
-            Assert.False(iFooOfIntTU.IsSerializable)
+            Assert.False(DirectCast(iFooOfIntTU, INamedTypeSymbol).IsSerializable)
 
             Dim fooSOfIntTU = DirectCast(outerOfInt.GetMembers("FooS").First(), NamedTypeSymbol)
             Assert.IsType(Of SubstitutedNamedType.SpecializedGenericType)(fooSOfIntTU)

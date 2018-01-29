@@ -6120,6 +6120,7 @@ BC30573: Error in project-level import '<xmlns="default2">' at '<xmlns="default2
 ]]></errors>)
             Dim embedded = compilation.GetTypeByMetadataName("Microsoft.VisualBasic.Embedded")
             Assert.IsType(Of EmbeddedSymbolManager.EmbeddedNamedTypeSymbol)(embedded)
+            Assert.False(DirectCast(embedded, INamedTypeSymbol).IsSerializable)
         End Sub
 
         <Fact>
