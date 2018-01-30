@@ -447,6 +447,7 @@ namespace BuildBoss
                     case "netstandard1.3":
                     case "netcoreapp1.1":
                     case "netcoreapp2.0":
+                    case "netcoreapp2.1":
                     case "$(RoslynPortableTargetFrameworks)":
                     case "$(RoslynPortableTargetFrameworks46)":
                         break;

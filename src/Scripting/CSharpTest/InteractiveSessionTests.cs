@@ -246,7 +246,7 @@ E
 
         #region Attributes
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))] // PROTOTYPE(DefaultInterfaceImplementation): disabling this test for CoreCLR because it fails in CI build after changes that enabled netcoreapp2.1 as a target for symbols tests. Passes locally
         public void PInvoke()
         {
             var source = @"
