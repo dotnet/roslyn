@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         [ImportingConstructor]
         public SolutionCrawlerRegistrationService(
             [ImportMany] IEnumerable<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> analyzerProviders,
-            IAsynchronousOperationListenerProvider listenerProvider)
+            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
         {
             _gate = new object();
 
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             AssertAnalyzerProviders(_analyzerProviders);
 
             _documentWorkCoordinatorMap = new Dictionary<Workspace, WorkCoordinator>(ReferenceEqualityComparer.Instance);
-            _listener = listenerProvider.GetListener(FeatureAttribute.SolutionCrawler);
+            _listener = new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.SolutionCrawler);
 
             _progressReporter = new SolutionCrawlerProgressReporter(_listener);
         }

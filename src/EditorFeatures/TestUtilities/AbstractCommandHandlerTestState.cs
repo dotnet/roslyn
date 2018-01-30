@@ -295,14 +295,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         /// </summary>
         public void AssertNoAsynchronousOperationsRunning()
         {
-            var provider = Workspace.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
-            Assert.False(provider.HasPendingWaiter(FeatureAttribute.EventHookup, FeatureAttribute.CompletionSet, FeatureAttribute.SignatureHelp), "IAsyncTokens unexpectedly alive. Call WaitForAsynchronousOperationsAsync before this method");
+            var waiters = Workspace.ExportProvider.GetExportedValues<IAsynchronousOperationWaiter>();
+            Assert.False(waiters.Any(x => x.HasPendingWork), "IAsyncTokens unexpectedly alive. Call WaitForAsynchronousOperationsAsync before this method");
         }
 
         public async Task WaitForAsynchronousOperationsAsync()
         {
-            var provider = Workspace.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
-            await provider.WaitAllDispatcherOperationAndTasksAsync(FeatureAttribute.EventHookup, FeatureAttribute.CompletionSet, FeatureAttribute.SignatureHelp);
+            var waiters = Workspace.ExportProvider.GetExportedValues<IAsynchronousOperationWaiter>();
+            await waiters.WaitAllAsync();
         }
 
         public void AssertMatchesTextStartingAtLine(int line, string text)

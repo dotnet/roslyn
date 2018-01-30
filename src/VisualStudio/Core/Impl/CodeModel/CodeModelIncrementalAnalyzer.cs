@@ -24,9 +24,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         [ImportingConstructor]
         public CodeModelIncrementalAnalyzerProvider(
             IForegroundNotificationService notificationService,
-            IAsynchronousOperationListenerProvider listenerProvider)
+            [ImportMany]IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> listeners)
         {
-            _listener = listenerProvider.GetListener(FeatureAttribute.CodeModel);
+            _listener = new AggregateAsynchronousOperationListener(listeners, FeatureAttribute.CodeModel);
             _notificationService = notificationService;
         }
 

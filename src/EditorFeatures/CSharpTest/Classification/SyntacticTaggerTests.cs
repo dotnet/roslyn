@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 var tagComputer = new SyntacticClassificationTaggerProvider.TagComputer(
                     subjectBuffer,
                     workspace.GetService<IForegroundNotificationService>(),
-                    AsynchronousOperationListenerProvider.NullListener,
+                    AggregateAsynchronousOperationListener.CreateEmptyListener(),
                     null,
                     new SyntacticClassificationTaggerProvider(null, null, null));
 

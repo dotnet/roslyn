@@ -47,7 +47,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
             Dim ruleSetFileProvider = New VisualStudioRuleSetManager(
                 DirectCast(_serviceProvider.GetService(GetType(SVsFileChangeEx)), IVsFileChangeEx),
                 New TestForegroundNotificationService(),
-                AsynchronousOperationListenerProvider.NullListener)
+                AggregateAsynchronousOperationListener.CreateEmptyListener())
 
             Dim documentTrackingService = New VisualStudioDocumentTrackingService(_serviceProvider)
             Dim documentProvider = New DocumentProvider(_projectTracker, _serviceProvider, documentTrackingService)

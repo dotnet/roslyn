@@ -13,17 +13,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
     [ExportWorkspaceService(typeof(IWorkspaceTaskSchedulerFactory), ServiceLayer.Editor), Shared]
     internal class EditorTaskSchedulerFactory : WorkspaceTaskSchedulerFactory
     {
-        private readonly IAsynchronousOperationListener _listener;
+        private readonly IAsynchronousOperationListener _aggregateListener;
 
         [ImportingConstructor]
-        public EditorTaskSchedulerFactory(IAsynchronousOperationListenerProvider listenerProvider)
+        public EditorTaskSchedulerFactory([ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
         {
-            _listener = listenerProvider.GetListener(FeatureAttribute.Workspace);
+            _aggregateListener = new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.Workspace);
         }
 
         protected override object BeginAsyncOperation(string taskName)
         {
-            return _listener.BeginAsyncOperation(taskName);
+            return _aggregateListener.BeginAsyncOperation(taskName);
         }
 
         protected override void CompleteAsyncOperation(object asyncToken, Task task)

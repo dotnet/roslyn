@@ -16,6 +16,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
     {
         private static readonly int s_testTimeout = (int)TimeSpan.FromSeconds(30).TotalMilliseconds;
 
+        private class Listener : AsynchronousOperationListener
+        {
+        }
+
         private class SleepHelper : IDisposable
         {
             private readonly CancellationTokenSource _tokenSource;
@@ -75,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             using (var sleepHelper = new SleepHelper())
             {
                 var signal = new ManualResetEventSlim();
-                var listener = new AsynchronousOperationListener();
+                var listener = new Listener();
 
                 var done = false;
                 var asyncToken = listener.BeginAsyncOperation("Test");
@@ -99,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             using (var sleepHelper = new SleepHelper())
             {
                 var signal = new ManualResetEventSlim();
-                var listener = new AsynchronousOperationListener();
+                var listener = new Listener();
 
                 var done = false;
                 var asyncToken1 = listener.BeginAsyncOperation("Test");
@@ -133,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             using (var sleepHelper = new SleepHelper())
             {
                 var signal = new ManualResetEventSlim();
-                var listener = new AsynchronousOperationListener();
+                var listener = new Listener();
 
                 var done = false;
                 var continued = false;
@@ -168,7 +172,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             using (var sleepHelper = new SleepHelper())
             {
                 var signal = new ManualResetEventSlim();
-                var listener = new AsynchronousOperationListener();
+                var listener = new Listener();
 
                 var outerDone = false;
                 var innerDone = false;
@@ -203,7 +207,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             using (var sleepHelper = new SleepHelper())
             {
                 var signal = new ManualResetEventSlim();
-                var listener = new AsynchronousOperationListener();
+                var listener = new Listener();
 
                 var outerDone = false;
                 var firstQueuedDone = false;
@@ -250,7 +254,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             using (var sleepHelper = new SleepHelper())
             {
                 var signal = new ManualResetEventSlim();
-                var listener = new AsynchronousOperationListener();
+                var listener = new Listener();
 
                 var done = false;
                 var queuedFinished = false;
@@ -301,7 +305,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             {
                 var signal1 = new ManualResetEventSlim();
                 var signal2 = new ManualResetEventSlim();
-                var listener = new AsynchronousOperationListener();
+                var listener = new Listener();
 
                 var firstDone = false;
                 var secondDone = false;
@@ -333,7 +337,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             }
         }
 
-        private static void Wait(AsynchronousOperationListener listener, ManualResetEventSlim signal)
+        private static void Wait(Listener listener, ManualResetEventSlim signal)
         {
             // Note: WaitTask will return immediately if there is no outstanding work.  Due to
             // threadpool scheduling, we may get here before that other thread has started to run.
@@ -344,7 +348,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             Assert.True(waitTask.Wait(s_testTimeout), "Wait shouldn't have needed to timeout");
         }
 
-        private static void Wait(AsynchronousOperationListener listener, ManualResetEventSlim signal1, ManualResetEventSlim signal2)
+        private static void Wait(Listener listener, ManualResetEventSlim signal1, ManualResetEventSlim signal2)
         {
             // Note: WaitTask will return immediately if there is no outstanding work.  Due to
             // threadpool scheduling, we may get here before that other thread has started to run.
