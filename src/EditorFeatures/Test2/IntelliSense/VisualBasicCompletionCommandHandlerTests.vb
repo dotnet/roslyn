@@ -2471,10 +2471,10 @@ End Class
                 state.SendInvokeCompletionList()
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem(description:=
-"<Extension> Function IEnumerable(Of 'a).ToArray() As 'a()
+$"<{ VBFeaturesResources.Extension }> Function IEnumerable(Of 'a).ToArray() As 'a()
 
-Anonymous Types:
-    'a is New With { .x As Integer }")
+{ FeaturesResources.Anonymous_Types_colon }
+    'a { FeaturesResources.is_ } New With {{ .x As Integer }}")
             End Using
         End Function
 
@@ -2494,10 +2494,10 @@ End Class
                 state.SendInvokeCompletionList()
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem(description:=
-"<Extension> Function IEnumerable(Of 'a).ToArray() As 'a()
+$"<{ VBFeaturesResources.Extension }> Function IEnumerable(Of 'a).ToArray() As 'a()
 
-Anonymous Types:
-    'a is New With { Key .x As Integer }")
+{ FeaturesResources.Anonymous_Types_colon }
+    'a { FeaturesResources.is_ } New With {{ Key .x As Integer }}")
             End Using
         End Function
 
@@ -2669,7 +2669,7 @@ End Class
             End Using
         End Function
 
-                <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestSnippetsNotExclusiveWhenAlwaysShowing() As Task
             Dim snippetProvider As CompletionProvider =
                 New VisualStudio.LanguageServices.VisualBasic.Snippets.
@@ -2692,7 +2692,7 @@ End Class
                                                                                     SnippetsRule.AlwaysInclude)
 
                 state.SendInvokeCompletionList()
-                await state.WaitForAsynchronousOperationsAsync()
+                Await state.WaitForAsynchronousOperationsAsync()
                 Assert.True(state.CompletionItemsContainsAll({"x", "Shortcut"}))
             End Using
         End Function
@@ -2949,20 +2949,20 @@ End Class
         End Function
 
         <ExportLanguageService(GetType(ISnippetInfoService), LanguageNames.VisualBasic), System.Composition.Shared>
-		Friend Class MockSnippetInfoService
-			Implements ISnippetInfoService
+        Friend Class MockSnippetInfoService
+            Implements ISnippetInfoService
 
-			Public Function GetSnippetsAsync_NonBlocking() As IEnumerable(Of SnippetInfo) Implements ISnippetInfoService.GetSnippetsIfAvailable
-				Return SpecializedCollections.SingletonEnumerable(New SnippetInfo("Shortcut", "Title", "Description", "Path"))
-			End Function
+            Public Function GetSnippetsAsync_NonBlocking() As IEnumerable(Of SnippetInfo) Implements ISnippetInfoService.GetSnippetsIfAvailable
+                Return SpecializedCollections.SingletonEnumerable(New SnippetInfo("Shortcut", "Title", "Description", "Path"))
+            End Function
 
-			Public Function ShouldFormatSnippet(snippetInfo As SnippetInfo) As Boolean Implements ISnippetInfoService.ShouldFormatSnippet
-				Return False
-			End Function
+            Public Function ShouldFormatSnippet(snippetInfo As SnippetInfo) As Boolean Implements ISnippetInfoService.ShouldFormatSnippet
+                Return False
+            End Function
 
-			Public Function SnippetShortcutExists_NonBlocking(shortcut As String) As Boolean Implements ISnippetInfoService.SnippetShortcutExists_NonBlocking
-				Return shortcut = "Shortcut"
-			End Function
-		End Class
-	End Class
+            Public Function SnippetShortcutExists_NonBlocking(shortcut As String) As Boolean Implements ISnippetInfoService.SnippetShortcutExists_NonBlocking
+                Return shortcut = "Shortcut"
+            End Function
+        End Class
+    End Class
 End Namespace
