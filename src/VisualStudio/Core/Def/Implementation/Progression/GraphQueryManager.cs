@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
         // We update all of our tracked queries when this delay elapses.
         private ResettableDelay _delay;
 
-        internal GraphQueryManager(Workspace workspace, IAsynchronousOperationListener asyncListener)
+        internal GraphQueryManager(Workspace workspace, AggregateAsynchronousOperationListener asyncListener)
         {
             _workspace = workspace;
             _asyncListener = asyncListener;

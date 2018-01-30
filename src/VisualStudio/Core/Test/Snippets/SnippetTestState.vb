@@ -48,8 +48,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
                     GetService(Of IEditorOperationsFactoryService)(),
                     UndoHistoryRegistry,
                     GetService(Of IInlineRenameService)(),
-                    GetExportedValue(Of IAsynchronousOperationListenerProvider)(),
                     New TestCompletionPresenter(Me),
+                    GetExports(Of IAsynchronousOperationListener, FeatureMetadata)(),
                     GetExports(Of IBraceCompletionSessionProvider, BraceCompletionMetadata)())
 
                 Dim CompletionCommandHandler = New CompletionCommandHandler(asyncCompletionService)
@@ -67,7 +67,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
         Public Property SnippetExpansionClient As MockSnippetExpansionClient
 
         Private Shared Function CreatePartCatalog(types As IEnumerable(Of Type)) As ComposableCatalog
-            Return MinimalTestExportProvider.CreateTypeCatalog(types)
+            Dim extraParts = types.Concat({GetType(SignatureHelpWaiter), GetType(CompletionWaiter)})
+            Return MinimalTestExportProvider.CreateTypeCatalog(extraParts)
         End Function
 
         Public Property CurrentCompletionPresenterSession As TestCompletionPresenterSession Implements IIntelliSenseTestState.CurrentCompletionPresenterSession

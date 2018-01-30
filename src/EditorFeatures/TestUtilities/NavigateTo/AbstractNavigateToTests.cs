@@ -73,7 +73,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
 
         private void InitializeWorkspace(TestWorkspace workspace)
         {
-            _provider = new NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener);
+            var aggregateListener = AggregateAsynchronousOperationListener.CreateEmptyListener();
+
+            _provider = new NavigateToItemProvider(workspace, aggregateListener);
             _aggregator = new NavigateToTestAggregator(_provider);
         }
 
