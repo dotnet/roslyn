@@ -11,7 +11,7 @@
              AssemblyFile="$(MSBuildThisFileDirectory)..\tools\Microsoft.Build.Tasks.CodeAnalysis.dll" />
   <PropertyGroup>
     <CSharpCoreTargetsPath>$(MSBuildThisFileDirectory)..\tools\Microsoft.CSharp.Core.targets</CSharpCoreTargetsPath>
-    <BasicCoreTargetsPath>$(MSBuildThisFileDirectory)..\tools\Microsoft.VisualBasic.Core.targets</BasicCoreTargetsPath>
+    <VisualBasicCoreTargetsPath>$(MSBuildThisFileDirectory)..\tools\Microsoft.VisualBasic.Core.targets</VisualBasicCoreTargetsPath>
   </PropertyGroup>
 
   <!-- Set ToolPath/Exe to direct to the exes in this package -->
