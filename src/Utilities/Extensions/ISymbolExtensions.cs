@@ -67,6 +67,12 @@ namespace Analyzer.Utilities.Extensions
             return (symbol as IPropertySymbol)?.IsIndexer == true;
         }
 
+        public static bool IsPropertyWithBackingField(this ISymbol symbol)
+        {
+            return symbol is IPropertySymbol propertySymbol &&
+                propertySymbol.ContainingType.GetMembers().OfType<IFieldSymbol>().Any(f => f.IsImplicitlyDeclared && f.AssociatedSymbol == symbol);
+        }
+
         public static bool IsUserDefinedOperator(this ISymbol symbol)
         {
             return (symbol as IMethodSymbol)?.MethodKind == MethodKind.UserDefinedOperator;
@@ -393,6 +399,33 @@ namespace Analyzer.Utilities.Extensions
             }
 
             return false;
+        }
+
+        public static ITypeSymbol GetMemerOrLocalOrParameterType(this ISymbol symbol)
+        {
+            switch (symbol.Kind)
+            {
+                case SymbolKind.Event:
+                    return ((IEventSymbol)symbol).Type;
+
+                case SymbolKind.Field:
+                    return ((IFieldSymbol)symbol).Type;
+
+                case SymbolKind.Method:
+                    return ((IMethodSymbol)symbol).ReturnType;
+
+                case SymbolKind.Property:
+                    return ((IPropertySymbol)symbol).Type;
+
+                case SymbolKind.Local:
+                    return ((ILocalSymbol)symbol).Type;
+
+                case SymbolKind.Parameter:
+                    return ((IParameterSymbol)symbol).Type;
+
+                default:
+                    return null;
+            }
         }
     }
 }

@@ -135,6 +135,9 @@ namespace Analyzer.Utilities.Extensions
             return false;
         }
 
+        public static bool HasValueCopySemantics(this ITypeSymbol typeSymbol)
+            => typeSymbol.IsValueType || typeSymbol.SpecialType == SpecialType.System_String;
+
         public static Accessibility DetermineMinimalAccessibility(this ITypeSymbol typeSymbol)
         {
             return typeSymbol.Accept(MinimalAccessibilityVisitor.Instance);
