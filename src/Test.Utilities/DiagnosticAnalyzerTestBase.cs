@@ -239,7 +239,6 @@ namespace Test.Utilities
 
         protected void VerifyCSharp(string source, TestValidationMode validationMode, params DiagnosticResult[] expected)
         {
-            Verify(new[] { source }.ToFileAndSource(), LanguageNames.CSharp, GetCSharpDiagnosticAnalyzer(), validationMode, false, ReferenceFlags.None, compilationOptions: null, expected: expected);
             Verify(new[] { source }.ToFileAndSource(), LanguageNames.CSharp, GetCSharpDiagnosticAnalyzer(), validationMode, false, ReferenceFlags.None, compilationOptions: null, parseOptions: null, expected: expected);
         }
 
