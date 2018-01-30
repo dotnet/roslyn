@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SignatureHelp;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
@@ -17,7 +16,7 @@ using Microsoft.VisualStudio.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp
 {
     internal partial class Controller :
-        AbstractController<Controller.Session, Model, ISignatureHelpPresenterSession, ISignatureHelpSession>,
+        AbstractController<Controller.Session, Model, IIntelliSensePresenter<ISignatureHelpPresenterSession>>,
         ICommandHandler<TypeCharCommandArgs>,
         ICommandHandler<InvokeSignatureHelpCommandArgs>
     {
@@ -30,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
         public Controller(
             ITextView textView,
             ITextBuffer subjectBuffer,
-            IIntelliSensePresenter<ISignatureHelpPresenterSession, ISignatureHelpSession> presenter,
+            IIntelliSensePresenter<ISignatureHelpPresenterSession> presenter,
             IAsynchronousOperationListener asyncListener,
             IDocumentProvider documentProvider,
             IList<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> allProviders)
@@ -43,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
         internal Controller(
             ITextView textView,
             ITextBuffer subjectBuffer,
-            IIntelliSensePresenter<ISignatureHelpPresenterSession, ISignatureHelpSession> presenter,
+            IIntelliSensePresenter<ISignatureHelpPresenterSession> presenter,
             IAsynchronousOperationListener asyncListener,
             IDocumentProvider documentProvider,
             IList<ISignatureHelpProvider> providers)
@@ -54,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
 
         internal static Controller GetInstance(
             CommandArgs args,
-            IIntelliSensePresenter<ISignatureHelpPresenterSession, ISignatureHelpSession> presenter,
+            IIntelliSensePresenter<ISignatureHelpPresenterSession> presenter,
             IAsynchronousOperationListener asyncListener,
             IList<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> allProviders)
         {
@@ -105,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             AssertIsForeground();
             VerifySessionIsInactive();
 
-            this.sessionOpt = new Session(this, Presenter.CreateSession(TextView, SubjectBuffer, null));
+            this.sessionOpt = new Session(this, Presenter.CreateSession(TextView, SubjectBuffer));
             this.sessionOpt.ComputeModel(providers, triggerInfo);
         }
 

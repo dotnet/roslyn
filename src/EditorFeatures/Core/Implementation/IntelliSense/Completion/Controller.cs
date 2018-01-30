@@ -7,7 +7,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
@@ -16,7 +15,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 {
     internal partial class Controller :
-        AbstractController<Controller.Session, Model, ICompletionPresenterSession, ICompletionSession>,
+        AbstractController<Controller.Session, Model, IIntelliSensePresenter<ICompletionPresenterSession>>,
         ICommandHandler<TabKeyCommandArgs>,
         ICommandHandler<ToggleCompletionModeCommandArgs>,
         ICommandHandler<TypeCharCommandArgs>,
@@ -49,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             ITextBuffer subjectBuffer,
             IEditorOperationsFactoryService editorOperationsFactoryService,
             ITextUndoHistoryRegistry undoHistoryRegistry,
-            IIntelliSensePresenter<ICompletionPresenterSession, ICompletionSession> presenter,
+            IIntelliSensePresenter<ICompletionPresenterSession> presenter,
             IAsynchronousOperationListener asyncListener,
             ImmutableHashSet<char> autoBraceCompletionChars,
             bool isDebugger,
@@ -69,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             ITextBuffer subjectBuffer,
             IEditorOperationsFactoryService editorOperationsFactoryService,
             ITextUndoHistoryRegistry undoHistoryRegistry,
-            IIntelliSensePresenter<ICompletionPresenterSession, ICompletionSession> presenter,
+            IIntelliSensePresenter<ICompletionPresenterSession> presenter,
             IAsynchronousOperationListener asyncListener,
             ImmutableHashSet<char> autoBraceCompletionChars)
         {
@@ -182,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
             var computation = new ModelComputation<Model>(this, PrioritizedTaskScheduler.AboveNormalInstance);
 
-            this.sessionOpt = new Session(this, computation, Presenter.CreateSession(TextView, SubjectBuffer, null));
+            this.sessionOpt = new Session(this, computation, Presenter.CreateSession(TextView, SubjectBuffer));
 
             sessionOpt.ComputeModel(completionService, trigger, _roles, GetOptions());
             sessionOpt.FilterModel(trigger.GetFilterReason(), filterState: null);

@@ -16,11 +16,11 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.Presentation
 {
-    [Export(typeof(IIntelliSensePresenter<ICompletionPresenterSession, ICompletionSession>))]
+    [Export(typeof(IIntelliSensePresenter<ICompletionPresenterSession>))]
     [Export(typeof(ICompletionSourceProvider))]
     [Name(PredefinedCompletionPresenterNames.RoslynCompletionPresenter)]
     [ContentType(ContentTypeNames.RoslynContentType)]
-    internal sealed class CompletionPresenter : ForegroundThreadAffinitizedObject, IIntelliSensePresenter<ICompletionPresenterSession, ICompletionSession>, ICompletionSourceProvider
+    internal sealed class CompletionPresenter : ForegroundThreadAffinitizedObject, IIntelliSensePresenter<ICompletionPresenterSession>, ICompletionSourceProvider
     {
         private readonly ICompletionBroker _completionBroker;
         private readonly IGlyphService _glyphService;
@@ -34,8 +34,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             _glyphService = glyphService;
         }
 
-        ICompletionPresenterSession IIntelliSensePresenter<ICompletionPresenterSession, ICompletionSession>.CreateSession(
-            ITextView textView, ITextBuffer subjectBuffer, ICompletionSession session)
+        ICompletionPresenterSession IIntelliSensePresenter<ICompletionPresenterSession>.CreateSession(
+            ITextView textView, ITextBuffer subjectBuffer)
         {
             AssertIsForeground();
 

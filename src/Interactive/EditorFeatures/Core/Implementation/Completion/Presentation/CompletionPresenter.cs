@@ -11,10 +11,10 @@ using Microsoft.VisualStudio.InteractiveWindow.Commands;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Completion.Presentation
 {
-    [Export(typeof(IIntelliSensePresenter<ICompletionPresenterSession, ICompletionSession>))]
+    [Export(typeof(IIntelliSensePresenter<ICompletionPresenterSession>))]
     [Export(typeof(ICompletionSourceProvider))]
     [ContentType(PredefinedInteractiveCommandsContentTypes.InteractiveCommandContentTypeName)]
-    internal partial class CompletionPresenter : ForegroundThreadAffinitizedObject, IIntelliSensePresenter<ICompletionPresenterSession, ICompletionSession>, ICompletionSourceProvider
+    internal partial class CompletionPresenter : ForegroundThreadAffinitizedObject, IIntelliSensePresenter<ICompletionPresenterSession>, ICompletionSourceProvider
     {
         private readonly ICompletionBroker _completionBroker;
         private readonly IGlyphService _glyphService;
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Completion.Presentation
             _glyphService = glyphService;
         }
 
-        ICompletionPresenterSession IIntelliSensePresenter<ICompletionPresenterSession, ICompletionSession>.CreateSession(ITextView textView, ITextBuffer subjectBuffer, ICompletionSession sessionOpt)
+        ICompletionPresenterSession IIntelliSensePresenter<ICompletionPresenterSession>.CreateSession(ITextView textView, ITextBuffer subjectBuffer)
         {
             AssertIsForeground();
             return new CompletionPresenterSession(

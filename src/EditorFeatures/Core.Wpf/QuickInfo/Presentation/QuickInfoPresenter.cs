@@ -11,7 +11,7 @@ using Microsoft.VisualStudio.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo.Presentation
 {
     [Export(typeof(IQuickInfoSourceProvider))]
-    [Export(typeof(IIntelliSensePresenter<IQuickInfoPresenterSession, IQuickInfoSession>))]
+    [Export(typeof(IIntelliSensePresenter<IQuickInfoPresenterSession>))]
     [Order]
     [Name(PredefinedQuickInfoPresenterNames.RoslynQuickInfoPresenter)]
     [ContentType(ContentTypeNames.RoslynContentType)]
@@ -29,10 +29,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo.Pr
             _elementFactory = elementFactory;
         }
 
-        IQuickInfoPresenterSession IIntelliSensePresenter<IQuickInfoPresenterSession, IQuickInfoSession>.CreateSession(ITextView textView, ITextBuffer subjectBuffer, IQuickInfoSession sessionOpt)
+        IQuickInfoPresenterSession IIntelliSensePresenter<IQuickInfoPresenterSession>.CreateSession(ITextView textView, ITextBuffer subjectBuffer)
         {
             AssertIsForeground();
-            return new QuickInfoPresenterSession(_quickInfoBroker, _elementFactory, textView, subjectBuffer, sessionOpt);
+            return new QuickInfoPresenterSession(_quickInfoBroker, textView, subjectBuffer);
+        }
+
+        IQuickInfoPresenterSession IIntelliSensePresenter<IQuickInfoPresenterSession, IQuickInfoSession>.CreateSession(ITextView textView, ITextBuffer subjectBuffer, IQuickInfoSession session)
+        {
+            AssertIsForeground();
+            return new QuickInfoPresenterSession(_quickInfoBroker, _elementFactory, textView, subjectBuffer, session);
         }
 
         IQuickInfoSource IQuickInfoSourceProvider.TryCreateQuickInfoSource(ITextBuffer textBuffer)

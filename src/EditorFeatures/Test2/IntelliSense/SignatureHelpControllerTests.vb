@@ -38,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Public Sub InvokeSignatureHelpWithDocumentShouldStartNewSession()
             Dim controller = CreateController()
 
-            GetMocks(controller).Presenter.Verify(Function(p) p.CreateSession(It.IsAny(Of ITextView), It.IsAny(Of ITextBuffer), It.IsAny(Of ISignatureHelpSession)), Times.Once)
+            GetMocks(controller).Presenter.Verify(Function(p) p.CreateSession(It.IsAny(Of ITextView), It.IsAny(Of ITextBuffer)), Times.Once)
         End Sub
 
         <WpfFact>
@@ -263,9 +263,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 provider = New MockSignatureHelpProvider(items)
             End If
 
-            Dim presenter = New Mock(Of IIntelliSensePresenter(Of ISignatureHelpPresenterSession, ISignatureHelpSession)) With {.DefaultValue = DefaultValue.Mock}
+            Dim presenter = New Mock(Of IIntelliSensePresenter(Of ISignatureHelpPresenterSession)) With {.DefaultValue = DefaultValue.Mock}
             presenterSession = If(presenterSession, New Mock(Of ISignatureHelpPresenterSession) With {.DefaultValue = DefaultValue.Mock})
-            presenter.Setup(Function(p) p.CreateSession(It.IsAny(Of ITextView), It.IsAny(Of ITextBuffer), It.IsAny(Of ISignatureHelpSession))).Returns(presenterSession.Object)
+            presenter.Setup(Function(p) p.CreateSession(It.IsAny(Of ITextView), It.IsAny(Of ITextBuffer))).Returns(presenterSession.Object)
             presenterSession.Setup(Sub(p) p.PresentItems(It.IsAny(Of ITrackingSpan), It.IsAny(Of IList(Of SignatureHelpItem)), It.IsAny(Of SignatureHelpItem), It.IsAny(Of Integer?))) _
                 .Callback(Sub() presenterSession.SetupGet(Function(p) p.EditorSessionIsActive).Returns(True))
 
@@ -346,13 +346,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Private Class ControllerMocks
             Public ReadOnly View As Mock(Of ITextView)
             Public ReadOnly Buffer As ITextBuffer
-            Public ReadOnly Presenter As Mock(Of IIntelliSensePresenter(Of ISignatureHelpPresenterSession, ISignatureHelpSession))
+            Public ReadOnly Presenter As Mock(Of IIntelliSensePresenter(Of ISignatureHelpPresenterSession))
             Public ReadOnly PresenterSession As Mock(Of ISignatureHelpPresenterSession)
             Public ReadOnly AsyncListener As Mock(Of IAsynchronousOperationListener)
             Public ReadOnly DocumentProvider As Mock(Of IDocumentProvider)
             Public ReadOnly Provider As MockSignatureHelpProvider
 
-            Public Sub New(view As Mock(Of ITextView), buffer As ITextBuffer, presenter As Mock(Of IIntelliSensePresenter(Of ISignatureHelpPresenterSession, ISignatureHelpSession)), presenterSession As Mock(Of ISignatureHelpPresenterSession), asyncListener As Mock(Of IAsynchronousOperationListener), documentProvider As Mock(Of IDocumentProvider), provider As MockSignatureHelpProvider)
+            Public Sub New(view As Mock(Of ITextView), buffer As ITextBuffer, presenter As Mock(Of IIntelliSensePresenter(Of ISignatureHelpPresenterSession)), presenterSession As Mock(Of ISignatureHelpPresenterSession), asyncListener As Mock(Of IAsynchronousOperationListener), documentProvider As Mock(Of IDocumentProvider), provider As MockSignatureHelpProvider)
                 Me.View = view
                 Me.Buffer = buffer
                 Me.Presenter = presenter
