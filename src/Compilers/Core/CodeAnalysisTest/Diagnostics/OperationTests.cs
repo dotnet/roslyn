@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             TestCore(createDynamicExpression);
         }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
         [Fact]
         public void TestFlowAnalysisFeatureFlag()
         {
