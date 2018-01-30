@@ -5,6 +5,7 @@ Imports System.Globalization
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Completion
+Imports Microsoft.CodeAnalysis.CSharp
 Imports Microsoft.CodeAnalysis.Editor.Commands
 Imports Microsoft.CodeAnalysis.Editor.CSharp.Formatting
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
@@ -2761,10 +2762,10 @@ class Program
                 state.SendInvokeCompletionList()
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem(description:=
-"(extension) 'a[] System.Collections.Generic.IEnumerable<'a>.ToArray<'a>()
+$"({ CSharpFeaturesResources.extension }) 'a[] System.Collections.Generic.IEnumerable<'a>.ToArray<'a>()
 
-Anonymous Types:
-    'a is new { int x }")
+{ FeaturesResources.Anonymous_Types_colon }
+    'a { FeaturesResources.is_ } new {{ int x }}")
             End Using
         End Function
 

@@ -38,8 +38,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
         public HighlighterViewTaggerProvider(
             IHighlightingService highlightingService,
             IForegroundNotificationService notificationService,
-            IAsynchronousOperationListenerProvider listenerProvider)
-            : base(listenerProvider.GetListener(FeatureAttribute.KeywordHighlighting), notificationService)
+            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
+            : base(new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.KeywordHighlighting), notificationService)
         {
             _highlightingService = highlightingService;
         }

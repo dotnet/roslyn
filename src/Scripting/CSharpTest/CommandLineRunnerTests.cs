@@ -815,7 +815,7 @@ C {{ }}
                 runner.Console.Error.ToString());
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/24402")]
         public void HelpCommand()
         {
             var runner = CreateRunner(input:

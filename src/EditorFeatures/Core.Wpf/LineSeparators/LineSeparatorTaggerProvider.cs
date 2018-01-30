@@ -42,8 +42,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
         public LineSeparatorTaggerProvider(
             IEditorFormatMapService editorFormatMapService,
             IForegroundNotificationService notificationService,
-            IAsynchronousOperationListenerProvider listenerProvider)
-                : base(listenerProvider.GetListener(FeatureAttribute.LineSeparators), notificationService)
+            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
+                : base(new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.LineSeparators), notificationService)
         {
             _editorFormatMap = editorFormatMapService.GetEditorFormatMap("text");
             _editorFormatMap.FormatMappingChanged += OnFormatMappingChanged;
