@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
@@ -3176,9 +3177,6 @@ End Class
 Public Class ExtendedError
     Inherits ExtendedErrorBase
 End Class
-Public Class Unbound
-    Inherits Constructed(Of )
-End Class
 ]]></file>
 </compilation>
             Dim lib1 = CreateCompilationWithMscorlib45AndVBRuntime(missing)
@@ -3251,10 +3249,6 @@ End Class
             Assert.IsType(Of SubstitutedErrorType)(nestedSubstitutedError)
             Assert.False(DirectCast(nestedSubstitutedError, INamedTypeSymbol).IsSerializable)
 
-            'Dim unbound = comp2.GetTypeByMetadataName("Unbound").BaseType().TypeArgumentsNoUseSiteDiagnostics(0)
-            'Assert.IsType(Of NamedTypeSymbol)(unbound)
-            'Assert.False(DirectCast(unbound, INamedTypeSymbol).IsSerializable)
-
             Dim script = CreateCompilation("", parseOptions:=TestOptions.Script)
             Dim scriptClass = script.GetTypeByMetadataName("Script")
             Assert.IsType(Of ImplicitNamedTypeSymbol)(scriptClass)
@@ -3268,6 +3262,55 @@ End Class
             Assert.IsType(Of PENamedTypeSymbolWithEmittedNamespaceName)(inNamespaceS)
             Assert.True(DirectCast(inNamespaceS, INamedTypeSymbol).IsSerializable)
         End Sub
+
+        <Fact>
+        <WorkItem(3898, "https://github.com/dotnet/roslyn/issues/3898")>
+        Public Sub TestAttributeWithNestedUnboundGeneric()
+            Dim library =
+    <file name="Library.vb"><![CDATA[
+Namespace ClassLibrary1
+    <System.Serializable>
+    Public Class C1(Of T1)
+    End Class
+End Namespace
+]]>
+    </file>
+
+            Dim compilation1 = VisualBasicCompilation.Create("library.dll",
+                                                             {VisualBasicSyntaxTree.ParseText(library.Value)},
+                                                             {MscorlibRef},
+                                                             TestOptions.ReleaseDll)
+
+            Dim classLibrary = MetadataReference.CreateFromImage(compilation1.EmitToArray())
+
+            Dim source =
+        <compilation>
+            <file name="TestAttributeWithNestedUnboundGeneric.vb"><![CDATA[
+Imports System
+
+Class A
+    Inherits Attribute
+
+    Public Sub New(o As Object)
+    End Sub
+End Class
+
+<A(GetType(ClassLibrary1.C1(Of )))>
+Module Module1
+    Sub Main()
+    End Sub
+End Module
+]]>
+            </file>
+        </compilation>
+            Dim compilation2 = CreateCompilationWithMscorlibAndReferences(source, {SystemRef, MsvbRef, classLibrary})
+            compilation2.VerifyDiagnostics()
+
+            Dim gt = compilation2.GetTypeByMetadataName("Module1").GetAttributes().First().CommonConstructorArguments.First()
+            Dim arg = DirectCast(gt.Value, UnboundGenericType)
+            Assert.True(DirectCast(arg, INamedTypeSymbol).IsSerializable)
+        End Sub
+
 #End Region
 
 #Region "AttributeUsageAttribute"
