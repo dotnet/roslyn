@@ -363,7 +363,6 @@ function Get-MSBuildDir([switch]$xcopy = $false) {
 # Dose this version of Visual Studio meet our minimum requirements for building.
 function Test-SupportedVisualStudioVersion([string]$version) { 
     if (-not ($version -match "^([\d.]+)(\+|-)?.*$")) { 
-        Write-Host "here"
         return $false
     }
 
