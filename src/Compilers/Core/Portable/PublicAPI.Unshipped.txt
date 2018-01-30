@@ -41,6 +41,7 @@ Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo.OperationBloc
 Microsoft.CodeAnalysis.ILocalSymbol.RefKind.get -> Microsoft.CodeAnalysis.RefKind
 Microsoft.CodeAnalysis.IMethodSymbol.RefKind.get -> Microsoft.CodeAnalysis.RefKind
 Microsoft.CodeAnalysis.IMethodSymbol.ReturnsByRefReadonly.get -> bool
+Microsoft.CodeAnalysis.INamedTypeSymbol.IsSerializable.get -> bool
 Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.IOperation.Accept(Microsoft.CodeAnalysis.Operations.OperationVisitor visitor) -> void
 Microsoft.CodeAnalysis.IOperation.Accept<TArgument, TResult>(Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult> visitor, TArgument argument) -> TResult

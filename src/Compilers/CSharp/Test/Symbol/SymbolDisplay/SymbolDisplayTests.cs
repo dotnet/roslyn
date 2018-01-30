@@ -5299,6 +5299,8 @@ class C
 
             public bool IsComImport => throw new NotImplementedException();
 
+            public bool IsSerializable => throw new NotImplementedException();
+
             #endregion
         }
 

@@ -3219,6 +3219,40 @@ End Class
             Assert.Equal(c1.MetadataName, c1r.MetadataName)
         End Sub
 
+        <Fact>
+        <WorkItem(3898, "https://github.com/dotnet/roslyn/issues/3898")>
+        Public Sub Regargeting_IsSerializable()
+            Dim source1 =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Public Class C(Of T)
+End Class
+<System.Serializable>
+Public Class CS(Of T)
+End Class
+    ]]></file>
+</compilation>
+
+            Dim comp1 = CreateCompilationWithReferences(source1, {MscorlibRef_v20}, TestOptions.ReleaseDll)
+            comp1.VerifyDiagnostics()
+
+            Dim source2 =
+<compilation>
+    <file name="a.vb">
+    </file>
+</compilation>
+
+            Dim comp2 = CreateCompilationWithReferences(source2, {MscorlibRef_v4_0_30316_17626, New VisualBasicCompilationReference(comp1)}, TestOptions.ReleaseDll)
+
+            Dim c As NamedTypeSymbol = comp2.GlobalNamespace.GetTypeMembers("C").Single
+            Assert.IsType(Of RetargetingNamedTypeSymbol)(c)
+            Assert.False(DirectCast(c, INamedTypeSymbol).IsSerializable)
+
+            Dim cs As NamedTypeSymbol = comp2.GlobalNamespace.GetTypeMembers("CS").Single
+            Assert.IsType(Of RetargetingNamedTypeSymbol)(cs)
+            Assert.True(DirectCast(cs, INamedTypeSymbol).IsSerializable)
+        End Sub
+
     End Class
 #End If
 
