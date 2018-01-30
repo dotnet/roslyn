@@ -278,11 +278,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                Optional shouldFormatOnCommit As Boolean? = Nothing) As Task
             Await WaitForAsynchronousOperationsAsync()
             If isSoftSelected.HasValue Then
-                Assert.Equal(isSoftSelected.Value, Me.CurrentCompletionPresenterSession.IsSoftSelected)
+                Assert.True(isSoftSelected.Value = Me.CurrentCompletionPresenterSession.IsSoftSelected, "Current completion is not soft-selected.")
             End If
 
             If isHardSelected.HasValue Then
-                Assert.Equal(isHardSelected.Value, Not Me.CurrentCompletionPresenterSession.IsSoftSelected)
+                Assert.True(isHardSelected.Value = Not Me.CurrentCompletionPresenterSession.IsSoftSelected, "Current completion is not hard-selected.")
             End If
 
             If displayText IsNot Nothing Then
