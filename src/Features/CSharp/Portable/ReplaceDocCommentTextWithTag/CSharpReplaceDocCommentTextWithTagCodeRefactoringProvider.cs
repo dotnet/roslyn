@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -12,8 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDocCommentTextWithTag
     internal class CSharpReplaceDocCommentTextWithTagCodeRefactoringProvider :
         AbstractReplaceDocCommentTextWithTagCodeRefactoringProvider
     {
-        private static HashSet<string> s_keywords = new HashSet<string>
-        {
+        private static readonly ImmutableHashSet<string> s_triggerKeywords = ImmutableHashSet.Create(
             SyntaxFacts.GetText(SyntaxKind.NullKeyword),
             SyntaxFacts.GetText(SyntaxKind.StaticKeyword),
             SyntaxFacts.GetText(SyntaxKind.VirtualKeyword),
@@ -22,8 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDocCommentTextWithTag
             SyntaxFacts.GetText(SyntaxKind.AbstractKeyword),
             SyntaxFacts.GetText(SyntaxKind.SealedKeyword),
             SyntaxFacts.GetText(SyntaxKind.AsyncKeyword),
-            SyntaxFacts.GetText(SyntaxKind.AwaitKeyword)
-        };
+            SyntaxFacts.GetText(SyntaxKind.AwaitKeyword));
 
         protected override bool IsXmlTextToken(SyntaxToken token)
             => token.Kind() == SyntaxKind.XmlTextLiteralToken ||
@@ -37,9 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDocCommentTextWithTag
         }
 
         protected override bool IsKeyword(string text)
-        {
-            return s_keywords.Contains(text);
-        }
+            => s_triggerKeywords.Contains(text);
 
         protected override SyntaxNode ParseExpression(string text)
             => SyntaxFactory.ParseExpression(text);
