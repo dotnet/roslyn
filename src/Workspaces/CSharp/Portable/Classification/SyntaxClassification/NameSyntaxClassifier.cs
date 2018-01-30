@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             return false;
         }
 
-        static string GetClassificationForField(IFieldSymbol fieldSymbol)
+        private static string GetClassificationForField(IFieldSymbol fieldSymbol)
         {
             if (fieldSymbol.IsConst)
             {
