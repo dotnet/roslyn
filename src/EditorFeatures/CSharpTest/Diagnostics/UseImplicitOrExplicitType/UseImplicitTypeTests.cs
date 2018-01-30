@@ -2209,5 +2209,34 @@ class Program
     delegate object GetHandler();
 }", new TestParameters(options: ImplicitTypeEverywhere()));
         }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        [WorkItem(24262, "https://github.com/dotnet/roslyn/issues/24262")]
+        public async Task DoNotSuggestVarForExplicitInterfaceImplementations()
+        {
+            await TestMissingInRegularAndScriptAsync(@"
+public interface ITest
+{
+    string Value { get; }
+}
+public class TestInstance : ITest
+{
+    string ITest.Value => ""Hi"";
+}
+
+public class Test
+{
+    public TestInstance[] Instances { get; }
+
+    public void TestIt()
+    {
+        foreach ([|ITest|] test in Instances)
+        {
+            Console.WriteLine(test.Value);
+        }
+    }
+}
+", new TestParameters(options: ImplicitTypeEverywhere()));
+        }
     }
 }
