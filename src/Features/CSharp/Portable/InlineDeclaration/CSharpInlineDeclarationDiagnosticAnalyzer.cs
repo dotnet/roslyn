@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
 
             var dataFlow = semanticModel.AnalyzeDataFlow(
                 localStatement.GetNextStatement(),
-                enclosingBlock.Statements[enclosingBlock.Statements.Count - 1]);
+                enclosingBlock.Statements.Last());
             return dataFlow.DataFlowsIn.Contains(outLocalSymbol);
         }
 
@@ -285,15 +285,16 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 // * Using statements
                 // * Fixed statements
                 // * Try statements (specifically for exception filters)
-                if (current.Kind() == SyntaxKind.WhileStatement ||
-                    current.Kind() == SyntaxKind.DoStatement ||
-                    current.Kind() == SyntaxKind.ForStatement ||
-                    current.Kind() == SyntaxKind.ForEachStatement ||
-                    current.Kind() == SyntaxKind.UsingStatement ||
-                    current.Kind() == SyntaxKind.FixedStatement ||
-                    current.Kind() == SyntaxKind.TryStatement)
+                switch (current.Kind())
                 {
-                    return current;
+                    case SyntaxKind.WhileStatement:
+                    case SyntaxKind.DoStatement:
+                    case SyntaxKind.ForStatement:
+                    case SyntaxKind.ForEachStatement:
+                    case SyntaxKind.UsingStatement:
+                    case SyntaxKind.FixedStatement:
+                    case SyntaxKind.TryStatement:
+                        return current;
                 }
 
                 if (current is StatementSyntax)
@@ -351,10 +352,9 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                     break;
                 }
 
-                if (descendentNode.IsKind(SyntaxKind.IdentifierName))
+                if (descendentNode.IsKind(SyntaxKind.IdentifierName, out IdentifierNameSyntax identifierName))
                 {
                     // See if this looks like an accessor to the local variable syntactically.
-                    var identifierName = (IdentifierNameSyntax)descendentNode;
                     if (identifierName.Identifier.ValueText == variableName)
                     {
                         // Confirm that it is a access of the local.
