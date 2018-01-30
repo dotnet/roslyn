@@ -4924,14 +4924,18 @@ class B2<T> : B<T>, IB<T>
 {
 }";
             CreateStandardCompilation(source).VerifyDiagnostics(
-                // (30,7): error CS0425: The constraints for type parameter 'V' of method 'A<T, U>.A1<V>()' must match the constraints for type parameter 'V' of interface method 'IA<T, U>.A1<V>()'. Consider using an explicit interface implementation instead.
-                Diagnostic(ErrorCode.ERR_ImplBadConstraints, "A2").WithArguments("V", "A<T, U>.A1<V>()", "V", "IA<T, U>.A1<V>()").WithLocation(30, 7),
-                // (30,7): error CS0425: The constraints for type parameter 'V' of method 'A<T, U>.A2<V>()' must match the constraints for type parameter 'V' of interface method 'IA<T, U>.A2<V>()'. Consider using an explicit interface implementation instead.
-                Diagnostic(ErrorCode.ERR_ImplBadConstraints, "A2").WithArguments("V", "A<T, U>.A2<V>()", "V", "IA<T, U>.A2<V>()").WithLocation(30, 7),
-                // (36,7): error CS0425: The constraints for type parameter 'U' of method 'B<T>.B1<U>()' must match the constraints for type parameter 'U' of interface method 'IB<T>.B1<U>()'. Consider using an explicit interface implementation instead.
-                Diagnostic(ErrorCode.ERR_ImplBadConstraints, "B2").WithArguments("U", "B<T>.B1<U>()", "U", "IB<T>.B1<U>()").WithLocation(36, 7),
-                // (36,7): error CS0425: The constraints for type parameter 'U' of method 'B<T>.B2<U, V>()' must match the constraints for type parameter 'U' of interface method 'IB<T>.B2<U, V>()'. Consider using an explicit interface implementation instead.
-                Diagnostic(ErrorCode.ERR_ImplBadConstraints, "B2").WithArguments("U", "B<T>.B2<U, V>()", "U", "IB<T>.B2<U, V>()").WithLocation(36, 7));
+                // (30,27): error CS0425: The constraints for type parameter 'V' of method 'A<T, U>.A2<V>()' must match the constraints for type parameter 'V' of interface method 'IA<T, U>.A2<V>()'. Consider using an explicit interface implementation instead.
+                // class A2<T, U> : A<T, U>, IA<T, U>
+                Diagnostic(ErrorCode.ERR_ImplBadConstraints, "IA<T, U>").WithArguments("V", "A<T, U>.A2<V>()", "V", "IA<T, U>.A2<V>()").WithLocation(30, 27),
+                // (30,27): error CS0425: The constraints for type parameter 'V' of method 'A<T, U>.A1<V>()' must match the constraints for type parameter 'V' of interface method 'IA<T, U>.A1<V>()'. Consider using an explicit interface implementation instead.
+                // class A2<T, U> : A<T, U>, IA<T, U>
+                Diagnostic(ErrorCode.ERR_ImplBadConstraints, "IA<T, U>").WithArguments("V", "A<T, U>.A1<V>()", "V", "IA<T, U>.A1<V>()").WithLocation(30, 27),
+                // (36,21): error CS0425: The constraints for type parameter 'U' of method 'B<T>.B2<U, V>()' must match the constraints for type parameter 'U' of interface method 'IB<T>.B2<U, V>()'. Consider using an explicit interface implementation instead.
+                // class B2<T> : B<T>, IB<T>
+                Diagnostic(ErrorCode.ERR_ImplBadConstraints, "IB<T>").WithArguments("U", "B<T>.B2<U, V>()", "U", "IB<T>.B2<U, V>()").WithLocation(36, 21),
+                // (36,21): error CS0425: The constraints for type parameter 'U' of method 'B<T>.B1<U>()' must match the constraints for type parameter 'U' of interface method 'IB<T>.B1<U>()'. Consider using an explicit interface implementation instead.
+                // class B2<T> : B<T>, IB<T>
+                Diagnostic(ErrorCode.ERR_ImplBadConstraints, "IB<T>").WithArguments("U", "B<T>.B1<U>()", "U", "IB<T>.B1<U>()").WithLocation(36, 21));
         }
 
         [Fact]
