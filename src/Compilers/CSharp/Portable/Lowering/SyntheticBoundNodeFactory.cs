@@ -504,7 +504,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundIsOperator Is(BoundExpression operand, TypeSymbol type)
         {
             HashSet<DiagnosticInfo> discarded = null;
-            Conversion c = Compilation.Conversions.ClassifyConversionFromExpression(operand, type, ref discarded);
+            const bool preferBuiltinConversion = true;
+            Conversion c = Compilation.Conversions.ClassifyConversionFromExpression(operand, type, ref discarded, preferBuiltinConversion);
             return new BoundIsOperator(this.Syntax, operand, Type(type), c, SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Boolean)) { WasCompilerGenerated = true };
         }
 
