@@ -362,6 +362,9 @@ function Get-MSBuildDir([switch]$xcopy = $false) {
 
 # Dose this version of Visual Studio meet our minimum requirements for building.
 function Test-SupportedVisualStudioVersion([string]$version) { 
+    # This regex allows us to strip off any pre-release info that gets attached 
+    # to the version string. VS uses NuGet style pre-release by suffing version
+    # with -<pre-release info>
     if (-not ($version -match "^([\d.]+)(\+|-)?.*$")) { 
         return $false
     }
