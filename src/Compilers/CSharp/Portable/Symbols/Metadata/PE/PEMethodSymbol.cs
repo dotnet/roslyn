@@ -583,7 +583,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 var builder = ImmutableArray.CreateBuilder<ParameterSymbol>(count);
                 for (int i = 0; i < count; i++)
                 {
-                    builder.Add(PEParameterSymbol.Create(moduleSymbol, this, i, paramInfo[i + 1], out isBadParameter));
+                    builder.Add(PEParameterSymbol.Create(moduleSymbol, this, i, paramInfo[i + 1], isreturnParam: false, out isBadParameter));
                     if (isBadParameter)
                     {
                         makeBad = true;
@@ -605,7 +605,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             paramInfo[0].Type = returnType;
 
-            var returnParam = PEParameterSymbol.Create(moduleSymbol, this, 0, paramInfo[0], out isBadParameter);
+            var returnParam = PEParameterSymbol.Create(moduleSymbol, this, 0, paramInfo[0], isreturnParam: true, out isBadParameter);
 
             if (makeBad || isBadParameter)
             {

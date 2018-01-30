@@ -69,7 +69,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             var propertyParams = metadataDecoder.GetSignatureForProperty(handle, out callingConvention, out propEx);
             Debug.Assert(propertyParams.Length > 0);
 
-            var isBad = false;
             var returnInfo = propertyParams[0];
             PEPropertySymbol result;
 
@@ -79,8 +78,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
             else
             {
-                result = new PEPropertySymbolWithCustomModifiers(moduleSymbol, containingType, handle, getMethod, setMethod, propertyParams, metadataDecoder, out isBad);
+                result = new PEPropertySymbolWithCustomModifiers(moduleSymbol, containingType, handle, getMethod, setMethod, propertyParams, metadataDecoder);
             }
+
+            // A property should always have this modreq, and vice versa.
+            var isBad = (result.RefKind == RefKind.In) != result.RefCustomModifiers.Any(modifier => !modifier.IsOptional && modifier.Modifier.IsWellKnownTypeInAttribute());
 
             if (propEx != null || isBad)
             {
@@ -732,18 +734,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 PEMethodSymbol getMethod,
                 PEMethodSymbol setMethod,
                 ParamInfo<TypeSymbol>[] propertyParams,
-                MetadataDecoder metadataDecoder,
-                out bool isBad)
-                : base (moduleSymbol, containingType, handle, getMethod, setMethod,
+                MetadataDecoder metadataDecoder)
+                : base(moduleSymbol, containingType, handle, getMethod, setMethod,
                         propertyParams[0].CustomModifiers.NullToEmpty().Length + propertyParams[0].RefCustomModifiers.NullToEmpty().Length,
                         propertyParams, metadataDecoder)
             {
                 var returnInfo = propertyParams[0];
                 _typeCustomModifiers = CSharpCustomModifier.Convert(returnInfo.CustomModifiers);
                 _refCustomModifiers = CSharpCustomModifier.Convert(returnInfo.RefCustomModifiers);
-
-                // The modreq is only accepted on RefReadOnly symbols
-                isBad = this.RefKind != RefKind.RefReadOnly && _refCustomModifiers.Any(modifier => !modifier.IsOptional && modifier.Modifier.IsWellKnownTypeInAttribute());
             }
 
             public override ImmutableArray<CustomModifier> TypeCustomModifiers

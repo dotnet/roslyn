@@ -250,6 +250,769 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             Assert.Equal(0, CustomModifierCount(@class.GetMember<FieldSymbol>("field00")));
         }
 
+        [Fact]
+        public void RejectIsReadOnlySymbolsThatShouldHaveInAttributeModreqButDoNot_Delegates_Parameters()
+        {
+            var reference = CompileIL(@"
+.class public auto ansi sealed D extends [mscorlib]System.MulticastDelegate
+{
+    .method public hidebysig specialname rtspecialname instance void .ctor (object 'object', native int 'method') runtime managed 
+    {
+    }
+    .method public hidebysig newslot virtual instance void Invoke ([in] int32& x) runtime managed 
+    {
+        .param [1]
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = (01 00 00 00)
+    }
+    .method public hidebysig newslot virtual instance class [mscorlib]System.IAsyncResult BeginInvoke ([in] int32& x, class [mscorlib]System.AsyncCallback callback, object 'object') runtime managed 
+    {
+        .param [1]
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = (01 00 00 00)
+    }
+    .method public hidebysig newslot virtual instance void EndInvoke ([in] int32& x, class [mscorlib]System.IAsyncResult result) runtime managed 
+    {
+        .param [1]
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = (01 00 00 00)
+    }
+}");
+
+            CreateStandardCompilation(@"
+class Test
+{
+    void M(D d) => d(0);
+}", references: new[] { reference }).VerifyDiagnostics(
+                // (4,20): error CS0570: 'D.Invoke(in int)' is not supported by the language
+                //     void M(D d) => d(0);
+                Diagnostic(ErrorCode.ERR_BindToBogus, "d(0)").WithArguments("D.Invoke(in int)").WithLocation(4, 20));
+        }
+
+        [Fact]
+        public void RejectIsReadOnlySymbolsThatShouldHaveInAttributeModreqButDoNot_Delegates_Parameters_Modopt()
+        {
+            var reference = CompileIL(@"
+.class public auto ansi sealed D extends [mscorlib]System.MulticastDelegate
+{
+    .method public hidebysig specialname rtspecialname instance void .ctor (object 'object', native int 'method') runtime managed 
+    {
+    }
+    .method public hidebysig newslot virtual instance void Invoke (
+        [in] int32& modopt([mscorlib]System.Runtime.InteropServices.InAttribute) x
+    ) runtime managed 
+    {
+        .param [1]
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = (01 00 00 00)
+    }
+    .method public hidebysig newslot virtual instance class [mscorlib]System.IAsyncResult BeginInvoke (
+        [in] int32& modopt([mscorlib]System.Runtime.InteropServices.InAttribute) x,
+        class [mscorlib]System.AsyncCallback callback,
+        object 'object'
+    ) runtime managed 
+    {
+        .param [1]
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = (01 00 00 00)
+    }
+    .method public hidebysig newslot virtual instance void EndInvoke (
+        [in] int32& modopt([mscorlib]System.Runtime.InteropServices.InAttribute) x,
+        class [mscorlib]System.IAsyncResult result
+    ) runtime managed 
+    {
+        .param [1]
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = (01 00 00 00)
+    }
+}");
+
+            CreateStandardCompilation(@"
+class Test
+{
+    void M(D d) => d(0);
+}", references: new[] { reference }).VerifyDiagnostics(
+                // (4,20): error CS0570: 'D.Invoke(in int)' is not supported by the language
+                //     void M(D d) => d(0);
+                Diagnostic(ErrorCode.ERR_BindToBogus, "d(0)").WithArguments("D.Invoke(in int)").WithLocation(4, 20));
+        }
+
+        [Fact]
+        public void RejectIsReadOnlySymbolsThatShouldHaveInAttributeModreqButDoNot_Delegates_ReturnTypes()
+        {
+            var reference = CompileIL(@"
+.class public auto ansi sealed D extends [mscorlib]System.MulticastDelegate
+{
+    .method public hidebysig specialname rtspecialname instance void .ctor (object 'object', native int 'method') runtime managed 
+    {
+    }
+    .method public hidebysig newslot virtual instance int32& Invoke () runtime managed 
+    {
+        .param [0]
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = (01 00 00 00)
+    }
+    .method public hidebysig newslot virtual instance class [mscorlib]System.IAsyncResult BeginInvoke (class [mscorlib]System.AsyncCallback callback, object 'object') runtime managed 
+    {
+    }
+    .method public hidebysig newslot virtual instance int32& EndInvoke (class [mscorlib]System.IAsyncResult result) runtime managed 
+    {
+        .param [0]
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = (01 00 00 00)
+    }
+}");
+
+            var c = CreateStandardCompilation(@"
+class Test
+{
+    ref readonly int M(D d) => ref d();
+}", references: new[] { reference }).VerifyDiagnostics(
+                // (4,36): error CS0570: 'D.Invoke()' is not supported by the language
+                //     ref readonly int M(D d) => ref d();
+                Diagnostic(ErrorCode.ERR_BindToBogus, "d()").WithArguments("D.Invoke()").WithLocation(4, 36));
+        }
+
+        [Fact]
+        public void RejectIsReadOnlySymbolsThatShouldHaveInAttributeModreqButDoNot_Delegates_ReturnTypes_Modopt()
+        {
+            var reference = CompileIL(@"
+.class public auto ansi sealed D extends [mscorlib]System.MulticastDelegate
+{
+    .method public hidebysig specialname rtspecialname instance void .ctor (object 'object', native int 'method') runtime managed 
+    {
+    }
+    .method public hidebysig newslot virtual instance int32& modopt([mscorlib]System.Runtime.InteropServices.InAttribute) Invoke () runtime managed 
+    {
+        .param [0]
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = (01 00 00 00)
+    }
+    .method public hidebysig newslot virtual instance class [mscorlib]System.IAsyncResult BeginInvoke (class [mscorlib]System.AsyncCallback callback, object 'object') runtime managed 
+    {
+    }
+    .method public hidebysig newslot virtual instance int32& modopt([mscorlib]System.Runtime.InteropServices.InAttribute) EndInvoke (class [mscorlib]System.IAsyncResult result) runtime managed 
+    {
+        .param [0]
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = (01 00 00 00)
+    }
+}");
+
+            CreateStandardCompilation(@"
+class Test
+{
+    ref readonly int M(D d) => ref d();
+}", references: new[] { reference }).VerifyDiagnostics(
+                // (4,36): error CS0570: 'D.Invoke()' is not supported by the language
+                //     ref readonly int M(D d) => ref d();
+                Diagnostic(ErrorCode.ERR_BindToBogus, "d()").WithArguments("D.Invoke()").WithLocation(4, 36));
+        }
+
+        [Fact]
+        public void RejectIsReadOnlySymbolsThatShouldHaveInAttributeModreqButDoNot_Properties()
+        {
+            var reference = CompileIL(@"
+.class public auto ansi beforefieldinit RefTest extends [mscorlib]System.Object
+{
+    .method public hidebysig specialname instance int32& get_X () cil managed 
+    {
+        .param [0]
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = (01 00 00 00)
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: ret
+    }
+
+    .property instance int32& X()
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = (01 00 00 00)
+        .get instance int32& RefTest::get_X()
+    }
+}");
+
+            CreateStandardCompilation(@"
+class Test
+{
+    public ref readonly int M(RefTest obj) => ref obj.X;
+}", references: new[] { reference }).VerifyDiagnostics(
+                // (4,55): error CS0570: 'RefTest.X' is not supported by the language
+                //     public ref readonly int M(RefTest obj) => ref obj.X;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "X").WithArguments("RefTest.X").WithLocation(4, 55));
+        }
+
+        [Fact]
+        public void RejectIsReadOnlySymbolsThatShouldHaveInAttributeModreqButDoNot_Properties_ModOpt()
+        {
+            var reference = CompileIL(@"
+.class public auto ansi beforefieldinit RefTest extends [mscorlib]System.Object
+{
+    .method public hidebysig specialname instance int32& modopt([mscorlib]System.Runtime.InteropServices.InAttribute) get_X () cil managed 
+    {
+        .param [0]
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = (01 00 00 00)
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: ret
+    }
+
+    .property instance int32& modopt([mscorlib]System.Runtime.InteropServices.InAttribute) X()
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = (01 00 00 00)
+        .get instance int32& modopt([mscorlib]System.Runtime.InteropServices.InAttribute) RefTest::get_X()
+    }
+}");
+
+            CreateStandardCompilation(@"
+class Test
+{
+    public ref readonly int M(RefTest obj) => ref obj.X;
+}", references: new[] { reference }).VerifyDiagnostics(
+                // (4,55): error CS0570: 'RefTest.X' is not supported by the language
+                //     public ref readonly int M(RefTest obj) => ref obj.X;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "X").WithArguments("RefTest.X").WithLocation(4, 55));
+        }
+
+        [Fact]
+        public void RejectIsReadOnlySymbolsThatShouldHaveInAttributeModreqButDoNot_Method_Parameters_Virtual()
+        {
+            var reference = CompileIL(@"
+.class public auto ansi beforefieldinit RefTest extends [mscorlib]System.Object
+{
+    .method public hidebysig newslot virtual instance void M ([in] int32& x) cil managed 
+    {
+        .param [1]
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = (01 00 00 00)
+        .maxstack 8
+
+        IL_0000: ret
+    }
+
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: ret
+    }
+}");
+
+            CreateStandardCompilation(@"
+class Test
+{
+    public int M(RefTest obj) => obj.M(0);
+}", references: new[] { reference }).VerifyDiagnostics(
+                // (4,38): error CS0570: 'RefTest.M(in int)' is not supported by the language
+                //     public int M(RefTest obj) => obj.M(0);
+                Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("RefTest.M(in int)").WithLocation(4, 38));
+        }
+
+        [Fact]
+        public void RejectIsReadOnlySymbolsThatShouldHaveInAttributeModreqButDoNot_Method_Parameters_Virtual_ModOpt()
+        {
+            var reference = CompileIL(@"
+.class public auto ansi beforefieldinit RefTest extends [mscorlib]System.Object
+{
+    .method public hidebysig newslot virtual instance void M ([in] int32& modopt([mscorlib]System.Runtime.InteropServices.InAttribute) x) cil managed 
+    {
+        .param [1]
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = (01 00 00 00)
+        .maxstack 8
+
+        IL_0000: ret
+    }
+
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: ret
+    }
+}");
+
+            CreateStandardCompilation(@"
+class Test
+{
+    public int M(RefTest obj) => obj.M(0);
+}", references: new[] { reference }).VerifyDiagnostics(
+                // (4,38): error CS0570: 'RefTest.M(in int)' is not supported by the language
+                //     public int M(RefTest obj) => obj.M(0);
+                Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("RefTest.M(in int)").WithLocation(4, 38));
+        }
+
+        [Fact]
+        public void RejectIsReadOnlySymbolsThatShouldHaveInAttributeModreqButDoNot_Method_Parameters_Abstract()
+        {
+            var reference = CompileIL(@"
+.class public auto ansi abstract beforefieldinit RefTest extends [mscorlib]System.Object
+{
+    .method public hidebysig newslot abstract virtual instance void M ([in] int32& x) cil managed 
+    {
+        .param [1]
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = (01 00 00 00)
+    }
+
+    .method family hidebysig specialname rtspecialname instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: ret
+    }
+}");
+
+            CreateStandardCompilation(@"
+class Test
+{
+    public int M(RefTest obj) => obj.M(0);
+}", references: new[] { reference }).VerifyDiagnostics(
+                // (4,38): error CS0570: 'RefTest.M(in int)' is not supported by the language
+                //     public int M(RefTest obj) => obj.M(0);
+                Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("RefTest.M(in int)").WithLocation(4, 38));
+        }
+
+        [Fact]
+        public void RejectIsReadOnlySymbolsThatShouldHaveInAttributeModreqButDoNot_Method_Parameters_Abstract_ModOpt()
+        {
+            var reference = CompileIL(@"
+.class public auto ansi abstract beforefieldinit RefTest extends [mscorlib]System.Object
+{
+    .method public hidebysig newslot abstract virtual instance void M ([in] int32& modopt([mscorlib]System.Runtime.InteropServices.InAttribute) x) cil managed 
+    {
+        .param [1]
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = (01 00 00 00)
+    }
+
+    .method family hidebysig specialname rtspecialname instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: ret
+    }
+}");
+
+            CreateStandardCompilation(@"
+class Test
+{
+    public int M(RefTest obj) => obj.M(0);
+}", references: new[] { reference }).VerifyDiagnostics(
+                // (4,38): error CS0570: 'RefTest.M(in int)' is not supported by the language
+                //     public int M(RefTest obj) => obj.M(0);
+                Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("RefTest.M(in int)").WithLocation(4, 38));
+        }
+
+        [Fact]
+        public void RejectIsReadOnlySymbolsThatShouldHaveInAttributeModreqButDoNot_Indexers_Parameters_Abstract()
+        {
+            var reference = CompileIL(@"
+.class public auto ansi abstract beforefieldinit RefTest extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (01 00 04 49 74 65 6d 00 00)
+
+    .method public hidebysig specialname newslot abstract virtual instance int32 get_Item ([in] int32&  x) cil managed 
+    {
+        .param [1]
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = (01 00 00 00)
+    }
+
+    .method public hidebysig specialname newslot abstract virtual instance void set_Item ([in] int32& x, int32 'value') cil managed 
+    {
+        .param [1]
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = (01 00 00 00)
+    }
+
+    .method family hidebysig specialname rtspecialname instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: ret
+    }
+
+    .property instance int32 Item([in] int32& x)
+    {
+        .get instance int32 RefTest::get_Item(int32&)
+        .set instance void RefTest::set_Item(int32&, int32)
+    }
+}");
+
+            CreateStandardCompilation(@"
+public class Test
+{
+    public void M(RefTest obj)
+    {
+        obj[0] = obj[1];
+    }
+}", references: new[] { reference }).VerifyDiagnostics(
+                // (6,9): error CS0570: 'RefTest.this[in int]' is not supported by the language
+                //         obj[0] = obj[1];
+                Diagnostic(ErrorCode.ERR_BindToBogus, "obj[0]").WithArguments("RefTest.this[in int]").WithLocation(6, 9),
+                // (6,18): error CS0570: 'RefTest.this[in int]' is not supported by the language
+                //         obj[0] = obj[1];
+                Diagnostic(ErrorCode.ERR_BindToBogus, "obj[1]").WithArguments("RefTest.this[in int]").WithLocation(6, 18));
+        }
+
+        [Fact]
+        public void RejectIsReadOnlySymbolsThatShouldHaveInAttributeModreqButDoNot_Indexers_Parameters_Abstract_ModOpt()
+        {
+            var reference = CompileIL(@"
+.class public auto ansi abstract beforefieldinit RefTest extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (01 00 04 49 74 65 6d 00 00)
+
+    .method public hidebysig specialname newslot abstract virtual instance int32 get_Item ([in] int32& modopt([mscorlib]System.Runtime.InteropServices.InAttribute) x) cil managed 
+    {
+        .param [1]
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = (01 00 00 00)
+    }
+
+    .method public hidebysig specialname newslot abstract virtual instance void set_Item ([in] int32& modopt([mscorlib]System.Runtime.InteropServices.InAttribute) x, int32 'value') cil managed 
+    {
+        .param [1]
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = (01 00 00 00)
+    }
+
+    .method family hidebysig specialname rtspecialname instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: ret
+    }
+
+    .property instance int32 Item([in] int32& modopt([mscorlib]System.Runtime.InteropServices.InAttribute) x)
+    {
+        .get instance int32 RefTest::get_Item(int32& modopt([mscorlib]System.Runtime.InteropServices.InAttribute))
+        .set instance void RefTest::set_Item(int32& modopt([mscorlib]System.Runtime.InteropServices.InAttribute), int32)
+    }
+}");
+
+            CreateStandardCompilation(@"
+public class Test
+{
+    public void M(RefTest obj)
+    {
+        obj[0] = obj[1];
+    }
+}", references: new[] { reference }).VerifyDiagnostics(
+                // (6,9): error CS0570: 'RefTest.this[in int]' is not supported by the language
+                //         obj[0] = obj[1];
+                Diagnostic(ErrorCode.ERR_BindToBogus, "obj[0]").WithArguments("RefTest.this[in int]").WithLocation(6, 9),
+                // (6,18): error CS0570: 'RefTest.this[in int]' is not supported by the language
+                //         obj[0] = obj[1];
+                Diagnostic(ErrorCode.ERR_BindToBogus, "obj[1]").WithArguments("RefTest.this[in int]").WithLocation(6, 18));
+        }
+
+        [Fact]
+        public void RejectIsReadOnlySymbolsThatShouldHaveInAttributeModreqButDoNot_Indexers_Parameters_Virtual()
+        {
+            var reference = CompileIL(@"
+.class public auto ansi beforefieldinit RefTest extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (01 00 04 49 74 65 6d 00 00)
+
+    .method public hidebysig specialname newslot virtual instance int32 get_Item ([in] int32& x) cil managed 
+    {
+        .param [1]
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = (01 00 00 00)
+        .maxstack 8
+
+        IL_0000: ldc.i4.0
+        IL_0001: ret
+    }
+
+    .method public hidebysig specialname newslot virtual instance void set_Item ([in] int32& x, int32 'value') cil managed 
+    {
+        .param [1]
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = (01 00 00 00)
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: ret
+    }
+
+    .property instance int32 Item([in] int32& x)
+    {
+        .get instance int32 RefTest::get_Item(int32&)
+        .set instance void RefTest::set_Item(int32&, int32)
+    }
+}");
+
+            CreateStandardCompilation(@"
+public class Test
+{
+    public void M(RefTest obj)
+    {
+        obj[0] = obj[1];
+    }
+}", references: new[] { reference }).VerifyDiagnostics(
+                // (6,9): error CS0570: 'RefTest.this[in int]' is not supported by the language
+                //         obj[0] = obj[1];
+                Diagnostic(ErrorCode.ERR_BindToBogus, "obj[0]").WithArguments("RefTest.this[in int]").WithLocation(6, 9),
+                // (6,18): error CS0570: 'RefTest.this[in int]' is not supported by the language
+                //         obj[0] = obj[1];
+                Diagnostic(ErrorCode.ERR_BindToBogus, "obj[1]").WithArguments("RefTest.this[in int]").WithLocation(6, 18));
+        }
+
+        [Fact]
+        public void RejectIsReadOnlySymbolsThatShouldHaveInAttributeModreqButDoNot_Indexers_Parameters_Virtual_ModOpt()
+        {
+            var reference = CompileIL(@"
+.class public auto ansi beforefieldinit RefTest extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (01 00 04 49 74 65 6d 00 00)
+
+    .method public hidebysig specialname newslot virtual instance int32 get_Item ([in] int32& modopt([mscorlib]System.Runtime.InteropServices.InAttribute) x) cil managed 
+    {
+        .param [1]
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = (01 00 00 00)
+        .maxstack 8
+
+        IL_0000: ldc.i4.0
+        IL_0001: ret
+    }
+
+    .method public hidebysig specialname newslot virtual instance void set_Item ([in] int32& modopt([mscorlib]System.Runtime.InteropServices.InAttribute) x, int32 'value') cil managed 
+    {
+        .param [1]
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = (01 00 00 00)
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: ret
+    }
+
+    .property instance int32 Item([in] int32& modopt([mscorlib]System.Runtime.InteropServices.InAttribute) x)
+    {
+        .get instance int32 RefTest::get_Item(int32& modopt([mscorlib]System.Runtime.InteropServices.InAttribute))
+        .set instance void RefTest::set_Item(int32& modopt([mscorlib]System.Runtime.InteropServices.InAttribute), int32)
+    }
+}");
+
+            CreateStandardCompilation(@"
+public class Test
+{
+    public void M(RefTest obj)
+    {
+        obj[0] = obj[1];
+    }
+}", references: new[] { reference }).VerifyDiagnostics(
+                // (6,9): error CS0570: 'RefTest.this[in int]' is not supported by the language
+                //         obj[0] = obj[1];
+                Diagnostic(ErrorCode.ERR_BindToBogus, "obj[0]").WithArguments("RefTest.this[in int]").WithLocation(6, 9),
+                // (6,18): error CS0570: 'RefTest.this[in int]' is not supported by the language
+                //         obj[0] = obj[1];
+                Diagnostic(ErrorCode.ERR_BindToBogus, "obj[1]").WithArguments("RefTest.this[in int]").WithLocation(6, 18));
+        }
+
+        [Fact]
+        public void RejectIsReadOnlySymbolsThatShouldHaveInAttributeModreqButDoNot_Indexers_ReturnType()
+        {
+            var reference = CompileIL(@"
+.class public auto ansi beforefieldinit RefTest extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (01 00 04 49 74 65 6d 00 00)
+
+    .method public hidebysig specialname instance int32& get_Item (int32 x) cil managed 
+    {
+        .param [0]
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = (01 00 00 00)
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: ret
+    }
+
+    .property instance int32& Item(int32 x)
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = (01 00 00 00)
+        .get instance int32& RefTest::get_Item(int32)
+    }
+}");
+
+            CreateStandardCompilation(@"
+public class Test
+{
+    public void M(RefTest obj)
+    {
+        ref readonly int x = ref obj[0];
+    }
+}", references: new[] { reference }).VerifyDiagnostics(
+                // (6,34): error CS0570: 'RefTest.this[int]' is not supported by the language
+                //         ref readonly int x = ref obj[0];
+                Diagnostic(ErrorCode.ERR_BindToBogus, "obj[0]").WithArguments("RefTest.this[int]").WithLocation(6, 34));
+        }
+
+        [Fact]
+        public void RejectIsReadOnlySymbolsThatShouldHaveInAttributeModreqButDoNot_Indexers_ReturnType_ModOpt()
+        {
+            var reference = CompileIL(@"
+.class public auto ansi beforefieldinit RefTest extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (01 00 04 49 74 65 6d 00 00)
+
+    .method public hidebysig specialname instance int32& modopt([mscorlib]System.Runtime.InteropServices.InAttribute) get_Item (int32 x) cil managed 
+    {
+        .param [0]
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = (01 00 00 00)
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: ret
+    }
+
+    .property instance int32& modopt([mscorlib]System.Runtime.InteropServices.InAttribute) Item(int32 x)
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = (01 00 00 00)
+        .get instance int32& modopt([mscorlib]System.Runtime.InteropServices.InAttribute) RefTest::get_Item(int32)
+    }
+}");
+
+            CreateStandardCompilation(@"
+public class Test
+{
+    public void M(RefTest obj)
+    {
+        ref readonly int x = ref obj[0];
+    }
+}", references: new[] { reference }).VerifyDiagnostics(
+                // (6,34): error CS0570: 'RefTest.this[int]' is not supported by the language
+                //         ref readonly int x = ref obj[0];
+                Diagnostic(ErrorCode.ERR_BindToBogus, "obj[0]").WithArguments("RefTest.this[int]").WithLocation(6, 34));
+        }
+
+        [Fact]
+        public void RejectIsReadOnlySymbolsThatShouldHaveInAttributeModreqButDoNot_Methods_ReturnType()
+        {
+            var reference = CompileIL(@"
+.class public auto ansi beforefieldinit RefTest extends [mscorlib]System.Object
+{
+    .method public hidebysig instance int32& M () cil managed 
+    {
+        .param [0]
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = (01 00 00 00)
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: ret
+    }
+}");
+
+            CreateStandardCompilation(@"
+public class Test
+{
+    public void M(RefTest obj)
+    {
+        ref readonly int x = ref obj.M();
+    }
+}", references: new[] { reference }).VerifyDiagnostics(
+                // (6,38): error CS0570: 'RefTest.M()' is not supported by the language
+                //         ref readonly int x = ref obj.M();
+                Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("RefTest.M()").WithLocation(6, 38));
+        }
+
+        [Fact]
+        public void RejectIsReadOnlySymbolsThatShouldHaveInAttributeModreqButDoNot_Methods_ReturnType_ModOpt()
+        {
+            var reference = CompileIL(@"
+.class public auto ansi beforefieldinit RefTest extends [mscorlib]System.Object
+{
+    .method public hidebysig instance int32& modopt([mscorlib]System.Runtime.InteropServices.InAttribute) M () cil managed 
+    {
+        .param [0]
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = (01 00 00 00)
+        .maxstack 8
+
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: ret
+    }
+}");
+
+            CreateStandardCompilation(@"
+public class Test
+{
+    public void M(RefTest obj)
+    {
+        ref readonly int x = ref obj.M();
+    }
+}", references: new[] { reference }).VerifyDiagnostics(
+                // (6,38): error CS0570: 'RefTest.M()' is not supported by the language
+                //         ref readonly int x = ref obj.M();
+                Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("RefTest.M()").WithLocation(6, 38));
+        }
+
         /// <summary>
         /// Count the number of custom modifiers in/on the type
         /// of the specified field.

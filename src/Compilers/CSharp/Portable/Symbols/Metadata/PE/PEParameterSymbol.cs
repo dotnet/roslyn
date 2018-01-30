@@ -143,10 +143,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             PEModuleSymbol moduleSymbol,
             PEMethodSymbol containingSymbol,
             int ordinal,
-            ParamInfo<TypeSymbol> parameter,
+            ParamInfo<TypeSymbol> parameterInfo,
+            bool isreturnParam,
             out bool isBad)
         {
-            return Create(moduleSymbol, containingSymbol, ordinal, parameter.IsByRef, parameter.RefCustomModifiers, parameter.Type, parameter.Handle, parameter.CustomModifiers, out isBad);
+            var parameter = Create(moduleSymbol, containingSymbol, ordinal, parameterInfo.IsByRef, parameterInfo.RefCustomModifiers, parameterInfo.Type, parameterInfo.Handle, parameterInfo.CustomModifiers, out isBad);
+            var inAttributeModreq = parameter.RefCustomModifiers.Any(modifier => !modifier.IsOptional && modifier.Modifier.IsWellKnownTypeInAttribute());
+
+            if (isreturnParam)
+            {
+                // A return parameter of type In should always have this modreq, and vice versa.
+                isBad |= (parameter.RefKind == RefKind.RefReadOnly) != inAttributeModreq;
+            }
+            else if (parameter.RefKind == RefKind.In)
+            {
+                // An in parameter should not have this modreq, unless the method was virtual or abstract.
+                isBad |= (containingSymbol.IsVirtual || containingSymbol.IsAbstract) != inAttributeModreq;
+            }
+            else if (inAttributeModreq)
+            {
+                // This modreq should not exist on non-in parameters.
+                isBad = true;
+            }
+
+            return parameter;
         }
 
         /// <summary>
@@ -158,17 +178,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// <param name="handle">The property parameter doesn't have a name in metadata,
         /// so this is the handle of a corresponding accessor parameter, if there is one,
         /// or of the ParamInfo passed in, otherwise).</param>
+        /// <param name="parameterInfo" />
         /// <param name="isBad" />
-        /// <param name="parameter"></param>
         internal static PEParameterSymbol Create(
             PEModuleSymbol moduleSymbol,
             PEPropertySymbol containingSymbol,
             int ordinal,
             ParameterHandle handle,
-            ParamInfo<TypeSymbol> parameter,
+            ParamInfo<TypeSymbol> parameterInfo,
             out bool isBad)
         {
-            return Create(moduleSymbol, containingSymbol, ordinal, parameter.IsByRef, parameter.RefCustomModifiers, parameter.Type, handle, parameter.CustomModifiers, out isBad);
+            var parameter = Create(moduleSymbol, containingSymbol, ordinal, parameterInfo.IsByRef, parameterInfo.RefCustomModifiers, parameterInfo.Type, handle, parameterInfo.CustomModifiers, out isBad);
+            var inAttributeModreq = parameter.RefCustomModifiers.Any(modifier => !modifier.IsOptional && modifier.Modifier.IsWellKnownTypeInAttribute());
+
+            if (parameter.RefKind == RefKind.In)
+            {
+                // An in parameter should not have this modreq, unless the method was virtual or abstract.
+                isBad |= (containingSymbol.IsVirtual || containingSymbol.IsAbstract) != inAttributeModreq;
+            }
+            else if (inAttributeModreq)
+            {
+                // This modreq should not exist on non-in parameters.
+                isBad = true;
+            }
+
+            return parameter;
         }
 
         private PEParameterSymbol(
@@ -303,12 +337,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 _customModifiers = CSharpCustomModifier.Convert(customModifiers);
                 _refCustomModifiers = CSharpCustomModifier.Convert(refCustomModifiers);
-
-                if (this.RefKind != RefKind.In && _refCustomModifiers.Any(modifier => !modifier.IsOptional && modifier.Modifier.IsWellKnownTypeInAttribute()))
-                {
-                    // The modreq is only accepted on RefReadOnly symbols
-                    isBad = true;
-                }
 
                 Debug.Assert(_refCustomModifiers.IsEmpty || isByRef);
             }
