@@ -229,8 +229,11 @@ End Namespace
             dict.Add("1", Nothing)
             Dim compilation = CreateCompilation(String.Empty, parseOptions:=New VisualBasicParseOptions().WithPreprocessorSymbols(dict))
 
+            Dim conditionalCompilationConstantNotValidFormat = VBResources.ResourceManager.GetString(
+                NameOf(ERR_ConditionalCompilationConstantNotValid),
+                EnsureEnglishUICulture.PreferredOrNull)
             CompilationUtils.AssertTheseDiagnostics(compilation, <errors>
-BC31030: Conditional compilation constant '1' is not valid: Identifier expected.
+BC31030: <%= String.Format(conditionalCompilationConstantNotValidFormat, VBResources.ERR_ExpectedIdentifier, "1") %>
 
 ~
 </errors>)
@@ -288,15 +291,18 @@ BC37286: Provided documentation mode is unsupported or invalid: '100'.
             Dim compilation = CreateCompilationWithMscorlib({syntaxTree1, syntaxTree2, syntaxTree3}, options:=options)
             Dim diagnostics = compilation.GetDiagnostics()
 
+            Dim conditionalCompilationConstantNotValidFormat = VBResources.ResourceManager.GetString(
+                NameOf(ERR_ConditionalCompilationConstantNotValid),
+                EnsureEnglishUICulture.PreferredOrNull)
             CompilationUtils.AssertTheseDiagnostics(diagnostics,
 <errors>
-BC31030: Conditional compilation constant '1' is not valid: Identifier expected.
+BC31030: <%= String.Format(conditionalCompilationConstantNotValidFormat, VBResources.ERR_ExpectedIdentifier, "1") %>
 
 ~
-BC31030: Conditional compilation constant '2' is not valid: Identifier expected.
+BC31030: <%= String.Format(conditionalCompilationConstantNotValidFormat, VBResources.ERR_ExpectedIdentifier, "2") %>
 
 ~
-BC31030: Conditional compilation constant '3' is not valid: Identifier expected.
+BC31030: <%= String.Format(conditionalCompilationConstantNotValidFormat, VBResources.ERR_ExpectedIdentifier, "3") %>
 
 ~
 </errors>)
@@ -324,12 +330,15 @@ BC31030: Conditional compilation constant '3' is not valid: Identifier expected.
             Dim compilation = CreateCompilationWithMscorlib({syntaxTree1, syntaxTree2, syntaxTree3}, options:=options)
             Dim diagnostics = compilation.GetDiagnostics()
 
+            Dim conditionalCompilationConstantNotValidFormat = VBResources.ResourceManager.GetString(
+                NameOf(ERR_ConditionalCompilationConstantNotValid),
+                EnsureEnglishUICulture.PreferredOrNull)
             CompilationUtils.AssertTheseDiagnostics(diagnostics,
 <errors>
-BC31030: Conditional compilation constant '1' is not valid: Identifier expected.
+BC31030: <%= String.Format(conditionalCompilationConstantNotValidFormat, VBResources.ERR_ExpectedIdentifier, "1") %>
 
 ~
-BC31030: Conditional compilation constant '2' is not valid: Identifier expected.
+BC31030: <%= String.Format(conditionalCompilationConstantNotValidFormat, VBResources.ERR_ExpectedIdentifier, "2") %>
 
 ~
 </errors>)
@@ -355,18 +364,21 @@ BC31030: Conditional compilation constant '2' is not valid: Identifier expected.
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime({syntaxTree1, syntaxTree2}, options:=options)
             Dim diagnostics = compilation.GetDiagnostics()
 
+            Dim conditionalCompilationConstantNotValidFormat = VBResources.ResourceManager.GetString(
+                NameOf(ERR_ConditionalCompilationConstantNotValid),
+                EnsureEnglishUICulture.PreferredOrNull)
             CompilationUtils.AssertTheseDiagnostics(diagnostics,
 <errors>
-BC31030: Conditional compilation constant '1' is not valid: Identifier expected.
-BC31030: Conditional compilation constant '2' is not valid: Identifier expected.
+BC31030: <%= String.Format(conditionalCompilationConstantNotValidFormat, VBResources.ERR_ExpectedIdentifier, "1") %>
+BC31030: <%= String.Format(conditionalCompilationConstantNotValidFormat, VBResources.ERR_ExpectedIdentifier, "2") %>
 
 ~
 </errors>)
 
-            Assert.Equal(diagnostics(0).Arguments, {"Identifier expected.", "2"})
+            Assert.Equal(diagnostics(0).Arguments, {VBResources.ERR_ExpectedIdentifier, "2"})
             Assert.True(diagnostics(0).Location.SourceTree.Equals(syntaxTree2)) ' Syntax tree parse options are reported in CompilationStage.Parse
 
-            Assert.Equal(diagnostics(1).Arguments, {"Identifier expected.", "1"})
+            Assert.Equal(diagnostics(1).Arguments, {VBResources.ERR_ExpectedIdentifier, "1"})
             Assert.Null(diagnostics(1).Location.SourceTree) ' Compilation parse options are reported in CompilationStage.Declare
         End Sub
 
@@ -382,9 +394,12 @@ BC31030: Conditional compilation constant '2' is not valid: Identifier expected.
 
             Dim options = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, parseOptions:=parseOptions1)
 
+            Dim conditionalCompilationConstantNotValidFormat = VBResources.ResourceManager.GetString(
+                NameOf(ERR_ConditionalCompilationConstantNotValid),
+                EnsureEnglishUICulture.PreferredOrNull)
             CompilationUtils.AssertTheseDiagnostics(options.Errors,
 <errors>
-BC31030: Conditional compilation constant '1' is not valid: Identifier expected.
+BC31030: <%= String.Format(conditionalCompilationConstantNotValidFormat, VBResources.ERR_ExpectedIdentifier, "1") %>
 </errors>)
 
             Dim syntaxTree = Parse(String.Empty, options:=parseOptions2)
@@ -393,16 +408,16 @@ BC31030: Conditional compilation constant '1' is not valid: Identifier expected.
 
             CompilationUtils.AssertTheseDiagnostics(diagnostics,
 <errors>
-BC31030: Conditional compilation constant '1' is not valid: Identifier expected.
-BC31030: Conditional compilation constant '2' is not valid: Identifier expected.
+BC31030: <%= String.Format(conditionalCompilationConstantNotValidFormat, VBResources.ERR_ExpectedIdentifier, "1") %>
+BC31030: <%= String.Format(conditionalCompilationConstantNotValidFormat, VBResources.ERR_ExpectedIdentifier, "2") %>
 
 ~
 </errors>)
 
-            Assert.Equal(diagnostics(0).Arguments, {"Identifier expected.", "2"})
+            Assert.Equal(diagnostics(0).Arguments, {VBResources.ERR_ExpectedIdentifier, "2"})
             Assert.True(diagnostics(0).Location.SourceTree.Equals(syntaxTree)) ' Syntax tree parse options are reported in CompilationStage.Parse
 
-            Assert.Equal(diagnostics(1).Arguments, {"Identifier expected.", "1"})
+            Assert.Equal(diagnostics(1).Arguments, {VBResources.ERR_ExpectedIdentifier, "1"})
             Assert.Null(diagnostics(1).Location.SourceTree) ' Compilation parse options are reported in CompilationStage.Declare
         End Sub
 

@@ -348,9 +348,12 @@ End Namespace
 
             Dim result = c.Emit(stream, options:=options)
 
+            Dim nameCannotStartWithWhitespace = CodeAnalysisResources.ResourceManager.GetString(
+                NameOf(CodeAnalysisResources.NameCannotStartWithWhitespace),
+                EnsureEnglishUICulture.PreferredOrNull)
             result.Diagnostics.Verify(
                 Diagnostic(ERRID.ERR_InvalidDebugInformationFormat).WithArguments("-1"),
-                Diagnostic(ERRID.ERR_InvalidOutputName).WithArguments(CodeAnalysisResources.NameCannotStartWithWhitespace),
+                Diagnostic(ERRID.ERR_InvalidOutputName).WithArguments(nameCannotStartWithWhitespace),
                 Diagnostic(ERRID.ERR_InvalidFileAlignment).WithArguments("513"),
                 Diagnostic(ERRID.ERR_InvalidSubsystemVersion).WithArguments("1000000.-1000000"))
 
@@ -1360,7 +1363,7 @@ BC2014: the value '_' is invalid for option 'RootNamespace'
         End Sub
 
         <Fact>
-        Public sub CreateAnonymousType_IncorrectLengths_Locations()
+        Public Sub CreateAnonymousType_IncorrectLengths_Locations()
             Dim Compilation = VisualBasicCompilation.Create("HelloWorld")
             Assert.Throws(Of ArgumentException)(
                 Sub()
