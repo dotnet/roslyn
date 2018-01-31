@@ -27,11 +27,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             IGlyphService glyphService,
             SVsServiceProvider serviceProvider,
             CodeAnalysis.Workspace workspace,
-            IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
+            IAsynchronousOperationListenerProvider listenerProvider)
         {
             _glyphService = glyphService;
             _serviceProvider = serviceProvider;
-            var asyncListener = new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.GraphProvider);
+            var asyncListener = listenerProvider.GetListener(FeatureAttribute.GraphProvider);
             _graphQueryManager = new GraphQueryManager(workspace, asyncListener);
         }
 
