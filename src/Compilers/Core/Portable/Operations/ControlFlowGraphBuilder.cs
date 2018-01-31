@@ -290,6 +290,15 @@ namespace Microsoft.CodeAnalysis.Operations
             return new SimpleAssignmentExpression(_evalStack.Pop(), operation.IsRef, value, null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
+        public override IOperation VisitCompoundAssignment(ICompoundAssignmentOperation operation, int? captureIdForResult)
+        {
+            var compoundAssignment = (BaseCompoundAssignmentExpression)operation;
+            _evalStack.Push(Visit(compoundAssignment.Target));
+            IOperation value = Visit(compoundAssignment.Value);
+
+            return new CompoundAssignmentOperation(_evalStack.Pop(), value, compoundAssignment.InConversionConvertible, compoundAssignment.OutConversionConvertible, operation.OperatorKind, operation.IsLifted, operation.IsChecked, operation.OperatorMethod, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+        }
+
         // PROTOTYPE(dataflow):
         //public override IOperation VisitArrayElementReference(IArrayElementReferenceOperation operation, int? captureIdForResult)
         //{
@@ -882,12 +891,6 @@ oneMoreTime:
         internal override IOperation VisitPlaceholder(IPlaceholderOperation operation, int? captureIdForResult)
         {
             return new PlaceholderExpression(semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
-        }
-
-        public override IOperation VisitCompoundAssignment(ICompoundAssignmentOperation operation, int? captureIdForResult)
-        {
-            var compoundAssignment = (BaseCompoundAssignmentExpression)operation;
-            return new CompoundAssignmentOperation(Visit(operation.Target), Visit(operation.Value), compoundAssignment.InConversionConvertible, compoundAssignment.OutConversionConvertible, operation.OperatorKind, operation.IsLifted, operation.IsChecked, operation.OperatorMethod, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitIsType(IIsTypeOperation operation, int? captureIdForResult)
