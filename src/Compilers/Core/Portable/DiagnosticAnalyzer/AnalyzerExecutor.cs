@@ -1201,6 +1201,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 if (_analyzerExecutionTimeMapOpt != null)
                 {
                     timer = PooledStopwatch.StartInstance();
+
+                    // This call to Restart isn't required by the API, but is included to avoid measurement errors which
+                    // can occur during periods of high allocation activity. In some cases, calls to Stopwatch
+                    // operations can block at their return point on the completion of a background GC operation. When
+                    // this occurs, the GC wait time ends up included in the measured time span. In the event the first
+                    // call to Restart blocked on a GC operation, this call to Restart will most likely occur when the
+                    // GC is no longer active. In practice, a substantial improvement to the consistency of analyzer
+                    // timing data was observed.
+                    //
+                    // Note that the call to Stopwatch.Stop() is not affected, because the GC wait will occur after the
+                    // timer has already recorded its stop time.
+                    timer.Restart();
                 }
 
                 analyze(argument);
