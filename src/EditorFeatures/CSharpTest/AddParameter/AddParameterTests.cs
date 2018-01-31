@@ -701,7 +701,7 @@ class C1
         [Trait("TODO", "Fix broken")]
         public async Task TestInvocationLambda1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"
 using System;
 class C1
@@ -710,16 +710,6 @@ class C1
     {
         Action a = () => { };
         [|a|](2);
-    }
-}",
-@"
-using System;
-class C1
-{
-    void M1()
-    {
-        Action a = (int v) => { };
-        a(2);
     }
 }");
             //Should be Action<int> a = (int v) => { };
@@ -1138,17 +1128,8 @@ class C1
         [|M1|]<int, bool>(1, true);
     }
 }";
-            var fix0 =
-@"
-class C1
-{
-    void M1<T, T1>(T i, T1 v) { }
-    void M2()
-    {
-        M1<int, bool>(1, true);
-    }
-}";
-            await TestInRegularAndScriptAsync(code, fix0, 0);
+            // Should be void M1<T, T1>(T i, T1 v) { }
+            await TestMissingInRegularAndScriptAsync(code);
         }
 
         [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
@@ -1165,17 +1146,7 @@ class C1
         [|M1<bool>|](1, true);
     }
 }";
-            var fix0 =
-@"
-class C1
-{
-    void M1<T>(int i, T v) { }
-    void M2()
-    {
-        M1<bool>(1, true);
-    }
-}";
-            await TestInRegularAndScriptAsync(code, fix0, 0);
+            await TestMissingInRegularAndScriptAsync(code);
         }
 
         [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
@@ -1304,18 +1275,7 @@ class C1 : I1
         }
     }
 ";
-            var fix0 =
-@"
-    class C1
-    {
-        void M1<T>() { }
-        void M2()
-        {
-            M1<bool>();
-        }
-    }
-";
-            await TestInRegularAndScriptAsync(code, fix0);
+            await TestMissingInRegularAndScriptAsync(code);
         }
 
         [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
@@ -1333,18 +1293,8 @@ class C1 : I1
         }
     }
 ";
-            var fix0 =
-@"
-    class C1
-    {
-        void M1<T>(T v) { }
-        void M2()
-        {
-            M1<bool>(true);
-        }
-    }
-";
-            await TestInRegularAndScriptAsync(code, fix0);
+            // Could be fixed to void M1<T>(T v) { }
+            await TestMissingInRegularAndScriptAsync(code);
         }
 
         [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
@@ -1370,237 +1320,6 @@ class C1 : I1
         void M2()
         {
             M1(true, true);
-        }
-    }
-";
-            await TestInRegularAndScriptAsync(code, fix0);
-        }
-
-        [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
-        public async Task TestInvocationPartialClasses()
-        {
-            var code =
-@"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>
-namespace N1
-{
-    partial class C1
-    {
-        partial void PartialM();
-    }
-}
-        </Document>
-        <Document>
-namespace N1
-{
-    partial class C1
-    {
-        partial void PartialM() { }
-        void M1()
-        {
-            [|PartialM|](1);
-        }
-    }
-}
-        </Document>
-    </Project>
-</Workspace>";
-            var fix0 =
-@"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>
-namespace N1
-{
-    partial class C1
-    {
-        partial void PartialM(int v);
-    }
-}
-        </Document>
-        <Document>
-namespace N1
-{
-    partial class C1
-    {
-        partial void PartialM() { }
-        void M1()
-        {
-            PartialM(1);
-        }
-    }
-}
-        </Document>
-    </Project>
-</Workspace>";
-            await TestInRegularAndScriptAsync(code, fix0);
-        }
-
-        [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
-        [Trait("TODO", "Code formatting")]
-        public async Task TestObjectCreationAddTypeParameter_AddTypeParameterIfUserSpecifiesOne_TypeParameterAndParameterArgument()
-        {
-            var code =
-@"
-    class C1
-    {
-        C1() { }
-        void M2()
-        {
-            var c = new [|C1<bool>|](true);
-        }
-    }
-";
-            var fix0 =
-@"
-    class C1<T>
-{
-        C1(T v) { }
-        void M2()
-        {
-            var c = new C1<bool>(true);
-        }
-    }
-";
-            await TestInRegularAndScriptAsync(code, fix0);
-        }
-
-        [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
-        public async Task TestObjectCreationAddTypeParameter_GeneralizeGenericArgument1()
-        {
-            var code =
-@"
-    class C1<T>
-    {
-        C1() { }
-        void M2()
-        {
-            var c = new [|C1<bool>|](true);
-        }
-    }
-";
-            var fix0 =
-@"
-    class C1<T>
-    {
-        C1(T v) { }
-        void M2()
-        {
-            var c = new C1<bool>(true);
-        }
-    }
-";
-            await TestInRegularAndScriptAsync(code, fix0);
-        }
-
-        [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
-        public async Task TestObjectCreationAddTypeParameter_GeneralizeGenericArgument2()
-        {
-            var code =
-@"
-    class C1<T>
-    {
-        C1() { }
-
-        void M1<U>() { }
-        void M2()
-        {
-            var c = new C1<bool>();
-            c.[|M1<int, bool>|]();
-        }
-    }
-";
-            var fix0 =
-@"
-    class C1<T>
-    {
-        C1() { }
-
-        void M1<U, T1>() { }
-        void M2()
-        {
-            var c = new C1<bool>();
-            c.M1<int, bool>();
-        }
-    }
-";
-            await TestInRegularAndScriptAsync(code, fix0);
-        }
-
-        [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
-        public async Task TestObjectCreationAddTypeParameter_GeneralizeGenericArgument3()
-        {
-            var code =
-@"
-    class C1<T>
-    {
-        C1() { }
-
-        void M1<U>() { }
-        void M2()
-        {
-            var c = new C1<bool>();
-            c.[|M1<int, string>|]();
-        }
-    }
-";
-            var fix0 =
-@"
-    class C1<T>
-    {
-        C1() { }
-
-        void M1<U, T1>() { }
-        void M2()
-        {
-            var c = new C1<bool>();
-            c.M1<int, string>();
-        }
-    }
-";
-            await TestInRegularAndScriptAsync(code, fix0);
-        }
-
-        [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
-        public async Task TestObjectCreationAddTypeParameter_GeneralizeGenericArgument4()
-        {
-            var code =
-@"
-    class C1<T> where T: struct
-    {
-        C1() { }
-
-        void M1<U>() where U : struct
-        {
-        }
-        void M2()
-        {
-            var c = new C1<bool>();
-            c.[|M1<int, string>|]();
-        }
-    }
-";
-            var fix0 =
-@"
-    class C1<T> where T: struct
-    {
-        C1() { }
-
-        void M1<U, T1>() where U : struct
-        {
-        }
-        void M2()
-        {
-            var c = new C1<bool>();
-            c.M1<int, string>();
         }
     }
 ";

@@ -175,8 +175,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SeparatedSyntaxList<SyntaxNode> GetArgumentsOfInvocationExpression(SyntaxNode node);
         SeparatedSyntaxList<SyntaxNode> GetArgumentsOfObjectCreationExpression(SyntaxNode node);
         SeparatedSyntaxList<SyntaxNode> GetArgumentsOfArgumentList(SyntaxNode node);
-        SeparatedSyntaxList<SyntaxNode> GetTypeArgumentsOfInvocationExpression(SyntaxNode node);
-        SeparatedSyntaxList<SyntaxNode> GetTypeArgumentsOfObjectCreationExpression(SyntaxNode node);
 
         bool IsUsingDirectiveName(SyntaxNode node);
         bool IsIdentifierName(SyntaxNode node);

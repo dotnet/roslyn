@@ -27,14 +27,12 @@ namespace Microsoft.CodeAnalysis.AddParameter
         TArgumentListSyntax,
         TAttributeArgumentListSyntax,
         TInvocationExpressionSyntax,
-        TObjectCreationExpressionSyntax,
-        TTypeSyntax> : CodeFixProvider
+        TObjectCreationExpressionSyntax> : CodeFixProvider
         where TArgumentSyntax : SyntaxNode
         where TArgumentListSyntax : SyntaxNode
         where TAttributeArgumentListSyntax : SyntaxNode
         where TInvocationExpressionSyntax : SyntaxNode
         where TObjectCreationExpressionSyntax : SyntaxNode
-        where TTypeSyntax : SyntaxNode
     {
         protected abstract ImmutableArray<string> TooManyArgumentsDiagnosticIds { get; }
         protected abstract ImmutableArray<string> CannotConvertDiagnosticIds { get; }
@@ -119,9 +117,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
             }
 
             var arguments = (SeparatedSyntaxList<TArgumentSyntax>)syntaxFacts.GetArgumentsOfInvocationExpression(invocationExpression);
-            var typeArguments = (SeparatedSyntaxList<TTypeSyntax>)syntaxFacts.GetTypeArgumentsOfInvocationExpression(invocationExpression);
-            var argumentInsertPositionInMethodCandidates = GetArgumentInsertPositionAndTypeArgumentForMethodCandidates(semanticModel, syntaxFacts, candidates, arguments, argumentOpt, typeArguments);
-
+            var argumentInsertPositionInMethodCandidates = GetArgumentInsertPositionForMethodCandidates(argumentOpt, semanticModel, syntaxFacts, arguments, candidates);
             RegisterFixForMethodOverloads(context, arguments, argumentInsertPositionInMethodCandidates);
         }
 
@@ -157,17 +153,18 @@ namespace Microsoft.CodeAnalysis.AddParameter
 
             var arguments = (SeparatedSyntaxList<TArgumentSyntax>)syntaxFacts.GetArgumentsOfObjectCreationExpression(objectCreation);
             var methodCandidates = type.InstanceConstructors;
-            var typeArguments = (SeparatedSyntaxList<TTypeSyntax>)syntaxFacts.GetTypeArgumentsOfObjectCreationExpression(objectCreation);
-            var candidates = GetArgumentInsertPositionAndTypeArgumentForMethodCandidates(semanticModel, syntaxFacts, methodCandidates, arguments, argumentOpt, typeArguments);
-            RegisterFixForMethodOverloads(context, arguments, candidates);
+
+            var constructorsAndArgumentToAdd = GetArgumentInsertPositionForMethodCandidates(argumentOpt, semanticModel, syntaxFacts, arguments, methodCandidates);
+
+            RegisterFixForMethodOverloads(context, arguments, constructorsAndArgumentToAdd);
         }
 
-        private void RegisterFixForMethodOverloads(CodeFixContext context, SeparatedSyntaxList<TArgumentSyntax> arguments, ImmutableArray<(IMethodSymbol method, TArgumentSyntax argument, int index, TTypeSyntax typeArgument)> methodsAndArgumentToAdd)
+        private void RegisterFixForMethodOverloads(CodeFixContext context, SeparatedSyntaxList<TArgumentSyntax> arguments, ImmutableArray<(IMethodSymbol method, TArgumentSyntax argument, int index)> methodsAndArgumentToAdd)
         {
             // Order by the furthest argument index to the nearest argument index.  The ones with
             // larger argument indexes mean that we matched more earlier arguments (and thus are
             // likely to be the correct match).
-            foreach (var (method, argumentToAdd, _, typeArgument) in methodsAndArgumentToAdd.OrderByDescending(t => t.index))
+            foreach (var (method, argumentToAdd, _) in methodsAndArgumentToAdd.OrderByDescending(t => t.index))
             {
                 var parameters = method.Parameters.Select(p => p.ToDisplayString(SimpleFormat));
                 var signature = $"{method.Name}({string.Join(", ", parameters)})";
@@ -175,80 +172,47 @@ namespace Microsoft.CodeAnalysis.AddParameter
                 var title = string.Format(FeaturesResources.Add_parameter_to_0, signature);
 
                 context.RegisterCodeFix(
-                    new MyCodeAction(title, c => FixAsync(context.Document, method, argumentToAdd, arguments, typeArgument, c)),
+                    new MyCodeAction(title, c => FixAsync(context.Document, method, argumentToAdd, arguments, c)),
                     context.Diagnostics);
             }
         }
 
-        private ImmutableArray<(IMethodSymbol method, TArgumentSyntax argument, int index, TTypeSyntax typeArgument)> GetArgumentInsertPositionAndTypeArgumentForMethodCandidates(
-            SemanticModel semanticModel,
-            ISyntaxFactsService syntaxFacts,
-            ImmutableArray<IMethodSymbol> methodCandidates,
-            SeparatedSyntaxList<TArgumentSyntax> arguments,
-            TArgumentSyntax argumentOpt,
-            SeparatedSyntaxList<TTypeSyntax> typeArguments)
+        private ImmutableArray<(IMethodSymbol method, TArgumentSyntax argument, int index)> GetArgumentInsertPositionForMethodCandidates(TArgumentSyntax argumentOpt, SemanticModel semanticModel, ISyntaxFactsService syntaxFacts, SeparatedSyntaxList<TArgumentSyntax> arguments, ImmutableArray<IMethodSymbol> methodCandidates)
         {
-            var methodsAndArgumentToAdd = ArrayBuilder<(IMethodSymbol constructor, TArgumentSyntax argument, int index, TTypeSyntax typeArgument)>.GetInstance();
+            var comparer = syntaxFacts.StringComparer;
+            var methodsAndArgumentToAdd = ArrayBuilder<(IMethodSymbol constructor, TArgumentSyntax argument, int index)>.GetInstance();
 
             foreach (var method in methodCandidates.OrderBy(m => m.Parameters.Length))
             {
                 if (method.IsNonImplicitAndFromSource())
                 {
-                    var argumentToAdd = GetArgumentInsertPositionForMethodCandidate(semanticModel, syntaxFacts, method, arguments, argumentOpt);
-                    var typeArgumentToAdd = GetTypeArgumentForMethodCandidate(method, typeArguments);
+                    var isNamedArgument = !string.IsNullOrWhiteSpace(syntaxFacts.GetNameForArgument(argumentOpt));
 
-                    if (argumentToAdd != null || typeArgumentToAdd != null)
+                    if (isNamedArgument || NonParamsParameterCount(method) < arguments.Count)
                     {
-                        methodsAndArgumentToAdd.Add(
-                            (method, argumentToAdd, arguments.IndexOf(argumentToAdd), typeArgumentToAdd));
+                        var argumentToAdd = DetermineFirstArgumentToAdd(
+                        semanticModel, syntaxFacts, comparer, method,
+                        arguments, argumentOpt);
+
+                        if (argumentToAdd != null)
+                        {
+                            if (argumentOpt != null && argumentToAdd != argumentOpt)
+                            {
+                                // We were trying to fix a specific argument, but the argument we want
+                                // to fix is something different.  That means there was an error earlier
+                                // than this argument.  Which means we're looking at a non-viable 
+                                // constructor.  Skip this one.
+                                continue;
+                            }
+
+                            methodsAndArgumentToAdd.Add(
+                                (method, argumentToAdd, arguments.IndexOf(argumentToAdd)));
+                        }
                     }
                 }
             }
 
             return methodsAndArgumentToAdd.ToImmutableArray();
-        }
-
-        private TTypeSyntax GetTypeArgumentForMethodCandidate(IMethodSymbol method, SeparatedSyntaxList<TTypeSyntax> typeArguments)
-        {
-            var typeParameter = method.IsConstructor()
-                ? method.ContainingType.TypeParameters
-                : method.TypeParameters;
-
-            if (typeArguments.Count > typeParameter.Length)
-            {
-                return typeArguments[typeParameter.Length];
-            }
-
-            return null;
-        }
-
-        private TArgumentSyntax GetArgumentInsertPositionForMethodCandidate(SemanticModel semanticModel, ISyntaxFactsService syntaxFacts, IMethodSymbol method, SeparatedSyntaxList<TArgumentSyntax> arguments, TArgumentSyntax argumentOpt)
-        {
-            var comparer = syntaxFacts.StringComparer;
-            var isNamedArgument = !string.IsNullOrWhiteSpace(syntaxFacts.GetNameForArgument(argumentOpt));
-
-            if (isNamedArgument || NonParamsParameterCount(method) < arguments.Count)
-            {
-                var argumentToAdd = DetermineFirstArgumentToAdd(
-                    semanticModel, syntaxFacts, comparer, method,
-                    arguments, argumentOpt);
-
-                if (argumentToAdd != null)
-                {
-                    if (argumentOpt != null && argumentToAdd != argumentOpt)
-                    {
-                        // We were trying to fix a specific argument, but the argument we want
-                        // to fix is something different.  That means there was an error earlier
-                        // than this argument.  Which means we're looking at a non-viable 
-                        // constructor.  Skip this one.
-                        return null;
-                    }
-                }
-
-                return argumentToAdd;
-            }
-
-            return null;
         }
 
         private int NonParamsParameterCount(IMethodSymbol method)
@@ -259,46 +223,17 @@ namespace Microsoft.CodeAnalysis.AddParameter
             IMethodSymbol method,
             TArgumentSyntax argument,
             SeparatedSyntaxList<TArgumentSyntax> argumentList,
-            TTypeSyntax newTypeArgument,
             CancellationToken cancellationToken)
         {
             var methodDeclaration = await method.DeclaringSyntaxReferences[0].GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
-            var methodDeclarationRoot = methodDeclaration.SyntaxTree.GetRoot(cancellationToken);
+
+            var (parameterSymbol, isNamedArgument) = await CreateParameterSymbolAsync(
+                invocationDocument, method, argument, cancellationToken).ConfigureAwait(false);
+
             var methodDocument = invocationDocument.Project.Solution.GetDocument(methodDeclaration.SyntaxTree);
             var syntaxFacts = methodDocument.GetLanguageService<ISyntaxFactsService>();
+            var methodDeclarationRoot = methodDeclaration.SyntaxTree.GetRoot(cancellationToken);
             var editor = new SyntaxEditor(methodDeclarationRoot, methodDocument.Project.Solution.Workspace);
-            var parameterDeclaration = default(SyntaxNode);
-            var insertionIndex = default(int);
-            var newTypeParameter = newTypeArgument == null ? null : CreateTypeParameterSymbol(method);
-
-            if (argument != null)
-            {
-                (parameterDeclaration, insertionIndex) = await CreateParameterDeclarationAsync(editor, invocationDocument, method, methodDeclaration, argumentList, argument, newTypeArgument, newTypeParameter, cancellationToken).ConfigureAwait(false);
-            }
-
-            AddParameter(
-                syntaxFacts, editor, method, methodDeclaration, argument,
-                insertionIndex, parameterDeclaration, newTypeParameter, cancellationToken);
-
-            var newRoot = editor.GetChangedRoot();
-            var newDocument = methodDocument.WithSyntaxRoot(newRoot);
-
-            return newDocument;
-        }
-
-        private async Task<(SyntaxNode parameterDeclaration, int insertionIndex)> CreateParameterDeclarationAsync(
-            SyntaxEditor editor,
-            Document invocationDocument,
-            IMethodSymbol method,
-            SyntaxNode methodDeclaration,
-            SeparatedSyntaxList<TArgumentSyntax> argumentList,
-            TArgumentSyntax argument,
-            TTypeSyntax newTypeArgument,
-            ITypeParameterSymbol newTypeParameter,
-            CancellationToken cancellationToken)
-        {
-            var (parameterSymbol, isNamedArgument) = await CreateParameterSymbolAsync(
-                invocationDocument, method, argument, newTypeArgument, newTypeParameter, cancellationToken).ConfigureAwait(false);
 
             var parameterDeclaration = editor.Generator.ParameterDeclaration(parameterSymbol)
                                                        .WithAdditionalAnnotations(Formatter.Annotation);
@@ -313,27 +248,20 @@ namespace Microsoft.CodeAnalysis.AddParameter
                 insertionIndex++;
             }
 
-            return (parameterDeclaration, insertionIndex);
-        }
+            AddParameter(
+                syntaxFacts, editor, methodDeclaration, argument,
+                insertionIndex, parameterDeclaration, cancellationToken);
 
-        private static ITypeParameterSymbol CreateTypeParameterSymbol(IMethodSymbol method)
-        {
-            var exisitingTypeParameter = method.GetAllTypeParameters();
-            var typeParameterName = NameGenerator.GenerateUniqueName("T", n => exisitingTypeParameter.All(symbol => symbol.Name != n));
-            return CodeGenerationSymbolFactory.CreateTypeParameterSymbol(typeParameterName);
-        }
+            var newRoot = editor.GetChangedRoot();
+            var newDocument = methodDocument.WithSyntaxRoot(newRoot);
 
-        private static ImmutableArray<ITypeParameterSymbol> GetTypeParameterOfClassOrMethod(IMethodSymbol method)
-            => method.IsConstructor()
-                ? (method.ContainingSymbol as ITypeSymbol).GetAllTypeParameters()
-                : method.TypeParameters;
+            return newDocument;
+        }
 
         private async Task<(IParameterSymbol, bool isNamedArgument)> CreateParameterSymbolAsync(
             Document invocationDocument,
             IMethodSymbol method,
             TArgumentSyntax argument,
-            TTypeSyntax newTypeArgument,
-            ITypeParameterSymbol newTypeParameter,
             CancellationToken cancellationToken)
         {
             var syntaxFacts = invocationDocument.GetLanguageService<ISyntaxFactsService>();
@@ -342,24 +270,6 @@ namespace Microsoft.CodeAnalysis.AddParameter
             var expression = syntaxFacts.GetExpressionOfArgument(argument);
             var semanticModel = await invocationDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var parameterType = semanticModel.GetTypeInfo(expression).Type ?? semanticModel.Compilation.ObjectType;
-
-            if (newTypeArgument != null)
-            {
-                var typeArgumentType = semanticModel.GetTypeInfo(newTypeArgument).Type;
-                if (typeArgumentType == parameterType)
-                {
-                    parameterType = newTypeParameter;
-                }
-            }
-
-            var typeArguments = method.GetAllTypeArguments();
-            var fittingTypeArgumentIndex = typeArguments.IndexOf(parameterType);
-
-            if (fittingTypeArgumentIndex >= 0)
-            {
-                var typeParameter = method.GetAllTypeParameters();
-                parameterType = typeParameter[fittingTypeArgumentIndex];
-            }
 
             if (!string.IsNullOrWhiteSpace(argumentName))
             {
@@ -384,25 +294,14 @@ namespace Microsoft.CodeAnalysis.AddParameter
         private static void AddParameter(
             ISyntaxFactsService syntaxFacts,
             SyntaxEditor editor,
-            IMethodSymbol methodSymbol,
             SyntaxNode declaration,
             TArgumentSyntax argument,
             int insertionIndex,
             SyntaxNode parameterDeclaration,
-            ITypeParameterSymbol typeParameter,
             CancellationToken cancellationToken)
         {
             var sourceText = declaration.SyntaxTree.GetText(cancellationToken);
             var generator = editor.Generator;
-
-            //Append the new type parameter to the end of the type parameter list
-            if (typeParameter != null)
-            {
-                var typeParameters = GetTypeParameterOfClassOrMethod(methodSymbol).Add(typeParameter);
-                var typeDeclarationSyntax = syntaxFacts.GetContainingTypeDeclaration(declaration, declaration.SpanStart);
-                var typeParameterDeclaration = methodSymbol.IsConstructor() ? typeDeclarationSyntax : declaration;
-                editor.SetTypeParameters(typeParameterDeclaration, typeParameters.Select(tp => tp.Name));
-            }
 
             var existingParameters = generator.GetParameters(declaration);
             var placeOnNewLine = ShouldPlaceParametersOnNewLine(existingParameters, cancellationToken);
