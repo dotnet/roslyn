@@ -64,7 +64,6 @@ End Namespace
 
 "
 
-
         ReadOnly s_trivial3uple As String = "
 Namespace System
     Public Structure ValueTuple(Of T1, T2, T3)
@@ -21627,30 +21626,35 @@ End Class
                 additionalRefs:={libComp.EmitToImageReference(), ValueTupleRef, SystemRuntimeFacadeRef}) ' missing reference to container
 
             comp.AssertNoDiagnostics()
-            FailedDecodingOfTupleNamesWhenMissingContainerType_Verify(comp)
+            FailedDecodingOfTupleNamesWhenMissingContainerType_Verify(comp, decodingSuccessful:=False)
 
             Dim compWithMetadataReference = CreateCompilationWithMscorlibAndVBRuntime(source, additionalRefs:={libComp.ToMetadataReference(), ValueTupleRef, SystemRuntimeFacadeRef}) ' missing reference to container
 
             compWithMetadataReference.AssertNoDiagnostics()
-            FailedDecodingOfTupleNamesWhenMissingContainerType_Verify(compWithMetadataReference)
+            FailedDecodingOfTupleNamesWhenMissingContainerType_Verify(compWithMetadataReference, decodingSuccessful:=True)
 
             Dim fakeContainerLib = CreateCompilation("", references:={MscorlibRef}, assemblyName:="vt")
             Dim compWithFakeVt = CreateCompilationWithMscorlibAndVBRuntime(source, additionalRefs:={libComp.EmitToImageReference(), fakeContainerLib.EmitToImageReference(), ValueTupleRef, SystemRuntimeFacadeRef}) ' reference to fake container
             compWithFakeVt.AssertNoDiagnostics()
-            FailedDecodingOfTupleNamesWhenMissingContainerType_Verify(compWithFakeVt)
+            FailedDecodingOfTupleNamesWhenMissingContainerType_Verify(compWithFakeVt, decodingSuccessful:=False)
 
         End Sub
 
-        Private Sub FailedDecodingOfTupleNamesWhenMissingContainerType_Verify(compilation As Compilation)
+        Private Sub FailedDecodingOfTupleNamesWhenMissingContainerType_Verify(compilation As Compilation, decodingSuccessful As Boolean)
             Dim classA = DirectCast(compilation.GetMember("ClassA"), NamedTypeSymbol)
-            Dim iEnumerable = DirectCast(classA.Interfaces()(0), SubstitutedErrorType)
-            Assert.Equal("System.Collections.Generic.IEnumerable(Of (alice As System.Int32, bob As System.Int32))",
-                    iEnumerable.ToTestDisplayString())
+            Dim iEnumerable = classA.Interfaces()(0)
+            Dim tuple = DirectCast(iEnumerable.TypeArguments()(0), NamedTypeSymbol).TypeArguments()(0)
 
-            Dim tuple = iEnumerable.TypeArguments()(0)
-            Assert.Equal("(alice As System.Int32, bob As System.Int32)", tuple.ToTestDisplayString())
-            Assert.True(tuple.IsTupleType)
-            Assert.True(tuple.TupleUnderlyingType.IsErrorType())
+            If decodingSuccessful Then
+                Assert.Equal("System.Collections.Generic.IEnumerable(Of Container(Of (alice As System.Int32, bob As System.Int32))[missing].Contained(Of (charlie As System.Int32, dylan As System.Int32))[missing])", iEnumerable.ToTestDisplayString())
+                Assert.Equal("(charlie As System.Int32, dylan As System.Int32)", tuple.ToTestDisplayString())
+                Assert.True(tuple.IsTupleType)
+                Assert.False(tuple.TupleUnderlyingType.IsErrorType())
+            Else
+                Assert.Equal("System.Collections.Generic.IEnumerable(Of Container(Of System.ValueTuple(Of System.Int32, System.Int32))[missing].Contained(Of System.ValueTuple(Of System.Int32, System.Int32))[missing])", IEnumerable.ToTestDisplayString())
+                Assert.Equal("System.ValueTuple(Of System.Int32, System.Int32)", tuple.ToTestDisplayString())
+                Assert.False(tuple.IsTupleType)
+            End If
         End Sub
     End Class
 

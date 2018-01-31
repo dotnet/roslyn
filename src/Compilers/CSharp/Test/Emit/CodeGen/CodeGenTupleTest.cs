@@ -3899,7 +3899,7 @@ class C
 
             var verifier = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
                 additionalRefs: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef, LinqAssemblyRef },
-                expectedOutput:"1");
+                expectedOutput: "1");
             verifier.VerifyDiagnostics();
         }
 
@@ -7984,7 +7984,7 @@ class C
             Assert.Equal(ConversionKind.ExplicitTupleLiteral, model.GetConversion(node).Kind);
 
             ExpressionSyntax element;
-            
+
             element = node.Arguments[0].Expression;
             Assert.Equal("System.Int32", model.GetTypeInfo(element).Type.ToTestDisplayString());
             Assert.Equal("System.Int16", model.GetTypeInfo(element).ConvertedType.ToTestDisplayString());
@@ -23286,7 +23286,7 @@ static class C
                 Diagnostic(ErrorCode.ERR_NoSuchMember, "GetAwaiter").WithArguments("(string, lambda expression)", "GetAwaiter").WithLocation(15, 49)
                 );
         }
-        
+
         [Fact]
         public void ExtensionMethodOnConvertedTuple003()
         {
@@ -23363,7 +23363,7 @@ class C
         }
     }
 }";
-            var comp = CreateStandardCompilation(new[] { source, tuplelib_cs }, 
+            var comp = CreateStandardCompilation(new[] { source, tuplelib_cs },
                 references: new[] { SystemXmlRef }, options: TestOptions.DebugExe);
 
             comp.VerifyDiagnostics();
@@ -23545,7 +23545,7 @@ class P
         var x1 = (1, 1) is (int, int a)?;
     }
 }";
-            var comp = CreateStandardCompilation( source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (6,29): error CS1525: Invalid expression term 'int'
                 //         var x1 = (1, 1) is (int, int a)?;
@@ -23584,7 +23584,7 @@ class P
         var x1 = (1, 1) is System.Nullable<(int, int a)>;
     }
 }";
-            var comp = CreateStandardCompilation( source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (6,18): warning CS0183: The given expression is always of the provided ('(int, int a)?') type
                 //         var x1 = (1, 1) is System.Nullable<(int, int a)>;
@@ -24393,16 +24393,16 @@ public class ClassB
 }";
             var comp = CreateCompilation(client_cs, references: new[] { MscorlibRef, lib.EmitToImageReference() }); // missing reference to vt
             comp.VerifyDiagnostics();
-            verifyTupleTypeWithErrorUnderlyingType(comp);
+            verifyTupleTypeWithErrorUnderlyingType(comp, decodingSuccessful: false);
 
             var compWithMetadataReference = CreateCompilation(client_cs, references: new[] { MscorlibRef, lib.ToMetadataReference() }); // missing reference to vt
             compWithMetadataReference.VerifyDiagnostics();
-            verifyTupleTypeWithErrorUnderlyingType(compWithMetadataReference);
+            verifyTupleTypeWithErrorUnderlyingType(compWithMetadataReference, decodingSuccessful: true);
 
             var fakeVtLib = CreateCompilation("", references: new[] { MscorlibRef }, assemblyName: "vt");
             var compWithFakeVt = CreateCompilation(client_cs, references: new[] { MscorlibRef, lib.EmitToImageReference(), fakeVtLib.EmitToImageReference() }); // reference to fake vt
             compWithFakeVt.VerifyDiagnostics();
-            verifyTupleTypeWithErrorUnderlyingType(compWithFakeVt);
+            verifyTupleTypeWithErrorUnderlyingType(compWithFakeVt, decodingSuccessful: false);
 
             var client2_cs = @"
 public class ClassB
@@ -24424,10 +24424,10 @@ public class ClassB
                 //         foreach (var i in collectionA)
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "collectionA").WithArguments("System.ValueTuple<,>", "vt, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 27)
                 );
-            verifyTupleTypeWithErrorUnderlyingType(comp2);
+            verifyTupleTypeWithErrorUnderlyingType(comp2, decodingSuccessful: false);
 
             var comp2WithFakeVt = CreateCompilation(client2_cs, references: new[] { MscorlibRef, lib.EmitToImageReference(), fakeVtLib.EmitToImageReference() }); // reference to fake vt
-            comp2WithFakeVt .VerifyDiagnostics(
+            comp2WithFakeVt.VerifyDiagnostics(
                 // (7,27): error CS7069: Reference to type 'ValueTuple<,>' claims it is defined in 'vt', but it could not be found
                 //         foreach (var i in collectionA)
                 Diagnostic(ErrorCode.ERR_MissingTypeInAssembly, "collectionA").WithArguments("System.ValueTuple<,>", "vt").WithLocation(7, 27),
@@ -24435,19 +24435,34 @@ public class ClassB
                 //         foreach (var i in collectionA)
                 Diagnostic(ErrorCode.ERR_MissingTypeInAssembly, "collectionA").WithArguments("System.ValueTuple<,>", "vt").WithLocation(7, 27)
                 );
-            verifyTupleTypeWithErrorUnderlyingType(comp2WithFakeVt);
+            verifyTupleTypeWithErrorUnderlyingType(comp2WithFakeVt, decodingSuccessful: false);
 
-            void verifyTupleTypeWithErrorUnderlyingType(Compilation compilation)
+            void verifyTupleTypeWithErrorUnderlyingType(Compilation compilation, bool decodingSuccessful)
             {
                 var classA = (NamedTypeSymbol)compilation.GetMember("ClassA");
                 var iEnumerable = (ConstructedNamedTypeSymbol)classA.Interfaces()[0];
-                Assert.Equal("System.Collections.Generic.IEnumerable<(System.Int32 alice, System.Int32 bob)>",
-                    iEnumerable.ToTestDisplayString());
+                if (decodingSuccessful)
+                {
+                    Assert.Equal("System.Collections.Generic.IEnumerable<(System.Int32 alice, System.Int32 bob)>", iEnumerable.ToTestDisplayString());
+                }
+                else
+                {
+                    Assert.Equal("System.Collections.Generic.IEnumerable<System.ValueTuple<System.Int32, System.Int32>[missing]>", iEnumerable.ToTestDisplayString());
+                }
 
                 var tuple = iEnumerable.TypeArguments()[0];
-                Assert.Equal("(System.Int32 alice, System.Int32 bob)", tuple.ToTestDisplayString());
-                Assert.True(tuple.IsTupleType);
-                Assert.True(tuple.TupleUnderlyingType.IsErrorType());
+                if (decodingSuccessful)
+                {
+                    Assert.Equal("(System.Int32 alice, System.Int32 bob)", tuple.ToTestDisplayString());
+                    Assert.True(tuple.IsTupleType);
+                    Assert.True(tuple.TupleUnderlyingType.IsErrorType());
+                }
+                else
+                {
+                    Assert.Equal("System.ValueTuple<System.Int32, System.Int32>[missing]", tuple.ToTestDisplayString());
+                    Assert.False(tuple.IsTupleType);
+                    Assert.True(tuple.IsErrorType());
+                }
             }
         }
 
@@ -24494,7 +24509,7 @@ public class ClassB
             verifyTupleTypeWithErrorUnderlyingType(comp);
 
             var compWithFakeVt = CreateCompilation(client2_cs, references: new[] { MscorlibRef, lib.EmitToImageReference(), fakeVtLib.EmitToImageReference() }); // reference to fake vt
-            compWithFakeVt .VerifyDiagnostics(
+            compWithFakeVt.VerifyDiagnostics(
                 // (7,27): error CS7069: Reference to type 'ValueTuple<,,,,,,,>' claims it is defined in 'vt', but it could not be found
                 //         foreach (var i in collectionA)
                 Diagnostic(ErrorCode.ERR_MissingTypeInAssembly, "collectionA").WithArguments("System.ValueTuple<,,,,,,,>", "vt").WithLocation(7, 27),
@@ -24509,9 +24524,9 @@ public class ClassB
                 var classA = (NamedTypeSymbol)compilation.GetMember("ClassA");
                 var iEnumerable = (ConstructedNamedTypeSymbol)classA.Interfaces()[0];
                 var tuple = iEnumerable.TypeArguments()[0];
-                Assert.Equal("(System.Int32 i1, System.Int32 i2, System.Int32 i3, System.Int32 i4, System.Int32 i5, System.Int32 i6, System.Int32 i7, System.Int32 i8)", tuple.ToTestDisplayString());
-                Assert.True(tuple.IsTupleType);
-                Assert.True(tuple.TupleUnderlyingType.IsErrorType());
+                Assert.Equal("System.ValueTuple<System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.ValueTuple<System.Int32>[missing]>[missing]", tuple.ToTestDisplayString());
+                Assert.True(tuple.IsErrorType());
+                Assert.False(tuple.IsTupleType);
             }
         }
 
@@ -24544,29 +24559,46 @@ public class ClassB
 }";
             var comp = CreateCompilation(client_cs, references: new[] { MscorlibRef, lib.EmitToImageReference() }); // missing reference to container
             comp.VerifyDiagnostics();
-            verifyTupleTypeWithErrorUnderlyingType(comp);
+            verifyTupleTypeWithErrorUnderlyingType(comp, decodingSuccessful: false);
 
             var compWithMetadataReference = CreateCompilation(client_cs, references: new[] { MscorlibRef, lib.ToMetadataReference() }); // missing reference to container
             compWithMetadataReference.VerifyDiagnostics();
-            verifyTupleTypeWithErrorUnderlyingType(compWithMetadataReference);
+            verifyTupleTypeWithErrorUnderlyingType(compWithMetadataReference, decodingSuccessful: true);
 
             var fakeContainerLib = CreateCompilation("", references: new[] { MscorlibRef }, assemblyName: "container");
             var compWithFakeContainer = CreateCompilation(client_cs, references: new[] { MscorlibRef, lib.EmitToImageReference(), fakeContainerLib.EmitToImageReference() }); // reference to fake container
             compWithFakeContainer.VerifyDiagnostics();
-            verifyTupleTypeWithErrorUnderlyingType(compWithFakeContainer);
+            verifyTupleTypeWithErrorUnderlyingType(compWithFakeContainer, decodingSuccessful: false);
 
-            void verifyTupleTypeWithErrorUnderlyingType(Compilation compilation)
+            void verifyTupleTypeWithErrorUnderlyingType(Compilation compilation, bool decodingSuccessful)
             {
                 var classA = (NamedTypeSymbol)compilation.GetMember("ClassA");
                 var iEnumerable = (ConstructedNamedTypeSymbol)classA.Interfaces()[0];
-                Assert.Equal("System.Collections.Generic.IEnumerable<Container<(System.Int32 alice, System.Int32 bob)>[missing]>",
-                    iEnumerable.ToTestDisplayString());
+
+                if (decodingSuccessful)
+                {
+                    Assert.Equal("System.Collections.Generic.IEnumerable<Container<(System.Int32 alice, System.Int32 bob)>[missing]>",
+                        iEnumerable.ToTestDisplayString());
+                }
+                else
+                {
+                    Assert.Equal("System.Collections.Generic.IEnumerable<Container<(System.Int32, System.Int32)>[missing]>",
+                        iEnumerable.ToTestDisplayString());
+                }
 
                 var container = (NamedTypeSymbol)iEnumerable.TypeArguments()[0];
                 Assert.True(container.IsErrorType());
 
                 var tuple = container.TypeArguments()[0];
-                Assert.Equal("(System.Int32 alice, System.Int32 bob)", tuple.ToTestDisplayString());
+                if (decodingSuccessful)
+                {
+                    Assert.Equal("(System.Int32 alice, System.Int32 bob)", tuple.ToTestDisplayString());
+                }
+                else
+                {
+                    Assert.Equal("(System.Int32, System.Int32)", tuple.ToTestDisplayString());
+                }
+
                 Assert.True(tuple.IsTupleType);
                 Assert.False(tuple.TupleUnderlyingType.IsErrorType());
             }
@@ -24601,39 +24633,53 @@ public class ClassB
 }";
             var comp = CreateCompilation(client_cs, references: new[] { MscorlibRef, lib.EmitToImageReference() }); // missing reference to container
             comp.VerifyDiagnostics();
-            verifyTupleTypeWithErrorUnderlyingType(comp);
+            verifyTupleTypeWithErrorUnderlyingType(comp, decodingSuccessful: false);
 
             var compWithMetadataReference = CreateCompilation(client_cs, references: new[] { MscorlibRef, lib.ToMetadataReference() }); // missing reference to container
             compWithMetadataReference.VerifyDiagnostics();
-            verifyTupleTypeWithErrorUnderlyingType(compWithMetadataReference);
+            verifyTupleTypeWithErrorUnderlyingType(compWithMetadataReference, decodingSuccessful: true);
 
             var fakeContainerLib = CreateCompilation("", references: new[] { MscorlibRef }, assemblyName: "container");
             var compWithFakeContainer = CreateCompilation(client_cs, references: new[] { MscorlibRef, lib.EmitToImageReference(), fakeContainerLib.EmitToImageReference() }); // reference to fake container
             compWithFakeContainer.VerifyDiagnostics();
-            verifyTupleTypeWithErrorUnderlyingType(compWithFakeContainer);
+            verifyTupleTypeWithErrorUnderlyingType(compWithFakeContainer, decodingSuccessful: false);
 
-            void verifyTupleTypeWithErrorUnderlyingType(Compilation compilation)
+            void verifyTupleTypeWithErrorUnderlyingType(Compilation compilation, bool decodingSuccessful)
             {
                 var classA = (NamedTypeSymbol)compilation.GetMember("ClassA");
                 var iEnumerable = (ConstructedNamedTypeSymbol)classA.Interfaces()[0];
-                Assert.Equal("System.Collections.Generic.IEnumerable<Container<(System.Int32 alice, System.Int32 bob)>[missing].Contained<(System.Int32 charlie, System.Int32 dylan)>[missing]>",
+                Assert.Equal(decodingSuccessful
+                        ? "System.Collections.Generic.IEnumerable<Container<(System.Int32 alice, System.Int32 bob)>[missing].Contained<(System.Int32 charlie, System.Int32 dylan)>[missing]>"
+                        : "System.Collections.Generic.IEnumerable<Container<(System.Int32, System.Int32)>[missing].Contained<(System.Int32, System.Int32)>[missing]>",
                     iEnumerable.ToTestDisplayString());
 
                 var contained = (NamedTypeSymbol)iEnumerable.TypeArguments()[0];
-                Assert.Equal("Container<(System.Int32 alice, System.Int32 bob)>[missing].Contained<(System.Int32 charlie, System.Int32 dylan)>[missing]", contained.ToTestDisplayString());
+                Assert.Equal(decodingSuccessful
+                        ? "Container<(System.Int32 alice, System.Int32 bob)>[missing].Contained<(System.Int32 charlie, System.Int32 dylan)>[missing]"
+                        : "Container<(System.Int32, System.Int32)>[missing].Contained<(System.Int32, System.Int32)>[missing]",
+                    contained.ToTestDisplayString());
                 Assert.True(contained.IsErrorType());
 
                 var tuple1 = contained.TypeArguments()[0];
-                Assert.Equal("(System.Int32 charlie, System.Int32 dylan)", tuple1.ToTestDisplayString());
+                Assert.Equal(decodingSuccessful
+                        ? "(System.Int32 charlie, System.Int32 dylan)"
+                        : "(System.Int32, System.Int32)",
+                    tuple1.ToTestDisplayString());
                 Assert.True(tuple1.IsTupleType);
                 Assert.False(tuple1.TupleUnderlyingType.IsErrorType());
 
                 var container = contained.ContainingType;
-                Assert.Equal("Container<(System.Int32 alice, System.Int32 bob)>[missing]", container.ToTestDisplayString());
+                Assert.Equal(decodingSuccessful
+                        ? "Container<(System.Int32 alice, System.Int32 bob)>[missing]"
+                        : "Container<(System.Int32, System.Int32)>[missing]",
+                    container.ToTestDisplayString());
                 Assert.True(container.IsErrorType());
 
                 var tuple2 = container.TypeArguments()[0];
-                Assert.Equal("(System.Int32 alice, System.Int32 bob)", tuple2.ToTestDisplayString());
+                Assert.Equal(decodingSuccessful
+                        ? "(System.Int32 alice, System.Int32 bob)"
+                        : "(System.Int32, System.Int32)",
+                    tuple2.ToTestDisplayString());
                 Assert.True(tuple2.IsTupleType);
                 Assert.False(tuple2.TupleUnderlyingType.IsErrorType());
             }

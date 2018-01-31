@@ -119,6 +119,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 // the type. Bad metadata.
             }
 
+            if (metadataType.HasUseSiteError)
+            {
+                return metadataType;
+            }
+
             // Bad metadata
             return new UnsupportedMetadataTypeSymbol();
         }
@@ -128,7 +133,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             switch (type.Kind)
             {
                 case SymbolKind.ErrorType:
-                    return DecodeNamedType((NamedTypeSymbol)type);
                 case SymbolKind.DynamicType:
                 case SymbolKind.TypeParameter:
                 case SymbolKind.PointerType:
