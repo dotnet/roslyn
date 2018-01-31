@@ -2,7 +2,7 @@
 
 namespace Test.Utilities.MinimalImplementations
 {
-    public static class XunitAssert
+    public static class XunitApis
     {
         public const string CSharp = @"
 using System;
@@ -95,6 +95,16 @@ namespace Xunit
             return null;
         }
     }
+
+    [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
+    public class TheoryAttribute : FactAttribute { }
+
+    [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
+    public class FactAttribute : Attribute
+    {
+        public virtual string DisplayName { get; set; }
+        public virtual string Skip { get; set; }
+    }
 }";
 
         public const string VisualBasic = @"
@@ -168,6 +178,18 @@ Namespace Xunit
         Public Shared Function ThrowsAsync(Of T As ArgumentException)(ByVal paramName As String, ByVal testCode As Func(Of Task)) As Task(Of T)
             Return Nothing
         End Function
+    End Class
+
+    <AttributeUsage(AttributeTargets.Method, AllowMultiple:=False)>
+    Public Class TheoryAttribute
+        Inherits FactAttribute
+    End Class
+
+    <AttributeUsage(AttributeTargets.Method, AllowMultiple:=False)>
+    Public Class FactAttribute
+        Inherits Attribute
+        Public Overridable Property DisplayName As String
+        Public Overridable Property Skip As String
     End Class
 End Namespace
 ";

@@ -121,6 +121,11 @@ namespace Analyzer.Utilities
             return compilation.GetTypeByMetadataName("System.Threading.Thread");
         }
 
+        public static INamedTypeSymbol WebMethodAttribute(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("System.Web.Services.WebMethodAttribute");
+        }
+
         public static INamedTypeSymbol WebUIControl(Compilation compilation)
         {
             return compilation.GetTypeByMetadataName("System.Web.UI.Control");
@@ -371,6 +376,22 @@ namespace Analyzer.Utilities
             return compilation.GetTypeByMetadataName("System.Data.IDataAdapter");
         }
 
+        #region Test Framework Types
+        public static INamedTypeSymbol TestCleanupAttribute(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("Microsoft.VisualStudio.TestTools.UnitTesting.TestCleanupAttribute");
+        }
+
+        public static INamedTypeSymbol TestInitializeAttribute(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("Microsoft.VisualStudio.TestTools.UnitTesting.TestInitializeAttribute");
+        }
+
+        public static INamedTypeSymbol TestMethodAttribute(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute");
+        }
+
         public static INamedTypeSymbol ExpectedException(Compilation compilation)
         {
             return compilation.GetTypeByMetadataName("Microsoft.VisualStudio.TestTools.UnitTesting.ExpectedExceptionAttribute");
@@ -381,9 +402,65 @@ namespace Analyzer.Utilities
             return compilation.GetTypeByMetadataName("Xunit.Assert");
         }
 
+        public static INamedTypeSymbol XunitFact(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("Xunit.FactAttribute");
+        }
+
+        public static INamedTypeSymbol XunitTheory(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("Xunit.TheoryAttribute");
+        }
+
         public static INamedTypeSymbol NunitAssert(Compilation compilation)
         {
             return compilation.GetTypeByMetadataName("NUnit.Framework.Assert");
         }
+
+        public static INamedTypeSymbol NunitOneTimeSetUp(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("NUnit.Framework.OneTimeSetUpAttribute");
+        }
+
+        public static INamedTypeSymbol NunitOneTimeTearDown(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("NUnit.Framework.OneTimeTearDownAttribute");
+        }
+
+        public static INamedTypeSymbol NunitSetUp(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("NUnit.Framework.SetUpAttribute");
+        }
+
+        public static INamedTypeSymbol NunitSetUpFixture(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("NUnit.Framework.SetUpFixtureAttribute");
+        }
+
+        public static INamedTypeSymbol NunitTearDown(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("NUnit.Framework.TearDownAttribute");
+        }
+
+        public static INamedTypeSymbol NunitTest(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("NUnit.Framework.TestAttribute");
+        }
+
+        public static INamedTypeSymbol NunitTestCase(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("NUnit.Framework.TestCaseAttribute");
+        }
+
+        public static INamedTypeSymbol NunitTestCaseSource(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("NUnit.Framework.TestCaseSourceAttribute");
+        }
+
+        public static INamedTypeSymbol NunitTheory(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("NUnit.Framework.TheoryAttribute");
+        }
+        #endregion
     }
 }

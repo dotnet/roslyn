@@ -2,7 +2,7 @@
 
 namespace Test.Utilities.MinimalImplementations
 {
-    public static class NUnitAssert
+    public static class NUnitApis
     {
         public const string CSharp = @"
 using System;
@@ -152,6 +152,59 @@ namespace NUnit.Framework
         {
         }
     }
+
+	[AttributeUsage(AttributeTargets.Method, AllowMultiple=false, Inherited=true)]
+	public class OneTimeSetUpAttribute : Attribute {}
+
+	[AttributeUsage(AttributeTargets.Method, AllowMultiple=false, Inherited=true)]
+	public class OneTimeTearDownAttribute : Attribute {}
+
+    [AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited=true)]
+    public class SetUpAttribute : Attribute {}
+
+	[AttributeUsage(AttributeTargets.Method, AllowMultiple=false, Inherited=true)]
+	public class TearDownAttribute : Attribute {}
+
+    [AttributeUsage(AttributeTargets.Method, AllowMultiple=false, Inherited=true)]
+    public class TestAttribute : Attribute {}
+
+    [AttributeUsage(AttributeTargets.Method, AllowMultiple = true, Inherited=false)]
+    public class TestCaseAttribute : Attribute {
+        public TestCaseAttribute(params object[] arguments)
+        {
+        }
+        public TestCaseAttribute(object arg)
+        {
+        }
+        public TestCaseAttribute(object arg1, object arg2)
+        {
+        }
+        public TestCaseAttribute(object arg1, object arg2, object arg3)
+        {
+        }
+    }
+
+    [AttributeUsage(AttributeTargets.Method, AllowMultiple = true, Inherited = false)]
+    public class TestCaseSourceAttribute : Attribute {
+        public TestCaseSourceAttribute(string sourceName)
+        {
+        }
+        public TestCaseSourceAttribute(Type sourceType, string sourceName, object[] methodParams)
+        {
+        }
+        public TestCaseSourceAttribute(Type sourceType, string sourceName)
+        {
+        }
+        public TestCaseSourceAttribute(string sourceName, object[] methodParams)
+        {
+        }
+        public TestCaseSourceAttribute(Type sourceType)
+        {
+        }
+    }
+
+    [AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited=true)]
+    public class TheoryAttribute : Attribute {}
 }
 ";
 
@@ -278,6 +331,73 @@ Namespace NUnit.Framework
 
         Public Shared Sub DoesNotThrowAsync(ByVal code As AsyncTestDelegate)
         End Sub
+    End Class
+
+    <AttributeUsage(AttributeTargets.Method, AllowMultiple:=False, Inherited:=True)>
+    Public Class OneTimeSetUpAttribute
+        Inherits Attribute
+    End Class
+
+    <AttributeUsage(AttributeTargets.Method, AllowMultiple:=False, Inherited:=True)>
+    Public Class OneTimeTearDownAttribute
+        Inherits Attribute
+    End Class
+
+    <AttributeUsage(AttributeTargets.Method, AllowMultiple:=False, Inherited:=True)>
+    Public Class SetUpAttribute
+        Inherits Attribute
+    End Class
+
+    <AttributeUsage(AttributeTargets.Method, AllowMultiple:=False, Inherited:=True)>
+    Public Class TearDownAttribute
+        Inherits Attribute
+    End Class
+
+    <AttributeUsage(AttributeTargets.Method, AllowMultiple:=False, Inherited:=True)>
+    Public Class TestAttribute
+        Inherits Attribute
+    End Class
+
+    <AttributeUsage(AttributeTargets.Method, AllowMultiple:=True, Inherited:=False)>
+    Public Class TestCaseAttribute
+        Inherits Attribute
+
+        Public Sub New(ParamArray arguments As Object())
+        End Sub
+
+        Public Sub New(ByVal arg As Object)
+        End Sub
+
+        Public Sub New(ByVal arg1 As Object, ByVal arg2 As Object)
+        End Sub
+
+        Public Sub New(ByVal arg1 As Object, ByVal arg2 As Object, ByVal arg3 As Object)
+        End Sub
+    End Class
+
+    <AttributeUsage(AttributeTargets.Method, AllowMultiple:=True, Inherited:=False)>
+    Public Class TestCaseSourceAttribute
+        Inherits Attribute
+
+        Public Sub New(ByVal sourceName As String)
+        End Sub
+
+        Public Sub New(ByVal sourceType As Type, ByVal sourceName As String, ByVal methodParams As Object())
+        End Sub
+
+        Public Sub New(ByVal sourceType As Type, ByVal sourceName As String)
+        End Sub
+
+        Public Sub New(ByVal sourceName As String, ByVal methodParams As Object())
+        End Sub
+
+        Public Sub New(ByVal sourceType As Type)
+        End Sub
+    End Class
+
+    <AttributeUsage(AttributeTargets.Method, AllowMultiple:=False, Inherited:=True)>
+    Public Class TheoryAttribute
+        Inherits Attribute
     End Class
 End Namespace
 ";
