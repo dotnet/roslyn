@@ -3521,6 +3521,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics.Add(ErrorCode.ERR_RefConditionalNeedsTwoRefs, whenTrue.GetFirstToken().GetLocation());
                 }
             }
+            else
+            {
+                CheckFeatureAvailability(node, MessageID.IDS_FeatureRefConditional, diagnostics);
+            }
 
             BoundExpression condition = BindBooleanExpression(node.Condition, diagnostics);
 

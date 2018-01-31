@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -54,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Remote
             Rpc.StartListening();
         }
 
-        public string Connect(string host, string serializedSession, CancellationToken cancellationToken)
+        public string Connect(string host, int uiCultureLCID, int cultureLCID, string serializedSession, CancellationToken cancellationToken)
         {
             return RunService(token =>
             {
@@ -64,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 var existing = Interlocked.CompareExchange(ref _host, host, null);
 
-                SetGlobalContext(serializedSession);
+                SetGlobalContext(uiCultureLCID, cultureLCID, serializedSession);
 
                 if (existing != null && existing != host)
                 {
@@ -206,7 +207,7 @@ namespace Microsoft.CodeAnalysis.Remote
             m["InstanceId"] = _primaryInstance;
         }
 
-        private void SetGlobalContext(string serializedSession)
+        private void SetGlobalContext(int uiCultureLCID, int cultureLCID, string serializedSession)
         {
             const int ReportIntervalInMinutes = 2;
 
@@ -216,6 +217,8 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 return;
             }
+
+            EnsureCulture(uiCultureLCID, cultureLCID);
 
             // set roslyn loggers
             WatsonReporter.SetTelemetrySession(session);
@@ -232,6 +235,31 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 _performanceReporter = new PerformanceReporter(Logger, diagnosticAnalyzerPerformanceTracker, TimeSpan.FromMinutes(ReportIntervalInMinutes), ShutdownCancellationToken);
             }
+        }
+
+        private static void EnsureCulture(int uiCultureLCID, int cultureLCID)
+        {
+            // this follows what VS does
+            // http://index/?leftProject=Microsoft.VisualStudio.Platform.AppDomainManager&leftSymbol=wok83tw8yxy7&file=VsAppDomainManager.cs&line=106
+            try
+            {
+                // set default culture for Roslyn OOP
+                CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(uiCultureLCID);
+                CultureInfo.DefaultThreadCurrentCulture = new CultureInfo(cultureLCID);
+            }
+            catch (Exception ex) when (ExpectedCultureIssue(ex))
+            {
+                // ignore expected culture issue
+            }
+        }
+
+        private static bool ExpectedCultureIssue(Exception ex)
+        {
+            // report exception
+            WatsonReporter.Report(ex);
+
+            // ignore expected exception
+            return ex is ArgumentOutOfRangeException || ex is CultureNotFoundException;
         }
 
         private static TelemetrySession GetTelemetrySession(string serializedSession)

@@ -1457,16 +1457,6 @@ Für die aktuelle Projektmappe ist die Option "Lightweight-Ladevorgang für Proj
         <target state="translated">Verwenden Sie Tastenzuordnungen für ReSharper/IntelliJ/Vim usw.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Your_keybindings_are_no_longer_mapped_to_Visual_Studio_commands">
-        <source>Your keybindings are no longer mapped to Visual Studio commands.</source>
-        <target state="translated">Ihre Tastenzuordnungen sind nicht länger Visual Studio-Befehlen zugeordnet.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="We_noticed_you_suspended_ReSharper_Ultimate_Restore_Visual_Studio_keybindings_to_continue_to_navigate_and_refactor">
-        <source>We noticed you suspended ‘ReSharper Ultimate’. Restore Visual Studio keybindings to continue to navigate and refactor.</source>
-        <target state="translated">Wir haben festgestellt, dass Sie "ReSharper Ultimate" angehalten haben. Stellen Sie die Visual Studio-Tastenzuordnungen wieder her, um Navigation und Refactoring fortzusetzen.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Enable_navigation_to_decompiled_sources">
         <source>Enable navigation to decompiled sources (experimental)</source>
         <target state="translated">Aktivieren der Navigation zu dekompilierten Quellen (experimentell)</target>
@@ -1496,6 +1486,16 @@ Ich stimme allen vorstehenden Bedingungen zu:</target>
       <trans-unit id="Decompiler_Legal_Notice_Title">
         <source>Decompiler Legal Notice</source>
         <target state="translated">Rechtlicher Hinweis zum Decompiler</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Disabling_the_extension_0_unbound_your_keyboard_bindings">
+        <source>Disabling the extension '{0}' unbound your keyboard bindings.</source>
+        <target state="new">Disabling the extension '{0}' unbound your keyboard bindings.</target>
+        <note>0 is an extension name</note>
+      </trans-unit>
+      <trans-unit id="Code_style_header_use_editor_config">
+        <source>The settings configured here only apply to your machine. To configure these settings to travel with your solution, use .editorconfig files.</source>
+        <target state="new">The settings configured here only apply to your machine. To configure these settings to travel with your solution, use .editorconfig files.</target>
         <note />
       </trans-unit>
     </body>
