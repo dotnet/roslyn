@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Storage
         private readonly SolutionSizeTracker _solutionSizeTracker;
 
         private readonly bool _testing;
-        private readonly object _lookupAccessLock;
+        private readonly object _primaryStorageAccessLock;
         private readonly PrimaryStorageInfo _primaryStorage;
 
         private string _lastSolutionPath;
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Storage
             OptionService = optionService;
             _solutionSizeTracker = solutionSizeTracker;
 
-            _lookupAccessLock = new object();
+            _primaryStorageAccessLock = new object();
 
             _lastSolutionPath = null;
             _primaryStorage = new PrimaryStorageInfo();
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Storage
 
         private IPersistentStorage GetStorage(Solution solution, string workingFolderPath)
         {
-            lock (_lookupAccessLock)
+            lock (_primaryStorageAccessLock)
             {
                 // first check primary storage, this should cover most of cases
                 if (_primaryStorage.TryGetStorage(solution.FilePath, workingFolderPath, out var storage))
@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.Storage
 
         protected void Release(AbstractPersistentStorage storage)
         {
-            lock (_lookupAccessLock)
+            lock (_primaryStorageAccessLock)
             {
                 if (storage.ReleaseRefUnsafe())
                 {
@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.Storage
         {
             // don't create database storage file right away. it will be
             // created when first C#/VB project is added
-            lock (_lookupAccessLock)
+            lock (_primaryStorageAccessLock)
             {
                 _primaryStorage.RegisterPrimarySolution(solutionId);
             }
@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.Storage
         public void UnregisterPrimarySolution(SolutionId solutionId, bool synchronousShutdown)
         {
             AbstractPersistentStorage storage = null;
-            lock (_lookupAccessLock)
+            lock (_primaryStorageAccessLock)
             {
                 _primaryStorage.UnregisterPrimarySolution(solutionId, out storage);
             }
