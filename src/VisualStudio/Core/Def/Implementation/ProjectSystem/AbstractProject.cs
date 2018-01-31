@@ -85,6 +85,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
+        private readonly HashSet<(AbstractProject, MetadataReferenceProperties)> _projectsReferencingMe = new HashSet<(AbstractProject, MetadataReferenceProperties)>();
+
         #endregion
 
         // PERF: Create these event handlers once to be shared amongst all documents (the sender arg identifies which document and project)
@@ -766,6 +768,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 // always manipulate current state after workspace is told so it will correctly observe the initial state
                 _projectReferences.Add(projectReference);
+
+                var otherProject = ProjectTracker.GetProject(projectReference.ProjectId);
+                otherProject?.RecordNewReferencingProject(this, new MetadataReferenceProperties(aliases: projectReference.Aliases, embedInteropTypes: projectReference.EmbedInteropTypes));
             }
 
             if (_pushingChangesToWorkspaceHosts)
@@ -776,6 +781,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 this.ProjectTracker.StartPushingToWorkspaceAndNotifyOfOpenDocuments(SpecializedCollections.SingletonEnumerable(targetProject));
 
                 this.ProjectTracker.NotifyWorkspaceHosts(host => host.OnProjectReferenceAdded(this.Id, projectReference));
+            }
+        }
+
+        private void RecordNewReferencingProject(AbstractProject referencingProject, MetadataReferenceProperties properties)
+        {
+            _projectsReferencingMe.Add((referencingProject, properties));
+        }
+
+        private void RecordNoLongerReferencingProject(AbstractProject referencingProject, MetadataReferenceProperties properties)
+        {
+            if (!_projectsReferencingMe.Remove((referencingProject, properties)))
+            {
+                FatalError.ReportWithoutCrash(new Exception($"We didn't know that {nameof(referencingProject)} was referencing us."));
             }
         }
 
@@ -856,6 +874,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             lock (_gate)
             {
                 Contract.ThrowIfFalse(_projectReferences.Remove(projectReference));
+
+                var otherProject = ProjectTracker.GetProject(projectReference.ProjectId);
+
+                otherProject?.RecordNoLongerReferencingProject(this, new MetadataReferenceProperties(aliases: projectReference.Aliases, embedInteropTypes: projectReference.EmbedInteropTypes));
             }
 
             if (_pushingChangesToWorkspaceHosts)
@@ -1178,6 +1200,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                     // reinstate pushing down to workspace, so the workspace project remove event fires
                     _pushingChangesToWorkspaceHosts = wasPushing;
+
+                    if (_projectsReferencingMe.Count > 0)
+                    {
+                        FatalError.ReportWithoutCrash(new Exception("We still have projects referencing us. That's not expected."));
+
+                        // Clear just so we don't cause a leak
+                        _projectsReferencingMe.Clear();
+                    }
 
                     this.ProjectTracker.RemoveProject(this);
 
