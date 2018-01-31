@@ -71,8 +71,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 IncludeSuppressedDiagnostics = includeSuppressedDiagnostics;
 
                 // try to retrieve projectId/documentId from id if possible.
-                var argsId = id as LiveDiagnosticUpdateArgsId;
-                if (argsId != null)
+                if (id is LiveDiagnosticUpdateArgsId argsId)
                 {
                     CurrentDocumentId = CurrentDocumentId ?? argsId.Key as DocumentId;
                     CurrentProjectId = CurrentProjectId ?? (argsId.Key as ProjectId) ?? CurrentDocumentId.ProjectId;

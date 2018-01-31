@@ -93,8 +93,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var comp = CreateStandardCompilation(program, new[] { LinqAssemblyRef });
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
-            int start = program.IndexOf(startString, StringComparison.Ordinal) + startString.Length;
-            int end = program.IndexOf(endString, StringComparison.Ordinal);
+            int start = program.IndexOf(StartString, StringComparison.Ordinal) + StartString.Length;
+            int end = program.IndexOf(EndString, StringComparison.Ordinal);
             ExpressionSyntax syntaxToBind = null;
             foreach (var expr in GetSyntaxNodeList(tree).OfType<ExpressionSyntax>())
             {
@@ -114,8 +114,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var comp = CreateStandardCompilation(program, new[] { LinqAssemblyRef });
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
-            int start = program.IndexOf(startString, StringComparison.Ordinal) + startString.Length;
-            int end = program.IndexOf(endString, StringComparison.Ordinal);
+            int start = program.IndexOf(StartString, StringComparison.Ordinal) + StartString.Length;
+            int end = program.IndexOf(EndString, StringComparison.Ordinal);
             StatementSyntax firstStatement = null, lastStatement = null;
             foreach (var stmt in GetSyntaxNodeList(tree).OfType<StatementSyntax>())
             {

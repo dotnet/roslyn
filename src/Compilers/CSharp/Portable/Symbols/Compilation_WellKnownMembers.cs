@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -30,6 +31,39 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Not yet known value is represented by ErrorTypeSymbol.UnknownResultType
         /// </summary>
         private Symbol[] _lazyWellKnownTypeMembers;
+
+        private bool _needsGeneratedIsReadOnlyAttribute_Value;
+        private bool _needsGeneratedIsByRefLikeAttribute_Value;
+
+        private bool _needsGeneratedAttributes_IsFrozen;
+
+        /// <summary>
+        /// Returns a value indicating whether this compilation has a member that needs IsReadOnlyAttribute to be generated during emit phase.
+        /// The value is set during binding the symbols that need that attribute, and is frozen on first trial to get it.
+        /// Freezing is needed to make sure that nothing tries to modify the value after the value is read.
+        /// </summary>
+        internal bool NeedsGeneratedIsReadOnlyAttribute
+        {
+            get
+            {
+                _needsGeneratedAttributes_IsFrozen = true;
+                return _needsGeneratedIsReadOnlyAttribute_Value;
+            }
+        }
+
+        /// <summary>
+        /// Returns a value indicating whether this compilation has a member that needs IsIsByRefLikeAttribute to be generated during emit phase.
+        /// The value is set during binding the symbols that need that attribute, and is frozen on first trial to get it.
+        /// Freezing is needed to make sure that nothing tries to modify the value after the value is read.
+        /// </summary>
+        internal bool NeedsGeneratedIsByRefLikeAttribute
+        {
+            get
+            {
+                _needsGeneratedAttributes_IsFrozen = true;
+                return _needsGeneratedIsByRefLikeAttribute_Value;
+            }
+        }
 
         /// <summary>
         /// Lookup member declaration in well known type used by this Compilation.
@@ -99,6 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 string mdName = type.GetMetadataName();
                 var warnings = DiagnosticBag.GetInstance();
                 NamedTypeSymbol result;
+                (AssemblySymbol, AssemblySymbol) conflicts = default;
 
                 if (IsTypeMissing(type))
                 {
@@ -108,9 +143,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // well-known types introduced before CSharp7 allow lookup ambiguity and report a warning
                     DiagnosticBag legacyWarnings = (type <= WellKnownType.CSharp7Sentinel) ? warnings : null;
-
                     result = this.Assembly.GetTypeByMetadataName(
-                        mdName, includeReferences: true, useCLSCompliantNameArityEncoding: true, isWellKnownType: true,
+                        mdName, includeReferences: true, useCLSCompliantNameArityEncoding: true, isWellKnownType: true, conflicts: out conflicts,
                         warnings: legacyWarnings, ignoreCorLibraryDuplicatedTypes: ignoreCorLibraryDuplicatedTypes);
                 }
 
@@ -120,8 +154,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     MetadataTypeName emittedName = MetadataTypeName.FromFullName(mdName, useCLSCompliantNameArityEncoding: true);
                     if (type.IsValueTupleType())
                     {
-                        result = new MissingMetadataTypeSymbol.TopLevelWithCustomErrorInfo(this.Assembly.Modules[0], ref emittedName,
-                                           new CSDiagnosticInfo(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, emittedName.FullName), type);
+                        CSDiagnosticInfo errorInfo;
+                        if (conflicts.Item1 is null)
+                        {
+                            Debug.Assert(conflicts.Item2 is null);
+                            errorInfo = new CSDiagnosticInfo(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, emittedName.FullName);
+                        }
+                        else
+                        {
+                            errorInfo = new CSDiagnosticInfo(ErrorCode.ERR_PredefinedValueTupleTypeAmbiguous3, emittedName.FullName, conflicts.Item1, conflicts.Item2);
+                        }
+
+                        result = new MissingMetadataTypeSymbol.TopLevelWithCustomErrorInfo(this.Assembly.Modules[0], ref emittedName, errorInfo, type);
                     }
                     else
                     {
@@ -414,6 +458,76 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return TrySynthesizeAttribute(WellKnownMember.System_Diagnostics_DebuggerStepThroughAttribute__ctor);
+        }
+
+        internal void EnsureIsReadOnlyAttributeExists(DiagnosticBag diagnostics, Location location, bool modifyCompilationForRefReadOnly)
+        {
+            Debug.Assert(!modifyCompilationForRefReadOnly || !_needsGeneratedAttributes_IsFrozen);
+
+            var isNeeded = CheckIfIsReadOnlyAttributeShouldBeEmbedded(diagnostics, location);
+
+            if (isNeeded && modifyCompilationForRefReadOnly)
+            {
+                _needsGeneratedIsReadOnlyAttribute_Value = true;
+            }
+        }
+
+        internal void EnsureIsByRefLikeAttributeExists(DiagnosticBag diagnostics, Location location, bool modifyCompilationForIsByRefLike)
+        {
+            Debug.Assert(!modifyCompilationForIsByRefLike || !_needsGeneratedAttributes_IsFrozen);
+
+            var isNeeded = CheckIfIsByRefLikeAttributeShouldBeEmbedded(diagnostics, location);
+
+            if (isNeeded && modifyCompilationForIsByRefLike)
+            {
+                _needsGeneratedIsByRefLikeAttribute_Value = true;
+            }
+        }
+
+        internal bool CheckIfIsReadOnlyAttributeShouldBeEmbedded(DiagnosticBag diagnosticsOpt, Location locationOpt)
+        {
+            return CheckIfAttributeShouldBeEmbedded(
+                diagnosticsOpt, 
+                locationOpt, 
+                WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute, 
+                WellKnownMember.System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor);
+        }
+
+        internal bool CheckIfIsByRefLikeAttributeShouldBeEmbedded(DiagnosticBag diagnosticsOpt, Location locationOpt)
+        {
+            return CheckIfAttributeShouldBeEmbedded(
+                diagnosticsOpt, 
+                locationOpt, 
+                WellKnownType.System_Runtime_CompilerServices_IsByRefLikeAttribute, 
+                WellKnownMember.System_Runtime_CompilerServices_IsByRefLikeAttribute__ctor);
+        }
+
+        private bool CheckIfAttributeShouldBeEmbedded(DiagnosticBag diagnosticsOpt, Location locationOpt, WellKnownType attributeType, WellKnownMember attributeCtor)
+        {
+            var userDefinedAttribute = GetWellKnownType(attributeType);
+
+            if (userDefinedAttribute is MissingMetadataTypeSymbol)
+            {
+                if (Options.OutputKind == OutputKind.NetModule)
+                {
+                    if (diagnosticsOpt != null)
+                    {
+                        var errorReported = Binder.ReportUseSiteDiagnostics(userDefinedAttribute, diagnosticsOpt, locationOpt);
+                        Debug.Assert(errorReported);
+                    }
+                }
+                else
+                {
+                    return true;
+                }
+            }
+            else if (diagnosticsOpt != null)
+            {
+                // This should produce diagnostics if the member is missing or bad
+                Binder.GetWellKnownTypeMember(this, attributeCtor, diagnosticsOpt, locationOpt);
+            }
+
+            return false;
         }
 
         internal SynthesizedAttributeData SynthesizeDebuggableAttribute()
@@ -813,6 +927,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             protected override bool IsByRefParam(ParameterSymbol parameter)
             {
                 return parameter.RefKind != RefKind.None;
+            }
+
+            protected override bool IsByRefMethod(MethodSymbol method)
+            {
+                return method.RefKind != RefKind.None;
             }
 
             protected override bool IsGenericMethodTypeParam(TypeSymbol type, int paramPosition)

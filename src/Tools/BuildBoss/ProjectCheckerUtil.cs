@@ -87,8 +87,7 @@ namespace BuildBoss
         /// </summary>
         private bool CheckRoslynProjectType(TextWriter textWriter)
         {
-            RoslynProjectData data;
-            if (!ParseRoslynProjectData(textWriter, out data))
+            if (!ParseRoslynProjectData(textWriter, out var data))
             {
                 return false;
             }
@@ -97,6 +96,7 @@ namespace BuildBoss
             allGood &= IsVsixCorrectlySpecified(textWriter, data);
             allGood &= IsUnitTestNameCorrectlySpecified(textWriter, data);
             allGood &= IsUnitTestPortableCorrectlySpecified(textWriter, data);
+            allGood &= CheckTargetFrameworks(textWriter, data);
 
             return allGood;
         }
@@ -217,7 +217,7 @@ namespace BuildBoss
             var allGood = true;
             foreach (var packageRef in _projectUtil.GetPackageReferences())
             {
-                var name = packageRef.Name.Replace(".", "");
+                var name = packageRef.Name.Replace(".", "").Replace("-", "");
                 var floatingName = $"$({name}Version)";
                 var fixedName = $"$({name}FixedVersion)";
                 if (packageRef.Version != floatingName && packageRef.Version != fixedName)
@@ -290,8 +290,7 @@ namespace BuildBoss
             var allGood = true;
             foreach (var key in declaredReferences)
             {
-                ProjectData projectData;
-                if (!_solutionMap.TryGetValue(key, out projectData))
+                if (!_solutionMap.TryGetValue(key, out var projectData))
                 {
                     continue;
                 }
@@ -349,8 +348,7 @@ namespace BuildBoss
                     continue;
                 }
 
-                ProjectData data;
-                if (!_solutionMap.TryGetValue(current, out data))
+                if (!_solutionMap.TryGetValue(current, out var data))
                 {
                     continue;
                 }
@@ -428,6 +426,40 @@ namespace BuildBoss
             }
 
             return true;
+        }
+
+        private bool CheckTargetFrameworks(TextWriter textWriter, RoslynProjectData data)
+        {
+            if (!data.IsAnyUnitTest)
+            {
+                return true;
+            }
+
+            var allGood = true;
+            foreach (var targetFramework in _projectUtil.GetAllTargetFrameworks())
+            {
+                switch (targetFramework)
+                {
+                    case "net20":
+                    case "net46":
+                    case "net461":
+                    case "net462":
+                    case "netstandard1.3":
+                    case "netcoreapp1.1":
+                    case "netcoreapp2.0":
+                    case "netcoreapp2.1":
+                    case "$(RoslynPortableTargetFrameworks)":
+                    case "$(RoslynPortableTargetFrameworks46)":
+                        break;
+                    default:
+                        textWriter.WriteLine($"TargetFramework {targetFramework} is not supported in this build");
+                        allGood = false;
+                        break;
+                }
+
+            }
+
+            return allGood;
         }
     }
 }

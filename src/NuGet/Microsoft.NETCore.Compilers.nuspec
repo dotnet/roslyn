@@ -5,7 +5,13 @@
     <summary>
       CoreCLR-compatible versions of the C# and VB compilers for use in MSBuild.
     </summary>
-    <description>$commitPathMessage$</description>
+    <description>
+      CoreCLR-compatible versions of the C# and VB compilers for use in MSBuild.
+
+      More details at https://aka.ms/roslyn-packages
+
+      $commitPathMessage$
+    </description>
     <language>en-US</language>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <version>$version$</version>
@@ -20,27 +26,36 @@
     <file src="$additionalFilesPath$/Microsoft.NETCore.Compilers.props" target="build" />
 
     <!-- Targets and task files -->
-    <file src="Dlls/MSBuildTask/Microsoft.Build.Tasks.CodeAnalysis.dll" target="tools" />
-    <file src="Dlls/MSbuildTask/Microsoft.CSharp.Core.targets" target="tools" />
-    <file src="Dlls/MSbuildTask/Microsoft.VisualBasic.Core.targets" target="tools" />
+    <file src="Dlls/MSBuildTask/netstandard1.3/publish/Microsoft.Build.Tasks.CodeAnalysis.dll" target="tools" />
+    <file src="Dlls/MSbuildTask/netstandard1.3/publish/Microsoft.CSharp.Core.targets" target="tools" />
+    <file src="Dlls/MSbuildTask/netstandard1.3/publish/Microsoft.VisualBasic.Core.targets" target="tools" />
+    <!-- N.B.: The backslashes below cannot be replaced with forward slashes. 
+         https://github.com/NuGet/Home/issues/3584 -->
+    <file src="Dlls\MSBuildTask\netstandard1.3\publish\System.*.dll" target="tools" />
+    <file src="Dlls\MSBuildTask\netstandard1.3\publish\runtimes\**" target="tools\runtimes" />
 
     <!-- Compiler exe files -->
     <file src="Dlls/CodeAnalysis/Microsoft.CodeAnalysis.dll" target="tools/bincore" />
     <file src="Dlls/CSharpCodeAnalysis/Microsoft.CodeAnalysis.CSharp.dll" target="tools/bincore" />
-    <file src="Exes/CscCore/publish/csc.dll" target="tools/bincore" />
-    <file src="Exes/CscCore/publish/csc.deps.json" target="tools/bincore" />
-    <file src="Exes/CscCore/publish/csc.runtimeconfig.json" target="tools/bincore" />
+    <file src="Exes/csc/netcoreapp2.0/publish/csc.dll" target="tools/bincore" />
+    <file src="Exes/csc/netcoreapp2.0/publish/csc.deps.json" target="tools/bincore" />
+    <file src="Exes/csc/netcoreapp2.0/publish/csc.runtimeconfig.json" target="tools/bincore" />
     <file src="$additionalFilesPath$/RunCsc" target="tools/bincore/RunCsc" />
     <file src="$additionalFilesPath$/RunCsc.cmd" target="tools/bincore" />
     <file src="Dlls/BasicCodeAnalysis/Microsoft.CodeAnalysis.VisualBasic.dll" target="tools/bincore" />
-    <file src="Exes/VbcCore/publish/vbc.dll" target="tools/bincore" />
-    <file src="Exes/VbcCore/publish/vbc.deps.json" target="tools/bincore" />
-    <file src="Exes/VbcCore/publish/vbc.runtimeconfig.json" target="tools/bincore" />
+    <file src="Exes/vbc/netcoreapp2.0/publish/vbc.dll" target="tools/bincore" />
+    <file src="Exes/vbc/netcoreapp2.0/publish/vbc.deps.json" target="tools/bincore" />
+    <file src="Exes/vbc/netcoreapp2.0/publish/vbc.runtimeconfig.json" target="tools/bincore" />
     <file src="$additionalFilesPath$/RunVbc" target="tools/bincore/RunVbc" />
     <file src="$additionalFilesPath$/RunVbc.cmd" target="tools/bincore" />
+    <file src="Exes/VBCSCompiler/netcoreapp2.0/publish/VBCSCompiler.dll" target="tools/bincore" />
+    <file src="Exes/VBCSCompiler/netcoreapp2.0/publish/VBCSCompiler.deps.json" target="tools/bincore" />
+    <file src="Exes/VBCSCompiler/netcoreapp2.0/publish/VBCSCompiler.runtimeconfig.json" target="tools/bincore" />
 
     <!-- References that are either not in the target framework or are a higher version -->
-    <file src="Exes\CscCore\publish\System.*.dll" target="tools\bincore" />
-    <file src="Exes\CscCore\publish\runtimes\**" target="tools\bincore\runtimes" />
+    <!-- N.B.: The backslashes below cannot be replaced with forward slashes.
+         https://github.com/NuGet/Home/issues/3584 -->
+    <file src="Exes\csc\netcoreapp2.0\publish\System.*.dll" target="tools\bincore" />
+    <file src="Exes\csc\netcoreapp2.0\publish\runtimes\**" target="tools\bincore\runtimes" />
   </files>
 </package>

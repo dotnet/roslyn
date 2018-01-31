@@ -313,8 +313,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                         parameterTypeIds.Add(GraphNodeId.GetNested(nodes.ToArray()));
                     }
 
-                    IMethodSymbol methodSymbol = member as IMethodSymbol;
-                    if (methodSymbol != null && methodSymbol.MethodKind == MethodKind.Conversion)
+                    if (member is IMethodSymbol methodSymbol && methodSymbol.MethodKind == MethodKind.Conversion)
                     {
                         // For explicit/implicit conversion operators, we need to include the return type in the method Id,
                         // because there can be several conversion operators with same parameters and only differ by return type.
@@ -401,8 +400,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             Project foundProject = solution.GetProject(containingAssembly, cancellationToken);
             if (foundProject != null)
             {
-                var workspace = solution.Workspace as VisualStudioWorkspaceImpl;
-                if (workspace != null)
+                if (solution.Workspace is VisualStudioWorkspaceImpl workspace)
                 {
                     // We have found a project in the solution, so clearly the deferred state has been loaded
                     var vsProject = workspace.DeferredState.ProjectTracker.GetProject(foundProject.Id);
@@ -427,8 +425,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                     var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                     if (compilation != null)
                     {
-                        var reference = compilation.GetMetadataReference(containingAssembly) as PortableExecutableReference;
-                        if (reference != null && !string.IsNullOrEmpty(reference.FilePath))
+                        if (compilation.GetMetadataReference(containingAssembly) is PortableExecutableReference reference && !string.IsNullOrEmpty(reference.FilePath))
                         {
                             return new Uri(reference.FilePath, UriKind.RelativeOrAbsolute);
                         }
@@ -469,8 +466,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             }
 
             ISymbol containingSymbol = symbol.ContainingSymbol;
-            IMethodSymbol method = containingSymbol as IMethodSymbol;
-            if (method != null && method.AssociatedSymbol != null && method.AssociatedSymbol.Kind == SymbolKind.Property)
+            if (containingSymbol is IMethodSymbol method && method.AssociatedSymbol != null && method.AssociatedSymbol.Kind == SymbolKind.Property)
             {
                 IPropertySymbol property = (IPropertySymbol)method.AssociatedSymbol;
                 if (property.Parameters.Any(p => p.Name == symbol.Name))

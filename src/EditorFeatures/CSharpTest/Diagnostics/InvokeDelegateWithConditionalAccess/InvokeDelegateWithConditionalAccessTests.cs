@@ -502,7 +502,7 @@ class C
         // Comment
         a?.Invoke();
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
@@ -529,7 +529,7 @@ class C
         // Comment
         a?.Invoke();
     }
-}", ignoreTrivia: false);
+}");
         }
 
         /// <remarks>

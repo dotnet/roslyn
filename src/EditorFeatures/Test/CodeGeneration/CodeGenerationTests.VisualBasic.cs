@@ -101,7 +101,7 @@ Public Class C
     Public Sub GetStates()
 End Sub
 End Class";
-                await TestAddConstructorAsync(input, expected, ignoreTrivia: false);
+                await TestAddConstructorAsync(input, expected);
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
@@ -165,8 +165,7 @@ End Class";
     Public Class C
     End Class
 End Namespace";
-                await TestAddNamedTypeAsync(input, expected,
-                    ignoreTrivia: false);
+                await TestAddNamedTypeAsync(input, expected);
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]

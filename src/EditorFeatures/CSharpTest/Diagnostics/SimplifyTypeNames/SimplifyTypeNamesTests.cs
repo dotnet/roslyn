@@ -1733,8 +1733,7 @@ new TestParameters(Options.Script));
         }
     }
 }",
-index: 1,
-ignoreTrivia: false);
+index: 1);
         }
 
         [WorkItem(542100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542100")]
@@ -2158,7 +2157,7 @@ class C
         object x = 1;
         var y = (x as int?) + 1;
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [WorkItem(544974, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544974")]
@@ -2242,8 +2241,7 @@ class Program
     {
         var x = 1 is int? ? 2 : 3;
     }
-}",
-  ignoreTrivia: false);
+}");
         }
 
         [WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
@@ -3324,7 +3322,7 @@ class C
     public void z()
     {
     }
-}", ignoreTrivia: false, options: PreferIntrinsicTypeEverywhere);
+}", options: PreferIntrinsicTypeEverywhere);
         }
 
         [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
@@ -3348,7 +3346,7 @@ class C
     public void z()
     {
     }
-}", ignoreTrivia: false, options: PreferIntrinsicTypeInMemberAccess);
+}", options: PreferIntrinsicTypeInMemberAccess);
         }
 
         [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
@@ -3370,7 +3368,7 @@ class C
     public void z()
     {
     }
-}", ignoreTrivia: false, options: PreferIntrinsicTypeEverywhere);
+}", options: PreferIntrinsicTypeEverywhere);
         }
 
         [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
@@ -3394,7 +3392,7 @@ class C
     public void z()
     {
     }
-}", ignoreTrivia: false, options: PreferIntrinsicTypeEverywhere);
+}", options: PreferIntrinsicTypeEverywhere);
         }
 
         [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
@@ -3997,6 +3995,37 @@ class C
                 options: PreferIntrinsicTypeInMemberAccess);
         }
 
+        [Theory]
+        [InlineData(0)]
+        [InlineData(1)]
+        [InlineData(2)]
+        [InlineData(3)]
+        [InlineData(4)]
+        [Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [WorkItem(20377, "https://github.com/dotnet/roslyn/issues/20377")]
+        public async Task TestWarningLevel(int warningLevel)
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+namespace Root
+{
+    class A
+    {
+        [|System.Exception|] c;
+    }
+}",
+@"using System;
+
+namespace Root
+{
+    class A
+    {
+        Exception c;
+    }
+}", compilationOptions: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, warningLevel: warningLevel));
+        }
+
         private async Task TestWithPredefinedTypeOptionsAsync(string code, string expected, int index = 0)
         {
             await TestInRegularAndScriptAsync(code, expected, index: index, options: PreferIntrinsicTypeEverywhere);
@@ -4005,6 +4034,10 @@ class C
         private IDictionary<OptionKey, object> PreferIntrinsicTypeEverywhere => OptionsSet(
             SingleOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, true, NotificationOption.Error),
             SingleOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, this.onWithError, GetLanguage()));
+
+        private IDictionary<OptionKey, object> PreferIntrinsicTypeEverywhereAsWarning => OptionsSet(
+            SingleOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, true, NotificationOption.Warning),
+            SingleOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, this.onWithWarning, GetLanguage()));
 
         private IDictionary<OptionKey, object> PreferIntrinsicTypeInDeclaration => OptionsSet(
             SingleOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, true, NotificationOption.Error),

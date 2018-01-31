@@ -19,6 +19,8 @@ using Microsoft.VisualStudio.TextManager.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     [ExportWorkspaceService(typeof(IDefinitionsAndReferencesFactory), ServiceLayer.Desktop), Shared]
     internal class VisualStudioDefinitionsAndReferencesFactory
         : DefaultDefinitionsAndReferencesFactory

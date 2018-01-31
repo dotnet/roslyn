@@ -1,6 +1,8 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports System.Reflection.Metadata
+Imports System.Reflection.Metadata.Ecma335
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
@@ -97,7 +99,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         End Function
 
         Friend Overrides Function GetMethod(compilation As VisualBasicCompilation, instructionAddress As DkmClrInstructionAddress) As MethodSymbol
-            Return compilation.GetSourceMethod(instructionAddress.ModuleInstance.Mvid, instructionAddress.MethodId.Token)
+            Dim methodHandle = CType(MetadataTokens.Handle(instructionAddress.MethodId.Token), MethodDefinitionHandle)
+            Return compilation.GetSourceMethod(instructionAddress.ModuleInstance.Mvid, methodHandle)
         End Function
 
         Friend Overrides Function GetTypeNameDecoder(compilation As VisualBasicCompilation, method As MethodSymbol) As TypeNameDecoder(Of PEModuleSymbol, TypeSymbol)

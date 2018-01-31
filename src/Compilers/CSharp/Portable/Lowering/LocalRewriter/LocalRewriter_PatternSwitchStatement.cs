@@ -264,11 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var inputConstant = byType.Expression.ConstantValue;
 
                 // three-valued: true if input known null, false if input known non-null, null if not known.
-                bool? inputIsNull = null;
-                if (inputConstant != null)
-                {
-                    inputIsNull = inputConstant.IsNull;
-                }
+                bool? inputIsNull = inputConstant?.IsNull;
 
                 var defaultLabel = _factory.GenerateLabel("byTypeDefault");
 
@@ -426,7 +422,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(loweredLeft.Type.Equals(loweredRight.Type, TypeCompareKind.AllIgnoreOptions));
                         addBindings.Add(_factory.ExpressionStatement(
                             _localRewriter.MakeStaticAssignmentOperator(
-                                _factory.Syntax, loweredLeft, loweredRight, RefKind.None, loweredLeft.Type, false)));
+                                _factory.Syntax, loweredLeft, loweredRight, isRef: false, type: loweredLeft.Type, used: false)));
                     }
                 }
             }

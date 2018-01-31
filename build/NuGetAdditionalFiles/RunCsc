@@ -5,11 +5,10 @@ set -u
 
 THISDIR=$(dirname $0)
 
-# The expression ${VAR:+TEXT} expands to:
-#  If VAR is null or empty => empty string
-#  If VAR is non-empty => TEXT
-# Do this expression to make sure HOST_PATH ends with a slash,
-#  but if it's unset, have it be completely empty (look up dotnet in PATH)
-HOST_PATH=${DOTNET_HOST_PATH:+${DOTNET_HOST_PATH-}/}
+# The expression ${VAR:-TEXT} expands to:
+#  If VAR is null or empty => TEXT
+#  If VAR is non-empty => ${VAR}
+# So: If DOTNET_HOST_PATH is set, use it, otherwise use unqualified dotnet
+HOST_PATH=${DOTNET_HOST_PATH:-dotnet}
 
-exec ${HOST_PATH}dotnet $THISDIR/csc.dll "$@"
+exec "${HOST_PATH}" "$THISDIR/csc.dll" "$@"

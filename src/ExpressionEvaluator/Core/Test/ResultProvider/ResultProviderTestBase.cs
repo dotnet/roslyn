@@ -359,11 +359,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         private static string ToString(DkmEvaluationResult result)
         {
-            var success = result as DkmSuccessEvaluationResult;
-            if (success != null) return ToString(success);
+            if (result is DkmSuccessEvaluationResult success) return ToString(success);
 
-            var intermediate = result as DkmIntermediateEvaluationResult;
-            if (intermediate != null) return ToString(intermediate);
+            if (result is DkmIntermediateEvaluationResult intermediate) return ToString(intermediate);
 
             return ToString((DkmFailedEvaluationResult)result);
         }

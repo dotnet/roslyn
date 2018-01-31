@@ -887,8 +887,7 @@ index: 1);
 #else
 #endif
 }",
-index: 2,
-ignoreTrivia: false);
+index: 2);
         }
 
         [WorkItem(538495, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538495")]
@@ -2665,7 +2664,6 @@ internal class T
     }
 }",
 index: 1,
-ignoreTrivia: false,
 options: Option(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, false, NotificationOption.Error));
         }
 
@@ -4318,7 +4316,7 @@ class Program
     {
     }
 }
-", index: 1, ignoreTrivia: false);
+", index: 1);
         }
 
         [WorkItem(869506, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/869506")]
@@ -4367,7 +4365,7 @@ namespace A
 }
 ";
 
-            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(code, expected);
         }
 
         [WorkItem(932602, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932602")]
@@ -4397,8 +4395,7 @@ namespace Namespace1.Namespace2
             await TestAddDocumentInRegularAndScriptAsync(code,
                 expected,
                 expectedContainers: ImmutableArray<string>.Empty,
-                expectedDocumentName: "ClassB.cs",
-                ignoreTrivia: false);
+                expectedDocumentName: "ClassB.cs");
         }
 
         [WorkItem(932602, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932602")]
@@ -4428,8 +4425,7 @@ namespace Namespace1.Namespace2.Namespace3
             await TestAddDocumentInRegularAndScriptAsync(code,
                 expected,
                 expectedContainers: ImmutableArray.Create("Namespace1", "Namespace2"),
-                expectedDocumentName: "ClassB.cs",
-                ignoreTrivia: false);
+                expectedDocumentName: "ClassB.cs");
         }
 
         [WorkItem(612700, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/612700")]
@@ -4826,8 +4822,7 @@ internal class Goo
 {
 }",
 expectedContainers: ImmutableArray<string>.Empty,
-expectedDocumentName: "Goo.cs",
-ignoreTrivia: false);
+expectedDocumentName: "Goo.cs");
         }
 
         [WorkItem(17361, "https://github.com/dotnet/roslyn/issues/17361")]
@@ -4847,8 +4842,7 @@ class Program
 {
 }",
 expectedContainers: ImmutableArray<string>.Empty,
-expectedDocumentName: "Goo.cs",
-ignoreTrivia: false);
+expectedDocumentName: "Goo.cs");
         }
 
         [WorkItem(17361, "https://github.com/dotnet/roslyn/issues/17361")]
@@ -4879,8 +4873,7 @@ internal class Goo
     }
 }",
     expectedContainers: ImmutableArray<string>.Empty,
-    expectedDocumentName: "Goo.cs",
-    ignoreTrivia: false);
+    expectedDocumentName: "Goo.cs");
         }
     }
 

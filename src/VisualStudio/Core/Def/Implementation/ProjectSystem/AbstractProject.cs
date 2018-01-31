@@ -30,8 +30,12 @@ using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     // NOTE: Microsoft.VisualStudio.LanguageServices.TypeScript.TypeScriptProject derives from AbstractProject.
+#pragma warning disable CS0618 // IVisualStudioHostProject is obsolete
     internal abstract partial class AbstractProject : ForegroundThreadAffinitizedObject, IVisualStudioHostProject
+#pragma warning restore CS0618 // IVisualStudioHostProject is obsolete
     {
         internal static object RuleSetErrorId = new object();
         private readonly object _gate = new object();
@@ -596,7 +600,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // at this point, we don't know whether it is a metadata reference added because 
             // we don't have enough information yet for p2p reference or user explicitly added it 
             // as a metadata reference.
-            AddMetadataReferenceCore(this.MetadataReferenceProvider.CreateMetadataReference(this, filePath, properties));
+            AddMetadataReferenceCore(this.MetadataReferenceProvider.CreateMetadataReference(filePath, properties));
 
             // here, we change behavior compared to old C# language service. regardless of file being exist or not, 
             // we will always return S_OK. this is to support cross language p2p reference better. 
@@ -1025,7 +1029,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 lock (_gate)
                 {
-                    _documents.Add(document.Id, document);
+                    // This condition ensures that if we throw an exception for either Add operation, the document will
+                    // not be added to either collection.
+                    if (!_documentMonikers.ContainsKey(document.Key.Moniker))
+                    {
+                        _documents.Add(document.Id, document);
+                    }
+
                     _documentMonikers.Add(document.Key.Moniker, document);
                 }
 
@@ -1220,7 +1230,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     projectReference.Aliases,
                     projectReference.EmbedInteropTypes);
 
-                AddMetadataReferenceCore(MetadataReferenceProvider.CreateMetadataReference(this, binPath, metadataReferenceProperties));
+                AddMetadataReferenceCore(MetadataReferenceProvider.CreateMetadataReference(binPath, metadataReferenceProperties));
 
                 Contract.ThrowIfFalse(RemoveMetadataFileNameToConvertedProjectReference(binPath));
             }
@@ -1247,7 +1257,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 RemoveMetadataReferenceCore(existingReference, disposeReference: true);
 
-                AddMetadataReferenceCore(this.MetadataReferenceProvider.CreateMetadataReference(this, file, newProperties));
+                AddMetadataReferenceCore(this.MetadataReferenceProvider.CreateMetadataReference(file, newProperties));
             }
         }
 

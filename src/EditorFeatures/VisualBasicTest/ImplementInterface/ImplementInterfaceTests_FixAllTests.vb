@@ -117,7 +117,7 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Await TestInRegularAndScriptAsync(input, expected, ignoreTrivia:=False, fixAllActionEquivalenceKey:=fixAllActionEquivalenceKey)
+            Await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey:=fixAllActionEquivalenceKey)
         End Function
 
         <Fact>
@@ -240,7 +240,7 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Await TestInRegularAndScriptAsync(input, expected, ignoreTrivia:=False, fixAllActionEquivalenceKey:=fixAllActionEquivalenceKey)
+            Await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey:=fixAllActionEquivalenceKey)
         End Function
 
         <Fact>
@@ -371,7 +371,7 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Await TestInRegularAndScriptAsync(input, expected, ignoreTrivia:=False, fixAllActionEquivalenceKey:=fixAllActionEquivalenceKey)
+            Await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey:=fixAllActionEquivalenceKey)
         End Function
 
         <Fact>
@@ -508,7 +508,7 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Await TestInRegularAndScriptAsync(input, expected, ignoreTrivia:=False, fixAllActionEquivalenceKey:=fixAllActionEquivalenceKey)
+            Await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey:=fixAllActionEquivalenceKey)
         End Function
     End Class
 End Namespace

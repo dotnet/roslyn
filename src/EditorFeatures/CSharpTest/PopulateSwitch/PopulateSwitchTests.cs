@@ -973,7 +973,7 @@ class MyClass
                 break;
         }
     }
-}", ignoreTrivia: false);
+}");
         }
     }
 }

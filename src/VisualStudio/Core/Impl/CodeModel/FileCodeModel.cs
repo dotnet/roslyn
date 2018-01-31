@@ -332,7 +332,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             });
         }
 
-        private void ApplyChanges(Workspace workspace, Document document)
+        private void ApplyChanges(Microsoft.CodeAnalysis.Workspace workspace, Document document)
         {
             if (IsBatchOpen)
             {

@@ -69,6 +69,9 @@ End Class
 
             v0.VerifyPdb("C.M",
 <symbols>
+    <files>
+      <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" />
+    </files>
     <methods>
         <method containingType="C" name="M">
             <customDebugInfo>
@@ -78,16 +81,16 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="4" startColumn="5" endLine="4" endColumn="12"/>
-                <entry offset="0x1" startLine="5" startColumn="9" endLine="5" endColumn="49"/>
-                <entry offset="0x3" startLine="6" startColumn="13" endLine="6" endColumn="33"/>
-                <entry offset="0xa" startLine="7" startColumn="9" endLine="7" endColumn="13"/>
-                <entry offset="0xe" hidden="true"/>
-                <entry offset="0x12" startLine="8" startColumn="9" endLine="8" endColumn="49"/>
-                <entry offset="0x14" startLine="9" startColumn="13" endLine="9" endColumn="33"/>
-                <entry offset="0x1b" startLine="10" startColumn="9" endLine="10" endColumn="13"/>
-                <entry offset="0x1f" hidden="true"/>
-                <entry offset="0x23" startLine="11" startColumn="5" endLine="11" endColumn="12"/>
+                <entry offset="0x0" startLine="4" startColumn="5" endLine="4" endColumn="12" document="1"/>
+                <entry offset="0x1" startLine="5" startColumn="9" endLine="5" endColumn="49" document="1"/>
+                <entry offset="0x3" startLine="6" startColumn="13" endLine="6" endColumn="33" document="1"/>
+                <entry offset="0xa" startLine="7" startColumn="9" endLine="7" endColumn="13" document="1"/>
+                <entry offset="0xe" hidden="true" document="1"/>
+                <entry offset="0x12" startLine="8" startColumn="9" endLine="8" endColumn="49" document="1"/>
+                <entry offset="0x14" startLine="9" startColumn="13" endLine="9" endColumn="33" document="1"/>
+                <entry offset="0x1b" startLine="10" startColumn="9" endLine="10" endColumn="13" document="1"/>
+                <entry offset="0x1f" hidden="true" document="1"/>
+                <entry offset="0x23" startLine="11" startColumn="5" endLine="11" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x24">
                 <namespace name="System" importlevel="file"/>

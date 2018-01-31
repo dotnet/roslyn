@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis
         IncludeConstantValue = 1 << 6,
 
         /// <summary>
-        /// Includes the <c>ref</c>, <c>ByRef</c> keyword for ref-returning methods and properties/indexers.
+        /// Includes the <c>ref</c>, <c>ref readonly</c>, <c>ByRef</c> keywords for ref-returning methods and properties/indexers.
         /// </summary>
         IncludeRef = 1 << 7,
     }

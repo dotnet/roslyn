@@ -82,8 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return ValueTuple.Create(default(SyntaxTriviaList), GetLeadingTriviaAtBeginningOfTree(pair.Key, pair.Value, cancellationToken));
             }
 
-            var csharpTriviaData = pair.Value as TriviaDataWithList;
-            if (csharpTriviaData != null)
+            if (pair.Value is TriviaDataWithList csharpTriviaData)
             {
                 var triviaList = csharpTriviaData.GetTriviaList(cancellationToken);
                 var index = GetFirstEndOfLineIndexOrRightBeforeComment(triviaList);
@@ -157,8 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             TriviaData triviaData,
             CancellationToken cancellationToken)
         {
-            var csharpTriviaData = triviaData as TriviaDataWithList;
-            if (csharpTriviaData != null)
+            if (triviaData is TriviaDataWithList csharpTriviaData)
             {
                 return SyntaxFactory.TriviaList(csharpTriviaData.GetTriviaList(cancellationToken));
             }

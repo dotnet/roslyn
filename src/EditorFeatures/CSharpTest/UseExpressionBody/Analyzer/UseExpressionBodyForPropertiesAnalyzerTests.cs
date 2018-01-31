@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 @"class C
 {
     int Goo => throw new NotImplementedException(); // comment
-}", ignoreTrivia: false, options: UseExpressionBody);
+}", options: UseExpressionBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             throw new NotImplementedException(); // comment
         }
     }
-}", ignoreTrivia: false, options: UseBlockBody);
+}", options: UseBlockBody);
         }
 
         [WorkItem(16386, "https://github.com/dotnet/roslyn/issues/16386")]
@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
     public string Prop => _prop;
 
     public string OtherThing => ""Pickles"";
-}", ignoreTrivia: false, options: UseExpressionBody);
+}", options: UseExpressionBody);
         }
 
         [WorkItem(19235, "https://github.com/dotnet/roslyn/issues/19235")]
@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             return Baz();
 #endif
 
-}", ignoreTrivia: false,
+}",
     parameters: new TestParameters(options: UseExpressionBody));
         }
 
@@ -311,7 +311,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             Baz();
 #endif
 
-}", ignoreTrivia: false,
+}",
     parameters: new TestParameters(options: UseExpressionBody));
         }
 
@@ -365,7 +365,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
         //comment
         return i * i;
     }
-}", ignoreTrivia: false,
+}",
     options: UseBlockBody);
         }
 

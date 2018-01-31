@@ -142,9 +142,9 @@ Enumerable.WhereSelectArrayIterator<int, int> {{ 9, 16, 25 }}
         {
             var runner = CreateRunner(input:
 @"using System.Globalization;
-CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(""en-GB"")
+CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(""en-GB"", useUserOverride: false)
 Math.PI
-CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(""de-DE"")
+CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(""de-DE"", useUserOverride: false)
 Math.PI
 ");
             runner.RunInteractive();
@@ -155,11 +155,11 @@ Copyright (C) Microsoft Corporation. All rights reserved.
 
 Type ""#help"" for more information.
 > using System.Globalization;
-> CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(""en-GB"")
+> CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(""en-GB"", useUserOverride: false)
 [en-GB]
 > Math.PI
 3.1415926535897931
-> CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(""de-DE"")
+> CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(""de-DE"", useUserOverride: false)
 [de-DE]
 > Math.PI
 3,1415926535897931
@@ -168,10 +168,10 @@ Type ""#help"" for more information.
             // Tests that DefaultThreadCurrentUICulture is respected and not DefaultThreadCurrentCulture.
             runner = CreateRunner(input:
 @"using System.Globalization;
-CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(""en-GB"")
-CultureInfo.DefaultThreadCurrentCulture = new CultureInfo(""en-GB"")
+CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(""en-GB"", useUserOverride: false)
+CultureInfo.DefaultThreadCurrentCulture = new CultureInfo(""en-GB"", useUserOverride: false)
 Math.PI
-CultureInfo.DefaultThreadCurrentCulture = new CultureInfo(""de-DE"")
+CultureInfo.DefaultThreadCurrentCulture = new CultureInfo(""de-DE"", useUserOverride: false)
 Math.PI
 ");
             runner.RunInteractive();
@@ -182,13 +182,13 @@ Copyright (C) Microsoft Corporation. All rights reserved.
 
 Type ""#help"" for more information.
 > using System.Globalization;
-> CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(""en-GB"")
+> CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(""en-GB"", useUserOverride: false)
 [en-GB]
-> CultureInfo.DefaultThreadCurrentCulture = new CultureInfo(""en-GB"")
+> CultureInfo.DefaultThreadCurrentCulture = new CultureInfo(""en-GB"", useUserOverride: false)
 [en-GB]
 > Math.PI
 3.1415926535897931
-> CultureInfo.DefaultThreadCurrentCulture = new CultureInfo(""de-DE"")
+> CultureInfo.DefaultThreadCurrentCulture = new CultureInfo(""de-DE"", useUserOverride: false)
 [de-DE]
 > Math.PI
 3.1415926535897931
@@ -544,7 +544,7 @@ Options:
             AssertEx.AssertEqualToleratingWhitespaceDifferences(error, runner.Console.Error.ToString());
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))] // PROTOTYPE(DefaultInterfaceImplementation): disabling this test for CoreCLR because it fails in CI build after changes that enabled netcoreapp2.1 as a target for symbols tests. Passes locally
         public void Script_NoHostNamespaces()
         {
             var runner = CreateRunner(input: "nameof(Microsoft.CodeAnalysis)");
@@ -815,7 +815,7 @@ C {{ }}
                 runner.Console.Error.ToString());
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/24402")]
         public void HelpCommand()
         {
             var runner = CreateRunner(input:

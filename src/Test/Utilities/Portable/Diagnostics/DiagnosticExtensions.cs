@@ -161,8 +161,7 @@ namespace Microsoft.CodeAnalysis
                 params DiagnosticDescription[] expected)
             where TCompilation : Compilation
         {
-            ImmutableArray<Diagnostic> diagnostics;
-            c = c.GetAnalyzerDiagnostics(analyzers, options, onAnalyzerException, logAnalyzerExceptionAsDiagnostics, reportSuppressedDiagnostics, diagnostics: out diagnostics);
+            c = c.GetAnalyzerDiagnostics(analyzers, options, onAnalyzerException, logAnalyzerExceptionAsDiagnostics, reportSuppressedDiagnostics, diagnostics: out var diagnostics);
             diagnostics.Verify(expected);
             return c; // note this is a new compilation
         }
@@ -187,8 +186,7 @@ namespace Microsoft.CodeAnalysis
             bool logAnalyzerExceptionAsDiagnostics = true)
             where TCompilation : Compilation
         {
-            ImmutableArray<Diagnostic> diagnostics;
-            c = GetAnalyzerDiagnostics(c, analyzers, options, onAnalyzerException, logAnalyzerExceptionAsDiagnostics, reportSuppressedDiagnostics, out diagnostics);
+            c = GetAnalyzerDiagnostics(c, analyzers, options, onAnalyzerException, logAnalyzerExceptionAsDiagnostics, reportSuppressedDiagnostics, out var diagnostics);
             return diagnostics;
         }
 
@@ -228,8 +226,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             var analyzerManager = new AnalyzerManager(analyzersArray);
-            Compilation newCompilation;
-            var driver = AnalyzerDriver.CreateAndAttachToCompilation(c, analyzersArray, options, analyzerManager, onAnalyzerException, null, false, out newCompilation, CancellationToken.None);
+            var driver = AnalyzerDriver.CreateAndAttachToCompilation(c, analyzersArray, options, analyzerManager, onAnalyzerException, null, false, out var newCompilation, CancellationToken.None);
             var discarded = newCompilation.GetDiagnostics();
             diagnostics = driver.GetDiagnosticsAsync(newCompilation).Result.AddRange(exceptionDiagnostics);
 

@@ -1127,8 +1127,7 @@ Namespace OuterNamespace
 End Namespace
 
 </Text>.Value.Replace(vbLf, vbCrLf),
-        index:=1,
-        ignoreTrivia:=False)
+        index:=1)
         End Function
 
         <WorkItem(542138, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542138")>
@@ -2095,7 +2094,7 @@ Module Program
 End Module
 </Code>
 
-            Await TestInRegularAndScriptAsync(source.Value, expected.Value, ignoreTrivia:=False, options:=PreferIntrinsicPredefinedTypeInDeclaration())
+            Await TestInRegularAndScriptAsync(source.Value, expected.Value, options:=PreferIntrinsicPredefinedTypeInDeclaration())
         End Function
 
         <WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")>
@@ -2119,7 +2118,7 @@ Module Program
 End Module
 </Code>
 
-            Await TestInRegularAndScriptAsync(source.Value, expected.Value, ignoreTrivia:=False, options:=PreferIntrinsicPredefinedTypeInDeclaration())
+            Await TestInRegularAndScriptAsync(source.Value, expected.Value, options:=PreferIntrinsicPredefinedTypeInDeclaration())
         End Function
 
         <WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")>
@@ -2141,7 +2140,7 @@ Module Program
 End Module
 </Code>
 
-            Await TestInRegularAndScriptAsync(source.Value, expected.Value, ignoreTrivia:=False, options:=PreferIntrinsicTypeInMemberAccess())
+            Await TestInRegularAndScriptAsync(source.Value, expected.Value, options:=PreferIntrinsicTypeInMemberAccess())
         End Function
 
         <WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")>
@@ -2161,7 +2160,7 @@ Module Program
 End Module
 </Code>
 
-            Await TestInRegularAndScriptAsync(source.Value, expected.Value, ignoreTrivia:=False, options:=PreferIntrinsicTypeInMemberAccess())
+            Await TestInRegularAndScriptAsync(source.Value, expected.Value, options:=PreferIntrinsicTypeInMemberAccess())
         End Function
 
         <WorkItem(1012713, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1012713")>
@@ -2247,7 +2246,7 @@ Module Program
     End Sub
 End Module
 </Code>
-            Await TestInRegularAndScriptAsync(source.Value, expected.Value, ignoreTrivia:=False, options:=PreferIntrinsicTypeInMemberAccess())
+            Await TestInRegularAndScriptAsync(source.Value, expected.Value, options:=PreferIntrinsicTypeInMemberAccess())
         End Function
 
         <WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")>
@@ -2269,7 +2268,7 @@ Module Program
     End Sub
 End Module
 </Code>
-            Await TestInRegularAndScriptAsync(source.Value, expected.Value, ignoreTrivia:=False, options:=PreferIntrinsicTypeInMemberAccess())
+            Await TestInRegularAndScriptAsync(source.Value, expected.Value, options:=PreferIntrinsicTypeInMemberAccess())
         End Function
 
         <WorkItem(956667, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/956667")>
@@ -2506,6 +2505,39 @@ End Class",
     Dim x = 7
     Sub M()
         x = Nothing
+    End Sub
+End Class")
+        End Function
+
+        <WorkItem(19498, "https://github.com/dotnet/roslyn/issues/19498")>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        Public Async Function TestMyClassShouldNotBeRemoved() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Class SomeType
+    Overridable Sub Test()
+    End Sub
+    Overridable Sub Test2()
+        [|MyClass|].Test()
+    End Sub
+End Class")
+        End Function
+
+        <WorkItem(19498, "https://github.com/dotnet/roslyn/issues/19498")>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        Public Async Function TestMyClassShouldBeRemoved() As Task
+            Await TestInRegularAndScriptAsync(
+"Class SomeType
+    Sub Test()
+    End Sub
+    Sub Test2()
+        [|MyClass|].Test()
+    End Sub
+End Class",
+"Class SomeType
+    Sub Test()
+    End Sub
+    Sub Test2()
+        Test()
     End Sub
 End Class")
         End Function

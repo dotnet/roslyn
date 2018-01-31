@@ -285,8 +285,7 @@ namespace Microsoft.CodeAnalysis.AddImport
 
                     // Ignore netmodules.  First, they're incredibly esoteric and barely used.
                     // Second, the SymbolFinder API doesn't even support searching them. 
-                    var assembly = compilation.GetAssemblyOrModuleSymbol(reference) as IAssemblySymbol;
-                    if (assembly != null)
+                    if (compilation.GetAssemblyOrModuleSymbol(reference) is IAssemblySymbol assembly)
                     {
                         findTasks.Add(finder.FindInMetadataSymbolsAsync(
                             assembly, referenceProjectId, reference, exact, linkedTokenSource.Token));

@@ -109,7 +109,7 @@ End Class",
             &B1, &H2
         }
     End Sub
-End Class", index:=Refactoring.ChangeBase2, ignoreTrivia:=False)
+End Class", index:=Refactoring.ChangeBase2)
         End Function
 
         <WorkItem(19369, "https://github.com/dotnet/roslyn/issues/19369")>

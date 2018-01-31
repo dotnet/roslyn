@@ -20,6 +20,9 @@ End Class
             Dim comp = CreateCompilationWithMscorlib(source, references:={ValueTupleRef, SystemRuntimeFacadeRef}, options:=TestOptions.DebugDll)
             comp.VerifyPdb("C.F",
 <symbols>
+    <files>
+      <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" />
+    </files>
     <methods>
         <method containingType="C" name="F">
             <customDebugInfo>
@@ -31,9 +34,9 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="19"/>
-                <entry offset="0x1" startLine="4" startColumn="13" endLine="4" endColumn="163"/>
-                <entry offset="0x1c" startLine="5" startColumn="5" endLine="5" endColumn="12"/>
+                <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="19" document="1"/>
+                <entry offset="0x1" startLine="4" startColumn="13" endLine="4" endColumn="163" document="1"/>
+                <entry offset="0x1c" startLine="5" startColumn="5" endLine="5" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x1d">
                 <currentnamespace name=""/>
@@ -91,6 +94,9 @@ End Class
 
             c.VerifyPdb(
 <symbols>
+    <files>
+      <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" />
+    </files>
     <methods>
         <method containingType="C`1" name="F">
             <customDebugInfo>
@@ -107,9 +113,9 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="12"/>
-                <entry offset="0x1" startLine="11" startColumn="13" endLine="11" endColumn="65"/>
-                <entry offset="0x3" startLine="14" startColumn="9" endLine="14" endColumn="30"/>
+                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="12" document="1"/>
+                <entry offset="0x1" startLine="11" startColumn="13" endLine="11" endColumn="65" document="1"/>
+                <entry offset="0x3" startLine="14" startColumn="9" endLine="14" endColumn="30" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x9">
                 <namespace name="System" importlevel="file"/>

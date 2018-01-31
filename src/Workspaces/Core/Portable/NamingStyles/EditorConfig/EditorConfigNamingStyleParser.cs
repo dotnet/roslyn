@@ -46,18 +46,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
             foreach (var namingRuleTitle in GetRuleTitles(trimmedDictionary))
             {
-                if (TryGetSymbolSpec(namingRuleTitle, trimmedDictionary, out var symbolSpec))
+                if (TryGetSymbolSpec(namingRuleTitle, trimmedDictionary, out var symbolSpec) &&
+                    TryGetNamingStyleData(namingRuleTitle, trimmedDictionary, out var namingStyle) &&
+                    TryGetSerializableNamingRule(namingRuleTitle, symbolSpec, namingStyle, trimmedDictionary, out var serializableNamingRule))
                 {
                     symbolSpecifications.Add(symbolSpec);
-                }
-
-                if (TryGetNamingStyleData(namingRuleTitle, trimmedDictionary, out var namingStyle))
-                {
                     namingStyles.Add(namingStyle);
-                }
-
-                if (TryGetSerializableNamingRule(namingRuleTitle, symbolSpec, namingStyle, trimmedDictionary, out var serializableNamingRule))
-                {
                     namingRules.Add(serializableNamingRule);
                 }
             }

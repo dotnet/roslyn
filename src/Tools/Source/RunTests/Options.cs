@@ -98,7 +98,6 @@ namespace RunTests
             var allGood = true;
             while (index < args.Length)
             {
-                string value;
                 var current = args[index];
                 if (comparer.Equals(current, "-test64"))
                 {
@@ -121,15 +120,14 @@ namespace RunTests
                     opt.UseCachedResults = false;
                     index++;
                 }
-                else if (isOption(current, "-log", out value))
+                else if (isOption(current, "-log", out string value))
                 {
                     opt.LogFilePath = value;
                     index++;
                 }
                 else if (isOption(current, "-display", out value))
                 {
-                    Display display;
-                    if (Enum.TryParse(value, ignoreCase: true, result: out display))
+                    if (Enum.TryParse(value, ignoreCase: true, result: out Display display))
                     {
                         opt.Display = display;
                     }

@@ -499,8 +499,7 @@ End Class",
     Sub M()
         Dim goo = New AwesomeClass ' trailing trivia
     End Sub
-End Class",
-ignoreTrivia:=False)
+End Class")
         End Function
 
         Public Class AddImportTestsWithAddImportDiagnosticProvider

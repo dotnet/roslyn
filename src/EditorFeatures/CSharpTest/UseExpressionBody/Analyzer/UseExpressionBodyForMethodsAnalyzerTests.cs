@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 @"class C
 {
     int Goo() => throw new NotImplementedException(); // comment
-}", ignoreTrivia: false, options: UseExpressionBody);
+}", options: UseExpressionBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
     {
         throw new NotImplementedException(); // comment
     }
-}", ignoreTrivia: false, options: UseBlockBody);
+}", options: UseBlockBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
     void Goo() =>
         // Comment
         Bar();
-}", options: UseExpressionBody, ignoreTrivia: false);
+}", options: UseExpressionBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
     void Goo() =>
         // Comment
         Bar();
-}", options: UseExpressionBody, ignoreTrivia: false);
+}", options: UseExpressionBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
     void Goo() =>
         // Comment
         throw Bar();
-}", options: UseExpressionBody, ignoreTrivia: false);
+}", options: UseExpressionBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -300,7 +300,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 @"class C
 {
     void Goo() => Bar(); // Comment
-}", options: UseExpressionBody, ignoreTrivia: false);
+}", options: UseExpressionBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -317,7 +317,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 @"class C
 {
     void Goo() => Bar(); // Comment
-}", options: UseExpressionBody, ignoreTrivia: false);
+}", options: UseExpressionBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -334,7 +334,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 @"class C
 {
     void Goo() => throw Bar(); // Comment
-}", options: UseExpressionBody, ignoreTrivia: false);
+}", options: UseExpressionBody);
         }
 
         [WorkItem(17120, "https://github.com/dotnet/roslyn/issues/17120")]
@@ -366,7 +366,7 @@ class Program
         Console.WriteLine();
 #endif
 
-}", options: UseExpressionBody, ignoreTrivia: false);
+}", options: UseExpressionBody);
         }
 
         [WorkItem(17120, "https://github.com/dotnet/roslyn/issues/17120")]
@@ -402,7 +402,7 @@ class Program
         Console.WriteLine(b);
 #endif
 
-}", options: UseExpressionBody, ignoreTrivia: false);
+}", options: UseExpressionBody);
         }
 
         [WorkItem(20362, "https://github.com/dotnet/roslyn/issues/20362")]

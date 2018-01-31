@@ -1,13 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.FileSystem;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Scripting;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.ErrorReporting;
 
 namespace Microsoft.CodeAnalysis.Editor.Completion.FileSystem
 {
@@ -20,30 +22,37 @@ namespace Microsoft.CodeAnalysis.Editor.Completion.FileSystem
 
         public sealed override async Task ProvideCompletionsAsync(CompletionContext context)
         {
-            var document = context.Document;
-            var position = context.Position;
-            var cancellationToken = context.CancellationToken;
-
-            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-
-            if (!TryGetStringLiteralToken(tree, position, out var stringLiteral, cancellationToken))
+            try
             {
-                return;
+                var document = context.Document;
+                var position = context.Position;
+                var cancellationToken = context.CancellationToken;
+
+                var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+
+                if (!TryGetStringLiteralToken(tree, position, out var stringLiteral, cancellationToken))
+                {
+                    return;
+                }
+
+                var literalValue = stringLiteral.ToString();
+
+                context.CompletionListSpan = GetTextChangeSpan(
+                    quotedPath: literalValue,
+                    quotedPathStart: stringLiteral.SpanStart,
+                    position: position);
+
+                var pathThroughLastSlash = GetPathThroughLastSlash(
+                    quotedPath: literalValue,
+                    quotedPathStart: stringLiteral.SpanStart,
+                    position: position);
+
+                await ProvideCompletionsAsync(context, pathThroughLastSlash).ConfigureAwait(false);
             }
-
-            var literalValue = stringLiteral.ToString();
-
-            context.CompletionListSpan = GetTextChangeSpan(
-                quotedPath: literalValue,
-                quotedPathStart: stringLiteral.SpanStart,
-                position: position);
-
-            var pathThroughLastSlash = GetPathThroughLastSlash(
-                quotedPath: literalValue,
-                quotedPathStart: stringLiteral.SpanStart,
-                position: position);
-
-            await ProvideCompletionsAsync(context, pathThroughLastSlash).ConfigureAwait(false);
+            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            {
+                // nop
+            }
         }
 
         public override bool ShouldTriggerCompletion(SourceText text, int caretPosition, CompletionTrigger trigger, OptionSet options)
@@ -118,26 +127,34 @@ namespace Microsoft.CodeAnalysis.Editor.Completion.FileSystem
 
         protected abstract Task ProvideCompletionsAsync(CompletionContext context, string pathThroughLastSlash);
 
-        internal static string GetBaseDirectory(SourceText text, Document document)
+        protected FileSystemCompletionHelper GetFileSystemCompletionHelper(
+            Document document,
+            Glyph itemGlyph,
+            ImmutableArray<string> extensions,
+            CompletionItemRules completionRules)
         {
-            string result;
-            if (document.Project.IsSubmission)
-            {
-                var buffer = text.Container.GetTextBuffer();
-                var snapshot = text.FindCorrespondingEditorTextSnapshot();
-                if (snapshot == null)
-                {
-                    return null;
-                }
+            var serviceOpt = document.Project.Solution.Workspace.Services.GetService<IScriptEnvironmentService>();
+            var searchPaths = serviceOpt?.MetadataReferenceSearchPaths ?? ImmutableArray<string>.Empty;
 
-                result = CurrentWorkingDirectoryDiscoveryService.GetService(snapshot).WorkingDirectory;
-            }
-            else
+            return new FileSystemCompletionHelper(
+                Glyph.OpenFolder,
+                itemGlyph,
+                searchPaths,
+                GetBaseDirectory(document, serviceOpt),
+                extensions,
+                completionRules);
+        }
+
+        private static string GetBaseDirectory(Document document, IScriptEnvironmentService environmentOpt)
+        {
+            var result = PathUtilities.GetDirectoryName(document.FilePath);
+            if (!PathUtilities.IsAbsolute(result))
             {
-                result = PathUtilities.GetDirectoryName(document.FilePath);
+                result = environmentOpt?.BaseDirectory;
+                Contract.Requires(result == null || PathUtilities.IsAbsolute(result));
             }
 
-            return PathUtilities.IsAbsolute(result) ? result : null;
+            return result;
         }
     }
 }

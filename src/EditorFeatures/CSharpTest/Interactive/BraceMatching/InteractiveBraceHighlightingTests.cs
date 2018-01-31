@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceHighlighting
             var producer = new BraceHighlightingViewTaggerProvider(
                 workspace.GetService<IBraceMatchingService>(),
                 workspace.GetService<IForegroundNotificationService>(),
-                AggregateAsynchronousOperationListener.EmptyListeners);
+                AsynchronousOperationListenerProvider.NullProvider);
 
             var context = new TaggerContext<BraceHighlightTag>(
                 buffer.CurrentSnapshot.GetRelatedDocumentsWithChanges().FirstOrDefault(),
@@ -122,14 +122,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceHighlighting
                 result = await ProduceTagsAsync(workspace, buffer, 45);
                 Assert.True(result.Select(ts => ts.Span.Span).SetEquals(Enumerable(Span.FromBounds(42, 43), Span.FromBounds(44, 45))));
 
-                Func<int, char, Task> assertNoTags = async (position, expectedChar) =>
+                async Task assertNoTags(int position, char expectedChar)
                 {
                     Assert.Equal(expectedChar, buffer.CurrentSnapshot[position]);
                     result = await ProduceTagsAsync(workspace, buffer, position);
                     Assert.True(result.IsEmpty());
                     result = await ProduceTagsAsync(workspace, buffer, position + 1);
                     Assert.True(result.IsEmpty());
-                };
+                }
 
                 // Doesn't highlight angles of XML doc comments
                 var xmlTagStartPosition = 4;

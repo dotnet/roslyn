@@ -18,22 +18,25 @@ namespace Microsoft.CodeAnalysis.Remote
             DocumentId documentId, TextSpan span, string diagnosticId, bool placeSystemNamespaceFirst,
             bool searchReferenceAssemblies, IList<PackageSource> packageSources, CancellationToken cancellationToken)
         {
-            using (UserOperationBooster.Boost())
+            return await RunServiceAsync(async token =>
             {
-                var solution = await GetSolutionAsync(cancellationToken).ConfigureAwait(false);
-                var document = solution.GetDocument(documentId);
+                using (UserOperationBooster.Boost())
+                {
+                    var solution = await GetSolutionAsync(token).ConfigureAwait(false);
+                    var document = solution.GetDocument(documentId);
 
-                var service = document.GetLanguageService<IAddImportFeatureService>();
+                    var service = document.GetLanguageService<IAddImportFeatureService>();
 
-                var symbolSearchService = new SymbolSearchService(this);
+                    var symbolSearchService = new SymbolSearchService(this);
 
-                var result = await service.GetFixesAsync(
-                    document, span, diagnosticId, placeSystemNamespaceFirst,
-                    symbolSearchService, searchReferenceAssemblies,
-                    packageSources.ToImmutableArray(), cancellationToken).ConfigureAwait(false);
+                    var result = await service.GetFixesAsync(
+                        document, span, diagnosticId, placeSystemNamespaceFirst,
+                        symbolSearchService, searchReferenceAssemblies,
+                        packageSources.ToImmutableArray(), token).ConfigureAwait(false);
 
-                return result;
-            }
+                    return result;
+                }
+            }, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>

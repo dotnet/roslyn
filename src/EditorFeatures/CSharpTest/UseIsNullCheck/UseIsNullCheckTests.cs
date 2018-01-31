@@ -187,7 +187,7 @@ class C
             s2 is null)
             return;
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
@@ -215,7 +215,7 @@ class C
             s2 is null)
             return;
     }
-}", ignoreTrivia: false);
+}");
         }
     }
 }

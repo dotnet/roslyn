@@ -607,8 +607,7 @@ class C
             2 // Bar
         };
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
@@ -909,7 +908,7 @@ public class Goo
         };
 #endif
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [WorkItem(18242, "https://github.com/dotnet/roslyn/issues/18242")]
@@ -1010,7 +1009,7 @@ class MyClass
 
         int horse = 1;
     }
-}", ignoreTrivia: false);
+}");
         }
     }
 }

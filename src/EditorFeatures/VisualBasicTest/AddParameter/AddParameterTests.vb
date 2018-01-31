@@ -14,6 +14,25 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.AddParameter
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)>
+        <WorkItem(23927, "https://github.com/dotnet/roslyn/issues/23927")>
+        Public Async Function TestMissingOnOmittedArgument() As Task
+            Await TestMissingAsync(
+"Public Module Module1
+    Private Class C
+        Public Sub New(Arg1 As Integer)
+        End Sub
+
+        Public Sub New(Arg1 As Integer, Arg2 As Integer)
+        End Sub
+    End Class
+
+    Public Sub Main()
+        Dim x = New [|C|](, 0)
+    End Sub
+End Module")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)>
         Public Async Function TestMissingWithImplicitConstructor() As Task
             Await TestMissingAsync(
 "
@@ -255,8 +274,7 @@ class C
     private sub Goo()
         dim x = new C(true, 0, 0)
     end sub
-end class",
-ignoreTrivia:=False)
+end class")
         End Function
 
         <WorkItem(20708, "https://github.com/dotnet/roslyn/issues/20708")>
@@ -283,8 +301,7 @@ class C
     private sub Goo()
         dim x = new C(0, true, 0)
     end sub
-end class",
-ignoreTrivia:=False)
+end class")
         End Function
 
         <WorkItem(20708, "https://github.com/dotnet/roslyn/issues/20708")>
@@ -311,8 +328,7 @@ class C
     private sub Goo()
         dim x = new C(0, 0, true)
     end sub
-end class",
-ignoreTrivia:=False)
+end class")
         End Function
 
         <WorkItem(20708, "https://github.com/dotnet/roslyn/issues/20708")>
@@ -341,8 +357,7 @@ class C
     private sub Goo()
         dim x = new C(true, 0, 0)
     end sub
-end class",
-ignoreTrivia:=False)
+end class")
         End Function
 
         <WorkItem(20708, "https://github.com/dotnet/roslyn/issues/20708")>
@@ -371,8 +386,7 @@ class C
     private sub Goo()
         dim x = new C(0, true, 0)
     end sub
-end class",
-ignoreTrivia:=False)
+end class")
         End Function
 
         <WorkItem(20708, "https://github.com/dotnet/roslyn/issues/20708")>
@@ -401,8 +415,7 @@ class C
     private sub Goo()
         dim x = new C(0, 0, true)
     end sub
-end class",
-ignoreTrivia:=False)
+end class")
         End Function
     End Class
 End Namespace

@@ -24,13 +24,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         [ImportingConstructor]
         public CodeModelIncrementalAnalyzerProvider(
             IForegroundNotificationService notificationService,
-            [ImportMany]IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> listeners)
+            IAsynchronousOperationListenerProvider listenerProvider)
         {
-            _listener = new AggregateAsynchronousOperationListener(listeners, FeatureAttribute.CodeModel);
+            _listener = listenerProvider.GetListener(FeatureAttribute.CodeModel);
             _notificationService = notificationService;
         }
 
-        public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
+        public IIncrementalAnalyzer CreateIncrementalAnalyzer(Microsoft.CodeAnalysis.Workspace workspace)
         {
             var visualStudioWorkspace = workspace as VisualStudioWorkspaceImpl;
             if (visualStudioWorkspace == null)

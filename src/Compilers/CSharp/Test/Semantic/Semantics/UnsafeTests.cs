@@ -2061,7 +2061,7 @@ struct S
 ";
             var expected = @"
 No, TypeExpression 'int*' is not a non-moveable variable
-Yes, StackAllocArrayCreation 'stackalloc int[1]' is a non-moveable variable
+Yes, ConvertedStackAllocExpression 'stackalloc int[1]' is a non-moveable variable
 No, Literal '1' is not a non-moveable variable
 ".Trim();
 
@@ -3123,6 +3123,7 @@ unsafe class C
                 Diagnostic(ErrorCode.ERR_InvalidAddrOp, "x").WithArguments("x"));
         }
 
+        [WorkItem(22306, "https://github.com/dotnet/roslyn/issues/22306")]
         [Fact]
         public void AddressOfExpressionKinds_ReadOnlyLocal()
         {
@@ -3142,17 +3143,17 @@ unsafe class C
 
         foreach (int y in new int[1])
         {
-            p = &y; //CS0459
+            p = &y; 
         }
 
         using (S s = new S())
         {
-            S* sp = &s; //CS0459
+            S* sp = &s; 
         }
 
         fixed (int* a = &array[0])
         {
-            int** pp = &a; //CS0459
+            int** pp = &a; 
         }
     }
 }
@@ -3165,19 +3166,11 @@ struct S : System.IDisposable
             CreateCompilationWithMscorlibAndSystemCore(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (13,14): error CS0211: Cannot take the address of the given expression
                 //         p = &x; //CS0211
-                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "x"),
-                // (17,18): error CS0459: Cannot take the address of a read-only local variable
-                //             p = &y; //CS0459
-                Diagnostic(ErrorCode.ERR_AddrOnReadOnlyLocal, "y"),
-                // (22,22): error CS0459: Cannot take the address of a read-only local variable
-                //             S* sp = &s; //CS0459
-                Diagnostic(ErrorCode.ERR_AddrOnReadOnlyLocal, "s"),
-                // (27,25): error CS0459: Cannot take the address of a read-only local variable
-                //             int** pp = &a; //CS0459
-                Diagnostic(ErrorCode.ERR_AddrOnReadOnlyLocal, "a"),
+                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "x").WithLocation(13, 14),
                 // (6,11): warning CS0649: Field 'C.array' is never assigned to, and will always have its default value null
                 //     int[] array;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "array").WithArguments("C.array", "null"));
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "array").WithArguments("C.array", "null").WithLocation(6, 11)
+                );
         }
 
         [Fact]
@@ -3242,7 +3235,7 @@ unsafe class C : Base
         var w = &(F += null); //CS0211
         var x = &(array is object); //CS0211
         var y = &(array ?? array); //CS0208, CS0211 (managed)
-        var aa = &this; //CS0208, CS0459 (readonly)
+        var aa = &this; //CS0208
         var bb = &typeof(int); //CS0208, CS0211 (managed)
         var cc = &Color.Red; //CS0211
 
@@ -3268,120 +3261,121 @@ enum Color
 }
 ";
             CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (23,14): error CS0211: Cannot take the address of the given expression
-                //         p = &1; //CS0211 (can't addr)
-                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "1"),
-                // (24,13): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
-                //         p = &array[0]; //CS0212 (need fixed)
-                Diagnostic(ErrorCode.ERR_FixedNeeded, "&array[0]"),
-                // (25,15): error CS0211: Cannot take the address of the given expression
-                //         p = &(local = 1); //CS0211
-                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "local = 1"),
-                // (26,14): error CS0103: The name 'goo' does not exist in the current context
-                //         p = &goo; //CS0103 (no goo)
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "goo").WithArguments("goo"),
-                // (27,13): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
-                //         p = &base.f; //CS0212
-                Diagnostic(ErrorCode.ERR_FixedNeeded, "&base.f"),
-                // (28,15): error CS0211: Cannot take the address of the given expression
-                //         p = &(local + local); //CS0211
-                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "local + local"),
-                // (29,14): error CS0211: Cannot take the address of the given expression
-                //         p = &M(local); //CS0211
-                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "M(local)"),
-                // (30,14): error CS0211: Cannot take the address of the given expression
-                //         p = &func(); //CS0211
-                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "func()"),
-                // (31,15): error CS0211: Cannot take the address of the given expression
-                //         p = &(local += local); //CS0211
-                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "local += local"),
-                // (32,15): error CS0211: Cannot take the address of the given expression
-                //         p = &(local == 0 ? local : param); //CS0211
-                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "local == 0 ? local : param"),
-                // (33,15): error CS0211: Cannot take the address of the given expression
-                //         p = &((int)param); //CS0211
-                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "(int)param"),
-                // (34,14): error CS0211: Cannot take the address of the given expression
-                //         p = &default(int); //CS0211
-                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "default(int)"),
-                // (35,14): error CS0211: Cannot take the address of the given expression
-                //         p = &delegate { return 1; }; //CS0211
-                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "delegate { return 1; }"),
-                // (36,13): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
-                //         p = &instanceField; //CS0212
-                Diagnostic(ErrorCode.ERR_FixedNeeded, "&instanceField"),
-                // (37,13): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
-                //         p = &staticField; //CS0212
-                Diagnostic(ErrorCode.ERR_FixedNeeded, "&staticField"),
-                // (38,15): error CS0211: Cannot take the address of the given expression
-                //         p = &(local++); //CS0211
-                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "local++"),
-                // (39,14): error CS0211: Cannot take the address of the given expression
-                //         p = &this[0]; //CS0211
-                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "this[0]").WithArguments("C.this[int]"),
-                // (40,15): error CS0211: Cannot take the address of the given expression
-                //         p = &(() => 1); //CS0211
-                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "() => 1"),
-                // (41,14): error CS0211: Cannot take the address of the given expression
-                //         p = &M; //CS0211
-                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "M").WithArguments("M", "method group"),
-                // (42,15): error CS0211: Cannot take the address of the given expression
-                //         p = &(new System.Int32()); //CS0211
-                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "new System.Int32()"),
-                // (43,14): error CS0211: Cannot take the address of the given expression
-                //         p = &P; //CS0211
-                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "P").WithArguments("C.P"),
-                // (44,14): error CS0211: Cannot take the address of the given expression
-                //         p = &sizeof(int); //CS0211
-                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "sizeof(int)"),
-                // (45,13): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
-                //         p = &this.instanceField; //CS0212
-                Diagnostic(ErrorCode.ERR_FixedNeeded, "&this.instanceField"),
-                // (46,15): error CS0211: Cannot take the address of the given expression
-                //         p = &(+local); //CS0211
-                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "+local"),
-                // (49,16): error CS0211: Cannot take the address of the given expression
-                //         pp = &(&local); //CS0211
-                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "&local"),
-                // (51,19): error CS0211: Cannot take the address of the given expression
-                //         var q = &(new { }); //CS0208, CS0211 (managed)
-                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "new { }"),
-                // (52,19): error CS0211: Cannot take the address of the given expression
-                //         var r = &(new int[1]); //CS0208, CS0211 (managed)
-                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "new int[1]"),
-                // (53,19): error CS0211: Cannot take the address of the given expression
-                //         var s = &(array as object); //CS0208, CS0211 (managed)
-                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "array as object"),
-                // (54,17): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('System.Action')
-                //         var t = &E; //CS0208
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "&E").WithArguments("System.Action"),
-                // (55,18): error CS0079: The event 'C.F' can only appear on the left hand side of += or -=
-                //         var u = &F; //CS0079 (can't use event like that)
-                Diagnostic(ErrorCode.ERR_BadEventUsageNoField, "F").WithArguments("C.F"),
-                // (56,19): error CS0211: Cannot take the address of the given expression
-                //         var v = &(E += null); //CS0211
-                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "E += null"),
-                // (57,19): error CS0211: Cannot take the address of the given expression
-                //         var w = &(F += null); //CS0211
-                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "F += null"),
-                // (58,19): error CS0211: Cannot take the address of the given expression
-                //         var x = &(array is object); //CS0211
-                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "array is object"),
-                // (59,19): error CS0211: Cannot take the address of the given expression
-                //         var y = &(array ?? array); //CS0208, CS0211 (managed)
-                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "array ?? array"),
-                // (60,19): error CS0459: Cannot take the address of a read-only local variable
-                //         var aa = &this; //CS0208, CS0459 (readonly)
-                Diagnostic(ErrorCode.ERR_AddrOnReadOnlyLocal, "this").WithArguments("this"),
-                // (61,19): error CS0211: Cannot take the address of the given expression
-                //         var bb = &typeof(int); //CS0208, CS0211 (managed)
-                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "typeof(int)"),
-                // (62,19): error CS0211: Cannot take the address of the given expression
-                //         var cc = &Color.Red; //CS0211
-                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "Color.Red"),
                 // (76,18): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
                 //         var aa = &this; //CS0212 (need fixed)
-                Diagnostic(ErrorCode.ERR_FixedNeeded, "&this"));
+                Diagnostic(ErrorCode.ERR_FixedNeeded, "&this").WithLocation(76, 18),
+                // (23,14): error CS0211: Cannot take the address of the given expression
+                //         p = &1; //CS0211 (can't addr)
+                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "1").WithLocation(23, 14),
+                // (24,13): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
+                //         p = &array[0]; //CS0212 (need fixed)
+                Diagnostic(ErrorCode.ERR_FixedNeeded, "&array[0]").WithLocation(24, 13),
+                // (25,15): error CS0211: Cannot take the address of the given expression
+                //         p = &(local = 1); //CS0211
+                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "local = 1").WithLocation(25, 15),
+                // (26,14): error CS0103: The name 'goo' does not exist in the current context
+                //         p = &goo; //CS0103 (no goo)
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "goo").WithArguments("goo").WithLocation(26, 14),
+                // (27,13): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
+                //         p = &base.f; //CS0212
+                Diagnostic(ErrorCode.ERR_FixedNeeded, "&base.f").WithLocation(27, 13),
+                // (28,15): error CS0211: Cannot take the address of the given expression
+                //         p = &(local + local); //CS0211
+                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "local + local").WithLocation(28, 15),
+                // (29,14): error CS0211: Cannot take the address of the given expression
+                //         p = &M(local); //CS0211
+                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "M(local)").WithLocation(29, 14),
+                // (30,14): error CS0211: Cannot take the address of the given expression
+                //         p = &func(); //CS0211
+                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "func()").WithLocation(30, 14),
+                // (31,15): error CS0211: Cannot take the address of the given expression
+                //         p = &(local += local); //CS0211
+                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "local += local").WithLocation(31, 15),
+                // (32,15): error CS0211: Cannot take the address of the given expression
+                //         p = &(local == 0 ? local : param); //CS0211
+                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "local == 0 ? local : param").WithLocation(32, 15),
+                // (33,15): error CS0211: Cannot take the address of the given expression
+                //         p = &((int)param); //CS0211
+                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "(int)param").WithLocation(33, 15),
+                // (34,14): error CS0211: Cannot take the address of the given expression
+                //         p = &default(int); //CS0211
+                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "default(int)").WithLocation(34, 14),
+                // (35,14): error CS0211: Cannot take the address of the given expression
+                //         p = &delegate { return 1; }; //CS0211
+                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "delegate { return 1; }").WithLocation(35, 14),
+                // (36,13): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
+                //         p = &instanceField; //CS0212
+                Diagnostic(ErrorCode.ERR_FixedNeeded, "&instanceField").WithLocation(36, 13),
+                // (37,13): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
+                //         p = &staticField; //CS0212
+                Diagnostic(ErrorCode.ERR_FixedNeeded, "&staticField").WithLocation(37, 13),
+                // (38,15): error CS0211: Cannot take the address of the given expression
+                //         p = &(local++); //CS0211
+                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "local++").WithLocation(38, 15),
+                // (39,14): error CS0211: Cannot take the address of the given expression
+                //         p = &this[0]; //CS0211
+                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "this[0]").WithArguments("C.this[int]").WithLocation(39, 14),
+                // (40,15): error CS0211: Cannot take the address of the given expression
+                //         p = &(() => 1); //CS0211
+                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "() => 1").WithLocation(40, 15),
+                // (41,14): error CS0211: Cannot take the address of the given expression
+                //         p = &M; //CS0211
+                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "M").WithArguments("M", "method group").WithLocation(41, 14),
+                // (42,15): error CS0211: Cannot take the address of the given expression
+                //         p = &(new System.Int32()); //CS0211
+                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "new System.Int32()").WithLocation(42, 15),
+                // (43,14): error CS0211: Cannot take the address of the given expression
+                //         p = &P; //CS0211
+                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "P").WithArguments("C.P").WithLocation(43, 14),
+                // (44,14): error CS0211: Cannot take the address of the given expression
+                //         p = &sizeof(int); //CS0211
+                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "sizeof(int)").WithLocation(44, 14),
+                // (45,13): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
+                //         p = &this.instanceField; //CS0212
+                Diagnostic(ErrorCode.ERR_FixedNeeded, "&this.instanceField").WithLocation(45, 13),
+                // (46,15): error CS0211: Cannot take the address of the given expression
+                //         p = &(+local); //CS0211
+                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "+local").WithLocation(46, 15),
+                // (49,16): error CS0211: Cannot take the address of the given expression
+                //         pp = &(&local); //CS0211
+                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "&local").WithLocation(49, 16),
+                // (51,19): error CS0211: Cannot take the address of the given expression
+                //         var q = &(new { }); //CS0208, CS0211 (managed)
+                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "new { }").WithLocation(51, 19),
+                // (52,19): error CS0211: Cannot take the address of the given expression
+                //         var r = &(new int[1]); //CS0208, CS0211 (managed)
+                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "new int[1]").WithLocation(52, 19),
+                // (53,19): error CS0211: Cannot take the address of the given expression
+                //         var s = &(array as object); //CS0208, CS0211 (managed)
+                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "array as object").WithLocation(53, 19),
+                // (54,17): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('Action')
+                //         var t = &E; //CS0208
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "&E").WithArguments("System.Action").WithLocation(54, 17),
+                // (55,18): error CS0079: The event 'C.F' can only appear on the left hand side of += or -=
+                //         var u = &F; //CS0079 (can't use event like that)
+                Diagnostic(ErrorCode.ERR_BadEventUsageNoField, "F").WithArguments("C.F").WithLocation(55, 18),
+                // (56,19): error CS0211: Cannot take the address of the given expression
+                //         var v = &(E += null); //CS0211
+                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "E += null").WithLocation(56, 19),
+                // (57,19): error CS0211: Cannot take the address of the given expression
+                //         var w = &(F += null); //CS0211
+                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "F += null").WithLocation(57, 19),
+                // (58,19): error CS0211: Cannot take the address of the given expression
+                //         var x = &(array is object); //CS0211
+                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "array is object").WithLocation(58, 19),
+                // (59,19): error CS0211: Cannot take the address of the given expression
+                //         var y = &(array ?? array); //CS0208, CS0211 (managed)
+                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "array ?? array").WithLocation(59, 19),
+                // (60,19): error CS0211: Cannot take the address of the given expression
+                //         var aa = &this; //CS0208
+                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "this").WithArguments("this").WithLocation(60, 19),
+                // (61,19): error CS0211: Cannot take the address of the given expression
+                //         var bb = &typeof(int); //CS0208, CS0211 (managed)
+                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "typeof(int)").WithLocation(61, 19),
+                // (62,19): error CS0211: Cannot take the address of the given expression
+                //         var cc = &Color.Red; //CS0211
+                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "Color.Red").WithLocation(62, 19)
+            );
         }
 
         #endregion AddressOf operand kinds
@@ -3839,6 +3833,7 @@ public class C
                 Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "p1 = &x").WithArguments("int*"));
         }
 
+        [WorkItem(22306, "https://github.com/dotnet/roslyn/issues/22306")]
         [WorkItem(544537, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544537")]
         [Fact]
         public void AddressOfStaticReadonlyFieldInsideFixed()
@@ -3855,10 +3850,7 @@ public class Test
 }
 ";
 
-            CreateCompilationWithMscorlibAndSystemCore(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (8,27): error CS0211: Cannot take the address of the given expression
-                //         fixed (int* v1 = &R1) { }
-                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "R1"));
+            CreateCompilationWithMscorlibAndSystemCore(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
         #endregion AddressOf diagnostics
@@ -7519,54 +7511,16 @@ unsafe class C
     }
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (6,25): error CS1525: Invalid expression term 'stackalloc'
+            CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (6,19): error CS8346: Conversion of a stackalloc expression of type 'int' to type 'int*' is not possible.
                 //         { var p = (int*)stackalloc int[1]; }
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc"),
-                // (6,25): error CS1003: Syntax error, ',' expected
-                //         { var p = (int*)stackalloc int[1]; }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "stackalloc").WithArguments(",", "stackalloc"),
-                // (6,36): error CS1002: ; expected
-                //         { var p = (int*)stackalloc int[1]; }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "int"),
-                // (6,40): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
-                //         { var p = (int*)stackalloc int[1]; }
-                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "1"),
-                // (6,42): error CS1001: Identifier expected
-                //         { var p = (int*)stackalloc int[1]; }
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";"),
-
-                // (7,26): error CS1525: Invalid expression term 'stackalloc'
+                Diagnostic(ErrorCode.ERR_StackAllocConversionNotPossible, "(int*)stackalloc int[1]").WithArguments("int", "int*").WithLocation(6, 19),
+                // (7,19): error CS8346: Conversion of a stackalloc expression of type 'int' to type 'void*' is not possible.
                 //         { var p = (void*)stackalloc int[1]; }
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc"),
-                // (7,26): error CS1003: Syntax error, ',' expected
-                //         { var p = (void*)stackalloc int[1]; }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "stackalloc").WithArguments(",", "stackalloc"),
-                // (7,37): error CS1002: ; expected
-                //         { var p = (void*)stackalloc int[1]; }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "int"),
-                // (7,41): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
-                //         { var p = (void*)stackalloc int[1]; }
-                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "1"),
-                // (7,43): error CS1001: Identifier expected
-                //         { var p = (void*)stackalloc int[1]; }
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";"),
-
-                // (8,22): error CS1525: Invalid expression term 'stackalloc'
+                Diagnostic(ErrorCode.ERR_StackAllocConversionNotPossible, "(void*)stackalloc int[1]").WithArguments("int", "void*").WithLocation(7, 19),
+                // (8,19): error CS8346: Conversion of a stackalloc expression of type 'int' to type 'C' is not possible.
                 //         { var p = (C)stackalloc int[1]; }
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc"),
-                // (8,22): error CS1003: Syntax error, ',' expected
-                //         { var p = (C)stackalloc int[1]; }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "stackalloc").WithArguments(",", "stackalloc"),
-                // (8,33): error CS1002: ; expected
-                //         { var p = (C)stackalloc int[1]; }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "int"),
-                // (8,37): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
-                //         { var p = (C)stackalloc int[1]; }
-                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "1"),
-                // (8,39): error CS1001: Identifier expected
-                //         { var p = (C)stackalloc int[1]; }
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";"));
+                Diagnostic(ErrorCode.ERR_StackAllocConversionNotPossible, "(C)stackalloc int[1]").WithArguments("int", "C").WithLocation(8, 19));
         }
 
         [Fact]
@@ -7598,23 +7552,8 @@ unsafe class C
             CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (4,21): error CS1525: Invalid expression term 'stackalloc'
                 //     void M(int* p = stackalloc int[1])
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(4, 21),
-                // (4,21): error CS1003: Syntax error, ',' expected
-                //     void M(int* p = stackalloc int[1])
-                Diagnostic(ErrorCode.ERR_SyntaxError, "stackalloc").WithArguments(",", "stackalloc").WithLocation(4, 21),
-                // (4,32): error CS1003: Syntax error, ',' expected
-                //     void M(int* p = stackalloc int[1])
-                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments(",", "int").WithLocation(4, 32),
-                // (4,36): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
-                //     void M(int* p = stackalloc int[1])
-                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "1").WithLocation(4, 36),
-                // (4,38): error CS1001: Identifier expected
-                //     void M(int* p = stackalloc int[1])
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(4, 38),
-                // (4,38): error CS1737: Optional parameters must appear after all required parameters
-                //     void M(int* p = stackalloc int[1])
-                Diagnostic(ErrorCode.ERR_DefaultValueBeforeRequiredValue, ")").WithLocation(4, 38)
-                );
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(4, 21)
+            );
         }
 
         [Fact]
@@ -7718,7 +7657,7 @@ class C
 
         [WorkItem(5712, "https://github.com/dotnet/roslyn/issues/5712")]
         [Fact]
-        public void PathalogicalRefStructPtrMultiDimensionalArray()
+        public void PathologicalRefStructPtrMultiDimensionalArray()
         {
             var text = @"
 class C
@@ -8118,7 +8057,7 @@ class C
         }
 
         [Fact]
-        public void FixedBuffersNoErorsOnValidTypes()
+        public void FixedBuffersNoErrorsOnValidTypes()
         {
             var text = @"
     unsafe struct struct_ForTestingDefiniteAssignmentChecking        
@@ -8190,7 +8129,7 @@ class Program
 
 }
 ";
-            var compilation = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe);
+            var compilation = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails);
 
             compilation.VerifyIL("Program.Store", @"
 {
@@ -8307,7 +8246,7 @@ class Program
             //IL Baseline rather than execute because I'm intentionally writing outside of bounds of buffer
             // This will compile without warning but runtime behavior is unpredictable.
 
-            var compilation = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe);
+            var compilation = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails);
             compilation.VerifyIL("Program.Load", @"
 {
   // Code size       47 (0x2f)
@@ -8386,7 +8325,7 @@ unsafe struct s
         
     }
 ";
-            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll);
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
         }
 
         [Fact]
@@ -8467,10 +8406,10 @@ namespace ConsoleApplication30
 
     }
 }";
-            var comp1 = CompileAndVerify(s1, options: TestOptions.UnsafeReleaseDll).Compilation;
+            var comp1 = CompileAndVerify(s1, options: TestOptions.UnsafeReleaseDll, verify: Verification.Passes).Compilation;
 
             var comp2 = CompileAndVerify(s2,
-                options: TestOptions.UnsafeReleaseExe,
+                options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails, 
                 additionalRefs: new MetadataReference[] { MetadataReference.CreateFromImage(comp1.EmitToArray()) },
                 expectedOutput: "TrueFalse").Compilation;
 
@@ -8522,7 +8461,7 @@ namespace ConsoleApplication30
             // Only compile this as its intentionally writing outside of fixed buffer boundaries and 
             // this doesn't warn but causes flakiness when executed.
             var comp3 = CompileAndVerify(s3,
-                options: TestOptions.UnsafeReleaseDll,
+                options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails,
                 additionalRefs: new MetadataReference[] { MetadataReference.CreateFromImage(comp1.EmitToArray()) }).Compilation;
         }
 
@@ -8612,6 +8551,23 @@ class Program
 }
 ";
             CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"4812");
+        }
+
+        [Fact]
+        public void CannotTakeAddressOfRefReadOnlyParameter()
+        {
+            CreateStandardCompilation(@"
+public class Test
+{
+    unsafe void M(in int p)
+    {
+        int* pointer = &p;
+    }
+}", options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (6,24): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
+                //         int* pointer = &p;
+                Diagnostic(ErrorCode.ERR_FixedNeeded, "&p").WithLocation(6, 24)
+                );
         }
 
         #endregion

@@ -4,7 +4,7 @@ Imports System.Composition
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.InitializeParameter
-Imports Microsoft.CodeAnalysis.Semantics
+Imports Microsoft.CodeAnalysis.Operations
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
             Return DirectCast(node, TypeStatementSyntax).Parent
         End Function
 
-        Protected Overrides Function TryGetLastStatement(blockStatement As IBlockStatement) As SyntaxNode
+        Protected Overrides Function TryGetLastStatement(blockStatement As IBlockOperation) As SyntaxNode
             Return DirectCast(blockStatement.Syntax, MethodBlockBaseSyntax).Statements.LastOrDefault()
         End Function
 

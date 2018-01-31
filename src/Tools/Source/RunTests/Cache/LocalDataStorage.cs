@@ -40,9 +40,8 @@ namespace RunTests.Cache
 
         public Task<CachedTestResult?> TryGetCachedTestResult(string checksum)
         {
-            CachedTestResult testResult;
             CachedTestResult? value = null;
-            if (TryGetCachedTestResult(checksum, out testResult))
+            if (TryGetCachedTestResult(checksum, out var testResult))
             {
                 value = testResult;
             }

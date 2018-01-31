@@ -212,13 +212,14 @@ class Program
                 var textView = workspace.Documents.Single().GetTextView();
 
                 var handler = new EncapsulateFieldCommandHandler(workspace.GetService<Host.IWaitIndicator>(), workspace.GetService<ITextBufferUndoManagerProvider>(),
-                    workspace.ExportProvider.GetExportedValues<Lazy<IAsynchronousOperationListener, FeatureMetadata>>());
+                                                                 workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>());
+
                 var delegatedToNext = false;
-                Func<CommandState> nextHandler = () =>
+                CommandState nextHandler()
                 {
                     delegatedToNext = true;
                     return CommandState.Unavailable;
-                };
+                }
 
                 var state = handler.GetCommandState(new Commands.EncapsulateFieldCommandArgs(textView, textView.TextBuffer), nextHandler);
                 Assert.True(delegatedToNext);

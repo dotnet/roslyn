@@ -319,8 +319,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             var items = (await GetCompletionListAsync(service, document, position, CompletionTrigger.Invoke)).Items;
             var firstItem = items.First(i => CompareItems(i.DisplayText, itemToCommit));
 
-            var customCommitCompletionProvider = service.ExclusiveProviders?[0] as ICustomCommitCompletionProvider;
-            if (customCommitCompletionProvider != null)
+            if (service.ExclusiveProviders?[0] is ICustomCommitCompletionProvider customCommitCompletionProvider)
             {
                 var completionRules = GetCompletionHelper(document);
                 var textView = (WorkspaceFixture.GetWorkspace()).Documents.Single().GetTextView();

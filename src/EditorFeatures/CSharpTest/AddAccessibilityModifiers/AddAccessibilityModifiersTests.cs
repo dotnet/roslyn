@@ -137,5 +137,33 @@ namespace Outer
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
+        public async Task TestRefStructs()
+        {
+            await TestInRegularAndScriptAsync(@"
+namespace Test
+{
+    ref struct [|S1|] { }
+}", @"
+namespace Test
+{
+    internal ref struct S1 { }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
+        public async Task TestReadOnlyStructs()
+        {
+            await TestInRegularAndScriptAsync(@"
+namespace Test
+{
+    readonly struct [|S1|] { }
+}", @"
+namespace Test
+{
+    internal readonly struct S1 { }
+}");
+        }
     }
 }

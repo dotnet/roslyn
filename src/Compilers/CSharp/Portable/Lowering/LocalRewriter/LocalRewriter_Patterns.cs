@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (loweredPattern.VariableAccess.Kind == BoundKind.DiscardExpression)
                 {
-                    return result;
+                    return _factory.MakeSequence(loweredInput, result);
                 }
 
                 Debug.Assert((object)loweredPattern.Variable != null && loweredInput.Type.Equals(loweredPattern.Variable.GetTypeOrReturnType(), TypeCompareKind.AllIgnoreOptions));
@@ -243,30 +243,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else // type parameter or value type
             {
-                // bool Is<T>(this object i, out T o)
+                // bool Is<T>(this object i, ref T o)
                 // {
                 //     // inefficient because it performs the type test twice, and also because it boxes the input.
-                //     bool s;
-                //     o = (s = i is T) ? (T)i : default(T);
-                //     return s;
+                //     return i is T && (o = (T)i; true);
                 // }
+
+                var i = _factory.SynthesizedLocal(loweredInput.Type, syntax); // we copy the input to avoid double evaluation
 
                 // Because a cast involving a type parameter is not necessarily a valid conversion (or, if it is, it might not
                 // be of a kind appropriate for pattern-matching), we use `object` as an intermediate type for the input expression.
-                var objectType = _factory.SpecialType(SpecialType.System_Object);
-                var s = _factory.SynthesizedLocal(_factory.SpecialType(SpecialType.System_Boolean), syntax);
-                var i = _factory.SynthesizedLocal(objectType, syntax); // we copy the input to avoid double evaluation
-                return _factory.Sequence(
-                    ImmutableArray.Create(s, i),
-                    ImmutableArray.Create<BoundExpression>(
-                        _factory.AssignmentExpression(_factory.Local(i), _factory.Convert(objectType, loweredInput)),
-                        _factory.AssignmentExpression(loweredTarget, _factory.Conditional(
-                            _factory.AssignmentExpression(_factory.Local(s), _factory.Is(_factory.Local(i), type)),
-                            _factory.Convert(type, _factory.Local(i)),
-                            _factory.Default(type), type))
-                        ),
-                    _factory.Local(s)
-                    );
+                var convertedInput = _factory.Convert(type, _factory.Convert(_factory.SpecialType(SpecialType.System_Object), _factory.Local(i)));
+
+                return _factory.MakeSequence(i,
+                    _factory.LogicalAnd(
+                        _factory.Is(_factory.AssignmentExpression(_factory.Local(i), loweredInput), type),
+                        _factory.MakeSequence(_factory.AssignmentExpression(loweredTarget, convertedInput), _factory.Literal(true))));
             }
         }
     }

@@ -1081,7 +1081,7 @@ Else
 End If
 </MethodBody>
 
-            Await TestAsync(markup, expected, ignoreTrivia:=False)
+            Await TestAsync(markup, expected)
         End Function
 
         <WorkItem(529746, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529746")>
@@ -1113,7 +1113,7 @@ Module Program
 End Module
 </File>
 
-            Await TestAsync(markup, expected, ignoreTrivia:=False)
+            Await TestAsync(markup, expected)
         End Function
 
         <WorkItem(531471, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531471")>
@@ -1145,7 +1145,7 @@ Module Program
 End Module
 </File>
 
-            Await TestAsync(markup, expected, ignoreTrivia:=False)
+            Await TestAsync(markup, expected)
         End Function
 
         <WorkItem(531471, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531471")>
@@ -1177,7 +1177,7 @@ Module Program
 End Module
 </File>
 
-            Await TestAsync(markup, expected, ignoreTrivia:=False)
+            Await TestAsync(markup, expected)
         End Function
 
         <WorkItem(531472, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531472")>
@@ -1205,7 +1205,7 @@ Module Program
 End Module
 </File>
 
-            Await TestAsync(markup, expected, ignoreTrivia:=False)
+            Await TestAsync(markup, expected)
         End Function
 
         <WorkItem(531475, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531475")>
@@ -1237,7 +1237,7 @@ Module Program
 End Module
 </File>
 
-            Await TestAsync(markup, expected, ignoreTrivia:=False)
+            Await TestAsync(markup, expected)
         End Function
 
         <WorkItem(545700, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545700")>
@@ -1269,7 +1269,7 @@ Module A
 End Module
 </File>
 
-            Await TestAsync(markup, expected, ignoreTrivia:=False)
+            Await TestAsync(markup, expected)
         End Function
 
         <WorkItem(531474, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531474")>
@@ -1309,7 +1309,7 @@ End Module
     End Module
 </File>
 
-            Await TestAsync(markup, expected, ignoreTrivia:=False)
+            Await TestAsync(markup, expected)
         End Function
 
         <WorkItem(530758, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530758")>
@@ -1333,7 +1333,7 @@ Module Program
 End Module
 </File>
 
-            Await TestAsync(markup, expected, ignoreTrivia:=False)
+            Await TestAsync(markup, expected)
         End Function
 
         <WorkItem(607862, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/607862")>
@@ -1363,7 +1363,7 @@ End Module
 
 </File>
 
-            Await TestAsync(markup, expected, ignoreTrivia:=False)
+            Await TestAsync(markup, expected)
         End Function
 
     End Class

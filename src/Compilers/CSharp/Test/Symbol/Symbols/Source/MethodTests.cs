@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -357,7 +358,7 @@ public interface A {
             Assert.Equal(TypeKind.Class, refP.TypeKind);
             Assert.True(refP.IsReferenceType);
             Assert.False(refP.IsValueType);
-            Assert.Equal("Object", refP.BaseType.Name);
+            Assert.Equal("Object", refP.BaseType().Name);
             Assert.Equal(2, refP.GetMembers().Length); // M + generated constructor.
             Assert.Equal(1, refP.GetMembers("M").Length);
 
@@ -369,7 +370,7 @@ public interface A {
             Assert.False(outP.IsAbstract);
             Assert.True(outP.IsSealed);
             Assert.Equal(Accessibility.Public, outP.DeclaredAccessibility);
-            Assert.Equal(5, outP.Interfaces.Length);
+            Assert.Equal(5, outP.Interfaces().Length);
             Assert.Equal(0, outP.GetTypeMembers().Length); // Enumerable.Empty<NamedTypeSymbol>()
             Assert.Equal(0, outP.GetTypeMembers(String.Empty).Length);
             Assert.Equal(0, outP.GetTypeMembers(String.Empty, 0).Length);
@@ -501,11 +502,11 @@ namespace NS.NS1
             var ns1 = ns.GetMembers("NS1").Single() as NamespaceSymbol;
 
             var classImpl = ns1.GetTypeMembers("Impl", 0).Single() as NamedTypeSymbol;
-            Assert.Equal(3, classImpl.Interfaces.Length);
+            Assert.Equal(3, classImpl.Interfaces().Length);
             // 
-            var itfc = classImpl.Interfaces.First() as NamedTypeSymbol;
-            Assert.Equal(1, itfc.Interfaces.Length);
-            itfc = itfc.Interfaces.First() as NamedTypeSymbol;
+            var itfc = classImpl.Interfaces().First() as NamedTypeSymbol;
+            Assert.Equal(1, itfc.Interfaces().Length);
+            itfc = itfc.Interfaces().First() as NamedTypeSymbol;
             Assert.Equal("I1", itfc.Name);
 
             // explicit interface member names include the explicit interface
@@ -524,8 +525,8 @@ namespace NS.NS1
             Assert.Equal("ref NS.Abc p", param.ToTestDisplayString());
 
             var structImpl = ns1.GetTypeMembers("S").Single() as NamedTypeSymbol;
-            Assert.Equal(1, structImpl.Interfaces.Length);
-            itfc = structImpl.Interfaces.First() as NamedTypeSymbol;
+            Assert.Equal(1, structImpl.Interfaces().Length);
+            itfc = structImpl.Interfaces().First() as NamedTypeSymbol;
             Assert.Equal("NS.IGoo<T>", itfc.ToTestDisplayString());
             //var mem2 = structImpl.GetMembers("M").Single() as MethodSymbol;
             // not impl
@@ -637,7 +638,7 @@ namespace N1.N2  {
             #endregion
 
             #region "Abc"
-            var type2 = type1.BaseType;
+            var type2 = type1.BaseType();
             Assert.Equal("Abc", type2.Name);
             mems = type2.GetMembers();
 
@@ -830,7 +831,7 @@ namespace N1.N2  {
             #endregion
 
             #region "Abc"
-            var type2 = type1.BaseType;
+            var type2 = type1.BaseType();
             Assert.Equal("Abc", type2.Name);
             mems = type2.GetMembers();
             Assert.Equal(8, mems.Length);
@@ -953,10 +954,10 @@ namespace NS  {
             var mems = type1.GetMembers();
             Assert.Equal(2, mems.Length);
 
-            var mems1 = type1.BaseType.GetMembers();
+            var mems1 = type1.BaseType().GetMembers();
             Assert.Equal(4, mems1.Length);
 
-            var mems2 = type1.BaseType.BaseType.GetMembers();
+            var mems2 = type1.BaseType().BaseType().GetMembers();
             Assert.Equal(3, mems2.Length);
 
             var list = new List<Symbol>();
@@ -1062,10 +1063,10 @@ namespace NS  {
             var mems = type1.GetMembers();
             Assert.Equal(2, mems.Length);
 
-            var mems1 = type1.BaseType.GetMembers();
+            var mems1 = type1.BaseType().GetMembers();
             Assert.Equal(4, mems1.Length);
 
-            var mems2 = type1.BaseType.BaseType.GetMembers();
+            var mems2 = type1.BaseType().BaseType().GetMembers();
             Assert.Equal(3, mems2.Length);
 
             var list = new List<Symbol>();
@@ -1343,7 +1344,7 @@ public class C : B<int, long>
 
             var classB = (NamedTypeSymbol)comp.GlobalNamespace.GetMembers("B").Single();
 
-            var classBTypeArguments = classB.TypeArguments;
+            var classBTypeArguments = classB.TypeArguments();
             Assert.Equal(2, classBTypeArguments.Length);
             Assert.Equal("Q", classBTypeArguments[0].Name);
             Assert.Equal("R", classBTypeArguments[1].Name);
@@ -1361,10 +1362,10 @@ public class C : B<int, long>
 
             var classC = (NamedTypeSymbol)comp.GlobalNamespace.GetMembers("C").Single();
 
-            var classCBase = classC.BaseType;
+            var classCBase = classC.BaseType();
             Assert.Equal(classB, classCBase.ConstructedFrom);
 
-            var classCBaseTypeArguments = classCBase.TypeArguments;
+            var classCBaseTypeArguments = classCBase.TypeArguments();
             Assert.Equal(2, classCBaseTypeArguments.Length);
             Assert.Equal(SpecialType.System_Int32, classCBaseTypeArguments[0].SpecialType);
             Assert.Equal(SpecialType.System_Int64, classCBaseTypeArguments[1].SpecialType);
@@ -1491,7 +1492,7 @@ namespace N2
 
             var n2 = comp.GlobalNamespace.GetMembers("N2").Single() as NamespaceSymbol;
             var test = n2.GetTypeMembers("Test").Single() as NamedTypeSymbol;
-            var bt = test.Interfaces.Single() as NamedTypeSymbol;
+            var bt = test.Interfaces().Single() as NamedTypeSymbol;
             Assert.Equal("N1.I1", bt.ToTestDisplayString());
         }
 
@@ -1660,7 +1661,7 @@ class C : I
 
             var @class = (NamedTypeSymbol)globalNamespace.GetTypeMembers("C").Single();
             Assert.Equal(TypeKind.Class, @class.TypeKind);
-            Assert.True(@class.Interfaces.Contains(@interface));
+            Assert.True(@class.Interfaces().Contains(@interface));
 
             var classMethod = (MethodSymbol)@class.GetMembers("I.Method").Single();
             Assert.Equal(MethodKind.ExplicitInterfaceImplementation, classMethod.MethodKind);
@@ -1704,7 +1705,7 @@ class F : System.IFormattable
 
             var @class = (NamedTypeSymbol)globalNamespace.GetTypeMembers("F").Single();
             Assert.Equal(TypeKind.Class, @class.TypeKind);
-            Assert.True(@class.Interfaces.Contains(@interface));
+            Assert.True(@class.Interfaces().Contains(@interface));
 
             var classMethod = (MethodSymbol)@class.GetMembers("System.IFormattable.ToString").Single();
             Assert.Equal(MethodKind.ExplicitInterfaceImplementation, classMethod.MethodKind);
@@ -1750,7 +1751,7 @@ class C : I
 
             var @class = (NamedTypeSymbol)globalNamespace.GetTypeMembers("C").Single();
             Assert.Equal(TypeKind.Class, @class.TypeKind);
-            Assert.True(@class.Interfaces.Contains(@interface));
+            Assert.True(@class.Interfaces().Contains(@interface));
 
             var classMethod = (MethodSymbol)@class.GetMembers("I.Method").Single();
             Assert.Equal(MethodKind.ExplicitInterfaceImplementation, classMethod.MethodKind);
@@ -1801,7 +1802,7 @@ class IC : Namespace.I<int>
             var @class = (NamedTypeSymbol)globalNamespace.GetTypeMembers("IC").Single();
             Assert.Equal(TypeKind.Class, @class.TypeKind);
 
-            var substitutedInterface = @class.Interfaces.Single();
+            var substitutedInterface = @class.Interfaces().Single();
             Assert.Equal(@interface, substitutedInterface.ConstructedFrom);
 
             var substitutedInterfaceMethod = (MethodSymbol)substitutedInterface.GetMembers("Method").Single();
@@ -2174,6 +2175,24 @@ static class C
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
+        public void RefReadonlyReturningVoidMethod()
+        {
+            var source = @"
+static class C
+{
+    static ref readonly void M() { }
+}
+";
+
+            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+                // (4,25): error CS1547: Keyword 'void' cannot be used in this context
+                //     static ref readonly void M() { }
+                Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(4, 25)
+                );
+        }
+
+        [Fact]
         public void RefReturningVoidMethodNested()
         {
             var source = @"
@@ -2186,8 +2205,7 @@ static class C
 }
 ";
 
-            var parseOptions = TestOptions.Regular;
-            CreateCompilationWithMscorlib45(source, parseOptions: parseOptions).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
                 // (6,13): error CS1547: Keyword 'void' cannot be used in this context
                 //         ref void M() { }
                 Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(6, 13),
@@ -2195,6 +2213,34 @@ static class C
                 //         ref void M() { }
                 Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "M").WithArguments("M").WithLocation(6, 18)
                 );
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
+        public void RefReadonlyReturningVoidMethodNested()
+        {
+            var source = @"
+static class C
+{
+    static void Main()
+    {
+        // valid
+        ref readonly int M1() {throw null;}
+
+        // not valid
+        ref readonly void M2() {M1(); throw null;}
+
+        M2();
+    }
+}
+";
+
+            var parseOptions = TestOptions.Regular;
+            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+                // (10,22): error CS1547: Keyword 'void' cannot be used in this context
+                //         ref readonly void M2() {M1(); throw null;}
+                Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(10, 22)
+            );
         }
 
         [Fact]
@@ -2217,6 +2263,30 @@ static class C
                 // (4,26): error CS0161: 'C.M()': not all code paths return a value
                 //     static async ref int M() { }
                 Diagnostic(ErrorCode.ERR_ReturnExpected, "M").WithArguments("C.M()").WithLocation(4, 26)
+                );
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
+        public void RefReadonlyReturningAsyncMethod()
+        {
+            var source = @"
+static class C
+{
+    static async ref readonly int M() { }
+}
+";
+
+            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+                // (4,18): error CS1073: Unexpected token 'ref'
+                //     static async ref readonly int M() { }
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(4, 18),
+                // (4,35): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     static async ref readonly int M() { }
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 35),
+                // (4,35): error CS0161: 'C.M()': not all code paths return a value
+                //     static async ref readonly int M() { }
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "M").WithArguments("C.M()").WithLocation(4, 35)
                 );
         }
     }

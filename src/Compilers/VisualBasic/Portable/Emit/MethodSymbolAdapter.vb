@@ -458,13 +458,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private ReadOnly Property IMethodDefinitionReturnValueAttributes As IEnumerable(Of Cci.ICustomAttribute) Implements Cci.IMethodDefinition.ReturnValueAttributes
-            Get
-                Return GetReturnValueCustomAttributesToEmit()
-            End Get
-        End Property
-
-        Private Function GetReturnValueCustomAttributesToEmit() As IEnumerable(Of Cci.ICustomAttribute)
+        Private Function IMethodDefinitionGetReturnValueAttributes(context As EmitContext) As IEnumerable(Of Cci.ICustomAttribute) Implements Cci.IMethodDefinition.GetReturnValueAttributes
             CheckDefinitionInvariant()
 
             Dim userDefined As ImmutableArray(Of VisualBasicAttributeData)

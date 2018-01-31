@@ -41,10 +41,10 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 
         public bool TryGoToDefinition(Document document, int position, CancellationToken cancellationToken)
         {
-            // First try to compute the referenced symbol and attempt to go to definition for the symbol.
+            // Try to compute the referenced symbol and attempt to go to definition for the symbol.
             var symbolService = document.GetLanguageService<IGoToDefinitionSymbolService>();
-            var (symbol, span) = symbolService.GetSymbolAndBoundSpanAsync(document, position, cancellationToken).WaitAndGetResult(cancellationToken);
-            if (symbol == null)
+            var (symbol, _) = symbolService.GetSymbolAndBoundSpanAsync(document, position, cancellationToken).WaitAndGetResult(cancellationToken);
+            if (symbol is null)
             {
                 return false;
             }
@@ -68,12 +68,11 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             if (containingTypeDeclaration != null)
             {
                 var semanticModel = document.GetSemanticModelAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-                var containingTypeSymbol = semanticModel.GetDeclaredSymbol(containingTypeDeclaration, cancellationToken) as ITypeSymbol;
 
                 // Allow third parties to navigate to all symbols except types/constructors
                 // if we are navigating from the corresponding type.
 
-                if (containingTypeSymbol != null &&
+                if (semanticModel.GetDeclaredSymbol(containingTypeDeclaration, cancellationToken) is ITypeSymbol containingTypeSymbol &&
                     (symbolToNavigateTo is ITypeSymbol || symbolToNavigateTo.IsConstructor()))
                 {
                     var candidateTypeSymbol = symbolToNavigateTo is ITypeSymbol

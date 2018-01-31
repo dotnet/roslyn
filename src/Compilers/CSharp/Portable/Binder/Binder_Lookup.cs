@@ -1113,7 +1113,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ? ((AliasSymbol)symbol).GetAliasTarget(basesBeingResolved)
                 : symbol;
 
-            if (WrongArity(symbol, arity, diagnose, options, out diagInfo))
+            // Check for symbols marked with 'Microsoft.CodeAnalysis.Embedded' attribute
+            if (!this.Compilation.SourceModule.Equals(unwrappedSymbol.ContainingModule) && unwrappedSymbol.IsHiddenByCodeAnalysisEmbeddedAttribute())
+            {
+                return LookupResult.Empty();
+            }
+            else if (WrongArity(symbol, arity, diagnose, options, out diagInfo))
             {
                 return LookupResult.WrongArity(symbol, diagInfo);
             }
@@ -1240,11 +1245,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <remarks>
         /// Does not consider <see cref="Symbol.CanBeReferencedByName"/> - that is left to the caller.
         /// </remarks>
-        internal bool CanAddLookupSymbolInfo(Symbol symbol, LookupOptions options, TypeSymbol accessThroughType)
+        internal bool CanAddLookupSymbolInfo(Symbol symbol, LookupOptions options, LookupSymbolsInfo info, TypeSymbol accessThroughType, AliasSymbol aliasSymbol = null)
         {
             Debug.Assert(symbol.Kind != SymbolKind.Alias, "It is the caller's responsibility to unwrap aliased symbols.");
+            Debug.Assert(aliasSymbol == null || aliasSymbol.GetAliasTarget(basesBeingResolved: null) == symbol);
             Debug.Assert(options.AreValid());
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+
+            var name = aliasSymbol != null ? aliasSymbol.Name : symbol.Name;
+            if (!info.CanBeAdded(name))
+            {
+                return false;
+            }
 
             if ((options & LookupOptions.NamespacesOrTypesOnly) != 0 && !(symbol is NamespaceOrTypeSymbol))
             {
@@ -1557,9 +1569,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static void AddMemberLookupSymbolsInfoInNamespace(LookupSymbolsInfo result, NamespaceSymbol ns, LookupOptions options, Binder originalBinder)
         {
-            foreach (var symbol in GetCandidateMembers(ns, options, originalBinder))
+            var candidateMembers = result.FilterName != null ? GetCandidateMembers(ns, result.FilterName, options, originalBinder) : GetCandidateMembers(ns, options, originalBinder);
+            foreach (var symbol in candidateMembers)
             {
-                if (originalBinder.CanAddLookupSymbolInfo(symbol, options, null))
+                if (originalBinder.CanAddLookupSymbolInfo(symbol, options, result, null))
                 {
                     result.AddSymbol(symbol, symbol.Name, symbol.GetArity());
                 }
@@ -1568,9 +1581,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static void AddMemberLookupSymbolsInfoWithoutInheritance(LookupSymbolsInfo result, TypeSymbol type, LookupOptions options, Binder originalBinder, TypeSymbol accessThroughType)
         {
-            foreach (var symbol in GetCandidateMembers(type, options, originalBinder))
+            var candidateMembers = result.FilterName != null ? GetCandidateMembers(type, result.FilterName, options, originalBinder) : GetCandidateMembers(type, options, originalBinder);
+            foreach (var symbol in candidateMembers)
             {
-                if (originalBinder.CanAddLookupSymbolInfo(symbol, options, accessThroughType))
+                if (originalBinder.CanAddLookupSymbolInfo(symbol, options, result, accessThroughType))
                 {
                     result.AddSymbol(symbol, symbol.Name, symbol.GetArity());
                 }

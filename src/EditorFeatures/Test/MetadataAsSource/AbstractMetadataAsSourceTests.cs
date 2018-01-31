@@ -15,12 +15,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
     public abstract partial class AbstractMetadataAsSourceTests
     {
         internal static async Task GenerateAndVerifySourceAsync(
-            string metadataSource, string symbolName, string projectLanguage, string expected,
-            bool ignoreTrivia = false, bool includeXmlDocComments = false, string languageVersion = null)
+            string metadataSource, string symbolName, string projectLanguage, string expected, bool includeXmlDocComments = false, string languageVersion = null)
         {
             using (var context = TestContext.Create(projectLanguage, SpecializedCollections.SingletonEnumerable(metadataSource), includeXmlDocComments, languageVersion: languageVersion))
             {
-                await context.GenerateAndVerifySourceAsync(symbolName, expected, ignoreTrivia);
+                await context.GenerateAndVerifySourceAsync(symbolName, expected);
             }
         }
 

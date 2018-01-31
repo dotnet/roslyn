@@ -776,8 +776,7 @@ End Module</Text>.Value.Replace(vbLf, vbCrLf),
     &lt;System.Obsolete&gt;
     Sub Main(args As String())
     End Sub
-End Module</Text>.Value.Replace(vbLf, vbCrLf),
-ignoreTrivia:=False)
+End Module</Text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <WorkItem(775448, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775448")>
@@ -798,8 +797,7 @@ Module Program
     Sub Main(args As String())
         Dim x As Generic.IEnumerable(Of Integer)
     End Sub
-End Module</Text>.Value.Replace(vbLf, vbCrLf),
-ignoreTrivia:=False)
+End Module</Text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <WorkItem(947579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/947579")>
@@ -841,8 +839,7 @@ End Namespace
 Namespace N2
     Class A
     End Class
-End Namespace</Text>.Value.Replace(vbLf, vbCrLf),
-ignoreTrivia:=False)
+End Namespace</Text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         Public Class AddImportTestsWithAddImportDiagnosticProvider

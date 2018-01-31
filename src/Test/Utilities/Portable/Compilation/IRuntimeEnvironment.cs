@@ -18,22 +18,11 @@ namespace Roslyn.Test.Utilities
 {
     public static class RuntimeEnvironmentFactory
     {
-        private static readonly Lazy<IRuntimeEnvironmentFactory> s_lazyFactory = new Lazy<IRuntimeEnvironmentFactory>(GetFactoryImplementation);
+        private static readonly Lazy<IRuntimeEnvironmentFactory> s_lazyFactory = new Lazy<IRuntimeEnvironmentFactory>(RuntimeUtilities.GetRuntimeEnvironmentFactory);
 
         internal static IRuntimeEnvironment Create(IEnumerable<ModuleData> additionalDependencies = null)
         {
             return s_lazyFactory.Value.Create(additionalDependencies);
-        }
-
-        private static IRuntimeEnvironmentFactory GetFactoryImplementation()
-        {
-#if NET46
-            return new Roslyn.Test.Utilities.Desktop.DesktopRuntimeEnvironmentFactory();
-#elif NETCOREAPP2_0
-            return new Roslyn.Test.Utilities.CoreClr.CoreCLRRuntimeEnvironmentFactory();
-#else
-            throw new NotSupportedException();
-#endif
         }
 
         public static void CaptureOutput(Action action, int expectedLength, out string output, out string errorOutput)
@@ -57,7 +46,7 @@ namespace Roslyn.Test.Utilities
         }
     }
 
-    internal static class RuntimeUtilities
+    internal static class RuntimeEnvironmentUtilities
     {
         private static int s_dumpCount;
 
@@ -297,8 +286,7 @@ namespace Roslyn.Test.Utilities
                     }
                     else
                     {
-                        AssemblyIdentity identity;
-                        AssemblyIdentity.TryParseDisplayName(module.FullName, out identity);
+                        AssemblyIdentity.TryParseDisplayName(module.FullName, out var identity);
                         fileName = identity.Name;
                     }
 

@@ -865,7 +865,7 @@ interface i1
     event myDelegate myevent { add {} remove {} }
 }
 ";
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateStandardCompilation(text, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
                 // (5,32): error CS8107: Feature 'default interface implementation' is not available in C# 7.  Please use language version 7.1 or greater.
                 //     event myDelegate myevent { add {} remove {} }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "7.1").WithLocation(5, 32),
@@ -885,7 +885,7 @@ interface i1
     event myDelegate myevent { add {} }
 }
 ";
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateStandardCompilation(text, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
                 // (5,32): error CS8107: Feature 'default interface implementation' is not available in C# 7.  Please use language version 7.1 or greater.
                 //     event myDelegate myevent { add {} }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "7.1").WithLocation(5, 32),
@@ -1054,7 +1054,7 @@ class C
 }";
             // Triage decision was made to have this be a parse error as the grammar specifies it as such.
             // TODO: vsadov, the error recovery would be much nicer here if we consumed "int", bu tneed to consider other cases.
-            CreateStandardCompilation(text, parseOptions: TestOptions.Regular).VerifyDiagnostics(
+            CreateCompilationWithMscorlib46(text, parseOptions: TestOptions.Regular).VerifyDiagnostics(
                 // (5,11): error CS1001: Identifier expected
                 //     int F<int>() { }  // CS0081
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "int").WithLocation(5, 11),
@@ -1105,7 +1105,7 @@ class C
   }
 }";
             // Triage decision was made to have this be a parse error as the grammar specifies it as such.
-            CreateStandardCompilation(Parse(text, options: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6))).VerifyDiagnostics(
+            CreateCompilationWithMscorlib46(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)).VerifyDiagnostics(
                 // (5,11): error CS1001: Identifier expected
                 //     int F<int>() { }  // CS0081
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "int").WithLocation(5, 11),
@@ -1623,7 +1623,7 @@ namespace n3
 
             var ns3 = comp.SourceModule.GlobalNamespace.GetMember<NamespaceSymbol>("n3");
             var classC = ns3.GetMember<NamedTypeSymbol>("C");
-            var classCInterface = classC.Interfaces.Single();
+            var classCInterface = classC.Interfaces().Single();
             Assert.Equal("IGoo", classCInterface.Name);
             Assert.Equal(TypeKind.Error, classCInterface.TypeKind);
 
@@ -2237,10 +2237,10 @@ class B : A
                 );
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
-            var baseType = ns.GetTypeMembers("A").Single().BaseType;
+            var baseType = ns.GetTypeMembers("A").Single().BaseType();
             Assert.Equal("Goo", baseType.Name);
             Assert.Equal(TypeKind.Error, baseType.TypeKind);
-            Assert.Null(baseType.BaseType);
+            Assert.Null(baseType.BaseType());
 
             var type2 = ns.GetTypeMembers("Bar").Single() as NamedTypeSymbol;
             var mem1 = type2.GetMembers("foundNamespaceInsteadOfType").Single() as FieldSymbol;
@@ -2478,18 +2478,18 @@ namespace NS
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CircularBase, Line = 9, Column = 18 });
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
-            var baseType = (NamedTypeSymbol)ns.GetTypeMembers("A").Single().BaseType;
-            Assert.Null(baseType.BaseType);
+            var baseType = (NamedTypeSymbol)ns.GetTypeMembers("A").Single().BaseType();
+            Assert.Null(baseType.BaseType());
             Assert.Equal("B", baseType.Name);
             Assert.Equal(TypeKind.Error, baseType.TypeKind);
 
-            baseType = (NamedTypeSymbol)ns.GetTypeMembers("DD").Single().BaseType;
-            Assert.Null(baseType.BaseType);
+            baseType = (NamedTypeSymbol)ns.GetTypeMembers("DD").Single().BaseType();
+            Assert.Null(baseType.BaseType());
             Assert.Equal("BB", baseType.Name);
             Assert.Equal(TypeKind.Error, baseType.TypeKind);
 
-            baseType = (NamedTypeSymbol)ns.GetTypeMembers("BB").Single().BaseType;
-            Assert.Null(baseType.BaseType);
+            baseType = (NamedTypeSymbol)ns.GetTypeMembers("BB").Single().BaseType();
+            Assert.Null(baseType.BaseType());
             Assert.Equal("CC", baseType.Name);
             Assert.Equal(TypeKind.Error, baseType.TypeKind);
         }
@@ -2789,6 +2789,28 @@ class Program
                 // (3,22): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //     public fixed int buf[10];
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "buf[10]"));
+        }
+
+        [Fact]
+        public void CS0214ERR_UnsafeNeeded04()
+        {
+            var text = @"
+namespace System
+{
+    public class TestType
+    {
+        public void TestMethod()
+        {
+            var x = stackalloc int[10];         // ERROR
+            Span<int> y = stackalloc int[10];   // OK
+        }
+    }
+}
+";
+            CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (8,21): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //             var x = stackalloc int[10];    // ERROR
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "stackalloc int[10]").WithLocation(8, 21));
         }
 
         [Fact]
@@ -3235,7 +3257,7 @@ public class MyClass2 : MyClass
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
             var type1 = ns.GetTypeMembers("IGoo").Single() as NamedTypeSymbol;
             // bug: expected 1 but error symbol
-            // Assert.Equal(1, type1.Interfaces.Count());
+            // Assert.Equal(1, type1.Interfaces().Count());
 
             var type2 = ns.GetTypeMembers("IBar").Single() as NamedTypeSymbol;
             var mem1 = type2.GetMembers().First() as MethodSymbol;
@@ -3248,8 +3270,8 @@ public class MyClass2 : MyClass
             Assert.Equal("NoType", ptype.Name);
 
             var type3 = ns.GetTypeMembers("A").Single() as NamedTypeSymbol;
-            var base1 = type3.BaseType;
-            Assert.Null(base1.BaseType);
+            var base1 = type3.BaseType();
+            Assert.Null(base1.BaseType());
             Assert.Equal(TypeKind.Error, base1.TypeKind);
             Assert.Equal("CNotExist", base1.Name);
 
@@ -3445,10 +3467,18 @@ class BAttribute : System.Attribute { }
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_PartialModifierConflict, Line = 3, Column = 30 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_PartialModifierConflict, Line = 9, Column = 32 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_PartialModifierConflict, Line = 12, Column = 32 });
+            var comp = CreateStandardCompilation(text);
+            comp.VerifyDiagnostics(
+                // (3,30): error CS0262: Partial declarations of 'I' have conflicting accessibility modifiers
+                //     public partial interface I { }
+                Diagnostic(ErrorCode.ERR_PartialModifierConflict, "I").WithArguments("NS.I").WithLocation(3, 30),
+                // (9,32): error CS0262: Partial declarations of 'A.C' have conflicting accessibility modifiers
+                //         internal partial class C { }
+                Diagnostic(ErrorCode.ERR_PartialModifierConflict, "C").WithArguments("NS.A.C").WithLocation(9, 32),
+                // (12,32): error CS0262: Partial declarations of 'A.S' have conflicting accessibility modifiers
+                //         private partial struct S { }
+                Diagnostic(ErrorCode.ERR_PartialModifierConflict, "S").WithArguments("NS.A.S").WithLocation(12, 32)
+                );
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
             // TODO...
@@ -3474,8 +3504,8 @@ class BAttribute : System.Attribute { }
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
             var type1 = ns.GetTypeMembers("C").Single() as NamedTypeSymbol;
-            var base1 = type1.BaseType;
-            Assert.Null(base1.BaseType);
+            var base1 = type1.BaseType();
+            Assert.Null(base1.BaseType());
             Assert.Equal(TypeKind.Error, base1.TypeKind);
             Assert.Equal("B1", base1.Name);
         }
@@ -4196,7 +4226,7 @@ static class S
     internal static void E<T, U>(this object o) { }
 }
 ";
-            CreateStandardCompilation(source, references: new[] { SystemCoreRef }).VerifyDiagnostics(
+            CreateCompilationWithMscorlib46(source).VerifyDiagnostics(
 // (7,15): error CS0306: The type 'int*' may not be used as a type argument
 //         new C<int*>();
 Diagnostic(ErrorCode.ERR_BadTypeArgument, "int*").WithArguments("int*"),
@@ -4252,7 +4282,7 @@ class C<T>
         COfIntPtr.F<object>();
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib46(source).VerifyDiagnostics(
                 // (2,7): error CS0306: The type 'int*' may not be used as a type argument
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "COfIntPtr").WithArguments("int*").WithLocation(2, 7),
                 // (3,7): error CS0306: The type 'System.ArgIterator' may not be used as a type argument
@@ -6991,8 +7021,8 @@ public class CF3<T>
                     forwardedTypes1Ref
                 }, TestOptions.ReleaseDll);
 
-            // Exported types in .Net modules cause PEVerify to fail.
-            CompileAndVerify(compilation, verify: false).VerifyDiagnostics();
+            // Exported types in .Net modules cause PEVerify to fail on some platforms.
+            CompileAndVerify(compilation, verify: Verification.Skipped).VerifyDiagnostics();
 
             compilation = CreateStandardCompilation("[assembly: System.Runtime.CompilerServices.TypeForwardedToAttribute(typeof(CF3<byte>))]",
                 new List<MetadataReference>()
@@ -7001,7 +7031,7 @@ public class CF3<T>
                     forwardedTypes1Ref
                 }, TestOptions.ReleaseDll);
 
-            CompileAndVerify(compilation, verify: false).VerifyDiagnostics();
+            CompileAndVerify(compilation, verify: Verification.Skipped).VerifyDiagnostics();
 
             compilation = CreateStandardCompilation(modSource,
                 new List<MetadataReference>()
@@ -7072,7 +7102,7 @@ extern alias FT1;
                     forwardedTypes1Ref
                 }, TestOptions.ReleaseDll);
 
-            CompileAndVerify(compilation, verify: false).VerifyDiagnostics();
+            CompileAndVerify(compilation, verify: Verification.Skipped).VerifyDiagnostics();
 
             compilation = CreateStandardCompilation("",
                 new List<MetadataReference>()
@@ -8951,14 +8981,7 @@ struct S6<T>
 }
 ";
             var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_SemicolonExpected, Line = 14, Column = 39 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_FeatureNotAvailableInVersion7, Line = 5, Column = 13 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_FeatureNotAvailableInVersion7, Line = 6, Column = 14 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_FeatureNotAvailableInVersion7, Line = 7, Column = 20 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_FeatureNotAvailableInVersion7, Line = 12, Column = 11 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_FeatureNotAvailableInVersion7, Line = 13, Column = 14 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_FeatureNotAvailableInVersion7, Line = 14, Column = 15 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_FeatureNotAvailableInVersion7, Line = 14, Column = 41 });
+                new ErrorDescription { Code = (int)ErrorCode.ERR_SemicolonExpected, Line = 14, Column = 39 });
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
             // TODO...
@@ -11198,9 +11221,10 @@ public class Test
                 // (2,39): error CS0643: 'AllowMultiple' duplicate named attribute argument
                 // [AttributeUsage(AllowMultiple = true, AllowMultiple = false)]
                 Diagnostic(ErrorCode.ERR_DuplicateNamedAttributeArgument, "AllowMultiple = false").WithArguments("AllowMultiple").WithLocation(2, 39),
-                // (2,2): error CS7036: There is no argument given that corresponds to the required formal parameter 'validOn' of 'System.AttributeUsageAttribute.AttributeUsageAttribute(System.AttributeTargets)'
+                // (2,2): error CS7036: There is no argument given that corresponds to the required formal parameter 'validOn' of 'AttributeUsageAttribute.AttributeUsageAttribute(AttributeTargets)'
                 // [AttributeUsage(AllowMultiple = true, AllowMultiple = false)]
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "AttributeUsage(AllowMultiple = true, AllowMultiple = false)").WithArguments("validOn", "System.AttributeUsageAttribute.AttributeUsageAttribute(System.AttributeTargets)").WithLocation(2, 2));
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "AttributeUsage(AllowMultiple = true, AllowMultiple = false)").WithArguments("validOn", "System.AttributeUsageAttribute.AttributeUsageAttribute(System.AttributeTargets)").WithLocation(2, 2)
+                );
         }
 
         [Fact]
@@ -11509,24 +11533,25 @@ public class A4 : Attribute
             var comp = CreateStandardCompilation(text);
 
             comp.VerifyDiagnostics(
-                // (7,14): error CS0663: 'NS.IGoo<T>' cannot define overloaded methods that differ only on ref and out
-                Diagnostic(ErrorCode.ERR_OverloadRefOut, "M").WithArguments("NS.IGoo<T>"),
-                // (24,20): error CS0663: 'NS.CGoo' cannot define overloaded methods that differ only on ref and out
-                Diagnostic(ErrorCode.ERR_OverloadRefOut, "RetInt").WithArguments("NS.CGoo"),
-                // (16,18): error CS0663: 'NS.CGoo.SGoo' cannot define overloaded methods that differ only on ref and out
-                Diagnostic(ErrorCode.ERR_OverloadRefOut, "M").WithArguments("NS.CGoo.SGoo"),
-
-                // Dev10 stops after reporting the overload problems.  However, it produces the errors below once those problems are fixed.
-
+                // (7,14): error CS0663: 'IGoo<T>' cannot define an overloaded method that differs only on parameter modifiers 'out' and 'ref'
+                //         void M(out T t);
+                Diagnostic(ErrorCode.ERR_OverloadRefKind, "M").WithArguments("NS.IGoo<T>", "method", "out", "ref").WithLocation(7, 14),
+                // (24,20): error CS0663: 'CGoo' cannot define an overloaded method that differs only on parameter modifiers 'ref' and 'out'
+                //         public int RetInt(byte b, ref int j)
+                Diagnostic(ErrorCode.ERR_OverloadRefKind, "RetInt").WithArguments("NS.CGoo", "method", "ref", "out").WithLocation(24, 20),
+                // (16,18): error CS0663: 'CGoo.SGoo' cannot define an overloaded method that differs only on parameter modifiers 'out' and 'ref'
+                //             void M<T>(out T t) { }
+                Diagnostic(ErrorCode.ERR_OverloadRefKind, "M").WithArguments("NS.CGoo.SGoo", "method", "out", "ref").WithLocation(16, 18),
                 // (21,20): error CS0269: Use of unassigned out parameter 'i'
-                Diagnostic(ErrorCode.ERR_UseDefViolationOut, "i").WithArguments("i"),
+                //             return i;
+                Diagnostic(ErrorCode.ERR_UseDefViolationOut, "i").WithArguments("i").WithLocation(21, 20),
                 // (21,13): error CS0177: The out parameter 'i' must be assigned to before control leaves the current method
-                Diagnostic(ErrorCode.ERR_ParamUnassigned, "return i;").WithArguments("i"),
+                //             return i;
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "return i;").WithArguments("i").WithLocation(21, 13),
                 // (16,18): error CS0177: The out parameter 't' must be assigned to before control leaves the current method
-                Diagnostic(ErrorCode.ERR_ParamUnassigned, "M").WithArguments("t"));
-
-            var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
-            // TODO...
+                //             void M<T>(out T t) { }
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "M").WithArguments("t").WithLocation(16, 18)
+            );
         }
 
         [Fact]
@@ -13966,8 +13991,9 @@ namespace TestNamespace
 }";
 
             CreateStandardCompilation(text).VerifyDiagnostics(
-                // (8,17): error CS0851: Cannot define overloaded constructor 'TestNamespace.MyClass' because it differs from another constructor only on ref and out
-                Diagnostic(ErrorCode.ERR_OverloadRefOutCtor, "MyClass").WithArguments("TestNamespace.MyClass"));
+                // (8,17): error CS0663: 'MyClass' cannot define an overloaded constructor that differs only on parameter modifiers 'out' and 'ref'
+                //         public  MyClass(out int num)
+                Diagnostic(ErrorCode.ERR_OverloadRefKind, "MyClass").WithArguments("TestNamespace.MyClass", "constructor", "out", "ref").WithLocation(8, 17));
         }
 
         [Fact]
@@ -14468,7 +14494,7 @@ namespace NS
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
             var type1 = ns.GetMembers("C").Single() as NamedTypeSymbol;
-            var b = type1.BaseType;
+            var b = type1.BaseType();
         }
 
         [Fact]
@@ -14531,7 +14557,7 @@ class C
     }
 }
 ";
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
 // (5,5): error CS1599: Method or delegate cannot return type 'System.ArgIterator'
 //     ArgIterator M(); // 1599
 Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "ArgIterator").WithArguments("System.ArgIterator"),
@@ -14576,7 +14602,7 @@ class MyClass
     MyClass(ref RuntimeArgumentHandle r5) {} // CS1601
 }
 ";
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
 // (6,23): error CS1601: Cannot make reference to variable of type 'System.TypedReference'
 //     public void Test1(ref TypedReference t2, RuntimeArgumentHandle r3)   // CS1601
 Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "ref TypedReference t2").WithArguments("System.TypedReference"),
@@ -16714,6 +16740,31 @@ partial struct A
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "j").WithArguments("A.j"));
         }
 
+        [Fact]
+        [WorkItem(23668, "https://github.com/dotnet/roslyn/issues/23668")]
+        public void CS0282WRN_PartialWithPropertyButSingleField()
+        {
+            string program =
+@"partial struct X // No warning CS0282
+{
+    // The only field of X is a backing field of A.
+    public int A { get; set; }
+}
+
+partial struct X : I
+{
+    // This partial definition has no field.
+    int I.A { get => A; set => A = value; }
+}
+
+interface I
+{
+    int A { get; set; }
+}";
+            var comp = CreateStandardCompilation(program);
+            comp.VerifyDiagnostics();
+        }
+
         /// <summary>
         /// import - Lib:  class A     { class B {} } 
         ///      vs. curr: Namespace A { class B {} } - use B
@@ -17558,7 +17609,7 @@ public class B : A
 ";
             var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll);
 
-            var verifier = CompileAndVerify(comp, verify: false).
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped).
                            VerifyDiagnostics(
     // (8,17): warning CS0824: Constructor 'B.B()' is marked external
     //   public extern B();
@@ -18465,7 +18516,7 @@ class Derived : Base<NotFound>{}";
 
             var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text, new ErrorDescription { Code = (int)ErrorCode.ERR_SingleTypeNameNotFound, Line = 3, Column = 22 });
             var derived = comp.SourceModule.GlobalNamespace.GetTypeMembers("Derived").Single();
-            var Base = derived.BaseType;
+            var Base = derived.BaseType();
             Assert.Equal(TypeKind.Class, Base.TypeKind);
         }
 
@@ -19691,7 +19742,7 @@ namespace ForwardingNamespace
             var compilation = CreateCompilationWithCustomILSource(userCode, forwardingIL, appendDefaultHeader: false);
 
             compilation.VerifyDiagnostics(
-                // (8,29): error CS8206: Module 'ForwarderModule.dll' in assembly 'Forwarder, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null' is forwarding the type 'Destination.TestClass' to multiple assemblies: 'Destination1, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null' and 'Destination2, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                // (8,29): error CS8329: Module 'ForwarderModule.dll' in assembly 'Forwarder, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null' is forwarding the type 'Destination.TestClass' to multiple assemblies: 'Destination1, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null' and 'Destination2, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //             new Destination.TestClass();
                 Diagnostic(ErrorCode.ERR_TypeForwardedToMultipleAssemblies, "TestClass").WithArguments("ForwarderModule.dll", "Forwarder, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null", "Destination.TestClass", "Destination1, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null", "Destination2, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(8, 29),
                 // (8,29): error CS0234: The type or namespace name 'TestClass' does not exist in the namespace 'Destination' (are you missing an assembly reference?)
@@ -19754,7 +19805,7 @@ namespace ForwardingNamespace
             var compilation = CreateCompilationWithCustomILSource(userCode, forwardingIL, appendDefaultHeader: false);
 
             compilation.VerifyDiagnostics(
-                // (8,29): error CS8206: Module 'ForwarderModule.dll' in assembly 'Forwarder, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' is forwarding the type 'Destination.TestClass' to multiple assemblies: 'Destination1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'Destination2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                // (8,29): error CS8329: Module 'ForwarderModule.dll' in assembly 'Forwarder, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' is forwarding the type 'Destination.TestClass' to multiple assemblies: 'Destination1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'Destination2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //             new Destination.TestClass();
                 Diagnostic(ErrorCode.ERR_TypeForwardedToMultipleAssemblies, "TestClass").WithArguments("ForwarderModule.dll", "Forwarder, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "Destination.TestClass", "Destination1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "Destination2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(8, 29),
                 // (8,29): error CS0234: The type or namespace name 'TestClass' does not exist in the namespace 'Destination' (are you missing an assembly reference?)
@@ -19824,7 +19875,7 @@ namespace A
             var referenceC2 = CompileIL(codeC2, prependDefaultHeader: false);
 
             CreateStandardCompilation(codeA, references: new MetadataReference[] { referenceB, referenceC2 }, assemblyName: "A").VerifyDiagnostics(
-                // (10,13): error CS8206: Module 'CModule.dll' in assembly 'C, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' is forwarding the type 'C.ClassC' to multiple assemblies: 'D1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'D2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                // (10,13): error CS8329: Module 'CModule.dll' in assembly 'C, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' is forwarding the type 'C.ClassC' to multiple assemblies: 'D1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'D2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //             ClassB.MethodB(null);
                 Diagnostic(ErrorCode.ERR_TypeForwardedToMultipleAssemblies, "ClassB.MethodB").WithArguments("CModule.dll", "C, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "C.ClassC", "D1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "D2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"));
         }
@@ -19926,7 +19977,7 @@ namespace C
 
             var ilModule = GetILModuleReference(ilSource, prependDefaultHeader: false);
             CreateStandardCompilation(string.Empty, references: new MetadataReference[] { ilModule }, assemblyName: "Forwarder").VerifyDiagnostics(
-                // error CS8206: Module 'ForwarderModule.dll' in assembly 'Forwarder, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' is forwarding the type 'Testspace.TestType' to multiple assemblies: 'D1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'D2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                // error CS8329: Module 'ForwarderModule.dll' in assembly 'Forwarder, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' is forwarding the type 'Testspace.TestType' to multiple assemblies: 'D1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'D2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 Diagnostic(ErrorCode.ERR_TypeForwardedToMultipleAssemblies).WithArguments("ForwarderModule.dll", "Forwarder, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "Testspace.TestType", "D1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "D2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1));
         }
 
@@ -20003,7 +20054,7 @@ namespace UserSpace
                 assemblyName: "UserAssembly");
 
             userCompilation.VerifyDiagnostics(
-                // (8,37): error CS8206: Module 'ForwarderModule.dll' in assembly 'Forwarder, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' is forwarding the type 'Testspace.TestType' to multiple assemblies: 'D1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'D2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                // (8,37): error CS8329: Module 'ForwarderModule.dll' in assembly 'Forwarder, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' is forwarding the type 'Testspace.TestType' to multiple assemblies: 'D1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'D2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //             var obj = new Testspace.TestType();
                 Diagnostic(ErrorCode.ERR_TypeForwardedToMultipleAssemblies, "TestType").WithArguments("ForwarderModule.dll", "Forwarder, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "Testspace.TestType", "D1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "D2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(8, 37),
                 // (8,37): error CS0234: The type or namespace name 'TestType' does not exist in the namespace 'Testspace' (are you missing an assembly reference?)
@@ -20068,7 +20119,7 @@ namespace UserSpace
                 assemblyName: "UserAssembly");
 
             userCompilation.VerifyDiagnostics(
-                // (8,37): error CS8206: Module 'module12L.dll' in assembly 'Forwarder, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' is forwarding the type 'Testspace.TestType' to multiple assemblies: 'D3, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'D4, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                // (8,37): error CS8329: Module 'module12L.dll' in assembly 'Forwarder, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' is forwarding the type 'Testspace.TestType' to multiple assemblies: 'D3, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'D4, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //             var obj = new Testspace.TestType();
                 Diagnostic(ErrorCode.ERR_TypeForwardedToMultipleAssemblies, "TestType").WithArguments("module12L.dll", "Forwarder, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "Testspace.TestType", "D3, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "D4, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
                 // (8,37): error CS0234: The type or namespace name 'TestType' does not exist in the namespace 'Testspace' (are you missing an assembly reference?)
@@ -20077,7 +20128,7 @@ namespace UserSpace
         }
 
         [Fact, WorkItem(16484, "https://github.com/dotnet/roslyn/issues/16484")]
-        public void MultipleForwardsThatChainResultinTheSameAssemblyShouldStillProduceAnError()
+        public void MultipleForwardsThatChainResultInTheSameAssemblyShouldStillProduceAnError()
         {
             // The scenario is that assembly A is calling a method from assembly B. This method has a parameter of a type that lives
             // in assembly C. Now if assembly C is replaced with assembly C2, that forwards the type to both D and E, and D fowards it to E,
@@ -20148,7 +20199,7 @@ namespace A
 }";
 
             CreateStandardCompilation(codeA, references: new MetadataReference[] { referenceB, referenceC2, referenceD, referenceE }, assemblyName: "A").VerifyDiagnostics(
-                // (11,13): error CS8206: Module 'C.dll' in assembly 'C, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' is forwarding the type 'C.ClassC' to multiple assemblies: 'D, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'E, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                // (11,13): error CS8329: Module 'C.dll' in assembly 'C, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' is forwarding the type 'C.ClassC' to multiple assemblies: 'D, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'E, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //             ClassB.MethodB(obj);
                 Diagnostic(ErrorCode.ERR_TypeForwardedToMultipleAssemblies, "ClassB.MethodB").WithArguments("C.dll", "C, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "C.ClassC", "D, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "E, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(11, 13));
         }

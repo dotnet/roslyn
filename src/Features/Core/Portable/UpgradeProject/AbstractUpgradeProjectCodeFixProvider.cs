@@ -12,7 +12,9 @@ using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 
 namespace Microsoft.CodeAnalysis.UpgradeProject
 {
+#pragma warning disable RS1016 // Code fix providers should provide FixAll support. https://github.com/dotnet/roslyn/issues/23528
     internal abstract partial class AbstractUpgradeProjectCodeFixProvider : CodeFixProvider
+#pragma warning restore RS1016 // Code fix providers should provide FixAll support.
     {
         public abstract ImmutableArray<string> SuggestedVersions(ImmutableArray<Diagnostic> diagnostics);
         public abstract Solution UpgradeProject(Project project, string version);

@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                  accessibility,
                  modifiers,
                  returnType: returnType,
-                 returnsByRef: false,
+                 refKind: RefKind.None,
                  explicitInterfaceImplementations: default,
                  name: GetMetadataName(operatorKind),
                  typeParameters: ImmutableArray<ITypeParameterSymbol>.Empty,

@@ -675,7 +675,6 @@ End Class
             Assert.Same(TestClass1_M5, result.Candidates(1).Candidate.UnderlyingSymbol)
             Assert.False(result.BestResult.HasValue)
 
-            'error BC30241: Named argument expected.
             'TestClass1.M4(x:=intVal, TestClass1Val)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
                 instanceMethods:={(TestClass1_M4)}.AsImmutableOrNull(),
@@ -688,9 +687,9 @@ End Class
 
             Assert.False(result.ResolutionIsLateBound)
             Assert.Equal(1, result.Candidates.Length)
-            Assert.Equal(CandidateAnalysisResultState.ArgumentMismatch, result.Candidates(0).State)
+            Assert.Equal(CandidateAnalysisResultState.Applicable, result.Candidates(0).State)
             Assert.Same(TestClass1_M4, result.Candidates(0).Candidate.UnderlyingSymbol)
-            Assert.False(result.BestResult.HasValue)
+            Assert.True(result.BestResult.HasValue)
 
             'error BC30057: Too many arguments to 'Public Shared Sub M2(Of T)()'.
             'TestClass1.M2(Of TestClass1)(intVal)
@@ -3890,9 +3889,6 @@ BC30519: Overload resolution failed because no accessible 'F2' can be called wit
 </expected>)
         End Sub
 
-
-
-
         <Fact(), WorkItem(527622, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527622")>
         Public Sub NoisyDiagnostics()
 
@@ -3930,14 +3926,14 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_3))
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC30201: Expression expected.
+BC37302: Named argument 'y' is used out-of-position but is followed by an unnamed argument
         F4(y:=Nothing,)
-                      ~
-BC30241: Named argument expected.
+           ~
+BC30241: Named argument expected. Please use language version 15.5 or greater to use non-trailing named arguments.
         F4(y:=Nothing,)
                       ~
 BC30198: ')' expected.

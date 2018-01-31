@@ -48,12 +48,12 @@ class C
             ChangeSignatureDialog.VerifyOpen();
             ChangeSignatureDialog.ClickCancel();
             ChangeSignatureDialog.VerifyClosed();
-            var actuaText = VisualStudio.Editor.GetText();
+            var actualText = VisualStudio.Editor.GetText();
             Assert.Contains(@"
 class C
 {
     public void Method(int a, string b) { }
-}", actuaText);
+}", actualText);
         }
 
         [Fact (Skip = "https://github.com/dotnet/roslyn/issues/17640"),

@@ -322,7 +322,11 @@ namespace M
 
         private static void Verify(ReferencedSymbol reference, HashSet<int> expectedMatchedLines)
         {
-            System.Action<Location> verifier = (location) => Assert.True(expectedMatchedLines.Remove(location.GetLineSpan().StartLinePosition.Line));
+            void verifier(Location location)
+            {
+                var line = location.GetLineSpan().StartLinePosition.Line;
+                Assert.True(expectedMatchedLines.Remove(line), $"An unexpected reference was found on line number {line}.");
+            }
 
             foreach (var location in reference.Locations)
             {

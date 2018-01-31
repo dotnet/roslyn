@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Remote
             _callbackTarget = callbackTarget;
         }
 
-        public void Shutdown(CancellationToken cancellationToken)
+        public void Shutdown()
         {
             ReferenceCountedDisposable<RemoteHostClient.Connection> connection;
 
@@ -277,7 +277,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 return;
             }
 
-            Shutdown(CancellationToken.None);
+            Shutdown();
         }
 
         private void Initialize(RemoteHostClient client, RemoteHostClient.Connection connection)

@@ -303,8 +303,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
             if (!string.IsNullOrEmpty(menuText))
             {
-                IEnumerable<SuggestedActionSet> actionSets;
-                if (activeSession.TryGetSuggestedActionSets(out actionSets) != QuerySuggestedActionCompletionStatus.Completed)
+                if (activeSession.TryGetSuggestedActionSets(out var actionSets) != QuerySuggestedActionCompletionStatus.Completed)
                 {
                     actionSets = Array.Empty<SuggestedActionSet>();
                 }

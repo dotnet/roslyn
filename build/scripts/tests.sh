@@ -5,25 +5,82 @@
 set -e
 set -u
 
-BUILD_CONFIGURATION=${1:-Debug}
+build_configuration=${1:-Debug}
+runtime=${2:-dotnet}
 
-THIS_DIR=$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)
-BINARIES_PATH=${THIS_DIR}/../../Binaries
-SRC_PATH=${THIS_DIR}/../../src
-TEST_DIR=${BINARIES_PATH}/${BUILD_CONFIGURATION}/CoreClrTest
+this_dir="$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${this_dir}"/build-utils.sh
 
-RUNTIME_ID=$(dotnet --info | awk '/RID:/{print $2;}')
+root_path="$(get_repo_dir)"
+binaries_path="${root_path}"/Binaries
+unittest_dir="${binaries_path}"/"${build_configuration}"/UnitTests
+log_dir="${binaries_path}"/"${build_configuration}"/xUnitResults
+nuget_dir="${HOME}"/.nuget/packages
+xunit_console_version="$(get_package_version dotnet-xunit)"
 
-BUILD_ARGS="-c ${BUILD_CONFIGURATION} -r ${RUNTIME_ID} /consoleloggerparameters:Verbosity=minimal;summary /p:RoslynRuntimeIdentifier=${RUNTIME_ID}"
-dotnet publish ${SRC_PATH}/Test/DeployCoreClrTestRuntime -o ${TEST_DIR} ${BUILD_ARGS}
-
-cd ${TEST_DIR}
-
-mkdir -p xUnitResults
-
-dotnet exec ./xunit.console.netcore.exe *.UnitTests.dll -parallel all -xml xUnitResults/TestResults.xml
-
-if [ $? -ne 0 ]; then
-    echo Unit test failed
+if [[ "${runtime}" == "dotnet" ]]; then
+    target_framework=netcoreapp2.0
+    xunit_console="${nuget_dir}"/dotnet-xunit/"${xunit_console_version}"/tools/${target_framework}/xunit.console.dll
+elif [[ "${runtime}" == "mono" ]]; then
+    source ${root_path}/build/scripts/obtain_mono.sh
+    target_framework=net461
+    xunit_console="${nuget_dir}"/dotnet-xunit/"${xunit_console_version}"/tools/net452/xunit.console.exe
+else
+    echo "Unknown runtime: ${runtime}"
     exit 1
 fi
+
+UNAME="$(uname)"
+if [ "$UNAME" == "Darwin" ]; then
+    runtime_id=osx-x64
+elif [ "$UNAME" == "Linux" ]; then
+    runtime_id=linux-x64
+else
+    echo "Unknown OS: $UNAME" 1>&2
+    exit 1
+fi
+
+echo "Publishing ILAsm.csproj"
+dotnet publish "${root_path}/src/Tools/ILAsm" --no-restore --runtime ${runtime_id} --self-contained -o "${binaries_path}/Tools/ILAsm"
+
+echo "Using ${xunit_console}"
+
+# Discover and run the tests
+mkdir -p "${log_dir}"
+
+exit_code=0
+for test_path in "${unittest_dir}"/*/"${target_framework}"
+do
+    file_name=( "${test_path}"/*.UnitTests.dll )
+    log_file="${log_dir}"/"$(basename "${file_name%.*}.xml")"
+    deps_json="${file_name%.*}".deps.json
+    runtimeconfig_json="${file_name%.*}".runtimeconfig.json
+
+    # If the user specifies a test on the command line, only run that one
+    # "${3:-}" => take second arg, empty string if unset
+    if [[ ("${3:-}" != "") && (! "${file_name}" =~ "${2:-}") ]]
+    then
+        echo "Skipping ${file_name}"
+        continue
+    fi
+
+    echo Running "${file_name[@]}"
+    if [[ "${runtime}" == "dotnet" ]]; then
+        runner="dotnet exec --depsfile ${deps_json} --runtimeconfig ${runtimeconfig_json}"
+    elif [[ "${runtime}" == "mono" ]]; then
+        runner=mono
+        if [[ "${file_name[@]}" == *'Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests.dll' || "${file_name[@]}" == *'Roslyn.Compilers.CompilerServer.UnitTests.dll' ]]
+        then
+            echo "Skipping ${file_name[@]}"
+            continue
+        fi
+    fi
+    if ${runner} "${xunit_console}" "${file_name[@]}" -xml "${log_file}"
+    then
+        echo "Assembly ${file_name[@]} passed"
+    else
+        echo "Assembly ${file_name[@]} failed"
+        exit_code=1
+    fi
+done
+exit ${exit_code}

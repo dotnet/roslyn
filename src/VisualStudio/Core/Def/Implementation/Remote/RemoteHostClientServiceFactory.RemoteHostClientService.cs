@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Execution;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -19,6 +20,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Remote
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     internal partial class RemoteHostClientServiceFactory
     {
         public class RemoteHostClientService : ForegroundThreadAffinitizedObject, IRemoteHostClientService
@@ -84,6 +87,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                         // dev14 doesn't have remote host client factory
                         return;
                     }
+
+                    // set bitness
+                    SetRemoteHostBitness();
 
                     // make sure we run it on background thread
                     _shutdownCancellationTokenSource = new CancellationTokenSource();
@@ -155,6 +161,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 }
 
                 return remoteClientTask;
+            }
+
+            private void SetRemoteHostBitness()
+            {
+                var x64 = _workspace.Options.GetOption(RemoteHostOptions.OOP64Bit);
+                if (!x64)
+                {
+                    x64 = _workspace.Services.GetService<IExperimentationService>().IsExperimentEnabled(
+                        WellKnownExperimentNames.RoslynOOP64bit);
+                }
+
+                // log OOP bitness
+                Logger.Log(FunctionId.RemoteHost_Bitness, KeyValueLogMessage.Create(LogType.Trace, m => m["64bit"] = x64));
+
+                // set service bitness
+                WellKnownRemoteHostServices.Set64bit(x64);
+                WellKnownServiceHubServices.Set64bit(x64);
             }
 
             private async Task<RemoteHostClient> EnableAsync(CancellationToken cancellationToken)
@@ -244,7 +267,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                     // s_lastRemoteClientTask info should be saved in the dump
                     // report NFW when connection is closed unless it is proper shutdown
-                    FatalError.ReportWithoutCrash(new Exception("Connection to remote host closed"));
+                    WatsonReporter.Report(new Exception("Connection to remote host closed"));
 
                     // use info bar to show warning to users
                     var infoBarUIs = new List<InfoBarUI>();

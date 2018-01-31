@@ -4368,6 +4368,24 @@ End Module
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
+        <WorkItem(21923, "https://github.com/dotnet/roslyn/issues/21923")>
+        Public Async Function FormatNullableTuple() As Task
+            Dim code = <Code>
+Class C
+    Dim x As (Integer, Integer)  ?
+End Class
+</Code>
+
+            Dim expected = <Code>
+Class C
+    Dim x As (Integer, Integer)?
+End Class
+</Code>
+
+            Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         <WorkItem(2822, "https://github.com/dotnet/roslyn/issues/2822")>
         Public Async Function FormatOmittedArgument() As Task
             Dim code = <Code>

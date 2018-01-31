@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
     {
         get => throw new NotImplementedException(); // comment
     }
-}", ignoreTrivia: false, options: UseExpressionBody);
+}", options: UseExpressionBody);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -296,7 +296,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             throw new NotImplementedException(); // comment
         }
     }
-}", ignoreTrivia: false, options: UseBlockBodyIncludingPropertiesAndIndexers);
+}", options: UseBlockBodyIncludingPropertiesAndIndexers);
         }
 
         [WorkItem(20350, "https://github.com/dotnet/roslyn/issues/20350")]
@@ -317,7 +317,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             return Bar();
         }
     }
-}", options: UseBlockBodyIncludingPropertiesAndIndexers, ignoreTrivia: false);
+}", options: UseBlockBodyIncludingPropertiesAndIndexers);
         }
 
         [WorkItem(20350, "https://github.com/dotnet/roslyn/issues/20350")]
@@ -343,7 +343,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             Bar();
         }
     }
-}", options: UseBlockBodyIncludingPropertiesAndIndexers, ignoreTrivia: false);
+}", options: UseBlockBodyIncludingPropertiesAndIndexers);
         }
 
         [WorkItem(20362, "https://github.com/dotnet/roslyn/issues/20362")]

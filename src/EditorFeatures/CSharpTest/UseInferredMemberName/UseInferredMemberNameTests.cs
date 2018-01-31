@@ -39,7 +39,7 @@ class C
     void M()
     {
         int a = 1;
-        var t = ( a, 2);
+        var t = (a, 2);
     }
 }", parseOptions: s_parseOptions);
         }
@@ -97,7 +97,7 @@ class C
         int b = 2;
         var t = ( /*before*/  /*middle*/ a /*after*/, /*before*/  /*middle*/ b /*after*/);
     }
-}", parseOptions: s_parseOptions, ignoreTrivia: false);
+}", parseOptions: s_parseOptions);
         }
 
         [Fact]
@@ -110,7 +110,7 @@ class C
     void M()
     {
         int a = 1;
-        var t = new { [||]a=a, 2 };
+        var t = new { [||]a= a, 2 };
     }
 }",
 @"
@@ -147,7 +147,7 @@ class C
         int b = 2;
         var t = new { /*before*/  /*middle*/ a /*after*/, /*before*/  /*middle*/ b /*after*/ };
     }
-}", parseOptions: s_parseOptions, ignoreTrivia: false);
+}", parseOptions: s_parseOptions);
         }
     }
 }

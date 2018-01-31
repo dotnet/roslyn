@@ -4326,7 +4326,7 @@ public class Program
         Callee3<T>(default(T), default(T));
     }
 }
-", verify: false, options: TestOptions.ReleaseExe);
+", verify: Verification.Fails, options: TestOptions.ReleaseExe);
             verifier.VerifyIL("Program.M<T>()",
 @"{
   // Code size      297 (0x129)
@@ -4459,7 +4459,7 @@ public class Program
         Callee3<string>();
     }
 }
-", verify: false, options: TestOptions.ReleaseExe);
+", verify: Verification.Fails, options: TestOptions.ReleaseExe);
             verifier.VerifyIL("Program.M<T>()",
 @"{
   // Code size       34 (0x22)
@@ -4994,7 +4994,7 @@ public class D
         }
 
         [Fact]
-        public void ReadonlyAddress()
+        public void ReadonlyAddressConstrained()
         {
             string source = @"
 public class D
@@ -5052,6 +5052,204 @@ System.ApplicationException[]System.ApplicationException: helloSystem.Applicatio
   IL_0031:  ret       
 }
 ");
+        }
+
+        [WorkItem(22858, "https://github.com/dotnet/roslyn/issues/22858")]
+        [Fact]
+        public void CovariantArrayRefParam()
+        {
+            string source = @"
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            try
+            {
+                Test(ref ((object[])new string[] { ""hi"", ""hello"" })[0]);
+            }
+            catch (System.ArrayTypeMismatchException)
+            {
+                System.Console.WriteLine(""PASS"");
+            }
+        }
+
+        static void Test(ref object r)
+        {
+            throw null;
+        }
+    }";
+
+            var compilation = CompileAndVerify(source, expectedOutput: @"PASS", verify: Verification.Passes);
+
+            compilation.VerifyIL("Program.Main(string[])",
+@"
+{
+  // Code size       51 (0x33)
+  .maxstack  4
+  .locals init (object[] V_0)
+  .try
+  {
+    IL_0000:  ldc.i4.2
+    IL_0001:  newarr     ""string""
+    IL_0006:  dup
+    IL_0007:  ldc.i4.0
+    IL_0008:  ldstr      ""hi""
+    IL_000d:  stelem.ref
+    IL_000e:  dup
+    IL_000f:  ldc.i4.1
+    IL_0010:  ldstr      ""hello""
+    IL_0015:  stelem.ref
+    IL_0016:  stloc.0
+    IL_0017:  ldloc.0
+    IL_0018:  ldc.i4.0
+    IL_0019:  ldelema    ""object""
+    IL_001e:  call       ""void Program.Test(ref object)""
+    IL_0023:  leave.s    IL_0032
+  }
+  catch System.ArrayTypeMismatchException
+  {
+    IL_0025:  pop
+    IL_0026:  ldstr      ""PASS""
+    IL_002b:  call       ""void System.Console.WriteLine(string)""
+    IL_0030:  leave.s    IL_0032
+  }
+  IL_0032:  ret
+}
+");
+        }
+
+        [WorkItem(22841, "https://github.com/dotnet/roslyn/issues/22841")]
+        [CompilerTrait(CompilerFeature.PEVerifyCompat)]
+        [Fact]
+        public void ReadonlyAddressInParam()
+        {
+            string source = @"
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            var stringArray = new string[] { ""hi"", ""hello"" };
+            var objectArray = (object[])stringArray;
+
+            Test(objectArray[0]);
+        }
+
+        static void Test(in object r)
+        {
+            System.Console.WriteLine(r);
+        }
+    }";
+
+            var compilation = CompileAndVerify(source, expectedOutput: @"hi", verify: Verification.Fails);
+
+            compilation.VerifyIL("Program.Main(string[])",
+@"
+{
+  // Code size       38 (0x26)
+  .maxstack  4
+  .locals init (object[] V_0)
+  IL_0000:  ldc.i4.2
+  IL_0001:  newarr     ""string""
+  IL_0006:  dup
+  IL_0007:  ldc.i4.0
+  IL_0008:  ldstr      ""hi""
+  IL_000d:  stelem.ref
+  IL_000e:  dup
+  IL_000f:  ldc.i4.1
+  IL_0010:  ldstr      ""hello""
+  IL_0015:  stelem.ref
+  IL_0016:  stloc.0
+  IL_0017:  ldloc.0
+  IL_0018:  ldc.i4.0
+  IL_0019:  readonly.
+  IL_001b:  ldelema    ""object""
+  IL_0020:  call       ""void Program.Test(in object)""
+  IL_0025:  ret
+}
+");
+            compilation = CompileAndVerify(source, expectedOutput: @"hi",  verify: Verification.Passes, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
+
+            compilation.VerifyIL("Program.Main(string[])",
+@"
+{
+  // Code size       35 (0x23)
+  .maxstack  4
+  .locals init (object[] V_0,
+                object V_1)
+  IL_0000:  ldc.i4.2
+  IL_0001:  newarr     ""string""
+  IL_0006:  dup
+  IL_0007:  ldc.i4.0
+  IL_0008:  ldstr      ""hi""
+  IL_000d:  stelem.ref
+  IL_000e:  dup
+  IL_000f:  ldc.i4.1
+  IL_0010:  ldstr      ""hello""
+  IL_0015:  stelem.ref
+  IL_0016:  stloc.0
+  IL_0017:  ldloc.0
+  IL_0018:  ldc.i4.0
+  IL_0019:  ldelem.ref
+  IL_001a:  stloc.1
+  IL_001b:  ldloca.s   V_1
+  IL_001d:  call       ""void Program.Test(in object)""
+  IL_0022:  ret
+}
+");
+        }
+
+        [WorkItem(22841, "https://github.com/dotnet/roslyn/issues/22841")]
+        [CompilerTrait(CompilerFeature.PEVerifyCompat)]
+        [Fact]
+        public void ReadonlyAddressStrict()
+        {
+            string source = @"
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            var stringArray = new string[] { ""hi"", ""hello"" };
+            var objectArray = (object[])stringArray;
+
+            Test(GetElementRef(objectArray));
+        }
+
+        static ref readonly T GetElementRef<T>(T[] objectArray)
+        {
+            Test(in objectArray[0]);
+            return ref objectArray[0];
+        }
+
+        static void Test<T>(in T r)
+        {
+            System.Console.Write(r);
+        }
+    }";
+
+            var compilation = CompileAndVerify(source, expectedOutput: @"hihi", verify: Verification.Fails);
+
+            var expectedIL = @"
+{
+  // Code size       24 (0x18)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  readonly.
+  IL_0004:  ldelema    ""T""
+  IL_0009:  call       ""void Program.Test<T>(in T)""
+  IL_000e:  ldarg.0
+  IL_000f:  ldc.i4.0
+  IL_0010:  readonly.
+  IL_0012:  ldelema    ""T""
+  IL_0017:  ret
+}
+";
+            compilation.VerifyIL("Program.GetElementRef<T>(T[])", expectedIL);
+
+            // expect the same IL in the compat case since direct references are required and must be emitted with "readonly.", even though unverifiable
+            compilation = CompileAndVerify(source, expectedOutput: @"hihi", verify: Verification.Fails, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
+
+            compilation.VerifyIL("Program.GetElementRef<T>(T[])", expectedIL);
         }
 
         [Fact]
@@ -10225,7 +10423,7 @@ class Test
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "Goo").WithArguments("Test.Goo()"));
 
             // NOTE: the resulting IL is unverifiable, but not an error for compat reasons
-            CompileAndVerify(comp, verify: false).VerifyIL("Test.Main",
+            CompileAndVerify(comp, verify: Verification.Fails).VerifyIL("Test.Main",
                 @"
 {
   // Code size       11 (0xb)
@@ -11973,6 +12171,7 @@ class B<T> : A<T>
         #endregion
 
         [Fact]
+        [CompilerTrait(CompilerFeature.PEVerifyCompat)]
         public void MutateReadonlyNested()
         {
             string source = @"
@@ -12024,11 +12223,44 @@ struct MyManagedStruct
         n.n.num = x;
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"42");
+            var comp = CompileAndVerify(source, expectedOutput: @"42", parseOptions: TestOptions.Regular7_2, verify: Verification.Fails);
 
-            // Dev10
-            compilation.VerifyIL("Program.Main",
-@"{
+            comp.VerifyIL("Program.Main",
+@"
+{
+  // Code size       76 (0x4c)
+  .maxstack  3
+  .locals init (MyManagedStruct V_0,
+                MyManagedStruct.Nested.Nested1 V_1)
+  IL_0000:  newobj     ""cls1..ctor()""
+  IL_0005:  dup
+  IL_0006:  ldfld      ""MyManagedStruct cls1.y""
+  IL_000b:  stloc.0
+  IL_000c:  ldloca.s   V_0
+  IL_000e:  ldc.i4.s   123
+  IL_0010:  call       ""void MyManagedStruct.mutate(int)""
+  IL_0015:  dup
+  IL_0016:  ldflda     ""MyManagedStruct cls1.y""
+  IL_001b:  ldflda     ""MyManagedStruct.Nested MyManagedStruct.n""
+  IL_0020:  ldfld      ""MyManagedStruct.Nested.Nested1 MyManagedStruct.Nested.n""
+  IL_0025:  stloc.1
+  IL_0026:  ldloca.s   V_1
+  IL_0028:  ldc.i4     0x1c8
+  IL_002d:  call       ""void MyManagedStruct.Nested.Nested1.mutate(int)""
+  IL_0032:  ldflda     ""MyManagedStruct cls1.y""
+  IL_0037:  ldflda     ""MyManagedStruct.Nested MyManagedStruct.n""
+  IL_003c:  ldflda     ""MyManagedStruct.Nested.Nested1 MyManagedStruct.Nested.n""
+  IL_0041:  ldfld      ""int MyManagedStruct.Nested.Nested1.num""
+  IL_0046:  call       ""void System.Console.WriteLine(int)""
+  IL_004b:  ret
+}
+");
+
+            comp = CompileAndVerify(source, expectedOutput: @"42", verify: Verification.Passes, parseOptions:TestOptions.Regular.WithPEVerifyCompatFeature());
+
+            comp.VerifyIL("Program.Main",
+@"
+{
   // Code size       76 (0x4c)
   .maxstack  3
   .locals init (MyManagedStruct V_0)
@@ -12054,6 +12286,152 @@ struct MyManagedStruct
   IL_0046:  call       ""void System.Console.WriteLine(int)""
   IL_004b:  ret
 }
+");
+
+            comp = CompileAndVerify(source, expectedOutput: @"42", verify: Verification.Passes, parseOptions: TestOptions.Regular7_1);
+
+            comp.VerifyIL("Program.Main",
+@"
+{
+  // Code size       76 (0x4c)
+  .maxstack  3
+  .locals init (MyManagedStruct V_0)
+  IL_0000:  newobj     ""cls1..ctor()""
+  IL_0005:  dup
+  IL_0006:  ldfld      ""MyManagedStruct cls1.y""
+  IL_000b:  stloc.0
+  IL_000c:  ldloca.s   V_0
+  IL_000e:  ldc.i4.s   123
+  IL_0010:  call       ""void MyManagedStruct.mutate(int)""
+  IL_0015:  dup
+  IL_0016:  ldfld      ""MyManagedStruct cls1.y""
+  IL_001b:  stloc.0
+  IL_001c:  ldloca.s   V_0
+  IL_001e:  ldflda     ""MyManagedStruct.Nested MyManagedStruct.n""
+  IL_0023:  ldflda     ""MyManagedStruct.Nested.Nested1 MyManagedStruct.Nested.n""
+  IL_0028:  ldc.i4     0x1c8
+  IL_002d:  call       ""void MyManagedStruct.Nested.Nested1.mutate(int)""
+  IL_0032:  ldfld      ""MyManagedStruct cls1.y""
+  IL_0037:  ldfld      ""MyManagedStruct.Nested MyManagedStruct.n""
+  IL_003c:  ldfld      ""MyManagedStruct.Nested.Nested1 MyManagedStruct.Nested.n""
+  IL_0041:  ldfld      ""int MyManagedStruct.Nested.Nested1.num""
+  IL_0046:  call       ""void System.Console.WriteLine(int)""
+  IL_004b:  ret
+}
+");
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.PEVerifyCompat)]
+        public void MutateReadonlyNested1()
+        {
+            string source = @"
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            GetRoRef().ro.ro.ro.ro.ToString();
+            System.Console.Write(GetRoRef().ro.ro.ro.ro.x);
+        }
+
+        private static ref readonly Largest GetRoRef()
+        {
+            return ref (new Largest[1])[0];
+        }
+    }
+
+    struct Largest
+    {
+        public int x;
+        public readonly Large ro;
+    }
+
+    struct Large
+    {
+        public int x;
+        public Medium ro;
+    }
+
+    struct Medium
+    {
+        public int x;
+        public Small ro;
+    }
+
+    struct Small
+    {
+        public int x;
+        public Smallest ro;
+    }
+
+    struct Smallest
+    {
+        public int x;
+
+        public override string ToString()
+        {
+            x = -1;
+            System.Console.Write(x);
+            return null;
+        }
+    }";
+            var comp = CompileAndVerify(source, expectedOutput: @"-10", verify: Verification.Fails);
+
+            comp.VerifyIL("Program.Main",
+@"
+{
+  // Code size       76 (0x4c)
+  .maxstack  1
+  .locals init (Smallest V_0)
+  IL_0000:  call       ""ref readonly Largest Program.GetRoRef()""
+  IL_0005:  ldflda     ""Large Largest.ro""
+  IL_000a:  ldflda     ""Medium Large.ro""
+  IL_000f:  ldflda     ""Small Medium.ro""
+  IL_0014:  ldfld      ""Smallest Small.ro""
+  IL_0019:  stloc.0
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  constrained. ""Smallest""
+  IL_0022:  callvirt   ""string object.ToString()""
+  IL_0027:  pop
+  IL_0028:  call       ""ref readonly Largest Program.GetRoRef()""
+  IL_002d:  ldflda     ""Large Largest.ro""
+  IL_0032:  ldflda     ""Medium Large.ro""
+  IL_0037:  ldflda     ""Small Medium.ro""
+  IL_003c:  ldflda     ""Smallest Small.ro""
+  IL_0041:  ldfld      ""int Smallest.x""
+  IL_0046:  call       ""void System.Console.Write(int)""
+  IL_004b:  ret
+}
+");
+
+            comp = CompileAndVerify(source, expectedOutput: @"-10", verify: Verification.Passes, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
+
+            comp.VerifyIL("Program.Main",
+@"
+	{
+	  // Code size       76 (0x4c)
+	  .maxstack  1
+	  .locals init (Large V_0)
+	  IL_0000:  call       ""ref readonly Largest Program.GetRoRef()""
+	  IL_0005:  ldfld      ""Large Largest.ro""
+	  IL_000a:  stloc.0
+	  IL_000b:  ldloca.s   V_0
+	  IL_000d:  ldflda     ""Medium Large.ro""
+	  IL_0012:  ldflda     ""Small Medium.ro""
+	  IL_0017:  ldflda     ""Smallest Small.ro""
+	  IL_001c:  constrained. ""Smallest""
+	  IL_0022:  callvirt   ""string object.ToString()""
+	  IL_0027:  pop
+	  IL_0028:  call       ""ref readonly Largest Program.GetRoRef()""
+	  IL_002d:  ldfld      ""Large Largest.ro""
+	  IL_0032:  ldfld      ""Medium Large.ro""
+	  IL_0037:  ldfld      ""Small Medium.ro""
+	  IL_003c:  ldfld      ""Smallest Small.ro""
+	  IL_0041:  ldfld      ""int Smallest.x""
+	  IL_0046:  call       ""void System.Console.Write(int)""
+	  IL_004b:  ret
+	}
 ");
         }
 
@@ -14228,7 +14606,7 @@ using System;
     }
 ";
 
-            CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, expectedOutput: @""
+            CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails, expectedOutput: @""
 ).VerifyIL("Program.TestArrElement(bool[])",
 @"
 {
@@ -14710,7 +15088,7 @@ class Program
 
         [WorkItem(5880, "https://github.com/dotnet/roslyn/issues/5880")]
         [Fact]
-        public void StuctCtorArgTernary()
+        public void StructCtorArgTernary()
         {
             string source = @"
    using System.Collections.Generic;
@@ -15520,5 +15898,384 @@ public class Form1 {
 }");
         }
 
+        [Fact]
+        public void CorrectOverloadOfStackAllocSpanChosen()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+class Test
+{
+    unsafe public static void Main()
+    {
+        bool condition = false;
+
+        var span1 = condition ? stackalloc int[1] : new Span<int>(null, 2);
+        Console.Write(span1.Length);
+
+        var span2 = condition ? new Span<int>(null, 3) : stackalloc int[4];
+        Console.Write(span2.Length);
+    }
+}", TestOptions.UnsafeReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: "24", verify: Verification.Fails);
+        }
+
+        [Fact]
+        public void StackAllocExpressionIL()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+class Test
+{
+    public static void Main()
+    {
+        Span<int> x = stackalloc int[33];
+        Console.Write(x.Length);
+        x = stackalloc int[0];
+        Console.Write(x.Length);
+    }
+}", TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: "330", verify: Verification.Fails).VerifyIL("Test.Main", @"
+{
+  // Code size       49 (0x31)
+  .maxstack  2
+  .locals init (System.Span<int> V_0, //x
+                int V_1)
+  IL_0000:  ldc.i4.s   33
+  IL_0002:  stloc.1
+  IL_0003:  ldloc.1
+  IL_0004:  conv.u
+  IL_0005:  ldc.i4.4
+  IL_0006:  mul.ovf.un
+  IL_0007:  localloc
+  IL_0009:  ldloc.1
+  IL_000a:  newobj     ""System.Span<int>..ctor(void*, int)""
+  IL_000f:  stloc.0
+  IL_0010:  ldloca.s   V_0
+  IL_0012:  call       ""int System.Span<int>.Length.get""
+  IL_0017:  call       ""void System.Console.Write(int)""
+  IL_001c:  ldloca.s   V_0
+  IL_001e:  initobj    ""System.Span<int>""
+  IL_0024:  ldloca.s   V_0
+  IL_0026:  call       ""int System.Span<int>.Length.get""
+  IL_002b:  call       ""void System.Console.Write(int)""
+  IL_0030:  ret
+}");
+        }
+
+        [Fact]
+        public void StackAllocSpanLengthNotEvaluatedTwice()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+class Test
+{
+    private static int length = 0;
+
+    private static int GetLength()
+    {
+        return ++length;
+    }
+
+    public static void Main()
+    {
+        for (int i = 0; i < 5; i++)
+        {
+            Span<int> x = stackalloc int[GetLength()];
+            Console.Write(x.Length);
+        }
+    }
+}", TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: "12345", verify: Verification.Fails).VerifyIL("Test.Main", @"
+{
+  // Code size       44 (0x2c)
+  .maxstack  2
+  .locals init (int V_0, //i
+                System.Span<int> V_1, //x
+                int V_2)
+  IL_0000:  ldc.i4.0
+  IL_0001:  stloc.0
+  IL_0002:  br.s       IL_0027
+  IL_0004:  call       ""int Test.GetLength()""
+  IL_0009:  stloc.2
+  IL_000a:  ldloc.2
+  IL_000b:  conv.u
+  IL_000c:  ldc.i4.4
+  IL_000d:  mul.ovf.un
+  IL_000e:  localloc
+  IL_0010:  ldloc.2
+  IL_0011:  newobj     ""System.Span<int>..ctor(void*, int)""
+  IL_0016:  stloc.1
+  IL_0017:  ldloca.s   V_1
+  IL_0019:  call       ""int System.Span<int>.Length.get""
+  IL_001e:  call       ""void System.Console.Write(int)""
+  IL_0023:  ldloc.0
+  IL_0024:  ldc.i4.1
+  IL_0025:  add
+  IL_0026:  stloc.0
+  IL_0027:  ldloc.0
+  IL_0028:  ldc.i4.5
+  IL_0029:  blt.s      IL_0004
+  IL_002b:  ret
+}");
+        }
+
+        [Fact]
+        public void ImplicitCastOperatorOnStackAllocIsLoweredCorrectly()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+unsafe class Test
+{
+    public static void Main()
+    {
+        Test obj1 = stackalloc int[10];
+        Console.Write(""|"");
+        Test obj2 = stackalloc double[10];
+    }
+    
+    public static implicit operator Test(Span<int> value) 
+    {
+        Console.Write(""SpanOpCalled"");
+        return default(Test);
+    }
+    
+    public static implicit operator Test(double* value) 
+    {
+        Console.Write(""PointerOpCalled"");
+        return default(Test);
+    }
+}", TestOptions.UnsafeReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: "SpanOpCalled|PointerOpCalled", verify: Verification.Fails);
+        }
+
+        [Fact]
+        public void ExplicitCastOperatorOnStackAllocIsLoweredCorrectly()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+unsafe class Test
+{
+    public static void Main()
+    {
+        Test obj1 = (Test)stackalloc int[10];
+    }
+    
+    public static explicit operator Test(Span<int> value) 
+    {
+        Console.Write(""SpanOpCalled"");
+        return default(Test);
+    }
+}", TestOptions.UnsafeReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: "SpanOpCalled", verify: Verification.Fails);
+        }
+
+        [Fact]
+        public void ArrayElementCompoundAssignment_Invariant()
+        {
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        F(new string[] { """" }, ""B"");
+    }
+    static void F(string[] a, string s)
+    {
+        G(a, s);
+        System.Console.Write(a[0]);
+    }
+    static void G(string[] a, string s)
+    {
+        a[0] += s;
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "B");
+            verifier.VerifyIL("C.G",
+@"{
+  // Code size       17 (0x11)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  ldelema    ""string""
+  IL_0007:  dup
+  IL_0008:  ldind.ref
+  IL_0009:  ldarg.1
+  IL_000a:  call       ""string string.Concat(string, string)""
+  IL_000f:  stind.ref
+  IL_0010:  ret
+}");
+        }
+
+        [WorkItem(547533, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=547533")]
+        [Fact]
+        public void ArrayElementCompoundAssignment_Covariant()
+        {
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        F(new object[] { """" }, ""A"");
+        F(new string[] { """" }, ""B"");
+    }
+    static void F(object[] a, string s)
+    {
+        G(a, s);
+        System.Console.Write(a[0]);
+    }
+    static void G(object[] a, string s)
+    {
+        a[0] += s;
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "AB");
+            verifier.VerifyIL("C.G",
+@"{
+  // Code size       15 (0xf)
+  .maxstack  4
+  .locals init (object[] V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldc.i4.0
+  IL_0004:  ldloc.0
+  IL_0005:  ldc.i4.0
+  IL_0006:  ldelem.ref
+  IL_0007:  ldarg.1
+  IL_0008:  call       ""string string.Concat(object, object)""
+  IL_000d:  stelem.ref
+  IL_000e:  ret
+}");
+        }
+
+        [Fact]
+        public void ArrayElementCompoundAssignment_ValueType()
+        {
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        F(new int[] { 1 }, 2);
+    }
+    static void F(int[] a, int i)
+    {
+        G(a, i);
+        System.Console.Write(a[0]);
+    }
+    static void G(int[] a, int i)
+    {
+        a[0] += i;
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "3");
+            verifier.VerifyIL("C.G",
+@"{
+  // Code size       13 (0xd)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  ldelema    ""int""
+  IL_0007:  dup
+  IL_0008:  ldind.i4
+  IL_0009:  ldarg.1
+  IL_000a:  add
+  IL_000b:  stind.i4
+  IL_000c:  ret
+}");
+        }
+
+        [WorkItem(547533, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=547533")]
+        [Fact]
+        public void ArrayElementCompoundAssignment_Covariant_NonConstantIndex()
+        {
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        F(new object[] { """" }, ""A"");
+        F(new string[] { """" }, ""B"");
+    }
+    static void F(object[] a, string s)
+    {
+        G(a, s);
+        System.Console.Write(a[0]);
+    }
+    static void G(object[] a, string s)
+    {
+        a[Index(a)] += s;
+    }
+    static int Index(object arg)
+    {
+        System.Console.Write(arg.GetType().Name);
+        return 0;
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "Object[]AString[]B");
+            verifier.VerifyIL("C.G",
+@"{
+  // Code size       22 (0x16)
+  .maxstack  4
+  .locals init (object[] V_0,
+                int V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldarg.0
+  IL_0003:  call       ""int C.Index(object)""
+  IL_0008:  stloc.1
+  IL_0009:  ldloc.0
+  IL_000a:  ldloc.1
+  IL_000b:  ldloc.0
+  IL_000c:  ldloc.1
+  IL_000d:  ldelem.ref
+  IL_000e:  ldarg.1
+  IL_000f:  call       ""string string.Concat(object, object)""
+  IL_0014:  stelem.ref
+  IL_0015:  ret
+}");
+        }
+
+        [Fact]
+        public void ArrayElementIncrement_ValueType()
+        {
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        F(new int[] { 1 });
+    }
+    static void F(int[] a)
+    {
+        G(a);
+        System.Console.Write(a[0]);
+    }
+    static void G(int[] a)
+    {
+        a[0]++;
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "2");
+            verifier.VerifyIL("C.G",
+@"{
+  // Code size       13 (0xd)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  ldelema    ""int""
+  IL_0007:  dup
+  IL_0008:  ldind.i4
+  IL_0009:  ldc.i4.1
+  IL_000a:  add
+  IL_000b:  stind.i4
+  IL_000c:  ret
+}");
+        }
     }
 }

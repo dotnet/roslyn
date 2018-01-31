@@ -260,8 +260,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         public static bool IsAsyncMethodOrLambda(SyntaxNode declaration)
         {
-            var anonymousFunction = declaration as AnonymousFunctionExpressionSyntax;
-            if (anonymousFunction != null)
+            if (declaration is AnonymousFunctionExpressionSyntax anonymousFunction)
             {
                 return anonymousFunction.AsyncKeyword.IsKind(SyntaxKind.AsyncKeyword);
             }

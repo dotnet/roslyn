@@ -468,7 +468,7 @@ class C
             a();
         }
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
@@ -513,7 +513,7 @@ class C
 #line hidden
     }
 }
-#line default", ignoreTrivia: false);
+#line default");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]

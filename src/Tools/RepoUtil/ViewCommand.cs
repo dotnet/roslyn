@@ -45,8 +45,7 @@ namespace RepoUtil
                         continue;
                     }
 
-                    List<FileName> nameList;
-                    if (!map.TryGetValue(package, out nameList))
+                    if (!map.TryGetValue(package, out var nameList))
                     {
                         nameList = new List<FileName>();
                         map[package] = nameList;
@@ -77,8 +76,7 @@ namespace RepoUtil
         {
             writer.WriteLine($"Verifying project.json contents");
 
-            List<NuGetPackageConflict> conflicts;
-            repoData = RepoData.Create(_repoConfig, _sourcesPath, out conflicts);
+            repoData = RepoData.Create(_repoConfig, _sourcesPath, out var conflicts);
             if (conflicts?.Count > 0)
             { 
                 foreach (var conflict in conflicts)

@@ -38,25 +38,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
             string initialMarkup,
             string expectedMarkup,
             int index = 0,
-            bool ignoreTrivia = false,
             CodeActionPriority? priority = null,
             IDictionary<OptionKey, object> options = null)
         {
-            await TestAsync(initialMarkup, expectedMarkup, index, ignoreTrivia, priority, options, outOfProcess: false);
-            await TestAsync(initialMarkup, expectedMarkup, index, ignoreTrivia, priority, options, outOfProcess: true);
+            await TestAsync(initialMarkup, expectedMarkup, index, priority, options, outOfProcess: false);
+            await TestAsync(initialMarkup, expectedMarkup, index, priority, options, outOfProcess: true);
         }
 
         internal async Task TestAsync(
             string initialMarkup,
             string expectedMarkup,
             int index,
-            bool ignoreTrivia,
             CodeActionPriority? priority,
             IDictionary<OptionKey, object> options,
             bool outOfProcess)
         {
             await TestInRegularAndScript1Async(
-                initialMarkup, expectedMarkup, index, ignoreTrivia, priority,
+                initialMarkup, expectedMarkup, index, priority,
                 parameters: new TestParameters(options: options, fixProviderData: outOfProcess));
         }
     }
@@ -1797,8 +1795,7 @@ namespace B
 @"class C { [|DateTime|] t; }",
 @"using System;
 
-class C { DateTime t; }",
-ignoreTrivia: false);
+class C { DateTime t; }");
         }
 
         [WorkItem(539657, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539657")]
@@ -1854,8 +1851,7 @@ class Program
     {
         Console.WriteLine();
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [WorkItem(540339, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540339")]
@@ -1882,8 +1878,7 @@ class Program
     {
         Console.WriteLine();
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
@@ -1910,8 +1905,7 @@ class Program
     {
         Console.WriteLine();
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
@@ -1939,8 +1933,7 @@ class Program
     {
         Console.WriteLine();
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
@@ -1968,8 +1961,7 @@ class Program
     {
         Console.WriteLine();
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
@@ -1999,8 +1991,7 @@ class Program
     {
         Console.WriteLine();
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
@@ -2033,8 +2024,7 @@ class Program
     {
         Console.WriteLine();
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
@@ -2053,8 +2043,7 @@ using System.Linq.Expressions;
 
 Expression",
 GetScriptOptions(),
-TestOptions.ReleaseDll.WithMetadataReferenceResolver(resolver),
-ignoreTrivia: false);
+TestOptions.ReleaseDll.WithMetadataReferenceResolver(resolver));
         }
 
         [WorkItem(542643, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542643")]
@@ -2117,8 +2106,7 @@ class Program
 #line hidden
     }
 }
-#line default",
-ignoreTrivia: false);
+#line default");
         }
 
         [WorkItem(545248, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545248")]
@@ -3255,7 +3243,7 @@ using System.IO;
 #if DEBUG
 using System.Text;
 #endif
-class Program { static void Main ( string [ ] args ) { var a = File . OpenRead ( """" ) ; } } ", ignoreTrivia: false);
+class Program { static void Main ( string [ ] args ) { var a = File . OpenRead ( """" ) ; } } ");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
@@ -3281,7 +3269,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.IO;
 
-class Program { static void Main ( string [ ] args ) { var a = File . OpenRead ( """" ) ; } } ", ignoreTrivia: false);
+class Program { static void Main ( string [ ] args ) { var a = File . OpenRead ( """" ) ; } } ");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
@@ -3307,7 +3295,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.IO;
 
-class Program { static void Main ( string [ ] args ) { var a = File . OpenRead ( """" ) ; } } ", ignoreTrivia: false);
+class Program { static void Main ( string [ ] args ) { var a = File . OpenRead ( """" ) ; } } ");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
@@ -4325,8 +4313,7 @@ namespace Namespace2
             Task<int>
         }
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
@@ -4407,8 +4394,7 @@ using System.Collections.Generic;
 class C : IEnumerable<int>
 {
 }
-",
-ignoreTrivia: false);
+");
         }
 
         [WorkItem(226826, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=226826")]
@@ -4438,8 +4424,7 @@ class C
 {
     DateTime d;
 }
-",
-ignoreTrivia: false);
+");
         }
 
         [WorkItem(226826, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=226826")]
@@ -4463,8 +4448,7 @@ class C
 {
     DateTime d;
 }
-",
-ignoreTrivia: false);
+");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]

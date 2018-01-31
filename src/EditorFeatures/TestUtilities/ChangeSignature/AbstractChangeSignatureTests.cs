@@ -43,8 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
                         conflictSpans: ImmutableArray<TextSpan>.Empty,
                         renameSpans: ImmutableArray<TextSpan>.Empty,
                         warningSpans: ImmutableArray<TextSpan>.Empty, 
-                        navigationSpans: ImmutableArray<TextSpan>.Empty,
-                        ignoreTrivia: true);
+                        navigationSpans: ImmutableArray<TextSpan>.Empty);
                 }
             }
             else

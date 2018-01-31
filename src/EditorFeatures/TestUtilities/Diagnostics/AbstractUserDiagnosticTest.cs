@@ -373,7 +373,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                         renameSpans: ImmutableArray<TextSpan>.Empty,
                         warningSpans: ImmutableArray<TextSpan>.Empty,
                         navigationSpans: ImmutableArray<TextSpan>.Empty,
-                        ignoreTrivia: false, expectedChangedDocumentId: testState.ExistingDocument.Id);
+                        expectedChangedDocumentId: testState.ExistingDocument.Id);
                 }
                 else
                 {
@@ -384,8 +384,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                         projectName != null,
                         testState.ProjectToBeModified.Id,
                         newFileFolderContainers,
-                        newFileName,
-                        ignoreTrivia: false);
+                        newFileName);
                 }
 
                 if (checkIfUsingsIncluded)
@@ -396,7 +395,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                         renameSpans: ImmutableArray<TextSpan>.Empty,
                         warningSpans: ImmutableArray<TextSpan>.Empty, 
                         navigationSpans: ImmutableArray<TextSpan>.Empty,
-                        ignoreTrivia: false,
                         expectedChangedDocumentId: testState.InvocationDocument.Id);
                 }
 

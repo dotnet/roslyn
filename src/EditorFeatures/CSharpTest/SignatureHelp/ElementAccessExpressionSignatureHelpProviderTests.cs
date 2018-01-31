@@ -52,6 +52,52 @@ class D
             await TestAsync(markup, expectedOrderedItems);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(24311, "https://github.com/dotnet/roslyn/issues/24311")]
+        public async Task TestInvocationWithParametersOn1_WithRefReturn()
+        {
+            var markup = @"
+class C
+{
+    public ref int this[int a]
+    {
+        get { throw null; }
+    }
+    void Goo(C c)
+    {
+        [|c[$$]|]
+    }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            expectedOrderedItems.Add(new SignatureHelpTestItem("ref int C[int a]", string.Empty, string.Empty, currentParameterIndex: 0));
+
+            await TestAsync(markup, expectedOrderedItems);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(24311, "https://github.com/dotnet/roslyn/issues/24311")]
+        public async Task TestInvocationWithParametersOn1_WithRefReadonlyReturn()
+        {
+            var markup = @"
+class C
+{
+    public ref readonly int this[int a]
+    {
+        get { throw null; }
+    }
+    void Goo(C c)
+    {
+        [|c[$$]|]
+    }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            expectedOrderedItems.Add(new SignatureHelpTestItem("ref readonly int C[int a]", string.Empty, string.Empty, currentParameterIndex: 0));
+
+            await TestAsync(markup, expectedOrderedItems);
+        }
+
         [WorkItem(636117, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/636117")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestInvocationOnExpression()
@@ -922,7 +968,7 @@ class Indexable
 
             [WorkItem(20507, "https://github.com/dotnet/roslyn/issues/20507")]
             [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-            public async Task InConditionalIndexingFollowedByConditionalAcesss()
+            public async Task InConditionalIndexingFollowedByConditionalAccess()
             {
                 var markup = @"
 class Indexable

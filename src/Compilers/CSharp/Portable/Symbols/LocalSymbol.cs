@@ -3,6 +3,7 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -267,7 +268,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case LocalDeclarationKind.UsingVariable:
                         return false;
                     default:
-                        return true;
+                        return RefKind != RefKind.RefReadOnly;
                 }
             }
         }
@@ -320,21 +321,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal abstract ImmutableArray<Diagnostic> GetConstantValueDiagnostics(BoundExpression boundInitValue);
 
-        public bool IsRef => RefKind == RefKind.Ref;
+        public bool IsRef => RefKind != RefKind.None;
 
-        internal abstract RefKind RefKind
+        public abstract RefKind RefKind
         {
             get;
         }
 
-        internal virtual bool IsReturnable
-        {
-            get
-            {
-                // by default all locals are returnable
-                return true;
-            }
-        }
+        /// <summary>
+        /// Returns the scope to which a local can "escape" ref assignments or other form of aliasing
+        /// Makes sense only for locals with formal scopes - i.e. source locals
+        /// </summary>
+        internal abstract uint RefEscapeScope { get; }
+
+        /// <summary>
+        /// Returns the scope to which values of a local can "escape" via ordinary assignments
+        /// Makes sense only for ref-like locals with formal scopes - i.e. source locals
+        /// </summary>
+        internal abstract uint ValEscapeScope { get; }
 
         /// <summary>
         /// When a local variable's type is inferred, it may not be used in the

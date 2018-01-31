@@ -114,7 +114,7 @@ class Class2
     </Project>
 </Workspace>";
 
-                    await TestInRegularAndScriptAsync(input, expected, ignoreTrivia: false, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
+                    await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
                 }
 
                 [Fact]
@@ -210,7 +210,7 @@ class Class2
     </Project>
 </Workspace>";
 
-                    await TestInRegularAndScriptAsync(input, expected, ignoreTrivia: false, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
+                    await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
                 }
 
                 [Fact]
@@ -310,7 +310,7 @@ class Class2
     </Project>
 </Workspace>";
 
-                    await TestInRegularAndScriptAsync(input, expected, ignoreTrivia: false, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
+                    await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
                 }
             }
         }
@@ -425,7 +425,7 @@ class Class2
     </Project>
 </Workspace>";
 
-                    await TestInRegularAndScriptAsync(input, expected, ignoreTrivia: false, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
+                    await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
                 }
 
                 [Fact]
@@ -529,7 +529,7 @@ class Class2
     </Project>
 </Workspace>";
 
-                    await TestInRegularAndScriptAsync(input, expected, ignoreTrivia: false, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
+                    await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
                 }
 
                 [Fact(Skip = "TODO: File a GitHubIssue for test framework unable to handle multiple projects in solution with same file name.")]
@@ -648,7 +648,7 @@ class Class2
     </Project>
 </Workspace>";
 
-                    await TestInRegularAndScriptAsync(input, expected, ignoreTrivia: false, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
+                    await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
                 }
             }
         }
@@ -755,7 +755,7 @@ class Class2
     </Project>
 </Workspace>";
 
-                await TestInRegularAndScriptAsync(input, expected, ignoreTrivia: false, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
+                await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey: FixAllActionEquivalenceKey);
             }
         }
 

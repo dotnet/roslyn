@@ -133,7 +133,7 @@ Public Class ParseVarDecl
 
     <WorkItem(898582, "DevDiv/Personal")>
     <Fact>
-    Public Sub ParseIncorrectShorArr()
+    Public Sub ParseIncorrectShortArr()
         ParseAndVerify(<![CDATA[
             Sub ArExtNewErr001()
 FixedRankArray_19 = New Short() (1,

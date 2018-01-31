@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                                                     .Where(syntaxFacts.IsUsingOrExternOrImport)
                                                     .ToImmutableArray();
 
-                Func<SyntaxNode, bool> predicate = n => movedImports.Contains(i => i.IsEquivalentTo(n));
+                bool predicate(SyntaxNode n) => movedImports.Contains(i => i.IsEquivalentTo(n));
                 updatedDocument = await service.RemoveUnnecessaryImportsAsync(
                     updatedDocument, predicate, CancellationToken).ConfigureAwait(false);
 

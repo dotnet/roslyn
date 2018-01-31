@@ -5,9 +5,11 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -110,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _typeParameters = MakeTypeParameters(syntax, diagnostics);
             }
 
-            syntax.ReturnType.SkipRef(out _refKind);
+            _refKind = syntax.ReturnType.GetRefKind();
 
             CheckFeatureAvailabilityAndRuntimeSupport(syntax, location, hasBody, diagnostics);
 
@@ -156,6 +158,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void MethodChecks(MethodDeclarationSyntax syntax, Binder withTypeParamsBinder, DiagnosticBag diagnostics)
         {
+            Debug.Assert(this.MethodKind != MethodKind.UserDefinedOperator, "SourceUserDefinedOperatorSymbolBase overrides this");
+
             SyntaxToken arglistToken;
 
             // Constraint checking for parameter and return types must be delayed until
@@ -169,6 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 signatureBinder, this, syntax.ParameterList, out arglistToken,
                 allowRefOrOut: true,
                 allowThis: true,
+                addRefReadOnlyModifier: IsVirtual || IsAbstract,
                 diagnostics: diagnostics);
 
             _lazyIsVararg = (arglistToken.Kind() == SyntaxKind.ArgListKeyword);
@@ -176,7 +181,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var returnTypeSyntax = syntax.ReturnType.SkipRef(out refKind);
             _lazyReturnType = signatureBinder.BindType(returnTypeSyntax, diagnostics);
 
-            if (_lazyReturnType.IsRestrictedType())
+            // span-like types are returnable in general
+            if (_lazyReturnType.IsRestrictedType(ignoreSpanLikeTypes: true))
             {
                 if (_lazyReturnType.SpecialType == SpecialType.System_TypedReference &&
                     (this.ContainingType.SpecialType == SpecialType.System_TypedReference || this.ContainingType.SpecialType == SpecialType.System_ArgIterator))
@@ -212,6 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (IsExtensionMethod)
             {
                 var parameter0Type = this.Parameters[0].Type;
+                var parameter0RefKind = this.Parameters[0].RefKind;
                 if (!parameter0Type.IsValidExtensionParameterType())
                 {
                     // Duplicate Dev10 behavior by selecting the parameter type.
@@ -219,6 +226,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     Debug.Assert(parameterSyntax.Type != null);
                     var loc = parameterSyntax.Type.Location;
                     diagnostics.Add(ErrorCode.ERR_BadTypeforThis, loc, parameter0Type);
+                }
+                else if (parameter0RefKind == RefKind.Ref && !parameter0Type.IsValueType)
+                {
+                    diagnostics.Add(ErrorCode.ERR_RefExtensionMustBeValueTypeOrConstrainedToOne, location, Name);
+                }
+                else if (parameter0RefKind == RefKind.In && parameter0Type.TypeKind != TypeKind.Struct)
+                {
+                    diagnostics.Add(ErrorCode.ERR_InExtensionMustBeValueType, location, Name);
                 }
                 else if ((object)ContainingType.ContainingType != null)
                 {
@@ -253,18 +268,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            if (this.MethodKind == MethodKind.UserDefinedOperator)
-            {
-                foreach (var p in this.Parameters)
-                {
-                    if (p.RefKind != RefKind.None)
-                    {
-                        diagnostics.Add(ErrorCode.ERR_IllegalRefParam, location);
-                        break;
-                    }
-                }
-            }
-            else if (IsPartial)
+            if (IsPartial)
             {
                 // check that there are no out parameters in a partial
                 foreach (var p in this.Parameters)
@@ -332,10 +336,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     if ((object)overriddenMethod != null)
                     {
-                        CustomModifierUtils.CopyMethodCustomModifiers(overriddenMethod, this, out _lazyReturnType, 
-                                                                      out _lazyCustomModifiers, 
+                        CustomModifierUtils.CopyMethodCustomModifiers(overriddenMethod, this, out _lazyReturnType,
+                                                                      out _lazyCustomModifiers,
                                                                       out _lazyParameters, alsoCopyParamsModifier: true);
                     }
+                }
+                else if (_refKind == RefKind.RefReadOnly)
+                {
+                    var modifierType = withTypeParamsBinder.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_InAttribute, diagnostics, syntax.ReturnType);
+
+                    _lazyCustomModifiers = CustomModifiersTuple.Create(
+                        typeCustomModifiers: ImmutableArray<CustomModifier>.Empty,
+                        refCustomModifiers: ImmutableArray.Create(CSharpCustomModifier.CreateRequired(modifierType)));
                 }
             }
             else if ((object)_explicitInterfaceType != null)
@@ -348,7 +360,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     Debug.Assert(_lazyExplicitInterfaceImplementations.IsDefault);
                     _lazyExplicitInterfaceImplementations = ImmutableArray.Create<MethodSymbol>(implementedMethod);
 
-                    CustomModifierUtils.CopyMethodCustomModifiers(implementedMethod, this, out _lazyReturnType, 
+                    CustomModifierUtils.CopyMethodCustomModifiers(implementedMethod, this, out _lazyReturnType,
                                                                   out _lazyCustomModifiers,
                                                                   out _lazyParameters, alsoCopyParamsModifier: false);
                 }
@@ -445,7 +457,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     AddDeclarationDiagnostics(diagnosticsOpt);
                 }
-                if (IsPartialDefinition && (object)PartialImplementationPart == null)
+                if (IsPartialDefinition)
                 {
                     DeclaringCompilation.SymbolDeclaredEvent(this);
                 }
@@ -539,7 +551,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override RefKind RefKind
+        public override RefKind RefKind
         {
             get
             {
@@ -984,9 +996,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override void AddSynthesizedAttributes(ModuleCompilationState compilationState, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
-            base.AddSynthesizedAttributes(compilationState, ref attributes);
+            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
             if (this.IsExtensionMethod)
             {
@@ -1008,6 +1020,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             base.ForceComplete(locationOpt, cancellationToken);
+        }
+
+        internal override bool IsDefinedInSourceTree(
+            SyntaxTree tree,
+            TextSpan? definedWithinSpan,
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
+            // Since only the declaring (and not the implementing) part of a partial method appears in the member
+            // list, we need to ensure we complete the implementation part when needed.
+            return
+                base.IsDefinedInSourceTree(tree, definedWithinSpan, cancellationToken) ||
+                this.SourcePartialImplementation?.IsDefinedInSourceTree(tree, definedWithinSpan, cancellationToken) == true;
         }
 
         internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, DiagnosticBag diagnostics)
@@ -1035,6 +1059,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 PartialMethodChecks(this, implementingPart, diagnostics);
             }
+
+            if (_refKind == RefKind.RefReadOnly)
+            {
+                this.DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, GetSyntax().ReturnType.Location, modifyCompilationForRefReadOnly: true);
+            }
+
+            ParameterHelpers.EnsureIsReadOnlyAttributeExists(Parameters, diagnostics, modifyCompilationForRefReadOnly: true);
         }
 
         /// <summary>

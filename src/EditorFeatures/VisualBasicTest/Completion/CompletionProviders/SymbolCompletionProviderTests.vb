@@ -7672,5 +7672,20 @@ End Namespace
             End Using
 
         End Function
+
+        <WorkItem(22002, "https://github.com/dotnet/roslyn/issues/22002")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function DoNotCrashInTupleAlias() As Task
+            Dim text =
+<code><![CDATA[
+Imports Boom = System.Collections.Generic.List(Of ($$) '<---put caret between brackets.
+
+Public Module Module1
+  Public Sub Main()
+  End Sub
+End Module
+]]></code>.Value
+            Await VerifyItemExistsAsync(text, "System")
+        End Function
     End Class
 End Namespace

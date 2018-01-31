@@ -509,16 +509,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' Get the accessibility modifier for a symbol to put into an error message.
         Public Shared Function GetAccessibilityForErrorMessage(sym As Symbol, fromAssembly As AssemblySymbol) As String
             Dim access = sym.DeclaredAccessibility
-            If access = Accessibility.ProtectedAndFriend Then
-                ' No exact VB equivalent for this. If its in an accessible assembly, treat as protected,
-                ' otherwise treat as friend.
-                If AccessCheck.IsSymbolAccessible(sym.ContainingAssembly, fromAssembly, useSiteDiagnostics:=Nothing) Then
-                    access = Accessibility.Protected
-                Else
-                    access = Accessibility.Friend
-                End If
-            End If
-
             Return access.ToDisplay()
         End Function
 

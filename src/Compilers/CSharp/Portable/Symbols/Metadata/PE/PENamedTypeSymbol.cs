@@ -130,8 +130,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             internal ObsoleteAttributeData lazyObsoleteAttributeData = ObsoleteAttributeData.Uninitialized;
             internal AttributeUsageInfo lazyAttributeUsageInfo = AttributeUsageInfo.Null;
             internal ThreeState lazyContainsExtensionMethods;
+            internal ThreeState lazyIsByRefLike;
+            internal ThreeState lazyIsReadOnly;
             internal string lazyDefaultMemberName;
             internal NamedTypeSymbol lazyComImportCoClassType = ErrorTypeSymbol.UnknownResultType;
+            internal ThreeState lazyHasEmbeddedAttribute = ThreeState.Unknown;
 
             internal bool IsDefaultValue()
             {
@@ -143,7 +146,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     lazyAttributeUsageInfo.IsNull &&
                     !lazyContainsExtensionMethods.HasValue() &&
                     lazyDefaultMemberName == null &&
-                    (object)lazyComImportCoClassType == (object)ErrorTypeSymbol.UnknownResultType;
+                    (object)lazyComImportCoClassType == (object)ErrorTypeSymbol.UnknownResultType &&
+                    !lazyHasEmbeddedAttribute.HasValue();
             }
         }
 
@@ -372,6 +376,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
+
+        internal override bool HasCodeAnalysisEmbeddedAttribute
+        {
+            get
+            {
+                var uncommon = GetUncommonProperties();
+                if (uncommon == s_noUncommonProperties)
+                {
+                    return false;
+                }
+
+                if (!uncommon.lazyHasEmbeddedAttribute.HasValue())
+                {
+                    uncommon.lazyHasEmbeddedAttribute = ContainingPEModule.Module.HasCodeAnalysisEmbeddedAttribute(_handle).ToThreeState();
+                }
+
+                return uncommon.lazyHasEmbeddedAttribute.Value();
+            }
+        }
+
         internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics
         {
             get
@@ -576,23 +600,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             if (uncommon.lazyCustomAttributes.IsDefault)
             {
-                if (MightContainExtensionMethods)
-                {
-                    this.ContainingPEModule.LoadCustomAttributesFilterExtensions(
-                        this.Handle,
-                        ref uncommon.lazyCustomAttributes);
-                }
-                else
-                {
-                    this.ContainingPEModule.LoadCustomAttributes(this.Handle,
-                        ref uncommon.lazyCustomAttributes);
-                }
+                var loadedCustomAttributes = ContainingPEModule.GetCustomAttributesForToken(
+                    Handle,
+                    out _,
+                    // Filter out [Extension]
+                    MightContainExtensionMethods ? AttributeDescription.CaseSensitiveExtensionAttribute : default,
+                    out _,
+                    // Filter out [Obsolete], unless it was user defined
+                    (IsByRefLikeType && ObsoleteAttributeData is null) ? AttributeDescription.ObsoleteAttribute : default);
+
+                ImmutableInterlocked.InterlockedInitialize(ref uncommon.lazyCustomAttributes, loadedCustomAttributes);
             }
 
             return uncommon.lazyCustomAttributes;
         }
 
-        internal override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(ModuleCompilationState compilationState)
+        internal override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(PEModuleBuilder moduleBuilder)
         {
             return GetAttributes();
         }
@@ -2022,6 +2045,62 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             get { return (_flags & TypeAttributes.Serializable) != 0; }
         }
 
+        internal override bool IsByRefLikeType
+        {
+            get
+            {
+                var uncommon = GetUncommonProperties();
+                if (uncommon == s_noUncommonProperties)
+                {
+                    return false;
+                }
+
+                if (!uncommon.lazyIsByRefLike.HasValue())
+                {
+                    var isByRefLike = ThreeState.False;
+
+                    if (this.TypeKind == TypeKind.Struct)
+                    {
+                        var moduleSymbol = this.ContainingPEModule;
+                        var module = moduleSymbol.Module;
+                        isByRefLike = module.HasIsByRefLikeAttribute(_handle).ToThreeState();
+                    }
+
+                    uncommon.lazyIsByRefLike = isByRefLike;
+                }
+
+                return uncommon.lazyIsByRefLike.Value();
+            }
+        }
+
+        internal override bool IsReadOnly
+        {
+            get
+            {
+                var uncommon = GetUncommonProperties();
+                if (uncommon == s_noUncommonProperties)
+                {
+                    return false;
+                }
+
+                if (!uncommon.lazyIsReadOnly.HasValue())
+                {
+                    var isReadOnly = ThreeState.False;
+
+                    if (this.TypeKind == TypeKind.Struct)
+                    {
+                        var moduleSymbol = this.ContainingPEModule;
+                        var module = moduleSymbol.Module;
+                        isReadOnly = module.HasIsReadOnlyAttribute(_handle).ToThreeState();
+                    }
+
+                    uncommon.lazyIsReadOnly = isReadOnly;
+                }
+
+                return uncommon.lazyIsReadOnly.Value();
+            }
+        }
+
         internal override bool HasDeclarativeSecurity
         {
             get { return (_flags & TypeAttributes.HasSecurity) != 0; }
@@ -2087,7 +2166,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     return null;
                 }
 
-                ObsoleteAttributeHelpers.InitializeObsoleteDataFromMetadata(ref uncommon.lazyObsoleteAttributeData, _handle, ContainingPEModule);
+                bool ignoreByRefLikeMarker = this.IsByRefLikeType;
+                ObsoleteAttributeHelpers.InitializeObsoleteDataFromMetadata(ref uncommon.lazyObsoleteAttributeData, _handle, ContainingPEModule, ignoreByRefLikeMarker);
                 return uncommon.lazyObsoleteAttributeData;
             }
         }

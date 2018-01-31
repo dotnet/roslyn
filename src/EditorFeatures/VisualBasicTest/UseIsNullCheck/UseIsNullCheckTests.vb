@@ -154,7 +154,7 @@ class C
             return
         end if
     end sub
-end class", ignoreTrivia:=False)
+end class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)>
@@ -179,7 +179,7 @@ class C
             return
         end if
     end sub
-end class", ignoreTrivia:=False)
+end class")
         End Function
     End Class
 End Namespace

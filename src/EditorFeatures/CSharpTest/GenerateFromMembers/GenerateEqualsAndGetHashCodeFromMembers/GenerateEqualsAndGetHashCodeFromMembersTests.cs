@@ -264,7 +264,7 @@ class Program : Base
                S == program.S;
     }
 }",
-index: 0, ignoreTrivia: false);
+index: 0);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -380,7 +380,7 @@ class Program<T>
 }
 ";
 
-            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(code, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -882,8 +882,7 @@ class Program
                b == program.b;
     }
 }",
-chosenSymbols: new[] { "a", "b" },
-ignoreTrivia: false);
+chosenSymbols: new[] { "a", "b" });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -915,8 +914,7 @@ class Program
                b == program.b;
     }
 }",
-chosenSymbols: new[] { "c", "b" },
-ignoreTrivia: false);
+chosenSymbols: new[] { "c", "b" });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -946,8 +944,7 @@ class Program
         return program != null;
     }
 }",
-chosenSymbols: new string[] { },
-ignoreTrivia: false);
+chosenSymbols: new string[] { });
         }
 
         [WorkItem(17643, "https://github.com/dotnet/roslyn/issues/17643")]
@@ -973,8 +970,7 @@ class Program
                F == program.F;
     }
 }",
-chosenSymbols: null,
-ignoreTrivia: false);
+chosenSymbols: null);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -1014,8 +1010,7 @@ class Program
     }
 }",
 chosenSymbols: null,
-optionsCallback: options => EnableOption(options, GenerateOperatorsId),
-ignoreTrivia: false);
+optionsCallback: options => EnableOption(options, GenerateOperatorsId));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -1084,8 +1079,7 @@ class Program
     public static bool operator ==(Program program1, Program program2) => true;
 }",
 chosenSymbols: null,
-optionsCallback: options => Assert.Null(options.FirstOrDefault(i => i.Id == GenerateOperatorsId)),
-ignoreTrivia: false);
+optionsCallback: options => Assert.Null(options.FirstOrDefault(i => i.Id == GenerateOperatorsId)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -1129,8 +1123,7 @@ struct Program
     }
 }",
 chosenSymbols: null,
-optionsCallback: options => EnableOption(options, GenerateOperatorsId),
-ignoreTrivia: false);
+optionsCallback: options => EnableOption(options, GenerateOperatorsId));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -1164,8 +1157,7 @@ struct Program : IEquatable<Program>
     }
 }",
 chosenSymbols: null,
-optionsCallback: options => EnableOption(options, ImplementIEquatableId),
-ignoreTrivia: false);
+optionsCallback: options => EnableOption(options, ImplementIEquatableId));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -1200,8 +1192,7 @@ class Program : IEquatable<Program>
     }
 }",
 chosenSymbols: null,
-optionsCallback: options => EnableOption(options, ImplementIEquatableId),
-ignoreTrivia: false);
+optionsCallback: options => EnableOption(options, ImplementIEquatableId));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -1231,8 +1222,7 @@ class Program : System.IEquatable<Program>
     }
 }",
 chosenSymbols: null,
-optionsCallback: options => Assert.Null(options.FirstOrDefault(i => i.Id == ImplementIEquatableId)),
-ignoreTrivia: false);
+optionsCallback: options => Assert.Null(options.FirstOrDefault(i => i.Id == ImplementIEquatableId)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]

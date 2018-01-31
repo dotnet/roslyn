@@ -23,17 +23,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 {
     internal abstract partial class AbstractSemanticQuickInfoProvider : AbstractQuickInfoProvider
     {
-        public AbstractSemanticQuickInfoProvider(
-            IProjectionBufferFactoryService projectionBufferFactoryService,
-            IEditorOptionsFactoryService editorOptionsFactoryService,
-            ITextEditorFactoryService textEditorFactoryService,
-            IGlyphService glyphService,
-            ClassificationTypeMap typeMap)
-            : base(projectionBufferFactoryService, editorOptionsFactoryService,
-                   textEditorFactoryService, glyphService, typeMap)
-        {
-        }
-
         protected override async Task<IDeferredQuickInfoContent> BuildContentAsync(
             Document document,
             SyntaxToken token,
@@ -143,9 +132,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                 // Capturing more information for https://devdiv.visualstudio.com/DevDiv/_workitems?id=209299
                 var originalText = await originalDocument.GetTextAsync().ConfigureAwait(false);
                 var linkedText = await linkedDocument.GetTextAsync().ConfigureAwait(false);
-
                 var linkedFileException = new LinkedFileDiscrepancyException(thrownException, originalText.ToString(), linkedText.ToString());
-                FatalError.Report(linkedFileException);
+
+                // This problem itself does not cause any corrupted state, it just changes the set
+                // of symbols included in QuickInfo, so we report and continue running.
+                FatalError.ReportWithoutCrash(linkedFileException);
             }
 
             return default;
@@ -163,10 +154,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 
             var sections = await descriptionService.ToDescriptionGroupsAsync(workspace, semanticModel, token.SpanStart, symbols.AsImmutable(), cancellationToken).ConfigureAwait(false);
 
-            ImmutableArray<TaggedText> parts;
 
             var mainDescriptionBuilder = new List<TaggedText>();
-            if (sections.TryGetValue(SymbolDescriptionGroups.MainDescription, out parts))
+            if (sections.TryGetValue(SymbolDescriptionGroups.MainDescription, out var parts))
             {
                 mainDescriptionBuilder.AddRange(parts);
             }

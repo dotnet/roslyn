@@ -13,6 +13,8 @@ using Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     internal abstract partial class BaseDiagnosticItemSource : IAttachedCollectionSource
     {
         protected static readonly DiagnosticDescriptorComparer s_comparer = new DiagnosticDescriptorComparer();

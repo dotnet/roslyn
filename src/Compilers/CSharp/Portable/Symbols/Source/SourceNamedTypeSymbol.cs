@@ -7,6 +7,7 @@ using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -532,6 +533,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return null;
             }
 
+            if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.CodeAnalysisEmbeddedAttribute))
+            {
+                boundAttribute = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, out hasAnyDiagnostics);
+                if (!boundAttribute.HasErrors)
+                {
+                    arguments.GetOrCreateData<CommonTypeEarlyWellKnownAttributeData>().HasCodeAnalysisEmbeddedAttribute = true;
+                    if (!hasAnyDiagnostics)
+                    {
+                        return boundAttribute;
+                    }
+                }
+
+                return null;
+            }
+
             if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.ConditionalAttribute))
             {
                 boundAttribute = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, out hasAnyDiagnostics);
@@ -702,6 +718,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // DynamicAttribute should not be set explicitly.
                 arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitDynamicAttr, arguments.AttributeSyntaxOpt.Location);
             }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.IsReadOnlyAttribute))
+            {
+                // IsReadOnlyAttribute should not be set explicitly.
+                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, AttributeDescription.IsReadOnlyAttribute.FullName);
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.IsByRefLikeAttribute))
+            {
+                // IsByRefLikeAttribute should not be set explicitly.
+                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, AttributeDescription.IsByRefLikeAttribute.FullName);
+            }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.TupleElementNamesAttribute))
             {
                 arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location);
@@ -731,7 +757,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (_lazyIsExplicitDefinitionOfNoPiaLocalType == ThreeState.Unknown)
                 {
-                    GetAttributes();
+                    CheckPresenceOfTypeIdentifierAttribute();
 
                     if (_lazyIsExplicitDefinitionOfNoPiaLocalType == ThreeState.Unknown)
                     {
@@ -741,6 +767,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 Debug.Assert(_lazyIsExplicitDefinitionOfNoPiaLocalType != ThreeState.Unknown);
                 return _lazyIsExplicitDefinitionOfNoPiaLocalType == ThreeState.True;
+            }
+        }
+
+        private void CheckPresenceOfTypeIdentifierAttribute()
+        {
+            // We want this function to be as cheap as possible, it is called for every top level type
+            // and we don't want to bind attributes attached to the declaration unless there is a chance
+            // that one of them is TypeIdentifier attribute.
+            ImmutableArray<SyntaxList<AttributeListSyntax>> attributeLists = GetAttributeDeclarations();
+
+            foreach (SyntaxList<AttributeListSyntax> list in attributeLists)
+            {
+                var syntaxTree = list.Node.SyntaxTree;
+                QuickAttributeChecker checker = this.DeclaringCompilation.GetBinderFactory(list.Node.SyntaxTree).GetBinder(list.Node).QuickAttributeChecker;
+
+                foreach (AttributeListSyntax attrList in list)
+                {
+                    foreach (AttributeSyntax attr in attrList.Attributes)
+                    {
+                        if (checker.IsPossibleMatch(attr, QuickAttributes.TypeIdentifier))
+                        {
+                            // This attribute syntax might be an application of TypeIdentifierAttribute.
+                            // Let's bind it.
+                            // For simplicity we bind all attributes.
+                            GetAttributes();
+                            return;
+                        }
+                    }
+                }
             }
         }
 
@@ -848,6 +903,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var data = GetDecodedWellKnownAttributeData();
                 return data != null && data.HasSpecialNameAttribute;
+            }
+        }
+
+        internal override bool HasCodeAnalysisEmbeddedAttribute
+        {
+            get
+            {
+                var data = GetEarlyDecodedWellKnownAttributeData();
+                return data != null && data.HasCodeAnalysisEmbeddedAttribute;
             }
         }
 
@@ -1071,9 +1135,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// These won't be returned by GetAttributes on source methods, but they
         /// will be returned by GetAttributes on metadata symbols.
         /// </remarks>
-        internal override void AddSynthesizedAttributes(ModuleCompilationState compilationState, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
-            base.AddSynthesizedAttributes(compilationState, ref attributes);
+            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
             CSharpCompilation compilation = this.DeclaringCompilation;
 
@@ -1082,6 +1146,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // No need to check if [Extension] attribute was explicitly set since
                 // we'll issue CS1112 error in those cases and won't generate IL.
                 AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor));
+            }
+
+            if (this.IsByRefLikeType)
+            {
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsByRefLikeAttribute(this));
+
+                var obsoleteData = ObsoleteAttributeData;
+                Debug.Assert(obsoleteData != ObsoleteAttributeData.Uninitialized, "getting synthesized attributes before attributes are decoded");
+
+                // If user specified an Obsolete attribute, we cannot emit ours.
+                // NB: we do not check the kind of deprecation. 
+                //     we will not emit Obsolete even if Deprecated or Experimental was used.
+                //     we do not want to get into a scenario where different kinds of deprecation are combined together.
+                //
+                if (obsoleteData == null && !this.IsRestrictedType(ignoreSpanLikeTypes:true))
+                {
+                    AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_ObsoleteAttribute__ctor,
+                        ImmutableArray.Create(
+                            new TypedConstant(compilation.GetSpecialType(SpecialType.System_String), TypedConstantKind.Primitive, PEModule.ByRefLikeMarker), // message
+                            new TypedConstant(compilation.GetSpecialType(SpecialType.System_Boolean), TypedConstantKind.Primitive, true)), // error=true
+                        isOptionalUse: true));
+                }
+            }
+
+            if (this.IsReadOnly)
+            {
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsReadOnlyAttribute(this));
             }
 
             if (this.Indexers.Any())

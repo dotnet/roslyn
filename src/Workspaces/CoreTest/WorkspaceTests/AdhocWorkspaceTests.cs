@@ -469,7 +469,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 pws.SetParseOptions(projid, parseOptions.WithLanguageVersion(CS.LanguageVersion.CSharp3));
 
                 // get partial semantics doc
-                var frozen = await pws.CurrentSolution.GetDocument(docid1).WithFrozenPartialSemanticsAsync(CancellationToken.None);
+                var frozen = pws.CurrentSolution.GetDocument(docid1).WithFrozenPartialSemantics(CancellationToken.None);
             }
         }
 
@@ -659,6 +659,17 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 Assert.Equal("A", appliedDoc.Folders[0]);
                 Assert.Equal("B", appliedDoc.Folders[1]);
                 Assert.Equal(newPath, appliedDoc.FilePath);
+            }
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestDefaultDocumentTextDifferencingService()
+        {
+            using (var ws = new AdhocWorkspace())
+            {
+                var service = ws.Services.GetService<IDocumentTextDifferencingService>();
+                Assert.NotNull(service);
+                Assert.Equal(service.GetType(), typeof(DefaultDocumentTextDifferencingService));
             }
         }
     }

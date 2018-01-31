@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
@@ -11,12 +10,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
     {
         // Disable documentation comments by default so that we don't need to
         // document every public member of every test input.
-        public static readonly CSharpParseOptions Script = new CSharpParseOptions(kind: SourceCodeKind.Script, documentationMode: DocumentationMode.None);
-        public static readonly CSharpParseOptions Regular = new CSharpParseOptions(kind: SourceCodeKind.Regular, documentationMode: DocumentationMode.None);
+        public static readonly CSharpParseOptions Regular = new CSharpParseOptions(kind: SourceCodeKind.Regular, documentationMode: DocumentationMode.None).WithLanguageVersion(LanguageVersion.Latest);
+        public static readonly CSharpParseOptions Script = Regular.WithKind(SourceCodeKind.Script);
         public static readonly CSharpParseOptions Regular6 = Regular.WithLanguageVersion(LanguageVersion.CSharp6);
         public static readonly CSharpParseOptions Regular7 = Regular.WithLanguageVersion(LanguageVersion.CSharp7);
         public static readonly CSharpParseOptions Regular7_1 = Regular.WithLanguageVersion(LanguageVersion.CSharp7_1);
-        public static readonly CSharpParseOptions RegularWithDocumentationComments = new CSharpParseOptions(kind: SourceCodeKind.Regular, documentationMode: DocumentationMode.Diagnose);
+        public static readonly CSharpParseOptions Regular7_2 = Regular.WithLanguageVersion(LanguageVersion.CSharp7_2);
+        public static readonly CSharpParseOptions RegularWithDocumentationComments = Regular.WithDocumentationMode(DocumentationMode.Diagnose);
 
         private static readonly SmallDictionary<string, string> s_experimentalFeatures = new SmallDictionary<string, string> { };
         public static readonly CSharpParseOptions ExperimentalParseOptions =
@@ -26,8 +26,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         // to help ensure compatibility of the semantics of the new switch binder with the old switch
         // binder, so that we may eliminate the old one in the future.
         public static readonly CSharpParseOptions Regular6WithV7SwitchBinder = Regular6.WithFeatures(new Dictionary<string, string>() { { "testV7SwitchBinder", "true" } });
-
-        public static readonly CSharpParseOptions RegularWithIOperationFeature = Regular.WithIOperationsFeature();
         
         public static readonly CSharpCompilationOptions ReleaseDll = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel: OptimizationLevel.Release);
         public static readonly CSharpCompilationOptions ReleaseExe = new CSharpCompilationOptions(OutputKind.ConsoleApplication, optimizationLevel: OptimizationLevel.Release);
@@ -58,6 +56,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return options.WithFeatures(options.Features.Concat(new[] { new KeyValuePair<string, string>("strict", "true") }));
         }
 
+        public static CSharpParseOptions WithPEVerifyCompatFeature(this CSharpParseOptions options)
+        {
+            return options.WithFeatures(options.Features.Concat(new[] { new KeyValuePair<string, string>("peverify-compat", "true") }));
+        }
+
         public static CSharpParseOptions WithLocalFunctionsFeature(this CSharpParseOptions options)
         {
             return options;
@@ -76,34 +79,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         public static CSharpParseOptions WithReplaceFeature(this CSharpParseOptions options)
         {
             return options;
-        }
-
-        internal static CSharpParseOptions WithExperimental(this CSharpParseOptions options, params MessageID[] features)
-        {
-            if (features.Length == 0)
-            {
-                throw new InvalidOperationException("Need at least one feature to enable");
-            }
-
-            var list = new List<KeyValuePair<string, string>>();
-            foreach (var feature in features)
-            {
-                var name = feature.RequiredFeature();
-                if (name == null)
-                {
-                    throw new InvalidOperationException($"{feature} is not a valid experimental feature");
-                }
-
-
-                list.Add(new KeyValuePair<string, string>(name, "true"));
-            }
-
-            return options.WithFeatures(options.Features.Concat(list));
-        }
-        
-        public static CSharpParseOptions WithIOperationsFeature(this CSharpParseOptions options)
-        {
-            return options.WithFeatures(options.Features.Concat(new[] { new KeyValuePair<string, string>("IOperation", "true") }));
         }
     }
 }

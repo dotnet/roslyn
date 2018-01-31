@@ -17,7 +17,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
 {
     internal class SourceReferenceTreeItem : AbstractTreeItem, IComparable<SourceReferenceTreeItem>
     {
-        protected readonly Workspace _workspace;
+        protected readonly Microsoft.CodeAnalysis.Workspace _workspace;
         protected readonly DocumentId _documentId;
         protected readonly string _projectName;
         protected readonly string _filePath;

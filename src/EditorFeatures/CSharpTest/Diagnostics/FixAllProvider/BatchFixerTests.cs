@@ -37,8 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.SimplifyTyp
 
             private static void AnalyzeNode(SyntaxNodeAnalysisContext context)
             {
-                var node = context.Node as SimpleNameSyntax;
-                if (node != null)
+                if (context.Node is SimpleNameSyntax node)
                 {
                     var symbol = context.SemanticModel.GetSymbolInfo(node).Symbol;
                     if (symbol != null && symbol.Kind == SymbolKind.Field)
@@ -63,8 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.SimplifyTyp
             public async override Task RegisterCodeFixesAsync(CodeFixContext context)
             {
                 var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
-                var node = root.FindNode(context.Span, getInnermostNodeForTie: true) as SimpleNameSyntax;
-                if (node != null)
+                if (root.FindNode(context.Span, getInnermostNodeForTie: true) is SimpleNameSyntax node)
                 {
                     var leadingTrivia = node.GetLeadingTrivia();
                     var newNode = SyntaxFactory.MemberAccessExpression(
@@ -149,7 +147,7 @@ class C
     </Project>
 </Workspace>";
 
-            await TestInRegularAndScriptAsync(input, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(input, expected);
         }
 
         #endregion

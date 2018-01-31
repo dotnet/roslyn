@@ -8,6 +8,8 @@ using Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     internal class AnalyzersFolderItemSource : IAttachedCollectionSource
     {
         private readonly IVsHierarchyItem _projectHierarchyItem;
