@@ -70,6 +70,21 @@
                 </DataTrigger>
             </Style.Triggers>
         </Style>
+        <Style x:Key="PreviewPaneHyperlinkStyle" TargetType="Hyperlink">
+            <Setter Property="Foreground" Value="{DynamicResource {x:Static vsui:EnvironmentColors.ControlLinkTextBrushKey}}" />
+            <Setter Property="TextDecorations" Value="{x:Null}" />
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Foreground" Value="{DynamicResource {x:Static vsui:EnvironmentColors.ControlLinkTextHoverBrushKey}}" />
+                </Trigger>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Foreground" Value="{DynamicResource {x:Static vsui:EnvironmentColors.PanelHyperlinkDisabledBrushKey}}" />
+                </Trigger>
+                <Trigger Property="IsEnabled" Value="True">
+                    <Setter Property="Cursor" Value="Hand" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
     </UserControl.Resources>
     <DockPanel MinWidth="400">
         <StackPanel Name="HeaderStackPanel" DockPanel.Dock="Top" Visibility="Collapsed"
@@ -86,7 +101,10 @@
                                           Checked="ExpanderToggleButton_CheckedChanged" Unchecked="ExpanderToggleButton_CheckedChanged"/>
                             <Border Name="SeverityIconBorder" Height="16" Width="16" Margin="-3,0,0,-2"/>
                             <TextBlock Name="IdTextBlock" Margin="2,0">
-                                <Hyperlink Name="IdHyperlink" IsEnabled="False" RequestNavigate="LearnMoreHyperlink_RequestNavigate"/>
+                                <Hyperlink Name="IdHyperlink" 
+                                           IsEnabled="False" 
+                                           RequestNavigate="LearnMoreHyperlink_RequestNavigate"
+                                           Style="{StaticResource PreviewPaneHyperlinkStyle}"/>
                             </TextBlock>
                             <Run Name="TitleRun" Style="{StaticResource PreviewPaneRunStyle}"/>
                         </TextBlock>
@@ -106,7 +124,10 @@
                 <TextBlock Name="LearnMoreTextBlock" DockPanel.Dock="Bottom" TextAlignment="Right" Margin="3,0,3,3" Visibility="Collapsed"
                            FontFamily="{DynamicResource {x:Static vs:VsFonts.EnvironmentFontFamilyKey}}"
                            FontSize="{DynamicResource {x:Static vs:VsFonts.EnvironmentFontSizeKey}}">
-                    <Hyperlink Name="LearnMoreHyperlink" IsEnabled="False" RequestNavigate="LearnMoreHyperlink_RequestNavigate"/>
+                    <Hyperlink Name="LearnMoreHyperlink" 
+                               IsEnabled="False" 
+                               RequestNavigate="LearnMoreHyperlink_RequestNavigate"
+                               Style="{StaticResource PreviewPaneHyperlinkStyle}"/>
                 </TextBlock>
             </DockPanel>
             <Separator Name="HeaderSeparator" Margin="0" Visibility="Collapsed"/>

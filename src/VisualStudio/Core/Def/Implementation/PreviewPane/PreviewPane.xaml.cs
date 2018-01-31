@@ -224,9 +224,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
 
         private void InitializeHyperlinks(Uri helpLink, string helpLinkToolTipText)
         {
-            IdHyperlink.SetVSHyperLinkStyle();
-            LearnMoreHyperlink.SetVSHyperLinkStyle();
-
             IdHyperlink.Inlines.Add(_id);
             IdHyperlink.NavigateUri = helpLink;
             IdHyperlink.IsEnabled = true;
