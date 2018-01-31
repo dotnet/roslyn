@@ -325,7 +325,8 @@ function Get-MSBuildKindAndDir([switch]$xcopy = $false) {
             return
         }
         else {
-            throw "Developer Command Prompt for VS $(${env:VSCMD_VER}) is not recent enough. Please upgrade or build from a normal CMD window"
+            $vsMinimumVersion = Get-ToolVersion "vsMinimum"
+            throw "Developer Command Prompt for VS $(${env:VSCMD_VER}) is not recent enough. Please upgrade to {$vsMinimumVersion} or build from a normal CMD window"
         }
     }
 
@@ -369,8 +370,9 @@ function Test-SupportedVisualStudioVersion([string]$version) {
         return $false
     }
 
+    $vsMinimumVersion = Get-ToolVersion "vsMinimum"
     $V = New-Object System.Version $matches[1]
-    $min = New-Object System.Version "15.3"
+    $min = New-Object System.Version $vsMinimumVersion
     return $v -ge $min;
 }
 
