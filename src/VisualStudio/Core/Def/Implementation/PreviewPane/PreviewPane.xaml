@@ -73,6 +73,7 @@
         <Style x:Key="PreviewPaneHyperlinkStyle" TargetType="Hyperlink">
             <Setter Property="Foreground" Value="{DynamicResource {x:Static vsui:EnvironmentColors.ControlLinkTextBrushKey}}" />
             <Setter Property="TextDecorations" Value="{x:Null}" />
+            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
                     <Setter Property="Foreground" Value="{DynamicResource {x:Static vsui:EnvironmentColors.ControlLinkTextHoverBrushKey}}" />
@@ -82,6 +83,9 @@
                 </Trigger>
                 <Trigger Property="IsEnabled" Value="True">
                     <Setter Property="Cursor" Value="Hand" />
+                </Trigger>
+                <Trigger Property="IsKeyboardFocused" Value="True">
+                    <Setter Property="TextDecorations" Value="Underline" />
                 </Trigger>
                 <DataTrigger Binding="{Binding Path=ParentElement.IsKeyboardFocusWithin, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type pp:PreviewPane}}}" Value="True">
                     <Setter Property="Foreground" Value="{DynamicResource {x:Static vsui:EnvironmentColors.CommandBarTextSelectedBrushKey}}" />
