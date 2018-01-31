@@ -83,6 +83,9 @@
                 <Trigger Property="IsEnabled" Value="True">
                     <Setter Property="Cursor" Value="Hand" />
                 </Trigger>
+                <DataTrigger Binding="{Binding Path=ParentElement.IsKeyboardFocusWithin, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type pp:PreviewPane}}}" Value="True">
+                    <Setter Property="Foreground" Value="{DynamicResource {x:Static vsui:EnvironmentColors.CommandBarTextSelectedBrushKey}}" />
+                </DataTrigger>
             </Style.Triggers>
         </Style>
     </UserControl.Resources>
