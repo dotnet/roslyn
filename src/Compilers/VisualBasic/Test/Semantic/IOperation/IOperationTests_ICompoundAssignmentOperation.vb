@@ -528,7 +528,7 @@ Block[5] - Exit
 Imports System
 Public Class C
     Public Sub M(a As Integer(), b As Integer?, c As Integer)'BIND:"Public Sub M(a As Integer(), b As Integer?, c As Integer)"
-        a(0) += If(b, c)
+        a(0) -= If(b, c)
     End Sub
 End Class]]>.Value
 
@@ -584,9 +584,9 @@ Block[4] - Block
         [2]
         [3]
     Statements (3)
-        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a(0) += If(b, c)')
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a(0) -= If(b, c)')
           Expression: 
-            ICompoundAssignmentOperation (BinaryOperatorKind.Add, Checked) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'a(0) += If(b, c)')
+            ICompoundAssignmentOperation (BinaryOperatorKind.Subtract, Checked) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'a(0) -= If(b, c)')
               InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               Left: 
