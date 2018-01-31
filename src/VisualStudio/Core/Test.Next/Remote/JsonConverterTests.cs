@@ -147,7 +147,6 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 (x, y) => (x.AnalyzerId == y.AnalyzerId && x.BuiltIn == y.BuiltIn && x.TimeSpan == y.TimeSpan) ? 0 : 1);
         }
 
-
         private static void VerifyJsonSerialization<T>(T value, Comparison<T> equality = null)
         {
             var serializer = new JsonSerializer();

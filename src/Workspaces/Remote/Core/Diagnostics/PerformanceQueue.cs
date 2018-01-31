@@ -63,18 +63,18 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                 var reverseMap = pooledMap.Object;
                 AnalyzerNumberAssigner.Instance.GetReverseMap(reverseMap);
 
-                var set = pooledSet.Object;
+                var analyzerSet = pooledSet.Object;
 
                 // get all analyzers
                 foreach (var snapshot in _snapshots)
                 {
-                    snapshot.AppendAnalyzers(set);
+                    snapshot.AppendAnalyzers(analyzerSet);
                 }
 
                 var list = pooledList.Object;
 
                 // calculate aggregated data per analyzer
-                foreach (var assignedAnalyzerNumber in set)
+                foreach (var assignedAnalyzerNumber in analyzerSet)
                 {
                     foreach (var snapshot in _snapshots)
                     {
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
         {
             /// <summary>
             /// Raw performance data. 
-            /// Keyped by analyzer unique number got from AnalyzerNumberAssigner.
+            /// Keyed by analyzer unique number got from AnalyzerNumberAssigner.
             /// Value is delta (TimeSpan - minSpan) among span in this snapshot
             /// </summary>
             private readonly Dictionary<int, double> _performanceMap;
@@ -138,9 +138,9 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                 Reset(_performanceMap, Convert(rawData), unitCount);
             }
 
-            public void AppendAnalyzers(HashSet<int> set)
+            public void AppendAnalyzers(HashSet<int> analyzerSet)
             {
-                set.UnionWith(_performanceMap.Keys);
+                analyzerSet.UnionWith(_performanceMap.Keys);
             }
 
             public double? GetTimeSpanInMillisecond(int assignedAnalyzerNumber)

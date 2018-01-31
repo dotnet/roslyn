@@ -208,6 +208,8 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private void SetGlobalContext(string serializedSession)
         {
+            const int ReportIntervalInMinutes = 2;
+
             // set global telemetry session
             var session = GetTelemetrySession(serializedSession);
             if (session == null)
@@ -228,7 +230,7 @@ namespace Microsoft.CodeAnalysis.Remote
             var diagnosticAnalyzerPerformanceTracker = SolutionService.PrimaryWorkspace.Services.GetService<IPerformanceTrackerService>();
             if (diagnosticAnalyzerPerformanceTracker != null)
             {
-                _performanceReporter = new PerformanceReporter(Logger, diagnosticAnalyzerPerformanceTracker, TimeSpan.FromMinutes(2), ShutdownCancellationToken);
+                _performanceReporter = new PerformanceReporter(Logger, diagnosticAnalyzerPerformanceTracker, TimeSpan.FromMinutes(ReportIntervalInMinutes), ShutdownCancellationToken);
             }
         }
 

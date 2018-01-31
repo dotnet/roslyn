@@ -75,7 +75,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
 
         private List<BadAnalyzerInfo> GetBadAnalyzers(string testFileName, int to)
         {
-            var testFile = GetTestFile(testFileName);
+            var testFile = ReadTestFile(testFileName);
 
             var (matrix, dataCount) = CreateMatrix(testFile);
 
@@ -162,7 +162,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             return line.Substring(line.LastIndexOf('"') + 2);
         }
 
-        private string GetTestFile(string name)
+        private string ReadTestFile(string name)
         {
             var assembly = typeof(PerformanceTrackerServiceTests).Assembly;
             var resourceName = GetResourceName(assembly, name);
