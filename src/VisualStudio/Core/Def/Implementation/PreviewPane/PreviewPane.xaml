@@ -5,6 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:vs="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
              xmlns:vsui="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
+             xmlns:pp="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane"
              x:ClassModifier="internal" mc:Ignorable="d"
              Focusable="True" IsTabStop="False" TextOptions.TextFormattingMode="Display"
              Foreground="{DynamicResource {x:Static vsui:EnvironmentColors.PanelTextBrushKey}}"
@@ -61,6 +62,14 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        <Style x:Key="PreviewPaneRunStyle" TargetType="Run">
+            <Setter Property="Foreground" Value="{DynamicResource {x:Static vsui:EnvironmentColors.CommandBarTextActiveBrushKey}}" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Path=ParentElement.IsKeyboardFocusWithin, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type pp:PreviewPane}}}" Value="True">
+                    <Setter Property="Foreground" Value="{DynamicResource {x:Static vsui:EnvironmentColors.CommandBarTextSelectedBrushKey}}" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
     </UserControl.Resources>
     <DockPanel MinWidth="400">
         <StackPanel Name="HeaderStackPanel" DockPanel.Dock="Top" Visibility="Collapsed"
@@ -79,7 +88,7 @@
                             <TextBlock Name="IdTextBlock" Margin="2,0">
                                 <Hyperlink Name="IdHyperlink" IsEnabled="False" RequestNavigate="LearnMoreHyperlink_RequestNavigate"/>
                             </TextBlock>
-                            <Run Name="TitleRun"/>
+                            <Run Name="TitleRun" Style="{StaticResource PreviewPaneRunStyle}"/>
                         </TextBlock>
                     </Paragraph>
                 </FlowDocument>
