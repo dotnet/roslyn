@@ -3,6 +3,7 @@
 Imports System.Collections.Concurrent
 Imports System.Collections.Immutable
 Imports System.Threading
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -30,6 +31,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly _declaredOrInheritedCompliance As ConcurrentDictionary(Of Symbol, Compliance)
 
+        ''' <seealso cref="MethodCompiler._compilerTasks"/>
+        Private ReadOnly _compilerTasks As ConcurrentStack(Of Task)
+
         Private Sub New(compilation As VisualBasicCompilation, filterTree As SyntaxTree, filterSpanWithinTree As TextSpan?, diagnostics As ConcurrentQueue(Of Diagnostic), cancellationToken As CancellationToken)
             Me._compilation = compilation
             Me._filterTree = filterTree
@@ -37,6 +41,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._diagnostics = diagnostics
             Me._cancellationToken = cancellationToken
             Me._declaredOrInheritedCompliance = New ConcurrentDictionary(Of Symbol, Compliance)()
+
+            If compilation.Options.ConcurrentBuild Then
+                Me._compilerTasks = New ConcurrentStack(Of Task)()
+            End If
         End Sub
 
         ''' <summary>
@@ -51,13 +59,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim queue = New ConcurrentQueue(Of Diagnostic)()
             Dim checker = New ClsComplianceChecker(compilation, filterTree, filterSpanWithinTree, queue, cancellationToken)
             checker.Visit(compilation.Assembly)
+            checker.WaitForWorkers()
 
             For Each diag In queue
                 diagnostics.Add(diag)
             Next
         End Sub
 
-        <PerformanceSensitive("https://github.com/dotnet/roslyn/issues/23582", IsParallelEntry:=False)>
+        Private Sub WaitForWorkers()
+            Dim tasks As ConcurrentStack(Of Task) = Me._compilerTasks
+            If tasks Is Nothing Then
+                Return
+            End If
+
+            Dim curTask As Task = Nothing
+            While tasks.TryPop(curTask)
+                curTask.GetAwaiter().GetResult()
+            End While
+        End Sub
+
         Public Overrides Sub VisitAssembly(symbol As AssemblySymbol)
             Me._cancellationToken.ThrowIfCancellationRequested()
             Debug.Assert(TypeOf symbol Is SourceAssemblySymbol)
@@ -66,6 +86,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' The regular attribute code handles conflicting attributes from included netmodules.
 
+            If _filterTree Is Nothing AndAlso symbol.Modules.Length > 1 AndAlso _compilation.Options.ConcurrentBuild Then
+                VisitAssemblyMembersAsTasks(symbol)
+            Else
+                VisitAssemblyMembers(symbol)
+            End If
+        End Sub
+
+        Private Sub VisitAssemblyMembersAsTasks(symbol As AssemblySymbol)
+            For Each m In symbol.Modules
+                _compilerTasks.Push(
+                    Task.Run(
+                        UICultureUtilities.WithCurrentUICulture(
+                            Sub()
+                                Try
+                                    VisitModule(m)
+                                Catch e As Exception When FatalError.ReportUnlessCanceled(e)
+                                    Throw ExceptionUtilities.Unreachable
+                                End Try
+                            End Sub),
+                        Me._cancellationToken))
+            Next
+        End Sub
+
+        Private Sub VisitAssemblyMembers(symbol As AssemblySymbol)
             For Each m In symbol.Modules
                 VisitModule(m)
             Next
@@ -75,7 +119,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Visit(symbol.GlobalNamespace)
         End Sub
 
-        <PerformanceSensitive("https://github.com/dotnet/roslyn/issues/23582", IsParallelEntry:=False)>
         Public Overrides Sub VisitNamespace(symbol As NamespaceSymbol)
             Me._cancellationToken.ThrowIfCancellationRequested()
             If DoNotVisit(symbol) Then
@@ -87,6 +130,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 CheckMemberDistinctness(symbol)
             End If
 
+            If _filterTree Is Nothing AndAlso _compilation.Options.ConcurrentBuild Then
+                VisitNamespaceMembersAsTasks(symbol)
+            Else
+                VisitNamespaceMembers(symbol)
+            End If
+        End Sub
+
+        Private Sub VisitNamespaceMembersAsTasks(symbol As NamespaceSymbol)
+            For Each m In symbol.GetMembersUnordered()
+                _compilerTasks.Push(
+                    Task.Run(
+                        UICultureUtilities.WithCurrentUICulture(
+                            Sub()
+                                Try
+                                    Visit(m)
+                                Catch e As Exception When FatalError.ReportUnlessCanceled(e)
+                                    Throw ExceptionUtilities.Unreachable
+                                End Try
+                            End Sub),
+                        Me._cancellationToken))
+            Next
+        End Sub
+
+        Private Sub VisitNamespaceMembers(symbol As NamespaceSymbol)
             For Each m In symbol.GetMembersUnordered()
                 Visit(m)
             Next

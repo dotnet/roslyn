@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly ConcurrentDictionary<Symbol, Compliance> _declaredOrInheritedCompliance;
 
         /// <seealso cref="MethodCompiler._compilerTasks"/>
-        private ConcurrentStack<Task> _compilerTasks;
+        private readonly ConcurrentStack<Task> _compilerTasks;
 
         private ClsComplianceChecker(
             CSharpCompilation compilation,
@@ -43,6 +43,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             _cancellationToken = cancellationToken;
 
             _declaredOrInheritedCompliance = new ConcurrentDictionary<Symbol, Compliance>();
+
+            if (compilation.Options.ConcurrentBuild)
+            {
+                _compilerTasks = new ConcurrentStack<Task>();
+            }
         }
 
         /// <summary>
@@ -57,11 +62,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var queue = new ConcurrentQueue<Diagnostic>();
             var checker = new ClsComplianceChecker(compilation, filterTree, filterSpanWithinTree, queue, cancellationToken);
-            if (compilation.Options.ConcurrentBuild)
-            {
-                checker._compilerTasks = new ConcurrentStack<Task>();
-            }
-
             checker.Visit(compilation.Assembly);
             checker.WaitForWorkers();
 
