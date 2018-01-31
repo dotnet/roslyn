@@ -1,10 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -23,6 +25,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly CancellationToken _cancellationToken;
 
         private readonly ConcurrentDictionary<Symbol, Compliance> _declaredOrInheritedCompliance;
+
+        /// <seealso cref="MethodCompiler._compilerTasks"/>
+        private ConcurrentStack<Task> _compilerTasks;
 
         private ClsComplianceChecker(
             CSharpCompilation compilation,
@@ -52,7 +57,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var queue = new ConcurrentQueue<Diagnostic>();
             var checker = new ClsComplianceChecker(compilation, filterTree, filterSpanWithinTree, queue, cancellationToken);
+            if (compilation.Options.ConcurrentBuild)
+            {
+                checker._compilerTasks = new ConcurrentStack<Task>();
+            }
+
             checker.Visit(compilation.Assembly);
+            checker.WaitForWorkers();
 
             foreach (Diagnostic diag in queue)
             {
@@ -145,7 +156,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             Visit(symbol.GlobalNamespace);
         }
 
-        [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/23582", IsParallelEntry = false)]
+        private void WaitForWorkers()
+        {
+            var tasks = _compilerTasks;
+            if (tasks == null)
+            {
+                return;
+            }
+
+            while (tasks.TryPop(out Task curTask))
+            {
+                curTask.GetAwaiter().GetResult();
+            }
+        }
+
         public override void VisitNamespace(NamespaceSymbol symbol)
         {
             _cancellationToken.ThrowIfCancellationRequested();
@@ -158,6 +182,36 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CheckMemberDistinctness(symbol);
             }
 
+            if (_filterTree == null && _compilation.Options.ConcurrentBuild)
+            {
+                VisitNamespaceMembersAsTasks(symbol);
+            }
+            else
+            {
+                VisitNamespaceMembers(symbol);
+            }
+        }
+
+        private void VisitNamespaceMembersAsTasks(NamespaceSymbol symbol)
+        {
+            foreach (var m in symbol.GetMembersUnordered())
+            {
+                _compilerTasks.Push(Task.Run(UICultureUtilities.WithCurrentUICulture(() =>
+                {
+                    try
+                    {
+                        Visit(m);
+                    }
+                    catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                    {
+                        throw ExceptionUtilities.Unreachable;
+                    }
+                }), _cancellationToken));
+            }
+        }
+
+        private void VisitNamespaceMembers(NamespaceSymbol symbol)
+        {
             foreach (var m in symbol.GetMembersUnordered())
             {
                 Visit(m);
