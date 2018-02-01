@@ -79,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Public Overrides ReadOnly Property Name As String
                 Get
-                    Return Nothing
+                    Return String.Empty
                 End Get
             End Property
 

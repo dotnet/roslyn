@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override string Name
         {
-            get { return null; }
+            get { return string.Empty; }
         }
 
         public override TypeSymbol Type
