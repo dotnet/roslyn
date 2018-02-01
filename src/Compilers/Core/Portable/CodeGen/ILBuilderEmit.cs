@@ -4,9 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using System.Reflection.Metadata;
 using Roslyn.Utilities;
+using static System.Linq.ImmutableArrayExtensions;
 
 namespace Microsoft.CodeAnalysis.CodeGen
 {
