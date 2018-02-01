@@ -284,32 +284,32 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         private static string GetDocumentLogMessage(string title, Document document, DiagnosticAnalyzer analyzer)
         {
-            return string.Format($"{title}: {document.FilePath ?? document.Name}, {analyzer.ToString()}");
+            return $"{title}: ({document.FilePath ?? document.Name}), ({analyzer.ToString()})";
         }
 
         private static string GetProjectLogMessage(Project project, IEnumerable<StateSet> stateSets)
         {
-            return string.Format($"project: {project.FilePath ?? project.Name}, {string.Join(",", stateSets.Select(s => s.Analyzer.ToString()))}");
+            return $"project: ({project.FilePath ?? project.Name}), ({string.Join(Environment.NewLine, stateSets.Select(s => s.Analyzer.ToString()))})";
         }
 
         private static string GetResetLogMessage(Document document)
         {
-            return string.Format($"document close/reset: {document.FilePath ?? document.Name}");
+            return $"document close/reset: ({document.FilePath ?? document.Name})";
         }
 
         private static string GetOpenLogMessage(Document document)
         {
-            return string.Format($"document open: {document.FilePath ?? document.Name}");
+            return $"document open: ({document.FilePath ?? document.Name})";
         }
 
         private static string GetRemoveLogMessage(DocumentId id)
         {
-            return string.Format($"document remove: {id.ToString()}");
+            return $"document remove: {id.ToString()}";
         }
 
         private static string GetRemoveLogMessage(ProjectId id)
         {
-            return string.Format($"project remove: {id.ToString()}");
+            return $"project remove: {id.ToString()}";
         }
     }
 }
