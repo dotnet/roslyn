@@ -4391,8 +4391,8 @@ Blok catch() po bloku catch (System.Exception e) může zachytit výjimky, kter�
         <note />
       </trans-unit>
       <trans-unit id="ERR_AnonDelegateCantUse">
-        <source>Cannot use ref or out parameter '{0}' inside an anonymous method, lambda expression, or query expression</source>
-        <target state="translated">Parametr ref nebo out {0} uvnitř anonymní metody, lambda výrazu nebo výrazu dotazu</target>
+        <source>Cannot use ref, out, or in parameter '{0}' inside an anonymous method, lambda expression, or query expression</source>
+        <target state="needs-review-translation">Parametr ref nebo out {0} uvnitř anonymní metody, lambda výrazu nebo výrazu dotazu</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IllegalInnerUnsafe">
