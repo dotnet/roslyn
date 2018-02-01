@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
     internal sealed class PETypeParameterSymbol
         : TypeParameterSymbol
     {
+        private ThreeState _lazyHasUnmanagedConstraint;
         private readonly Symbol _containingSymbol; // Could be PENamedType or a PEMethod
         private readonly GenericParameterHandle _handle;
 
@@ -67,6 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             Debug.Assert(!handle.IsNil);
 
             _containingSymbol = definingSymbol;
+            _lazyHasUnmanagedConstraint = ThreeState.Unknown;
 
             GenericParameterAttributes flags = 0;
 
@@ -155,6 +157,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             var metadataReader = moduleSymbol.Module.MetadataReader;
             GenericParameterConstraintHandleCollection constraints;
 
+            this._lazyHasUnmanagedConstraint = ThreeState.False;
+
             try
             {
                 constraints = metadataReader.GetGenericParameter(_handle).GetConstraints();
@@ -182,9 +186,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 foreach (var constraintHandle in constraints)
                 {
                     var constraint = metadataReader.GetGenericParameterConstraint(constraintHandle);
-                    var constraintTypeHandle = constraint.Type;
+                    var typeSymbol = tokenDecoder.DecodeGenericParameterConstraint(constraint.Type, out bool isUnmanagedConstraint);
 
-                    TypeSymbol typeSymbol = tokenDecoder.GetTypeOfToken(constraintTypeHandle);
+                    if (isUnmanagedConstraint)
+                    {
+                        this._lazyHasUnmanagedConstraint = ThreeState.True;
+                        continue;
+                    }
 
                     // Drop 'System.Object' constraint type.
                     if (typeSymbol.SpecialType == SpecialType.System_Object)
@@ -258,8 +266,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                // PROTOTYPE: handle PE symbols
-                return false;
+                this.EnsureAllConstraintsAreResolved();
+                return this.HasValueTypeConstraint && this._lazyHasUnmanagedConstraint.Value();
             }
         }
 

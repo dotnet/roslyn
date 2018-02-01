@@ -149,6 +149,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     diagnostics.Add(ErrorCode.ERR_UnmanagedConstraintMustBeAlone, typeSyntax.GetLocation());
                                 }
 
+                                // This should produce diagnostics if the types are missing
+                                GetWellKnownType(WellKnownType.System_Runtime_InteropServices_UnmanagedType, diagnostics, typeSyntax);
+                                GetSpecialType(SpecialType.System_ValueType, diagnostics, typeSyntax);
+
                                 constraints |= TypeParameterConstraintKind.Unmanaged;
                                 continue;
                             }
@@ -167,6 +171,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 {
                                     // "Duplicate constraint '{0}' for type parameter '{1}'"
                                     Error(diagnostics, ErrorCode.ERR_DuplicateBound, syntax, type, name);
+                                    continue;
+                                }
+
+                                if ((constraints & TypeParameterConstraintKind.Unmanaged) != 0)
+                                {
+                                    diagnostics.Add(ErrorCode.ERR_UnmanagedConstraintMustBeAlone, typeSyntax.GetLocation());
                                     continue;
                                 }
 
@@ -197,10 +207,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                 Error(diagnostics, ErrorCode.ERR_RefValBoundWithClass, syntax, type);
                                                 continue;
                                         }
-                                    }
-                                    else if ((constraints & TypeParameterConstraintKind.Unmanaged) != 0)
-                                    {
-                                        diagnostics.Add(ErrorCode.ERR_UnmanagedConstraintMustBeAlone, typeSyntax.GetLocation());
                                     }
                                 }
                             }

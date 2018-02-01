@@ -714,6 +714,9 @@ namespace Microsoft.CodeAnalysis
                         case AllowedRequiredModifierType.System_Runtime_CompilerServices_Volatile:
                             isAllowed = IsAcceptedVolatileModifierType(type);
                             break;
+                        case AllowedRequiredModifierType.System_Runtime_InteropServices_UnmanagedType:
+                            isAllowed = IsAcceptedUnmanagedTypeModifierType(type);
+                            break;
                     }
 
                     if (isAllowed)
@@ -872,6 +875,52 @@ namespace Microsoft.CodeAnalysis
             {
                 offsets.Free();
                 locals.Free();
+            }
+        }
+
+        internal TypeSymbol DecodeGenericParameterConstraint(EntityHandle token, out bool isUnmanagedConstraint)
+        {
+            isUnmanagedConstraint = false;
+
+            switch (token.Kind)
+            {
+                case HandleKind.TypeSpecification:
+                    {
+                        try
+                        {
+                            var memoryReader = this.Module.GetTypeSpecificationSignatureReaderOrThrow((TypeSpecificationHandle)token);
+                            DecodeModifiersOrThrow(ref memoryReader, AllowedRequiredModifierType.System_Runtime_InteropServices_UnmanagedType, out var typeCode, out var requiredModifierFound);
+                            var type = DecodeTypeOrThrow(ref memoryReader, typeCode, out _);
+
+                            if (requiredModifierFound)
+                            {
+                                if (type.SpecialType == SpecialType.System_ValueType)
+                                {
+                                    isUnmanagedConstraint = true;
+                                }
+                                else
+                                {
+                                    return GetUnsupportedMetadataTypeSymbol();
+                                }
+                            }
+
+                            return type;
+                        }
+                        catch (BadImageFormatException mrEx)
+                        {
+                            return GetUnsupportedMetadataTypeSymbol(mrEx);
+                        }
+                        catch (UnsupportedSignatureContent)
+                        {
+                            return GetUnsupportedMetadataTypeSymbol();
+                        }
+                    }
+                case HandleKind.TypeReference:
+                    return GetTypeOfTypeRef((TypeReferenceHandle)token, out _);
+                case HandleKind.TypeDefinition:
+                    return GetTypeOfTypeDef((TypeDefinitionHandle)token);
+                default:
+                    return GetUnsupportedMetadataTypeSymbol();
             }
         }
 
@@ -2393,6 +2442,7 @@ namespace Microsoft.CodeAnalysis
             None,
             System_Runtime_CompilerServices_Volatile,
             System_Runtime_InteropServices_InAttribute,
+            System_Runtime_InteropServices_UnmanagedType,
         }
     }
 }
