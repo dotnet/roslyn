@@ -3681,7 +3681,7 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (
                 Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(1, object.Equals)").WithArguments("System.ValueTuple`2").WithLocation(8, 17),
                 // (8,17): error CS0023: Operator 'is' cannot be applied to operand of type '(int, method group)'
                 //             if ((1, object.Equals) is()) {}
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "(1, object.Equals) is()").WithArguments("is", "(int, method group)").WithLocation(8, 17)
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "(1, object.Equals) is()").WithArguments("is", $"(int, {CSharpResources.IDS_MethodGroup})").WithLocation(8, 17)
                 );
         }
 
@@ -3721,7 +3721,7 @@ public class Vec
                 Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(1, null)").WithArguments("System.ValueTuple`2").WithLocation(9, 13),
                 // (9,13): error CS0023: Operator 'is' cannot be applied to operand of type '(int, <null>)'
                 //         if ((1, null) is 4) {}
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "(1, null) is 4").WithArguments("is", "(int, <null>)").WithLocation(9, 13),
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "(1, null) is 4").WithArguments("is", $"(int, {CSharpResources.IDS_NULL})").WithLocation(9, 13),
                 // (10,13): error CS8117: Invalid operand for pattern match; value required, but found '<null>'.
                 //         if (null is var x1) {}
                 Diagnostic(ErrorCode.ERR_BadIsPatternExpression, "null").WithArguments("<null>").WithLocation(10, 13),
@@ -3736,7 +3736,7 @@ public class Vec
                 Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(1, null)").WithArguments("System.ValueTuple`2").WithLocation(13, 13),
                 // (13,13): error CS0023: Operator 'is' cannot be applied to operand of type '(int, <null>)'
                 //         if ((1, null) is var x4) {}
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "(1, null) is var x4").WithArguments("is", "(int, <null>)").WithLocation(13, 13)
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "(1, null) is var x4").WithArguments("is", $"(int, {CSharpResources.IDS_NULL})").WithLocation(13, 13)
                 );
         }
 
@@ -3760,7 +3760,7 @@ public class Program
                 Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(1, null)").WithArguments("System.ValueTuple`2").WithLocation(6, 13),
                 // (6,13): error CS0023: Operator 'is' cannot be applied to operand of type '(int, <null>)'
                 //         if ((1, null) is Program) {}
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "(1, null) is Program").WithArguments("is", "(int, <null>)").WithLocation(6, 13)
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "(1, null) is Program").WithArguments("is", $"(int, {CSharpResources.IDS_NULL})").WithLocation(6, 13)
                 );
         }
 

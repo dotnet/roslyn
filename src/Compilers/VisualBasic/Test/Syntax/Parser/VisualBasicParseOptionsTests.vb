@@ -335,7 +335,7 @@ Public Class VisualBasicParseOptionsTests
         symbols.Add("1", Nothing)
         Dim options = New VisualBasicParseOptions(preprocessorSymbols:=symbols)
 
-        options.Errors.Verify(Diagnostic(ERRID.ERR_ConditionalCompilationConstantNotValid).WithArguments("Identifier expected.", "1").WithLocation(1, 1))
+        options.Errors.Verify(Diagnostic(ERRID.ERR_ConditionalCompilationConstantNotValid).WithArguments(VBResources.ERR_ExpectedIdentifier, "1").WithLocation(1, 1))
     End Sub
 
     <Fact>
@@ -367,7 +367,7 @@ Public Class VisualBasicParseOptionsTests
         symbols.Add("", Nothing)
         Dim options = New VisualBasicParseOptions().WithPreprocessorSymbols(symbols)
 
-        options.Errors.Verify(Diagnostic(ERRID.ERR_ConditionalCompilationConstantNotValid).WithArguments("Identifier expected.", "").WithLocation(1, 1))
+        options.Errors.Verify(Diagnostic(ERRID.ERR_ConditionalCompilationConstantNotValid).WithArguments(VBResources.ERR_ExpectedIdentifier, "").WithLocation(1, 1))
     End Sub
 
     <Fact>
@@ -376,7 +376,7 @@ Public Class VisualBasicParseOptionsTests
         symbols.Add(" ", Nothing)
         Dim options = New VisualBasicParseOptions().WithPreprocessorSymbols(symbols)
 
-        options.Errors.Verify(Diagnostic(ERRID.ERR_ConditionalCompilationConstantNotValid).WithArguments("Identifier expected.", " ").WithLocation(1, 1))
+        options.Errors.Verify(Diagnostic(ERRID.ERR_ConditionalCompilationConstantNotValid).WithArguments(VBResources.ERR_ExpectedIdentifier, " ").WithLocation(1, 1))
     End Sub
 
     <Fact>
@@ -386,7 +386,7 @@ Public Class VisualBasicParseOptionsTests
         symbols.Add("Bad.Symbol", Nothing)
         Dim options = New VisualBasicParseOptions().WithPreprocessorSymbols(symbols)
 
-        options.Errors.Verify(Diagnostic(ERRID.ERR_ConditionalCompilationConstantNotValid).WithArguments("Identifier expected.", "Bad.Symbol").WithLocation(1, 1))
+        options.Errors.Verify(Diagnostic(ERRID.ERR_ConditionalCompilationConstantNotValid).WithArguments(VBResources.ERR_ExpectedIdentifier, "Bad.Symbol").WithLocation(1, 1))
     End Sub
 
     <Fact>
@@ -396,7 +396,7 @@ Public Class VisualBasicParseOptionsTests
         symbols.Add("Bad\\Symbol", Nothing)
         Dim options = New VisualBasicParseOptions().WithPreprocessorSymbols(symbols)
 
-        options.Errors.Verify(Diagnostic(ERRID.ERR_ConditionalCompilationConstantNotValid).WithArguments("Identifier expected.", "Bad\\Symbol").WithLocation(1, 1))
+        options.Errors.Verify(Diagnostic(ERRID.ERR_ConditionalCompilationConstantNotValid).WithArguments(VBResources.ERR_ExpectedIdentifier, "Bad\\Symbol").WithLocation(1, 1))
     End Sub
 
 End Class

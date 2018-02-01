@@ -42,8 +42,8 @@ End Class
 </compilation>)
         compilation1 = compilation1.AddReferences(ref)
         Dim expectedErrors1 = <errors>
-BC31007: Unable to load module file 'Goo.dll': PE image doesn't contain managed metadata.
-                 </errors>
+BC31007: Unable to load module file 'Goo.dll': <%= CodeAnalysisResources.PEImageDoesntContainManagedMetadata %>
+                              </errors>
         CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
     End Sub
 

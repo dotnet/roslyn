@@ -10853,7 +10853,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Method").WithArguments("Program.Method<T>(in (T arg1, T arg2))").WithLocation(15, 9),
                 // (16,16): error CS1503: Argument 1: cannot convert from '(<null>, int)' to 'in (int arg1, int arg2)'
                 //         Method((null, 1));
-                Diagnostic(ErrorCode.ERR_BadArgType, "(null, 1)").WithArguments("1", "(<null>, int)", "in (int arg1, int arg2)").WithLocation(16, 16),
+                Diagnostic(ErrorCode.ERR_BadArgType, "(null, 1)").WithArguments("1", $"({CSharpResources.IDS_NULL}, int)", "in (int arg1, int arg2)").WithLocation(16, 16),
                 // (17,31): error CS0306: The type 'Program.RefLike' may not be used as a type argument
                 //         Method((new object(), default(RefLike)));
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "default(RefLike)").WithArguments("Program.RefLike").WithLocation(17, 31),
