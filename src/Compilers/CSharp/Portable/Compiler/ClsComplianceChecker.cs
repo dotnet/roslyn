@@ -44,11 +44,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             _declaredOrInheritedCompliance = new ConcurrentDictionary<Symbol, Compliance>();
 
-            if (compilation.Options.ConcurrentBuild)
+            if (ConcurrentAnalysis)
             {
                 _compilerTasks = new ConcurrentStack<Task>();
             }
         }
+
+        /// <summary>
+        /// Gets a value indicating whether <see cref="ClsComplianceChecker"/> is allowed to analyze in parallel.
+        /// </summary>
+        private bool ConcurrentAnalysis => _filterTree == null && _compilation.Options.ConcurrentBuild;
 
         /// <summary>
         /// Traverses the symbol table checking for CLS compliance.
@@ -182,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CheckMemberDistinctness(symbol);
             }
 
-            if (_filterTree == null && _compilation.Options.ConcurrentBuild)
+            if (ConcurrentAnalysis)
             {
                 VisitNamespaceMembersAsTasks(symbol);
             }

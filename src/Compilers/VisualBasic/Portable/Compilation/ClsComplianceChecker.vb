@@ -42,10 +42,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._cancellationToken = cancellationToken
             Me._declaredOrInheritedCompliance = New ConcurrentDictionary(Of Symbol, Compliance)()
 
-            If compilation.Options.ConcurrentBuild Then
+            If ConcurrentAnalysis Then
                 Me._compilerTasks = New ConcurrentStack(Of Task)()
             End If
         End Sub
+
+        ''' <summary>
+        ''' Gets a value indicating whether <see cref="ClsComplianceChecker"/> Is allowed to analyze in parallel.
+        ''' </summary>
+        Private ReadOnly Property ConcurrentAnalysis As Boolean
+            Get
+                Return _filterTree Is Nothing AndAlso _compilation.Options.ConcurrentBuild
+            End Get
+        End Property
 
         ''' <summary>
         ''' Traverses the symbol table checking for CLS compliance.
@@ -86,7 +95,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' The regular attribute code handles conflicting attributes from included netmodules.
 
-            If _filterTree Is Nothing AndAlso symbol.Modules.Length > 1 AndAlso _compilation.Options.ConcurrentBuild Then
+            If symbol.Modules.Length > 1 AndAlso ConcurrentAnalysis Then
                 VisitAssemblyMembersAsTasks(symbol)
             Else
                 VisitAssemblyMembers(symbol)
@@ -130,7 +139,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 CheckMemberDistinctness(symbol)
             End If
 
-            If _filterTree Is Nothing AndAlso _compilation.Options.ConcurrentBuild Then
+            If ConcurrentAnalysis Then
                 VisitNamespaceMembersAsTasks(symbol)
             Else
                 VisitNamespaceMembers(symbol)
