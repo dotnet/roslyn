@@ -232,10 +232,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
                 return false;
             }
 
-            // cannot use implicit typing on method group, anonymous function or on dynamic
+            // cannot use implicit typing on method group or on dynamic
             var declaredType = semanticModel.GetTypeInfo(typeName, cancellationToken).Type;
-            if (declaredType != null &&
-               (declaredType.TypeKind == TypeKind.Delegate || declaredType.TypeKind == TypeKind.Dynamic))
+            if (declaredType != null && declaredType.TypeKind == TypeKind.Dynamic)
             {
                 return false;
             }

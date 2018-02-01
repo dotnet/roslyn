@@ -1,7 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\build\Targets\SettingsSdk.props" />
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -89,6 +88,14 @@
       <NgenArchitecture>All</NgenArchitecture>
       <NgenPriority>3</NgenPriority>
     </ProjectReference>
+    <ProjectReference Include="..\..\EditorFeatures\Core.Wpf\EditorFeatures.Wpf.csproj">
+      <Name>EditorFeatures.Wpf</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
+      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
+      <Ngen>true</Ngen>
+      <NgenArchitecture>All</NgenArchitecture>
+      <NgenPriority>3</NgenPriority>
+    </ProjectReference>
     <ProjectReference Include="..\..\Features\Core\Portable\Features.csproj">
       <Name>Features</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
@@ -139,7 +146,7 @@
     </ProjectReference>
     <ProjectReference Include="..\Core\Def\ServicesVisualStudio.csproj">
       <Name>ServicesVisualStudio</Name>
-      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;PkgDefProjectOutputGroup</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;PkgDefProjectOutputGroup;VsdConfigOutputGroup</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
       <Ngen>true</Ngen>
       <NgenArchitecture>All</NgenArchitecture>
@@ -221,6 +228,8 @@
     <NuGetPackageToIncludeInVsix Include="System.Composition.TypedParts" />
     <NuGetPackageToIncludeInVsix Include="System.Composition.Convention" />
     <NuGetPackageToIncludeInVsix Include="System.Composition.Hosting" />
+    <NuGetPackageToIncludeInVsix Include="ICSharpCode.Decompiler" />
+    <NuGetPackageToIncludeInVsix Include="Mono.Cecil" />
   </ItemGroup>
   <ItemGroup>
     <VSIXSourceItem Include="$(NuGetPackageRoot)\SQLitePCLRaw.bundle_green\1.1.2\lib\net45\SQLitePCLRaw.batteries_green.dll" />
@@ -281,5 +290,4 @@
     <Reference Include="System" />
     <PackageReference Include="Microsoft.DiaSymReader.PortablePdb" Version="$(MicrosoftDiaSymReaderPortablePdbVersion)" />
   </ItemGroup>
-  <Import Project="..\..\..\build\Targets\Imports.targets" />
 </Project>

@@ -1,0 +1,1990 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="tr" original="../FeaturesResources.resx">
+    <body>
+      <trans-unit id="Add_project_reference_to_0">
+        <source>Add project reference to '{0}'.</source>
+        <target state="translated">{0}' üzerine proje başvurusu ekleyin.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_reference_to_0">
+        <source>Add reference to '{0}'.</source>
+        <target state="translated">{0}' üzerine başvuru ekleyin.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Actions_can_not_be_empty">
+        <source>Actions can not be empty.</source>
+        <target state="translated">Eylemler boş olamaz.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="generic_overload">
+        <source>generic overload</source>
+        <target state="translated">genel aşırı yükleme</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="generic_overloads">
+        <source>generic overloads</source>
+        <target state="translated">genel aşırı yüklemeler</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="overload">
+        <source>overload</source>
+        <target state="translated">aşırı yükleme</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="overloads_">
+        <source>overloads</source>
+        <target state="translated">aşırı yüklemeler</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_Keyword">
+        <source>{0} Keyword</source>
+        <target state="translated">{0} Anahtar Sözcüğü</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Encapsulate_field_colon_0_and_use_property">
+        <source>Encapsulate field: '{0}' (and use property)</source>
+        <target state="translated">Alanı kapsülle: '{0}' (ve özelliği kullan)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Encapsulate_field_colon_0_but_still_use_field">
+        <source>Encapsulate field: '{0}' (but still use field)</source>
+        <target state="translated">Alanı kapsülle: '{0}' (ancak alanı kullanmaya devam et)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Encapsulate_fields_and_use_property">
+        <source>Encapsulate fields (and use property)</source>
+        <target state="translated">Alanları kapsülle (ve özelliği kullanın)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Encapsulate_fields_but_still_use_field">
+        <source>Encapsulate fields (but still use field)</source>
+        <target state="translated">Alanları kapsülle (ancak alanı kullanmaya devam et)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Could_not_extract_interface_colon_The_selection_is_not_inside_a_class_interface_struct">
+        <source>Could not extract interface: The selection is not inside a class/interface/struct.</source>
+        <target state="translated">Arabirim ayıklanamadı: Seçim bir sınıf/arabirim/yapı birimi içinde değil.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Could_not_extract_interface_colon_The_type_does_not_contain_any_member_that_can_be_extracted_to_an_interface">
+        <source>Could not extract interface: The type does not contain any member that can be extracted to an interface.</source>
+        <target state="translated">Arabirim ayıklanamadı: Tür, arabirime çıkarılabilecek bir üye içermiyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="can_t_not_construct_final_tree">
+        <source>can't not construct final tree</source>
+        <target state="translated">Son ağaç oluşturulamıyor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parameters_type_or_return_type_cannot_be_an_anonymous_type_colon_bracket_0_bracket">
+        <source>Parameters' type or return type cannot be an anonymous type : [{0}]</source>
+        <target state="translated">Parametrelerin türü veya dönüş türü anonim tür olamaz: [{0}]</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_selection_contains_no_active_statement">
+        <source>The selection contains no active statement.</source>
+        <target state="translated">Seçim etkin deyim içermiyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_selection_contains_an_error_or_unknown_type">
+        <source>The selection contains an error or unknown type.</source>
+        <target state="translated">Seçim bir hata veya bilinmeyen tür içeriyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Type_parameter_0_is_hidden_by_another_type_parameter_1">
+        <source>Type parameter '{0}' is hidden by another type parameter '{1}'.</source>
+        <target state="translated">Tür parametresi '{0}' farklı bir tür parametresi olan '{1}' tarafından gizlendi.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_address_of_a_variable_is_used_inside_the_selected_code">
+        <source>The address of a variable is used inside the selected code.</source>
+        <target state="translated">Değişkenin adresi seçilen kod içinde kullanılıyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Assigning_to_readonly_fields_must_be_done_in_a_constructor_colon_bracket_0_bracket">
+        <source>Assigning to readonly fields must be done in a constructor : [{0}].</source>
+        <target state="translated">Salt okunur alanlara atama bir oluşturucuda yapılmalıdır: [{0}].</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="generated_code_is_overlapping_with_hidden_portion_of_the_code">
+        <source>generated code is overlapping with hidden portion of the code</source>
+        <target state="translated">Üretilen kod kodun gizli bölümüyle çakışıyor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_optional_parameters_to_0">
+        <source>Add optional parameters to '{0}'</source>
+        <target state="translated">{0}' öğesine isteğe bağlı parametreler ekle</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_parameters_to_0">
+        <source>Add parameters to '{0}'</source>
+        <target state="translated">{0}' öğesine parametre ekle</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_delegating_constructor_0_1">
+        <source>Generate delegating constructor '{0}({1})'</source>
+        <target state="translated">{0}({1})' temsilci oluşturucusunu üret</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_constructor_0_1">
+        <source>Generate constructor '{0}({1})'</source>
+        <target state="translated">{0}({1})' oluşturucusunu üret</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_field_assigning_constructor_0_1">
+        <source>Generate field assigning constructor '{0}({1})'</source>
+        <target state="translated">{0}({1})' alan atama oluşturucusunu üret</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_Equals_and_GetHashCode">
+        <source>Generate Equals and GetHashCode</source>
+        <target state="translated">Equals ve GetHashCode oluştur</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_Equals_object">
+        <source>Generate Equals(object)</source>
+        <target state="translated">Equals(object) oluştur</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_GetHashCode">
+        <source>Generate GetHashCode()</source>
+        <target state="translated">GetHashCode() oluştur</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_constructor_in_0">
+        <source>Generate constructor in '{0}'</source>
+        <target state="translated">{0}' içinde oluşturucu üretin</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_all">
+        <source>Generate all</source>
+        <target state="translated">Tümünü üret</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_enum_member_1_0">
+        <source>Generate enum member '{1}.{0}'</source>
+        <target state="translated">{1}.{0}' sabit listesi üyesini oluştur</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_constant_1_0">
+        <source>Generate constant '{1}.{0}'</source>
+        <target state="translated">{1}.{0}' sabitini oluştur</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_read_only_property_1_0">
+        <source>Generate read-only property '{1}.{0}'</source>
+        <target state="translated">{1}.{0}' salt okunur özelliğini üretin</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_property_1_0">
+        <source>Generate property '{1}.{0}'</source>
+        <target state="translated">{1}.{0}' özelliğini üretin</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_read_only_field_1_0">
+        <source>Generate read-only field '{1}.{0}'</source>
+        <target state="translated">{1}.{0}' salt okunur alanını üretin</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_field_1_0">
+        <source>Generate field '{1}.{0}'</source>
+        <target state="translated">{1}.{0}' alanını oluştur</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_local_0">
+        <source>Generate local '{0}'</source>
+        <target state="translated">Yerel '{0}' üretin</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_0_1_in_new_file">
+        <source>Generate {0} '{1}' in new file</source>
+        <target state="translated">Yeni dosyada {0} '{1}' oluştur</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_nested_0_1">
+        <source>Generate nested {0} '{1}'</source>
+        <target state="translated">İç içe {0} '{1}' oluştur</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Global_Namespace">
+        <source>Global Namespace</source>
+        <target state="translated">Genel Ad Uzayı</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_interface_explicitly">
+        <source>Implement interface explicitly</source>
+        <target state="translated">Arabirimi açıkça uygula</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_interface_abstractly">
+        <source>Implement interface abstractly</source>
+        <target state="translated">Arabirimi soyut olarak uygula</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_interface_through_0">
+        <source>Implement interface through '{0}'</source>
+        <target state="translated">Arabirimi '{0}' aracılığıyla uygula</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_interface">
+        <source>Implement interface</source>
+        <target state="translated">Arabirimi uygula</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Loading_context_from_0">
+        <source>Loading context from '{0}'.</source>
+        <target state="translated">{0}' üzerinden bağlam yükleniyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Type_Sharphelp_for_more_information">
+        <source>Type "#help" for more information.</source>
+        <target state="translated">Daha fazla bilgi için "#help" yazın.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specified_file_not_found_colon_0">
+        <source>Specified file not found: {0}</source>
+        <target state="translated">Belirtilen dosya bulunamadı: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Specified_file_not_found">
+        <source>Specified file not found.</source>
+        <target state="translated">Belirtilen dosya bulunamadı.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Searched_in_directory_colon">
+        <source>Searched in directory:</source>
+        <target state="translated">Dizinde arandı:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Searched_in_directories_colon">
+        <source>Searched in directories:</source>
+        <target state="translated">Dizinlerde arandı:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduce_field_for_0">
+        <source>Introduce field for '{0}'</source>
+        <target state="translated">{0}' için alanı ortaya çıkar</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduce_local_for_0">
+        <source>Introduce local for '{0}'</source>
+        <target state="translated">{0}' için yereli ortaya çıkar</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduce_constant_for_0">
+        <source>Introduce constant for '{0}'</source>
+        <target state="translated">{0}' için sabiti ortaya çıkar</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduce_local_constant_for_0">
+        <source>Introduce local constant for '{0}'</source>
+        <target state="translated">{0}' için yerel sabiti ortaya çıkar</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduce_field_for_all_occurrences_of_0">
+        <source>Introduce field for all occurrences of '{0}'</source>
+        <target state="translated">Tüm '{0}' oluşumları için alanı ortaya çıkar</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduce_local_for_all_occurrences_of_0">
+        <source>Introduce local for all occurrences of '{0}'</source>
+        <target state="translated">Tüm '{0}' oluşumları için yereli ortaya çıkar</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduce_constant_for_all_occurrences_of_0">
+        <source>Introduce constant for all occurrences of '{0}'</source>
+        <target state="translated">Tüm '{0}' oluşumları için sabiti ortaya çıkar</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduce_local_constant_for_all_occurrences_of_0">
+        <source>Introduce local constant for all occurrences of '{0}'</source>
+        <target state="translated">Tüm '{0}' oluşumları için yerel sabiti ortaya çıkar</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduce_query_variable_for_all_occurrences_of_0">
+        <source>Introduce query variable for all occurrences of '{0}'</source>
+        <target state="translated">Tüm '{0}' oluşumları için sorgu değişkenini ortaya çıkar</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduce_query_variable_for_0">
+        <source>Introduce query variable for '{0}'</source>
+        <target state="translated">{0}' için sorgu değişkenini ortaya çıkar</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Anonymous_Types_colon">
+        <source>Anonymous Types:</source>
+        <target state="translated">Anonim Türler:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="is_">
+        <source>is</source>
+        <target state="translated">olan</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Represents_an_object_whose_operations_will_be_resolved_at_runtime">
+        <source>Represents an object whose operations will be resolved at runtime.</source>
+        <target state="translated">İşlemleri çalışma zamanında çözümlenecek bir nesneyi temsil ediyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="constant">
+        <source>constant</source>
+        <target state="translated">sabit</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="field">
+        <source>field</source>
+        <target state="translated">alan</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="local_constant">
+        <source>local constant</source>
+        <target state="translated">yerel sabit</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="local_variable">
+        <source>local variable</source>
+        <target state="translated">yerel değişken</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="label">
+        <source>label</source>
+        <target state="translated">etiket</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="range_variable">
+        <source>range variable</source>
+        <target state="translated">aralık değişkeni</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="parameter">
+        <source>parameter</source>
+        <target state="translated">parametre</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="in_">
+        <source>in</source>
+        <target state="translated">in</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Summary_colon">
+        <source>Summary:</source>
+        <target state="translated">Özet:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Locals_and_parameters">
+        <source>Locals and parameters</source>
+        <target state="translated">Yerel öğeler ve parametreler</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Type_parameters_colon">
+        <source>Type parameters:</source>
+        <target state="translated">Tür parametreleri:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Returns_colon">
+        <source>Returns:</source>
+        <target state="translated">Döndürülenler:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Exceptions_colon">
+        <source>Exceptions:</source>
+        <target state="translated">Özel Durumlar:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remarks_colon">
+        <source>Remarks:</source>
+        <target state="translated">Açıklamalar:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="generating_source_for_symbols_of_this_type_is_not_supported">
+        <source>generating source for symbols of this type is not supported</source>
+        <target state="translated">Bu türdeki semboller için kaynak üretme desteklenmiyor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Assembly">
+        <source>Assembly</source>
+        <target state="translated">Bütünleştirilmiş Kod</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="location_unknown">
+        <source>location unknown</source>
+        <target state="translated">Konum bilinmiyor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Extract_Interface">
+        <source>Extract Interface...</source>
+        <target state="translated">Arayüzü Çıkar...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_0_will_prevent_the_debug_session_from_continuing">
+        <source>Updating '{0}' will prevent the debug session from continuing.</source>
+        <target state="translated">{0}' öğesini güncelleştirme, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_a_complex_statement_containing_an_await_expression_will_prevent_the_debug_session_from_continuing">
+        <source>Updating a complex statement containing an await expression will prevent the debug session from continuing.</source>
+        <target state="translated">Await ifadesi içeren bir karmaşık deyimin güncelleştirilmesi, hata ayıklama işleminin devam etmesini engeller.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_visibility_of_a_constructor_will_prevent_the_debug_session_from_continuing">
+        <source>Changing visibility of a constructor will prevent the debug session from continuing.</source>
+        <target state="translated">Bir oluşturucunun görünürlüğünü değiştirmek, hata ayıklama oturumunun devam etmesini engeller.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Capturing_variable_0_that_hasn_t_been_captured_before_will_prevent_the_debug_session_from_continuing">
+        <source>Capturing variable '{0}' that hasn't been captured before will prevent the debug session from continuing.</source>
+        <target state="translated">Daha önce yakalanmayan '{0}' değişkeninin yakalanması hata ayıklama oturumunun devam etmesini engeller.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Ceasing_to_capture_variable_0_will_prevent_the_debug_session_from_continuing">
+        <source>Ceasing to capture variable '{0}' will prevent the debug session from continuing.</source>
+        <target state="translated">{0}' değişkenini yakalamanın durdurulması hata ayıklama oturumunun devam etmesini engeller.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Deleting_captured_variable_0_will_prevent_the_debug_session_from_continuing">
+        <source>Deleting captured variable '{0}' will prevent the debug session from continuing.</source>
+        <target state="translated">{0}' yakalanan değişkeninin silinmesi hata ayıklama oturumunun devam etmesini engeller.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_the_type_of_a_captured_variable_0_previously_of_type_1_will_prevent_the_debug_session_from_continuing">
+        <source>Changing the type of a captured variable '{0}' previously of type '{1}' will prevent the debug session from continuing.</source>
+        <target state="translated">Daha önce '{1}' türündeki '{0}' yakalanan değişkeninin türünün değiştirilmesi hata ayıklama oturumunun devam etmesini engeller.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_the_parameters_of_0_will_prevent_the_debug_session_from_continuing">
+        <source>Changing the parameters of '{0}' will prevent the debug session from continuing.</source>
+        <target state="translated">{0}' parametrelerinin değiştirilmesi hata ayıklama oturumunun devam etmesini engeller.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_the_return_type_of_0_will_prevent_the_debug_session_from_continuing">
+        <source>Changing the return type of '{0}' will prevent the debug session from continuing.</source>
+        <target state="translated">{0}' dönüş türünün değiştirilmesi hata ayıklama oturumunun devam etmesini engeller.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_the_type_of_0_will_prevent_the_debug_session_from_continuing">
+        <source>Changing the type of '{0}' will prevent the debug session from continuing.</source>
+        <target state="translated">{0}' türünün değiştirilmesi hata ayıklama oturumunun devam etmesini engeller.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_the_declaration_scope_of_a_captured_variable_0_will_prevent_the_debug_session_from_continuing">
+        <source>Changing the declaration scope of a captured variable '{0}' will prevent the debug session from continuing.</source>
+        <target state="translated">{0}' yakalanan değişkeninin bildirim kapsamının değiştirilmesi hata ayıklama oturumunun devam etmesini engeller.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Accessing_captured_variable_0_that_hasn_t_been_accessed_before_in_1_will_prevent_the_debug_session_from_continuing">
+        <source>Accessing captured variable '{0}' that hasn't been accessed before in {1} will prevent the debug session from continuing.</source>
+        <target state="translated">Daha önce {1} içinde erişilmeyen '{0}' yakalanan değişkenine erişim, hata ayıklama oturumunun devam etmesini engeller.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Ceasing_to_access_captured_variable_0_in_1_will_prevent_the_debug_session_from_continuing">
+        <source>Ceasing to access captured variable '{0}' in {1} will prevent the debug session from continuing.</source>
+        <target state="translated">{1} içinde '{0}' yakalanan değişkenine erişimin durdurulması hata ayıklama oturumunun devam etmesini engeller.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_0_that_accesses_captured_variables_1_and_2_declared_in_different_scopes_will_prevent_the_debug_session_from_continuing">
+        <source>Adding '{0}' that accesses captured variables '{1}' and '{2}' declared in different scopes will prevent the debug session from continuing.</source>
+        <target state="translated">Farklı kapsamlarda bildirilmiş '{1}' ve '{2}' yakalanan değişkenlerine erişen '{0}' öğesinin eklenmesi hata ayıklama oturumunun devam etmesini engeller.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Removing_0_that_accessed_captured_variables_1_and_2_declared_in_different_scopes_will_prevent_the_debug_session_from_continuing">
+        <source>Removing '{0}' that accessed captured variables '{1}' and '{2}' declared in different scopes will prevent the debug session from continuing.</source>
+        <target state="translated">Farklı kapsamlarda bildirilmiş '{1}' ve '{2}' yakalanan değişkenlerine erişen '{0}' öğesinin kaldırılması hata ayıklama oturumunun devam etmesini engeller.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_0_into_a_1_will_prevent_the_debug_session_from_continuing">
+        <source>Adding '{0}' into a '{1}' will prevent the debug session from continuing.</source>
+        <target state="translated">{1}' içine '{0}' ekleme, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_0_into_a_class_with_explicit_or_sequential_layout_will_prevent_the_debug_session_from_continuing">
+        <source>Adding '{0}' into a class with explicit or sequential layout will prevent the debug session from continuing.</source>
+        <target state="translated">Açık veya sıralı düzene sahip bir sınıfa '{0}' öğesini ekleme, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_the_modifiers_of_0_will_prevent_the_debug_session_from_continuing">
+        <source>Updating the modifiers of '{0}' will prevent the debug session from continuing.</source>
+        <target state="translated">{0}' öğesinin değiştiricilerini güncelleştirme, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_the_Handles_clause_of_0_will_prevent_the_debug_session_from_continuing">
+        <source>Updating the Handles clause of '{0}' will prevent the debug session from continuing.</source>
+        <target state="translated">{0}' öğesinin Handles yan tümcesini güncelleştirme, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_0_with_the_Handles_clause_will_prevent_the_debug_session_from_continuing">
+        <source>Adding '{0}' with the Handles clause will prevent the debug session from continuing.</source>
+        <target state="translated">{0}', Handles yan tümcesi ile eklendiğinde hata ayıklama oturumunun devam etmesini engeller.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_the_Implements_clause_of_a_0_will_prevent_the_debug_session_from_continuing">
+        <source>Updating the Implements clause of a '{0}' will prevent the debug session from continuing.</source>
+        <target state="translated">Bir '{0}' öğesinin Implements yan tümcesini güncelleştirme, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_the_constraint_from_0_to_1_will_prevent_the_debug_session_from_continuing">
+        <source>Changing the constraint from '{0}' to '{1}' will prevent the debug session from continuing.</source>
+        <target state="translated">Kısıtlamayı '{0}' yerine '{1}' olarak değiştirmek hata ayıklama oturumunun devam etmesini engelleyecek.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_the_variance_of_0_will_prevent_the_debug_session_from_continuing">
+        <source>Updating the variance of '{0}' will prevent the debug session from continuing.</source>
+        <target state="translated">{0}' öğesinin farkını güncelleştirme, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_the_type_of_0_will_prevent_the_debug_session_from_continuing">
+        <source>Updating the type of '{0}' will prevent the debug session from continuing.</source>
+        <target state="translated">{0}' öğesinin türünü güncelleştirme, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_the_initializer_of_0_will_prevent_the_debug_session_from_continuing">
+        <source>Updating the initializer of '{0}' will prevent the debug session from continuing.</source>
+        <target state="translated">{0}' öğesinin başlatıcısını güncelleştirme, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_the_size_of_a_0_will_prevent_the_debug_session_from_continuing">
+        <source>Updating the size of a '{0}' will prevent the debug session from continuing.</source>
+        <target state="translated">{0}' öğesinin boyutunu güncelleştirme, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_the_underlying_type_of_0_will_prevent_the_debug_session_from_continuing">
+        <source>Updating the underlying type of '{0}' will prevent the debug session from continuing.</source>
+        <target state="translated">{0}' öğesinin temel alınan türünü güncelleştirme, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_the_base_class_and_or_base_interface_s_of_0_will_prevent_the_debug_session_from_continuing">
+        <source>Updating the base class and/or base interface(s) of '{0}' will prevent the debug session from continuing.</source>
+        <target state="translated">{0}' öğesinin temel sınıf ve/veya temel arabirimlerini güncelleştirme, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_a_field_to_an_event_or_vice_versa_will_prevent_the_debug_session_from_continuing">
+        <source>Updating a field to an event or vice versa will prevent the debug session from continuing.</source>
+        <target state="translated">Bir alanı olaya veya bir olayı alana güncelleştirme, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_the_kind_of_a_type_will_prevent_the_debug_session_from_continuing">
+        <source>Updating the kind of a type will prevent the debug session from continuing.</source>
+        <target state="translated">Bir tipin türünü güncelleştirme, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_the_kind_of_an_property_event_accessor_will_prevent_the_debug_session_from_continuing">
+        <source>Updating the kind of an property/event accessor will prevent the debug session from continuing.</source>
+        <target state="translated">Özellik/olay erişimcisinin türünü güncelleştirme, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_the_kind_of_a_method_Sub_Function_will_prevent_the_debug_session_from_continuing">
+        <source>Updating the kind of a method (Sub/Function) will prevent the debug session from continuing.</source>
+        <target state="translated">Bir yöntemin (Sub/Function) türünü güncelleştirme, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_the_library_name_of_Declare_Statement_will_prevent_the_debug_session_from_continuing">
+        <source>Updating the library name of Declare Statement will prevent the debug session from continuing.</source>
+        <target state="translated">Declare Deyimi'nin kitaplık adını güncelleştirme, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_the_alias_of_Declare_Statement_will_prevent_the_debug_session_from_continuing">
+        <source>Updating the alias of Declare Statement will prevent the debug session from continuing.</source>
+        <target state="translated">Declare Deyimi'nin diğer adını güncelleştirme, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Renaming_0_will_prevent_the_debug_session_from_continuing">
+        <source>Renaming '{0}' will prevent the debug session from continuing.</source>
+        <target state="translated">{0}' öğesini yeniden adlandırma, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_0_will_prevent_the_debug_session_from_continuing">
+        <source>Adding '{0}' will prevent the debug session from continuing.</source>
+        <target state="translated">{0}' öğesini ekleme, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_an_abstract_0_or_overriding_an_inherited_0_will_prevent_the_debug_session_from_continuing">
+        <source>Adding an abstract '{0}' or overriding an inherited '{0}' will prevent the debug session from continuing.</source>
+        <target state="translated">Bir '{0}' özeti eklemek veya devralınan bir '{0}' öğesini geçersiz kılmak, hata ayıklama işleminin devam etmesini engeller.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_a_MustOverride_0_or_overriding_an_inherited_0_will_prevent_the_debug_session_from_continuing">
+        <source>Adding a MustOverride '{0}' or overriding an inherited '{0}' will prevent the debug session from continuing.</source>
+        <target state="translated">Bir MustOverride '{0}' eklemek veya devralınan bir '{0}' öğesini geçersiz kılmak, hata ayıklama işleminin devam etmesini engeller.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_an_extern_0_will_prevent_the_debug_session_from_continuing">
+        <source>Adding an extern '{0}' will prevent the debug session from continuing.</source>
+        <target state="translated">Extern '{0}' öğesini ekleme, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_an_imported_method_will_prevent_the_debug_session_from_continuing">
+        <source>Adding an imported method will prevent the debug session from continuing.</source>
+        <target state="translated">İçeri aktarılan bir yöntemi ekleme, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_a_user_defined_0_will_prevent_the_debug_session_from_continuing">
+        <source>Adding a user defined '{0}' will prevent the debug session from continuing.</source>
+        <target state="translated">Kullanıcı tanımlı '{0}' ekleme, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_a_generic_0_will_prevent_the_debug_session_from_continuing">
+        <source>Adding a generic '{0}' will prevent the debug session from continuing.</source>
+        <target state="translated">Genel '{0}' öğesini ekleme, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_0_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
+        <source>Adding '{0}' around an active statement will prevent the debug session from continuing.</source>
+        <target state="translated">Etkin bir deyim etrafına '{0}' öğesini ekleme, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Moving_0_will_prevent_the_debug_session_from_continuing">
+        <source>Moving '{0}' will prevent the debug session from continuing.</source>
+        <target state="translated">{0}' öğesinin taşınması, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Deleting_0_will_prevent_the_debug_session_from_continuing">
+        <source>Deleting '{0}' will prevent the debug session from continuing.</source>
+        <target state="translated">{0}' öğesini silme, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Deleting_0_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
+        <source>Deleting '{0}' around an active statement will prevent the debug session from continuing.</source>
+        <target state="translated">Etkin bir deyimin etrafından '{0}' öğesini silme, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_a_method_body_will_prevent_the_debug_session_from_continuing">
+        <source>Adding a method body will prevent the debug session from continuing.</source>
+        <target state="translated">Bir yöntem gövdesi ekleme, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Deleting_a_method_body_will_prevent_the_debug_session_from_continuing">
+        <source>Deleting a method body will prevent the debug session from continuing.</source>
+        <target state="translated">Bir yöntem gövdesi silme, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="An_active_statement_has_been_removed_from_its_original_method_You_must_revert_your_changes_to_continue_or_restart_the_debugging_session">
+        <source>An active statement has been removed from its original method. You must revert your changes to continue or restart the debugging session.</source>
+        <target state="translated">Etkin bir deyim özgün yönteminden kaldırılmış. Devam etmek için değişikliklerinizi geri almalısınız veya hata ayıklama oturumunu yeniden başlatmalısınız.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_a_0_statement_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
+        <source>Updating a '{0}' statement around an active statement will prevent the debug session from continuing.</source>
+        <target state="translated">Etkin bir deyim etrafındaki '{0}' deyimini güncelleştirme, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_async_or_iterator_modifier_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
+        <source>Updating async or iterator modifier around an active statement will prevent the debug session from continuing.</source>
+        <target state="translated">Etkin bir deyimin etrafındaki zaman uyumsuz ya da yineleyici değiştiriciyi güncelleştirmek hata ayıklama oturumunun devam etmesini önler.</target>
+        <note>{Locked="async"}{Locked="iterator"} "async" and "iterator" are C#/VB keywords and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Modifying_a_generic_method_will_prevent_the_debug_session_from_continuing">
+        <source>Modifying a generic method will prevent the debug session from continuing.</source>
+        <target state="translated">Genel bir yöntemi değiştirme, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifying_whitespace_or_comments_in_a_generic_0_will_prevent_the_debug_session_from_continuing">
+        <source>Modifying whitespace or comments in a generic '{0}' will prevent the debug session from continuing.</source>
+        <target state="translated">Genel '{0}' öğesindeki boşluk veya açıklamaları değiştirme, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifying_a_method_inside_the_context_of_a_generic_type_will_prevent_the_debug_session_from_continuing">
+        <source>Modifying a method inside the context of a generic type will prevent the debug session from continuing.</source>
+        <target state="translated">Genel bir türün bağlamı içindeki bir yöntemi değiştirme, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifying_whitespace_or_comments_in_0_inside_the_context_of_a_generic_type_will_prevent_the_debug_session_from_continuing">
+        <source>Modifying whitespace or comments in '{0}' inside the context of a generic type will prevent the debug session from continuing.</source>
+        <target state="translated">Genel bir türün bağlamı içinde '{0}' öğesindeki boşluk veya açıklamaları değiştirme, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifying_the_initializer_of_0_in_a_generic_type_will_prevent_the_debug_session_from_continuing">
+        <source>Modifying the initializer of '{0}' in a generic type will prevent the debug session from continuing.</source>
+        <target state="translated">Genel bir tür içindeki '{0}' öğesinin başlatıcısını değiştirme, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifying_the_initializer_of_0_in_a_partial_type_will_prevent_the_debug_session_from_continuing">
+        <source>Modifying the initializer of '{0}' in a partial type will prevent the debug session from continuing.</source>
+        <target state="translated">Kısmi bir tür içindeki '{0}' öğesinin başlatıcısını değiştirme, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_a_constructor_to_a_type_with_a_field_or_property_initializer_that_contains_an_anonymous_function_will_prevent_the_debug_session_from_continuing">
+        <source>Adding a constructor to a type with a field or property initializer that contains an anonymous function will prevent the debug session from continuing.</source>
+        <target state="translated">Anonim bir tür içeren alan veya özellik başlatıcısının bulunduğu bir türe oluşturucu eklenmesi, hata ayıklama oturumunun devam etmesini engelleyebilir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Renaming_a_captured_variable_from_0_to_1_will_prevent_the_debug_session_from_continuing">
+        <source>Renaming a captured variable, from '{0}' to '{1}' will prevent the debug session from continuing.</source>
+        <target state="translated">Yakalanan '{0}' adlı değişkenin '{1}' olarak yeniden adlandırılması, hata ayıklama oturumunun devam etmesini engeller.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifying_a_catch_finally_handler_with_an_active_statement_in_the_try_block_will_prevent_the_debug_session_from_continuing">
+        <source>Modifying a catch/finally handler with an active statement in the try block will prevent the debug session from continuing.</source>
+        <target state="translated">Try bloğu içindeki etkin deyimli catch/finally işleyicisini değiştirme, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifying_a_try_catch_finally_statement_when_the_finally_block_is_active_will_prevent_the_debug_session_from_continuing">
+        <source>Modifying a try/catch/finally statement when the finally block is active will prevent the debug session from continuing.</source>
+        <target state="translated">Finally bloğu etkin olduğunda bir try/catch/finally deyimini değiştirme, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifying_a_catch_handler_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
+        <source>Modifying a catch handler around an active statement will prevent the debug session from continuing.</source>
+        <target state="translated">Etkin bir deyim etrafındaki catch işleyicisini değiştirme, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifying_0_which_contains_the_stackalloc_operator_will_prevent_the_debug_session_from_continuing">
+        <source>Modifying '{0}' which contains the 'stackalloc' operator will prevent the debug session from continuing.</source>
+        <target state="translated">stackalloc' operatörünü içeren '{0}' öğesini değiştirme, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifying_an_active_0_which_contains_On_Error_or_Resume_statements_will_prevent_the_debug_session_from_continuing">
+        <source>Modifying an active '{0}' which contains 'On Error' or 'Resume' statements will prevent the debug session from continuing.</source>
+        <target state="translated">On Error' veya 'Resume' deyimlerini içeren etkin bir '{0}' öğesini değiştirme, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifying_0_which_contains_an_Aggregate_Group_By_or_Join_query_clauses_will_prevent_the_debug_session_from_continuing">
+        <source>Modifying '{0}' which contains an Aggregate, Group By, or Join query clauses will prevent the debug session from continuing.</source>
+        <target state="translated">Aggregate, Group By veya Join sorgu yan tümcelerini içeren '{0}' öğesinin değiştirilmesi hata ayıklama oturumunun devam etmesini engeller.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifying_source_with_experimental_language_features_enabled_will_prevent_the_debug_session_from_continuing">
+        <source>Modifying source with experimental language features enabled will prevent the debug session from continuing.</source>
+        <target state="translated">Deneysel dil özellikleri ile kaynağı değiştirme, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_an_active_statement_will_prevent_the_debug_session_from_continuing">
+        <source>Updating an active statement will prevent the debug session from continuing.</source>
+        <target state="translated">Etkin bir deyimi güncelleştirme, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Removing_0_that_contains_an_active_statement_will_prevent_the_debug_session_from_continuing">
+        <source>Removing '{0}' that contains an active statement will prevent the debug session from continuing.</source>
+        <target state="translated">Etkin bir deyim içeren '{0}' öğesini kaldırma, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_a_new_file_will_prevent_the_debug_session_from_continuing">
+        <source>Adding a new file will prevent the debug session from continuing.</source>
+        <target state="translated">Yeni bir dosya eklemek hata ayıklama oturumunun devam etmesini engeller.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Attribute_0_is_missing_Updating_an_async_method_or_an_iterator_will_prevent_the_debug_session_from_continuing">
+        <source>Attribute '{0}' is missing. Updating an async method or an iterator will prevent the debug session from continuing.</source>
+        <target state="translated">{0}' özniteliği eksik. Zaman uyumsuz bir metodun veya bir yineleyicinin güncelleştirilmesi, hata ayıklama oturumunun devam etmesini engeller.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unexpected_interface_member_kind_colon_0">
+        <source>Unexpected interface member kind: {0}</source>
+        <target state="translated">Beklenmeyen arabirim üyesi türü: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unknown_symbol_kind">
+        <source>Unknown symbol kind</source>
+        <target state="translated">Bilinmeyen sembol türü</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_abstract_property_1_0">
+        <source>Generate abstract property '{1}.{0}'</source>
+        <target state="translated">Soyut '{1}.{0}' özelliğini oluştur</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_abstract_method_1_0">
+        <source>Generate abstract method '{1}.{0}'</source>
+        <target state="translated">Soyut '{1}.{0}' metodunu oluştur</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_method_1_0">
+        <source>Generate method '{1}.{0}'</source>
+        <target state="translated">{1}.{0}' yöntemini üretin</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Failed_to_create_a_remote_process_for_interactive_code_execution">
+        <source>Failed to create a remote process for interactive code execution.</source>
+        <target state="translated">Etkileşimli kod yürütme için uzak işlem oluşturulamadı.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Failed_to_initialize_remote_interactive_process">
+        <source>Failed to initialize remote interactive process.</source>
+        <target state="translated">Uzak etkileşimli işlem başlatılamadı.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Attempt_to_connect_to_process_Sharp_0_failed_retrying">
+        <source>Attempt to connect to process #{0} failed, retrying ...</source>
+        <target state="translated">#{0} işlemine bağlanma girişimi başarısız oldu, yeniden deneniyor...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Failed_to_launch_0_process_exit_code_colon_1_with_output_colon">
+        <source>Failed to launch '{0}' process (exit code: {1}) with output: </source>
+        <target state="translated">{0}' işlemi (çıkış kodu: {1}) çıkış ile başlatılamadı: </target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Hosting_process_exited_with_exit_code_0">
+        <source>Hosting process exited with exit code {0}.</source>
+        <target state="translated">Barındırma işlemi {0} çıkış koduyla çıkış yaptı.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Interactive_Host_not_initialized">
+        <source>Interactive Host not initialized.</source>
+        <target state="translated">Etkileşimli Konak başlatılmadı.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Cannot_resolve_reference_0">
+        <source>Cannot resolve reference '{0}'.</source>
+        <target state="translated">{0}' başvurusu çözümlenemiyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Requested_assembly_already_loaded_from_0">
+        <source>Requested assembly already loaded from '{0}'.</source>
+        <target state="translated">{0}' kaynağından zaten yüklenmiş olan derleme istendi.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="plus_additional_0_1">
+        <source> + additional {0} {1}</source>
+        <target state="translated"> + ek {0} {1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unable_to_create_hosting_process">
+        <source>Unable to create hosting process.</source>
+        <target state="translated">Barındırma işlemi oluşturulamıyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_symbol_does_not_have_an_icon">
+        <source>The symbol does not have an icon.</source>
+        <target state="translated">Sembolde simge bulunmuyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unknown">
+        <source>Unknown</source>
+        <target state="translated">Bilinmiyor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Extract_Method">
+        <source>Extract Method</source>
+        <target state="translated">Metodu Ayıkla</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Extract_Method_plus_Local">
+        <source>Extract Method + Local</source>
+        <target state="translated">Yöntemi Ayıkla + Yerel</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Asynchronous_method_cannot_have_ref_out_parameters_colon_bracket_0_bracket">
+        <source>Asynchronous method cannot have ref/out parameters : [{0}]</source>
+        <target state="translated">Zaman uyumsuz yöntem ref/out parametrelerine sahip olamaz: [{0}]</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_member_is_defined_in_metadata">
+        <source>The member is defined in metadata.</source>
+        <target state="translated">Meta veriler içinde tanımlı üye.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="You_can_only_change_the_signature_of_a_constructor_indexer_method_or_delegate">
+        <source>You can only change the signature of a constructor, indexer, method or delegate.</source>
+        <target state="translated">Yalnızca bir oluşturucunun, dizin oluşturucusunun, yöntemin veya temsilcinin imzasını değiştirebilirsiniz.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="This_symbol_has_related_definitions_or_references_in_metadata_Changing_its_signature_may_result_in_build_errors_Do_you_want_to_continue">
+        <source>This symbol has related definitions or references in metadata. Changing its signature may result in build errors.
+
+Do you want to continue?</source>
+        <target state="translated">Bu sembol meta verilerde ilgili tanımlara veya başvurulara sahiptir. İmzasını değiştirmek yapı hatalarına neden olabilir.
+
+Devam etmek istiyor musunuz?</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Change_signature">
+        <source>Change signature...</source>
+        <target state="translated">İmzayı değiştir...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_new_type">
+        <source>Generate new type...</source>
+        <target state="translated">Yeni tür üret...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Diagnostic_Analyzer_Failure">
+        <source>User Diagnostic Analyzer Failure.</source>
+        <target state="translated">Kullanıcı Tanılama Çözümleyicisi Hatası.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Analyzer_0_threw_an_exception_of_type_1_with_message_2">
+        <source>Analyzer '{0}' threw an exception of type '{1}' with message '{2}'.</source>
+        <target state="translated">{0}' çözümleyicisi '{2}' iletisiyle '{1}' türünde bir özel durum oluşturdu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Analyzer_0_threw_the_following_exception_colon_1">
+        <source>Analyzer '{0}' threw the following exception:
+'{1}'.</source>
+        <target state="translated">{0}' çözümleyicisi şu özel durumu oluşturdu:
+'{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_Unnecessary_Cast">
+        <source>Remove Unnecessary Cast</source>
+        <target state="translated">Gereksiz Atamayı Kaldır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_Names">
+        <source>Simplify Names</source>
+        <target state="translated">Adları Basitleştir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_Member_Access">
+        <source>Simplify Member Access</source>
+        <target state="translated">Üye Erişimini Basitleştir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_qualification">
+        <source>Remove qualification</source>
+        <target state="translated">Nitelemeyi kaldır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Edit_and_Continue1">
+        <source>Edit and Continue</source>
+        <target state="translated">Düzenle ve Devam Et</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="This_signature_does_not_contain_parameters_that_can_be_changed">
+        <source>This signature does not contain parameters that can be changed.</source>
+        <target state="translated">Bu imza değiştirilebilen parametreleri içermiyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unknown_error_occurred">
+        <source>Unknown error occurred</source>
+        <target state="translated">Bilinmeyen hata oluştu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Available">
+        <source>Available</source>
+        <target state="translated">Kullanılabilir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Not_Available">
+        <source>Not Available</source>
+        <target state="translated">Kullanılamıyor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_1">
+        <source>    {0} - {1}</source>
+        <target state="translated">    {0} - {1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="You_can_use_the_navigation_bar_to_switch_context">
+        <source>You can use the navigation bar to switch context.</source>
+        <target state="translated">Bağlamda geçiş yapmak için gezinti çubuğunu kullanabilirsiniz.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="in_Source">
+        <source>in Source</source>
+        <target state="translated">Kaynakta</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="in_Suppression_File">
+        <source>in Suppression File</source>
+        <target state="translated">Gizleme Dosyasında</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_Suppression_0">
+        <source>Remove Suppression {0}</source>
+        <target state="translated">{0} Gizlemesini Kaldır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_Suppression">
+        <source>Remove Suppression</source>
+        <target state="translated">Gizlemeyi Kaldır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Pending">
+        <source>&lt;Pending&gt;</source>
+        <target state="translated">&lt;Pending&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Awaited_task_returns">
+        <source>Awaited task returns</source>
+        <target state="translated">Beklenen görev döndürülür</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="no_value">
+        <source>no value.</source>
+        <target state="translated">değer yok.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Note_colon_Tab_twice_to_insert_the_0_snippet">
+        <source>Note: Tab twice to insert the '{0}' snippet.</source>
+        <target state="translated">Not: '{0}' kod parçacığını eklemek için iki kez sekme yapın.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_interface_explicitly_with_Dispose_pattern">
+        <source>Implement interface explicitly with Dispose pattern</source>
+        <target state="translated">Ara birimi açık olarak Dispose düzeniyle uygula</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_interface_with_Dispose_pattern">
+        <source>Implement interface with Dispose pattern</source>
+        <target state="translated">Ara birimi Dispose düzeniyle uygula</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Compiler1">
+        <source>Compiler</source>
+        <target state="translated">Derleyici</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Edit_and_Continue2">
+        <source>Edit and Continue</source>
+        <target state="translated">Düzenle ve Devam Et</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Style">
+        <source>Style</source>
+        <target state="translated">Stil</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suppress_0">
+        <source>Suppress {0}</source>
+        <target state="translated">{0} eylemini bastır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Re_triage_0_currently_1">
+        <source>Re-triage {0}(currently '{1}')</source>
+        <target state="translated">{0} öğesini yeniden değerlendir (şu an '{1}')</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Argument_cannot_have_a_null_element">
+        <source>Argument cannot have a null element.</source>
+        <target state="translated">Bağımsız değişken null öğe içeremez.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Argument_cannot_be_empty">
+        <source>Argument cannot be empty.</source>
+        <target state="translated">Bağımsız değişken boş olamaz.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Reported_diagnostic_with_ID_0_is_not_supported_by_the_analyzer">
+        <source>Reported diagnostic with ID '{0}' is not supported by the analyzer.</source>
+        <target state="translated">{0}' kimliği ile bildirilen tanılama, çözümleyici tarafından desteklenmiyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Computing_fix_all_occurrences_code_fix">
+        <source>Computing fix all occurrences code fix...</source>
+        <target state="translated">Geçtiği her yerde düzeltme kod düzeltmesi hesaplanıyor...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_all_occurrences">
+        <source>Fix all occurrences</source>
+        <target state="translated">Tüm oluşumları düzelt</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Document">
+        <source>Document</source>
+        <target state="translated">Belge</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Project">
+        <source>Project</source>
+        <target state="translated">Proje</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Solution">
+        <source>Solution</source>
+        <target state="translated">Çözüm</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TODO_colon_dispose_managed_state_managed_objects">
+        <source>TODO: dispose managed state (managed objects).</source>
+        <target state="translated">TODO: yönetilen durumu (yönetilen nesneleri) bırakın.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TODO_colon_set_large_fields_to_null">
+        <source>TODO: set large fields to null.</source>
+        <target state="translated">TODO: büyük alanları null olarak ayarlayın.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="To_detect_redundant_calls">
+        <source>To detect redundant calls</source>
+        <target state="translated">Artık çağrıları algılama</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifying_0_which_contains_a_static_variable_will_prevent_the_debug_session_from_continuing">
+        <source>Modifying '{0}' which contains a static variable will prevent the debug session from continuing.</source>
+        <target state="translated">Statik bir değişken içeren '{0}' öğesinin değiştirilmesi hata ayıklama oturumunun devam etmesini engeller.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Compiler2">
+        <source>Compiler</source>
+        <target state="translated">Derleyici</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Edit_And_Continue">
+        <source>Edit And Continue</source>
+        <target state="translated">Düzenle ve Devam Et</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Live">
+        <source>Live</source>
+        <target state="translated">Canlı</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="enum_value">
+        <source>enum value</source>
+        <target state="translated">sabit listesi değeri</target>
+        <note>{Locked="enum"} "enum" is a C#/VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="const_field">
+        <source>const field</source>
+        <target state="translated">const alanı</target>
+        <note>{Locked="const"} "const" is a C#/VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="method">
+        <source>method</source>
+        <target state="translated">yöntem</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="operator_">
+        <source>operator</source>
+        <target state="translated">işleç</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="constructor">
+        <source>constructor</source>
+        <target state="translated">oluşturucu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="auto_property">
+        <source>auto-property</source>
+        <target state="translated">otomatik özellik</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="property_">
+        <source>property</source>
+        <target state="translated">özellik</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="event_accessor">
+        <source>event accessor</source>
+        <target state="translated">olay erişeni</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="type_constraint">
+        <source>type constraint</source>
+        <target state="translated">tür kısıtlaması</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="type_parameter">
+        <source>type parameter</source>
+        <target state="translated">tür parametresi</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="attribute">
+        <source>attribute</source>
+        <target state="translated">öznitelik</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_auto_property">
+        <source>Use auto property</source>
+        <target state="translated">Otomatik özellik kullan</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Replace_0_and_1_with_property">
+        <source>Replace '{0}' and '{1}' with property</source>
+        <target state="translated">{0}' ve '{1}' öğesini özellikle değiştir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Replace_0_with_property">
+        <source>Replace '{0}' with property</source>
+        <target state="translated">{0}' öğesini özellikle değiştir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Method_referenced_implicitly">
+        <source>Method referenced implicitly</source>
+        <target state="translated">Örtülü olarak başvurulan metot</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_type_0">
+        <source>Generate type '{0}'</source>
+        <target state="translated">{0}' türünü oluştur</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_0_1">
+        <source>Generate {0} '{1}'</source>
+        <target state="translated">{0} '{1}' oluştur</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Change_0_to_1">
+        <source>Change '{0}' to '{1}'.</source>
+        <target state="translated">{0}' öğesini '{1}' olarak değiştirin.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Non_invoked_method_cannot_be_replaced_with_property">
+        <source>Non-invoked method cannot be replaced with property.</source>
+        <target state="translated">Çağrılmayan metodun yerine özellik konulamaz.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Only_methods_with_a_single_argument_which_is_not_an_out_variable_declaration_can_be_replaced_with_a_property">
+        <source>Only methods with a single argument, which is not an out variable declaration, can be replaced with a property.</source>
+        <target state="translated">Yalnızca, out değişkeni bildirimi olmayan tek bağımsız değişkenli metotlar bir özellikle değiştirilebilir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Roslyn_HostError">
+        <source>Roslyn.HostError</source>
+        <target state="translated">Roslyn.HostError</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="An_instance_of_analyzer_0_cannot_be_created_from_1_colon_2">
+        <source>An instance of analyzer {0} cannot be created from {1}: {2}.</source>
+        <target state="translated">{0} çözümleyicisinin bir örneği {1} : {2} öğesinden oluşturulamaz.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_assembly_0_does_not_contain_any_analyzers">
+        <source>The assembly {0} does not contain any analyzers.</source>
+        <target state="translated">{0} derlemesi hiçbir çözümleyici içermiyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unable_to_load_Analyzer_assembly_0_colon_1">
+        <source>Unable to load Analyzer assembly {0}: {1}</source>
+        <target state="translated">Çözümleyici derlemesi {0}: {1} yüklenemiyor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_method_synchronous">
+        <source>Make method synchronous</source>
+        <target state="translated">Metodu zaman uyumlu hale getir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_this_or_Me_qualification">
+        <source>Add 'this' or 'Me' qualification.</source>
+        <target state="translated">this' veya 'Me' niteliği ekle.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_Name_Violation_colon_0">
+        <source>Fix Name Violation: {0}</source>
+        <target state="translated">Ad İhlalini Düzelt: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Naming_rule_violation_0">
+        <source>Naming rule violation: {0}</source>
+        <target state="translated">Adlandırma kuralı ihlali: {0}</target>
+        <note>{0} is the rule title, {1} is the way in which the rule was violated</note>
+      </trans-unit>
+      <trans-unit id="Naming_Styles">
+        <source>Naming Styles</source>
+        <target state="translated">Adlandırma Stilleri</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="from_0">
+        <source>from {0}</source>
+        <target state="translated">Şuradan: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Find_and_install_latest_version">
+        <source>Find and install latest version</source>
+        <target state="translated">Son sürümü bul ve yükle</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_local_version_0">
+        <source>Use local version '{0}'</source>
+        <target state="translated">Yerel sürüm olan '{0}' sürümünü kullan</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_locally_installed_0_version_1_This_version_used_in_colon_2">
+        <source>Use locally installed '{0}' version '{1}'
+This version used in: {2}</source>
+        <target state="translated">{0}' uygulamasının yerel olarak yüklü '{1}' sürümünü kullanın
+Bu sürüm şurada kullanılır: {2}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Find_and_install_latest_version_of_0">
+        <source>Find and install latest version of '{0}'</source>
+        <target state="translated">Son '{0}' sürümünü bul ve yükle</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Install_with_package_manager">
+        <source>Install with package manager...</source>
+        <target state="translated">Paket yöneticisi ile yükle...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Install_0_1">
+        <source>Install '{0} {1}'</source>
+        <target state="translated">Şunu yükle: '{0} {1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Install_version_0">
+        <source>Install version '{0}'</source>
+        <target state="translated">{0}' sürümünü yükle</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_variable_0">
+        <source>Generate variable '{0}'</source>
+        <target state="translated">{0}' değişkenini oluştur</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Classes">
+        <source>Classes</source>
+        <target state="translated">Sınıflar</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Constants">
+        <source>Constants</source>
+        <target state="translated">Sabitler</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Delegates">
+        <source>Delegates</source>
+        <target state="translated">Temsilciler</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Enums">
+        <source>Enums</source>
+        <target state="translated">Sabit Listeleri</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Events">
+        <source>Events</source>
+        <target state="translated">Olaylar</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Extension_methods">
+        <source>Extension methods</source>
+        <target state="translated">Genişletme metotları</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fields">
+        <source>Fields</source>
+        <target state="translated">Alanlar</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Interfaces">
+        <source>Interfaces</source>
+        <target state="translated">Arabirimler</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Locals">
+        <source>Locals</source>
+        <target state="translated">Yerel Öğeler</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Methods">
+        <source>Methods</source>
+        <target state="translated">Metotlar</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modules">
+        <source>Modules</source>
+        <target state="translated">Modüller</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Namespaces">
+        <source>Namespaces</source>
+        <target state="translated">Ad Uzayları</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Properties">
+        <source>Properties</source>
+        <target state="translated">Özellikler</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Structures">
+        <source>Structures</source>
+        <target state="translated">Yapılar</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parameters_colon">
+        <source>Parameters:</source>
+        <target state="translated">Parametreler:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_missing_cases">
+        <source>Add missing cases</source>
+        <target state="translated">Eksik durumları ekle</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_both">
+        <source>Add both</source>
+        <target state="translated">Her ikisini de ekle</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_default_case">
+        <source>Add default case</source>
+        <target state="translated">Varsayılan durum ekle</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Variadic_SignatureHelpItem_must_have_at_least_one_parameter">
+        <source>Variadic SignatureHelpItem must have at least one parameter.</source>
+        <target state="translated">Bağımsız değişken içeren SignatureHelpItem en az bir parametreye sahip olmalıdır.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_braces">
+        <source>Add braces</source>
+        <target state="translated">Küme ayracı ekle</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Replace_0_with_method">
+        <source>Replace '{0}' with method</source>
+        <target state="translated">{0}' yerine metot kullan</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Replace_0_with_methods">
+        <source>Replace '{0}' with methods</source>
+        <target state="translated">{0}' yerine metotlar kullan</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Property_referenced_implicitly">
+        <source>Property referenced implicitly</source>
+        <target state="translated">Özelliğe örtülü olarak başvurdu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Property_cannot_safely_be_replaced_with_a_method_call">
+        <source>Property cannot safely be replaced with a method call</source>
+        <target state="translated">Özellik, bir metot çağrısı ile güvenli şekilde değiştirilemiyor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_interpolated_string">
+        <source>Convert to interpolated string</source>
+        <target state="translated">Araya alınmış dizeye dönüştür</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Move_type_to_0">
+        <source>Move type to {0}</source>
+        <target state="translated">Türü {0} ile değiştir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename_file_to_0">
+        <source>Rename file to {0}</source>
+        <target state="translated">Dosyayı {0} olarak yeniden adlandır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename_type_to_0">
+        <source>Rename type to {0}</source>
+        <target state="translated">Tür {0} olarak yeniden adlandır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_tag">
+        <source>Remove tag</source>
+        <target state="translated">Etiketi kaldır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_missing_param_nodes">
+        <source>Add missing param nodes</source>
+        <target state="translated">Eksik parametre düğümlerini ekle</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_containing_scope_async">
+        <source>Make containing scope async</source>
+        <target state="translated">İçeren kapsamı asenkron yap</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_containing_scope_async_return_Task">
+        <source>Make containing scope async (return Task)</source>
+        <target state="translated">İçeren kapsamı asenkron yap (Görevi döndür)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="paren_Unknown_paren">
+        <source>(Unknown)</source>
+        <target state="translated">(Bilinmiyor)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_Abstract_Class">
+        <source>Implement Abstract Class</source>
+        <target state="translated">Soyut Sınıfı Uygula</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_framework_type">
+        <source>Use framework type</source>
+        <target state="translated">Çerçeve türü kullan</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Install_package_0">
+        <source>Install package '{0}'</source>
+        <target state="translated">{0}' paketini yükle</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Object_initialization_can_be_simplified">
+        <source>Object initialization can be simplified</source>
+        <target state="translated">Nesne başlatma basitleştirilebilir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_throw_expression">
+        <source>Use 'throw' expression</source>
+        <target state="translated">throw' ifadesi kullan</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="project_0">
+        <source>project {0}</source>
+        <target state="translated">proje {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_variable_declaration">
+        <source>Inline variable declaration</source>
+        <target state="translated">Satır içi değişken bildirimi</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_pattern_matching">
+        <source>Use pattern matching</source>
+        <target state="translated">Desen eşleştirme kullan</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_expression_body_for_methods">
+        <source>Use expression body for methods</source>
+        <target state="translated">Metotlar için ifade gövdesi kullan</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_block_body_for_methods">
+        <source>Use block body for methods</source>
+        <target state="translated">Metotlar için blok gövdesi kullan</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_block_body_for_accessors">
+        <source>Use block body for accessors</source>
+        <target state="translated">Erişimciler için blok gövdesi kullan</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_block_body_for_constructors">
+        <source>Use block body for constructors</source>
+        <target state="translated">Oluşturucular için blok gövdesi kullan</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_block_body_for_indexers">
+        <source>Use block body for indexers</source>
+        <target state="translated">Dizin oluşturucular için blok gövdesi kullan</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_block_body_for_operators">
+        <source>Use block body for operators</source>
+        <target state="translated">İşleçler için blok gövdesi kullan</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_block_body_for_properties">
+        <source>Use block body for properties</source>
+        <target state="translated">Özellikler için blok gövdesi kullan</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_expression_body_for_accessors">
+        <source>Use expression body for accessors</source>
+        <target state="translated">Erişimciler için ifade gövdesi kullan</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_expression_body_for_constructors">
+        <source>Use expression body for constructors</source>
+        <target state="translated">Oluşturucular için ifade gövdesi kullan</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_expression_body_for_indexers">
+        <source>Use expression body for indexers</source>
+        <target state="translated">Dizin oluşturucular için ifade gövdesi kullan</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_expression_body_for_operators">
+        <source>Use expression body for operators</source>
+        <target state="translated">İşleçler için ifade gövdesi kullan</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_expression_body_for_properties">
+        <source>Use expression body for properties</source>
+        <target state="translated">Özellikler için ifade gövdesi kullan</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Spell_check_0">
+        <source>Spell check '{0}'</source>
+        <target state="translated">{0}' üzerinde yazım denetimi yap</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fully_qualify_0">
+        <source>Fully qualify '{0}'</source>
+        <target state="translated">{0}' adını tam olarak belirtin</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_reference_to_0">
+        <source>Remove reference to '{0}'.</source>
+        <target state="translated">{0}' başvurusunu kaldırın.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Keywords">
+        <source>Keywords</source>
+        <target state="translated">Anahtar Sözcükler</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Snippets">
+        <source>Snippets</source>
+        <target state="translated">Kod Parçacıkları</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="All_lowercase">
+        <source>All lowercase</source>
+        <target state="translated">Tümü küçük harf</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="All_uppercase">
+        <source>All uppercase</source>
+        <target state="translated">Tümü büyük harf</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="First_word_capitalized">
+        <source>First word capitalized</source>
+        <target state="translated">İlk sözcüğün baş harfi büyük</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Pascal_Case">
+        <source>Pascal Case</source>
+        <target state="translated">Baş Harfleri Büyük Olmak Üzere Bitişik</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Collection_initialization_can_be_simplified">
+        <source>Collection initialization can be simplified</source>
+        <target state="translated">Koleksiyon başlatma işlemi kolaylaştırılabilir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_coalesce_expression">
+        <source>Use coalesce expression</source>
+        <target state="translated">Birleştirme ifadesi kullan</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_null_propagation">
+        <source>Use null propagation</source>
+        <target state="translated">Null yayılması kullan</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Variable_declaration_can_be_inlined">
+        <source>Variable declaration can be inlined</source>
+        <target state="translated">Değişken bildirimi satır içine alınabilir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Null_check_can_be_simplified">
+        <source>Null check can be simplified</source>
+        <target state="translated">Null denetimi kolaylaştırılabilir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_collection_initialization">
+        <source>Simplify collection initialization</source>
+        <target state="translated">Koleksiyon başlatmayı kolaylaştır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_object_initialization">
+        <source>Simplify object initialization</source>
+        <target state="translated">Nesne başlatmayı kolaylaştır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_explicitly_provided_tuple_element_name">
+        <source>Prefer explicitly provided tuple element name</source>
+        <target state="translated">Açıkça sağlanan demet öğesi adını tercih et</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_explicitly_provided_tuple_name">
+        <source>Use explicitly provided tuple name</source>
+        <target state="translated">Açıkça sağlanan demet adını kullan</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_document_0">
+        <source>Remove document '{0}'</source>
+        <target state="translated">{0}' belgesini kaldır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_document_0">
+        <source>Add document '{0}'</source>
+        <target state="translated">{0}' belgesini ekle</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_argument_name_0">
+        <source>Add argument name '{0}'</source>
+        <target state="translated">{0}' bağımsız değişken adını ekle</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Take_0">
+        <source>Take '{0}'</source>
+        <target state="translated">{0}' al</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Take_both">
+        <source>Take both</source>
+        <target state="translated">Her ikisini de al</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Take_bottom">
+        <source>Take bottom</source>
+        <target state="translated">Alttakini al</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Take_top">
+        <source>Take top</source>
+        <target state="translated">Üsttekini al</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unused_variable">
+        <source>Remove unused variable</source>
+        <target state="translated">Kullanılmayan değişkeni kaldır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_binary">
+        <source>Convert to binary</source>
+        <target state="translated">İkiliye dönüştür</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_decimal">
+        <source>Convert to decimal</source>
+        <target state="translated">Ondalığa dönüştür</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_hex">
+        <source>Convert to hex</source>
+        <target state="translated">Onaltılığa dönüştür</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Separate_thousands">
+        <source>Separate thousands</source>
+        <target state="translated">Binleri ayır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Separate_words">
+        <source>Separate words</source>
+        <target state="translated">Sözcükleri ayır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Separate_nibbles">
+        <source>Separate nibbles</source>
+        <target state="translated">Dörtlüleri ayır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_separators">
+        <source>Remove separators</source>
+        <target state="translated">Ayırıcıları kaldır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_parameter_to_0">
+        <source>Add parameter to '{0}'</source>
+        <target state="translated">{0}' öğesine parametre ekle</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_constructor">
+        <source>Generate constructor...</source>
+        <target state="translated">Oluşturucuyu oluştur...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Pick_members_to_be_used_as_constructor_parameters">
+        <source>Pick members to be used as constructor parameters</source>
+        <target state="translated">Oluşturucu parametresi olarak kullanılacak üyeleri seçin</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Pick_members_to_be_used_in_Equals_GetHashCode">
+        <source>Pick members to be used in Equals/GetHashCode</source>
+        <target state="translated">Equals/GetHashCode içinde kullanılacak üyeleri seçin</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changes_to_expression_trees_may_result_in_behavior_changes_at_runtime">
+        <source>Changes to expression trees may result in behavior changes at runtime</source>
+        <target state="translated">İfade ağaçlarında yapılan değişiklikler çalışma zamanında davranış değişikliklerine neden olabilir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_overrides">
+        <source>Generate overrides...</source>
+        <target state="translated">Geçersiz kılmaları oluştur...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Pick_members_to_override">
+        <source>Pick members to override</source>
+        <target state="translated">Geçersiz kılınacak üyeleri seçin</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_null_check">
+        <source>Add null check</source>
+        <target state="translated">Null denetimi ekle</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_string_IsNullOrEmpty_check">
+        <source>Add 'string.IsNullOrEmpty' check</source>
+        <target state="translated">string.IsNullOrEmpty' denetimi ekle</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_string_IsNullOrWhiteSpace_check">
+        <source>Add 'string.IsNullOrWhiteSpace' check</source>
+        <target state="translated">string.IsNullOrWhiteSpace' denetimi ekle</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Create_and_initialize_field_0">
+        <source>Create and initialize field '{0}'</source>
+        <target state="translated">{0}' alanını oluştur ve başlat</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Create_and_initialize_property_0">
+        <source>Create and initialize property '{0}'</source>
+        <target state="translated">{0}' özelliğini oluştur ve başlat</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Initialize_field_0">
+        <source>Initialize field '{0}'</source>
+        <target state="translated">{0}' alanını başlat</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Initialize_property_0">
+        <source>Initialize property '{0}'</source>
+        <target state="translated">{0}' özelliğini başlat</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_null_checks">
+        <source>Add null checks</source>
+        <target state="translated">Null denetimleri ekle</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_operators">
+        <source>Generate operators</source>
+        <target state="translated">İşleçleri oluştur</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_0">
+        <source>Implement {0}</source>
+        <target state="translated">{0} uygula</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_default_expression">
+        <source>Simplify 'default' expression</source>
+        <target state="translated">Default' ifadesini basitleştir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="default_expression_can_be_simplified">
+        <source>'default' expression can be simplified</source>
+        <target state="translated">'default' ifadesi basitleştirilebilir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Format_string_contains_invalid_placeholder">
+        <source>Format string contains invalid placeholder</source>
+        <target state="translated">Biçim dizesi, geçersiz yer tutucu içeriyor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invalid_format_string">
+        <source>Invalid format string</source>
+        <target state="translated">Geçersiz biçim dizesi</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_inferred_member_name">
+        <source>Use inferred member name</source>
+        <target state="translated">Gösterilen üye adı kullan</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Member_name_can_be_simplified">
+        <source>Member name can be simplified</source>
+        <target state="translated">Üye adı basitleştirilebilir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Reported_diagnostic_0_has_a_source_location_in_file_1_which_is_not_part_of_the_compilation_being_analyzed">
+        <source>Reported diagnostic '{0}' has a source location in file '{1}', which is not part of the compilation being analyzed.</source>
+        <target state="translated">Raporlanan '{0}' tanılamasının kaynak konumu, çözümlenen derlemenin bir parçası olmayan '{1}' dosyası içinde.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Reported_diagnostic_0_has_a_source_location_1_in_file_2_which_is_outside_of_the_given_file">
+        <source>Reported diagnostic '{0}' has a source location '{1}' in file '{2}', which is outside of the given file.</source>
+        <target state="translated">Bildirilen tanılamanın ('{0}') kaynak konumu olan '{1}', '{2}' dosyasında ve bu konum, belirtilen dosyanın dışında.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unreachable_code_detected">
+        <source>Unreachable code detected</source>
+        <target state="translated">Ulaşılamayan kod algılandı</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unreachable_code">
+        <source>Remove unreachable code</source>
+        <target state="translated">Erişilemeyen kodları kaldır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifiers_are_not_ordered">
+        <source>Modifiers are not ordered</source>
+        <target state="translated">Değiştiriciler sıralı değil</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Order_modifiers">
+        <source>Order modifiers</source>
+        <target state="translated">Değiştiricileri sırala</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="in_0_project_1">
+        <source>in {0} (project {1})</source>
+        <target state="translated">{0} içinde (proje {1})</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Accessibility_modifiers_required">
+        <source>Accessibility modifiers required</source>
+        <target state="translated">Erişilebilirlik değiştiricileri gerekli</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_accessibility_modifiers">
+        <source>Add accessibility modifiers</source>
+        <target state="translated">Erişilebilirlik değiştiricileri ekle</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_local_function">
+        <source>Use local function</source>
+        <target state="translated">Yerel işlev kullan</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning_colon_Declaration_changes_scope_and_may_change_meaning">
+        <source>Warning: Declaration changes scope and may change meaning.</source>
+        <target state="translated">Uyarı: Bildirim, kapsamı değiştiriyor ve anlamı da değiştirebilir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Move_declaration_near_reference">
+        <source>Move declaration near reference</source>
+        <target state="translated">Bildirimi başvurunun yanına taşı</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_full_property">
+        <source>Convert to full property</source>
+        <target state="translated">Tam özelliğe dönüştür</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_constructor_in_0_without_fields">
+        <source>Generate constructor in '{0}' (without fields)</source>
+        <target state="translated">{0}' içinde oluşturucu üret (alanlar olmadan)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_file_banner">
+        <source>Add file banner</source>
+        <target state="translated">Dosya başlığı ekle</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning_Method_overrides_symbol_from_metadata">
+        <source>Warning: Method overrides symbol from metadata</source>
+        <target state="translated">Uyarı: Metot, meta verideki sembolü geçersiz kılıyor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_0">
+        <source>Use {0}</source>
+        <target state="translated">{0} kullan</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Switching_between_lambda_and_local_function_will_prevent_the_debug_session_from_continuing">
+        <source>Switching between a lambda and a local function will prevent the debug session from continuing.</source>
+        <target state="translated">Bir lambda ile yerel işlev arasında geçiş yapmak, hata ayıklama oturumunun devam etmesini engeller.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Deconstruct_variable_declaration">
+        <source>Deconstruct variable declaration</source>
+        <target state="translated">Değişken bildirimini ayrıştır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Variable_declaration_can_be_deconstructed">
+        <source>Variable declaration can be deconstructed</source>
+        <target state="translated">Değişken bildirimi ayrıştırılabilir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_argument_name_0_including_trailing_arguments">
+        <source>Add argument name '{0}' (including trailing arguments)</source>
+        <target state="translated">{0}' bağımsız değişken adını ekle (sondaki bağımsız değişkenler dahil)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Using_readonly_structs_will_prevent_the_debug_session_from_continuing">
+        <source>Using readonly structs will prevent the debug session from continuing.</source>
+        <target state="translated">Salt okunur yapılar birimleri kullanmak, hata ayıklama oturumunun devam etmesini engeller.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Using_ref_structs_will_prevent_the_debug_session_from_continuing">
+        <source>Using ref structs will prevent the debug session from continuing.</source>
+        <target state="translated">Başvuru yapıları kullanmak, hata ayıklama oturumunun devam etmesini engeller.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Using_readonly_references_will_prevent_the_debug_session_from_continuing">
+        <source>Using readonly references will prevent the debug session from continuing.</source>
+        <target state="translated">Salt okunur başvurular kullanmak, hata ayıklama oturumunun devam etmesini engeller.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="local_function">
+        <source>local function</source>
+        <target state="translated">yerel işlev</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="indexer_">
+        <source>indexer</source>
+        <target state="translated">dizin oluşturucu</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

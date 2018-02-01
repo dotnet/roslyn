@@ -1,10 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <PropertyGroup>
-    <ProjectLanguage>CSharp</ProjectLanguage>
-  </PropertyGroup>
-  <Import Project="..\..\..\build\Targets\SettingsSdk.props" />
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -24,39 +20,26 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
-    <Reference Include="PresentationCore" />
-    <Reference Include="PresentationFramework" />
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Drawing" />
-    <Reference Include="System.Xaml" />
-    <Reference Include="System.Xml" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="WindowsBase" />
     <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.InteractiveWindow" Version="$(MicrosoftVisualStudioInteractiveWindowVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Text.Internal" Version="$(MicrosoftVisualStudioTextInternalVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Language.CallHierarchy" Version="$(MicrosoftVisualStudioLanguageCallHierarchyVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Language.NavigateTo.Interfaces" Version="$(MicrosoftVisualStudioLanguageNavigateToInterfacesVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Language.StandardClassification" Version="$(MicrosoftVisualStudioLanguageStandardClassificationVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense" Version="$(MicrosoftVisualStudioLanguageIntellisenseVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Imaging" Version="$(MicrosoftVisualStudioImagingVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime" Version="$(MicrosoftVisualStudioImagingInterop140DesignTimeVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.ImageCatalog" Version="$(MicrosoftVisualStudioImageCatalogVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Text.UI" Version="$(MicrosoftVisualStudioTextUIVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Text.UI.Wpf" Version="$(MicrosoftVisualStudioTextUIWpfVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Utilities" Version="$(MicrosoftVisualStudioUtilitiesVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Validation" Version="$(MicrosoftVisualStudioValidationVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Threading" Version="$(MicrosoftVisualStudioThreadingVersion)" />
     <PackageReference Include="Microsoft.CodeAnalysis.Elfie" Version="$(MicrosoftCodeAnalysisElfieVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.RemoteControl" Version="$(MicrosoftVisualStudioRemoteControlVersion)" />
-    <PackageReference Include="VS.ExternalAPIs.CodingConventions" Version="$(VSExternalAPIsCodingConventionsVersion)" />
-    <!-- The VS.ExternalAPIs.CodingConventions package isn't a "true" NuGet package and doesn't have the right lib folders. Manually reference the binary. -->
-    <Reference Include="$(NuGetPackageRoot)\VS.ExternalAPIs.CodingConventions\$(VSExternalAPIsCodingConventionsVersion)\Microsoft.VisualStudio.CodingConventions.dll" />
+    <PackageReference Include="ICSharpCode.Decompiler" Version="$(ICSharpCodeDecompilerVersion)" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="InteractiveHost" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.EditorFeatures" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Wpf" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.EditorFeatures" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CSharp" />
@@ -106,8 +89,8 @@
     <InternalsVisibleToTypeScript Include="Microsoft.VisualStudio.LanguageServices.TypeScript" />
     <InternalsVisibleToTypeScript Include="Microsoft.Test.Apex.VisualStudio" />
     <InternalsVisibleToTypeScript Include="Roslyn.Services.Editor.TypeScript.UnitTests" />
-    <InternalsVisibleToRemoteLS Include="Microsoft.VisualStudio.LanguageServices.Remote" /> 
-    <InternalsVisibleToRemoteLS Include="Microsoft.VisualStudio.LanguageServices.Remote.CSharp" /> 
+    <InternalsVisibleToRemoteLS Include="Microsoft.VisualStudio.LanguageServices.Remote" />
+    <InternalsVisibleToRemoteLS Include="Microsoft.VisualStudio.LanguageServices.Remote.CSharp" />
     <InternalsVisibleToFSharp Include="FSharp.Editor" />
     <InternalsVisibleToMoq Include="DynamicProxyGenAssembly2" />
   </ItemGroup>
@@ -116,9 +99,6 @@
       <DependentUpon>EditorFeaturesResources.resx</DependentUpon>
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
-    </Compile>
-    <Compile Update="Implementation\InlineRename\Dashboard\Dashboard.xaml.cs">
-      <DependentUpon>Dashboard.xaml</DependentUpon>
     </Compile>
     <Compile Update="Shared\Extensions\ITextViewExtensions.AutoClosingViewProperty.cs">
       <SubType>Code</SubType>
@@ -132,22 +112,7 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <Page Include="Implementation\InlineRename\Dashboard\Colors.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Implementation\InlineRename\Dashboard\Dashboard.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Implementation\InlineRename\Dashboard\Images\ErrorIcon.png" />
-    <Resource Include="Implementation\InlineRename\Dashboard\Images\InfoIcon.png" />
-  </ItemGroup>
-  <ItemGroup>
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
-  <Import Project="..\..\..\build\Targets\Imports.targets" />
 </Project>

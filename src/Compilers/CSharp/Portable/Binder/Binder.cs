@@ -304,6 +304,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        /// <summary>
+        /// Get <see cref="QuickAttributeChecker"/> that can be used to quickly
+        /// check for certain attribute applications in context of this binder.
+        /// </summary>
+        internal virtual QuickAttributeChecker QuickAttributeChecker
+        {
+            get
+            {
+                return _next.QuickAttributeChecker;
+            }
+        }
+
         internal virtual Imports GetImports(ConsList<Symbol> basesBeingResolved)
         {
             return _next.GetImports(basesBeingResolved);

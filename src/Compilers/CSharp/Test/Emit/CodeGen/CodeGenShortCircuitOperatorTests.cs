@@ -5152,7 +5152,7 @@ unsafe class C
     }
 }
 ";
-            var verifier = CompileAndVerify(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), expectedOutput: @"---
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), verify: Verification.Fails, expectedOutput: @"---
 M
 ---
 ---");
@@ -5167,6 +5167,56 @@ M
   IL_0004:  br.s       IL_000d
   IL_0006:  ldarg.0
   IL_0007:  call       ""int* C.M()""
+  IL_000c:  pop
+  IL_000d:  ret
+}");
+        }
+
+        [WorkItem(23422, "https://github.com/dotnet/roslyn/issues/23422")]
+        [Fact]
+        public void ConditionalRefLike()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        System.Console.WriteLine(""---"");
+        Goo(new C());
+        System.Console.WriteLine(""---"");
+        Goo(null);
+        System.Console.WriteLine(""---"");
+    }
+
+    static void Goo(C x)
+    {
+        x?.M();
+    }
+
+    public RefLike M()
+    {
+        System.Console.WriteLine(""M"");
+        return default;
+    }
+
+    public ref struct RefLike{}
+}
+";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), expectedOutput: @"---
+M
+---
+---");
+
+            verifier.VerifyIL("C.Goo", @"
+{
+  // Code size       14 (0xe)
+  .maxstack  1
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  brtrue.s   IL_0006
+  IL_0004:  br.s       IL_000d
+  IL_0006:  ldarg.0
+  IL_0007:  call       ""C.RefLike C.M()""
   IL_000c:  pop
   IL_000d:  ret
 }");
@@ -5463,7 +5513,7 @@ unsafe class C
     }
 }
 ";
-            var verifier = CompileAndVerify(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), expectedOutput: @"---
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), verify: Verification.Fails, expectedOutput: @"---
 F1
 ---
 F1
@@ -7347,7 +7397,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        var obj1 = new MyObject1 { MyDate = DateTime.Parse(""2017-11-13T14:25:00Z"") };
+        var obj1 = new MyObject1 { MyDate = new DateTime(636461511000000000L) };
         var obj2 = new MyObject2<MyObject1>(obj1);
 
         System.Console.WriteLine(obj1.MyDate.Ticks);
@@ -7398,7 +7448,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        var obj1 = new MyObject1 { MyDate = DateTime.Parse(""2017-11-13T14:25:00Z"") };
+        var obj1 = new MyObject1 { MyDate = new DateTime(636461511000000000L) };
         var obj2 = new MyObject2<MyObject1>(obj1);
 
         System.Console.WriteLine(obj1.MyDate.Ticks);

@@ -1700,7 +1700,7 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
             var namedType = type as NamedTypeSymbol;
             Assert.NotNull(namedType);
 
-            var objType = namedType.BaseType;
+            var objType = namedType.BaseType();
             Assert.NotNull(objType);
             Assert.Equal("System.Object", objType.ToTestDisplayString());
 

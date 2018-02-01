@@ -414,7 +414,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 CollectTupleFieldMemberName(inferredName, i, numElements, inferredElementNames)
             Next
 
-            RemoveDuplicateInferredTupleNames(inferredElementNames, uniqueFieldNames)
+            RemoveDuplicateInferredTupleNamesAndFreeIfEmptied(inferredElementNames, uniqueFieldNames)
 
             Dim result = MergeTupleElementNames(elementNames, inferredElementNames)
             elementNames?.Free()
@@ -453,7 +453,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return (elementNames.ToImmutable(), builder.ToImmutableAndFree())
         End Function
 
-        Private Shared Sub RemoveDuplicateInferredTupleNames(inferredElementNames As ArrayBuilder(Of String), uniqueFieldNames As HashSet(Of String))
+        ''' <summary>
+        ''' Removes duplicate entries in <paramref name="inferredElementNames"/> and frees it if only nulls remain.
+        ''' </summary>
+        Private Shared Sub RemoveDuplicateInferredTupleNamesAndFreeIfEmptied(ByRef inferredElementNames As ArrayBuilder(Of String), uniqueFieldNames As HashSet(Of String))
             If inferredElementNames Is Nothing Then
                 Return
             End If
@@ -472,6 +475,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     inferredElementNames(index) = Nothing
                 End If
             Next
+
+            If inferredElementNames.All(Function(n) n Is Nothing) Then
+                inferredElementNames.Free()
+                inferredElementNames = Nothing
+            End If
         End Sub
 
         Private Shared Function InferTupleElementName(element As ExpressionSyntax) As String
@@ -1199,12 +1207,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim resultType As TypeSymbol = access.Type
 
                 If Not resultType.IsErrorType() Then
-                    If resultType.IsValueType Then
+                    If resultType.IsValueType AndAlso Not resultType.IsRestrictedType Then
                         If Not resultType.IsNullableType() Then
                             resultType = GetSpecialType(SpecialType.System_Nullable_T, expr.Syntax, diagnostics).Construct(resultType)
                         End If
                     ElseIf Not resultType.IsReferenceType Then
-                        ' Access cannot have unconstrained generic type
+                        ' Access cannot have unconstrained generic type or a restricted type
                         ReportDiagnostic(diagnostics, access.Syntax, ERRID.ERR_CannotBeMadeNullable1, resultType)
                         resultType = ErrorTypeSymbol.UnknownResultType
                     End If

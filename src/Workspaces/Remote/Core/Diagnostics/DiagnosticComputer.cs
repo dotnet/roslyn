@@ -130,9 +130,28 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 
         private BidirectionalMap<string, DiagnosticAnalyzer> CreateAnalyzerMap(IEnumerable<AnalyzerReference> hostAnalyzers, Project project)
         {
-            // TODO: probably need something like analyzer service so that we don't do this repeatedly?
-            return new BidirectionalMap<string, DiagnosticAnalyzer>(
-                hostAnalyzers.Concat(project.AnalyzerReferences).SelectMany(r => r.GetAnalyzers(project.Language)).Select(a => KeyValuePair.Create(a.GetAnalyzerId(), a)));
+            // we could consider creating a service so that we don't do this repeatedly if this shows up as perf cost
+            using (var pooledObject = SharedPools.Default<HashSet<object>>().GetPooledObject())
+            using (var pooledMap = SharedPools.Default<Dictionary<string, DiagnosticAnalyzer>>().GetPooledObject())
+            {
+                var referenceSet = pooledObject.Object;
+                var analyzerMap = pooledMap.Object;
+
+                // this follow what we do in HostAnalayzerManager.CheckAnalyzerReferenceIdentity
+                foreach (var reference in hostAnalyzers.Concat(project.AnalyzerReferences))
+                {
+                    if (!referenceSet.Add(reference.Id))
+                    {
+                        // already exist
+                        continue;
+                    }
+
+                    analyzerMap.AppendAnalyzerMap(reference.GetAnalyzers(project.Language));
+                }
+
+                // convert regular map to bidirectional map
+                return new BidirectionalMap<string, DiagnosticAnalyzer>(analyzerMap);
+            }
         }
 
         private OptionSet MergeOptions(OptionSet workspaceOptions, OptionSet userOptions)

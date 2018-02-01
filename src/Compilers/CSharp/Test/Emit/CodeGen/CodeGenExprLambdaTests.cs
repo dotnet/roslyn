@@ -2312,7 +2312,7 @@ unsafe public class Test
 }";
             string expectedOutput = @"x => G(x)";
 
-            CompileAndVerify(text, new[] { ExpressionAssemblyRef }, options: TestOptions.UnsafeReleaseExe, expectedOutput: TrimExpectedOutput(expectedOutput));
+            CompileAndVerify(text, new[] { ExpressionAssemblyRef }, options: TestOptions.UnsafeReleaseExe, expectedOutput: TrimExpectedOutput(expectedOutput), verify: Verification.Fails);
         }
 
         [WorkItem(544246, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544246")]
@@ -3052,7 +3052,7 @@ unsafe class Test
             var c = CompileAndVerify(text,
                 additionalRefs: new[] { SystemCoreRef },
                 options: TestOptions.UnsafeReleaseDll,
-                verify: Verification.Passes);
+                verify: Verification.Fails);
 
             c.VerifyDiagnostics();
         }
@@ -6178,6 +6178,44 @@ value(ConsoleApplication6.Program)";
                 new[] {
                     source,
                 },
+                new[] { ExpressionAssemblyRef },
+                expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void InArguments()
+        {
+            const string source = @"
+using System;
+using System.Linq.Expressions;
+
+class C : TestBase
+{
+    readonly static int x = 1;
+    readonly static int y = 2;
+
+    public static int TakesIn(in int x) => x;
+
+    public static void Main(string[] args)
+    {
+        // writeable field
+        Expression<Func<int>> e1 = () => TakesIn(x);
+        System.Console.Write(e1.Compile()());
+
+        // readonly field
+        Expression<Func<int>> e2 = () => TakesIn(in y);
+        System.Console.Write(e2.Compile()());
+
+        // constant
+        Expression<Func<int>> e3 = () => TakesIn(3);
+        Check<int>(e3, ""Call(null.[Int32 TakesIn(Int32 ByRef)](Constant(3 Type:System.Int32)) Type:System.Int32)"");
+        System.Console.Write(e3.Compile()());
+    }
+}";
+
+            const string expectedOutput = @"123";
+            CompileAndVerify(
+                new[] { source, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: expectedOutput);
         }

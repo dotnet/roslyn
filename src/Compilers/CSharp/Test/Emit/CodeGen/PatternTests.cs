@@ -240,12 +240,11 @@ class IdentityAccessor<T>
             var compVerifier = CompileAndVerify(compilation);
             compVerifier.VerifyIL("X<T>.Y<U>",
 @"{
-  // Code size       67 (0x43)
+  // Code size       61 (0x3d)
   .maxstack  3
   .locals init (U V_0, //u
                 bool V_1,
-                object V_2,
-                U V_3)
+                T V_2)
   IL_0000:  nop
   IL_0001:  ldarg.0
   IL_0002:  call       ""System.Collections.Generic.IEnumerable<T> X<T>.GetT()""
@@ -253,27 +252,24 @@ class IdentityAccessor<T>
   IL_0008:  ldftn      ""bool X<T>.<Y>b__1_0<U>(T)""
   IL_000e:  newobj     ""System.Func<T, bool>..ctor(object, System.IntPtr)""
   IL_0013:  call       ""T System.Linq.Enumerable.FirstOrDefault<T>(System.Collections.Generic.IEnumerable<T>, System.Func<T, bool>)""
-  IL_0018:  box        ""T""
-  IL_001d:  stloc.2
-  IL_001e:  ldloc.2
+  IL_0018:  dup
+  IL_0019:  stloc.2
+  IL_001a:  box        ""T""
   IL_001f:  isinst     ""U""
-  IL_0024:  ldnull
-  IL_0025:  cgt.un
-  IL_0027:  dup
-  IL_0028:  brtrue.s   IL_0035
-  IL_002a:  ldloca.s   V_3
-  IL_002c:  initobj    ""U""
-  IL_0032:  ldloc.3
-  IL_0033:  br.s       IL_003b
-  IL_0035:  ldloc.2
-  IL_0036:  unbox.any  ""U""
-  IL_003b:  stloc.0
-  IL_003c:  stloc.1
-  IL_003d:  ldloc.1
-  IL_003e:  brfalse.s  IL_0042
-  IL_0040:  nop
-  IL_0041:  nop
-  IL_0042:  ret
+  IL_0024:  brfalse.s  IL_0035
+  IL_0026:  ldloc.2
+  IL_0027:  box        ""T""
+  IL_002c:  unbox.any  ""U""
+  IL_0031:  stloc.0
+  IL_0032:  ldc.i4.1
+  IL_0033:  br.s       IL_0036
+  IL_0035:  ldc.i4.0
+  IL_0036:  stloc.1
+  IL_0037:  ldloc.1
+  IL_0038:  brfalse.s  IL_003c
+  IL_003a:  nop
+  IL_003b:  nop
+  IL_003c:  ret
 }");
         }
     }

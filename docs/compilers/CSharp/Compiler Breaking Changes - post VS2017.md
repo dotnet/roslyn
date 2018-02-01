@@ -76,3 +76,22 @@ if (o is object res) { // warning CS0184: The given expression is never of the p
 In Visual Studio 2017 version 15.6 such conversions will be explicitly disallowed by the compiler and cause compile time errors.
 Example: `Func<int> f = default(TypedReference).GetHashCode; // new error CS0123: No overload for 'GetHashCode' matches delegate 'Func<int>'` 
    
+- https://github.com/dotnet/roslyn/pull/23416 Before Visual Studio 2017 version 15.6 (Roslyn version 2.8) the compiler accepted `__arglist(...)` expressions with void-typed arguments. For instance, `__arglist(Console.WriteLine())`. But such program would fail at runtime. In Visual Studio 2017 version 15.6, this causes a compile-time error.
+
+- https://github.com/dotnet/roslyn/pull/24023 In Visual Studio 2017 version 15.6, Microsoft.CodeAnalysis.CSharp.Syntax.CrefParameterSyntax constructor and Update(), the parameter refOrOutKeyword was renamed to refKindKeyword (source breaking change if you're using named arguments).
+
+- Visual Studio 2017 15.0-15.5 shipped with a bug around definite assignment of local functions that did not produce definite assignment errors when an uncalled local function contains a nested lambda which captures a variable. For example:
+    ```csharp
+    void Method()
+    {
+        void Local()
+        {
+            Action a = () =>
+            {
+                int x;
+                x++; // No error in 15.0 - 15.5
+            };
+        }
+    }
+    ```
+    This is changed in 15.6 to now produce an error that the variable is not definitely assigned.

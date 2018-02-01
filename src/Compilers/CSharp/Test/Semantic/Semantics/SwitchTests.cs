@@ -443,6 +443,9 @@ public class TestClass
     }
 }";
             CreateStandardCompilation(text, parseOptions: TestOptions.Regular7_1).VerifyDiagnostics(
+                // (11,19): error CS8313: A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.
+                //             case (default):
+                Diagnostic(ErrorCode.ERR_DefaultInSwitch, "default").WithLocation(11, 19),
                 // (15,13): error CS0152: The switch statement contains multiple cases with the label value 'default'
                 //             default:            //CS0152
                 Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "default:").WithArguments("default").WithLocation(15, 13)

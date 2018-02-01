@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                     else if (typeof(TProvider) == typeof(DiagnosticsSuggestionTaggerProvider))
                     {
                         _taggerProvider = new DiagnosticsSuggestionTaggerProvider(
-                            _workspace.ExportProvider.GetExportedValue<IEditorFormatMapService>(), DiagnosticService, 
+                            DiagnosticService,
                             _workspace.GetService<IForegroundNotificationService>(), _listeners);
                     }
                     else

@@ -1966,6 +1966,108 @@ public static class Ext
         }
 
         [Fact]
+        public void ParameterSymbolsRetrievedThroughSemanticModel_RefExtensionMethods2()
+        {
+            var code = @"
+public static class Ext
+{
+    public static void Method(this ref int p) { }
+}";
+
+            var comp = CreateCompilationWithMscorlibAndSystemCore(code).VerifyDiagnostics();
+            var tree = comp.SyntaxTrees.Single();
+            var parameter = tree.FindNodeOrTokenByKind(SyntaxKind.Parameter);
+            Assert.True(parameter.IsNode);
+
+            var model = comp.GetSemanticModel(tree);
+            var symbol = (ParameterSymbol)model.GetDeclaredSymbolForNode(parameter.AsNode());
+            Assert.Equal(RefKind.Ref, symbol.RefKind);
+        }
+
+        [Fact]
+        public void ParameterSymbolsRetrievedThroughSemanticModel_InExtensionMethods2()
+        {
+            var code = @"
+public static class Ext
+{
+    public static void Method(this in int p) { }
+}";
+
+            var comp = CreateCompilationWithMscorlibAndSystemCore(code).VerifyDiagnostics();
+            var tree = comp.SyntaxTrees.Single();
+            var parameter = tree.FindNodeOrTokenByKind(SyntaxKind.Parameter);
+            Assert.True(parameter.IsNode);
+
+            var model = comp.GetSemanticModel(tree);
+            var symbol = (ParameterSymbol)model.GetDeclaredSymbolForNode(parameter.AsNode());
+            Assert.Equal(RefKind.In, symbol.RefKind);
+        }
+
+        [Fact]
+        public void BadContainingType_ThisWithRef()
+        {
+            var test = @"
+using System;
+public static class GenExtensions<X> where X : struct
+{
+    //No type parameters
+    public static void Goo1(ref this int i) {}
+    public static void Goo1(ref this X x) {}
+    public static void Goo2(this ref int i) {}
+    public static void Goo2(this ref X x) {}
+    //Single type parameter
+    public static void Goo1<T>(ref this T t) where T : struct {}
+    public static void Goo1<T>(ref this X x) {}
+    public static void Goo2<T>(this ref T t) where T : struct {}
+    public static void Goo2<T>(this ref X x) {}
+    //Multiple type parameters
+    public static void Goo1<T,U,V>(ref this U u) where U : struct {}
+    public static void Goo1<T,U,V>(ref this X x) {}
+    public static void Goo2<T,U,V>(this ref U u) where U : struct {}
+    public static void Goo2<T,U,V>(this ref X x) {}
+}
+";
+
+            CreateCompilationWithMscorlibAndSystemCore(test).GetDeclarationDiagnostics().Verify(
+                // (3,21): error CS1106: Extension method must be defined in a non-generic static class
+                // public static class GenExtensions<X> where X : struct
+                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(3, 21),
+                // (3,21): error CS1106: Extension method must be defined in a non-generic static class
+                // public static class GenExtensions<X> where X : struct
+                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(3, 21),
+                // (3,21): error CS1106: Extension method must be defined in a non-generic static class
+                // public static class GenExtensions<X> where X : struct
+                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(3, 21),
+                // (3,21): error CS1106: Extension method must be defined in a non-generic static class
+                // public static class GenExtensions<X> where X : struct
+                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(3, 21),
+                // (3,21): error CS1106: Extension method must be defined in a non-generic static class
+                // public static class GenExtensions<X> where X : struct
+                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(3, 21),
+                // (3,21): error CS1106: Extension method must be defined in a non-generic static class
+                // public static class GenExtensions<X> where X : struct
+                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(3, 21),
+                // (3,21): error CS1106: Extension method must be defined in a non-generic static class
+                // public static class GenExtensions<X> where X : struct
+                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(3, 21),
+                // (3,21): error CS1106: Extension method must be defined in a non-generic static class
+                // public static class GenExtensions<X> where X : struct
+                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(3, 21),
+                // (3,21): error CS1106: Extension method must be defined in a non-generic static class
+                // public static class GenExtensions<X> where X : struct
+                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(3, 21),
+                // (3,21): error CS1106: Extension method must be defined in a non-generic static class
+                // public static class GenExtensions<X> where X : struct
+                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(3, 21),
+                // (3,21): error CS1106: Extension method must be defined in a non-generic static class
+                // public static class GenExtensions<X> where X : struct
+                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(3, 21),
+                // (3,21): error CS1106: Extension method must be defined in a non-generic static class
+                // public static class GenExtensions<X> where X : struct
+                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(3, 21));
+        }
+
+        [Fact]
         public void UsingRefExtensionMethodsBeforeVersion7_2ProducesDiagnostics_RefSyntax_SameCompilation()
         {
             var code = @"

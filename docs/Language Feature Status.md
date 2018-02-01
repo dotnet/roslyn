@@ -10,7 +10,10 @@ efforts behind them.
 
 | Feature | Branch | State | Developers | Reviewer | LDM Champ |
 | ------- | ------ | ----- | ---------- | -------- | --------- |
-| [Ranges](https://github.com/dotnet/roslyn/blob/features/range/docs/features/range.md) | [range](https://github.com/dotnet/roslyn/tree/features/range) | Prototype | [Ashley](https://github.com/khyperia) | [agocke](https://github.com/agocke) | [jaredpar](https://github.com/jaredpar) |
+| [Ranges](https://github.com/dotnet/roslyn/blob/features/range/docs/features/range.md) | [range](https://github.com/dotnet/roslyn/tree/features/range) | Prototype | [vsadov](https://github.com/vsadov) | [agocke](https://github.com/agocke) | [jaredpar](https://github.com/jaredpar) |
+| [Support == and != for tuples](https://github.com/dotnet/csharplang/issues/190) | | In Progress | [jcouv](https://github.com/jcouv) | | [jcouv](https://github.com/jcouv) |
+| strongname | [strongname](https://github.com/dotnet/roslyn/tree/features/strongname) | In Progress/Backlog | | | [jaredpar](https://github.com/jaredpar) |
+| [Attribute on backing field](https://github.com/dotnet/csharplang/issues/42) | master | Merged | [jcouv](https://github.com/jcouv) | [AlekseyTs](https://github.com/AlekseyTs) | [jcouv](https://github.com/jcouv) |
 
 
 # C# 8.0
@@ -18,8 +21,9 @@ efforts behind them.
 | Feature | Branch | State | Developers | Reviewer | LDM Champ |
 | ------- | ------ | ----- | ---------- | -------- | --------- |
 | [Default Interface Methods](https://github.com/dotnet/csharplang/blob/master/proposals/default-interface-methods.md) | [defaultInterfaceImplementation](https://github.com/dotnet/roslyn/tree/features/DefaultInterfaceImplementation) | Prototype | [AlekseyTs](https://github.com/AlekseyTs) | [gafter](https://github.com/gafter) | [gafter](https://github.com/gafter) |
-| [Nullable reference type](https://github.com/dotnet/roslyn/blob/features/NullableReferenceTypes/docs/features/NullableReferenceTypes/Nullable%20reference%20types.md) | [NullableReferenceTypes](https://github.com/dotnet/roslyn/tree/features/NullableReferenceTypes) | Prototype | [cston](https://github.com/cston), [AlekseyTs](https://github.com/AlekseyTs) | | [mattwar](https://github.com/mattwar) |
-| [recursive patterns](https://github.com/dotnet/csharplang/blob/master/proposals/patterns.md) | | Ready for prototype | [gafter](https://github.com/gafter) | | [gafter](https://github.com/gafter) |
+| [Nullable reference type](https://github.com/dotnet/csharplang/blob/master/proposals/nullable-reference-types.md) | [NullableReferenceTypes](https://github.com/dotnet/roslyn/tree/features/NullableReferenceTypes) | Prototype | [cston](https://github.com/cston), [AlekseyTs](https://github.com/AlekseyTs) | | [mattwar](https://github.com/mattwar) |
+| [Recursive patterns](https://github.com/dotnet/csharplang/blob/master/proposals/patterns.md) | [recursive-patterns](https://github.com/dotnet/roslyn/tree/features/recursive-patterns) | Prototype | [gafter](https://github.com/gafter) | [agocke](https://github.com/agocke) | [gafter](https://github.com/gafter) |
+| [Async streams](https://github.com/dotnet/csharplang/blob/master/proposals/async-streams.md) | [async-streams](https://github.com/dotnet/roslyn/tree/features/async-streams) | Prototype | [jcouv](https://github.com/jcouv) |  | [stephentoub](https://github.com/stephentoub) |
 
 # C# 7.1
 
@@ -35,15 +39,18 @@ efforts behind them.
 
 | Feature | Branch | State | Developers | Reviewer | LDM Champ |
 | ------- | ------ | ----- | ---------- | -------- | --------- |
-| [ref readonly](https://github.com/dotnet/csharplang/blob/master/proposals/csharp-7.2/readonly-ref.md) | master | Merged | [vsadov](https://github.com/vsadov), [omar](https://github.com/OmarTawfikw) | [cston](https://github.com/cston),[gafter](https://github.com/gafter) | [jaredpar](https://github.com/jaredpar) |
-| [blittable](https://github.com/dotnet/csharplang/pull/206) | None | Proposal | None | | [jaredpar](https://github.com/jaredpar) |
-| strongname | [strongname](https://github.com/dotnet/roslyn/tree/features/strongname) | In Progress | [Ty Overby](https://github.com/tyoverby) | | [jaredpar](https://github.com/jaredpar) |
+| [ref readonly](https://github.com/dotnet/csharplang/blob/master/proposals/csharp-7.2/readonly-ref.md) | master | Merged | [vsadov](https://github.com/vsadov), [OmarTawfik](https://github.com/OmarTawfik) | [cston](https://github.com/cston),[gafter](https://github.com/gafter) | [jaredpar](https://github.com/jaredpar) |
 | [interior pointer/Span<T>/ref struct](https://github.com/dotnet/csharplang/pull/264) | master | Merged | [vsadov](https://github.com/vsadov) | [gafter](https://github.com/gafter), [jaredpar](https://github.com/jaredpar) | [jaredpar](https://github.com/jaredpar) |
 | [non-trailing named arguments](https://github.com/dotnet/csharplang/blob/master/proposals/csharp-7.2/non-trailing-named-arguments.md) | master | Merged | [jcouv](https://github.com/jcouv) | [gafter](https://github.com/gafter) | [jcouv](https://github.com/jcouv) |
 | [private protected](https://github.com/dotnet/csharplang/blob/master/proposals/csharp-7.2/private-protected.md) | master | Merged | [gafter](https://github.com/gafter) | [jcouv](https://github.com/jcouv) | [gafter](https://github.com/gafter) |
 | [conditional ref operator](https://github.com/dotnet/csharplang/blob/master/proposals/csharp-7.2/conditional-ref.md) | master | Merged | [vsadov](https://github.com/vsadov) | [cston](https://github.com/cston) | [jaredpar](https://github.com/jaredpar) |
 | [Digit separator after base specifier](https://github.com/dotnet/roslyn/pull/20449) | master | Merged | [alrz](https://github.com/alrz) | | [gafter](https://github.com/gafter) |
 
+# C# 7.2 fixes
+| Feature | Branch | State | Developers | Reviewer | LDM Champ |
+| ------- | ------ | ----- | ---------- | -------- | --------- |
+| [`ref` and `this` ordering in ref extension](https://github.com/dotnet/roslyn/pull/23643) |  | Review | [alrz](https://github.com/alrz) |  |  |
+| [Tiebreaker for by-val and `in` overloads](https://github.com/dotnet/roslyn/pull/23122) | master | Merged | [OmarTawfik](https://github.com/OmarTawfik) |  | |
 
 # FAQ
 

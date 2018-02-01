@@ -954,6 +954,16 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ITypeParameterObjectCreationOperation (OperationKind.TypeParameterObjectCreation, Type: T) (Syntax: 'New T() With {.Bar = 23}')
+  Initializer: 
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: T) (Syntax: 'With {.Bar = 23}')
+      Initializers(1):
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Void) (Syntax: '.Bar = 23')
+            Left: 
+              IPropertyReferenceOperation: Property IGoo.Bar As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'Bar')
+                Instance Receiver: 
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: T, IsImplicit) (Syntax: 'New T() With {.Bar = 23}')
+            Right: 
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 23) (Syntax: '23')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -999,6 +1009,8 @@ IObjectCreationOperation (Constructor: Sub C1(Of T)..ctor()) (OperationKind.Obje
                   IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C1(Of T), IsImplicit) (Syntax: 'New C1(Of T ... ld = New T}')
             Right: 
               ITypeParameterObjectCreationOperation (OperationKind.TypeParameterObjectCreation, Type: T) (Syntax: 'New T')
+                Initializer: 
+                  null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty

@@ -3031,7 +3031,7 @@ public class MyClass : Outer.base1
 ";
             var comp = CreateStandardCompilation(text);
             var type1 = comp.SourceModule.GlobalNamespace.GetMembers("MyClass").Single() as NamedTypeSymbol;
-            var b = type1.BaseType;
+            var b = type1.BaseType();
             var errs = comp.GetDiagnostics();
             Assert.Equal(1, errs.Count());
             Assert.Equal(122, errs.First().Code);
@@ -23585,6 +23585,52 @@ class Program
     // (10,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
     //         x?.ToString()[1];
     Diagnostic(ErrorCode.ERR_IllegalStatement, "x?.ToString()[1]").WithLocation(10, 9)
+               );
+        }
+
+        [WorkItem(23422, "https://github.com/dotnet/roslyn/issues/23422")]
+        [Fact]
+        public void ConditionalMemberAccessRefLike()
+        {
+            var text = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        var o = new Program();
+
+        o?.F(); // this is ok
+
+        var x = o?.F();
+
+        var y = o?.F() ?? default;
+
+        var z = o?.F().field ?? default;
+    }
+
+    S2 F() => throw null;
+}
+
+public ref struct S1
+{
+
+}
+
+public ref struct S2
+{
+    public S1 field;
+}
+";
+            CreateCompilationWithMscorlib45(text, options: TestOptions.ReleaseDll).VerifyDiagnostics(
+                // (10,18): error CS0023: Operator '?' cannot be applied to operand of type 'S2'
+                //         var x = o?.F();
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "S2").WithLocation(10, 18),
+                // (12,18): error CS0023: Operator '?' cannot be applied to operand of type 'S2'
+                //         var y = o?.F() ?? default;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "S2").WithLocation(12, 18),
+                // (14,18): error CS0023: Operator '?' cannot be applied to operand of type 'S1'
+                //         var z = o?.F().field ?? default;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "S1").WithLocation(14, 18)
                );
         }
 

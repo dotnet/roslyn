@@ -4860,7 +4860,7 @@ class Program
         }
 
         [Fact]
-        public void TestCompoundOnAfieldOfGeneric()
+        public void TestCompoundOnAFieldOfGeneric()
         {
             var source = @"
 class Program
@@ -5007,7 +5007,8 @@ class test<T> where T : c0
 ");
         }
 
-        [Fact, WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
+        [NoIOperationValidationFact]
+        [WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
         public void EmitSequenceOfBinaryExpressions_01()
         {
             var source =
@@ -5066,7 +5067,8 @@ class Test
             return builder.ToString();
         }
 
-        [Fact, WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
+        [NoIOperationValidationFact]
+        [WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
         public void EmitSequenceOfBinaryExpressions_02()
         {
             var source =
@@ -5094,7 +5096,7 @@ class Test
             var result = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: "11461640193");
         }
 
-        [Fact]
+        [NoIOperationValidationFact]
         [WorkItem(6077, "https://github.com/dotnet/roslyn/issues/6077")]
         [WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
         public void EmitSequenceOfBinaryExpressions_03()
@@ -5155,7 +5157,8 @@ class Test
             return builder.ToString();
         }
 
-        [Fact, WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
+        [NoIOperationValidationFact]
+        [WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
         public void EmitSequenceOfBinaryExpressions_04()
         {
             var source =
@@ -5188,7 +5191,8 @@ class Test
                 );
         }
 
-        [Fact, WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
+        [NoIOperationValidationFact]
+        [WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
         public void EmitSequenceOfBinaryExpressions_05()
         {
             int count = 50;
@@ -5240,7 +5244,8 @@ class Test
 5180801");
         }
 
-        [Fact, WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
+        [NoIOperationValidationFact]
+        [WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
         public void EmitSequenceOfBinaryExpressions_06()
         {
             var source =

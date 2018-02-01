@@ -1487,7 +1487,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadOpOnNullOrDefault = 8310,
         ERR_BadDynamicMethodArgDefaultLiteral = 8311,
         ERR_DefaultLiteralNotValid = 8312,
-        WRN_DefaultInSwitch = 8313,
+        ERR_DefaultInSwitch = 8313,
         ERR_PatternWrongGenericTypeInVersion = 8314,
         ERR_AmbigBinaryOpsOnDefault = 8315,
 
@@ -1517,7 +1517,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_TypeReserved = 8336,
         ERR_RefExtensionMustBeValueTypeOrConstrainedToOne = 8337,
         ERR_InExtensionMustBeValueType = 8338,
-        ERR_BadParameterModifiersOrder = 8339,
+        // ERR_BadParameterModifiersOrder = 8339, // Modifier ordering is relaxed
 
         ERR_FieldsInRoStruct = 8340,
         ERR_AutoPropsInRoStruct = 8341,
@@ -1539,7 +1539,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_OutAttrOnInParam = 8355,
         #endregion diagnostics introduced for `ref readonly`, `ref ternary` and `ref-like` features in C# 7.2
 
-        #region diagnostics introduced for C# 7.3
         ERR_PredefinedValueTupleTypeAmbiguous3 = 8356,
         ERR_InvalidVersionFormatDeterministic = 8357,
 
@@ -1551,6 +1550,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         #endregion diagnostics for FilterIsConstant warning message fix
 
         ERR_ConditionalInInterpolation = 8361,
-        #endregion diagnostics introduced for C# 7.3
+        ERR_CantUseVoidInArglist = 8362,
+        ERR_DefaultInPattern = 8363,
+        ERR_InDynamicMethodArg = 8364,
     }
 }

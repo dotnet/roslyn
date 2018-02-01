@@ -23,11 +23,11 @@ param (
     [switch]$cibuild = $false,
     [switch]$build = $false,
     [switch]$buildAll = $false,
+    [switch]$buildCoreClr = $false,
     [switch]$bootstrap = $false,
     [switch]$sign = $false,
     [switch]$pack = $false,
     [switch]$binaryLog = $false,
-    [string]$msbuildDir = "",
     [string]$signType = "",
 
     # Test options 
@@ -61,7 +61,6 @@ function Print-Usage() {
     Write-Host "  -sign                     Sign our binaries"
     Write-Host "  -signType                 Type of sign: real, test, verify"
     Write-Host "  -pack                     Create our NuGet packages"
-    Write-Host "  -msbuildDir               MSBuild to use for operations"
     Write-Host "  -binaryLog                Create binary log for every MSBuild invocation"
     Write-Host "" 
     Write-Host "Test options" 
@@ -112,7 +111,12 @@ function Process-Arguments() {
         exit 1
     }
 
-    if ($buildAll) {
+    if ($buildCoreClr -and $buildAll) {
+        Write-Host "Cannot combine coreclr build with full Roslyn build"
+        exit 1
+    }
+
+    if ($buildAll -or $buildCoreClr) {
         $script:build = $true
     }
 
@@ -120,7 +124,7 @@ function Process-Arguments() {
     $script:debug = -not $release
 }
 
-function Run-MSBuild([string]$projectFilePath, [string]$buildArgs = "", [string]$logFileName = "", [switch]$parallel = $true) {
+function Run-MSBuild([string]$projectFilePath, [string]$buildArgs = "", [string]$logFileName = "", [switch]$parallel = $true, [switch]$useDotnetBuild = $false) {
     # Because we override the C#/VB toolset to build against our LKG package, it is important
     # that we do not reuse MSBuild nodes from other jobs/builds on the machine. Otherwise,
     # we'll run into issues such as https://github.com/dotnet/roslyn/issues/6211.
@@ -157,7 +161,15 @@ function Run-MSBuild([string]$projectFilePath, [string]$buildArgs = "", [string]
 
     $args += " $buildArgs"
     $args += " $projectFilePath"
-    Exec-Console $msbuild $args
+
+    if ($useDotnetBuild) {
+        $args = " build --no-restore " + $args
+        $args += " -m:1"
+        Exec-Console $dotnet $args
+    }
+    else {
+        Exec-Console $msbuild $args
+    }
 }
 
 # Create a bootstrap build of the compiler.  Returns the directory where the bootstrap buil 
@@ -166,25 +178,41 @@ function Run-MSBuild([string]$projectFilePath, [string]$buildArgs = "", [string]
 # Important to not set $script:bootstrapDir here yet as we're actually in the process of 
 # building the bootstrap.
 function Make-BootstrapBuild() {
-
-    Write-Host "Building Bootstrap compiler"
-    Run-MSBuild "build\Toolset\Toolset.csproj" "/p:UseShippingAssemblyVersion=true /p:InitialDefineConstants=BOOTSTRAP" -logFileName "Bootstrap"
     $dir = Join-Path $binariesDir "Bootstrap"
+    Write-Host "Building Bootstrap compiler"
+    $bootstrapArgs = "/p:UseShippingAssemblyVersion=true /p:InitialDefineConstants=BOOTSTRAP"
     Remove-Item -re $dir -ErrorAction SilentlyContinue
     Create-Directory $dir
-    Move-Item "$configDir\Exes\Toolset\*" $dir
+    if ($buildCoreClr) {
+        $bootstrapFramework = "netcoreapp2.0"
+        $logDir = Join-Path $binariesDir "Logs"
+        Create-Directory $logDir
+        Exec-Console "dotnet" "publish --no-restore src/Compilers/CSharp/csc -o `"$dir/bincore`" --framework $bootstrapFramework $bootstrapArgs -bl:$logDir/BootstrapCsc.binlog"
+        Exec-Console "dotnet" "publish --no-restore src/Compilers/VisualBasic/vbc -o `"$dir/bincore`" --framework $bootstrapFramework $bootstrapArgs -bl:$logDir/BootstrapVbc.binlog"
+        Exec-Console "dotnet" "publish --no-restore src/Compilers/Server/VBCSCompiler -o `"$dir/bincore`" --framework $bootstrapFramework $bootstrapArgs -bl:$logDir/BootstrapVBCSCompiler.binlog"
+        Exec-Console "dotnet" "publish --no-restore src/Compilers/Core/MSBuildTask -o `"$dir`" $bootstrapArgs -bl:$binariesDir/BootstrapMSBuildTask.binlog"
+        Stop-BuildProcesses
+    }
+    else {
+        Run-MSBuild "build\Toolset\Toolset.csproj" $bootstrapArgs -logFileName "Bootstrap"
+        Remove-Item -re $dir -ErrorAction SilentlyContinue
+        Create-Directory $dir
+        Move-Item "$configDir\Exes\Toolset\*" $dir
 
-    Write-Host "Cleaning Bootstrap compiler artifacts"
-    Run-MSBuild "build\Toolset\Toolset.csproj" "/t:Clean" -logFileName "BootstrapClean"
-    Stop-BuildProcesses
+        Write-Host "Cleaning Bootstrap compiler artifacts"
+        Run-MSBuild "build\Toolset\Toolset.csproj" "/t:Clean" -logFileName "BootstrapClean"
+        Stop-BuildProcesses
+    }
+
     return $dir
 }
 
 function Build-Artifacts() { 
-    Run-MSBuild "Roslyn.sln" "/p:DeployExtension=false"
-
-    if ($testDesktop) { 
-        Run-MSBuild "src\Samples\Samples.sln" "/p:DeployExtension=false"
+    if ($buildCoreClr) {
+        Run-MSBuild "Compilers.sln" -useDotnetBuild
+    }
+    elseif ($build) {
+        Run-MSBuild "Roslyn.sln" "/p:DeployExtension=false"
     }
 
     if ($buildAll) {
@@ -217,24 +245,19 @@ function Build-ExtraSignArtifacts() {
         # Publish the CoreClr projects (CscCore and VbcCore) and dependencies for later NuGet packaging.
         Write-Host "Publishing csc"
         Run-MSBuild "..\Compilers\CSharp\csc\csc.csproj" "/p:TargetFramework=netcoreapp2.0 /t:PublishWithoutBuilding"
-        Write-Host "Publishing csc"
+        Write-Host "Publishing vbc"
         Run-MSBuild "..\Compilers\VisualBasic\vbc\vbc.csproj" "/p:TargetFramework=netcoreapp2.0 /t:PublishWithoutBuilding"
-
-        # No need to build references here as we just built the rest of the source tree. 
-        # We build these serially to work around https://github.com/dotnet/roslyn/issues/11856,
-        # where building multiple projects that produce VSIXes larger than 10MB will race against each other
-        Run-MSBuild "Deployment\Current\Roslyn.Deployment.Full.csproj" "/p:BuildProjectReferences=false" -parallel:$false
-        Run-MSBuild "Deployment\Next\Roslyn.Deployment.Full.Next.csproj" "/p:BuildProjectReferences=false" -parallel:$false
+        Write-Host "Publishing VBCSCompiler"
+        Run-MSBuild "..\Compilers\Server\VBCSCompiler\VBCSCompiler.csproj" "/p:TargetFramework=netcoreapp2.0 /t:PublishWithoutBuilding"
+        Write-Host "Publishing MSBuildTask"
+        Run-MSBuild "..\Compilers\Core\MSBuildTask\MSBuildTask.csproj" "/p:TargetFramework=netstandard1.3 /t:PublishWithoutBuilding"
 
         $dest = @(
-            $configDir,
-            "Templates\CSharp\Diagnostic\Analyzer",
-            "Templates\VisualBasic\Diagnostic\Analyzer\tools")
+            $configDir)
         foreach ($dir in $dest) { 
             Copy-Item "PowerShell\*.ps1" $dir
         }
 
-        Run-MSBuild "Templates\Templates.sln" "/p:VersionType=Release"
         Run-MSBuild "DevDivInsertionFiles\DevDivInsertionFiles.sln" -buildArgs ""
         Copy-Item -Force "Vsix\myget_org-extensions.config" $configDir
     }
@@ -294,6 +317,7 @@ function Build-NuGetPackages() {
         $buildArgs = '/p:SkipReleaseVersion=true /p:SkipPreReleaseVersion=true'
     }
 
+    Ensure-NuGet | Out-Null
     Run-MSBuild "src\NuGet\NuGet.proj" $buildArgs
 }
 
@@ -417,7 +441,7 @@ function Test-XUnit() {
     $logFilePath = Join-Path $configDir "runtests.log"
     $unitDir = Join-Path $configDir "UnitTests"
     $runTests = Join-Path $configDir "Exes\RunTests\RunTests.exe"
-    $xunitDir = Join-Path (Get-PackageDir "xunit.runner.console") "tools"
+    $xunitDir = Join-Path (Get-PackageDir "xunit.runner.console") "tools\net452"
     $args = "$xunitDir"
     $args += " -log:$logFilePath"
     $args += " -nocache"
@@ -564,6 +588,8 @@ function Ensure-ProcDump() {
 function Redirect-Temp() {
     $temp = Join-Path $binariesDir "Temp"
     Create-Directory $temp
+    Copy-Item (Join-Path $repoDir "src\Workspaces\CoreTestUtilities\TestFiles\Directory.Build.props") $temp
+    Copy-Item (Join-Path $repoDir "src\Workspaces\CoreTestUtilities\TestFiles\Directory.Build.targets") $temp
     ${env:TEMP} = $temp
     ${env:TMP} = $temp
 }
@@ -572,6 +598,7 @@ function List-BuildProcesses() {
     Write-Host "Listing running build processes..."
     Get-Process -Name "msbuild" -ErrorAction SilentlyContinue | Out-Host
     Get-Process -Name "vbcscompiler" -ErrorAction SilentlyContinue | Out-Host
+    Get-Process -Name "dotnet" -ErrorAction SilentlyContinue | where { $_.Modules | select { $_.ModuleName -eq "VBCSCompiler.dll" } } | Out-Host
 }
 
 function List-VSProcesses() {
@@ -587,6 +614,7 @@ function Stop-BuildProcesses() {
     Write-Host "Killing running build processes..."
     Get-Process -Name "msbuild" -ErrorAction SilentlyContinue | Stop-Process
     Get-Process -Name "vbcscompiler" -ErrorAction SilentlyContinue | Stop-Process
+    Get-Process -Name "dotnet" -ErrorAction SilentlyContinue | where { $_.Modules | select { $_.ModuleName -eq "VBCSCompiler.dll" } } | Stop-Process
 }
 
 # Kill any instances of devenv.exe to ensure VSIX install/uninstall works in future runs and to ensure
@@ -606,8 +634,8 @@ try {
 
     Process-Arguments
 
-    $msbuild, $msbuildDir = Ensure-MSBuildAndDir -msbuildDir $msbuildDir
-    $dotnet, $sdkDir = Ensure-SdkInPathAndData
+    $msbuild = Ensure-MSBuild
+    $dotnet = Ensure-DotnetSdk
     $buildConfiguration = if ($release) { "Release" } else { "Debug" }
     $configDir = Join-Path $binariesDir $buildConfiguration
     $bootstrapDir = ""
@@ -624,7 +652,7 @@ try {
 
     if ($restore) {
         Write-Host "Running restore"
-        Restore-All -msbuildDir $msbuildDir
+        Restore-All $dotnet
     }
 
     if ($isAnyTestSpecial) {
@@ -636,7 +664,7 @@ try {
         $bootstrapDir = Make-BootstrapBuild
     }
 
-    if ($build) {
+    if ($build -or $pack) {
         Build-Artifacts
     }
 

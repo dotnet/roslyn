@@ -40,6 +40,21 @@ End Class
         End Function
 
         <Fact>
+        <WorkItem(23659, "https://github.com/dotnet/roslyn/issues/23659")>
+        Public Async Function TestMissingForObjectCreation() As Task
+            Await TestMissingAsync(
+"
+Public Class C
+    Public Property P As Integer
+
+    Sub M(p As Integer)
+        Dim f = New C With { [|.P|] = p }
+    End Sub
+End Class
+", New TestParameters(s_parseOptions))
+        End Function
+
+        <Fact>
         Public Async Function TestInferredTupleName2() As Task
             Await TestAsync(
 "

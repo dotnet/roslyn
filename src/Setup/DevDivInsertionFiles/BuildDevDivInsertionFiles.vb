@@ -303,7 +303,6 @@ Public Class BuildDevDivInsertionFiles
         "Roslyn.Hosting.Diagnostics.dll",
         "Roslyn.Services.Test.Utilities.dll",
         "Roslyn.Test.PdbUtilities.dll",
-        "Roslyn.Test.Utilities.Desktop.dll",
         "Roslyn.Test.Utilities.dll",
         "vbc.exe",
         "vbc.exe.config",
@@ -551,7 +550,7 @@ Public Class BuildDevDivInsertionFiles
                                                                 packageName,
                                                                 packageVersion,
                                                                 isNative:=native IsNot Nothing,
-                                                                isFacade:=frameworkAssemblies IsNot Nothing))
+                                                                isFacade:=frameworkAssemblies IsNot Nothing OrElse packageName = "System.IO.Pipes.AccessControl"))
                     End If
                 Next
             Next
@@ -755,6 +754,10 @@ Public Class BuildDevDivInsertionFiles
                           Throw New Exception($"Mapped VSIX path does not exist: {filePath}")
                       End If
                       Dim name = Path.GetFileName(filePath)
+                      If map.ContainsKey(name) Then
+                          Throw New Exception($"{name} already exist!")
+                      End If
+
                       map.Add(name, filePath)
                   End Sub
 
@@ -807,11 +810,17 @@ Public Class BuildDevDivInsertionFiles
         add("Vsix\VisualStudioSetup\System.Composition.Convention.dll")
         add("Vsix\VisualStudioSetup\System.Composition.Hosting.dll")
         add("Vsix\VisualStudioSetup\System.Composition.TypedParts.dll")
+        add("Vsix\VisualStudioSetup\Mono.Cecil.dll")
+        add("Vsix\VisualStudioSetup\Mono.Cecil.Mdb.dll")
+        add("Vsix\VisualStudioSetup\Mono.Cecil.Pdb.dll")
+        add("Vsix\VisualStudioSetup\Mono.Cecil.Rocks.dll")
+        add("Vsix\VisualStudioSetup\ICSharpCode.Decompiler.dll")
         add("Dlls\BasicExpressionCompiler\Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ExpressionCompiler.vsdconfig")
         add("Dlls\BasicResultProvider.Portable\Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ResultProvider.vsdconfig")
         add("Dlls\CSharpExpressionCompiler\Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ExpressionCompiler.vsdconfig")
         add("Dlls\CSharpResultProvider.Portable\Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ResultProvider.vsdconfig")
         add("Dlls\FunctionResolver\Microsoft.CodeAnalysis.ExpressionEvaluator.FunctionResolver.vsdconfig")
+        add("Dlls\ServicesVisualStudio\Microsoft.VisualStudio.LanguageServices.vsdconfig")
         add("Dlls\MSBuildTask\Microsoft.CSharp.Core.targets")
         add("Dlls\MSBuildTask\Microsoft.VisualBasic.Core.targets")
         add("Dlls\CSharpCompilerTestUtilities\Roslyn.Compilers.CSharp.Test.Utilities.dll")
@@ -820,7 +829,6 @@ Public Class BuildDevDivInsertionFiles
         add("Dlls\ExpressionCompilerTestUtilities\Roslyn.ExpressionEvaluator.ExpressionCompiler.Test.Utilities.dll")
         add("Dlls\ResultProviderTestUtilities\Roslyn.ExpressionEvaluator.ResultProvider.Test.Utilities.dll")
         add("Dlls\PdbUtilities\Roslyn.Test.PdbUtilities.dll")
-        add("Dlls\TestUtilities.Desktop\Roslyn.Test.Utilities.Desktop.dll")
         add("UnitTests\EditorServicesTest\BasicUndo.dll")
         add("UnitTests\EditorServicesTest\Moq.dll")
         add("UnitTests\EditorServicesTest\Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll")
@@ -833,7 +841,6 @@ Public Class BuildDevDivInsertionFiles
         add("UnitTests\EditorServicesTest\Microsoft.VisualStudio.Platform.VSEditor.Interop.dll")
         add("Vsix\ExpressionEvaluatorPackage\Microsoft.VisualStudio.Debugger.Engine.dll")
         add("Vsix\VisualStudioIntegrationTestSetup\Microsoft.Diagnostics.Runtime.dll")
-        add("Vsix\VisualStudioIntegrationTestSetup\Microsoft.VisualStudio.IntegrationTest.Setup.vsix")
         add("Exes\Toolset\System.AppContext.dll")
         add("Exes\Toolset\System.Console.dll")
         add("Exes\Toolset\System.Collections.Immutable.dll")
@@ -845,6 +852,7 @@ Public Class BuildDevDivInsertionFiles
         add("Exes\Toolset\System.IO.FileSystem.DriveInfo.dll")
         add("Exes\Toolset\System.IO.FileSystem.Primitives.dll")
         add("Exes\Toolset\System.IO.Pipes.dll")
+        add("Exes\Toolset\System.IO.Pipes.AccessControl.dll")
         add("Exes\Toolset\System.Reflection.Metadata.dll")
         add("Exes\Toolset\System.Security.AccessControl.dll")
         add("Exes\Toolset\System.Security.Claims.dll")

@@ -12,7 +12,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.GenerateMember
 {
+#pragma warning disable RS1016 // Code fix providers should provide FixAll support. https://github.com/dotnet/roslyn/issues/23528
     internal abstract class AbstractGenerateMemberCodeFixProvider : CodeFixProvider
+#pragma warning restore RS1016 // Code fix providers should provide FixAll support.
     {
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {

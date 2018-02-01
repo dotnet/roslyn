@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
@@ -13,7 +14,7 @@ using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Emit;
-using static Microsoft.Cci.SigningUtilities;
+using static Microsoft.CodeAnalysis.SigningUtilities;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 
 namespace Microsoft.Cci
@@ -225,12 +226,13 @@ namespace Microsoft.Cci
             var peBlob = new BlobBuilder();
             var peContentId = peBuilder.Serialize(peBlob, out Blob mvidSectionFixup);
 
+            PatchModuleVersionIds(mvidFixup, mvidSectionFixup, mvidStringFixup, peContentId.Guid);
+
             if (privateKeyOpt != null)
             {
                 strongNameProvider.SignPeBuilder(peBuilder, peBlob, privateKeyOpt.Value);
+                FixupChecksum(peBuilder, peBlob);
             }
-
-            PatchModuleVersionIds(mvidFixup, mvidSectionFixup, mvidStringFixup, peContentId.Guid);
 
             try
             {
@@ -242,6 +244,48 @@ namespace Microsoft.Cci
             }
 
             return true;
+        }
+
+        private static void FixupChecksum(ExtendedPEBuilder peBuilder, BlobBuilder peBlob)
+        {
+            // Checksum fixup, workaround for https://github.com/dotnet/corefx/issues/25829
+            // Tracked by https://github.com/dotnet/roslyn/issues/23762
+            // Since the checksum is calculated before signing in the PEBuilder,
+            // we need to redo the calculation and write in the correct checksum
+            Blob checksumBlob = getChecksumBlob(peBuilder);
+
+            ArraySegment<byte> checksumSegment = checksumBlob.GetBytes();
+            uint oldChecksum = BitConverter.ToUInt32(checksumSegment.Array, checksumSegment.Offset);
+            uint newChecksum = CalculateChecksum(peBlob, checksumBlob);
+            new BlobWriter(checksumBlob).WriteUInt32(newChecksum);
+
+            // If this assert fires, the above bug has been fixed and this workaround should
+            // be removed
+            Debug.Assert(oldChecksum != newChecksum);
+
+            Blob getChecksumBlob(PEBuilder builder)
+                => (Blob)typeof(PEBuilder).GetRuntimeFields()
+                    .Where(f => f.Name == "_lazyChecksum")
+                    .Single()
+                    .GetValue(builder);
+        }
+
+        private static MethodInfo s_calculateChecksumMethod;
+        // internal for testing
+        internal static uint CalculateChecksum(BlobBuilder peBlob, Blob checksumBlob)
+        {
+            if (s_calculateChecksumMethod == null)
+            {
+                s_calculateChecksumMethod = typeof(PEBuilder).GetRuntimeMethods()
+                    .Where(m => m.Name == "CalculateChecksum" && m.GetParameters().Length == 2)
+                    .Single();
+            }
+
+            return (uint)s_calculateChecksumMethod.Invoke(null, new object[]
+            {
+                peBlob,
+                checksumBlob,
+            });
         }
 
         private static void PatchModuleVersionIds(Blob guidFixup, Blob guidSectionFixup, Blob stringFixup, Guid mvid)

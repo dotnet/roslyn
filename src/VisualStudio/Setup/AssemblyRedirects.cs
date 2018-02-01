@@ -10,6 +10,7 @@ using Roslyn.VisualStudio.Setup;
 [assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.dll")]
 [assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.EditorFeatures.dll")]
 [assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.EditorFeatures.Text.dll")]
+[assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.EditorFeatures.Wpf.dll")]
 [assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.Features.dll")]
 [assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.VisualBasic.dll")]
 [assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.dll")]
@@ -40,6 +41,9 @@ using Roslyn.VisualStudio.Setup;
 [assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\System.Composition.Hosting.dll")]
 [assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\System.Composition.TypedParts.dll")]
 [assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\Humanizer.dll")]
+
+[assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\Mono.Cecil.dll")]
+[assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\ICSharpCode.Decompiler.dll")]
 
 [assembly: ProvideBindingRedirection(
     AssemblyName = "Microsoft.VisualStudio.CallHierarchy.Package.Definitions",

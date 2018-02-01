@@ -5,13 +5,20 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using ICSharpCode.Decompiler;
+using ICSharpCode.Decompiler.CSharp;
+using ICSharpCode.Decompiler.TypeSystem;
+using Microsoft.CodeAnalysis.Editor.Shared.Options;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SymbolMapping;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
+using Mono.Cecil;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
@@ -66,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
             return _rootTemporaryPathWithGuid;
         }
 
-        public async Task<MetadataAsSourceFile> GetGeneratedFileAsync(Project project, ISymbol symbol, CancellationToken cancellationToken = default)
+        public async Task<MetadataAsSourceFile> GetGeneratedFileAsync(Project project, ISymbol symbol, bool allowDecompilation, CancellationToken cancellationToken = default)
         {
             if (project == null)
             {
@@ -107,8 +114,29 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
                     var temporaryDocument = _workspace.CurrentSolution.AddProject(temporaryProjectInfoAndDocumentId.Item1)
                                                                      .GetDocument(temporaryProjectInfoAndDocumentId.Item2);
 
-                    var sourceFromMetadataService = temporaryDocument.Project.LanguageServices.GetService<IMetadataAsSourceService>();
-                    temporaryDocument = await sourceFromMetadataService.AddSourceToAsync(temporaryDocument, symbol, cancellationToken).ConfigureAwait(false);
+                    var useDecompiler = allowDecompilation;
+                    if (useDecompiler)
+                    {
+                        useDecompiler = !symbol.ContainingAssembly.GetAttributes().Any(attribute => attribute.AttributeClass.Name == nameof(SuppressIldasmAttribute));
+                    }
+
+                    if (useDecompiler)
+                    {
+                        try
+                        {
+                            temporaryDocument = await DecompileSymbolAsync(temporaryDocument, symbol, cancellationToken).ConfigureAwait(false);
+                        }
+                        catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+                        {
+                            useDecompiler = false;
+                        }
+                    }
+
+                    if (!useDecompiler)
+                    {
+                        var sourceFromMetadataService = temporaryDocument.Project.LanguageServices.GetService<IMetadataAsSourceService>();
+                        temporaryDocument = await sourceFromMetadataService.AddSourceToAsync(temporaryDocument, symbol, cancellationToken).ConfigureAwait(false);
+                    }
 
                     // We have the content, so write it out to disk
                     var text = await temporaryDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
@@ -157,6 +185,88 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
             var documentTooltip = topLevelNamedType.ToDisplayString(new SymbolDisplayFormat(typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces));
 
             return new MetadataAsSourceFile(fileInfo.TemporaryFilePath, navigateLocation, documentName, documentTooltip);
+        }
+
+        private async Task<Document> DecompileSymbolAsync(Document temporaryDocument, ISymbol symbol, CancellationToken cancellationToken)
+        {
+            // Get the name of the type the symbol is in
+            var containingOrThis = symbol.GetContainingTypeOrThis();
+            var fullName = GetFullReflectionName(containingOrThis);
+
+            var compilation = await temporaryDocument.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+            // TODO: retrieve path to actual assembly instead of reference assembly
+            var reference = compilation.GetMetadataReference(symbol.ContainingAssembly);
+            // Load the assembly.
+            var ad = AssemblyDefinition.ReadAssembly(reference.Display, new ReaderParameters() { AssemblyResolver = new RoslynAssemblyResolver(compilation) });
+
+            // Initialize a decompiler with default settings.
+            var decompiler = new CSharpDecompiler(ad.MainModule, new DecompilerSettings());
+            var fullTypeName = new FullTypeName(fullName);
+
+            // Try to decompile; if an exception is thrown the caller will handle it
+            var text = decompiler.DecompileTypeAsString(fullTypeName);
+            return temporaryDocument.WithText(SourceText.From(text));
+        }
+
+        private class RoslynAssemblyResolver : IAssemblyResolver
+        {
+            private readonly Compilation parentCompilation;
+
+            public RoslynAssemblyResolver(Compilation parentCompilation)
+            {
+                this.parentCompilation = parentCompilation;
+            }
+
+            public AssemblyDefinition Resolve(AssemblyNameReference name)
+            {
+                return Resolve(name, new ReaderParameters());
+            }
+
+            public AssemblyDefinition Resolve(AssemblyNameReference name, ReaderParameters parameters)
+            {
+                foreach (var assembly in parentCompilation.GetReferencedAssemblySymbols())
+                {
+                    if (assembly.Identity.Name != name.Name
+                        || !assembly.Identity.PublicKeyToken.SequenceEqual(name.PublicKeyToken ?? Array.Empty<byte>()))
+                    {
+                        continue;
+                    }
+
+                    if (assembly.Identity.Version != name.Version
+                        && !string.Equals("mscorlib", assembly.Identity.Name, StringComparison.OrdinalIgnoreCase))
+                    {
+                        // MSBuild treats mscorlib special for the purpose of assembly resolution/unification, where all
+                        // versions of the assembly are considered equal. The same policy is adopted here.
+                        continue;
+                    }
+
+                    // reference assemblies should be fine here...
+                    var reference = parentCompilation.GetMetadataReference(assembly);
+                    return AssemblyDefinition.ReadAssembly(reference.Display);
+                }
+
+                // not found
+                return null;
+            }
+
+            public void Dispose()
+            {
+            }
+        }
+
+        private string GetFullReflectionName(INamedTypeSymbol containingType)
+        {
+            var stack = new Stack<string>();
+            stack.Push(containingType.MetadataName);
+            var ns = containingType.ContainingNamespace;
+            do
+            {
+                stack.Push(ns.Name);
+                ns = ns.ContainingNamespace;
+            }
+            while (ns != null && !ns.IsGlobalNamespace);
+
+            return string.Join(".", stack);
         }
 
         private async Task<Location> RelocateSymbol_NoLock(MetadataAsSourceGeneratedFileInfo fileInfo, SymbolKey symbolId, CancellationToken cancellationToken)
@@ -315,7 +425,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
                 {
                     if (Directory.Exists(_rootTemporaryPath))
                     {
-                        bool deletedEverything = true;
+                        var deletedEverything = true;
 
                         // Let's look through directories to delete.
                         foreach (var directoryInfo in new DirectoryInfo(_rootTemporaryPath).EnumerateDirectories())

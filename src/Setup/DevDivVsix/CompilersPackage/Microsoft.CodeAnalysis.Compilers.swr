@@ -7,10 +7,10 @@ vs.dependencies
   vs.dependency id=Microsoft.Net.PackageGroup.4.6.1.Redist
 
 folder InstallDir:\MSBuild\15.0\Bin\Roslyn
-    file source=$(OutputPath)\Exes\VBCSCompiler\net46\VBCSCompiler.exe vs.file.ngenArchitecture=all
-    file source=$(OutputPath)\Exes\csc\net46\csc.exe vs.file.ngenArchitecture=all
-    file source=$(OutputPath)\Exes\csi\net46\csi.exe vs.file.ngenArchitecture=all
-    file source=$(OutputPath)\Exes\vbc\net46\vbc.exe vs.file.ngenArchitecture=all
+    file source=$(OutputPath)\Exes\VBCSCompiler\net46\VBCSCompiler.exe vs.file.ngenArchitecture=all vs.file.ngenPriority=1
+    file source=$(OutputPath)\Exes\csc\net46\csc.exe vs.file.ngenArchitecture=all vs.file.ngenPriority=1
+    file source=$(OutputPath)\Exes\csi\net46\csi.exe vs.file.ngenArchitecture=all vs.file.ngenPriority=1
+    file source=$(OutputPath)\Exes\vbc\net46\vbc.exe vs.file.ngenArchitecture=all vs.file.ngenPriority=1
 
     file source=$(OutputPath)\Exes\VBCSCompiler\net46\VBCSCompiler.exe.config
     file source=$(OutputPath)\Exes\csc\net46\csc.exe.config
@@ -44,6 +44,7 @@ folder InstallDir:\MSBuild\15.0\Bin\Roslyn
     file source=$(OutputPath)\Vsix\CompilerExtension\System.IO.FileSystem.DriveInfo.dll vs.file.ngenArchitecture=all
     file source=$(OutputPath)\Vsix\CompilerExtension\System.IO.FileSystem.Primitives.dll vs.file.ngenArchitecture=all
     file source=$(OutputPath)\Vsix\CompilerExtension\System.IO.Pipes.dll vs.file.ngenArchitecture=all
+    file source=$(OutputPath)\Vsix\CompilerExtension\System.IO.Pipes.AccessControl.dll vs.file.ngenArchitecture=all
     file source=$(OutputPath)\Vsix\CompilerExtension\System.Security.AccessControl.dll vs.file.ngenArchitecture=all
     file source=$(OutputPath)\Vsix\CompilerExtension\System.Security.Claims.dll vs.file.ngenArchitecture=all
     file source=$(OutputPath)\Vsix\CompilerExtension\System.Security.Cryptography.Algorithms.dll vs.file.ngenArchitecture=all

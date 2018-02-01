@@ -405,7 +405,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var conditional = (BoundConditionalOperator)expr;
 
                     // byref conditional defers to its operands
-                    if (conditional.IsByRef &&
+                    if (conditional.IsRef &&
                         (CheckValueKind(conditional.Consequence.Syntax, conditional.Consequence, valueKind, checkingReceiver: false, diagnostics: diagnostics) &
                         CheckValueKind(conditional.Alternative.Syntax, conditional.Alternative, valueKind, checkingReceiver: false, diagnostics: diagnostics)))
                     {
@@ -615,7 +615,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return CheckIsValidReceiverForVariable(node, fieldAccess.ReceiverOpt, valueKind, diagnostics);
         }
 
-        private static bool CheckFieldRefEscape(SyntaxNode node, BoundFieldAccess fieldAccess, uint escapeFrom, uint escapeTo, bool checkingReceiver, DiagnosticBag diagnostics)
+        private static bool CheckFieldRefEscape(SyntaxNode node, BoundFieldAccess fieldAccess, uint escapeFrom, uint escapeTo, DiagnosticBag diagnostics)
         {
             var fieldSymbol = fieldAccess.FieldSymbol;
             // fields that are static or belong to reference types can ref escape anywhere
@@ -628,7 +628,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return CheckRefEscape(node, fieldAccess.ReceiverOpt, escapeFrom, escapeTo, checkingReceiver: true, diagnostics: diagnostics);
         }
 
-        private static bool CheckFieldLikeEventRefEscape(SyntaxNode node, BoundEventAccess eventAccess, uint escapeFrom, uint escapeTo, bool checkingReceiver, DiagnosticBag diagnostics)
+        private static bool CheckFieldLikeEventRefEscape(SyntaxNode node, BoundEventAccess eventAccess, uint escapeFrom, uint escapeTo, DiagnosticBag diagnostics)
         {
             var eventSymbol = eventAccess.EventSymbol;
 
@@ -1659,7 +1659,7 @@ moreArguments:
                 case BoundKind.ConditionalOperator:
                     var conditional = (BoundConditionalOperator)expr;
 
-                    if (conditional.IsByRef)
+                    if (conditional.IsRef)
                     {
                         // ref conditional defers to its operands
                         return Math.Max(GetRefEscape(conditional.Consequence, scopeOfTheContainingExpression),
@@ -1847,7 +1847,7 @@ moreArguments:
                 case BoundKind.ConditionalOperator:
                     var conditional = (BoundConditionalOperator)expr;
 
-                    if (conditional.IsByRef)
+                    if (conditional.IsRef)
                     {
                         return CheckRefEscape(conditional.Consequence.Syntax, conditional.Consequence, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics) &&
                                CheckRefEscape(conditional.Alternative.Syntax, conditional.Alternative, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
@@ -1858,7 +1858,7 @@ moreArguments:
 
                 case BoundKind.FieldAccess:
                     var fieldAccess = (BoundFieldAccess)expr;
-                    return CheckFieldRefEscape(node, fieldAccess, escapeFrom, escapeTo, checkingReceiver, diagnostics);
+                    return CheckFieldRefEscape(node, fieldAccess, escapeFrom, escapeTo, diagnostics);
 
                 case BoundKind.EventAccess:
                     var eventAccess = (BoundEventAccess)expr;
@@ -1868,7 +1868,7 @@ moreArguments:
                         break;
                     }
 
-                    return CheckFieldLikeEventRefEscape(node, eventAccess, escapeFrom, escapeTo, checkingReceiver, diagnostics);
+                    return CheckFieldLikeEventRefEscape(node, eventAccess, escapeFrom, escapeTo, diagnostics);
 
                 case BoundKind.Call:
                     var call = (BoundCall)expr;
@@ -2036,7 +2036,7 @@ moreArguments:
 
                     var consEscape = GetValEscape(conditional.Consequence, scopeOfTheContainingExpression);
 
-                    if (conditional.IsByRef)
+                    if (conditional.IsRef)
                     {
                         // ref conditional defers to one operand. 
                         // the other one is the same or we will be reporting errors anyways.
@@ -2051,7 +2051,11 @@ moreArguments:
                     var fieldAccess = (BoundFieldAccess)expr;
                     var fieldSymbol = fieldAccess.FieldSymbol;
 
-                    Debug.Assert(!fieldSymbol.IsStatic && fieldSymbol.ContainingType.IsByRefLikeType);
+                    if (fieldSymbol.IsStatic || !fieldSymbol.ContainingType.IsByRefLikeType)
+                    {
+                        // Already an error state.
+                        return Binder.ExternalScope;
+                    }
 
                     // for ref-like fields defer to the receiver.
                     return GetValEscape(fieldAccess.ReceiverOpt, scopeOfTheContainingExpression);
@@ -2320,7 +2324,7 @@ moreArguments:
 
                     var consValid = CheckValEscape(conditional.Consequence.Syntax, conditional.Consequence, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
 
-                    if (!consValid || conditional.IsByRef)
+                    if (!consValid || conditional.IsRef)
                     {
                         // ref conditional defers to one operand. 
                         // the other one is the same or we will be reporting errors anyways.
@@ -2333,7 +2337,11 @@ moreArguments:
                     var fieldAccess = (BoundFieldAccess)expr;
                     var fieldSymbol = fieldAccess.FieldSymbol;
 
-                    Debug.Assert(!fieldSymbol.IsStatic && fieldSymbol.ContainingType.IsByRefLikeType);
+                    if (fieldSymbol.IsStatic || !fieldSymbol.ContainingType.IsByRefLikeType)
+                    {
+                        // Already an error state.
+                        return true;
+                    }
 
                     // for ref-like fields defer to the receiver.
                     return CheckValEscape(node, fieldAccess.ReceiverOpt, escapeFrom, escapeTo, true, diagnostics);

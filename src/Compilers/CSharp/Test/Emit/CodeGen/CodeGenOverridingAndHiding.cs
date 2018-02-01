@@ -3,11 +3,8 @@
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.CSharp.UnitTests.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -3861,8 +3858,8 @@ class Program
                 var classB = globalNamespace.GetMember<NamedTypeSymbol>("DerivedNonVirtual");
                 var classC = globalNamespace.GetMember<NamedTypeSymbol>("Derived2Override");
 
-                Assert.Equal(classA, classB.BaseType);
-                Assert.Equal(classB, classC.BaseType);
+                Assert.Equal(classA, classB.BaseType());
+                Assert.Equal(classB, classC.BaseType());
 
                 var methodA = classA.GetMember<MethodSymbol>("M");
                 var methodB = classB.GetMember<MethodSymbol>("M");
@@ -3957,14 +3954,14 @@ class B : A
     }
 }
 ";
-            Func<bool, Action<ModuleSymbol>> validator = isFromSource => module =>
+            Func<bool, Action<ModuleSymbol>> validator = isFromMetadata => module =>
             {
                 var globalNamespace = module.GlobalNamespace;
 
                 var classA = globalNamespace.GetMember<NamedTypeSymbol>("A");
                 var classB = globalNamespace.GetMember<NamedTypeSymbol>("B");
 
-                Assert.Equal(classA, classB.BaseType);
+                Assert.Equal(classA, classB.BaseType());
 
                 var fooA = classA.GetMember<MethodSymbol>("Foo");
                 var fooB = classB.GetMember<MethodSymbol>("Foo");
@@ -3984,14 +3981,13 @@ class B : A
                 Assert.Equal(ConstantValue.Null, parameterB.ExplicitDefaultConstantValue);
                 Assert.False(parameterB.IsOptional, "ParameterArray param cannot be optional");
 
-                if (isFromSource)
+                if (isFromMetadata)
                 {
-                    var srcModule = (SourceModuleSymbol)module;
-                    WellKnownAttributesTestBase.VerifyParamArrayAttribute(parameterB, srcModule);
-                }
+                    WellKnownAttributesTestBase.VerifyParamArrayAttribute(parameterB);
+                };
             };
 
-            var verifier = CompileAndVerify(source, symbolValidator: validator(false), sourceSymbolValidator: validator(true), expectedOutput: @"System.Int32[]");
+            var verifier = CompileAndVerify(source, symbolValidator: validator(true), sourceSymbolValidator: validator(false), expectedOutput: @"System.Int32[]");
         }
 
         [WorkItem(543158, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543158")]

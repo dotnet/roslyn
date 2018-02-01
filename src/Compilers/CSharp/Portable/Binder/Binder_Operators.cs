@@ -2682,7 +2682,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var boundConstantPattern = BindConstantPattern(
-                    node.Right, operand.Type, node.Right, node.Right.HasErrors, isPatternDiagnostics, out wasExpression, wasSwitchCase: false);
+                    node.Right, operand.Type, node.Right, node.Right.HasErrors, isPatternDiagnostics, out wasExpression);
                 boundConstantPattern.WasCompilerGenerated = true;
                 if (wasExpression)
                 {
@@ -3520,6 +3520,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     diagnostics.Add(ErrorCode.ERR_RefConditionalNeedsTwoRefs, whenTrue.GetFirstToken().GetLocation());
                 }
+            }
+            else
+            {
+                CheckFeatureAvailability(node, MessageID.IDS_FeatureRefConditional, diagnostics);
             }
 
             BoundExpression condition = BindBooleanExpression(node.Condition, diagnostics);

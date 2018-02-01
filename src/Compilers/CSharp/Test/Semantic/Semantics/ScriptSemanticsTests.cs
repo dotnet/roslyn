@@ -378,7 +378,7 @@ namespace Goo
 
             var b = goo.GetTypeMembers("B").Single();
             Assert.Equal("Goo.B", b.ToTestDisplayString());
-            Assert.Same(a, b.BaseType);
+            Assert.Same(a, b.BaseType());
         }
 
         [Fact]

@@ -16,13 +16,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     /// </summary>
     internal class DocumentKey : IEquatable<DocumentKey>
     {
-        private readonly IVisualStudioHostProject _hostProject;
+        private readonly AbstractProject _hostProject;
         private readonly string _moniker;
 
-        public IVisualStudioHostProject HostProject { get { return _hostProject; } }
+        public AbstractProject HostProject { get { return _hostProject; } }
         public string Moniker { get { return _moniker; } }
 
-        public DocumentKey(IVisualStudioHostProject hostProject, string moniker)
+        public DocumentKey(AbstractProject hostProject, string moniker)
         {
             Contract.ThrowIfNull(hostProject);
             Contract.ThrowIfNull(moniker);

@@ -168,13 +168,13 @@ namespace NS.NS1 {
 
             var ns1 = ns.GetMembers("NS1").Single() as NamespaceSymbol;
             var type1 = ns1.GetTypeMembers("A").SingleOrDefault() as NamedTypeSymbol;
-            Assert.Equal(1, type1.Interfaces.Length);
-            Assert.Equal("IGoo", type1.Interfaces[0].Name);
+            Assert.Equal(1, type1.Interfaces().Length);
+            Assert.Equal("IGoo", type1.Interfaces()[0].Name);
 
             var ns2 = ns.GetMembers("NS2").Single() as NamespaceSymbol;
             var type2 = ns2.GetTypeMembers("C").SingleOrDefault() as NamedTypeSymbol;
-            Assert.NotNull(type2.BaseType);
-            Assert.Equal("NS.NS1.B", type2.BaseType.ToTestDisplayString());
+            Assert.NotNull(type2.BaseType());
+            Assert.Equal("NS.NS1.B", type2.BaseType().ToTestDisplayString());
         }
 
         [Fact]
@@ -330,7 +330,7 @@ namespace NS
             var globalNS = compilation.SourceModule.GlobalNamespace;
             var ns1 = globalNS.GetMembers("NS").Single() as NamespaceSymbol;
             var type1 = ns1.GetTypeMembers("C").First() as NamedTypeSymbol;
-            var b = type1.BaseType;
+            var b = type1.BaseType();
         }
 
         [WorkItem(540785, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540785")]
