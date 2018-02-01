@@ -56,16 +56,16 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
         [Fact]
         public void TestBadAnalyzerInfoPII()
         {
-            var badAnalyzer1 = new BadAnalyzerInfo(true, "test", 0.1, 0.1, 0.1);
+            var badAnalyzer1 = new ExpensiveAnalyzerInfo(true, "test", 0.1, 0.1, 0.1);
             Assert.True(badAnalyzer1.PIISafeAnalyzerId == badAnalyzer1.AnalyzerId);
             Assert.True(badAnalyzer1.PIISafeAnalyzerId == "test");
 
-            var badAnalyzer2 = new BadAnalyzerInfo(false, "test", 0.1, 0.1, 0.1);
+            var badAnalyzer2 = new ExpensiveAnalyzerInfo(false, "test", 0.1, 0.1, 0.1);
             Assert.True(badAnalyzer2.PIISafeAnalyzerId == badAnalyzer2.Hash);
             Assert.True(badAnalyzer2.PIISafeAnalyzerId == "test".GetHashCode().ToString());
         }
 
-        private void VerifyBadAnalyzer(BadAnalyzerInfo analyzer, string analyzerId, double lof, double mean, double stddev)
+        private void VerifyBadAnalyzer(ExpensiveAnalyzerInfo analyzer, string analyzerId, double lof, double mean, double stddev)
         {
             Assert.True(analyzer.PIISafeAnalyzerId.IndexOf(analyzerId, StringComparison.OrdinalIgnoreCase) >= 0);
             Assert.True(Math.Abs(analyzer.LOF - lof) < 0.0001D);
@@ -73,7 +73,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             Assert.True(Math.Abs(analyzer.Stddev - stddev) < 0.0001D);
         }
 
-        private List<BadAnalyzerInfo> GetBadAnalyzers(string testFileName, int to)
+        private List<ExpensiveAnalyzerInfo> GetBadAnalyzers(string testFileName, int to)
         {
             var testFile = ReadTestFile(testFileName);
 
@@ -88,7 +88,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
                 service.AddSnapshot(CreateSnapshots(matrix, i), unitCount: 100);
             }
 
-            var badAnalyzerInfo = new List<BadAnalyzerInfo>();
+            var badAnalyzerInfo = new List<ExpensiveAnalyzerInfo>();
             service.GenerateReport(badAnalyzerInfo);
 
             return badAnalyzerInfo;

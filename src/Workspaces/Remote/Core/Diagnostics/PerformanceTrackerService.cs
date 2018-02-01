@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             OnSnapshotAdded();
         }
 
-        public void GenerateReport(List<BadAnalyzerInfo> badAnalyzers)
+        public void GenerateReport(List<ExpensiveAnalyzerInfo> badAnalyzers)
         {
             using (var pooledRaw = SharedPools.Default<Dictionary<string, (double mean, double stddev)>>().GetPooledObject())
             {
@@ -139,14 +139,14 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             }
         }
 
-        private sealed class ReportGenerator : IDisposable, IComparer<BadAnalyzerInfo>
+        private sealed class ReportGenerator : IDisposable, IComparer<ExpensiveAnalyzerInfo>
         {
             private readonly double _minLOFValue;
             private readonly double _meanThreshold;
             private readonly double _stddevThreshold;
 
             private readonly PerformanceTrackerService _owner;
-            private readonly List<BadAnalyzerInfo> _badAnalyzers;
+            private readonly List<ExpensiveAnalyzerInfo> _badAnalyzers;
             private readonly PooledObject<List<IDisposable>> _pooledObjects;
 
             public ReportGenerator(
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                 double minLOFValue,
                 double meanThreshold,
                 double stddevThreshold,
-                List<BadAnalyzerInfo> badAnalyzers)
+                List<ExpensiveAnalyzerInfo> badAnalyzers)
             {
                 _pooledObjects = SharedPools.Default<List<IDisposable>>().GetPooledObject();
 
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                     }
 
                     // report found possible bad analyzers
-                    _badAnalyzers.Add(new BadAnalyzerInfo(_owner.AllowTelemetry(analyzerId), analyzerId, lof_value.Value, rawData.mean, rawData.stddev));
+                    _badAnalyzers.Add(new ExpensiveAnalyzerInfo(_owner.AllowTelemetry(analyzerId), analyzerId, lof_value.Value, rawData.mean, rawData.stddev));
                 }
 
                 _badAnalyzers.Sort(this);
@@ -425,7 +425,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                 return pooledObject.Object;
             }
 
-            public int Compare(BadAnalyzerInfo x, BadAnalyzerInfo y)
+            public int Compare(ExpensiveAnalyzerInfo x, ExpensiveAnalyzerInfo y)
             {
                 if (x.LOF == y.LOF)
                 {

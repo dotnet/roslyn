@@ -10,12 +10,12 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
     internal interface IPerformanceTrackerService : IWorkspaceService
     {
         void AddSnapshot(IEnumerable<AnalyzerPerformanceInfo> snapshot, int unitCount);
-        void GenerateReport(List<BadAnalyzerInfo> badAnalyzers);
+        void GenerateReport(List<ExpensiveAnalyzerInfo> badAnalyzers);
 
         event EventHandler SnapshotAdded;
     }
 
-    internal struct BadAnalyzerInfo
+    internal struct ExpensiveAnalyzerInfo
     {
         public readonly bool BuiltIn;
         public readonly string AnalyzerId;
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
         public readonly double Mean;
         public readonly double Stddev;
 
-        public BadAnalyzerInfo(bool builtIn, string analyzerId, double lof_value, double mean, double stddev) : this()
+        public ExpensiveAnalyzerInfo(bool builtIn, string analyzerId, double lof_value, double mean, double stddev) : this()
         {
             BuiltIn = builtIn;
             AnalyzerId = analyzerId;

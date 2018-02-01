@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 // wait for global operation such as build
                 await GlobalOperationTask.ConfigureAwait(false);
 
-                using (var pooledObject = SharedPools.Default<List<BadAnalyzerInfo>>().GetPooledObject())
+                using (var pooledObject = SharedPools.Default<List<ExpensiveAnalyzerInfo>>().GetPooledObject())
                 using (RoslynLogger.LogBlock(FunctionId.Diagnostics_GeneratePerformaceReport, CancellationToken))
                 {
                     _diagnosticAnalyzerPerformanceTracker.GenerateReport(pooledObject.Object);
