@@ -348,12 +348,10 @@ End Namespace
 
             Dim result = c.Emit(stream, options:=options)
 
-            Dim nameCannotStartWithWhitespace = CodeAnalysisResources.ResourceManager.GetString(
-                NameOf(CodeAnalysisResources.NameCannotStartWithWhitespace),
-                EnsureEnglishUICulture.PreferredOrNull)
+            Dim nameCannotStartWithWhitespace = New CodeAnalysisResourcesLocalizableErrorArgument(NameOf(CodeAnalysisResources.NameCannotStartWithWhitespace))
             result.Diagnostics.Verify(
                 Diagnostic(ERRID.ERR_InvalidDebugInformationFormat).WithArguments("-1"),
-                Diagnostic(ERRID.ERR_InvalidOutputName).WithArguments(nameCannotStartWithWhitespace),
+                Diagnostic(ERRID.ERR_InvalidOutputName, arguments:={nameCannotStartWithWhitespace}),
                 Diagnostic(ERRID.ERR_InvalidFileAlignment).WithArguments("513"),
                 Diagnostic(ERRID.ERR_InvalidSubsystemVersion).WithArguments("1000000.-1000000"))
 
