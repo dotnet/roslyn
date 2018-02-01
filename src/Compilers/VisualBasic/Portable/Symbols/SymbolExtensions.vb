@@ -419,12 +419,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return origMember
             End If
 
-            Dim substituted = TryCast(type, SubstitutedNamedType)
-            If substituted IsNot Nothing Then
-                Return DirectCast(substituted.GetMemberForDefinition(origMember), T)
-            End If
-
-            Throw ExceptionUtilities.Unreachable
+            Dim substituted = DirectCast(type, SubstitutedNamedType)
+            Return DirectCast(substituted.GetMemberForDefinition(origMember), T)
         End Function
 
         <Extension>

@@ -120,10 +120,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Private Function DecodeType(type As TypeSymbol) As TypeSymbol
             Select Case type.Kind
-                Case SymbolKind.ErrorType
-                    Return DecodeNamedType(DirectCast(type, NamedTypeSymbol))
-
-                Case SymbolKind.DynamicType,
+                Case SymbolKind.ErrorType,
+                    SymbolKind.DynamicType,
                     SymbolKind.TypeParameter,
                     SymbolKind.PointerType
 

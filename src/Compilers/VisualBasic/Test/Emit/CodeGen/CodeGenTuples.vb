@@ -21518,17 +21518,17 @@ End Class
 
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source, additionalRefs:={libComp.EmitToImageReference()}) ' missing reference to vt
             comp.AssertNoDiagnostics()
-            FailedDecodingOfTupleNamesWhenMissingValueTupleType_Verify(comp)
+            FailedDecodingOfTupleNamesWhenMissingValueTupleType_Verify(comp, successfulDecoding:=False)
 
             Dim compWithMetadataReference = CreateCompilationWithMscorlibAndVBRuntime(source, additionalRefs:={libComp.ToMetadataReference()}) ' missing reference to vt
 
             compWithMetadataReference.AssertNoDiagnostics()
-            FailedDecodingOfTupleNamesWhenMissingValueTupleType_Verify(compWithMetadataReference)
+            FailedDecodingOfTupleNamesWhenMissingValueTupleType_Verify(compWithMetadataReference, successfulDecoding:=True)
 
             Dim fakeVtLib = CreateCompilation("", references:={MscorlibRef}, assemblyName:="vt")
             Dim compWithFakeVt = CreateCompilationWithMscorlibAndVBRuntime(source, additionalRefs:={libComp.EmitToImageReference(), fakeVtLib.EmitToImageReference()}) ' reference to fake vt
             compWithFakeVt.AssertNoDiagnostics()
-            FailedDecodingOfTupleNamesWhenMissingValueTupleType_Verify(compWithFakeVt)
+            FailedDecodingOfTupleNamesWhenMissingValueTupleType_Verify(compWithFakeVt, successfulDecoding:=False)
 
             Dim source2 As Xml.Linq.XElement =
                  <compilation>
@@ -21550,7 +21550,7 @@ BC30652: Reference required to assembly 'vt, Version=0.0.0.0, Culture=neutral, P
         Dim x = New ClassA().GetGenericEnumerator()
                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                                          </errors>)
-            FailedDecodingOfTupleNamesWhenMissingValueTupleType_Verify(comp2)
+            FailedDecodingOfTupleNamesWhenMissingValueTupleType_Verify(comp2, successfulDecoding:=False)
 
             Dim comp2WithFakeVt = CreateCompilationWithMscorlibAndVBRuntime(source2, additionalRefs:={libComp.EmitToImageReference(), fakeVtLib.EmitToImageReference()}) ' reference to fake vt
             comp2WithFakeVt.AssertTheseDiagnostics(<errors>
@@ -21558,19 +21558,28 @@ BC31091: Import of type 'ValueTuple(Of ,)' from assembly or module 'vt.dll' fail
         Dim x = New ClassA().GetGenericEnumerator()
                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                                                    </errors>)
-            FailedDecodingOfTupleNamesWhenMissingValueTupleType_Verify(comp2WithFakeVt)
+            FailedDecodingOfTupleNamesWhenMissingValueTupleType_Verify(comp2WithFakeVt, successfulDecoding:=False)
         End Sub
 
-        Private Sub FailedDecodingOfTupleNamesWhenMissingValueTupleType_Verify(compilation As Compilation)
+        Private Sub FailedDecodingOfTupleNamesWhenMissingValueTupleType_Verify(compilation As Compilation, successfulDecoding As Boolean)
             Dim classA = DirectCast(compilation.GetMember("ClassA"), NamedTypeSymbol)
-            Dim iEnumerable = DirectCast(classA.Interfaces()(0), SubstitutedNamedType.ConstructedInstanceType)
-            Assert.Equal("System.Collections.Generic.IEnumerable(Of (alice As System.Int32, bob As System.Int32))",
+            Dim iEnumerable = classA.Interfaces()(0)
+
+            If successfulDecoding Then
+                Assert.Equal("System.Collections.Generic.IEnumerable(Of (alice As System.Int32, bob As System.Int32))",
                     iEnumerable.ToTestDisplayString())
 
-            Dim tuple = iEnumerable.TypeArguments()(0)
-            Assert.Equal("(alice As System.Int32, bob As System.Int32)", tuple.ToTestDisplayString())
-            Assert.True(tuple.IsTupleType)
-            Assert.True(tuple.TupleUnderlyingType.IsErrorType())
+                Dim tuple = iEnumerable.TypeArguments()(0)
+                Assert.Equal("(alice As System.Int32, bob As System.Int32)", tuple.ToTestDisplayString())
+                Assert.True(tuple.IsTupleType)
+                Assert.True(tuple.TupleUnderlyingType.IsErrorType())
+            Else
+                Assert.Equal("System.Collections.Generic.IEnumerable(Of System.ValueTuple(Of System.Int32, System.Int32)[missing])",
+                    iEnumerable.ToTestDisplayString())
+                Dim tuple = iEnumerable.TypeArguments()(0)
+                Assert.Equal("System.ValueTuple(Of System.Int32, System.Int32)[missing]", tuple.ToTestDisplayString())
+                Assert.False(tuple.IsTupleType)
+            End If
         End Sub
 
         <Fact>
