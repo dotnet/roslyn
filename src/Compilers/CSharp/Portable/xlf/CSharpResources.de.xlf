@@ -8611,8 +8611,8 @@ Um die Warnung zu beheben, können Sie stattdessen /reference verwenden (Einbett
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureStackAllocInitializer">
-        <source>stackalloc initilizer</source>
-        <target state="new">stackalloc initilizer</target>
+        <source>stackalloc initializer</source>
+        <target state="new">stackalloc initializer</target>
         <note />
       </trans-unit>
     </body>

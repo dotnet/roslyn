@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         public void StackAllocInitializer_01()
         {
             UsingExpression("stackalloc int[] { 42 }", options: TestOptions.Regular7,
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "stackalloc").WithArguments("stackalloc initilizer", "7.3").WithLocation(1, 1));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "stackalloc").WithArguments("stackalloc initializer", "7.3").WithLocation(1, 1));
             N(SyntaxKind.StackAllocArrayCreationExpression);
             {
                 N(SyntaxKind.StackAllocKeyword);
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         public void StackAllocInitializer_02()
         {
             UsingExpression("stackalloc int[1] { 42 }", options: TestOptions.Regular7,
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "stackalloc").WithArguments("stackalloc initilizer", "7.3").WithLocation(1, 1));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "stackalloc").WithArguments("stackalloc initializer", "7.3").WithLocation(1, 1));
             N(SyntaxKind.StackAllocArrayCreationExpression);
             {
                 N(SyntaxKind.StackAllocKeyword);
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         public void StackAllocInitializer_03()
         {
             UsingExpression("stackalloc[] { 42 }", options: TestOptions.Regular7,
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "stackalloc").WithArguments("stackalloc initilizer", "7.3").WithLocation(1, 1));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "stackalloc").WithArguments("stackalloc initializer", "7.3").WithLocation(1, 1));
             N(SyntaxKind.ImplicitStackAllocArrayCreationExpression);
             {
                 N(SyntaxKind.StackAllocKeyword);

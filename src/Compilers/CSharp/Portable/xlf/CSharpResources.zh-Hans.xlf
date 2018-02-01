@@ -8611,8 +8611,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureStackAllocInitializer">
-        <source>stackalloc initilizer</source>
-        <target state="new">stackalloc initilizer</target>
+        <source>stackalloc initializer</source>
+        <target state="new">stackalloc initializer</target>
         <note />
       </trans-unit>
     </body>

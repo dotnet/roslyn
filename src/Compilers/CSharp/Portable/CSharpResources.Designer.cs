@@ -10746,7 +10746,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to stackalloc initilizer.
+        ///   Looks up a localized string similar to stackalloc initializer.
         /// </summary>
         internal static string IDS_FeatureStackAllocInitializer {
             get {
