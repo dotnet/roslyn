@@ -148,7 +148,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         IDS_FeatureRefConditional = MessageBase + 12731,
         IDS_FeatureAttributesOnBackingFields = MessageBase + 12732,
-
         IDS_FeatureStackAllocInitializer = MessageBase + 12733,
     }
 

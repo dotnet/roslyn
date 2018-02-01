@@ -47,7 +47,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                 }
             }
             EOF();
-
         }
 
         [Fact]

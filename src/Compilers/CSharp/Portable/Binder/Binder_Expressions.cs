@@ -2716,7 +2716,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 sizes: ImmutableArray<BoundExpression>.Empty, boundInitExprOpt: boundInitializerExpressions);
         }
 
-
         private BoundExpression BindImplicitStackAllocArrayCreationExpression(ImplicitStackAllocArrayCreationExpressionSyntax node, DiagnosticBag diagnostics)
         {
             bool inLegalPosition = ReportBadStackAllocPosition(node, diagnostics);
@@ -3205,13 +3204,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasErrors,
             ImmutableArray<BoundExpression> boundInitExprOpt = default)
         {
-
             if (boundInitExprOpt.IsDefault)
             {
                 boundInitExprOpt = BindArrayInitializerExpressions(initSyntax, diagnostics, dimension: 1, rank: 1) 
                     .SelectAsArray((expr, t) => GenerateConversionForAssignment(t.elementType, expr, t.diagnostics), (elementType, diagnostics));
             }
-            
+
             if (sizeOpt != null)
             {
                 int? constantSizeOpt = GetIntegerConstantForArraySize(sizeOpt);
