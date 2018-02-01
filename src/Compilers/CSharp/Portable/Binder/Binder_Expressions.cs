@@ -2740,13 +2740,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return BindStackAllocWithInitializer(
-                node, 
-                initializer, 
+                node,
+                initializer,
                 type: inLegalPosition ? GetStackAllocType(node, bestType, diagnostics) : null, 
                 elementType: bestType,
-                sizeOpt: null, 
+                sizeOpt: null,
                 diagnostics,
-                hasErrors: hasErrors);
+                hasErrors,
+                boundInitializerExpressions);
         }
 
         // This method binds all the array initializer expressions.
@@ -3206,9 +3207,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (boundInitExprOpt.IsDefault)
             {
-                boundInitExprOpt = BindArrayInitializerExpressions(initSyntax, diagnostics, dimension: 1, rank: 1) 
-                    .SelectAsArray((expr, t) => GenerateConversionForAssignment(t.elementType, expr, t.diagnostics), (elementType, diagnostics));
+                boundInitExprOpt = BindArrayInitializerExpressions(initSyntax, diagnostics, dimension: 1, rank: 1);
             }
+
+            boundInitExprOpt = boundInitExprOpt.SelectAsArray((expr, t) => GenerateConversionForAssignment(t.elementType, expr, t.diagnostics), (elementType, diagnostics));
 
             if (sizeOpt != null)
             {
