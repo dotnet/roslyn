@@ -4247,9 +4247,9 @@ public class Derived : Base<int>, Interface<int, int>
 }
 ";
             CompileAndVerifyDiagnostics(text, new ErrorDescription[] {
-                new ErrorDescription { Code = (int)ErrorCode.WRN_MultipleRuntimeImplementationMatches, Line = 12, Column = 17, IsWarning = true }, //Both Base methods implement Interface.Method(int)
-                new ErrorDescription { Code = (int)ErrorCode.WRN_MultipleRuntimeImplementationMatches, Line = 12, Column = 17, IsWarning = true }, //Both Base methods implement Interface.Method(T)
-                new ErrorDescription { Code = (int)ErrorCode.WRN_MultipleRuntimeImplementationMatches, Line = 12, Column = 17, IsWarning = true }, //Both Base methods implement Interface.Method(U)
+                new ErrorDescription { Code = (int)ErrorCode.WRN_MultipleRuntimeImplementationMatches, Line = 15, Column = 35, IsWarning = true }, //Both Base methods implement Interface.Method(int)
+                new ErrorDescription { Code = (int)ErrorCode.WRN_MultipleRuntimeImplementationMatches, Line = 15, Column = 35, IsWarning = true }, //Both Base methods implement Interface.Method(T)
+                new ErrorDescription { Code = (int)ErrorCode.WRN_MultipleRuntimeImplementationMatches, Line = 15, Column = 35, IsWarning = true }, //Both Base methods implement Interface.Method(U)
             });
         }
 
@@ -4276,12 +4276,15 @@ public class Derived : Base<int>, Interface<int, int>
 ";
             // CONSIDER: Dev10 doesn't report these warnings -  not sure why
             CreateStandardCompilation(text).VerifyDiagnostics(
-                // (12,17): warning CS1956: Member 'Base<int>.this[int]' implements interface member 'Interface<int, int>.this[int]' in type 'Derived'. There are multiple matches for the interface member at run-time. It is implementation dependent which method will be called.
-                Diagnostic(ErrorCode.WRN_MultipleRuntimeImplementationMatches, "this").WithArguments("Base<int>.this[int]", "Interface<int, int>.this[int]", "Derived"),
-                // (12,17): warning CS1956: Member 'Base<int>.this[int]' implements interface member 'Interface<int, int>.this[int]' in type 'Derived'. There are multiple matches for the interface member at run-time. It is implementation dependent which method will be called.
-                Diagnostic(ErrorCode.WRN_MultipleRuntimeImplementationMatches, "this").WithArguments("Base<int>.this[int]", "Interface<int, int>.this[int]", "Derived"),
-                // (12,17): warning CS1956: Member 'Base<int>.this[int]' implements interface member 'Interface<int, int>.this[int]' in type 'Derived'. There are multiple matches for the interface member at run-time. It is implementation dependent which method will be called.
-                Diagnostic(ErrorCode.WRN_MultipleRuntimeImplementationMatches, "this").WithArguments("Base<int>.this[int]", "Interface<int, int>.this[int]", "Derived"));
+                // (15,35): warning CS1956: Member 'Base<int>.this[int]' implements interface member 'Interface<int, int>.this[int]' in type 'Derived'. There are multiple matches for the interface member at run-time. It is implementation dependent which method will be called.
+                // public class Derived : Base<int>, Interface<int, int>
+                Diagnostic(ErrorCode.WRN_MultipleRuntimeImplementationMatches, "Interface<int, int>").WithArguments("Base<int>.this[int]", "Interface<int, int>.this[int]", "Derived").WithLocation(15, 35),
+                // (15,35): warning CS1956: Member 'Base<int>.this[int]' implements interface member 'Interface<int, int>.this[int]' in type 'Derived'. There are multiple matches for the interface member at run-time. It is implementation dependent which method will be called.
+                // public class Derived : Base<int>, Interface<int, int>
+                Diagnostic(ErrorCode.WRN_MultipleRuntimeImplementationMatches, "Interface<int, int>").WithArguments("Base<int>.this[int]", "Interface<int, int>.this[int]", "Derived").WithLocation(15, 35),
+                // (15,35): warning CS1956: Member 'Base<int>.this[int]' implements interface member 'Interface<int, int>.this[int]' in type 'Derived'. There are multiple matches for the interface member at run-time. It is implementation dependent which method will be called.
+                // public class Derived : Base<int>, Interface<int, int>
+                Diagnostic(ErrorCode.WRN_MultipleRuntimeImplementationMatches, "Interface<int, int>").WithArguments("Base<int>.this[int]", "Interface<int, int>.this[int]", "Derived").WithLocation(15, 35));
         }
 
         [Fact]
