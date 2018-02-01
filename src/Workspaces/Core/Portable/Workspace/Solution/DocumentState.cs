@@ -700,7 +700,9 @@ namespace Microsoft.CodeAnalysis
         {
             if (!s_syntaxTreeToIdMap.TryGetValue(tree, out var existingId))
             {
-                existingId = s_syntaxTreeToIdMap.GetValue(tree, t => id);
+                // Avoid closing over parameter 'id' on the method's fast path
+                var localId = id;
+                existingId = s_syntaxTreeToIdMap.GetValue(tree, t => localId);
             }
 
             Contract.ThrowIfFalse(existingId == id);
