@@ -72,7 +72,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If Me.DefaultCoreLibraryReference IsNot Nothing AndAlso resolved.Count > 0 Then
                 ' All references from arguments were resolved successfully. Let's see if we have a reference that can be used as a Cor library.
                 For Each reference In resolved
-                    If TypeOf reference Is UnresolvedMetadataReference Then
+                    If reference.IsUnresolved Then
                         Continue For
                     End If
 
