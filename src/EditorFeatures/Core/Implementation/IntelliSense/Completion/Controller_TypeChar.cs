@@ -68,7 +68,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
             // Automatic Brace Completion may also move the caret, so unsubscribe from that too
             this.TextView.TextBuffer.PostChanged -= OnTextViewBufferPostChanged;
-            this.TextView.Caret.PositionChanged -= OnCaretPositionChanged;
 
             // In Venus/Razor, the user might be typing on the buffer's seam. This means that,
             // depending on the character typed, the character may not go into our buffer.
@@ -81,7 +80,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             finally
             {
                 this.TextView.TextBuffer.PostChanged += OnTextViewBufferPostChanged;
-                this.TextView.Caret.PositionChanged += OnCaretPositionChanged;
             }
 
             // We only want to process typechar if it is a normal typechar and no one else is
