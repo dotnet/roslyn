@@ -247,6 +247,57 @@ unsafe class Test
         }
 
         [Fact]
+        public void TestFlowPass1()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+unsafe class Test
+{
+    public static void Main()
+    {
+        int i, j, k;
+        var obj1 = stackalloc int [1] { i = 1 };
+        var obj2 = stackalloc int [ ] { j = 2 };
+        var obj3 = stackalloc     [ ] { k = 3 };
+
+        Console.Write(i);
+        Console.Write(j);
+        Console.Write(k);
+    }
+}", TestOptions.UnsafeReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: "123");
+        }
+
+        [Fact]
+        public void TestFlowPass2()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+unsafe class Test
+{
+    public static void Main()
+    {
+        int i, j, k;
+        var obj1 = stackalloc int [1] { i };
+        var obj2 = stackalloc int [ ] { j };
+        var obj3 = stackalloc     [ ] { k };
+    }
+}", TestOptions.UnsafeReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (7,41): error CS0165: Use of unassigned local variable 'i'
+                //         var obj1 = stackalloc int [1] { i };
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "i").WithArguments("i").WithLocation(7, 41),
+                // (8,41): error CS0165: Use of unassigned local variable 'j'
+                //         var obj2 = stackalloc int [ ] { j };
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "j").WithArguments("j").WithLocation(8, 41),
+                // (9,41): error CS0165: Use of unassigned local variable 'k'
+                //         var obj3 = stackalloc     [ ] { k };
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "k").WithArguments("k").WithLocation(9, 41)
+                );
+        }
+
+        [Fact]
         public void ConversionFromPointerStackAlloc_UserDefined_Implicit()
         {
             var comp = CreateCompilationWithMscorlibAndSpan(@"
