@@ -52,6 +52,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
             //     -> IVsCommandHandlerServiceAdapter (our command handlers migrated to the modern editor commanding)
             //            -> original next command filter
             var nextCommandFilter = _originalNextCommandFilter;
+            // The next filter is set in response to debugger calling IVsImmediateStatementCompletion2.InstallStatementCompletion(),
+            // followed IVsImmediateStatementCompletion2.SetCompletionContext() that sets the context.
+            // Check context in case debugger hasn't called IVsImmediateStatementCompletion2.SetCompletionContext() yet - before that
+            // we cannot set up command handling on correct view and buffer.
             if (_context != null)
             {
                 // Chain in editor command handler service. It will execute all our command handlers migrated to the modern editor commanding
