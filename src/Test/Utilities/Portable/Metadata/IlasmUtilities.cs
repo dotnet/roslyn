@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             if (CoreClrShim.AssemblyLoadContext.Type == null)
             {
                 return Path.Combine(
-                    RuntimeUtilities.GetAssemblyLocation(typeof(object)),
+                    Path.GetDirectoryName(RuntimeUtilities.GetAssemblyLocation(typeof(object))),
                     "ilasm.exe");
             }
             else
