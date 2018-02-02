@@ -43,6 +43,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly Func<DiagnosticAnalyzer, bool> _shouldSkipAnalysisOnGeneratedCode;
         private readonly Func<Diagnostic, DiagnosticAnalyzer, Compilation, CancellationToken, bool> _shouldSuppressGeneratedCodeDiagnostic;
         private readonly Func<SyntaxTree, TextSpan, bool> _isGeneratedCodeLocation;
+        /// <summary>
+        /// The values in this map convert to <see cref="TimeSpan"/> using <see cref="TimeSpan.FromTicks(long)"/>.
+        /// </summary>
         private readonly ConcurrentDictionary<DiagnosticAnalyzer, StrongBox<long>> _analyzerExecutionTimeMapOpt;
         private readonly CompilationAnalysisValueProviderFactory _compilationAnalysisValueProviderFactory;
         private readonly CancellationToken _cancellationToken;
