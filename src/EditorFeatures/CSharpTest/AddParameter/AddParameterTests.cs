@@ -1333,5 +1333,35 @@ class C1 : I1
 ";
             await TestInRegularAndScriptAsync(code, fix0);
         }
+
+        [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestInvocation_AddParameterToMethodWithParams()
+        {
+            // error CS1503: Argument 1: cannot convert from 'bool' to 'int'
+            var code =
+@"
+    class C1
+    {
+        static void M1(params int[] nums) { }
+        static void M2()
+        {
+            M1([|true|], 4);
+        }
+    }
+";
+            var fix0 =
+@"
+    class C1
+    {
+        static void M1(bool v, params int[] nums) { }
+        static void M2()
+        {
+            M1(true, 4);
+        }
+    }
+";
+            await TestInRegularAndScriptAsync(code, fix0);
+        }
     }
 }

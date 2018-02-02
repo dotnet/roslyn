@@ -90,16 +90,13 @@ namespace Microsoft.CodeAnalysis.AddParameter
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
             var expression = syntaxFacts.GetExpressionOfInvocationExpression(invocationExpression);
-            if (expression == null)
-            {
-                return;
-            }
 
             var symbolInfo = semanticModel.GetSymbolInfo(expression, cancellationToken);
             var candidates = symbolInfo.CandidateSymbols.OfType<IMethodSymbol>().ToImmutableArray();
 
             var arguments = (SeparatedSyntaxList<TArgumentSyntax>)syntaxFacts.GetArgumentsOfInvocationExpression(invocationExpression);
-            var argumentInsertPositionInMethodCandidates = GetArgumentInsertPositionForMethodCandidates(argumentOpt, semanticModel, syntaxFacts, arguments, candidates);
+            var argumentInsertPositionInMethodCandidates = GetArgumentInsertPositionForMethodCandidates(
+                argumentOpt, semanticModel, syntaxFacts, arguments, candidates);
             RegisterFixForMethodOverloads(context, arguments, argumentInsertPositionInMethodCandidates);
         }
 
@@ -141,28 +138,38 @@ namespace Microsoft.CodeAnalysis.AddParameter
             RegisterFixForMethodOverloads(context, arguments, constructorsAndArgumentToAdd);
         }
 
-        private void RegisterFixForMethodOverloads(CodeFixContext context, SeparatedSyntaxList<TArgumentSyntax> arguments, ImmutableArray<(IMethodSymbol method, TArgumentSyntax argument, int index)> methodsAndArgumentToAdd)
+        private void RegisterFixForMethodOverloads(
+            CodeFixContext context,
+            SeparatedSyntaxList<TArgumentSyntax> arguments,
+            ImmutableArray<ArgumentInsertPositionData<TArgumentSyntax>> methodsAndArgumentsToAdd)
         {
             // Order by the furthest argument index to the nearest argument index.  The ones with
             // larger argument indexes mean that we matched more earlier arguments (and thus are
             // likely to be the correct match).
-            foreach (var (method, argumentToAdd, _) in methodsAndArgumentToAdd.OrderByDescending(t => t.index))
+            foreach (var argumentInsertPositionData in methodsAndArgumentsToAdd.OrderByDescending(t => t.ArgumentInsertionIndex))
             {
-                var parameters = method.Parameters.Select(p => p.ToDisplayString(SimpleFormat));
-                var signature = $"{method.Name}({string.Join(", ", parameters)})";
+                var methodToUpdate = argumentInsertPositionData.MethodToUpdate;
+                var argumentToInsert = argumentInsertPositionData.ArgumentToInsert;
+                var parameters = methodToUpdate.Parameters.Select(p => p.ToDisplayString(SimpleFormat));
+                var signature = $"{methodToUpdate.Name}({string.Join(", ", parameters)})";
 
                 var title = string.Format(FeaturesResources.Add_parameter_to_0, signature);
 
                 context.RegisterCodeFix(
-                    new MyCodeAction(title, c => FixAsync(context.Document, method, argumentToAdd, arguments, c)),
+                    new MyCodeAction(title, c => FixAsync(context.Document, methodToUpdate, argumentToInsert, arguments, c)),
                     context.Diagnostics);
             }
         }
 
-        private ImmutableArray<(IMethodSymbol method, TArgumentSyntax argument, int index)> GetArgumentInsertPositionForMethodCandidates(TArgumentSyntax argumentOpt, SemanticModel semanticModel, ISyntaxFactsService syntaxFacts, SeparatedSyntaxList<TArgumentSyntax> arguments, ImmutableArray<IMethodSymbol> methodCandidates)
+        private ImmutableArray<ArgumentInsertPositionData<TArgumentSyntax>> GetArgumentInsertPositionForMethodCandidates(
+            TArgumentSyntax argumentOpt,
+            SemanticModel semanticModel,
+            ISyntaxFactsService syntaxFacts,
+            SeparatedSyntaxList<TArgumentSyntax> arguments,
+            ImmutableArray<IMethodSymbol> methodCandidates)
         {
             var comparer = syntaxFacts.StringComparer;
-            var methodsAndArgumentToAdd = ArrayBuilder<(IMethodSymbol constructor, TArgumentSyntax argument, int index)>.GetInstance();
+            var methodsAndArgumentToAdd = ArrayBuilder<ArgumentInsertPositionData<TArgumentSyntax>>.GetInstance();
 
             foreach (var method in methodCandidates.OrderBy(m => m.Parameters.Length))
             {
@@ -187,8 +194,8 @@ namespace Microsoft.CodeAnalysis.AddParameter
                                 continue;
                             }
 
-                            methodsAndArgumentToAdd.Add(
-                                (method, argumentToAdd, arguments.IndexOf(argumentToAdd)));
+                            methodsAndArgumentToAdd.Add(new ArgumentInsertPositionData<TArgumentSyntax>(
+                                method, argumentToAdd, arguments.IndexOf(argumentToAdd)));
                         }
                     }
                 }
@@ -250,6 +257,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
             var semanticFacts = invocationDocument.GetLanguageService<ISemanticFactsService>();
             var argumentName = syntaxFacts.GetNameForArgument(argument);
             var expression = syntaxFacts.GetExpressionOfArgument(argument);
+
             var semanticModel = await invocationDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var parameterType = semanticModel.GetTypeInfo(expression).Type ?? semanticModel.Compilation.ObjectType;
 
