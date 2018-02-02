@@ -13,10 +13,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
     Friend Class VisualBasicInitializeMemberFromParameterCodeRefactoringProvider
         Inherits AbstractInitializeMemberFromParameterCodeRefactoringProvider(Of
             ParameterSyntax,
-            MethodBlockBaseSyntax,
+            ParameterListSyntax,
             StatementSyntax,
             ExpressionSyntax,
             BinaryExpressionSyntax)
+
+        Protected Overrides Function GetFunctionDeclaration(parameterList As ParameterListSyntax) As SyntaxNode
+            Return InitializeParameterHelpers.GetFunctionDeclaration(parameterList)
+        End Function
 
         Protected Overrides Function GetTypeBlock(node As SyntaxNode) As SyntaxNode
             Return DirectCast(node, TypeStatementSyntax).Parent
@@ -26,16 +30,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
             Return DirectCast(blockStatement.Syntax, MethodBlockBaseSyntax).Statements.LastOrDefault()
         End Function
 
-        Protected Overrides Function GetBody(containingMember As MethodBlockBaseSyntax) As SyntaxNode
-            Return InitializeParameterHelpers.GetBody(containingMember)
+        Protected Overrides Function GetBody(functionDeclaration As SyntaxNode) As SyntaxNode
+            Return InitializeParameterHelpers.GetBody(DirectCast(functionDeclaration, MethodBlockBaseSyntax))
         End Function
 
         Protected Overrides Function IsImplicitConversion(compilation As Compilation, source As ITypeSymbol, destination As ITypeSymbol) As Boolean
             Return InitializeParameterHelpers.IsImplicitConversion(compilation, source, destination)
         End Function
 
-        Protected Overrides Sub InsertStatement(editor As SyntaxEditor, methodDeclaration As MethodBlockBaseSyntax, statementToAddAfterOpt As SyntaxNode, statement As StatementSyntax)
-            InitializeParameterHelpers.InsertStatement(editor, methodDeclaration, statementToAddAfterOpt, statement)
+        Protected Overrides Sub InsertStatement(editor As SyntaxEditor, functionDeclaration As SyntaxNode, statementToAddAfterOpt As SyntaxNode, statement As StatementSyntax)
+            InitializeParameterHelpers.InsertStatement(editor, DirectCast(functionDeclaration, MethodBlockBaseSyntax), statementToAddAfterOpt, statement)
         End Sub
     End Class
 End Namespace

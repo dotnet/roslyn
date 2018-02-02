@@ -462,6 +462,40 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestUpdateLocalFunctionExpressionBody()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    void M()
+    {
+        int F([||]string s) => Init();
+    }
+}",
+@"
+using System;
+
+class C
+{
+    void M()
+    {
+        int F(string s)
+        {
+            if (s == null)
+            {
+                throw new ArgumentNullException(nameof(s));
+            }
+
+            return Init();
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestInsertAfterExistingNullCheck1()
         {
             await TestInRegularAndScript1Async(
@@ -709,9 +743,9 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
-        public async Task TestNotOnLocalFunctionParameter()
+        public async Task TestOnLocalFunctionParameter()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 using System;
 
@@ -721,6 +755,22 @@ class C
     {
         void Goo([||]string s)
         {
+        }
+    }
+}",
+@"
+using System;
+
+class C
+{
+    public C()
+    {
+        void Goo(string s)
+        {
+            if (s == null)
+            {
+                throw new ArgumentNullException(nameof(s));
+            }
         }
     }
 }");
