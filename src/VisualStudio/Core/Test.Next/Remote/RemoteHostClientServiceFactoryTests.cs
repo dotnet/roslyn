@@ -99,10 +99,10 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var workspace = new AdhocWorkspace(TestHostServices.CreateHostServices(exportProvider));
             workspace.Options = workspace.Options.WithChangedOption(RemoteHostOptions.SolutionChecksumMonitorBackOffTimeSpanInMS, 1);
 
-            var listener = new Listener();
+            var listenerProvider = exportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
             var analyzerReference = new AnalyzerFileReference(typeof(object).Assembly.Location, new NullAssemblyAnalyzerLoader());
 
-            var service = CreateRemoteHostClientService(workspace, SpecializedCollections.SingletonEnumerable<AnalyzerReference>(analyzerReference), listener);
+            var service = CreateRemoteHostClientService(workspace, SpecializedCollections.SingletonEnumerable<AnalyzerReference>(analyzerReference), listenerProvider);
 
             service.Enable();
 
@@ -112,11 +112,11 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             // add solution
             workspace.AddSolution(SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Default));
 
-            var listeners = exportProvider.GetExports<IAsynchronousOperationListener, FeatureMetadata>();
-            var workspaceListener = listeners.First(l => l.Metadata.FeatureName == FeatureAttribute.Workspace).Value as IAsynchronousOperationWaiter;
-
             // wait for listener
+            var workspaceListener = listenerProvider.GetWaiter(FeatureAttribute.Workspace);
             await workspaceListener.CreateWaitTask();
+
+            var listener = listenerProvider.GetWaiter(FeatureAttribute.RemoteHostClient);
             await listener.CreateWaitTask();
 
             // checksum should already exist
@@ -209,7 +209,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         private RemoteHostClientServiceFactory.RemoteHostClientService CreateRemoteHostClientService(
             Workspace workspace = null,
             IEnumerable<AnalyzerReference> hostAnalyzerReferences = null,
-            IAsynchronousOperationListener listener = null)
+            IAsynchronousOperationListenerProvider listenerProvider = null)
         {
             workspace = workspace ?? new AdhocWorkspace(TestHostServices.CreateHostServices());
             workspace.Options = workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, true)
@@ -218,9 +218,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var analyzerService = GetDiagnosticAnalyzerService(hostAnalyzerReferences ?? SpecializedCollections.EmptyEnumerable<AnalyzerReference>());
 
-            var listeners = AsynchronousOperationListener.CreateListeners(FeatureAttribute.RemoteHostClient, listener ?? new Listener());
-
-            var factory = new RemoteHostClientServiceFactory(listeners, analyzerService);
+            var factory = new RemoteHostClientServiceFactory(listenerProvider ?? AsynchronousOperationListenerProvider.NullProvider, analyzerService);
             return factory.CreateService(workspace.Services) as RemoteHostClientServiceFactory.RemoteHostClientService;
         }
 
@@ -250,8 +248,6 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 return SpecializedTasks.EmptyTask;
             }
         }
-
-        private class Listener : AsynchronousOperationListener { }
 
         private class NullAssemblyAnalyzerLoader : IAnalyzerAssemblyLoader
         {

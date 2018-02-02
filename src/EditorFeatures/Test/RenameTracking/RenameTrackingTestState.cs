@@ -11,10 +11,10 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.CSharp.RenameTracking;
 using Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Editor.VisualBasic.RenameTracking;
 using Microsoft.CodeAnalysis.Notification;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -27,7 +27,6 @@ using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
 {
@@ -104,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
                 Workspace.ExportProvider.GetExport<IInlineRenameService>().Value,
                 Workspace.ExportProvider.GetExport<IDiagnosticAnalyzerService>().Value,
                 SpecializedCollections.SingletonEnumerable(_mockRefactorNotifyService),
-                Workspace.ExportProvider.GetExports<IAsynchronousOperationListener, FeatureMetadata>());
+                Workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>());
 
             _tagger = tracker.CreateTagger<RenameTrackingTag>(_hostDocument.GetTextBuffer());
 
@@ -228,8 +227,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
 
         private async Task WaitForAsyncOperationsAsync()
         {
-            var waiters = Workspace.ExportProvider.GetExportedValues<IAsynchronousOperationWaiter>();
-            await waiters.WaitAllAsync();
+            var provider = Workspace.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
+            await provider.WaitAllDispatcherOperationAndTasksAsync(
+                FeatureAttribute.RenameTracking,
+                FeatureAttribute.SolutionCrawler,
+                FeatureAttribute.Workspace,
+                FeatureAttribute.EventHookup);
         }
 
         public void Dispose()
