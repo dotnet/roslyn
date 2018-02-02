@@ -19,7 +19,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
     internal sealed class PETypeParameterSymbol
         : TypeParameterSymbol
     {
-        private ThreeState _lazyHasUnmanagedConstraint;
         private readonly Symbol _containingSymbol; // Could be PENamedType or a PEMethod
         private readonly GenericParameterHandle _handle;
 
@@ -27,6 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private readonly string _name;
         private readonly ushort _ordinal; // 0 for first, 1 for second, ...
         private readonly GenericParameterAttributes _flags;
+        private readonly bool _hasIsUnmanagedAttribute;
         #endregion
 
         private TypeParameterBounds _lazyBounds = TypeParameterBounds.Unset;
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// <summary>
         /// First error calculating bounds.
         /// </summary>
-        private DiagnosticInfo _lazyBoundsErrorInfo = CSDiagnosticInfo.EmptyErrorInfo; // Indicates unknown state.
+        private DiagnosticInfo _lazyConstraintsUseSiteErrorInfo = CSDiagnosticInfo.EmptyErrorInfo; // Indicates unknown state.
 
         private ImmutableArray<CSharpAttributeData> _lazyCustomAttributes;
 
@@ -68,7 +68,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             Debug.Assert(!handle.IsNil);
 
             _containingSymbol = definingSymbol;
-            _lazyHasUnmanagedConstraint = ThreeState.Unknown;
 
             GenericParameterAttributes flags = 0;
 
@@ -83,12 +82,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     _name = string.Empty;
                 }
 
-                _lazyBoundsErrorInfo = new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this);
+                _lazyConstraintsUseSiteErrorInfo = new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this);
             }
 
             // Clear the '.ctor' flag if both '.ctor' and 'valuetype' are
             // set since '.ctor' is redundant in that case.
             _flags = ((flags & GenericParameterAttributes.NotNullableValueTypeConstraint) == 0) ? flags : (flags & ~GenericParameterAttributes.DefaultConstructorConstraint);
+            _hasIsUnmanagedAttribute = moduleSymbol.Module.HasIsUnmanagedAttribute(handle);
 
             _ordinal = ordinal;
             _handle = handle;
@@ -157,8 +157,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             var metadataReader = moduleSymbol.Module.MetadataReader;
             GenericParameterConstraintHandleCollection constraints;
 
-            this._lazyHasUnmanagedConstraint = ThreeState.False;
-
             try
             {
                 constraints = metadataReader.GetGenericParameter(_handle).GetConstraints();
@@ -166,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             catch (BadImageFormatException)
             {
                 constraints = default(GenericParameterConstraintHandleCollection);
-                Interlocked.CompareExchange(ref _lazyBoundsErrorInfo, new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this), CSDiagnosticInfo.EmptyErrorInfo);
+                Interlocked.CompareExchange(ref _lazyConstraintsUseSiteErrorInfo, new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this), CSDiagnosticInfo.EmptyErrorInfo);
             }
 
             if (constraints.Count > 0)
@@ -186,12 +184,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 foreach (var constraintHandle in constraints)
                 {
                     var constraint = metadataReader.GetGenericParameterConstraint(constraintHandle);
-                    var typeSymbol = tokenDecoder.DecodeGenericParameterConstraint(constraint.Type, out bool isUnmanagedConstraint);
+                    var typeSymbol = tokenDecoder.DecodeGenericParameterConstraint(constraint.Type, out bool hasUnmanagedModreq);
 
-                    if (isUnmanagedConstraint)
+                    if (hasUnmanagedModreq != this._hasIsUnmanagedAttribute)
                     {
-                        this._lazyHasUnmanagedConstraint = ThreeState.True;
-                        continue;
+                        Interlocked.CompareExchange(ref _lazyConstraintsUseSiteErrorInfo, new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this), CSDiagnosticInfo.EmptyErrorInfo);
                     }
 
                     // Drop 'System.Object' constraint type.
@@ -258,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                return (_flags & GenericParameterAttributes.NotNullableValueTypeConstraint) != 0;
+                return (_flags & GenericParameterAttributes.NotNullableValueTypeConstraint) != 0 || HasUnmanagedTypeConstraint;
             }
         }
 
@@ -266,8 +263,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                this.EnsureAllConstraintsAreResolved();
-                return this.HasValueTypeConstraint && this._lazyHasUnmanagedConstraint.Value();
+                return this._hasIsUnmanagedAttribute;
             }
         }
 
@@ -363,19 +359,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 diagnostics.Free();
 
-                Interlocked.CompareExchange(ref _lazyBoundsErrorInfo, errorInfo, CSDiagnosticInfo.EmptyErrorInfo);
+                Interlocked.CompareExchange(ref _lazyConstraintsUseSiteErrorInfo, errorInfo, CSDiagnosticInfo.EmptyErrorInfo);
                 Interlocked.CompareExchange(ref _lazyBounds, bounds, TypeParameterBounds.Unset);
             }
 
-            Debug.Assert(!ReferenceEquals(_lazyBoundsErrorInfo, CSDiagnosticInfo.EmptyErrorInfo));
+            Debug.Assert(!ReferenceEquals(_lazyConstraintsUseSiteErrorInfo, CSDiagnosticInfo.EmptyErrorInfo));
             return _lazyBounds;
         }
 
         internal override DiagnosticInfo GetConstraintsUseSiteErrorInfo()
         {
             EnsureAllConstraintsAreResolved();
-            Debug.Assert(!ReferenceEquals(_lazyBoundsErrorInfo, CSDiagnosticInfo.EmptyErrorInfo));
-            return _lazyBoundsErrorInfo;
+            Debug.Assert(!ReferenceEquals(_lazyConstraintsUseSiteErrorInfo, CSDiagnosticInfo.EmptyErrorInfo));
+            return _lazyConstraintsUseSiteErrorInfo;
         }
 
         private NamedTypeSymbol GetDefaultBaseType()

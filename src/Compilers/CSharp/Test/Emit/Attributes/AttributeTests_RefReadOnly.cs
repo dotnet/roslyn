@@ -13,6 +13,8 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
+    // PROTOTYPE: check tests here
+
     public class AttributeTests_RefReadOnly : CSharpTestBase
     {
         [Fact]

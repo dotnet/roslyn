@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -304,6 +305,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _state.SpinWaitComplete(incompletePart, cancellationToken);
             }
         }
+
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        {
+            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
+
+            if (this.HasUnmanagedTypeConstraint)
+            {
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsUnmanagedAttribute(this));
+            }
+        }
     }
 
     internal sealed class SourceTypeParameterSymbol : SourceTypeParameterSymbolBase
@@ -350,7 +361,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 var constraints = this.GetDeclaredConstraints();
-                return (constraints & TypeParameterConstraintKind.ValueType) != 0;
+                return (constraints & (TypeParameterConstraintKind.ValueType | TypeParameterConstraintKind.Unmanaged)) != 0;
             }
         }
 
@@ -429,7 +440,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 var constraints = this.GetDeclaredConstraints();
-                return (constraints & TypeParameterConstraintKind.ValueType) != 0;
+                return (constraints & (TypeParameterConstraintKind.ValueType | TypeParameterConstraintKind.Unmanaged)) != 0;
             }
         }
 

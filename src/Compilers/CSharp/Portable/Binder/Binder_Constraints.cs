@@ -147,11 +147,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 if (constraints != 0 || constraintTypes.Any())
                                 {
                                     diagnostics.Add(ErrorCode.ERR_UnmanagedConstraintMustBeAlone, typeSyntax.GetLocation());
+                                    continue;
                                 }
 
                                 // This should produce diagnostics if the types are missing
                                 GetWellKnownType(WellKnownType.System_Runtime_InteropServices_UnmanagedType, diagnostics, typeSyntax);
                                 GetSpecialType(SpecialType.System_ValueType, diagnostics, typeSyntax);
+
+                                Compilation.EnsureIsUnmanagedAttributeExists(diagnostics, typeSyntax.Location, modifyCompilationForIsUnmanaged: true);
 
                                 constraints |= TypeParameterConstraintKind.Unmanaged;
                                 continue;

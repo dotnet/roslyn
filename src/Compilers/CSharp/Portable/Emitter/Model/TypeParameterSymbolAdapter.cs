@@ -226,13 +226,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (this.HasUnmanagedTypeConstraint)
             {
-                Debug.Assert(
-                    !this.HasReferenceTypeConstraint &&
-                    !this.HasConstructorConstraint &&
-                    !this.HasValueTypeConstraint
-                    && this.ConstraintTypesNoUseSiteDiagnostics.IsEmpty,
-                    "This constraint can only exist alone");
-
                 var typeRef = moduleBeingBuilt.Translate(
                     typeSymbol: moduleBeingBuilt.Compilation.GetSpecialType(SpecialType.System_ValueType),
                     syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,

@@ -1552,13 +1552,14 @@ public struct GoodType { public int I; }
 public struct BadType { public string S; }
 public class Test2
 {
-    public void M<U>() where U : unmanaged
+    public void M<U, W>() where U : unmanaged
     {
         var a = new Test<GoodType>();           // unmanaged struct
         var b = new Test<BadType>();            // managed struct
         var c = new Test<string>();             // reference type
         var d = new Test<int>();                // value type
         var e = new Test<U>();                  // generic type constrained to unmanaged
+        var f = new Test<W>();                  // unconstrained generic type
     }
 }").VerifyDiagnostics(
                 // (12,26): error CS8375: The type 'BadType' cannot be a reference type, or contain reference type fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'Test<T>'
@@ -1566,7 +1567,10 @@ public class Test2
                 Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "BadType").WithArguments("Test<T>", "T", "BadType").WithLocation(12, 26),
                 // (13,26): error CS8375: The type 'string' cannot be a reference type, or contain reference type fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'Test<T>'
                 //         var c = new Test<string>();             // reference type
-                Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "string").WithArguments("Test<T>", "T", "string").WithLocation(13, 26));
+                Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "string").WithArguments("Test<T>", "T", "string").WithLocation(13, 26),
+                // (16,26): error CS8375: The type 'W' cannot be a reference type, or contain reference type fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'Test<T>'
+                //         var f = new Test<W>();                  // unconstrained generic type
+                Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "W").WithArguments("Test<T>", "T", "W").WithLocation(16, 26));
         }
 
         [Fact]
@@ -1689,25 +1693,26 @@ public struct GoodType { public int I; }
 public struct BadType { public string S; }
 public class Test2
 {
-    public void M<U>() where U : unmanaged
+    public void M<U, W>() where U : unmanaged
     {
         var a = new Test<GoodType>();           // unmanaged struct
         var b = new Test<BadType>();            // managed struct
         var c = new Test<string>();             // reference type
         var d = new Test<int>();                // value type
         var e = new Test<U>();                  // generic type constrained to unmanaged
+        var f = new Test<W>();                  // unconstrained generic type
     }
 }";
             CreateStandardCompilation(code, references: new[] { reference }).VerifyDiagnostics(
                 // (9,26): error CS8375: The type 'BadType' cannot be a reference type, or contain reference type fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'Test<T>'
                 //         var b = new Test<BadType>();            // managed struct
                 Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "BadType").WithArguments("Test<T>", "T", "BadType").WithLocation(9, 26),
-                // (10,26): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Test<T>'
+                // (10,26): error CS8375: The type 'string' cannot be a reference type, or contain reference type fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'Test<T>'
                 //         var c = new Test<string>();             // reference type
-                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "string").WithArguments("Test<T>", "T", "string").WithLocation(10, 26),
-                // (12,26): error CS0453: The type 'U' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Test<T>'
-                //         var e = new Test<U>();                  // generic type constrained to unmanaged
-                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "U").WithArguments("Test<T>", "T", "U").WithLocation(12, 26));
+                Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "string").WithArguments("Test<T>", "T", "string").WithLocation(10, 26),
+                // (13,26): error CS8375: The type 'W' cannot be a reference type, or contain reference type fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'Test<T>'
+                //         var f = new Test<W>();                  // unconstrained generic type
+                Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "W").WithArguments("Test<T>", "T", "W").WithLocation(13, 26));
         }
 
         [Fact]
@@ -1733,7 +1738,7 @@ public class Test<T> where T : unmanaged
             {
                 var typeParameter = module.GlobalNamespace.GetTypeMember("Test").TypeParameters.Single();
                 Assert.True(typeParameter.HasUnmanagedTypeConstraint);
-                // Assert.False(typeParameter.HasValueTypeConstraint); // PROTOTYPE: enable after you fix symbol API
+                Assert.True(typeParameter.HasValueTypeConstraint);
                 Assert.False(typeParameter.HasReferenceTypeConstraint);
                 Assert.False(typeParameter.HasConstructorConstraint);
                 Assert.Empty(typeParameter.ConstraintTypes());
@@ -1746,6 +1751,10 @@ public class Test<T> where T : unmanaged
         public void UnmanagedConstraint_EnforcedInInheritanceChain_Downwards_Source()
         {
             CreateStandardCompilation(@"
+struct Test
+{
+    public string RefMember { get; set; }
+}
 public abstract class A
 {
     public abstract void M<T>() where T : unmanaged;
@@ -1758,11 +1767,15 @@ public class B : A
     {
         this.M<int>();
         this.M<string>();
+        this.M<Test>();
     }
 }").VerifyDiagnostics(
-                // (13,9): error CS8375: The type 'string' cannot be a reference type, or contain reference type fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'B.M<T>()'
+                // (17,9): error CS8375: The type 'string' cannot be a reference type, or contain reference type fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'B.M<T>()'
                 //         this.M<string>();
-                Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "this.M<string>").WithArguments("B.M<T>()", "T", "string").WithLocation(13, 9));
+                Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "this.M<string>").WithArguments("B.M<T>()", "T", "string").WithLocation(17, 9),
+                // (18,9): error CS8375: The type 'Test' cannot be a reference type, or contain reference type fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'B.M<T>()'
+                //         this.M<Test>();
+                Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "this.M<Test>").WithArguments("B.M<T>()", "T", "Test").WithLocation(18, 9));
         }
 
         [Fact]
@@ -1775,6 +1788,10 @@ public abstract class A
 }").EmitToImageReference();
 
             CreateStandardCompilation(@"
+struct Test
+{
+    public string RefMember { get; set; }
+}
 public class B : A
 {
     public override void M<T>() { }
@@ -1783,13 +1800,15 @@ public class B : A
     {
         this.M<int>();
         this.M<string>();
+        this.M<Test>();
     }
 }", references: new[] { reference }).VerifyDiagnostics(
-                // (9,9): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'B.M<T>()'
+                // (13,9): error CS8375: The type 'string' cannot be a reference type, or contain reference type fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'B.M<T>()'
                 //         this.M<string>();
-                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "this.M<string>").WithArguments("B.M<T>()", "T", "string").WithLocation(9, 9));
-
-            // PROTOTYPE: invalid error because it is still recognized in the symbol API as struct as well as unmanaged
+                Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "this.M<string>").WithArguments("B.M<T>()", "T", "string").WithLocation(13, 9),
+                // (14,9): error CS8375: The type 'Test' cannot be a reference type, or contain reference type fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'B.M<T>()'
+                //         this.M<Test>();
+                Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "this.M<Test>").WithArguments("B.M<T>()", "T", "Test").WithLocation(14, 9));
         }
 
         [Fact]
@@ -1950,77 +1969,7 @@ unsafe class Test
     }
 }", options: TestOptions.UnsafeReleaseExe, expectedOutput: "8");
         }
-
-        [Fact(Skip = "PROTOTYPE: confirm this is supported first")]
-        public void UnmanagedConstraints_NestedStructs_GenericNested()
-        {
-            CompileAndVerify(@"
-struct InnerTestData<T> where T : unmanaged
-{
-    public T B;
-    public InnerTestData(T b)
-    {
-        B = b;
-    }
-}
-struct TestData<T>
-{
-    public T A;
-    public InnerTestData<float> B;
-    public TestData(T a, float b)
-    {
-        A = a;
-        B = new InnerTestData<float>(b);
-    }
-}
-unsafe class Test
-{
-    public static void Main()
-    {
-        N<TestData<double>>();
-    }
-    static void N<T>() where T : unmanaged
-    {
-        System.Console.WriteLine(sizeof(T));
-    }
-}", options: TestOptions.UnsafeReleaseExe, expectedOutput: "12");
-        }
-
-        [Fact(Skip = "PROTOTYPE: confirm this is supported first")]
-        public void UnmanagedConstraints_GenericTypeInference()
-        {
-            CreateStandardCompilation(@"
-struct S<T1, T2, T3>
-{
-    public T1 f1;
-    public T2 f2;
-    public S(T1 a, T2 b)
-    {
-        f1 = a;
-        f2 = b;
-    }
-}
-unsafe class TestClass
-{
-    public static void Main()
-    {
-        Test<int>();                // valid
-        Test<string>();             // invalid
-    }
-    static void Test<T>()
-    {
-        N<S<int, int, int>>();      // valid
-        N<S<T, int, int>>();        // valid or not?
-        N<S<int, int, string>>();   // valid
-    }
-    static T* N<T>() where T : unmanaged
-    {
-        T* ptr = null;
-        return ptr;
-    }
-}", options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics();
-        }
-
+        
         [Fact]
         public void UnmanagedConstraints_NestedStructs_Error()
         {

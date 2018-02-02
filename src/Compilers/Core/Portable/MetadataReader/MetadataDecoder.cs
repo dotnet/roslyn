@@ -889,10 +889,10 @@ namespace Microsoft.CodeAnalysis
                         try
                         {
                             var memoryReader = this.Module.GetTypeSpecificationSignatureReaderOrThrow((TypeSpecificationHandle)token);
-                            DecodeModifiersOrThrow(ref memoryReader, AllowedRequiredModifierType.System_Runtime_InteropServices_UnmanagedType, out var typeCode, out var requiredModifierFound);
+                            DecodeModifiersOrThrow(ref memoryReader, AllowedRequiredModifierType.System_Runtime_InteropServices_UnmanagedType, out var typeCode, out var modReqFound);
                             var type = DecodeTypeOrThrow(ref memoryReader, typeCode, out _);
 
-                            if (requiredModifierFound)
+                            if (modReqFound)
                             {
                                 if (type.SpecialType == SpecialType.System_ValueType)
                                 {

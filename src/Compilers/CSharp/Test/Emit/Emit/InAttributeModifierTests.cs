@@ -10,6 +10,8 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
 {
+    // PROTOTYPE: check tests here
+
     public class InAttributeModifierTests : CSharpTestBase
     {
         [Fact]
