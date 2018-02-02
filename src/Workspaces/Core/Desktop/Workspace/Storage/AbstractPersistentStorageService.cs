@@ -83,6 +83,17 @@ namespace Microsoft.CodeAnalysis.Storage
                     _subscribedToLocationServiceChangeEvents = true;
                 }
 
+                // If we already had some previous cached service, let's let it start cleaning up
+                if (_currentPersistentStorage != null)
+                {
+                    var storageToDispose = _currentPersistentStorage;
+
+                    Task.Run(() => storageToDispose.Dispose());
+
+                    _currentPersistentStorage = null;
+                    _currentPersistentStorageSolutionId = null;
+                }
+
                 _currentPersistentStorage = TryCreatePersistentStorage(solution, workingFolder);
 
                 if (_currentPersistentStorage == null)
