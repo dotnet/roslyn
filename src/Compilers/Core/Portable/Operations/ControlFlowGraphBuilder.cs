@@ -54,7 +54,6 @@ namespace Microsoft.CodeAnalysis.Operations
         /// <summary>
         /// Do a pass to eliminate blocks without statements that can be merged with predecessor(s).
         /// </summary>
-        /// <param name="blocks"></param>
         private static void Pack(ArrayBuilder<BasicBlock> blocks)
         {
             int count = blocks.Count - 1;
@@ -62,60 +61,62 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 BasicBlock block = blocks[i];
                 Debug.Assert(block.Next != null);
-                if (block.Statements.IsEmpty)
+                if (!block.Statements.IsEmpty)
                 {
-                    BasicBlock next = block.Next;
+                    continue;
+                }
 
-                    if (block.Conditional.Value == null)
+                BasicBlock next = block.Next;
+
+                if (block.Conditional.Value == null)
+                {
+                    if (next != block)
                     {
-                        if (block.Next != block)
+                        foreach (BasicBlock predecessor in block.Predecessors)
                         {
-                            foreach (BasicBlock predecessor in block.Predecessors)
+                            if (predecessor.Next == block)
                             {
-                                if (predecessor.Next == block)
-                                {
-                                    predecessor.Next = next;
-                                    next.AddPredecessor(predecessor);
-                                }
-
-                                (IOperation condition, ConditionalBranchKind kind, BasicBlock destination) = predecessor.Conditional;
-                                if (destination == block)
-                                {
-                                    predecessor.Conditional = (condition, kind, next);
-                                    next.AddPredecessor(predecessor);
-                                }
+                                predecessor.Next = next;
+                                next.AddPredecessor(predecessor);
                             }
 
+                            (IOperation condition, ConditionalBranchKind kind, BasicBlock destination) = predecessor.Conditional;
+                            if (destination == block)
+                            {
+                                predecessor.Conditional = (condition, kind, next);
+                                next.AddPredecessor(predecessor);
+                            }
+                        }
+
+                        next.RemovePredecessor(block);
+
+                        blocks.RemoveAt(i);
+                        i--;
+                        count--;
+                    }
+                }
+                else
+                {
+                    ImmutableHashSet<BasicBlock> predecessors = block.Predecessors;
+
+                    if (predecessors.Count == 1)
+                    {
+                        BasicBlock predecessor = predecessors.Single();
+
+                        if (predecessor.Kind != BasicBlockKind.Entry && predecessor.Next == block && predecessor.Conditional.Value == null)
+                        {
+                            predecessor.Next = next;
+                            next.AddPredecessor(predecessor);
+                            next.RemovePredecessor(block);
+
+                            predecessor.Conditional = block.Conditional;
+                            next = block.Conditional.Destination;
+                            next.AddPredecessor(predecessor);
                             next.RemovePredecessor(block);
 
                             blocks.RemoveAt(i);
                             i--;
                             count--;
-                        }
-                    }
-                    else
-                    {
-                        ImmutableHashSet<BasicBlock> predecessors = block.Predecessors;
-
-                        if (predecessors.Count == 1)
-                        {
-                            BasicBlock predecessor = predecessors.Single();
-
-                            if (predecessor.Kind != BasicBlockKind.Entry && predecessor.Next == block && predecessor.Conditional.Value == null)
-                            {
-                                predecessor.Next = next;
-                                next.AddPredecessor(predecessor);
-                                next.RemovePredecessor(block);
-
-                                predecessor.Conditional = block.Conditional;
-                                next = block.Conditional.Destination;
-                                next.AddPredecessor(predecessor);
-                                next.RemovePredecessor(block);
-
-                                blocks.RemoveAt(i);
-                                i--;
-                                count--;
-                            }
                         }
                     }
                 }
