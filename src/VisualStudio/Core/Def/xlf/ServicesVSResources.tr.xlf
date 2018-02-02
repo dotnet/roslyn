@@ -1490,12 +1490,12 @@ Aşağıdakilerin tümünü onaylıyorum:</target>
       </trans-unit>
       <trans-unit id="Disabling_the_extension_0_unbound_your_keyboard_bindings">
         <source>Disabling the extension '{0}' unbound your keyboard bindings.</source>
-        <target state="new">Disabling the extension '{0}' unbound your keyboard bindings.</target>
+        <target state="translated">'{0}' uzantısının devre dışı bırakılması klavye bağlamalarınızı bozdu.</target>
         <note>0 is an extension name</note>
       </trans-unit>
       <trans-unit id="Code_style_header_use_editor_config">
         <source>The settings configured here only apply to your machine. To configure these settings to travel with your solution, use .editorconfig files.</source>
-        <target state="new">The settings configured here only apply to your machine. To configure these settings to travel with your solution, use .editorconfig files.</target>
+        <target state="translated">Burada yapılandırılan ayarlar yalnızca makineniz için geçerlidir. Bu ayarları çözümünüzle birlikte taşımak için .editorconfig dosyalarını kullanın.</target>
         <note />
       </trans-unit>
     </body>

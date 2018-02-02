@@ -7480,19 +7480,7 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
  /errorendlocation             Her hatanın bitiş konumunun satır ve sütununu
                                göster
  /preferreduilang              Tercih edilen çıkış dilini belirtin.
- /nostdlib[+|-]                Standard kitaplığa (mscorlib.dll) başvurma
- /subsystemversion:&lt;string&gt;    Bu bütünleştirilmiş kodun alt sistem sürümünü belirtin
- /lib:&lt;file list&gt;              İçinde başvuruların aranacağı ek dizinleri
-                               belirtin
- /errorreport:&lt;string&gt;         İç derleyici hatalarının nasıl işleneceğini belirtin:
-                               prompt, send, queue veya none. Varsayılan:
-                               queue.
- /appconfig:&lt;file&gt;             Bütünleştirilmiş kod bağlama ayarlarını içeren bir uygulama
-                               yapılandırma dosyası belirtin
- /moduleassemblyname:&lt;string&gt;  Bu modülün parçası olacağı bütünleştirilmiş kodun
-                               adı
- /modulename:&lt;string&gt;          Kaynak modülün adını belirtin
-</target>
+ /nostdlib[+|-]           </target>
         <note>Visual C# Compiler Options</note>
       </trans-unit>
       <trans-unit id="ERR_ComImportWithInitializers">
@@ -8587,12 +8575,12 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
       </trans-unit>
       <trans-unit id="ERR_InDynamicMethodArg">
         <source>Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.</source>
-        <target state="new">Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.</target>
+        <target state="translated">'in' değiştiricisine sahip bağımsız değişkenler dinamik olarak dağıtılan ifadelerde kullanılamaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureRefConditional">
         <source>ref conditional expression</source>
-        <target state="new">ref conditional expression</target>
+        <target state="translated">ref koşullu ifadesi</target>
         <note />
       </trans-unit>
     </body>

@@ -7466,33 +7466,7 @@ Para eliminar la advertencia puede usar /reference (establezca la propiedad Embe
  /codepage:&lt;n&gt;                 Especificar la página de código que se usará al abrir los archivos de
                                código fuente
  /utf8output                   Mensajes de compilador de salida en codificación UTF-8
- /main:&lt;tipo&gt;                  Especificar el tipo que contiene el punto de entrada
-                               (ignorar todos los demás puntos de entrada posibles) (forma
-                               corta: /m)
- /fullpaths                    El compilador genera rutas de acceso completas
- /filealign:&lt;n&gt;                Especificar la alineación usada para las secciones del
-                               archivo de salida
- /pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
-                               Especificar una asignación para los nombres de rutas de acceso de origen
-                               emitidos por el compilador.
- /pdb:&lt;archivo&gt;                   Especificar nombre de archivo de información de depuración (valor predeterminado:
-                               nombre del archivo de salida con la extensión .pdb)
- /errorendlocation             Línea y columna de salida de la ubicación final de
-                               cada error
- /preferreduilang              Especificar el nombre del lenguaje de salida preferido.
- /nostdlib[+|-]                No hacer referencia a la biblioteca estándar (mscorlib.dll)
- /subsystemversion:&lt;cadena&gt;    Especificar versión del subsistema de este ensamblado
- /lib:&lt;lista de archivos&gt;              Especificar directorios adicionales en los que buscar
-                               referencias
- /errorreport:&lt;cadena&gt;         Especificar cómo tratar los errores internos del compilador:
-                               avisar, enviar, poner en cola o ninguno. El valor predeterminado es
-                               poner en cola.
- /appconfig:&lt;archivo&gt;             Especificar un archivo de configuración de aplicación
-                               que contenga opciones de enlace de ensamblado
- /moduleassemblyname:&lt;cadena&gt;  Nombre del ensamblado del que este módulo
-                               formará parte 
- /modulename:&lt;cadena&gt;          Especificar el nombre del módulo de origen
-</target>
+ /main:&lt;tipo&gt;                  Especificar el tipo que contiene el punto de entr</target>
         <note>Visual C# Compiler Options</note>
       </trans-unit>
       <trans-unit id="ERR_ComImportWithInitializers">
@@ -8587,12 +8561,12 @@ Para eliminar la advertencia puede usar /reference (establezca la propiedad Embe
       </trans-unit>
       <trans-unit id="ERR_InDynamicMethodArg">
         <source>Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.</source>
-        <target state="new">Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.</target>
+        <target state="translated">Los argumentos con el modificador "in" no se pueden usar en las expresiones distribuidas dinámicamente.</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureRefConditional">
         <source>ref conditional expression</source>
-        <target state="new">ref conditional expression</target>
+        <target state="translated">expresión condicional de referencia</target>
         <note />
       </trans-unit>
     </body>
