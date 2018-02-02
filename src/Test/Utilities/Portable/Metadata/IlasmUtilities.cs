@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 var ilasmExeName = PlatformInformation.IsWindows ? "ilasm.exe" : "ilasm";
 
-                var directory = RuntimeUtilities.GetAssemblyLocation(typeof(RuntimeUtilities));
+                var directory = Path.GetDirectoryName(RuntimeUtilities.GetAssemblyLocation(typeof(RuntimeUtilities)));
                 string path = null;
                 while (directory != null && !File.Exists(path = Path.Combine(directory, "Binaries", "Tools", "ILAsm", ilasmExeName)))
                 {
