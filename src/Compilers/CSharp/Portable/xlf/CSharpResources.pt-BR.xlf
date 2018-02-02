@@ -7472,27 +7472,7 @@ Para incorporar informações de tipo de interoperabilidade para os dois assembl
  /fullpaths                    O compilador gera caminhos totalmente qualificados
  /filealign:&lt;n&gt;                Especificar o alinhamento usado para as seções do arquivo de
                                saída
- /pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
-                               Especificar um mapeamento para os nomes dos caminhos de origem produzidos pelo
-                               compilador.
- /pdb:&lt;file&gt;                   Especificar o nome do arquivo de informações de depuração (padrão:
-                               nome do arquivo de saída com a extensão .pdb)
- /errorendlocation             Linha e coluna de saída da localização final de
-                               cada erro
- /preferreduilang              Especificar o nome da linguagem de saída preferencial.
- /nostdlib[+|-]                Não referenciar a biblioteca padrão (mscorlib.dll)
- /subsystemversion:&lt;string&gt;    Especificar a versão do subsistema deste assembly
- /lib:&lt;file list&gt;              Especificar diretórios adicionais a serem pesquisados em relação a 
-                               referências
- /errorreport:&lt;string&gt;         Especificar como lidar com os erros internos do compilador: 
-                               solicitar, enviar, colocar na fila ou nada. O padrão é 
-                               colocar na fila.
- /appconfig:&lt;file&gt;             Especificar um arquivo de configuração de aplicativo
-                               contendo configurações de associações do assembly
- /moduleassemblyname:&lt;string&gt;  Nome do assembly do qual o módulo fará 
-                               parte de 
- /modulename:&lt;string&gt;          Especificar o nome do módulo de origem
-</target>
+ /pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...</target>
         <note>Visual C# Compiler Options</note>
       </trans-unit>
       <trans-unit id="ERR_ComImportWithInitializers">
@@ -8587,12 +8567,12 @@ Para incorporar informações de tipo de interoperabilidade para os dois assembl
       </trans-unit>
       <trans-unit id="ERR_InDynamicMethodArg">
         <source>Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.</source>
-        <target state="new">Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.</target>
+        <target state="translated">Argumentos com o modificador 'in' não podem ser usados em expressões dinamicamente expedidas.</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureRefConditional">
         <source>ref conditional expression</source>
-        <target state="new">ref conditional expression</target>
+        <target state="translated">expressão condicional ref</target>
         <note />
       </trans-unit>
     </body>
