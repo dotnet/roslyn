@@ -119,7 +119,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
                     var useDecompiler = allowDecompilation;
                     if (useDecompiler)
                     {
-                        useDecompiler = !symbol.ContainingAssembly.GetAttributes().Any(attribute => attribute.AttributeClass.Name == nameof(SuppressIldasmAttribute));
+                        useDecompiler = !symbol.ContainingAssembly.GetAttributes().Any(attribute => attribute.AttributeClass.Name == nameof(SuppressIldasmAttribute)
+                            && attribute.AttributeClass.ToNameDisplayString() == typeof(SuppressIldasmAttribute).FullName);
                     }
 
                     if (useDecompiler)
@@ -198,7 +199,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
             var compilation = await temporaryDocument.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
             string assemblyLocation = null;
-            var isReferenceAssembly = symbol.ContainingAssembly.GetAttributes().Any(attribute => attribute.AttributeClass.Name == nameof(ReferenceAssemblyAttribute));
+            var isReferenceAssembly = symbol.ContainingAssembly.GetAttributes().Any(attribute => attribute.AttributeClass.Name == nameof(ReferenceAssemblyAttribute)
+                && attribute.AttributeClass.ToNameDisplayString() == typeof(ReferenceAssemblyAttribute).FullName);
             if (isReferenceAssembly)
             {
                 try
@@ -206,7 +208,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
                     var fullAssemblyName = symbol.ContainingAssembly.Identity.GetDisplayName();
                     GlobalAssemblyCache.Instance.ResolvePartialName(fullAssemblyName, out assemblyLocation, preferredCulture: CultureInfo.CurrentCulture);
                 }
-                catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportWithoutCrash(e))
                 {
                 }
             }
@@ -214,7 +216,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
             if (assemblyLocation == null)
             {
                 var reference = compilation.GetMetadataReference(symbol.ContainingAssembly);
-                assemblyLocation = reference.Display;
+                assemblyLocation = (reference as PortableExecutableReference)?.FilePath;
+                if (assemblyLocation == null)
+                {
+                    throw new NotSupportedException(EditorFeaturesResources.Cannot_navigate_to_the_symbol_under_the_caret);
+                }
             }
 
             // Load the assembly.
