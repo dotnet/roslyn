@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Operations
                         {
                             BasicBlock predecessor = predecessors.Single();
 
-                            if (predecessor.Next == block && predecessor.Conditional.Value == null)
+                            if (predecessor.Kind != BasicBlockKind.Entry && predecessor.Next == block && predecessor.Conditional.Value == null)
                             {
                                 predecessor.Next = next;
                                 next.AddPredecessor(predecessor);
