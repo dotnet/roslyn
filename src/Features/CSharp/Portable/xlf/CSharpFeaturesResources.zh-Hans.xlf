@@ -797,6 +797,16 @@
         <target state="new">Warning: Moving using directives may change code meaning.</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
       </trans-unit>
+      <trans-unit id="Convert_linq_method_to_linq_query">
+        <source>Convert 'linq method' to 'linq query'</source>
+        <target state="new">Convert 'linq method' to 'linq query'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_linq_query_to_linq_method">
+        <source>Convert 'linq query' to 'linq method'</source>
+        <target state="new">Convert 'linq query' to 'linq method'</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

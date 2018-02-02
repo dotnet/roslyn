@@ -506,6 +506,12 @@
   <data name="Convert_to_switch" xml:space="preserve">
     <value>Convert to 'switch'</value>
   </data>
+  <data name="Convert_linq_method_to_linq_query" xml:space="preserve">
+    <value>Convert 'linq method' to 'linq query'</value>
+  </data>
+    <data name="Convert_linq_query_to_linq_method" xml:space="preserve">
+    <value>Convert 'linq query' to 'linq method'</value>
+  </data>
   <data name="Warning_Extracting_a_local_function_reference_may_produce_invalid_code" xml:space="preserve">
     <value>Warning: Extracting a local function reference may produce invalid code</value>
   </data>

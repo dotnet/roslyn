@@ -449,6 +449,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Convert &apos;linq method&apos; to &apos;linq query&apos;.
+        /// </summary>
+        internal static string Convert_linq_method_to_linq_query {
+            get {
+                return ResourceManager.GetString("Convert_linq_method_to_linq_query", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Convert &apos;linq query&apos; to &apos;linq method&apos;.
+        /// </summary>
+        internal static string Convert_linq_query_to_linq_method {
+            get {
+                return ResourceManager.GetString("Convert_linq_query_to_linq_method", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to deconstruction.
         /// </summary>
         internal static string deconstruction {
