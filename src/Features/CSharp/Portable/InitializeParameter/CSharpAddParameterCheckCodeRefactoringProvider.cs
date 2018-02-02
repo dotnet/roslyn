@@ -15,19 +15,22 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
     internal class CSharpAddParameterCheckCodeRefactoringProvider :
         AbstractAddParameterCheckCodeRefactoringProvider<
             ParameterSyntax,
-            BaseMethodDeclarationSyntax,
+            ParameterListSyntax,
             StatementSyntax,
             ExpressionSyntax,
             BinaryExpressionSyntax>
     {
+        protected override SyntaxNode GetFunctionDeclaration(ParameterListSyntax parameterList)
+            => InitializeParameterHelpers.GetFunctionDeclaration(parameterList);
+
         protected override SyntaxNode GetTypeBlock(SyntaxNode node)
             => node;
 
-        protected override SyntaxNode GetBody(BaseMethodDeclarationSyntax containingMember)
-            => InitializeParameterHelpers.GetBody(containingMember);
+        protected override SyntaxNode GetBody(SyntaxNode functionDeclaration)
+            => InitializeParameterHelpers.GetBody(functionDeclaration);
 
-        protected override void InsertStatement(SyntaxEditor editor, BaseMethodDeclarationSyntax methodDeclarationSyntax, SyntaxNode statementToAddAfterOpt, StatementSyntax statement)
-            => InitializeParameterHelpers.InsertStatement(editor, methodDeclarationSyntax, statementToAddAfterOpt, statement);
+        protected override void InsertStatement(SyntaxEditor editor, SyntaxNode functionDeclaration, SyntaxNode statementToAddAfterOpt, StatementSyntax statement)
+            => InitializeParameterHelpers.InsertStatement(editor, functionDeclaration, statementToAddAfterOpt, statement);
 
         protected override bool IsImplicitConversion(Compilation compilation, ITypeSymbol source, ITypeSymbol destination)
             => InitializeParameterHelpers.IsImplicitConversion(compilation, source, destination);

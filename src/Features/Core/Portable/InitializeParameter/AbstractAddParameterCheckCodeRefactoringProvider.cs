@@ -18,23 +18,23 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 {
     internal abstract partial class AbstractAddParameterCheckCodeRefactoringProvider<
         TParameterSyntax,
-        TMemberDeclarationSyntax,
+        TParameterListSyntax,
         TStatementSyntax,
         TExpressionSyntax,
         TBinaryExpressionSyntax> : AbstractInitializeParameterCodeRefactoringProvider<
             TParameterSyntax,
-            TMemberDeclarationSyntax,
+            TParameterListSyntax,
             TStatementSyntax,
             TExpressionSyntax,
             TBinaryExpressionSyntax>
         where TParameterSyntax : SyntaxNode
-        where TMemberDeclarationSyntax : SyntaxNode
+        where TParameterListSyntax : SyntaxNode
         where TStatementSyntax : SyntaxNode
         where TExpressionSyntax : SyntaxNode
         where TBinaryExpressionSyntax : TExpressionSyntax
     {
         protected override async Task<ImmutableArray<CodeAction>> GetRefactoringsAsync(
-            Document document, IParameterSymbol parameter, TMemberDeclarationSyntax memberDeclaration,
+            Document document, IParameterSymbol parameter, SyntaxNode functionDeclaration,
             IBlockOperation blockStatementOpt, CancellationToken cancellationToken)
         {
             // Only should provide null-checks for reference types and nullable types.
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             var result = ArrayBuilder<CodeAction>.GetInstance();
             result.Add(new MyCodeAction(
                 FeaturesResources.Add_null_check,
-                c => AddNullCheckAsync(document, parameter, memberDeclaration, blockStatementOpt, c)));
+                c => AddNullCheckAsync(document, parameter, functionDeclaration, blockStatementOpt, c)));
 
             // Also, if this was a string, offer to add the special checks to 
             // string.IsNullOrEmpty and string.IsNullOrWhitespace.
@@ -88,11 +88,11 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             {
                 result.Add(new MyCodeAction(
                     FeaturesResources.Add_string_IsNullOrEmpty_check,
-                    c => AddStringCheckAsync(document, parameter, memberDeclaration, blockStatementOpt, nameof(string.IsNullOrEmpty), c)));
+                    c => AddStringCheckAsync(document, parameter, functionDeclaration, blockStatementOpt, nameof(string.IsNullOrEmpty), c)));
 
                 result.Add(new MyCodeAction(
                     FeaturesResources.Add_string_IsNullOrWhiteSpace_check,
-                    c => AddStringCheckAsync(document, parameter, memberDeclaration, blockStatementOpt, nameof(string.IsNullOrWhiteSpace), c)));
+                    c => AddStringCheckAsync(document, parameter, functionDeclaration, blockStatementOpt, nameof(string.IsNullOrWhiteSpace), c)));
             }
 
             return result.ToImmutableAndFree();
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         private async Task<Document> AddNullCheckAsync(
             Document document,
             IParameterSymbol parameter,
-            TMemberDeclarationSyntax memberDeclaration,
+            SyntaxNode functionDeclaration,
             IBlockOperation blockStatementOpt,
             CancellationToken cancellationToken)
         {
@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
             // If we can't, then just offer to add an "if (s == null)" statement.
             return await AddNullCheckStatementAsync(
-                document, parameter, memberDeclaration, blockStatementOpt,
+                document, parameter, functionDeclaration, blockStatementOpt,
                 (c, g) => CreateNullCheckStatement(c, g, parameter),
                 cancellationToken).ConfigureAwait(false);
         }
@@ -202,13 +202,13 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         private async Task<Document> AddStringCheckAsync(
             Document document,
             IParameterSymbol parameter,
-            TMemberDeclarationSyntax memberDeclaration,
+            SyntaxNode functionDeclaration,
             IBlockOperation blockStatementOpt,
             string methodName,
             CancellationToken cancellationToken)
         {
             return await AddNullCheckStatementAsync(
-                document, parameter, memberDeclaration, blockStatementOpt,
+                document, parameter, functionDeclaration, blockStatementOpt,
                 (c, g) => CreateStringCheckStatement(c, g, parameter, methodName),
                 cancellationToken).ConfigureAwait(false);
         }
@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         private async Task<Document> AddNullCheckStatementAsync(
             Document document, 
             IParameterSymbol parameter,
-            TMemberDeclarationSyntax memberDeclaration,
+            SyntaxNode functionDeclaration,
             IBlockOperation blockStatementOpt,
             Func<Compilation, SyntaxGenerator, TStatementSyntax> generateNullCheck,
             CancellationToken cancellationToken)
@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             // signature.
             var statementToAddAfter = GetStatementToAddNullCheckAfter(
                 semanticModel, parameter, blockStatementOpt, cancellationToken);
-            InsertStatement(editor, memberDeclaration, statementToAddAfter, nullCheckStatement);
+            InsertStatement(editor, functionDeclaration, statementToAddAfter, nullCheckStatement);
 
             var newRoot = editor.GetChangedRoot();
             return document.WithSyntaxRoot(newRoot);

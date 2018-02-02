@@ -11,8 +11,36 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
 {
     internal static class InitializeParameterHelpers
     {
-        public static SyntaxNode GetBody(BaseMethodDeclarationSyntax containingMember)
-            => containingMember.Body ?? (SyntaxNode)containingMember.ExpressionBody;
+        private static (BlockSyntax body, ArrowExpressionClauseSyntax expression, SyntaxToken semicolonToken) GetFunctionSyntaxElements(SyntaxNode functionDeclaration)
+        {
+            Debug.Assert(functionDeclaration is BaseMethodDeclarationSyntax || functionDeclaration is LocalFunctionStatementSyntax);
+
+            return
+                functionDeclaration is BaseMethodDeclarationSyntax methodDeclaration
+                    ? (methodDeclaration.Body, methodDeclaration.ExpressionBody, methodDeclaration.SemicolonToken) :
+                functionDeclaration is LocalFunctionStatementSyntax localFunction
+                    ? (localFunction.Body, localFunction.ExpressionBody, localFunction.SemicolonToken) : default;
+        }
+
+        private static SyntaxNode FunctionDeclarationWithBody(SyntaxNode functionDeclaration, BlockSyntax body)
+        {
+            Debug.Assert(functionDeclaration is BaseMethodDeclarationSyntax || functionDeclaration is LocalFunctionStatementSyntax);
+
+            return
+                functionDeclaration is BaseMethodDeclarationSyntax methodDeclaration
+                    ? (SyntaxNode)methodDeclaration.WithSemicolonToken(default).WithBody(body) :
+                functionDeclaration is LocalFunctionStatementSyntax localFunction
+                    ? (SyntaxNode)localFunction.WithSemicolonToken(default).WithBody(body) : default;
+        }
+
+        public static SyntaxNode GetFunctionDeclaration(ParameterListSyntax parameterList)
+            => parameterList.FirstAncestorOrSelf<SyntaxNode>(node => node is BaseMethodDeclarationSyntax || node is LocalFunctionStatementSyntax);
+
+        public static SyntaxNode GetBody(SyntaxNode functionDeclaration)
+        {
+            var (body, expressionBody, _) = GetFunctionSyntaxElements(functionDeclaration);
+            return (SyntaxNode)body ?? expressionBody;
+        }
 
         public static bool IsImplicitConversion(Compilation compilation, ITypeSymbol source, ITypeSymbol destination)
             => compilation.ClassifyConversion(source: source, destination: destination).IsImplicit;
@@ -24,33 +52,35 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
 
         public static void InsertStatement(
             SyntaxEditor editor,
-            BaseMethodDeclarationSyntax methodDeclaration,
+            SyntaxNode functionDeclaration,
             SyntaxNode statementToAddAfterOpt,
             StatementSyntax statement)
         {
-            if (methodDeclaration.ExpressionBody != null)
+            var (body, expressionBody, semicolonToken) = GetFunctionSyntaxElements(functionDeclaration);
+
+            if (expressionBody != null)
             {
                 // If this is a => method, then we'll have to convert the method to have a block
                 // body.  Add the new statement as the first/last statement of the new block 
                 // depending if we were asked to go after something or not.
-                if (!methodDeclaration.ExpressionBody.TryConvertToStatement(methodDeclaration.SemicolonToken, CreateReturnStatement(methodDeclaration), out var declaration))
+                if (!expressionBody.TryConvertToStatement(semicolonToken, CreateReturnStatement(functionDeclaration), out var declaration))
                 {
                     return;
                 }
 
                 if (statementToAddAfterOpt == null)
                 {
-                    editor.SetStatements(methodDeclaration, ImmutableArray.Create(statement, declaration));
+                    editor.SetStatements(functionDeclaration, ImmutableArray.Create(statement, declaration));
                 }
                 else
                 {
-                    editor.SetStatements(methodDeclaration, ImmutableArray.Create(declaration, statement));
+                    editor.SetStatements(functionDeclaration, ImmutableArray.Create(declaration, statement));
                 }
             }
-            else if (methodDeclaration.Body != null)
+            else if (body != null)
             {
                 // Look for the statement we were asked to go after.
-                var block = methodDeclaration.Body;
+                var block = body;
                 var indexToAddAfter = block.Statements.IndexOf(s => s == statementToAddAfterOpt);
                 if (indexToAddAfter >= 0)
                 {
@@ -73,17 +103,17 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             }
             else
             {
-                editor.ReplaceNode(
-                    methodDeclaration,
-                    methodDeclaration.WithSemicolonToken(default)
-                                     .WithBody(SyntaxFactory.Block(statement)));
+                var newDeclaration = FunctionDeclarationWithBody(functionDeclaration, SyntaxFactory.Block(statement));
+                editor.ReplaceNode(functionDeclaration, newDeclaration);
             }
         }
 
-        private static bool CreateReturnStatement(BaseMethodDeclarationSyntax declarationSyntax)
+        private static bool CreateReturnStatement(SyntaxNode declarationSyntax)
         {
             switch(declarationSyntax)
             {
+                case LocalFunctionStatementSyntax function:
+                    return !function.ReturnType.IsVoid();
                 case MethodDeclarationSyntax method:
                     return !method.ReturnType.IsVoid();
                 case ConversionOperatorDeclarationSyntax _:
