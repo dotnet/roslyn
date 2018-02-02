@@ -2212,31 +2212,55 @@ class Program
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         [WorkItem(24262, "https://github.com/dotnet/roslyn/issues/24262")]
-        public async Task DoNotSuggestVarForExplicitInterfaceImplementations()
+        public async Task DoNotSuggestVarForExplicitInterfaceImplementationForeachStatement()
         {
             await TestMissingInRegularAndScriptAsync(@"
-public interface ITest
-{
-    string Value { get; }
-}
-public class TestInstance : ITest
-{
-    string ITest.Value => ""Hi"";
-}
-
-public class Test
-{
-    public TestInstance[] Instances { get; }
-
-    public void TestIt()
-    {
-        foreach ([|ITest|] test in Instances)
+        public interface ITest
         {
-            Console.WriteLine(test.Value);
+            string Value { get; }
         }
-    }
-}
-", new TestParameters(options: ImplicitTypeEverywhere()));
+        public class TestInstance : ITest
+        {
+            string ITest.Value => ""Hi"";
+        }
+
+        public class Test
+        {
+            public TestInstance[] Instances { get; }
+
+            public void TestIt()
+            {
+                foreach ([|ITest|] test in Instances)
+                {
+                    Console.WriteLine(test.Value);
+                }
+            }
+        }
+        ", new TestParameters(options: ImplicitTypeEverywhere()));
+        }
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        [WorkItem(24262, "https://github.com/dotnet/roslyn/issues/24262")]
+        public async Task DoNotSuggestVarForExplicitInterfaceImplementationDeclarationStatement()
+        {
+            await TestMissingInRegularAndScriptAsync(@"
+        public interface ITest
+        {
+            string Value { get; }
+        }
+        public class TestInstance : ITest
+        {
+            string ITest.Value => ""Hi"";
+        }
+
+        public class Test
+        {
+            public void TestIt()
+            {
+                [|ITest|] test = new TestInstance();
+                Console.WriteLine(test.Value);          
+            }
+        }
+        ", new TestParameters(options: ImplicitTypeEverywhere()));
         }
     }
 }
