@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                         try
                         {
-                            using (Logger.LogBlock(FunctionId.WorkCoordinator_ProcessProjectAsync, source.Token))
+                            using (Logger.LogBlock(FunctionId.WorkCoordinator_ProcessProjectAsync, w => w.ToString(), workItem, source.Token))
                             {
                                 var cancellationToken = source.Token;
 

@@ -92,9 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
 
         internal void InitializeWorkspace(TestWorkspace workspace)
         {
-            var aggregateListener = AggregateAsynchronousOperationListener.CreateEmptyListener();
-
-            _provider = new NavigateToItemProvider(workspace, aggregateListener);
+            _provider = new NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener);
             _aggregator = new NavigateToTestAggregator(_provider);
         }
 
