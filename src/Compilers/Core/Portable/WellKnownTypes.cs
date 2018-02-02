@@ -272,6 +272,8 @@ namespace Microsoft.CodeAnalysis
         System_Span_T,
         System_ReadOnlySpan_T,
 
+        System_Runtime_CompilerServices_SkipLocalsInitAttribute,
+
         NextAvailable,
     }
 
@@ -537,6 +539,8 @@ namespace Microsoft.CodeAnalysis
             "System.ObsoleteAttribute",
             "System.Span`1",
             "System.ReadOnlySpan`1",
+
+            "System.Runtime.CompilerServices.SkipLocalsInitAttribute",
         };
 
         private readonly static Dictionary<string, WellKnownType> s_nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);

@@ -8411,6 +8411,104 @@ public class C
 
         #endregion
 
+        #region SkipLocalsInitAttribute
+
+        [Fact]
+        public void SkipLocalsInitAttributeRecognizedAsWellKnownTypeWhenDeclaredInSource()
+        {
+            var source = @"
+namespace System.Runtime.CompilerServices
+{
+    public class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+";
+
+            var comp = CreateStandardCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var wellKnownType = comp.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_SkipLocalsInitAttribute);
+            var typeMember = comp.GetMember<NamedTypeSymbol>("System.Runtime.CompilerServices.SkipLocalsInitAttribute");
+
+            Assert.Equal(wellKnownType, typeMember);
+        }
+
+        [Fact]
+        public void SkipLocalsInitAttributeRecognizedAsWellKnownTypeWhenDeclaredInMetadata()
+        {
+            var source = @"
+namespace System.Runtime.CompilerServices
+{
+    public class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+";
+
+            var metadataComp = CreateStandardCompilation(source);
+            metadataComp.VerifyDiagnostics();
+
+            var comp = CreateStandardCompilation("", references: new[] { metadataComp.EmitToImageReference() });
+            comp.VerifyDiagnostics();
+
+            var wellKnownType = comp.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_SkipLocalsInitAttribute);
+            var typeMember = comp.GetMember<NamedTypeSymbol>("System.Runtime.CompilerServices.SkipLocalsInitAttribute");
+
+            Assert.Equal(wellKnownType, typeMember);
+        }
+
+        [Fact]
+        public void SkipLocalsInitAttributeFromSourceRecognizedAsWellKnownTypeWhenDeclaredInSourceAndMetadata()
+        {
+            var source = @"
+namespace System.Runtime.CompilerServices
+{
+    public class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+";
+
+            var metadataComp = CreateStandardCompilation(source);
+            metadataComp.VerifyDiagnostics();
+
+            var comp = CreateStandardCompilation(source, references: new[] { metadataComp.EmitToImageReference() });
+            comp.VerifyDiagnostics();
+
+            var wellKnownType = comp.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_SkipLocalsInitAttribute);
+            
+            Assert.IsType<SourceNamedTypeSymbol>(wellKnownType);
+        }
+
+        [Fact]
+        public void SkipLocalsInitAttributeMissingWhenDeclaredMoreThanOnceInOtherAssemblies()
+        {
+            var source = @"
+namespace System.Runtime.CompilerServices
+{
+    public class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+";
+
+            var metadataComp1 = CreateStandardCompilation(source);
+            metadataComp1.VerifyDiagnostics();
+
+            var metadataComp2 = CreateStandardCompilation(source);
+            metadataComp2.VerifyDiagnostics();
+
+            var comp = CreateStandardCompilation("", references: new[] { metadataComp1.EmitToImageReference(), metadataComp2.EmitToImageReference() });
+            comp.VerifyDiagnostics();
+
+            var wellKnownType = comp.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_SkipLocalsInitAttribute);
+
+            Assert.True(wellKnownType.IsErrorType());
+        }
+
+        #endregion
+
         [Fact, WorkItem(807, "https://github.com/dotnet/roslyn/issues/807")]
         public void TestAttributePropagationForAsyncAndIterators_01()
         {
