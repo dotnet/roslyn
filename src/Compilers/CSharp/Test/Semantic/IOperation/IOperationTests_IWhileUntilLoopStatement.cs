@@ -1381,5 +1381,164 @@ IWhileLoopOperation (ConditionIsTop: False, ConditionIsUntil: False) (LoopKind.W
 
             VerifyOperationTreeAndDiagnosticsForTest<DoStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void WhileFlow_01()
+        {
+            string source1 = @"
+class P
+{
+    void M(bool condition1, bool condition2)
+/*<bind>*/{
+        while (condition1)
+        {
+            if (condition2) condition1 = false;
+        }
+    }/*</bind>*/
+}
+";
+            string source2 = @"
+class P
+{
+    void M(bool condition1, bool condition2)
+/*<bind>*/{
+        while (condition1)
+            if (condition2) condition1 = false;
+    }/*</bind>*/
+}
+";
+            string expectedGraph = @"
+Block[0] - Entry
+    Statements (0)
+    Next Block[3]
+Block[1] - Block
+    Predecessors (1)
+        [3]
+    Statements (0)
+    Jump if False to Block[3]
+        IParameterReferenceOperation: condition2 (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'condition2')
+
+    Next Block[2]
+Block[2] - Block
+    Predecessors (1)
+        [1]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'condition1 = false;')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'condition1 = false')
+              Left: 
+                IParameterReferenceOperation: condition1 (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'condition1')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+
+    Next Block[3]
+Block[3] - Block
+    Predecessors (3)
+        [0]
+        [1]
+        [2]
+    Statements (0)
+    Jump if True to Block[1]
+        IParameterReferenceOperation: condition1 (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'condition1')
+
+    Next Block[4]
+Block[4] - Exit
+    Predecessors (1)
+        [3]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source1, expectedGraph, expectedDiagnostics);
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source2, expectedGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void DoFlow_01()
+        {
+            string source = @"
+class P
+{
+    void M(bool condition)
+/*<bind>*/{
+        do
+        {
+            condition = false;
+        }
+        while (condition);
+    }/*</bind>*/
+}
+";
+            string expectedGraph = @"
+Block[0] - Entry
+    Statements (0)
+    Next Block[1]
+Block[1] - Block
+    Predecessors (2)
+        [0]
+        [1]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'condition = false;')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'condition = false')
+              Left: 
+                IParameterReferenceOperation: condition (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'condition')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+
+    Jump if True to Block[1]
+        IParameterReferenceOperation: condition (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'condition')
+
+    Next Block[2]
+Block[2] - Exit
+    Predecessors (1)
+        [1]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void DoFlow_02()
+        {
+            string source = @"
+class P
+{
+    void M(bool condition)
+/*<bind>*/{
+        do
+        {
+        }
+        while (condition);
+    }/*</bind>*/
+}
+";
+            string expectedGraph = @"
+Block[0] - Entry
+    Statements (0)
+    Next Block[1]
+Block[1] - Block
+    Predecessors (2)
+        [0]
+        [1]
+    Statements (0)
+    Jump if True to Block[1]
+        IParameterReferenceOperation: condition (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'condition')
+
+    Next Block[2]
+Block[2] - Exit
+    Predecessors (1)
+        [1]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
     }
 }
