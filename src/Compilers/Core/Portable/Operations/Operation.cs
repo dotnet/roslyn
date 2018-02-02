@@ -1,13 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Linq;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -18,14 +16,15 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal abstract class Operation : IOperation
     {
+        private static readonly IOperation s_unset = new EmptyStatement(null, null, null, default, isImplicit: true);
+
         internal readonly SemanticModel SemanticModel;
 
         // this will be lazily initialized. this will be initialized only once
         // but once initialized, will never change
-        private IOperation _parentDoNotAccessDirectly = s_unset;
-        private static readonly IOperation s_unset = new EmptyStatement(null, null, null, default, isImplicit: true); 
+        private IOperation _parentDoNotAccessDirectly;
 
-        public Operation(OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+        protected Operation(OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
         {
             SemanticModel = semanticModel;
 
@@ -34,6 +33,8 @@ namespace Microsoft.CodeAnalysis
             Type = type;
             ConstantValue = constantValue;
             IsImplicit = isImplicit;
+
+            _parentDoNotAccessDirectly = s_unset;
         }
 
         /// <summary>
@@ -100,7 +101,7 @@ namespace Microsoft.CodeAnalysis
             var result = Interlocked.CompareExchange(ref _parentDoNotAccessDirectly, parent, s_unset);
 
             // tree must belong to same semantic model if parent is given
-            Debug.Assert(parent == null || ((Operation)parent).SemanticModel == SemanticModel || 
+            Debug.Assert(parent == null || ((Operation)parent).SemanticModel == SemanticModel ||
                 ((Operation)parent).SemanticModel == null || SemanticModel == null);
 
             // make sure given parent and one we already have is same if we have one already
