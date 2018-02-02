@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EventHookup
         {
 #pragma warning disable CS0618 // IQuickInfo* is obsolete, tracked by https://github.com/dotnet/roslyn/issues/24094
             _commandHandler = new EventHookupCommandHandler(Workspace.GetService<IInlineRenameService>(), Workspace.GetService<IQuickInfoBroker>(),
-                prematureDismissalPreventer: null, Workspace.ExportProvider.GetExportedValues<IAsynchronousOperationListener>().Select(l => new Lazy<IAsynchronousOperationListener, FeatureMetadata>(() => l, new FeatureMetadata("EventHookup"))));
+                prematureDismissalPreventer: null, Workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>());
 #pragma warning restore CS0618 // IQuickInfo* is obsolete, tracked by https://github.com/dotnet/roslyn/issues/24094
 
             _testSessionHookupMutex = new Mutex(false);
