@@ -23,20 +23,17 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 {
     internal abstract partial class AbstractInitializeMemberFromParameterCodeRefactoringProvider<
         TParameterSyntax,
-        TMemberDeclarationSyntax,
+        TParameterListSyntax,
         TStatementSyntax,
-        TExpressionSyntax,
-        TBinaryExpressionSyntax> : AbstractInitializeParameterCodeRefactoringProvider<
+        TExpressionSyntax> : AbstractInitializeParameterCodeRefactoringProvider<
             TParameterSyntax,
-            TMemberDeclarationSyntax,
+            TParameterListSyntax,
             TStatementSyntax,
-            TExpressionSyntax,
-            TBinaryExpressionSyntax>
+            TExpressionSyntax>
         where TParameterSyntax : SyntaxNode
-        where TMemberDeclarationSyntax : SyntaxNode
+        where TParameterListSyntax : SyntaxNode
         where TStatementSyntax : SyntaxNode
         where TExpressionSyntax : SyntaxNode
-        where TBinaryExpressionSyntax : TExpressionSyntax
     {
         // Standard field/property names we look for when we have a parameter with a given name.
         // We also use the rules to help generate fresh fields/properties.  Note that we always
@@ -62,7 +59,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         protected abstract SyntaxNode TryGetLastStatement(IBlockOperation blockStatementOpt);
 
         protected override async Task<ImmutableArray<CodeAction>> GetRefactoringsAsync(
-            Document document, IParameterSymbol parameter, TMemberDeclarationSyntax memberDeclaration,
+            Document document, IParameterSymbol parameter, SyntaxNode functionDeclaration,
             IBlockOperation blockStatementOpt, CancellationToken cancellationToken)
         {
             // Only supported for constructor parameters.
@@ -102,7 +99,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 return ImmutableArray.Create<CodeAction>(new MyCodeAction(
                     title,
                     c => AddSymbolInitializationAsync(
-                        document, parameter, memberDeclaration, blockStatementOpt, fieldOrProperty, c)));
+                        document, parameter, functionDeclaration, blockStatementOpt, fieldOrProperty, c)));
             }
             else
             {
@@ -123,9 +120,9 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 // we could consider swapping this if people prefer creating private fields more.
                 return ImmutableArray.Create<CodeAction>(
                     new MyCodeAction(string.Format(FeaturesResources.Create_and_initialize_property_0, property.Name),
-                        c => AddSymbolInitializationAsync(document, parameter, memberDeclaration, blockStatementOpt, property, c)),
+                        c => AddSymbolInitializationAsync(document, parameter, functionDeclaration, blockStatementOpt, property, c)),
                     new MyCodeAction(string.Format(FeaturesResources.Create_and_initialize_field_0, field.Name),
-                        c => AddSymbolInitializationAsync(document, parameter, memberDeclaration, blockStatementOpt, field, c)));
+                        c => AddSymbolInitializationAsync(document, parameter, functionDeclaration, blockStatementOpt, field, c)));
             }
         }
 
@@ -198,7 +195,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         }
 
         private async Task<Document> AddSymbolInitializationAsync(
-            Document document, IParameterSymbol parameter, TMemberDeclarationSyntax memberDeclaration,
+            Document document, IParameterSymbol parameter, SyntaxNode functionDeclaration,
             IBlockOperation blockStatementOpt, ISymbol fieldOrProperty, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -218,7 +215,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 var typeDeclaration = 
                     parameter.ContainingType.DeclaringSyntaxReferences
                                             .Select(r => GetTypeBlock(r.GetSyntax(cancellationToken)))
-                                            .Single(d => memberDeclaration.Ancestors().Contains(d));
+                                            .Single(d => functionDeclaration.Ancestors().Contains(d));
 
                 // Now add the field/property to this type.  Use the 'ReplaceNode+callback' form
                 // so that nodes will be appropriate tracked and so we can then update the constructor
@@ -266,7 +263,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             var statementToAddAfterOpt = TryGetStatementToAddInitializationAfter(
                 semanticModel, parameter, blockStatementOpt, cancellationToken);
 
-            InsertStatement(editor, memberDeclaration, statementToAddAfterOpt, initializationStatement);
+            InsertStatement(editor, functionDeclaration, statementToAddAfterOpt, initializationStatement);
 
             return document.WithSyntaxRoot(editor.GetChangedRoot());
         }
