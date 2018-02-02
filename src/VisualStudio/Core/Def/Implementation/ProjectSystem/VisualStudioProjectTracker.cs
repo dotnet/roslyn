@@ -431,7 +431,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private static readonly char[] s_directorySeparatorChars = { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar };
 
-        private bool HACK_StripRefDirectoryFromPath(string filePath, out string binFilePath)
+        private static bool HACK_StripRefDirectoryFromPath(string filePath, out string binFilePath)
         {
             const string refDirectoryName = "ref";
 
