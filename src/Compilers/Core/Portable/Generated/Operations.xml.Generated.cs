@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public AddressOfExpression(IOperation reference, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            Reference = Operation.SetParentOperation(reference, this);
+            Reference = SetParentOperation(reference, this);
         }
 
         public override IOperation Reference { get; }
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Operations
             _lazyReference = reference ?? throw new System.ArgumentNullException(nameof(reference));
         }
 
-        public override IOperation Reference => Operation.SetParentOperation(_lazyReference.Value, this);
+        public override IOperation Reference => SetParentOperation(_lazyReference.Value, this);
     }
 
     /// <summary>
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public NameOfExpression(IOperation argument, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            Argument = Operation.SetParentOperation(argument, this);
+            Argument = SetParentOperation(argument, this);
         }
 
         public override IOperation Argument { get; }
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Operations
             _lazyArgument = argument ?? throw new System.ArgumentNullException(nameof(argument));
         }
 
-        public override IOperation Argument => Operation.SetParentOperation(_lazyArgument.Value, this);
+        public override IOperation Argument => SetParentOperation(_lazyArgument.Value, this);
     }
 
     /// <summary>
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public ThrowExpression(IOperation exception, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            Exception = Operation.SetParentOperation(exception, this);
+            Exception = SetParentOperation(exception, this);
 
         }
 
@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.Operations
             _lazyException = exception ?? throw new System.ArgumentNullException(nameof(exception));
         }
 
-        public override IOperation Exception => Operation.SetParentOperation(_lazyException.Value, this);
+        public override IOperation Exception => SetParentOperation(_lazyException.Value, this);
     }
 
     /// <summary>
@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public ArgumentOperation(IOperation value, ArgumentKind argumentKind, IParameterSymbol parameter, IConvertibleConversion inConversionOpt, IConvertibleConversion outConversionOpt, SemanticModel semanticModel, SyntaxNode syntax, Optional<object> constantValue, bool isImplicit) : 
             base(argumentKind, parameter, inConversionOpt, outConversionOpt, semanticModel, syntax, constantValue, isImplicit)
         {
-            Value = Operation.SetParentOperation(value, this);
+            Value = SetParentOperation(value, this);
         }
 
         public override IOperation Value { get; }
@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.Operations
             _lazyValue = value;
         }
 
-        public override IOperation Value => Operation.SetParentOperation(_lazyValue.Value, this);
+        public override IOperation Value => SetParentOperation(_lazyValue.Value, this);
     }
 
     /// <summary>
@@ -328,8 +328,8 @@ namespace Microsoft.CodeAnalysis.Operations
         public ArrayCreationExpression(ImmutableArray<IOperation> dimensionSizes, IArrayInitializerOperation initializer, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            DimensionSizes = Operation.SetParentOperation(dimensionSizes, this);
-            Initializer = Operation.SetParentOperation(initializer, this);
+            DimensionSizes = SetParentOperation(dimensionSizes, this);
+            Initializer = SetParentOperation(initializer, this);
         }
 
         public override ImmutableArray<IOperation> DimensionSizes { get; }
@@ -351,8 +351,8 @@ namespace Microsoft.CodeAnalysis.Operations
             _lazyInitializer = initializer ?? throw new System.ArgumentNullException(nameof(initializer));
         }
 
-        public override ImmutableArray<IOperation> DimensionSizes => Operation.SetParentOperation(_lazyDimensionSizes.Value, this);
-        public override IArrayInitializerOperation Initializer => Operation.SetParentOperation(_lazyInitializer.Value, this);
+        public override ImmutableArray<IOperation> DimensionSizes => SetParentOperation(_lazyDimensionSizes.Value, this);
+        public override IArrayInitializerOperation Initializer => SetParentOperation(_lazyInitializer.Value, this);
     }
 
     /// <summary>
@@ -409,8 +409,8 @@ namespace Microsoft.CodeAnalysis.Operations
         public ArrayElementReferenceExpression(IOperation arrayReference, ImmutableArray<IOperation> indices, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            ArrayReference = Operation.SetParentOperation(arrayReference, this);
-            Indices = Operation.SetParentOperation(indices, this);
+            ArrayReference = SetParentOperation(arrayReference, this);
+            Indices = SetParentOperation(indices, this);
         }
 
         public override IOperation ArrayReference { get; }
@@ -432,8 +432,8 @@ namespace Microsoft.CodeAnalysis.Operations
             _lazyIndices = indices;
         }
 
-        public override IOperation ArrayReference => Operation.SetParentOperation(_lazyArrayReference.Value, this);
-        public override ImmutableArray<IOperation> Indices => Operation.SetParentOperation(_lazyIndices.Value, this);
+        public override IOperation ArrayReference => SetParentOperation(_lazyArrayReference.Value, this);
+        public override ImmutableArray<IOperation> Indices => SetParentOperation(_lazyIndices.Value, this);
     }
 
     /// <summary>
@@ -481,7 +481,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public ArrayInitializer(ImmutableArray<IOperation> elementValues, SemanticModel semanticModel, SyntaxNode syntax, Optional<object> constantValue, bool isImplicit) :
             base(semanticModel, syntax, constantValue, isImplicit)
         {
-            ElementValues = Operation.SetParentOperation(elementValues, this);
+            ElementValues = SetParentOperation(elementValues, this);
         }
 
         public override ImmutableArray<IOperation> ElementValues { get; }
@@ -500,7 +500,7 @@ namespace Microsoft.CodeAnalysis.Operations
             _lazyElementValues = elementValues;
         }
 
-        public override ImmutableArray<IOperation> ElementValues => Operation.SetParentOperation(_lazyElementValues.Value, this);
+        public override ImmutableArray<IOperation> ElementValues => SetParentOperation(_lazyElementValues.Value, this);
     }
 
     /// <summary>
@@ -569,8 +569,8 @@ namespace Microsoft.CodeAnalysis.Operations
         public SimpleAssignmentExpression(IOperation target, bool isRef, IOperation value, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(isRef, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            Target = Operation.SetParentOperation(target, this);
-            Value = Operation.SetParentOperation(value, this);
+            Target = SetParentOperation(target, this);
+            Value = SetParentOperation(value, this);
         }
         public override IOperation Target { get; }
         public override IOperation Value { get; }
@@ -590,8 +590,8 @@ namespace Microsoft.CodeAnalysis.Operations
             _lazyTarget = target ?? throw new System.ArgumentNullException(nameof(target));
             _lazyValue = value ?? throw new System.ArgumentNullException(nameof(value));
         }
-        public override IOperation Target => Operation.SetParentOperation(_lazyTarget.Value, this);
-        public override IOperation Value => Operation.SetParentOperation(_lazyValue.Value, this);
+        public override IOperation Target => SetParentOperation(_lazyTarget.Value, this);
+        public override IOperation Value => SetParentOperation(_lazyValue.Value, this);
     }
 
     /// <summary>
@@ -621,8 +621,8 @@ namespace Microsoft.CodeAnalysis.Operations
         public DeconstructionAssignmentExpression(IOperation target, IOperation value, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            Target = Operation.SetParentOperation(target, this);
-            Value = Operation.SetParentOperation(value, this);
+            Target = SetParentOperation(target, this);
+            Value = SetParentOperation(value, this);
         }
         public override IOperation Target { get; }
         public override IOperation Value { get; }
@@ -642,8 +642,8 @@ namespace Microsoft.CodeAnalysis.Operations
             _lazyTarget = target ?? throw new System.ArgumentNullException(nameof(target));
             _lazyValue = value ?? throw new System.ArgumentNullException(nameof(value));
         }
-        public override IOperation Target => Operation.SetParentOperation(_lazyTarget.Value, this);
-        public override IOperation Value => Operation.SetParentOperation(_lazyValue.Value, this);
+        public override IOperation Target => SetParentOperation(_lazyTarget.Value, this);
+        public override IOperation Value => SetParentOperation(_lazyValue.Value, this);
     }
 
     /// <summary>
@@ -697,7 +697,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public DeclarationExpression(IOperation expression, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            Expression = Operation.SetParentOperation(expression, this);
+            Expression = SetParentOperation(expression, this);
         }
         public override IOperation Expression { get; }
     }
@@ -719,7 +719,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             _lazyExpression = expression ?? throw new System.ArgumentNullException(nameof(expression));
         }
-        public override IOperation Expression => Operation.SetParentOperation(_lazyExpression.Value, this);
+        public override IOperation Expression => SetParentOperation(_lazyExpression.Value, this);
     }
 
     /// <summary>
@@ -764,7 +764,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public AwaitExpression(IOperation operation, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            Operation = Microsoft.CodeAnalysis.Operation.SetParentOperation(operation, this);
+            Operation = SetParentOperation(operation, this);
         }
 
         public override IOperation Operation { get; }
@@ -783,7 +783,7 @@ namespace Microsoft.CodeAnalysis.Operations
             _lazyOperation = operation ?? throw new System.ArgumentNullException(nameof(operation));
         }
 
-        public override IOperation Operation => Microsoft.CodeAnalysis.Operation.SetParentOperation(_lazyOperation.Value, this);
+        public override IOperation Operation => SetParentOperation(_lazyOperation.Value, this);
     }
 
     /// <summary>
@@ -863,8 +863,8 @@ namespace Microsoft.CodeAnalysis.Operations
         public BinaryOperatorExpression(BinaryOperatorKind operatorKind, IOperation leftOperand, IOperation rightOperand, bool isLifted, bool isChecked, bool isCompareText, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(operatorKind, isLifted, isChecked, isCompareText, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            LeftOperand = Operation.SetParentOperation(leftOperand, this);
-            RightOperand = Operation.SetParentOperation(rightOperand, this);
+            LeftOperand = SetParentOperation(leftOperand, this);
+            RightOperand = SetParentOperation(rightOperand, this);
         }
 
         public override IOperation LeftOperand { get; }
@@ -886,8 +886,8 @@ namespace Microsoft.CodeAnalysis.Operations
             _lazyRightOperand = rightOperand ?? throw new System.ArgumentNullException(nameof(rightOperand));
         }
 
-        public override IOperation LeftOperand => Operation.SetParentOperation(_lazyLeftOperand.Value, this);
-        public override IOperation RightOperand => Operation.SetParentOperation(_lazyRightOperand.Value, this);
+        public override IOperation LeftOperand => SetParentOperation(_lazyLeftOperand.Value, this);
+        public override IOperation RightOperand => SetParentOperation(_lazyRightOperand.Value, this);
     }
 
     /// <summary>
@@ -940,7 +940,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public BlockStatement(ImmutableArray<IOperation> operations, ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(locals, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            Operations = Operation.SetParentOperation(operations, this);
+            Operations = SetParentOperation(operations, this);
         }
 
         public override ImmutableArray<IOperation> Operations { get; }
@@ -959,7 +959,7 @@ namespace Microsoft.CodeAnalysis.Operations
             _lazyOperations = operations;
         }
 
-        public override ImmutableArray<IOperation> Operations => Operation.SetParentOperation(_lazyOperations.Value, this);
+        public override ImmutableArray<IOperation> Operations => SetParentOperation(_lazyOperations.Value, this);
     }
 
     /// <summary>
@@ -1086,9 +1086,9 @@ namespace Microsoft.CodeAnalysis.Operations
         public CatchClause(IOperation exceptionDeclarationOrExpression, ITypeSymbol exceptionType, ImmutableArray<ILocalSymbol> locals, IOperation filter, IBlockOperation handler, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(exceptionType, locals, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            ExceptionDeclarationOrExpression = Operation.SetParentOperation(exceptionDeclarationOrExpression, this);
-            Filter = Operation.SetParentOperation(filter, this);
-            Handler = Operation.SetParentOperation(handler, this);
+            ExceptionDeclarationOrExpression = SetParentOperation(exceptionDeclarationOrExpression, this);
+            Filter = SetParentOperation(filter, this);
+            Handler = SetParentOperation(handler, this);
         }
 
         public override IBlockOperation Handler { get; }
@@ -1113,9 +1113,9 @@ namespace Microsoft.CodeAnalysis.Operations
             _lazyHandler = handler ?? throw new System.ArgumentNullException(nameof(handler));
         }
 
-        public override IOperation ExceptionDeclarationOrExpression => Operation.SetParentOperation(_lazyExceptionDeclarationOrExpression.Value, this);
-        public override IOperation Filter => Operation.SetParentOperation(_lazyFilter.Value, this);
-        public override IBlockOperation Handler => Operation.SetParentOperation(_lazyHandler.Value, this);
+        public override IOperation ExceptionDeclarationOrExpression => SetParentOperation(_lazyExceptionDeclarationOrExpression.Value, this);
+        public override IOperation Filter => SetParentOperation(_lazyFilter.Value, this);
+        public override IBlockOperation Handler => SetParentOperation(_lazyHandler.Value, this);
     }
 
     /// <summary>
@@ -1169,8 +1169,8 @@ namespace Microsoft.CodeAnalysis.Operations
         public CompoundAssignmentOperation(IOperation target, IOperation value, IConvertibleConversion inConversionConvertible, IConvertibleConversion outConversionConvertible, BinaryOperatorKind operatorKind, bool isLifted, bool isChecked, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(inConversionConvertible, outConversionConvertible, operatorKind, isLifted, isChecked, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            Target = Operation.SetParentOperation(target, this);
-            Value = Operation.SetParentOperation(value, this);
+            Target = SetParentOperation(target, this);
+            Value = SetParentOperation(value, this);
         }
 
         public override IOperation Target { get; }
@@ -1189,8 +1189,8 @@ namespace Microsoft.CodeAnalysis.Operations
             _lazyValue = value;
         }
 
-        public override IOperation Target => Operation.SetParentOperation(_lazyTarget.Value, this);
-        public override IOperation Value => Operation.SetParentOperation(_lazyValue.Value, this);
+        public override IOperation Target => SetParentOperation(_lazyTarget.Value, this);
+        public override IOperation Value => SetParentOperation(_lazyValue.Value, this);
     }
 
     /// <summary>
@@ -1243,8 +1243,8 @@ namespace Microsoft.CodeAnalysis.Operations
         public ConditionalAccessExpression(IOperation whenNotNull, IOperation operation, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            WhenNotNull = Microsoft.CodeAnalysis.Operation.SetParentOperation(whenNotNull, this);
-            Operation = Microsoft.CodeAnalysis.Operation.SetParentOperation(operation, this);
+            WhenNotNull = SetParentOperation(whenNotNull, this);
+            Operation = SetParentOperation(operation, this);
         }
 
         public override IOperation Operation { get; }
@@ -1266,8 +1266,8 @@ namespace Microsoft.CodeAnalysis.Operations
             _lazyOperation = operation ?? throw new System.ArgumentNullException(nameof(operation));
         }
 
-        public override IOperation Operation => Microsoft.CodeAnalysis.Operation.SetParentOperation(_lazyOperation.Value, this);
-        public override IOperation WhenNotNull => Microsoft.CodeAnalysis.Operation.SetParentOperation(_lazyWhenNotNull.Value, this);
+        public override IOperation Operation => SetParentOperation(_lazyOperation.Value, this);
+        public override IOperation WhenNotNull => SetParentOperation(_lazyWhenNotNull.Value, this);
     }
 
     /// <summary>
@@ -1369,9 +1369,9 @@ namespace Microsoft.CodeAnalysis.Operations
         public ConditionalOperation(IOperation condition, IOperation whenTrue, IOperation whenFalse, bool isRef, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(isRef, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            Condition = Operation.SetParentOperation(condition, this);
-            WhenTrue = Operation.SetParentOperation(whenTrue, this);
-            WhenFalse = Operation.SetParentOperation(whenFalse, this);
+            Condition = SetParentOperation(condition, this);
+            WhenTrue = SetParentOperation(whenTrue, this);
+            WhenFalse = SetParentOperation(whenFalse, this);
         }
 
         public override IOperation Condition { get; }
@@ -1401,9 +1401,9 @@ namespace Microsoft.CodeAnalysis.Operations
             _lazyWhenFalse = whenFalse ?? throw new System.ArgumentNullException(nameof(whenFalse));
         }
 
-        public override IOperation Condition => Operation.SetParentOperation(_lazyCondition.Value, this);
-        public override IOperation WhenTrue => Operation.SetParentOperation(_lazyWhenTrue.Value, this);
-        public override IOperation WhenFalse => Operation.SetParentOperation(_lazyWhenFalse.Value, this);
+        public override IOperation Condition => SetParentOperation(_lazyCondition.Value, this);
+        public override IOperation WhenTrue => SetParentOperation(_lazyWhenTrue.Value, this);
+        public override IOperation WhenFalse => SetParentOperation(_lazyWhenFalse.Value, this);
     }
 
     /// <summary>
@@ -1453,7 +1453,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public ConversionOperation(IOperation operand, IConvertibleConversion convertibleConversion, bool isTryCast, bool isChecked, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(convertibleConversion, isTryCast, isChecked, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            Operand = Operation.SetParentOperation(operand, this);
+            Operand = SetParentOperation(operand, this);
         }
 
         public override IOperation Operand { get; }
@@ -1469,7 +1469,7 @@ namespace Microsoft.CodeAnalysis.Operations
             _lazyOperand = lazyOperand;
         }
 
-        public override IOperation Operand => Operation.SetParentOperation(_lazyOperand.Value, this);
+        public override IOperation Operand => SetParentOperation(_lazyOperand.Value, this);
     }
 
     /// <remarks>
@@ -1608,8 +1608,8 @@ namespace Microsoft.CodeAnalysis.Operations
         public EventAssignmentOperation(IEventReferenceOperation eventReference, IOperation handlerValue, bool adds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(adds, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            EventReference = Operation.SetParentOperation(eventReference, this);
-            HandlerValue = Operation.SetParentOperation(handlerValue, this);
+            EventReference = SetParentOperation(eventReference, this);
+            HandlerValue = SetParentOperation(handlerValue, this);
         }
 
         public override IEventReferenceOperation EventReference { get; }
@@ -1631,8 +1631,8 @@ namespace Microsoft.CodeAnalysis.Operations
             _lazyHandlerValue = handlerValue ?? throw new System.ArgumentNullException(nameof(handlerValue));
         }
 
-        public override IEventReferenceOperation EventReference => Operation.SetParentOperation(_lazyEventReference.Value, this);
-        public override IOperation HandlerValue => Operation.SetParentOperation(_lazyHandlerValue.Value, this);
+        public override IEventReferenceOperation EventReference => SetParentOperation(_lazyEventReference.Value, this);
+        public override IOperation HandlerValue => SetParentOperation(_lazyHandlerValue.Value, this);
     }
 
     /// <summary>
@@ -1678,7 +1678,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public EventReferenceExpression(IEventSymbol @event, IOperation instance, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(@event, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            Instance = Operation.SetParentOperation(instance, this);
+            Instance = SetParentOperation(instance, this);
         }
         public override IOperation Instance { get; }
     }
@@ -1695,7 +1695,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             _lazyInstance = instance ?? throw new System.ArgumentNullException(nameof(instance));
         }
-        public override IOperation Instance => Operation.SetParentOperation(_lazyInstance.Value, this);
+        public override IOperation Instance => SetParentOperation(_lazyInstance.Value, this);
     }
 
     /// <summary>
@@ -1740,7 +1740,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public ExpressionStatement(IOperation operation, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            Operation = Microsoft.CodeAnalysis.Operation.SetParentOperation(operation, this);
+            Operation = SetParentOperation(operation, this);
         }
 
         public override IOperation Operation { get; }
@@ -1759,7 +1759,7 @@ namespace Microsoft.CodeAnalysis.Operations
             _lazyOperation = operation ?? throw new System.ArgumentNullException(nameof(operation));
         }
 
-        public override IOperation Operation => Microsoft.CodeAnalysis.Operation.SetParentOperation(_lazyOperation.Value, this);
+        public override IOperation Operation => SetParentOperation(_lazyOperation.Value, this);
     }
 
     /// <summary>
@@ -1800,7 +1800,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public VariableInitializer(IOperation value, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            Value = Operation.SetParentOperation(value, this);
+            Value = SetParentOperation(value, this);
         }
         public override IOperation Value { get; }
     }
@@ -1817,7 +1817,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             _lazyValue = value ?? throw new System.ArgumentNullException(nameof(value));
         }
-        public override IOperation Value => Operation.SetParentOperation(_lazyValue.Value, this);
+        public override IOperation Value => SetParentOperation(_lazyValue.Value, this);
     }
 
     /// <summary>
@@ -1863,7 +1863,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public FieldInitializer(ImmutableArray<IFieldSymbol> initializedFields, IOperation value, OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(initializedFields, kind, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            Value = Operation.SetParentOperation(value, this);
+            Value = SetParentOperation(value, this);
         }
         public override IOperation Value { get; }
     }
@@ -1880,7 +1880,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             _lazyValue = value ?? throw new System.ArgumentNullException(nameof(value));
         }
-        public override IOperation Value => Operation.SetParentOperation(_lazyValue.Value, this);
+        public override IOperation Value => SetParentOperation(_lazyValue.Value, this);
     }
 
     /// <summary>
@@ -1927,7 +1927,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public FieldReferenceExpression(IFieldSymbol field, bool isDeclaration, IOperation instance, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(field, isDeclaration, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            Instance = Operation.SetParentOperation(instance, this);
+            Instance = SetParentOperation(instance, this);
         }
         public override IOperation Instance { get; }
     }
@@ -1944,7 +1944,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             _lazyInstance = instance ?? throw new System.ArgumentNullException(nameof(instance));
         }
-        public override IOperation Instance => Operation.SetParentOperation(_lazyInstance.Value, this);
+        public override IOperation Instance => SetParentOperation(_lazyInstance.Value, this);
     }
 
     /// <summary>
@@ -1999,8 +1999,8 @@ namespace Microsoft.CodeAnalysis.Operations
         public FixedStatement(IVariableDeclarationGroupOperation variables, IOperation body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            Variables = Operation.SetParentOperation(variables, this);
-            Body = Operation.SetParentOperation(body, this);
+            Variables = SetParentOperation(variables, this);
+            Body = SetParentOperation(body, this);
         }
 
         public override IVariableDeclarationGroupOperation Variables { get; }
@@ -2022,8 +2022,8 @@ namespace Microsoft.CodeAnalysis.Operations
             _lazyBody = body ?? throw new System.ArgumentNullException(nameof(body));
         }
 
-        public override IVariableDeclarationGroupOperation Variables => Operation.SetParentOperation(_lazyVariables.Value, this);
-        public override IOperation Body => Operation.SetParentOperation(_lazyBody.Value, this);
+        public override IVariableDeclarationGroupOperation Variables => SetParentOperation(_lazyVariables.Value, this);
+        public override IOperation Body => SetParentOperation(_lazyBody.Value, this);
     }
 
     /// <summary>
@@ -2092,10 +2092,10 @@ namespace Microsoft.CodeAnalysis.Operations
         public ForEachLoopStatement(ImmutableArray<ILocalSymbol> locals, IOperation loopControlVariable, IOperation collection, ImmutableArray<IOperation> nextVariables, IOperation body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(locals, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            LoopControlVariable = Operation.SetParentOperation(loopControlVariable, this);
-            Collection = Operation.SetParentOperation(collection, this);
-            NextVariables = Operation.SetParentOperation(nextVariables, this);
-            Body = Operation.SetParentOperation(body, this);
+            LoopControlVariable = SetParentOperation(loopControlVariable, this);
+            Collection = SetParentOperation(collection, this);
+            NextVariables = SetParentOperation(nextVariables, this);
+            Body = SetParentOperation(body, this);
         }
 
         public override IOperation LoopControlVariable { get; }
@@ -2123,10 +2123,10 @@ namespace Microsoft.CodeAnalysis.Operations
             _lazyBody = body ?? throw new System.ArgumentNullException(nameof(body));
         }
 
-        public override IOperation LoopControlVariable => Operation.SetParentOperation(_lazyLoopControlVariable.Value, this);
-        public override IOperation Collection => Operation.SetParentOperation(_lazyCollection.Value, this);
-        public override ImmutableArray<IOperation> NextVariables => Operation.SetParentOperation(_lazyNextVariables.Value, this);
-        public override IOperation Body => Operation.SetParentOperation(_lazyBody.Value, this);
+        public override IOperation LoopControlVariable => SetParentOperation(_lazyLoopControlVariable.Value, this);
+        public override IOperation Collection => SetParentOperation(_lazyCollection.Value, this);
+        public override ImmutableArray<IOperation> NextVariables => SetParentOperation(_lazyNextVariables.Value, this);
+        public override IOperation Body => SetParentOperation(_lazyBody.Value, this);
     }
 
     /// <summary>
@@ -2198,10 +2198,10 @@ namespace Microsoft.CodeAnalysis.Operations
         public ForLoopStatement(ImmutableArray<IOperation> before, IOperation condition, ImmutableArray<IOperation> atLoopBottom, ImmutableArray<ILocalSymbol> locals, IOperation body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(locals, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            Before = Operation.SetParentOperation(before, this);
-            Condition = Operation.SetParentOperation(condition, this);
-            AtLoopBottom = Operation.SetParentOperation(atLoopBottom, this);
-            Body = Operation.SetParentOperation(body, this);
+            Before = SetParentOperation(before, this);
+            Condition = SetParentOperation(condition, this);
+            AtLoopBottom = SetParentOperation(atLoopBottom, this);
+            Body = SetParentOperation(body, this);
         }
 
         public override ImmutableArray<IOperation> Before { get; }
@@ -2229,10 +2229,10 @@ namespace Microsoft.CodeAnalysis.Operations
             _lazyBody = body ?? throw new System.ArgumentNullException(nameof(body));
         }
 
-        public override ImmutableArray<IOperation> Before => Operation.SetParentOperation(_lazyBefore.Value, this);
-        public override IOperation Condition => Operation.SetParentOperation(_lazyCondition.Value, this);
-        public override ImmutableArray<IOperation> AtLoopBottom => Operation.SetParentOperation(_lazyAtLoopBottom.Value, this);
-        public override IOperation Body => Operation.SetParentOperation(_lazyBody.Value, this);
+        public override ImmutableArray<IOperation> Before => SetParentOperation(_lazyBefore.Value, this);
+        public override IOperation Condition => SetParentOperation(_lazyCondition.Value, this);
+        public override ImmutableArray<IOperation> AtLoopBottom => SetParentOperation(_lazyAtLoopBottom.Value, this);
+        public override IOperation Body => SetParentOperation(_lazyBody.Value, this);
     }
 
     /// <summary>
@@ -2321,12 +2321,12 @@ namespace Microsoft.CodeAnalysis.Operations
         public ForToLoopStatement(ImmutableArray<ILocalSymbol> locals, IOperation loopControlVariable, IOperation initialValue, IOperation limitValue, IOperation stepValue, IOperation body, ImmutableArray<IOperation> nextVariables, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(locals, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            LoopControlVariable = Operation.SetParentOperation(loopControlVariable, this);
-            InitialValue = Operation.SetParentOperation(initialValue, this);
-            LimitValue = Operation.SetParentOperation(limitValue, this);
-            StepValue = Operation.SetParentOperation(stepValue, this);
-            Body = Operation.SetParentOperation(body, this);
-            NextVariables = Operation.SetParentOperation(nextVariables, this);
+            LoopControlVariable = SetParentOperation(loopControlVariable, this);
+            InitialValue = SetParentOperation(initialValue, this);
+            LimitValue = SetParentOperation(limitValue, this);
+            StepValue = SetParentOperation(stepValue, this);
+            Body = SetParentOperation(body, this);
+            NextVariables = SetParentOperation(nextVariables, this);
         }
 
         public override IOperation LoopControlVariable { get; }
@@ -2360,12 +2360,12 @@ namespace Microsoft.CodeAnalysis.Operations
             _lazyNextVariables = nextVariables ?? throw new System.ArgumentNullException(nameof(nextVariables));
         }
 
-        public override IOperation LoopControlVariable => Operation.SetParentOperation(_lazyLoopControlVariable.Value, this);
-        public override IOperation InitialValue => Operation.SetParentOperation(_lazyInitialValue.Value, this);
-        public override IOperation LimitValue => Operation.SetParentOperation(_lazyLimitValue.Value, this);
-        public override IOperation StepValue => Operation.SetParentOperation(_lazyStepValue.Value, this);
-        public override IOperation Body => Operation.SetParentOperation(_lazyBody.Value, this);
-        public override ImmutableArray<IOperation> NextVariables => Operation.SetParentOperation(_lazyNextVariables.Value, this);
+        public override IOperation LoopControlVariable => SetParentOperation(_lazyLoopControlVariable.Value, this);
+        public override IOperation InitialValue => SetParentOperation(_lazyInitialValue.Value, this);
+        public override IOperation LimitValue => SetParentOperation(_lazyLimitValue.Value, this);
+        public override IOperation StepValue => SetParentOperation(_lazyStepValue.Value, this);
+        public override IOperation Body => SetParentOperation(_lazyBody.Value, this);
+        public override ImmutableArray<IOperation> NextVariables => SetParentOperation(_lazyNextVariables.Value, this);
     }
 
     /// <summary>
@@ -2434,7 +2434,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public IncrementExpression(bool isDecrement, bool isPostfix, bool isLifted, bool isChecked, IOperation target, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(isDecrement, isPostfix, isLifted, isChecked, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            Target = Operation.SetParentOperation(target, this);
+            Target = SetParentOperation(target, this);
         }
 
         public override IOperation Target { get; }
@@ -2453,7 +2453,7 @@ namespace Microsoft.CodeAnalysis.Operations
             _lazyTarget = target ?? throw new System.ArgumentNullException(nameof(target));
         }
 
-        public override IOperation Target => Operation.SetParentOperation(_lazyTarget.Value, this);
+        public override IOperation Target => SetParentOperation(_lazyTarget.Value, this);
     }
 
     /// <summary>
@@ -2527,7 +2527,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public InterpolatedStringExpression(ImmutableArray<IInterpolatedStringContentOperation> parts, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            Parts = Operation.SetParentOperation(parts, this);
+            Parts = SetParentOperation(parts, this);
         }
 
         public override ImmutableArray<IInterpolatedStringContentOperation> Parts { get; }
@@ -2546,7 +2546,7 @@ namespace Microsoft.CodeAnalysis.Operations
             _lazyParts = parts;
         }
 
-        public override ImmutableArray<IInterpolatedStringContentOperation> Parts => Operation.SetParentOperation(_lazyParts.Value, this);
+        public override ImmutableArray<IInterpolatedStringContentOperation> Parts => SetParentOperation(_lazyParts.Value, this);
     }
 
     /// <remarks>
@@ -2591,7 +2591,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public InterpolatedStringText(IOperation text, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            Text = Operation.SetParentOperation(text, this);
+            Text = SetParentOperation(text, this);
         }
 
         public override IOperation Text { get; }
@@ -2610,7 +2610,7 @@ namespace Microsoft.CodeAnalysis.Operations
             _lazyText = text;
         }
 
-        public override IOperation Text => Operation.SetParentOperation(_lazyText.Value, this);
+        public override IOperation Text => SetParentOperation(_lazyText.Value, this);
     }
 
     /// <remarks>
@@ -2671,9 +2671,9 @@ namespace Microsoft.CodeAnalysis.Operations
         public Interpolation(IOperation expression, IOperation alignment, IOperation formatString, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            Expression = Operation.SetParentOperation(expression, this);
-            Alignment = Operation.SetParentOperation(alignment, this);
-            FormatString = Operation.SetParentOperation(formatString, this);
+            Expression = SetParentOperation(expression, this);
+            Alignment = SetParentOperation(alignment, this);
+            FormatString = SetParentOperation(formatString, this);
         }
 
         public override IOperation Expression { get; }
@@ -2698,9 +2698,9 @@ namespace Microsoft.CodeAnalysis.Operations
             _lazyFormatString = formatString;
         }
 
-        public override IOperation Expression => Operation.SetParentOperation(_lazyExpression.Value, this);
-        public override IOperation Alignment => Operation.SetParentOperation(_lazyAlignment.Value, this);
-        public override IOperation FormatString => Operation.SetParentOperation(_lazyFormatString.Value, this);
+        public override IOperation Expression => SetParentOperation(_lazyExpression.Value, this);
+        public override IOperation Alignment => SetParentOperation(_lazyAlignment.Value, this);
+        public override IOperation FormatString => SetParentOperation(_lazyFormatString.Value, this);
     }
 
     /// <remarks>
@@ -2734,7 +2734,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             // we don't allow null children.
             Debug.Assert(children.All(o => o != null));
-            Children = Operation.SetParentOperation(children, this);
+            Children = SetParentOperation(children, this);
         }
         public override IEnumerable<IOperation> Children { get; }
     }
@@ -2754,7 +2754,7 @@ namespace Microsoft.CodeAnalysis.Operations
             Debug.Assert(children.Value.All(o => o != null));
             _lazyChildren = children;
         }
-        public override IEnumerable<IOperation> Children => Operation.SetParentOperation(_lazyChildren.Value, this);
+        public override IEnumerable<IOperation> Children => SetParentOperation(_lazyChildren.Value, this);
     }
 
     /// <summary>
@@ -2823,8 +2823,8 @@ namespace Microsoft.CodeAnalysis.Operations
         public InvocationExpression(IMethodSymbol targetMethod, IOperation instance, bool isVirtual, ImmutableArray<IArgumentOperation> arguments, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(targetMethod, isVirtual, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            Instance = Operation.SetParentOperation(instance, this);
-            Arguments = Operation.SetParentOperation(arguments, this);
+            Instance = SetParentOperation(instance, this);
+            Arguments = SetParentOperation(arguments, this);
         }
 
         public override IOperation Instance { get; }
@@ -2846,8 +2846,8 @@ namespace Microsoft.CodeAnalysis.Operations
             _lazyArguments = arguments;
         }
 
-        public override IOperation Instance => Operation.SetParentOperation(_lazyInstance.Value, this);
-        public override ImmutableArray<IArgumentOperation> Arguments => Operation.SetParentOperation(_lazyArguments.Value, this);
+        public override IOperation Instance => SetParentOperation(_lazyInstance.Value, this);
+        public override ImmutableArray<IArgumentOperation> Arguments => SetParentOperation(_lazyArguments.Value, this);
     }
 
     /// <summary>
@@ -2901,8 +2901,8 @@ namespace Microsoft.CodeAnalysis.Operations
         public RaiseEventStatement(IEventReferenceOperation eventReference, ImmutableArray<IArgumentOperation> arguments, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            EventReference = Operation.SetParentOperation(eventReference, this);
-            Arguments = Operation.SetParentOperation(arguments, this);
+            EventReference = SetParentOperation(eventReference, this);
+            Arguments = SetParentOperation(arguments, this);
         }
 
         public override IEventReferenceOperation EventReference { get; }
@@ -2924,8 +2924,8 @@ namespace Microsoft.CodeAnalysis.Operations
             _lazyArguments = arguments;
         }
 
-        public override IEventReferenceOperation EventReference => Operation.SetParentOperation(_lazyEventReference.Value, this);
-        public override ImmutableArray<IArgumentOperation> Arguments => Operation.SetParentOperation(_lazyArguments.Value, this);
+        public override IEventReferenceOperation EventReference => SetParentOperation(_lazyEventReference.Value, this);
+        public override ImmutableArray<IArgumentOperation> Arguments => SetParentOperation(_lazyArguments.Value, this);
     }
 
     /// <summary>
@@ -2981,7 +2981,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public IsTypeExpression(IOperation valueOperand, ITypeSymbol typeOperand, bool isNegated, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(typeOperand, isNegated, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            ValueOperand = Operation.SetParentOperation(valueOperand, this);
+            ValueOperand = SetParentOperation(valueOperand, this);
         }
 
         public override IOperation ValueOperand { get; }
@@ -3000,7 +3000,7 @@ namespace Microsoft.CodeAnalysis.Operations
             _lazyOperand = operand ?? throw new System.ArgumentNullException(nameof(operand));
         }
 
-        public override IOperation ValueOperand => Operation.SetParentOperation(_lazyOperand.Value, this);
+        public override IOperation ValueOperand => SetParentOperation(_lazyOperand.Value, this);
     }
 
     /// <summary>
@@ -3049,7 +3049,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public LabeledStatement(ILabelSymbol label, IOperation operation, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(label, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            Operation = Microsoft.CodeAnalysis.Operation.SetParentOperation(operation, this);
+            Operation = SetParentOperation(operation, this);
         }
 
         public override IOperation Operation { get; }
@@ -3068,7 +3068,7 @@ namespace Microsoft.CodeAnalysis.Operations
             _lazyOperation = operation ?? throw new System.ArgumentNullException(nameof(operation));
         }
 
-        public override IOperation Operation => Microsoft.CodeAnalysis.Operation.SetParentOperation(_lazyOperation.Value, this);
+        public override IOperation Operation => SetParentOperation(_lazyOperation.Value, this);
     }
 
     internal abstract partial class BaseAnonymousFunctionExpression : Operation, IAnonymousFunctionOperation
@@ -3105,7 +3105,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public AnonymousFunctionExpression(IMethodSymbol symbol, IBlockOperation body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(symbol, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            Body = Operation.SetParentOperation(body, this);
+            Body = SetParentOperation(body, this);
         }
 
         public override IBlockOperation Body { get; }
@@ -3121,7 +3121,7 @@ namespace Microsoft.CodeAnalysis.Operations
             _lazyBody = body ?? throw new System.ArgumentNullException(nameof(body));
         }
 
-        public override IBlockOperation Body => Operation.SetParentOperation(_lazyBody.Value, this);
+        public override IBlockOperation Body => SetParentOperation(_lazyBody.Value, this);
     }
 
     internal abstract partial class BaseDelegateCreationExpression : Operation, IDelegateCreationOperation
@@ -3159,7 +3159,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public DelegateCreationExpression(IOperation target, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            Target = Operation.SetParentOperation(target, this);
+            Target = SetParentOperation(target, this);
         }
 
         public override IOperation Target { get; }
@@ -3174,7 +3174,7 @@ namespace Microsoft.CodeAnalysis.Operations
             _lazyTarget = lazyTarget;
         }
 
-        public override IOperation Target => Operation.SetParentOperation(_lazyTarget.Value, this);
+        public override IOperation Target => SetParentOperation(_lazyTarget.Value, this);
     }
 
     /// <summary>
@@ -3236,7 +3236,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public DynamicMemberReferenceExpression(IOperation instance, string memberName, ImmutableArray<ITypeSymbol> typeArguments, ITypeSymbol containingType, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(memberName, typeArguments, containingType, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            Instance = Operation.SetParentOperation(instance, this);
+            Instance = SetParentOperation(instance, this);
         }
 
         public override IOperation Instance { get; }
@@ -3255,7 +3255,7 @@ namespace Microsoft.CodeAnalysis.Operations
             _lazyInstance = lazyInstance;
         }
 
-        public override IOperation Instance => Operation.SetParentOperation(_lazyInstance.Value, this);
+        public override IOperation Instance => SetParentOperation(_lazyInstance.Value, this);
     }
 
     /// <summary>
@@ -3367,8 +3367,8 @@ namespace Microsoft.CodeAnalysis.Operations
         public LockStatement(IOperation lockedValue, IOperation body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            LockedValue = Operation.SetParentOperation(lockedValue, this);
-            Body = Operation.SetParentOperation(body, this);
+            LockedValue = SetParentOperation(lockedValue, this);
+            Body = SetParentOperation(body, this);
         }
 
         public override IOperation LockedValue { get; }
@@ -3390,8 +3390,8 @@ namespace Microsoft.CodeAnalysis.Operations
             _lazyBody = body ?? throw new System.ArgumentNullException(nameof(body));
         }
 
-        public override IOperation LockedValue => Operation.SetParentOperation(_lazyLockedValue.Value, this);
-        public override IOperation Body => Operation.SetParentOperation(_lazyBody.Value, this);
+        public override IOperation LockedValue => SetParentOperation(_lazyLockedValue.Value, this);
+        public override IOperation Body => SetParentOperation(_lazyBody.Value, this);
     }
 
     /// <summary>
@@ -3489,7 +3489,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public MethodReferenceExpression(IMethodSymbol method, bool isVirtual, IOperation instance, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(method, isVirtual, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            Instance = Operation.SetParentOperation(instance, this);
+            Instance = SetParentOperation(instance, this);
         }
         /// <summary>
         /// Instance of the type. Null if the reference is to a static/shared member.
@@ -3509,7 +3509,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             _lazyInstance = instance ?? throw new System.ArgumentNullException(nameof(instance));
         }
-        public override IOperation Instance => Operation.SetParentOperation(_lazyInstance.Value, this);
+        public override IOperation Instance => SetParentOperation(_lazyInstance.Value, this);
     }
 
     /// <summary>
@@ -3566,8 +3566,8 @@ namespace Microsoft.CodeAnalysis.Operations
         public CoalesceExpression(IOperation value, IOperation whenNull, IConvertibleConversion convertibleValueConversion, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(convertibleValueConversion, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            Value = Operation.SetParentOperation(value, this);
-            WhenNull = Operation.SetParentOperation(whenNull, this);
+            Value = SetParentOperation(value, this);
+            WhenNull = SetParentOperation(whenNull, this);
         }
 
         public override IOperation Value { get; }
@@ -3589,8 +3589,8 @@ namespace Microsoft.CodeAnalysis.Operations
             _lazyWhenNull = whenNull ?? throw new System.ArgumentNullException(nameof(whenNull));
         }
 
-        public override IOperation Value => Operation.SetParentOperation(_lazyValue.Value, this);
-        public override IOperation WhenNull => Operation.SetParentOperation(_lazyWhenNull.Value, this);
+        public override IOperation Value => SetParentOperation(_lazyValue.Value, this);
+        public override IOperation WhenNull => SetParentOperation(_lazyWhenNull.Value, this);
     }
 
     /// <summary>
@@ -3654,8 +3654,8 @@ namespace Microsoft.CodeAnalysis.Operations
         public ObjectCreationExpression(IMethodSymbol constructor, IObjectOrCollectionInitializerOperation initializer, ImmutableArray<IArgumentOperation> arguments, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(constructor, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            Initializer = Operation.SetParentOperation(initializer, this);
-            Arguments = Operation.SetParentOperation(arguments, this);
+            Initializer = SetParentOperation(initializer, this);
+            Arguments = SetParentOperation(arguments, this);
         }
 
         public override IObjectOrCollectionInitializerOperation Initializer { get; }
@@ -3677,8 +3677,8 @@ namespace Microsoft.CodeAnalysis.Operations
             _lazyArguments = arguments;
         }
 
-        public override IObjectOrCollectionInitializerOperation Initializer => Operation.SetParentOperation(_lazyInitializer.Value, this);
-        public override ImmutableArray<IArgumentOperation> Arguments => Operation.SetParentOperation(_lazyArguments.Value, this);
+        public override IObjectOrCollectionInitializerOperation Initializer => SetParentOperation(_lazyInitializer.Value, this);
+        public override ImmutableArray<IArgumentOperation> Arguments => SetParentOperation(_lazyArguments.Value, this);
 
     }
 
@@ -3727,7 +3727,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public AnonymousObjectCreationExpression(ImmutableArray<IOperation> initializers, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            Initializers = Operation.SetParentOperation(initializers, this);
+            Initializers = SetParentOperation(initializers, this);
         }
 
         public override ImmutableArray<IOperation> Initializers { get; }
@@ -3746,7 +3746,7 @@ namespace Microsoft.CodeAnalysis.Operations
             _lazyInitializers = initializers;
         }
 
-        public override ImmutableArray<IOperation> Initializers => Operation.SetParentOperation(_lazyInitializers.Value, this);
+        public override ImmutableArray<IOperation> Initializers => SetParentOperation(_lazyInitializers.Value, this);
     }
 
     /// <summary>
@@ -3818,7 +3818,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public ParameterInitializer(IParameterSymbol parameter, IOperation value, OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(parameter, kind, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            Value = Operation.SetParentOperation(value, this);
+            Value = SetParentOperation(value, this);
         }
         public override IOperation Value { get; }
     }
@@ -3835,7 +3835,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             _lazyValue = value ?? throw new System.ArgumentNullException(nameof(value));
         }
-        public override IOperation Value => Operation.SetParentOperation(_lazyValue.Value, this);
+        public override IOperation Value => SetParentOperation(_lazyValue.Value, this);
     }
 
     /// <summary>
@@ -3911,7 +3911,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public ParenthesizedExpression(IOperation operand, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            Operand = Operation.SetParentOperation(operand, this);
+            Operand = SetParentOperation(operand, this);
         }
 
         public override IOperation Operand { get; }
@@ -3930,7 +3930,7 @@ namespace Microsoft.CodeAnalysis.Operations
             _lazyOperand = operand ?? throw new System.ArgumentNullException(nameof(operand));
         }
 
-        public override IOperation Operand => Operation.SetParentOperation(_lazyOperand.Value, this);
+        public override IOperation Operand => SetParentOperation(_lazyOperand.Value, this);
     }
 
     /// <summary>
@@ -4006,7 +4006,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public PointerIndirectionReferenceExpression(IOperation pointer, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            Pointer = Operation.SetParentOperation(pointer, this);
+            Pointer = SetParentOperation(pointer, this);
         }
 
         public override IOperation Pointer { get; }
@@ -4025,7 +4025,7 @@ namespace Microsoft.CodeAnalysis.Operations
             _lazyPointer = pointer ?? throw new System.ArgumentNullException(nameof(pointer));
         }
 
-        public override IOperation Pointer => Operation.SetParentOperation(_lazyPointer.Value, this);
+        public override IOperation Pointer => SetParentOperation(_lazyPointer.Value, this);
     }
 
     /// <summary>
@@ -4071,7 +4071,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public PropertyInitializer(ImmutableArray<IPropertySymbol> initializedProperties, IOperation value, OperationKind kind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(initializedProperties, kind, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            Value = Operation.SetParentOperation(value, this);
+            Value = SetParentOperation(value, this);
         }
         public override IOperation Value { get; }
     }
@@ -4088,7 +4088,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             _lazyValue = value ?? throw new System.ArgumentNullException(nameof(value));
         }
-        public override IOperation Value => Operation.SetParentOperation(_lazyValue.Value, this);
+        public override IOperation Value => SetParentOperation(_lazyValue.Value, this);
     }
 
     /// <summary>
@@ -4148,8 +4148,8 @@ namespace Microsoft.CodeAnalysis.Operations
         public PropertyReferenceExpression(IPropertySymbol property, IOperation instance, ImmutableArray<IArgumentOperation> arguments, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(property, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            Instance = Operation.SetParentOperation(instance, this);
-            Arguments = Operation.SetParentOperation(arguments, this);
+            Instance = SetParentOperation(instance, this);
+            Arguments = SetParentOperation(arguments, this);
         }
         public override IOperation Instance { get; }
         public override ImmutableArray<IArgumentOperation> Arguments { get; }
@@ -4169,8 +4169,8 @@ namespace Microsoft.CodeAnalysis.Operations
             _lazyInstance = instance ?? throw new System.ArgumentNullException(nameof(instance));
             _lazyArguments = arguments ?? throw new System.ArgumentNullException(nameof(arguments));
         }
-        public override IOperation Instance => Operation.SetParentOperation(_lazyInstance.Value, this);
-        public override ImmutableArray<IArgumentOperation> Arguments => Operation.SetParentOperation(_lazyArguments.Value, this);
+        public override IOperation Instance => SetParentOperation(_lazyInstance.Value, this);
+        public override ImmutableArray<IArgumentOperation> Arguments => SetParentOperation(_lazyArguments.Value, this);
     }
 
     /// <summary>
@@ -4223,8 +4223,8 @@ namespace Microsoft.CodeAnalysis.Operations
         public RangeCaseClause(IOperation minimumValue, IOperation maximumValue, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            MinimumValue = Operation.SetParentOperation(minimumValue, this);
-            MaximumValue = Operation.SetParentOperation(maximumValue, this);
+            MinimumValue = SetParentOperation(minimumValue, this);
+            MaximumValue = SetParentOperation(maximumValue, this);
         }
 
         public override IOperation MinimumValue { get; }
@@ -4246,8 +4246,8 @@ namespace Microsoft.CodeAnalysis.Operations
             _lazyMaximumValue = maximumValue ?? throw new System.ArgumentNullException(nameof(maximumValue));
         }
 
-        public override IOperation MinimumValue => Operation.SetParentOperation(_lazyMinimumValue.Value, this);
-        public override IOperation MaximumValue => Operation.SetParentOperation(_lazyMaximumValue.Value, this);
+        public override IOperation MinimumValue => SetParentOperation(_lazyMinimumValue.Value, this);
+        public override IOperation MaximumValue => SetParentOperation(_lazyMaximumValue.Value, this);
     }
 
     /// <summary>
@@ -4298,7 +4298,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public RelationalCaseClause(IOperation value, BinaryOperatorKind relation, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(relation, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            Value = Operation.SetParentOperation(value, this);
+            Value = SetParentOperation(value, this);
         }
 
         public override IOperation Value { get; }
@@ -4317,7 +4317,7 @@ namespace Microsoft.CodeAnalysis.Operations
             _lazyValue = value ?? throw new System.ArgumentNullException(nameof(value));
         }
 
-        public override IOperation Value => Operation.SetParentOperation(_lazyValue.Value, this);
+        public override IOperation Value => SetParentOperation(_lazyValue.Value, this);
     }
 
     /// <summary>
@@ -4365,7 +4365,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public ReturnStatement(OperationKind kind, IOperation returnedValue, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(kind, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            ReturnedValue = Operation.SetParentOperation(returnedValue, this);
+            ReturnedValue = SetParentOperation(returnedValue, this);
         }
 
         public override IOperation ReturnedValue { get; }
@@ -4384,7 +4384,7 @@ namespace Microsoft.CodeAnalysis.Operations
             _lazyReturnedValue = returnedValue ?? throw new System.ArgumentNullException(nameof(returnedValue));
         }
 
-        public override IOperation ReturnedValue => Operation.SetParentOperation(_lazyReturnedValue.Value, this);
+        public override IOperation ReturnedValue => SetParentOperation(_lazyReturnedValue.Value, this);
     }
 
     /// <summary>
@@ -4430,7 +4430,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public SingleValueCaseClause(IOperation value, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            Value = Operation.SetParentOperation(value, this);
+            Value = SetParentOperation(value, this);
         }
 
         public override IOperation Value { get; }
@@ -4449,7 +4449,7 @@ namespace Microsoft.CodeAnalysis.Operations
             _lazyValue = value ?? throw new System.ArgumentNullException(nameof(value));
         }
 
-        public override IOperation Value => Operation.SetParentOperation(_lazyValue.Value, this);
+        public override IOperation Value => SetParentOperation(_lazyValue.Value, this);
     }
 
     /// <summary>
@@ -4591,8 +4591,8 @@ namespace Microsoft.CodeAnalysis.Operations
         public SwitchCase(ImmutableArray<ICaseClauseOperation> clauses, ImmutableArray<IOperation> body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            Clauses = Operation.SetParentOperation(clauses, this);
-            Body = Operation.SetParentOperation(body, this);
+            Clauses = SetParentOperation(clauses, this);
+            Body = SetParentOperation(body, this);
         }
 
         public override ImmutableArray<ICaseClauseOperation> Clauses { get; }
@@ -4614,8 +4614,8 @@ namespace Microsoft.CodeAnalysis.Operations
             _lazyBody = body;
         }
 
-        public override ImmutableArray<ICaseClauseOperation> Clauses => Operation.SetParentOperation(_lazyClauses.Value, this);
-        public override ImmutableArray<IOperation> Body => Operation.SetParentOperation(_lazyBody.Value, this);
+        public override ImmutableArray<ICaseClauseOperation> Clauses => SetParentOperation(_lazyClauses.Value, this);
+        public override ImmutableArray<IOperation> Body => SetParentOperation(_lazyBody.Value, this);
     }
 
     /// <summary>
@@ -4671,8 +4671,8 @@ namespace Microsoft.CodeAnalysis.Operations
         public SwitchStatement(IOperation value, ImmutableArray<ISwitchCaseOperation> cases, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            Value = Operation.SetParentOperation(value, this);
-            Cases = Operation.SetParentOperation(cases, this);
+            Value = SetParentOperation(value, this);
+            Cases = SetParentOperation(cases, this);
         }
 
         public override IOperation Value { get; }
@@ -4694,8 +4694,8 @@ namespace Microsoft.CodeAnalysis.Operations
             _lazyCases = cases;
         }
 
-        public override IOperation Value => Operation.SetParentOperation(_lazyValue.Value, this);
-        public override ImmutableArray<ISwitchCaseOperation> Cases => Operation.SetParentOperation(_lazyCases.Value, this);
+        public override IOperation Value => SetParentOperation(_lazyValue.Value, this);
+        public override ImmutableArray<ISwitchCaseOperation> Cases => SetParentOperation(_lazyCases.Value, this);
     }
 
     /// <summary>
@@ -4771,9 +4771,9 @@ namespace Microsoft.CodeAnalysis.Operations
         public TryStatement(IBlockOperation body, ImmutableArray<ICatchClauseOperation> catches, IBlockOperation finallyHandler, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            Body = Operation.SetParentOperation(body, this);
-            Catches = Operation.SetParentOperation(catches, this);
-            Finally = Operation.SetParentOperation(finallyHandler, this);
+            Body = SetParentOperation(body, this);
+            Catches = SetParentOperation(catches, this);
+            Finally = SetParentOperation(finallyHandler, this);
         }
 
         public override IBlockOperation Body { get; }
@@ -4798,9 +4798,9 @@ namespace Microsoft.CodeAnalysis.Operations
             _lazyFinallyHandler = finallyHandler ?? throw new System.ArgumentNullException(nameof(finallyHandler));
         }
 
-        public override IBlockOperation Body => Operation.SetParentOperation(_lazyBody.Value, this);
-        public override ImmutableArray<ICatchClauseOperation> Catches => Operation.SetParentOperation(_lazyCatches.Value, this);
-        public override IBlockOperation Finally => Operation.SetParentOperation(_lazyFinallyHandler.Value, this);
+        public override IBlockOperation Body => SetParentOperation(_lazyBody.Value, this);
+        public override ImmutableArray<ICatchClauseOperation> Catches => SetParentOperation(_lazyCatches.Value, this);
+        public override IBlockOperation Finally => SetParentOperation(_lazyFinallyHandler.Value, this);
     }
 
     /// <summary>
@@ -4856,7 +4856,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public TupleExpression(ImmutableArray<IOperation> elements, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, ITypeSymbol naturalType, Optional<object> constantValue, bool isImplicit) :
             base(semanticModel, syntax, type, naturalType, constantValue, isImplicit)
         {
-            Elements = Operation.SetParentOperation(elements, this);
+            Elements = SetParentOperation(elements, this);
         }
 
         public override ImmutableArray<IOperation> Elements { get; }
@@ -4875,7 +4875,7 @@ namespace Microsoft.CodeAnalysis.Operations
             _lazyElements = elements;
         }
 
-        public override ImmutableArray<IOperation> Elements => Operation.SetParentOperation(_lazyElements.Value, this);
+        public override ImmutableArray<IOperation> Elements => SetParentOperation(_lazyElements.Value, this);
     }
 
     /// <summary>
@@ -4950,7 +4950,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public TypeParameterObjectCreationExpression(IObjectOrCollectionInitializerOperation initializer, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            Initializer = Operation.SetParentOperation(initializer, this);
+            Initializer = SetParentOperation(initializer, this);
         }
         public override IObjectOrCollectionInitializerOperation Initializer { get; }
     }
@@ -4966,7 +4966,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             _lazyInitializer = initializer ?? throw new System.ArgumentNullException(nameof(initializer));
         }
-        public override IObjectOrCollectionInitializerOperation Initializer => Operation.SetParentOperation(_lazyInitializer.Value, this);
+        public override IObjectOrCollectionInitializerOperation Initializer => SetParentOperation(_lazyInitializer.Value, this);
     }
 
     /// <remarks>
@@ -5043,8 +5043,8 @@ namespace Microsoft.CodeAnalysis.Operations
         public DynamicObjectCreationExpression(ImmutableArray<IOperation> arguments, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, IObjectOrCollectionInitializerOperation initializer, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(argumentNames, argumentRefKinds, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            Arguments = Operation.SetParentOperation(arguments, this);
-            Initializer = Operation.SetParentOperation(initializer, this);
+            Arguments = SetParentOperation(arguments, this);
+            Initializer = SetParentOperation(initializer, this);
         }
         public override ImmutableArray<IOperation> Arguments { get; }
         public override IObjectOrCollectionInitializerOperation Initializer { get; }
@@ -5063,8 +5063,8 @@ namespace Microsoft.CodeAnalysis.Operations
             _lazyArguments = arguments ?? throw new System.ArgumentNullException(nameof(arguments));
             _lazyInitializer = initializer ?? throw new System.ArgumentNullException(nameof(initializer));
         }
-        public override ImmutableArray<IOperation> Arguments => Operation.SetParentOperation(_lazyArguments.Value, this);
-        public override IObjectOrCollectionInitializerOperation Initializer => Operation.SetParentOperation(_lazyInitializer.Value, this);
+        public override ImmutableArray<IOperation> Arguments => SetParentOperation(_lazyArguments.Value, this);
+        public override IObjectOrCollectionInitializerOperation Initializer => SetParentOperation(_lazyInitializer.Value, this);
     }
 
     /// <remarks>
@@ -5115,8 +5115,8 @@ namespace Microsoft.CodeAnalysis.Operations
         public DynamicInvocationExpression(IOperation operation, ImmutableArray<IOperation> arguments, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(argumentNames, argumentRefKinds, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            Operation = Microsoft.CodeAnalysis.Operation.SetParentOperation(operation, this);
-            Arguments = Microsoft.CodeAnalysis.Operation.SetParentOperation(arguments, this);
+            Operation = SetParentOperation(operation, this);
+            Arguments = SetParentOperation(arguments, this);
         }
         public override IOperation Operation { get; }
         public override ImmutableArray<IOperation> Arguments { get; }
@@ -5135,8 +5135,8 @@ namespace Microsoft.CodeAnalysis.Operations
             _lazyOperation = operation ?? throw new System.ArgumentNullException(nameof(operation));
             _lazyArguments = arguments ?? throw new System.ArgumentNullException(nameof(arguments));
         }
-        public override IOperation Operation => Microsoft.CodeAnalysis.Operation.SetParentOperation(_lazyOperation.Value, this);
-        public override ImmutableArray<IOperation> Arguments => Microsoft.CodeAnalysis.Operation.SetParentOperation(_lazyArguments.Value, this);
+        public override IOperation Operation => SetParentOperation(_lazyOperation.Value, this);
+        public override ImmutableArray<IOperation> Arguments => SetParentOperation(_lazyArguments.Value, this);
     }
 
     /// <remarks>
@@ -5187,8 +5187,8 @@ namespace Microsoft.CodeAnalysis.Operations
         public DynamicIndexerAccessExpression(IOperation operation, ImmutableArray<IOperation> arguments, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(argumentNames, argumentRefKinds, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            Operation = Microsoft.CodeAnalysis.Operation.SetParentOperation(operation, this);
-            Arguments = Microsoft.CodeAnalysis.Operation.SetParentOperation(arguments, this);
+            Operation = SetParentOperation(operation, this);
+            Arguments = SetParentOperation(arguments, this);
         }
         public override IOperation Operation { get; }
         public override ImmutableArray<IOperation> Arguments { get; }
@@ -5207,8 +5207,8 @@ namespace Microsoft.CodeAnalysis.Operations
             _lazyOperation = operation ?? throw new System.ArgumentNullException(nameof(operation));
             _lazyArguments = arguments ?? throw new System.ArgumentNullException(nameof(arguments));
         }
-        public override IOperation Operation => Microsoft.CodeAnalysis.Operation.SetParentOperation(_lazyOperation.Value, this);
-        public override ImmutableArray<IOperation> Arguments => Microsoft.CodeAnalysis.Operation.SetParentOperation(_lazyArguments.Value, this);
+        public override IOperation Operation => SetParentOperation(_lazyOperation.Value, this);
+        public override ImmutableArray<IOperation> Arguments => SetParentOperation(_lazyArguments.Value, this);
     }
 
     /// <summary>
@@ -5275,7 +5275,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public UnaryOperatorExpression(UnaryOperatorKind unaryOperationKind, IOperation operand, bool isLifted, bool isChecked, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(unaryOperationKind, isLifted, isChecked, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            Operand = Operation.SetParentOperation(operand, this);
+            Operand = SetParentOperation(operand, this);
         }
 
         public override IOperation Operand { get; }
@@ -5294,7 +5294,7 @@ namespace Microsoft.CodeAnalysis.Operations
             _lazyOperand = operand ?? throw new System.ArgumentNullException(nameof(operand));
         }
 
-        public override IOperation Operand => Operation.SetParentOperation(_lazyOperand.Value, this);
+        public override IOperation Operand => SetParentOperation(_lazyOperand.Value, this);
     }
 
     /// <summary>
@@ -5349,8 +5349,8 @@ namespace Microsoft.CodeAnalysis.Operations
         public UsingStatement(IOperation resources, IOperation body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            Resources = Operation.SetParentOperation(resources, this);
-            Body = Operation.SetParentOperation(body, this);
+            Resources = SetParentOperation(resources, this);
+            Body = SetParentOperation(body, this);
         }
 
         public override IOperation Resources { get; }
@@ -5372,8 +5372,8 @@ namespace Microsoft.CodeAnalysis.Operations
             _lazyBody = body ?? throw new System.ArgumentNullException(nameof(body));
         }
 
-        public override IOperation Resources => Operation.SetParentOperation(_lazyResources.Value, this);
-        public override IOperation Body => Operation.SetParentOperation(_lazyBody.Value, this);
+        public override IOperation Resources => SetParentOperation(_lazyResources.Value, this);
+        public override IOperation Body => SetParentOperation(_lazyBody.Value, this);
     }
 
     internal abstract partial class BaseVariableDeclarator : Operation, IVariableDeclaratorOperation
@@ -5425,8 +5425,8 @@ namespace Microsoft.CodeAnalysis.Operations
         public VariableDeclarator(ILocalSymbol symbol, IVariableInitializerOperation initializer, ImmutableArray<IOperation> ignoredArguments, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(symbol, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            Initializer = Operation.SetParentOperation(initializer, this);
-            IgnoredArguments = Operation.SetParentOperation(ignoredArguments, this);
+            Initializer = SetParentOperation(initializer, this);
+            IgnoredArguments = SetParentOperation(ignoredArguments, this);
         }
 
         public override IVariableInitializerOperation Initializer { get; }
@@ -5448,8 +5448,8 @@ namespace Microsoft.CodeAnalysis.Operations
             _lazyIgnoredArguments = ignoredArguments ?? throw new ArgumentNullException(nameof(ignoredArguments));
         }
 
-        public override IVariableInitializerOperation Initializer => Operation.SetParentOperation(_lazyInitializer.Value, this);
-        public override ImmutableArray<IOperation> IgnoredArguments => Operation.SetParentOperation(_lazyIgnoredArguments.Value, this);
+        public override IVariableInitializerOperation Initializer => SetParentOperation(_lazyInitializer.Value, this);
+        public override ImmutableArray<IOperation> IgnoredArguments => SetParentOperation(_lazyIgnoredArguments.Value, this);
     }
 
     internal abstract partial class BaseVariableDeclaration : Operation, IVariableDeclarationOperation
@@ -5498,8 +5498,8 @@ namespace Microsoft.CodeAnalysis.Operations
         public VariableDeclaration(ImmutableArray<IVariableDeclaratorOperation> declarations, IVariableInitializerOperation initializer, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            Declarators = Operation.SetParentOperation(declarations, this);
-            Initializer = Operation.SetParentOperation(initializer, this);
+            Declarators = SetParentOperation(declarations, this);
+            Initializer = SetParentOperation(initializer, this);
         }
 
         public override ImmutableArray<IVariableDeclaratorOperation> Declarators { get; }
@@ -5518,8 +5518,8 @@ namespace Microsoft.CodeAnalysis.Operations
             _lazyInitializer = initializer;
         }
 
-        public override ImmutableArray<IVariableDeclaratorOperation> Declarators => Operation.SetParentOperation(_lazyDeclarators.Value, this);
-        public override IVariableInitializerOperation Initializer => Operation.SetParentOperation(_lazyInitializer.Value, this);
+        public override ImmutableArray<IVariableDeclaratorOperation> Declarators => SetParentOperation(_lazyDeclarators.Value, this);
+        public override IVariableInitializerOperation Initializer => SetParentOperation(_lazyInitializer.Value, this);
     }
 
     /// <summary>
@@ -5567,7 +5567,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public VariableDeclarationGroupOperation(ImmutableArray<IVariableDeclarationOperation> declarations, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            Declarations = Operation.SetParentOperation(declarations, this);
+            Declarations = SetParentOperation(declarations, this);
         }
 
         public override ImmutableArray<IVariableDeclarationOperation> Declarations { get; }
@@ -5586,7 +5586,7 @@ namespace Microsoft.CodeAnalysis.Operations
             _lazyDeclarations = declarations;
         }
 
-        public override ImmutableArray<IVariableDeclarationOperation> Declarations => Operation.SetParentOperation(_lazyDeclarations.Value, this);
+        public override ImmutableArray<IVariableDeclarationOperation> Declarations => SetParentOperation(_lazyDeclarations.Value, this);
     }
 
     /// <summary>
@@ -5679,9 +5679,9 @@ namespace Microsoft.CodeAnalysis.Operations
         public WhileLoopStatement(IOperation condition, IOperation body, IOperation ignoredCondition, ImmutableArray<ILocalSymbol> locals, bool conditionIsTop, bool conditionIsUntil, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(locals, conditionIsTop, conditionIsUntil, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            Condition = Operation.SetParentOperation(condition, this);
-            Body = Operation.SetParentOperation(body, this);
-            IgnoredCondition = Operation.SetParentOperation(ignoredCondition, this);
+            Condition = SetParentOperation(condition, this);
+            Body = SetParentOperation(body, this);
+            IgnoredCondition = SetParentOperation(ignoredCondition, this);
         }
         public override IOperation Condition { get; }
         public override IOperation Body { get; }
@@ -5709,9 +5709,9 @@ namespace Microsoft.CodeAnalysis.Operations
             _lazyBody = body ?? throw new System.ArgumentNullException(nameof(body));
             _lazyIgnoredCondition = ignoredCondition ?? throw new System.ArgumentNullException(nameof(ignoredCondition));
         }
-        public override IOperation Condition => Operation.SetParentOperation(_lazyCondition.Value, this);
-        public override IOperation Body => Operation.SetParentOperation(_lazyBody.Value, this);
-        public override IOperation IgnoredCondition => Operation.SetParentOperation(_lazyIgnoredCondition.Value, this);
+        public override IOperation Condition => SetParentOperation(_lazyCondition.Value, this);
+        public override IOperation Body => SetParentOperation(_lazyBody.Value, this);
+        public override IOperation IgnoredCondition => SetParentOperation(_lazyIgnoredCondition.Value, this);
     }
 
     /// <summary>
@@ -5765,8 +5765,8 @@ namespace Microsoft.CodeAnalysis.Operations
         public WithStatement(IOperation body, IOperation value, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            Body = Operation.SetParentOperation(body, this);
-            Value = Operation.SetParentOperation(value, this);
+            Body = SetParentOperation(body, this);
+            Value = SetParentOperation(value, this);
         }
 
         public override IOperation Body { get; }
@@ -5788,8 +5788,8 @@ namespace Microsoft.CodeAnalysis.Operations
             _lazyValue = value ?? throw new System.ArgumentNullException(nameof(value));
         }
 
-        public override IOperation Body => Operation.SetParentOperation(_lazyBody.Value, this);
-        public override IOperation Value => Operation.SetParentOperation(_lazyValue.Value, this);
+        public override IOperation Body => SetParentOperation(_lazyBody.Value, this);
+        public override IOperation Value => SetParentOperation(_lazyValue.Value, this);
     }
 
     /// <summary>
@@ -5838,7 +5838,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public LocalFunctionStatement(IMethodSymbol symbol, IBlockOperation body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(symbol, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            Body = Operation.SetParentOperation(body, this);
+            Body = SetParentOperation(body, this);
         }
 
         public override IBlockOperation Body { get; }
@@ -5857,7 +5857,7 @@ namespace Microsoft.CodeAnalysis.Operations
             _lazyBody = body ?? throw new System.ArgumentNullException(nameof(body));
         }
 
-        public override IBlockOperation Body => Operation.SetParentOperation(_lazyBody.Value, this);
+        public override IBlockOperation Body => SetParentOperation(_lazyBody.Value, this);
     }
 
     /// <summary>
@@ -5902,7 +5902,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public ConstantPattern(IOperation value, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            Value = Operation.SetParentOperation(value, this);
+            Value = SetParentOperation(value, this);
         }
 
         public override IOperation Value { get; }
@@ -5921,7 +5921,7 @@ namespace Microsoft.CodeAnalysis.Operations
             _lazyValue = value ?? throw new System.ArgumentNullException(nameof(value));
         }
 
-        public override IOperation Value => Operation.SetParentOperation(_lazyValue.Value, this);
+        public override IOperation Value => SetParentOperation(_lazyValue.Value, this);
     }
 
     /// <summary>
@@ -6009,8 +6009,8 @@ namespace Microsoft.CodeAnalysis.Operations
         public PatternCaseClause(ILabelSymbol label, IPatternOperation pattern, IOperation guardExpression, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(label, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            Pattern = Operation.SetParentOperation(pattern, this);
-            Guard = Operation.SetParentOperation(guardExpression, this);
+            Pattern = SetParentOperation(pattern, this);
+            Guard = SetParentOperation(guardExpression, this);
         }
 
         public override IPatternOperation Pattern { get; }
@@ -6032,8 +6032,8 @@ namespace Microsoft.CodeAnalysis.Operations
             _lazyGuardExpression = lazyGuardExpression ?? throw new System.ArgumentNullException(nameof(lazyGuardExpression));
         }
 
-        public override IPatternOperation Pattern => Operation.SetParentOperation(_lazyPattern.Value, this);
-        public override IOperation Guard => Operation.SetParentOperation(_lazyGuardExpression.Value, this);
+        public override IPatternOperation Pattern => SetParentOperation(_lazyPattern.Value, this);
+        public override IOperation Guard => SetParentOperation(_lazyGuardExpression.Value, this);
     }
 
     /// <summary>
@@ -6086,8 +6086,8 @@ namespace Microsoft.CodeAnalysis.Operations
         public IsPatternExpression(IOperation value, IPatternOperation pattern, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            Value = Operation.SetParentOperation(value, this);
-            Pattern = Operation.SetParentOperation(pattern, this);
+            Value = SetParentOperation(value, this);
+            Pattern = SetParentOperation(pattern, this);
         }
 
         public override IOperation Value { get; }
@@ -6109,8 +6109,8 @@ namespace Microsoft.CodeAnalysis.Operations
             _lazyPattern = lazyPattern ?? throw new System.ArgumentNullException(nameof(lazyPattern));
         }
 
-        public override IOperation Value => Operation.SetParentOperation(_lazyValue.Value, this);
-        public override IPatternOperation Pattern => Operation.SetParentOperation(_lazyPattern.Value, this);
+        public override IOperation Value => SetParentOperation(_lazyValue.Value, this);
+        public override IPatternOperation Pattern => SetParentOperation(_lazyPattern.Value, this);
     }
 
     /// <summary>
@@ -6158,7 +6158,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public ObjectOrCollectionInitializerExpression(ImmutableArray<IOperation> initializers, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            Initializers = Operation.SetParentOperation(initializers, this);
+            Initializers = SetParentOperation(initializers, this);
         }
 
         public override ImmutableArray<IOperation> Initializers { get; }
@@ -6177,7 +6177,7 @@ namespace Microsoft.CodeAnalysis.Operations
             _lazyInitializers = initializers ?? throw new System.ArgumentNullException(nameof(initializers));
         }
 
-        public override ImmutableArray<IOperation> Initializers => Operation.SetParentOperation(_lazyInitializers.Value, this);
+        public override ImmutableArray<IOperation> Initializers => SetParentOperation(_lazyInitializers.Value, this);
     }
 
     /// <summary>
@@ -6231,8 +6231,8 @@ namespace Microsoft.CodeAnalysis.Operations
         public MemberInitializerExpression(IOperation initializedMember, IObjectOrCollectionInitializerOperation initializer, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            InitializedMember = Operation.SetParentOperation(initializedMember, this);
-            Initializer = Operation.SetParentOperation(initializer, this);
+            InitializedMember = SetParentOperation(initializedMember, this);
+            Initializer = SetParentOperation(initializer, this);
         }
 
         public override IOperation InitializedMember { get; }
@@ -6254,8 +6254,8 @@ namespace Microsoft.CodeAnalysis.Operations
             _lazyInitializer = initializer ?? throw new System.ArgumentNullException(nameof(initializer));
         }
 
-        public override IOperation InitializedMember => Operation.SetParentOperation(_lazyInitializedMember.Value, this);
-        public override IObjectOrCollectionInitializerOperation Initializer => Operation.SetParentOperation(_lazyInitializer.Value, this);
+        public override IOperation InitializedMember => SetParentOperation(_lazyInitializedMember.Value, this);
+        public override IObjectOrCollectionInitializerOperation Initializer => SetParentOperation(_lazyInitializer.Value, this);
     }
 
     /// <summary>
@@ -6312,7 +6312,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public CollectionElementInitializerExpression(IMethodSymbol addMethod, bool isDynamic, ImmutableArray<IOperation> arguments, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(addMethod, isDynamic, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            Arguments = Operation.SetParentOperation(arguments, this);
+            Arguments = SetParentOperation(arguments, this);
         }
 
         public override ImmutableArray<IOperation> Arguments { get; }
@@ -6331,7 +6331,7 @@ namespace Microsoft.CodeAnalysis.Operations
             _lazyArguments = arguments ?? throw new System.ArgumentNullException(nameof(arguments));
         }
 
-        public override ImmutableArray<IOperation> Arguments => Operation.SetParentOperation(_lazyArguments.Value, this);
+        public override ImmutableArray<IOperation> Arguments => SetParentOperation(_lazyArguments.Value, this);
     }
 
     /// <summary>
@@ -6385,7 +6385,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public TranslatedQueryExpression(IOperation operation, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(semanticModel, syntax, type, constantValue, isImplicit)
         {
-            Operation = Microsoft.CodeAnalysis.Operation.SetParentOperation(operation, this);
+            Operation = SetParentOperation(operation, this);
         }
         public override IOperation Operation { get; }
     }
@@ -6407,7 +6407,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             _lazyOperation = operation ?? throw new System.ArgumentNullException(nameof(operation));
         }
-        public override IOperation Operation => Microsoft.CodeAnalysis.Operation.SetParentOperation(_lazyOperation.Value, this);
+        public override IOperation Operation => SetParentOperation(_lazyOperation.Value, this);
     }
 
     internal sealed partial class FlowCaptureReference : Operation, IFlowCaptureReferenceOperation
@@ -6445,7 +6445,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             Debug.Assert(value != null);
             Id = id;
-            Value = Operation.SetParentOperation(value, this);
+            Value = SetParentOperation(value, this);
         }
 
         public int Id { get; }
