@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
     internal partial class EventHookupCommandHandler : ForegroundThreadAffinitizedObject
     {
         private readonly IInlineRenameService _inlineRenameService;
-        private readonly AggregateAsynchronousOperationListener _asyncListener;
+        private readonly IAsynchronousOperationListener _asyncListener;
         private readonly Microsoft.CodeAnalysis.Editor.Host.IWaitIndicator _waitIndicator;
 
         internal readonly EventHookupSessionManager EventHookupSessionManager;
@@ -52,12 +52,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
             Microsoft.CodeAnalysis.Editor.Host.IWaitIndicator waitIndicator,
             IQuickInfoBroker quickInfoBroker,
             [Import(AllowDefault = true)] IHACK_EventHookupDismissalOnBufferChangePreventerService prematureDismissalPreventer,
-            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
+            IAsynchronousOperationListenerProvider listenerProvider)
         {
             _inlineRenameService = inlineRenameService;
             _waitIndicator = waitIndicator;
             _prematureDismissalPreventer = prematureDismissalPreventer;
-            _asyncListener = new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.EventHookup);
+            _asyncListener = listenerProvider.GetListener(FeatureAttribute.EventHookup);
 
             this.EventHookupSessionManager = new EventHookupSessionManager(prematureDismissalPreventer, quickInfoBroker);
         }
