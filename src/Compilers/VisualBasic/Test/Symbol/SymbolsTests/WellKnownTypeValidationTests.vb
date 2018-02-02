@@ -502,6 +502,7 @@ End Namespace
                         Continue For
                     Case WellKnownType.System_FormattableString,
                          WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory,
+                         WellKnownType.System_Runtime_CompilerServices_SkipLocalsInitAttribute,
                          WellKnownType.System_Span_T,
                          WellKnownType.System_ReadOnlySpan_T
                         ' Not available on all platforms.
@@ -541,6 +542,7 @@ End Namespace
                         Continue For
                     Case WellKnownType.System_FormattableString,
                          WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory,
+                         WellKnownType.System_Runtime_CompilerServices_SkipLocalsInitAttribute,
                          WellKnownType.System_Span_T,
                          WellKnownType.System_ReadOnlySpan_T
                         ' Not available on all platforms.

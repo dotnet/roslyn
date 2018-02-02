@@ -8507,6 +8507,17 @@ namespace System.Runtime.CompilerServices
             Assert.True(wellKnownType.IsErrorType());
         }
 
+        [Fact]
+        public void SkipLocalsInitAttributeMissingWhenNotDeclared()
+        {
+            var comp = CreateStandardCompilation("");
+            comp.VerifyDiagnostics();
+
+            var wellKnownType = comp.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_SkipLocalsInitAttribute);
+
+            Assert.True(wellKnownType.IsErrorType());
+        }
+
         #endregion
 
         [Fact, WorkItem(807, "https://github.com/dotnet/roslyn/issues/807")]
