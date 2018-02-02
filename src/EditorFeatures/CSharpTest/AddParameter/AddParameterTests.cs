@@ -1116,8 +1116,9 @@ class C1
 
         [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
-        public async Task TestInvocationCS0305()
+        public async Task TestInvocation_Missing_TypeArguments_AddingTypeArgumentAndParameter()
         {
+            // error CS0305: Using the generic method 'C1.M1<T>(T)' requires 1 type arguments
             var code =
 @"
 class C1
@@ -1128,14 +1129,15 @@ class C1
         [|M1|]<int, bool>(1, true);
     }
 }";
-            // Should be void M1<T, T1>(T i, T1 v) { }
+            // Could be fixed as void M1<T, T1>(T i, T1 v) { }
             await TestMissingInRegularAndScriptAsync(code);
         }
 
         [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
-        public async Task TestInvocationCS0308()
+        public async Task TestInvocation_Missing_TypeArguments_AddingTypeArgument()
         {
+            // error CS0308: The non-generic method 'C1.M1(int)' cannot be used with type arguments
             var code =
 @"
 class C1
@@ -1146,14 +1148,16 @@ class C1
         [|M1<bool>|](1, true);
     }
 }";
+            // Could be fixed as void M1<T>(int i, T v) { }
             await TestMissingInRegularAndScriptAsync(code);
         }
 
         [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
         [Trait("TODO", "Fix missing")]
-        public async Task TestInvocationCS0539()
+        public async Task TestInvocation_Missing_ExplicitInterfaceImplementation()
         {
+            // error CS0539: 'C1.M1(int)' in explicit interface declaration is not a member of interface
             var code =
 @"
 interface I1
@@ -1165,14 +1169,15 @@ class C1 : I1
         void I1.M1() { }
         void I1.[|M1|](int i) { }
 }";
-            // Should apply argument to interface method: void M1(int i);
+            // Could apply argument to interface method: void M1(int i);
             await TestMissingAsync(code);
         }
 
         [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
-        public async Task TestInvocationCS1503()
+        public async Task TestInvocation_OverloadResolutionFailure()
         {
+            // error CS1503: Argument 1: cannot convert from 'double' to 'int'
             var code =
 @"
     class C1
@@ -1202,8 +1207,9 @@ class C1 : I1
 
         [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
-        public async Task TestInvocationCS1660()
+        public async Task TestInvocation_LambdaExpressionParameter()
         {
+            // error CS1660: Cannot convert lambda expression to type 'int' because it is not a delegate type
             var code =
 @"
     class C1
@@ -1233,8 +1239,9 @@ class C1 : I1
 
         [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
-        public async Task TestInvocationCS1739()
+        public async Task TestInvocation_NamedParameter()
         {
+            // error CS1739: The best overload for 'M1' does not have a parameter named 'i2'
             var code =
 @"
     class C1
@@ -1275,6 +1282,7 @@ class C1 : I1
         }
     }
 ";
+            // Could be fixed as void M1<T>() { }
             await TestMissingInRegularAndScriptAsync(code);
         }
 
