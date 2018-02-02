@@ -24,14 +24,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             if (CoreClrShim.AssemblyLoadContext.Type == null)
             {
                 return Path.Combine(
-                    Path.GetDirectoryName(CorLightup.Desktop.GetAssemblyLocation(typeof(object).GetTypeInfo().Assembly)),
+                    RuntimeUtilities.GetAssemblyLocation(typeof(object)),
                     "ilasm.exe");
             }
             else
             {
                 var ilasmExeName = PlatformInformation.IsWindows ? "ilasm.exe" : "ilasm";
 
-                var directory = AppContext.BaseDirectory;
+                var directory = RuntimeUtilities.GetAssemblyLocation(typeof(RuntimeUtilities));
                 string path = null;
                 while (directory != null && !File.Exists(path = Path.Combine(directory, "Binaries", "Tools", "ILAsm", ilasmExeName)))
                 {
