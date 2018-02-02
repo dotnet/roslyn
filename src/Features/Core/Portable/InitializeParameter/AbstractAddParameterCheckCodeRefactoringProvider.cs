@@ -25,8 +25,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             TParameterSyntax,
             TParameterListSyntax,
             TStatementSyntax,
-            TExpressionSyntax,
-            TBinaryExpressionSyntax>
+            TExpressionSyntax>
         where TParameterSyntax : SyntaxNode
         where TParameterListSyntax : SyntaxNode
         where TStatementSyntax : SyntaxNode

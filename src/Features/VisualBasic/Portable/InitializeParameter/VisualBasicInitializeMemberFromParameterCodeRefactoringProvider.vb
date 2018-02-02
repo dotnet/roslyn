@@ -15,8 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
             ParameterSyntax,
             ParameterListSyntax,
             StatementSyntax,
-            ExpressionSyntax,
-            BinaryExpressionSyntax)
+            ExpressionSyntax)
 
         Protected Overrides Function GetFunctionDeclaration(parameterList As ParameterListSyntax) As SyntaxNode
             Return InitializeParameterHelpers.GetFunctionDeclaration(parameterList)

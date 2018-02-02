@@ -19,13 +19,11 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         TParameterSyntax,
         TParameterListSyntax,
         TStatementSyntax,
-        TExpressionSyntax,
-        TBinaryExpressionSyntax> : CodeRefactoringProvider
+        TExpressionSyntax> : CodeRefactoringProvider
         where TParameterSyntax : SyntaxNode
         where TParameterListSyntax : SyntaxNode
         where TStatementSyntax : SyntaxNode
         where TExpressionSyntax : SyntaxNode
-        where TBinaryExpressionSyntax : TExpressionSyntax
     {
         protected abstract SyntaxNode GetFunctionDeclaration(TParameterListSyntax parameterList);
 

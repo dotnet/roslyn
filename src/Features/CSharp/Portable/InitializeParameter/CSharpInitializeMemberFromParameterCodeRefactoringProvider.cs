@@ -16,8 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             ParameterSyntax,
             ParameterListSyntax,
             StatementSyntax,
-            ExpressionSyntax,
-            BinaryExpressionSyntax>
+            ExpressionSyntax>
     {
         protected override SyntaxNode GetFunctionDeclaration(ParameterListSyntax parameterList)
             => InitializeParameterHelpers.GetFunctionDeclaration(parameterList);
