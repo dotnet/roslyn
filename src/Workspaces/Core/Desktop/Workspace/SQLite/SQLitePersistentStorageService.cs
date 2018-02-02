@@ -21,13 +21,18 @@ namespace Microsoft.CodeAnalysis.SQLite
 
         public SQLitePersistentStorageService(
             IOptionService optionService,
+            IPersistentStorageLocationService locationService,
             SolutionSizeTracker solutionSizeTracker)
-            : base(optionService, solutionSizeTracker)
+            : base(optionService, locationService, solutionSizeTracker)
         {
         }
 
-        public SQLitePersistentStorageService(IOptionService optionService, IPersistentStorageFaultInjector faultInjector)
-            : base(optionService, testing: true)
+        public SQLitePersistentStorageService(
+            IOptionService optionService,
+            IPersistentStorageLocationService locationService,
+            SolutionSizeTracker solutionSizeTracker,
+            IPersistentStorageFaultInjector faultInjector)
+            : this(optionService, locationService, solutionSizeTracker)
         {
             _faultInjectorOpt = faultInjector;
         }
@@ -39,20 +44,22 @@ namespace Microsoft.CodeAnalysis.SQLite
         }
 
         protected override bool TryOpenDatabase(
-            Solution solution, string workingFolderPath, string databaseFilePath, out AbstractPersistentStorage storage)
+            Solution solution, string workingFolderPath, string databaseFilePath, out IPersistentStorage storage)
         {
-            storage = null;
-
             // try to get db ownership lock. if someone else already has the lock. it will throw
             var dbOwnershipLock = TryGetDatabaseOwnership(databaseFilePath);
             if (dbOwnershipLock == null)
             {
+                storage = null;
                 return false;
             }
 
-            storage = new SQLitePersistentStorage(
-                OptionService, workingFolderPath, solution.FilePath, databaseFilePath, this.Release, dbOwnershipLock, _faultInjectorOpt);
+            var sqlStorage = new SQLitePersistentStorage(
+                 workingFolderPath, solution.FilePath, databaseFilePath, dbOwnershipLock, _faultInjectorOpt);
 
+            sqlStorage.Initialize(solution);
+
+            storage = sqlStorage;
             return true;
         }
 

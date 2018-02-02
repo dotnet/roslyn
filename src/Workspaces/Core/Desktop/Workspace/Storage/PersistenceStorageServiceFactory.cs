@@ -15,8 +15,6 @@ namespace Microsoft.CodeAnalysis.Storage
         private readonly object _gate = new object();
         private readonly SolutionSizeTracker _solutionSizeTracker;
 
-        private IPersistentStorageService _singleton;
-
         [ImportingConstructor]
         public PersistenceStorageServiceFactory(SolutionSizeTracker solutionSizeTracker)
         {
@@ -25,29 +23,22 @@ namespace Microsoft.CodeAnalysis.Storage
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
-            lock (_gate)
-            {
-                if (_singleton == null)
-                {
-                    _singleton = GetPersistentStorageService(workspaceServices);
-                }
-
-                return _singleton;
-            }
-        }
-
-        private IPersistentStorageService GetPersistentStorageService(HostWorkspaceServices workspaceServices)
-        {
-            var optionService = workspaceServices.GetService<IOptionService>();
+            var optionService = workspaceServices.GetRequiredService<IOptionService>();
             var database = optionService.GetOption(StorageOptions.Database);
             switch (database)
             {
                 case StorageDatabase.SQLite:
-                    return new SQLitePersistentStorageService(optionService, _solutionSizeTracker);
-                case StorageDatabase.None:
-                default:
-                    return NoOpPersistentStorageService.Instance;
+                    var locationService = workspaceServices.GetService<IPersistentStorageLocationService>();
+
+                    if (locationService != null)
+                    {
+                        return new SQLitePersistentStorageService(optionService, locationService, _solutionSizeTracker);
+                    }
+
+                    break;
             }
+
+            return NoOpPersistentStorageService.Instance;
         }
     }
 }

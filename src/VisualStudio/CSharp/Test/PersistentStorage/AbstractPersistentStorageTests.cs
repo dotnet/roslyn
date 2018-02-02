@@ -32,6 +32,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             { PersistentStorageOptions.Enabled, true }
         });
 
+        private readonly IPersistentStorageLocationService _persistentLocationService;
         private readonly string _persistentFolder;
 
         private const int LargeSize = (int)(SQLitePersistentStorage.MaxPooledByteArrayLength * 2);
@@ -59,6 +60,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         {
             _persistentFolder = Path.Combine(Path.GetTempPath(), PersistentFolderPrefix + Guid.NewGuid());
             Directory.CreateDirectory(_persistentFolder);
+            _persistentLocationService = new MockPersistentStorageLocationService(_persistentFolder);
 
             ThreadPool.GetMinThreads(out var workerThreads, out var completionPortThreads);
             ThreadPool.SetMinThreads(Math.Max(workerThreads, NumThreads), completionPortThreads);
@@ -422,13 +424,38 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         internal IPersistentStorage GetStorage(
             Solution solution, IPersistentStorageFaultInjector faultInjectorOpt = null)
         {
-            var storage = GetStorageService(faultInjectorOpt).GetStorage(solution);
+            var storage = GetStorageService(_persistentLocationService, faultInjectorOpt).GetStorage(solution);
 
             Assert.NotEqual(NoOpPersistentStorage.Instance, storage);
             return storage;
         }
 
-        internal abstract IPersistentStorageService GetStorageService(IPersistentStorageFaultInjector faultInjector);
+
+        private class MockPersistentStorageLocationService : IPersistentStorageLocationService
+        {
+            private readonly string _storageLocation;
+
+#pragma warning disable CS0067
+            public event EventHandler<PersistentStorageLocationChangingEventArgs> StorageLocationChanging;
+#pragma warning restore CS0067
+
+            public MockPersistentStorageLocationService(string storageLocation)
+            {
+                _storageLocation = storageLocation;
+            }
+
+            public bool IsSupported(Workspace workspace)
+            {
+                return true;
+            }
+
+            public string TryGetStorageLocation(SolutionId solutionId)
+            {
+                return _storageLocation;
+            }
+        }
+
+        internal abstract IPersistentStorageService GetStorageService(IPersistentStorageLocationService locationService, IPersistentStorageFaultInjector faultInjector);
 
         protected Stream EncodeString(string text)
         {

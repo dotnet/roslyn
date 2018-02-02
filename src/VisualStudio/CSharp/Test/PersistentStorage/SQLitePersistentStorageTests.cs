@@ -16,8 +16,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
     /// </remarks>
     public class SQLitePersistentStorageTests : AbstractPersistentStorageTests
     {
-        internal override IPersistentStorageService GetStorageService(IPersistentStorageFaultInjector faultInjector)
-            => new SQLitePersistentStorageService(_persistentEnabledOptionService, faultInjector);
+        internal override IPersistentStorageService GetStorageService(IPersistentStorageLocationService locationService, IPersistentStorageFaultInjector faultInjector)
+            => new SQLitePersistentStorageService(_persistentEnabledOptionService, locationService, solutionSizeTracker: null, faultInjector);
 
         [Fact]
         public void TestCrashInNewConnection()
@@ -33,9 +33,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
                 },
                 onFatalError: e => throw e);
 
-            using (var storage = GetStorageService(faultInjector).GetStorage(solution))
+            using (var storage = GetStorage(solution, faultInjector))
             {
-                // Because instantiating hte connection will fail, we will not get back
+                // Because instantiating the connection will fail, we will not get back
                 // a working persistent storage.
                 Assert.IsType<NoOpPersistentStorage>(storage);
             }

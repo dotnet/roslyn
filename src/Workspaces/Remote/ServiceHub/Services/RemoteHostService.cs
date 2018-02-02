@@ -119,17 +119,7 @@ namespace Microsoft.CodeAnalysis.Remote
             RunService(_ =>
             {
                 var persistentStorageService = GetPersistentStorageService();
-                persistentStorageService?.RegisterPrimarySolution(solutionId);
-                RemotePersistentStorageLocationService.UpdateStorageLocation(solutionId, storageLocation);
-            }, cancellationToken);
-        }
-
-        public void UnregisterPrimarySolutionId(SolutionId solutionId, bool synchronousShutdown, CancellationToken cancellationToken)
-        {
-            RunService(_ =>
-            {
-                var persistentStorageService = GetPersistentStorageService();
-                persistentStorageService?.UnregisterPrimarySolution(solutionId, synchronousShutdown);
+                persistentStorageService.UpdateStorageLocation(solutionId, storageLocation);
             }, cancellationToken);
         }
 
@@ -261,14 +251,9 @@ namespace Microsoft.CodeAnalysis.Remote
             return session;
         }
 
-        private static AbstractPersistentStorageService GetPersistentStorageService()
+        private static RemotePersistentStorageLocationService GetPersistentStorageService()
         {
-            // A bit slimy.  We just create an adhoc workspace so it will create the singleton
-            // PersistentStorageService.  This service will be shared among all Workspaces we 
-            // create in this process.  So updating it will be seen by all.
-            var workspace = new AdhocWorkspace(RoslynServices.HostServices);
-            var persistentStorageService = workspace.Services.GetService<IPersistentStorageService>() as AbstractPersistentStorageService;
-            return persistentStorageService;
+            return (RemotePersistentStorageLocationService)SolutionService.PrimaryWorkspace.Services.GetService<IPersistentStorageService>();
         }
 
         private RemoteGlobalOperationNotificationService GetGlobalOperationNotificationService()

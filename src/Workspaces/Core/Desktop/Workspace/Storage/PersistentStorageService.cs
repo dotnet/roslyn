@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
@@ -19,42 +20,30 @@ namespace Microsoft.CodeAnalysis.Storage
     /// </summary>
     internal abstract partial class AbstractPersistentStorageService : IPersistentStorageService2
     {
-        protected readonly IOptionService OptionService;
+        private readonly IOptionService _optionService;
+        private readonly IPersistentStorageLocationService _locationService;
         private readonly SolutionSizeTracker _solutionSizeTracker;
 
-        private readonly object _lookupAccessLock;
-        private readonly Dictionary<string, AbstractPersistentStorage> _lookup;
-        private readonly bool _testing;
-
-        private string _lastSolutionPath;
-
-        private SolutionId _primarySolutionId;
-        private AbstractPersistentStorage _primarySolutionStorage;
+        /// <summary>
+        /// This lock guards all mutable fields in this type.
+        /// </summary>
+        private readonly object _lock = new object();
+        private ReferenceCountedDisposable<IPersistentStorage> _currentPersistentStorage;
+        private SolutionId _currentPersistentStorageSolutionId;
+        private bool _subscribedToLocationServiceChangeEvents;
 
         protected AbstractPersistentStorageService(
             IOptionService optionService,
+            IPersistentStorageLocationService locationService,
             SolutionSizeTracker solutionSizeTracker)
         {
-            OptionService = optionService;
+            _optionService = optionService;
+            _locationService = locationService;
             _solutionSizeTracker = solutionSizeTracker;
-
-            _lookupAccessLock = new object();
-            _lookup = new Dictionary<string, AbstractPersistentStorage>();
-
-            _lastSolutionPath = null;
-
-            _primarySolutionId = null;
-            _primarySolutionStorage = null;
-        }
-
-        protected AbstractPersistentStorageService(IOptionService optionService, bool testing) 
-            : this(optionService, solutionSizeTracker: null)
-        {
-            _testing = true;
         }
 
         protected abstract string GetDatabaseFilePath(string workingFolderPath);
-        protected abstract bool TryOpenDatabase(Solution solution, string workingFolderPath, string databaseFilePath, out AbstractPersistentStorage storage);
+        protected abstract bool TryOpenDatabase(Solution solution, string workingFolderPath, string databaseFilePath, out IPersistentStorage storage);
         protected abstract bool ShouldDeleteDatabase(Exception exception);
 
         public IPersistentStorage GetStorage(Solution solution)
@@ -62,90 +51,53 @@ namespace Microsoft.CodeAnalysis.Storage
 
         public IPersistentStorage GetStorage(Solution solution, bool checkBranchId)
         {
-            if (!ShouldUseDatabase(solution, checkBranchId))
+            if (!DatabaseSupported(solution, checkBranchId))
             {
                 return NoOpPersistentStorage.Instance;
             }
 
-            // can't use cached information
-            if (!string.Equals(solution.FilePath, _lastSolutionPath, StringComparison.OrdinalIgnoreCase))
+            lock (_lock)
             {
-                // check whether the solution actually exist on disk
-                if (!File.Exists(solution.FilePath))
+                // Do we already have storage for this?
+                if (solution.Id == _currentPersistentStorageSolutionId)
+                {
+                    // We do, great
+                    return PersistentStorageReferenceCountedDisposableWrapper.AddRefrenceCountToAndCreateWrapper(_currentPersistentStorage);
+                }
+
+                if (!SolutionSizeAboveThreshold(solution))
                 {
                     return NoOpPersistentStorage.Instance;
                 }
-            }
 
-            // cache current result.
-            _lastSolutionPath = solution.FilePath;
+                string workingFolder = _locationService.TryGetStorageLocation(solution.Id);
 
-            // get working folder path
-            var workingFolderPath = GetWorkingFolderPath(solution);
-            if (workingFolderPath == null)
-            {
-                // we don't have place to save db file. don't use db
-                return NoOpPersistentStorage.Instance;
-            }
-
-            return GetStorage(solution, workingFolderPath);
-        }
-
-        private IPersistentStorage GetStorage(Solution solution, string workingFolderPath)
-        {
-            lock (_lookupAccessLock)
-            {
-                // see whether we have something we can use
-                if (_lookup.TryGetValue(solution.FilePath, out var storage))
+                if (workingFolder == null)
                 {
-                    // previous attempt to create db storage failed.
-                    if (storage == null && !SolutionSizeAboveThreshold(solution))
-                    {
-                        return NoOpPersistentStorage.Instance;
-                    }
-
-                    // everything seems right, use what we have
-                    if (storage?.WorkingFolderPath == workingFolderPath)
-                    {
-                        storage.AddRefUnsafe();
-                        return storage;
-                    }
-                }
-
-                // either this is the first time, or working folder path has changed.
-                // remove existing one
-                _lookup.Remove(solution.FilePath);
-
-                var dbFile = GetDatabaseFilePath(workingFolderPath);
-                if (!File.Exists(dbFile) && !SolutionSizeAboveThreshold(solution))
-                {
-                    _lookup.Add(solution.FilePath, storage);
                     return NoOpPersistentStorage.Instance;
                 }
 
-                // try create new one
-                storage = TryCreatePersistentStorage(solution, workingFolderPath);
-                _lookup.Add(solution.FilePath, storage);
-
-                if (storage != null)
+                if (!_subscribedToLocationServiceChangeEvents)
                 {
-                    RegisterPrimarySolutionStorageIfNeeded(solution, storage);
-
-                    storage.AddRefUnsafe();
-                    return storage;
+                    _locationService.StorageLocationChanging += LocationServiceStorageLocationChanging;
+                    _subscribedToLocationServiceChangeEvents = true;
                 }
 
-                return NoOpPersistentStorage.Instance;
+                _currentPersistentStorage = TryCreatePersistentStorage(solution, workingFolder);
+
+                if (_currentPersistentStorage == null)
+                {
+                    return NoOpPersistentStorage.Instance;
+                }
+
+                _currentPersistentStorageSolutionId = solution.Id;
+
+                return PersistentStorageReferenceCountedDisposableWrapper.AddRefrenceCountToAndCreateWrapper(_currentPersistentStorage);
             }
         }
 
-        private bool ShouldUseDatabase(Solution solution, bool checkBranchId)
+        private bool DatabaseSupported(Solution solution, bool checkBranchId)
         {
-            if (_testing)
-            {
-                return true;
-            }
-
             if (solution.FilePath == null)
             {
                 return false;
@@ -162,11 +114,6 @@ namespace Microsoft.CodeAnalysis.Storage
 
         private bool SolutionSizeAboveThreshold(Solution solution)
         {
-            if (_testing)
-            {
-                return true;
-            }
-
             var workspace = solution.Workspace;
             if (workspace.Kind == WorkspaceKind.RemoteWorkspace ||
                 workspace.Kind == WorkspaceKind.RemoteTemporaryWorkspace)
@@ -181,34 +128,11 @@ namespace Microsoft.CodeAnalysis.Storage
             }
 
             var size = _solutionSizeTracker.GetSolutionSize(solution.Workspace, solution.Id);
-            var threshold = this.OptionService.GetOption(StorageOptions.SolutionSizeThreshold);
+            var threshold = this._optionService.GetOption(StorageOptions.SolutionSizeThreshold);
             return size >= threshold;
         }
 
-        private void RegisterPrimarySolutionStorageIfNeeded(Solution solution, AbstractPersistentStorage storage)
-        {
-            if (_primarySolutionStorage != null || solution.Id != _primarySolutionId)
-            {
-                return;
-            }
-
-            // hold onto the primary solution when it is used the first time.
-            _primarySolutionStorage = storage;
-            storage.AddRefUnsafe();
-        }
-
-        private string GetWorkingFolderPath(Solution solution)
-        {
-            if (_testing)
-            {
-                return Path.Combine(Path.GetDirectoryName(solution.FilePath), ".vs", Path.GetFileNameWithoutExtension(solution.FilePath));
-            }
-
-            var locationService = solution.Workspace.Services.GetService<IPersistentStorageLocationService>();
-            return locationService?.GetStorageLocation(solution);
-        }
-
-        private AbstractPersistentStorage TryCreatePersistentStorage(Solution solution, string workingFolderPath)
+        private ReferenceCountedDisposable<IPersistentStorage> TryCreatePersistentStorage(Solution solution, string workingFolderPath)
         {
             // Attempt to create the database up to two times.  The first time we may encounter
             // some sort of issue (like DB corruption).  We'll then try to delete the DB and can
@@ -217,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Storage
             if (TryCreatePersistentStorage(solution, workingFolderPath, out var persistentStorage) ||
                 TryCreatePersistentStorage(solution, workingFolderPath, out persistentStorage))
             {
-                return persistentStorage;
+                return new ReferenceCountedDisposable<IPersistentStorage>(persistentStorage);
             }
 
             // okay, can't recover, then use no op persistent service 
@@ -226,32 +150,30 @@ namespace Microsoft.CodeAnalysis.Storage
         }
 
         private bool TryCreatePersistentStorage(
-            Solution solution, string workingFolderPath,
-            out AbstractPersistentStorage persistentStorage)
+            Solution solution,
+            string workingFolderPath,
+            out IPersistentStorage persistentStorage)
         {
             persistentStorage = null;
-            AbstractPersistentStorage database = null;
 
             var databaseFilePath = GetDatabaseFilePath(workingFolderPath);
             try
             {
-                if (!TryOpenDatabase(solution, workingFolderPath, databaseFilePath, out database))
+                if (!TryOpenDatabase(solution, workingFolderPath, databaseFilePath, out persistentStorage))
                 {
                     return false;
                 }
 
-                database.Initialize(solution);
-
-                persistentStorage = database;
                 return true;
             }
             catch (Exception ex)
             {
                 StorageDatabaseLogger.LogException(ex);
 
-                if (database != null)
+                if (persistentStorage != null)
                 {
-                    database.Close();
+                    persistentStorage.Dispose();
+                    persistentStorage = null;
                 }
 
                 if (ShouldDeleteDatabase(ex))
@@ -266,61 +188,29 @@ namespace Microsoft.CodeAnalysis.Storage
             }
         }
 
-        protected void Release(AbstractPersistentStorage storage)
+        private void LocationServiceStorageLocationChanging(object sender, PersistentStorageLocationChangingEventArgs e)
         {
-            lock (_lookupAccessLock)
+            ReferenceCountedDisposable<IPersistentStorage> storage = null;
+
+            lock (_lock)
             {
-                if (storage.ReleaseRefUnsafe())
+                if (e.SolutionId != _currentPersistentStorageSolutionId)
                 {
-                    _lookup.Remove(storage.SolutionFilePath);
-                    storage.Close();
-                }
-            }
-        }
-
-        public void RegisterPrimarySolution(SolutionId solutionId)
-        {
-            // don't create database storage file right away. it will be
-            // created when first C#/VB project is added
-            lock (_lookupAccessLock)
-            {
-                Contract.ThrowIfTrue(_primarySolutionStorage != null);
-
-                // just reset solutionId as long as there is no storage has created.
-                _primarySolutionId = solutionId;
-            }
-        }
-
-        public void UnregisterPrimarySolution(SolutionId solutionId, bool synchronousShutdown)
-        {
-            AbstractPersistentStorage storage = null;
-            lock (_lookupAccessLock)
-            {
-                if (_primarySolutionId == null)
-                {
-                    // primary solution is never registered or already unregistered
-                    Contract.ThrowIfTrue(_primarySolutionStorage != null);
                     return;
                 }
 
-                Contract.ThrowIfFalse(_primarySolutionId == solutionId);
-
-                _primarySolutionId = null;
-                if (_primarySolutionStorage == null)
-                {
-                    // primary solution is registered but no C#/VB project was added
-                    return;
-                }
-
-                storage = _primarySolutionStorage;
-                _primarySolutionStorage = null;
+                // We will transfer ownership in a thread-safe way out so we can dispose outside the lock
+                storage = _currentPersistentStorage;
+                _currentPersistentStorage = null;
+                _currentPersistentStorageSolutionId = null;
             }
 
             if (storage != null)
             {
-                if (synchronousShutdown)
+                if (e.MustUseNewStorageLocationImmediately)
                 {
-                    // dispose storage outside of the lock
+                    // Dispose storage outside of the lock. Note this only removes our reference count; clients who are still
+                    // using this will still be holding a reference count.
                     storage.Dispose();
                 }
                 else
@@ -329,6 +219,48 @@ namespace Microsoft.CodeAnalysis.Storage
                     Task.Run(() => storage.Dispose());
                 }
             }
+        }
+
+        /// <summary>
+        /// A trivial wrapper that we can hand out for instances from the <see cref="AbstractPersistentStorageService"/>
+        /// that wraps the underlying <see cref="IPersistentStorage"/> singleton.
+        /// </summary>
+        private sealed class PersistentStorageReferenceCountedDisposableWrapper : IPersistentStorage
+        {
+            private readonly ReferenceCountedDisposable<IPersistentStorage> _storage;
+
+            private PersistentStorageReferenceCountedDisposableWrapper(ReferenceCountedDisposable<IPersistentStorage> storage)
+            {
+                _storage = storage;
+            }
+            
+            public static IPersistentStorage AddRefrenceCountToAndCreateWrapper(ReferenceCountedDisposable<IPersistentStorage> storage)
+            {
+                return new PersistentStorageReferenceCountedDisposableWrapper(storage.TryAddReference());
+            }
+
+            public void Dispose()
+            {
+                _storage.Dispose();
+            }
+
+            public Task<Stream> ReadStreamAsync(string name, CancellationToken cancellationToken = default)
+                => _storage.Target.ReadStreamAsync(name, cancellationToken);
+
+            public Task<Stream> ReadStreamAsync(Project project, string name, CancellationToken cancellationToken = default)
+                => _storage.Target.ReadStreamAsync(project, name, cancellationToken);
+
+            public Task<Stream> ReadStreamAsync(Document document, string name, CancellationToken cancellationToken = default)
+                => _storage.Target.ReadStreamAsync(document, name, cancellationToken);
+
+            public Task<bool> WriteStreamAsync(string name, Stream stream, CancellationToken cancellationToken = default)
+                => _storage.Target.WriteStreamAsync(name, stream, cancellationToken);
+
+            public Task<bool> WriteStreamAsync(Project project, string name, Stream stream, CancellationToken cancellationToken = default)
+                => _storage.Target.WriteStreamAsync(project, name, stream, cancellationToken);
+
+            public Task<bool> WriteStreamAsync(Document document, string name, Stream stream, CancellationToken cancellationToken = default)
+                => _storage.Target.WriteStreamAsync(document, name, stream, cancellationToken);
         }
     }
 }

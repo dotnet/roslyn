@@ -14,6 +14,8 @@ using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.ComponentModelHost;
+using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Extensions;
+using Microsoft.VisualStudio.LanguageServices.Storage;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 
@@ -22,7 +24,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     internal sealed partial class VisualStudioProjectTracker : ForegroundThreadAffinitizedObject
     {
         #region Readonly fields
-        private static readonly ConditionalWeakTable<SolutionId, string> s_workingFolderPathMap = new ConditionalWeakTable<SolutionId, string>();
 
         /// <summary>
         /// The underlying workspace. This is an instance of <see cref="VisualStudioWorkspaceImpl"/> in Visual Studio, but
@@ -138,47 +139,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     _solutionLoadComplete = true;
                 }
             }
-        }
-
-        public void RegisterSolutionProperties(SolutionId solutionId)
-        {
-            AssertIsForeground();
-
-            try
-            {
-                var solutionWorkingFolder = (IVsSolutionWorkingFolders)_vsSolution;
-                solutionWorkingFolder.GetFolder(
-                    (uint)__SolutionWorkingFolder.SlnWF_StatePersistence, Guid.Empty, fVersionSpecific: true, fEnsureCreated: true,
-                    pfIsTemporary: out var temporary, pszBstrFullPath: out var workingFolderPath);
-
-                if (!temporary && !string.IsNullOrWhiteSpace(workingFolderPath))
-                {
-                    s_workingFolderPathMap.Add(solutionId, workingFolderPath);
-                }
-            }
-            catch
-            {
-                // don't crash just because solution having problem getting working folder information
-            }
-        }
-
-        public void UpdateSolutionProperties(SolutionId solutionId)
-        {
-            AssertIsForeground();
-
-            s_workingFolderPathMap.Remove(solutionId);
-
-            RegisterSolutionProperties(solutionId);
-        }
-
-        public string GetWorkingFolderPath(Solution solution)
-        {
-            if (s_workingFolderPathMap.TryGetValue(solution.Id, out var workingFolderPath))
-            {
-                return workingFolderPath;
-            }
-
-            return null;
         }
 
         public void InitializeProviders(DocumentProvider documentProvider, VisualStudioMetadataReferenceManager metadataReferenceProvider, VisualStudioRuleSetManager ruleSetFileProvider)
@@ -320,13 +280,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     }
 
                     var id = SolutionId.CreateNewId(string.IsNullOrWhiteSpace(solutionFileName) ? null : solutionFileName);
-                    RegisterSolutionProperties(id);
 
                     var solutionInfo = SolutionInfo.Create(id, version.Value, solutionFilePath, projects: projectInfos);
 
                     NotifyWorkspace(workspace => workspace.OnSolutionAdded(solutionInfo));
 
                     _solutionAdded = true;
+
+                    var persistenceService = (VisualStudioPersistentStorageLocationService)WorkspaceServices.GetRequiredService<IPersistentStorageLocationService>();
+                    persistenceService.UpdateForVisualStudioWorkspace(_workspace);
+
                 }
                 else
                 {
