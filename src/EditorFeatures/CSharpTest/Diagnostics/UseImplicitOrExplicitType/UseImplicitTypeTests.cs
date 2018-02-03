@@ -2264,7 +2264,36 @@ public class Test
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         [WorkItem(24262, "https://github.com/dotnet/roslyn/issues/24262")]
-        public async Task DoNotSuggestVarForAbstractClassVariable()
+        public async Task DoNotSuggestVarForAbstractClassVariableInForeachStatement()
+        {
+            await TestMissingInRegularAndScriptAsync(@"
+public abstract class MyAbClass
+{
+    string Value { get; }
+}
+
+public class TestInstance : MyAbClass
+{
+    public string Value => ""Hi"";
+}
+
+public class Test
+{
+    public TestInstance[] Instances { get; }
+
+    public void TestIt()
+    {
+        foreach ([|MyAbClass|] instance in Instances)
+        {
+            Console.WriteLine(instance);
+        }
+    }
+}", new TestParameters(options: ImplicitTypeEverywhere()));
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        [WorkItem(24262, "https://github.com/dotnet/roslyn/issues/24262")]
+        public async Task DoNotSuggestVarForAbstractClassVariableInDeclarationStatement()
         {
             await TestMissingInRegularAndScriptAsync(@"
 public abstract class MyAbClass
@@ -2284,11 +2313,6 @@ public class Test
     public void TestIt()
     {
         [|MyAbClass|]  test = new TestInstance();
-
-        foreach ([|MyAbClass|]  instance in Instances)
-        {
-            Console.WriteLine(instance);
-        }
     }
 }", new TestParameters(options: ImplicitTypeEverywhere()));
         }
