@@ -539,6 +539,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Convert Linq query to Linq method.
+        '''</summary>
+        Friend ReadOnly Property Convert_linq_query_to_linq_method() As String
+            Get
+                Return ResourceManager.GetString("Convert_linq_query_to_linq_method", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Create event {0} in {1}.
         '''</summary>
         Friend ReadOnly Property Create_event_0_in_1() As String
