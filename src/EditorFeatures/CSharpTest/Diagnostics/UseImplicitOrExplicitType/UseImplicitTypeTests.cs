@@ -2212,55 +2212,85 @@ class Program
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         [WorkItem(24262, "https://github.com/dotnet/roslyn/issues/24262")]
-        public async Task DoNotSuggestVarForExplicitInterfaceImplementationForeachStatement()
+        public async Task DoNotSuggestVarForInterfaceVariableInForeachStatement()
         {
             await TestMissingInRegularAndScriptAsync(@"
-        public interface ITest
+public interface ITest
+{
+    string Value { get; }
+}
+public class TestInstance : ITest
+{
+    string ITest.Value => ""Hi"";
+}
+
+public class Test
+{
+    public TestInstance[] Instances { get; }
+
+    public void TestIt()
+    {
+        foreach ([|ITest|] test in Instances)
         {
-            string Value { get; }
+            Console.WriteLine(test.Value);
         }
-        public class TestInstance : ITest
-        {
-            string ITest.Value => ""Hi"";
+    }
+}", new TestParameters(options: ImplicitTypeEverywhere()));
         }
 
-        public class Test
-        {
-            public TestInstance[] Instances { get; }
-
-            public void TestIt()
-            {
-                foreach ([|ITest|] test in Instances)
-                {
-                    Console.WriteLine(test.Value);
-                }
-            }
-        }
-        ", new TestParameters(options: ImplicitTypeEverywhere()));
-        }
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         [WorkItem(24262, "https://github.com/dotnet/roslyn/issues/24262")]
-        public async Task DoNotSuggestVarForExplicitInterfaceImplementationDeclarationStatement()
+        public async Task DoNotSuggestVarForInterfaceVariableInDeclarationStatement()
         {
-            await TestMissingInRegularAndScriptAsync(@"
-        public interface ITest
-        {
-            string Value { get; }
-        }
-        public class TestInstance : ITest
-        {
-            string ITest.Value => ""Hi"";
+    await TestMissingInRegularAndScriptAsync(@"
+public interface ITest
+{
+    string Value { get; }
+}
+public class TestInstance : ITest
+{
+    string ITest.Value => ""Hi"";
+}
+
+public class Test
+{
+    public void TestIt()
+    {
+        [|ITest|] test = new TestInstance();
+        Console.WriteLine(test.Value);
+    }
+}", new TestParameters(options: ImplicitTypeEverywhere()));
         }
 
-        public class Test
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        [WorkItem(24262, "https://github.com/dotnet/roslyn/issues/24262")]
+        public async Task DoNotSuggestVarForAbstractClassVariable()
         {
-            public void TestIt()
-            {
-                [|ITest|] test = new TestInstance();
-                Console.WriteLine(test.Value);          
-            }
+            await TestMissingInRegularAndScriptAsync(@"
+public abstract class MyAbClass
+{
+    string Value { get; }
+}
+
+public class TestInstance : MyAbClass
+{
+    public string Value => ""Hi"";
+}
+
+public class Test
+{
+    public TestInstance[] Instances { get; }
+
+    public void TestIt()
+    {
+        [|MyAbClass|]  test = new TestInstance();
+
+        foreach ([|MyAbClass|]  instance in Instances)
+        {
+            Console.WriteLine(instance);
         }
-        ", new TestParameters(options: ImplicitTypeEverywhere()));
+    }
+}", new TestParameters(options: ImplicitTypeEverywhere()));
         }
     }
 }
