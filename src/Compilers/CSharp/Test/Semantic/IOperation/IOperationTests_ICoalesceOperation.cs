@@ -58,8 +58,10 @@ Block[1] - Block
           Value: 
             IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'input')
 
-    Jump if Null to Block[3]
-        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'input')
+    Jump if True to Block[3]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'input')
+          Operand: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'input')
 
     Next Block[2]
 Block[2] - Block
@@ -152,8 +154,10 @@ Block[1] - Block
           Value: 
             IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'input')
 
-    Jump if Null to Block[3]
-        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'input')
+    Jump if True to Block[3]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'input')
+          Operand: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'input')
 
     Next Block[2]
 Block[2] - Block
@@ -250,8 +254,10 @@ Block[1] - Block
           Value: 
             IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'input')
 
-    Jump if Null to Block[3]
-        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'input')
+    Jump if True to Block[3]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'input')
+          Operand: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'input')
 
     Next Block[2]
 Block[2] - Block
@@ -348,8 +354,10 @@ Block[1] - Block
           Value: 
             IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.String) (Syntax: 'input')
 
-    Jump if Null to Block[3]
-        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'input')
+    Jump if True to Block[3]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'input')
+          Operand: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'input')
 
     Next Block[2]
 Block[2] - Block
@@ -447,8 +455,10 @@ Block[1] - Block
           Value: 
             IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.Int32?, IsInvalid) (Syntax: 'input')
 
-    Jump if Null to Block[3]
-        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsInvalid, IsImplicit) (Syntax: 'input')
+    Jump if True to Block[3]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'input')
+          Operand: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsInvalid, IsImplicit) (Syntax: 'input')
 
     Next Block[2]
 Block[2] - Block
@@ -544,8 +554,10 @@ Block[1] - Block
           Value: 
             IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'input')
 
-    Jump if Null to Block[3]
-        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'input')
+    Jump if True to Block[3]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'input')
+          Operand: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'input')
 
     Next Block[2]
 Block[2] - Block
@@ -642,8 +654,10 @@ Block[1] - Block
           Value: 
             ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
 
-    Jump if Null to Block[3]
-        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: null, Constant: null, IsImplicit) (Syntax: 'null')
+    Jump if True to Block[3]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, Constant: True, IsImplicit) (Syntax: 'null')
+          Operand: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: null, Constant: null, IsImplicit) (Syntax: 'null')
 
     Next Block[2]
 Block[2] - Block
@@ -741,8 +755,10 @@ Block[1] - Block
           Value: 
             ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
 
-    Jump if Null to Block[3]
-        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: null, Constant: null, IsInvalid, IsImplicit) (Syntax: 'null')
+    Jump if True to Block[3]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, Constant: True, IsInvalid, IsImplicit) (Syntax: 'null')
+          Operand: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: null, Constant: null, IsInvalid, IsImplicit) (Syntax: 'null')
 
     Next Block[2]
 Block[2] - Block
@@ -838,8 +854,10 @@ Block[1] - Block
           Value: 
             ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
 
-    Jump if Null to Block[3]
-        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: null, Constant: null, IsImplicit) (Syntax: 'null')
+    Jump if True to Block[3]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, Constant: True, IsImplicit) (Syntax: 'null')
+          Operand: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: null, Constant: null, IsImplicit) (Syntax: 'null')
 
     Next Block[2]
 Block[2] - Block
@@ -936,8 +954,10 @@ Block[1] - Block
           Value: 
             IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'input')
 
-    Jump if Null to Block[3]
-        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'input')
+    Jump if True to Block[3]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'input')
+          Operand: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'input')
 
     Next Block[2]
 Block[2] - Block
@@ -1031,8 +1051,10 @@ Block[1] - Block
           Value: 
             IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'input')
 
-    Jump if Null to Block[3]
-        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'input')
+    Jump if True to Block[3]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'input')
+          Operand: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'input')
 
     Next Block[2]
 Block[2] - Block
@@ -1108,8 +1130,10 @@ Block[1] - Block
           Value: 
             IParameterReferenceOperation: input1 (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'input1')
 
-    Jump if Null to Block[3]
-        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'input1')
+    Jump if True to Block[3]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'input1')
+          Operand: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'input1')
 
     Next Block[2]
 Block[2] - Block
@@ -1135,8 +1159,10 @@ Block[4] - Block
         [2]
         [3]
     Statements (0)
-    Jump if Null to Block[6]
-        IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'input1 ?? alternative1')
+    Jump if True to Block[6]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'input1 ?? alternative1')
+          Operand: 
+            IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'input1 ?? alternative1')
 
     Next Block[5]
 Block[5] - Block
@@ -1156,8 +1182,10 @@ Block[6] - Block
           Value: 
             IParameterReferenceOperation: input2 (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'input2')
 
-    Jump if Null to Block[8]
-        IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'input2')
+    Jump if True to Block[8]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'input2')
+          Operand: 
+            IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'input2')
 
     Next Block[7]
 Block[7] - Block
@@ -1196,6 +1224,93 @@ Block[9] - Block
 Block[10] - Exit
     Predecessors (1)
         [9]
+    Statements (0)
+";
+            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void CoalesceOperation_13()
+        {
+            var source = @"
+class C
+{
+    const string input = ""a"";
+
+    void F(object alternative, object result)
+    /*<bind>*/{
+        result = input ?? alternative;
+    }/*</bind>*/
+}";
+
+            var compilation = CreateStandardCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+
+            compilation.VerifyDiagnostics();
+
+            string expectedGraph = @"
+Block[0] - Entry
+    Statements (0)
+    Next Block[1]
+Block[1] - Block
+    Predecessors (1)
+        [0]
+    Statements (2)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'result')
+          Value: 
+            IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'result')
+
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input')
+          Value: 
+            IFieldReferenceOperation: System.String C.input (Static) (OperationKind.FieldReference, Type: System.String, Constant: ""a"") (Syntax: 'input')
+              Instance Receiver: 
+                null
+
+    Jump if True to Block[3]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, Constant: False, IsImplicit) (Syntax: 'input')
+          Operand: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.String, Constant: ""a"", IsImplicit) (Syntax: 'input')
+
+    Next Block[2]
+Block[2] - Block
+    Predecessors (1)
+        [1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input')
+          Value: 
+            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'input')
+              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                (ImplicitReference)
+              Operand: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.String, Constant: ""a"", IsImplicit) (Syntax: 'input')
+
+    Next Block[4]
+Block[3] - Block
+    Predecessors (1)
+        [1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'alternative')
+          Value: 
+            IParameterReferenceOperation: alternative (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'alternative')
+
+    Next Block[4]
+Block[4] - Block
+    Predecessors (2)
+        [2]
+        [3]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = in ... lternative;')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Object) (Syntax: 'result = in ... alternative')
+              Left: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'result')
+              Right: 
+                IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'input ?? alternative')
+
+    Next Block[5]
+Block[5] - Exit
+    Predecessors (1)
+        [4]
     Statements (0)
 ";
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);

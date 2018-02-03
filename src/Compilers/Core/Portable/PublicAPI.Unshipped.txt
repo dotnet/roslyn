@@ -101,6 +101,7 @@ Microsoft.CodeAnalysis.OperationKind.InterpolatedStringText = 83 -> Microsoft.Co
 Microsoft.CodeAnalysis.OperationKind.Interpolation = 84 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.Invalid = 1 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.Invocation = 22 -> Microsoft.CodeAnalysis.OperationKind
+Microsoft.CodeAnalysis.OperationKind.IsNull = 89 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.IsPattern = 65 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.IsType = 40 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.Labeled = 6 -> Microsoft.CodeAnalysis.OperationKind
@@ -149,7 +150,7 @@ Microsoft.CodeAnalysis.Operations.ArgumentKind.None = 0 -> Microsoft.CodeAnalysi
 Microsoft.CodeAnalysis.Operations.ArgumentKind.ParamArray = 2 -> Microsoft.CodeAnalysis.Operations.ArgumentKind
 Microsoft.CodeAnalysis.Operations.BasicBlock
 Microsoft.CodeAnalysis.Operations.BasicBlock.BasicBlock(Microsoft.CodeAnalysis.Operations.BasicBlockKind kind) -> void
-Microsoft.CodeAnalysis.Operations.BasicBlock.Conditional.get -> (Microsoft.CodeAnalysis.IOperation Value, Microsoft.CodeAnalysis.Operations.ConditionalBranchKind Kind, Microsoft.CodeAnalysis.Operations.BasicBlock Destination)
+Microsoft.CodeAnalysis.Operations.BasicBlock.Conditional.get -> (Microsoft.CodeAnalysis.IOperation Condition, bool JumpIfTrue, Microsoft.CodeAnalysis.Operations.BasicBlock Destination)
 Microsoft.CodeAnalysis.Operations.BasicBlock.Kind.get -> Microsoft.CodeAnalysis.Operations.BasicBlockKind
 Microsoft.CodeAnalysis.Operations.BasicBlock.Next.get -> Microsoft.CodeAnalysis.Operations.BasicBlock
 Microsoft.CodeAnalysis.Operations.BasicBlock.Predecessors.get -> System.Collections.Immutable.ImmutableHashSet<Microsoft.CodeAnalysis.Operations.BasicBlock>
@@ -203,10 +204,6 @@ Microsoft.CodeAnalysis.Operations.CommonConversion.IsNumeric.get -> bool
 Microsoft.CodeAnalysis.Operations.CommonConversion.IsReference.get -> bool
 Microsoft.CodeAnalysis.Operations.CommonConversion.IsUserDefined.get -> bool
 Microsoft.CodeAnalysis.Operations.CommonConversion.MethodSymbol.get -> Microsoft.CodeAnalysis.IMethodSymbol
-Microsoft.CodeAnalysis.Operations.ConditionalBranchKind
-Microsoft.CodeAnalysis.Operations.ConditionalBranchKind.IfFalse = 1 -> Microsoft.CodeAnalysis.Operations.ConditionalBranchKind
-Microsoft.CodeAnalysis.Operations.ConditionalBranchKind.IfNull = 2 -> Microsoft.CodeAnalysis.Operations.ConditionalBranchKind
-Microsoft.CodeAnalysis.Operations.ConditionalBranchKind.IfTrue = 0 -> Microsoft.CodeAnalysis.Operations.ConditionalBranchKind
 Microsoft.CodeAnalysis.Operations.IAddressOfOperation
 Microsoft.CodeAnalysis.Operations.IAddressOfOperation.Reference.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Operations.IAnonymousFunctionOperation
@@ -366,6 +363,8 @@ Microsoft.CodeAnalysis.Operations.IInvocationOperation.Arguments.get -> System.C
 Microsoft.CodeAnalysis.Operations.IInvocationOperation.Instance.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Operations.IInvocationOperation.IsVirtual.get -> bool
 Microsoft.CodeAnalysis.Operations.IInvocationOperation.TargetMethod.get -> Microsoft.CodeAnalysis.IMethodSymbol
+Microsoft.CodeAnalysis.Operations.IIsNullOperation
+Microsoft.CodeAnalysis.Operations.IIsNullOperation.Operand.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Operations.IIsPatternOperation
 Microsoft.CodeAnalysis.Operations.IIsPatternOperation.Pattern.get -> Microsoft.CodeAnalysis.Operations.IPatternOperation
 Microsoft.CodeAnalysis.Operations.IIsPatternOperation.Value.get -> Microsoft.CodeAnalysis.IOperation
@@ -604,6 +603,7 @@ virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitInterpolatedStri
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitInterpolation(Microsoft.CodeAnalysis.Operations.IInterpolationOperation operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitInvalid(Microsoft.CodeAnalysis.Operations.IInvalidOperation operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitInvocation(Microsoft.CodeAnalysis.Operations.IInvocationOperation operation) -> void
+virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitIsNull(Microsoft.CodeAnalysis.Operations.IIsNullOperation operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitIsPattern(Microsoft.CodeAnalysis.Operations.IIsPatternOperation operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitIsType(Microsoft.CodeAnalysis.Operations.IIsTypeOperation operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitLabeled(Microsoft.CodeAnalysis.Operations.ILabeledOperation operation) -> void
@@ -697,6 +697,7 @@ virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.V
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitInterpolation(Microsoft.CodeAnalysis.Operations.IInterpolationOperation operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitInvalid(Microsoft.CodeAnalysis.Operations.IInvalidOperation operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitInvocation(Microsoft.CodeAnalysis.Operations.IInvocationOperation operation, TArgument argument) -> TResult
+virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitIsNull(Microsoft.CodeAnalysis.Operations.IIsNullOperation operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitIsPattern(Microsoft.CodeAnalysis.Operations.IIsPatternOperation operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitIsType(Microsoft.CodeAnalysis.Operations.IIsTypeOperation operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitLabeled(Microsoft.CodeAnalysis.Operations.ILabeledOperation operation, TArgument argument) -> TResult

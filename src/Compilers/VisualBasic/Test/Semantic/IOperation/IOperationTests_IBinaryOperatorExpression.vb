@@ -1985,8 +1985,10 @@ Block[1] - Block
           Value: 
             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'a')
 
-    Jump if Null to Block[3]
-        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
+    Jump if True to Block[3]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'a')
+          Operand: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
 
     Next Block[2]
 Block[2] - Block
@@ -2089,8 +2091,10 @@ Block[1] - Block
           Value: 
             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'a')
 
-    Jump if Null to Block[3]
-        IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
+    Jump if True to Block[3]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'a')
+          Operand: 
+            IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
 
     Next Block[2]
 Block[2] - Block
@@ -2189,8 +2193,10 @@ Block[1] - Block
           Value: 
             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'a')
 
-    Jump if Null to Block[3]
-        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
+    Jump if True to Block[3]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'a')
+          Operand: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
 
     Next Block[2]
 Block[2] - Block
@@ -2223,8 +2229,10 @@ Block[4] - Block
           Value: 
             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'a')
 
-    Jump if Null to Block[6]
-        IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
+    Jump if True to Block[6]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'a')
+          Operand: 
+            IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
 
     Next Block[5]
 Block[5] - Block
@@ -2327,8 +2335,10 @@ Block[1] - Block
           Value: 
             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: C) (Syntax: 'a')
 
-    Jump if Null to Block[3]
-        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'a')
+    Jump if True to Block[3]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'a')
+          Operand: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'a')
 
     Next Block[2]
 Block[2] - Block
@@ -2358,8 +2368,10 @@ Block[4] - Block
           Value: 
             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: C) (Syntax: 'a')
 
-    Jump if Null to Block[6]
-        IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'a')
+    Jump if True to Block[6]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'a')
+          Operand: 
+            IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'a')
 
     Next Block[5]
 Block[5] - Block
@@ -2459,8 +2471,10 @@ Block[1] - Block
           Value: 
             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'a')
 
-    Jump if Null to Block[3]
-        IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
+    Jump if True to Block[3]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'a')
+          Operand: 
+            IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
 
     Next Block[2]
 Block[2] - Block
@@ -2563,8 +2577,10 @@ Block[1] - Block
           Value: 
             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'a')
 
-    Jump if Null to Block[3]
-        IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
+    Jump if True to Block[3]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'a')
+          Operand: 
+            IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
 
     Next Block[2]
 Block[2] - Block
@@ -2667,8 +2683,10 @@ Block[1] - Block
           Value: 
             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'a')
 
-    Jump if Null to Block[3]
-        IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
+    Jump if True to Block[3]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'a')
+          Operand: 
+            IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
 
     Next Block[2]
 Block[2] - Block
@@ -2771,8 +2789,10 @@ Block[1] - Block
           Value: 
             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'a')
 
-    Jump if Null to Block[3]
-        IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
+    Jump if True to Block[3]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'a')
+          Operand: 
+            IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
 
     Next Block[2]
 Block[2] - Block
@@ -2879,8 +2899,10 @@ Block[1] - Block
           Value: 
             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'a')
 
-    Jump if Null to Block[3]
-        IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
+    Jump if True to Block[3]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'a')
+          Operand: 
+            IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
 
     Next Block[2]
 Block[2] - Block
@@ -2991,8 +3013,10 @@ Block[1] - Block
           Value: 
             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'a')
 
-    Jump if Null to Block[3]
-        IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
+    Jump if True to Block[3]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'a')
+          Operand: 
+            IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
 
     Next Block[2]
 Block[2] - Block
@@ -3088,8 +3112,10 @@ Block[1] - Block
           Value: 
             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'a')
 
-    Jump if Null to Block[3]
-        IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
+    Jump if True to Block[3]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'a')
+          Operand: 
+            IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
 
     Next Block[2]
 Block[2] - Block
@@ -3189,8 +3215,10 @@ Block[1] - Block
           Value: 
             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'a')
 
-    Jump if Null to Block[3]
-        IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
+    Jump if True to Block[3]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'a')
+          Operand: 
+            IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
 
     Next Block[2]
 Block[2] - Block
@@ -3282,8 +3310,10 @@ Block[1] - Block
           Value: 
             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'a')
 
-    Jump if Null to Block[3]
-        IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
+    Jump if True to Block[3]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'a')
+          Operand: 
+            IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
 
     Next Block[2]
 Block[2] - Block
@@ -3375,8 +3405,10 @@ Block[1] - Block
           Value: 
             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'a')
 
-    Jump if Null to Block[3]
-        IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
+    Jump if True to Block[3]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'a')
+          Operand: 
+            IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
 
     Next Block[2]
 Block[2] - Block
@@ -3468,8 +3500,10 @@ Block[1] - Block
           Value: 
             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'a')
 
-    Jump if Null to Block[3]
-        IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
+    Jump if True to Block[3]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'a')
+          Operand: 
+            IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
 
     Next Block[2]
 Block[2] - Block
@@ -3561,8 +3595,10 @@ Block[1] - Block
           Value: 
             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'a')
 
-    Jump if Null to Block[3]
-        IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
+    Jump if True to Block[3]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'a')
+          Operand: 
+            IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
 
     Next Block[2]
 Block[2] - Block
@@ -3654,8 +3690,10 @@ Block[1] - Block
           Value: 
             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'a')
 
-    Jump if Null to Block[3]
-        IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
+    Jump if True to Block[3]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'a')
+          Operand: 
+            IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
 
     Next Block[2]
 Block[2] - Block
@@ -3747,8 +3785,10 @@ Block[1] - Block
           Value: 
             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.String) (Syntax: 'a')
 
-    Jump if Null to Block[3]
-        IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'a')
+    Jump if True to Block[3]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'a')
+          Operand: 
+            IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'a')
 
     Next Block[2]
 Block[2] - Block
@@ -3837,8 +3877,10 @@ Block[1] - Block
           Value: 
             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.String) (Syntax: 'a')
 
-    Jump if Null to Block[3]
-        IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'a')
+    Jump if True to Block[3]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'a')
+          Operand: 
+            IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'a')
 
     Next Block[2]
 Block[2] - Block
@@ -3927,8 +3969,10 @@ Block[1] - Block
           Value: 
             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Nullable(Of System.Boolean)) (Syntax: 'a')
 
-    Jump if Null to Block[3]
-        IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: 'a')
+    Jump if True to Block[3]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'a')
+          Operand: 
+            IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: 'a')
 
     Next Block[2]
 Block[2] - Block
@@ -4020,8 +4064,10 @@ Block[1] - Block
           Value: 
             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Nullable(Of System.Boolean)) (Syntax: 'a')
 
-    Jump if Null to Block[3]
-        IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: 'a')
+    Jump if True to Block[3]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'a')
+          Operand: 
+            IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: 'a')
 
     Next Block[2]
 Block[2] - Block
@@ -4113,8 +4159,10 @@ Block[1] - Block
           Value: 
             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Nullable(Of System.Boolean)) (Syntax: 'a')
 
-    Jump if Null to Block[3]
-        IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: 'a')
+    Jump if True to Block[3]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'a')
+          Operand: 
+            IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: 'a')
 
     Next Block[2]
 Block[2] - Block
@@ -4206,8 +4254,10 @@ Block[1] - Block
           Value: 
             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'a')
 
-    Jump if Null to Block[3]
-        IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'a')
+    Jump if True to Block[3]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'a')
+          Operand: 
+            IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'a')
 
     Next Block[2]
 Block[2] - Block
@@ -4296,8 +4346,10 @@ Block[1] - Block
           Value: 
             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'a')
 
-    Jump if Null to Block[3]
-        IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'a')
+    Jump if True to Block[3]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'a')
+          Operand: 
+            IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'a')
 
     Next Block[2]
 Block[2] - Block
@@ -4386,8 +4438,10 @@ Block[1] - Block
           Value: 
             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.String) (Syntax: 'a')
 
-    Jump if Null to Block[3]
-        IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'a')
+    Jump if True to Block[3]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'a')
+          Operand: 
+            IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'a')
 
     Next Block[2]
 Block[2] - Block

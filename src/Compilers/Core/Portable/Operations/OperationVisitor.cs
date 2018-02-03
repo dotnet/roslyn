@@ -504,6 +504,11 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             DefaultVisit(operation);
         }
+
+        public virtual void VisitIsNull(IIsNullOperation operation)
+        {
+            DefaultVisit(operation);
+        }
     }
 
     /// <summary>
@@ -1011,6 +1016,11 @@ namespace Microsoft.CodeAnalysis.Operations
         }
 
         public virtual TResult VisitFlowCaptureReference(IFlowCaptureReferenceOperation operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitIsNull(IIsNullOperation operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }
