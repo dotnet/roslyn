@@ -36,12 +36,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return GetAnalyzerMap(language).GetStateSets();
                 }
 
-                public IEnumerable<DiagnosticAnalyzer> GetAnalyzers(string language)
-                {
-                    var map = GetAnalyzerMap(language);
-                    return map.GetAnalyzers();
-                }
-
                 public StateSet GetOrCreateStateSet(string language, DiagnosticAnalyzer analyzer)
                 {
                     return GetAnalyzerMap(language).GetStateSet(analyzer);
@@ -85,21 +79,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                         // hold rest of analyzers
                         _map = analyzerMap.Remove(_compilerAnalyzer);
-                    }
-
-                    public IEnumerable<DiagnosticAnalyzer> GetAnalyzers()
-                    {
-                        // always return compiler one first if it exists.
-                        // it might not exist in test environment.
-                        if (_compilerAnalyzer != null)
-                        {
-                            yield return _compilerAnalyzer;
-                        }
-
-                        foreach (var (analyzer, _) in _map)
-                        {
-                            yield return analyzer;
-                        }
                     }
 
                     public IEnumerable<StateSet> GetStateSets()
