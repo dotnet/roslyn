@@ -136,11 +136,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
             }
             else if (typeName.Parent is ForEachStatementSyntax foreachStatement)
             {
-                var foreachStatementInfo = semanticModel.GetForEachStatementInfo(foreachStatement);
-                if (foreachStatementInfo.ElementConversion.IsIdentityOrImplicitReference())
+                if (IsExpressionSameAfterVarConversion(foreachStatement.Expression, semanticModel, cancellationToken))
                 {
-                    issueSpan = candidateIssueSpan;
-                    return true;
+                    var foreachStatementInfo = semanticModel.GetForEachStatementInfo(foreachStatement);
+                    if (foreachStatementInfo.ElementConversion.IsIdentityOrImplicitReference())
+                    {
+                        issueSpan = candidateIssueSpan;
+                        return true;
+                    }
+                }
+                else
+                {
+                    issueSpan = default;
+                    return false;
                 }
             }
             else if (typeName.Parent is DeclarationExpressionSyntax declarationExpression &&
@@ -160,9 +168,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
             OptionSet optionSet,
             CancellationToken cancellationToken)
         {
-            // It's not always safe to convert a decl expression like "Method(out int i)" to 
-            // "Method(out var i)".  Changing to 'var' may cause overload resolution errors.  
-            // Have to see if using 'var' means not resolving to the same type as before.  
+            // It's not always safe to convert a decl expression like "Method(out int i)" to
+            // "Method(out var i)".  Changing to 'var' may cause overload resolution errors.
+            // Have to see if using 'var' means not resolving to the same type as before.
             // Note: this is fairly expensive, so we try to avoid this if we can by seeing if
             // there are multiple candidates with the original call.  If not, then we don't
             // have to do anything.
@@ -171,9 +179,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
                 argumentList.Parent is InvocationExpressionSyntax invocationExpression)
             {
                 // If there was only one member in the group, and it was non-generic itself,
-                // then this change is safe to make without doing any complex analysis.  
+                // then this change is safe to make without doing any complex analysis.
                 // Multiple methods mean that switching to 'var' might remove information
-                // that affects overload resolution.  And if the method is generic, then 
+                // that affects overload resolution.  And if the method is generic, then
                 // switching to 'var' may mean that inference might not work properly.
                 var memberGroup = semanticModel.GetMemberGroup(invocationExpression.Expression, cancellationToken);
                 if (memberGroup.Length == 1 &&
@@ -183,9 +191,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
                 }
             }
 
-            // Do the expensive check.  Note: we can't use the SpeculationAnalyzer (or any 
+            // Do the expensive check.  Note: we can't use the SpeculationAnalyzer (or any
             // speculative analyzers) here.  This is due to https://github.com/dotnet/roslyn/issues/20724.
-            // Specifically, all the speculative helpers do not deal with with changes to code that 
+            // Specifically, all the speculative helpers do not deal with with changes to code that
             // introduces a variable (in this case, the declaration expression).  The compiler sees
             // this as an error because there are now two colliding variables, which causes all sorts
             // of errors to be reported.
@@ -247,12 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
                 return false;
             }
 
-            // Get the conversion that occurred between the expression's type and type implied by the expression's context
-            // and filter out implicit conversions. If an implicit conversion (other than identity) exists
-            // and if we're replacing the declaration with 'var' we'd be changing the semantics by inferring type of
-            // initializer expression and thereby losing the conversion.
-            var conversion = semanticModel.GetConversion(expression, cancellationToken);
-            if (conversion.Exists && conversion.IsImplicit && !conversion.IsIdentity)
+            if (!IsExpressionSameAfterVarConversion(expression, semanticModel, cancellationToken))
             {
                 return false;
             }
@@ -260,6 +263,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
             // final check to compare type information on both sides of assignment.
             var initializerType = semanticModel.GetTypeInfo(expression, cancellationToken).Type;
             return declaredType.Equals(initializerType);
+        }
+
+        private bool IsExpressionSameAfterVarConversion(
+            ExpressionSyntax expression,
+            SemanticModel semanticModel,
+            CancellationToken cancellationToken)
+        {
+            // Get the conversion that occurred between the expression's type and type implied by the expression's context
+            // and filter out implicit conversions. If an implicit conversion (other than identity) exists
+            // and if we're replacing the declaration with 'var' we'd be changing the semantics by inferring type of
+            // initializer expression and thereby losing the conversion.
+            var conversion = semanticModel.GetConversion(expression, cancellationToken);
+            return conversion.Exists && conversion.IsImplicit && conversion.IsIdentity;
         }
 
         protected override bool ShouldAnalyzeDeclarationExpression(DeclarationExpressionSyntax declaration, SemanticModel semanticModel, CancellationToken cancellationToken)
