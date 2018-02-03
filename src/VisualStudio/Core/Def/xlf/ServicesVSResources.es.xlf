@@ -192,11 +192,6 @@
         <target state="translated">No se pudo encontrar la ubicación de la carpeta en el disco</target>
         <note />
       </trans-unit>
-      <trans-unit id="Error_while_reading_0_colon_1">
-        <source>Error while reading '{0}': {1}</source>
-        <target state="translated">Error al leer "{0}": {1}</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Assembly">
         <source>Assembly </source>
         <target state="translated">Ensamblado </target>
@@ -1433,8 +1428,8 @@ La opción "Carga de solución ligera" está habilitada para la solución actual
         <note />
       </trans-unit>
       <trans-unit id="ErrorReadingFile">
-        <source>Error while reading a file</source>
-        <target state="translated">Error al leer un archivo.</target>
+        <source>Error while reading file '{0}': {1}</source>
+        <target state="needs-review-translation">Error al leer un archivo.</target>
         <note />
       </trans-unit>
       <trans-unit id="ModuleHasBeenUnloaded">
@@ -1501,6 +1496,11 @@ Estoy de acuerdo con todo lo anterior:</target>
       <trans-unit id="Sync_Class_View">
         <source>Sync Class View</source>
         <target state="new">Sync Class View</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CantApplyChangesUnexpectedError">
+        <source>Can't apply changes -- unexpected error: '{0}'</source>
+        <target state="new">Can't apply changes -- unexpected error: '{0}'</target>
         <note />
       </trans-unit>
     </body>

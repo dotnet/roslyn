@@ -192,11 +192,6 @@
         <target state="translated">Diskte klasörün konumu bulunamadı</target>
         <note />
       </trans-unit>
-      <trans-unit id="Error_while_reading_0_colon_1">
-        <source>Error while reading '{0}': {1}</source>
-        <target state="translated">{0}' okunurken hata: {1}</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Assembly">
         <source>Assembly </source>
         <target state="translated">Bütünleştirilmiş Kod </target>
@@ -1433,8 +1428,8 @@ Geçerli durum için 'basit çözüm yükü' etkin. Hata ayıklama başlatıldı
         <note />
       </trans-unit>
       <trans-unit id="ErrorReadingFile">
-        <source>Error while reading a file</source>
-        <target state="translated">Dosya okunurken hata oluştu</target>
+        <source>Error while reading file '{0}': {1}</source>
+        <target state="needs-review-translation">Dosya okunurken hata oluştu</target>
         <note />
       </trans-unit>
       <trans-unit id="ModuleHasBeenUnloaded">
@@ -1501,6 +1496,11 @@ Aşağıdakilerin tümünü onaylıyorum:</target>
       <trans-unit id="Sync_Class_View">
         <source>Sync Class View</source>
         <target state="new">Sync Class View</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CantApplyChangesUnexpectedError">
+        <source>Can't apply changes -- unexpected error: '{0}'</source>
+        <target state="new">Can't apply changes -- unexpected error: '{0}'</target>
         <note />
       </trans-unit>
     </body>
