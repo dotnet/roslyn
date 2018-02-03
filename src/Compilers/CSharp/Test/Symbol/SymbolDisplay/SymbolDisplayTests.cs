@@ -5197,7 +5197,7 @@ class C
             {
                 get
                 {
-                    throw new NotImplementedException();
+                    return OriginalDefinition;
                 }
             }
 
@@ -5213,7 +5213,7 @@ class C
             {
                 get
                 {
-                    throw new NotImplementedException();
+                    return OriginalDefinition;
                 }
             }
 

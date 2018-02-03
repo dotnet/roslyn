@@ -627,8 +627,8 @@ oneMoreTime:
             {
                 IOperation possiblyUnwrappedValue;
 
-                if (IsNullableType(valueTypeOpt) &&
-                    (!testConversion.IsIdentity || !IsNullableType(operation.Type)))
+                if (ITypeSymbolHelpers.IsNullableType(valueTypeOpt) &&
+                    (!testConversion.IsIdentity || !ITypeSymbolHelpers.IsNullableType(operation.Type)))
                 {
                     possiblyUnwrappedValue = TryUnwrapNullableValue(capturedValue);
                     // PROTOTYPE(dataflow): The scenario with missing GetValueOrDefault is not covered by unit-tests.
@@ -675,11 +675,6 @@ oneMoreTime:
             return new FlowCaptureReference(resultCaptureId, operation.Syntax, operation.Type, operation.ConstantValue);
         }
 
-        private static bool IsNullableType(ITypeSymbol typeOpt)
-        {
-            return typeOpt?.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T;
-        }
-
         private static IOperation MakeInvalidOperation(ITypeSymbol type, IOperation child)
         {
             return new InvalidOperation(ImmutableArray.Create<IOperation>(child),
@@ -691,7 +686,7 @@ oneMoreTime:
         {
             ITypeSymbol valueType = value.Type;
 
-            Debug.Assert(IsNullableType(valueType));
+            Debug.Assert(ITypeSymbolHelpers.IsNullableType(valueType));
 
             foreach (ISymbol candidate in valueType.GetMembers("GetValueOrDefault"))
             {
@@ -741,7 +736,7 @@ oneMoreTime:
 
                 IOperation receiver = new FlowCaptureReference(testExpressionCaptureId, testExpressionSyntax, testExpressionType, testExpression.ConstantValue);
 
-                if (IsNullableType(testExpressionType))
+                if (ITypeSymbolHelpers.IsNullableType(testExpressionType))
                 {
                     receiver = TryUnwrapNullableValue(receiver) ??
                                // PROTOTYPE(dataflow): The scenario with missing GetValueOrDefault is not covered by unit-tests.
@@ -761,7 +756,7 @@ oneMoreTime:
 
             int resultCaptureId = captureIdForResult ?? _availableCaptureId++;
 
-            if (IsNullableType(operation.Type) && !IsNullableType(currentConditionalAccess.WhenNotNull.Type))
+            if (ITypeSymbolHelpers.IsNullableType(operation.Type) && !ITypeSymbolHelpers.IsNullableType(currentConditionalAccess.WhenNotNull.Type))
             {
                 IOperation access = Visit(currentConditionalAccess.WhenNotNull);
                 AddStatement(new FlowCapture(resultCaptureId, currentConditionalAccess.WhenNotNull.Syntax,
@@ -787,7 +782,7 @@ oneMoreTime:
             AddStatement(new FlowCapture(resultCaptureId,
                                          defaultValueSyntax,
                                          new DefaultValueExpression(semanticModel: null, defaultValueSyntax, operation.Type,
-                                                                    (operation.Type.IsReferenceType && !IsNullableType(operation.Type)) ?
+                                                                    (operation.Type.IsReferenceType && !ITypeSymbolHelpers.IsNullableType(operation.Type)) ?
                                                                         new Optional<object>(null) : default,
                                                                     isImplicit: true)));
 
@@ -798,7 +793,7 @@ oneMoreTime:
 
         private static IOperation TryMakeNullableValue(INamedTypeSymbol type, IOperation underlyingValue)
         {
-            Debug.Assert(IsNullableType(type));
+            Debug.Assert(ITypeSymbolHelpers.IsNullableType(type));
 
             foreach (IMethodSymbol method in type.InstanceConstructors)
             {
