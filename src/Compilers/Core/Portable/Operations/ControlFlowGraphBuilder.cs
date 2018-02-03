@@ -43,7 +43,6 @@ namespace Microsoft.CodeAnalysis.Operations
             builder.VisitStatement(body);
             builder.AppendNewBlock(builder._exit);
 
-            // Do a pass to eliminate blocks without statements and only Next set.
             Pack(blocks);
 
             Debug.Assert(builder._evalStack.Count == 0);
@@ -52,6 +51,9 @@ namespace Microsoft.CodeAnalysis.Operations
             return blocks.ToImmutableAndFree();
         }
 
+        /// <summary>
+        /// Do a pass to eliminate blocks without statements that can be merged with predecessor(s).
+        /// </summary>
         private static void Pack(ArrayBuilder<BasicBlock> blocks)
         {
             int count = blocks.Count - 1;
@@ -59,29 +61,64 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 BasicBlock block = blocks[i];
                 Debug.Assert(block.Next != null);
-                if (block.Statements.IsEmpty && block.Conditional.Value == null)
+                if (!block.Statements.IsEmpty)
                 {
-                    BasicBlock next = block.Next;
-                    foreach (BasicBlock predecessor in block.Predecessors)
+                    continue;
+                }
+
+                BasicBlock next = block.Next;
+
+                if (block.Conditional.Value == null)
+                {
+                    if (next != block)
                     {
-                        if (predecessor.Next == block)
+                        foreach (BasicBlock predecessor in block.Predecessors)
+                        {
+                            if (predecessor.Next == block)
+                            {
+                                predecessor.Next = next;
+                                next.AddPredecessor(predecessor);
+                            }
+
+                            (IOperation condition, ConditionalBranchKind kind, BasicBlock destination) = predecessor.Conditional;
+                            if (destination == block)
+                            {
+                                predecessor.Conditional = (condition, kind, next);
+                                next.AddPredecessor(predecessor);
+                            }
+                        }
+
+                        next.RemovePredecessor(block);
+
+                        blocks.RemoveAt(i);
+                        i--;
+                        count--;
+                    }
+                }
+                else
+                {
+                    ImmutableHashSet<BasicBlock> predecessors = block.Predecessors;
+
+                    if (predecessors.Count == 1)
+                    {
+                        BasicBlock predecessor = predecessors.Single();
+
+                        if (predecessor.Kind != BasicBlockKind.Entry && predecessor.Next == block && predecessor.Conditional.Value == null)
                         {
                             predecessor.Next = next;
                             next.AddPredecessor(predecessor);
-                        }
+                            next.RemovePredecessor(block);
 
-                        (IOperation condition, ConditionalBranchKind kind, BasicBlock destination) = predecessor.Conditional;
-                        if (destination == block)
-                        {
-                            predecessor.Conditional = (condition, kind, next);
+                            predecessor.Conditional = block.Conditional;
+                            next = block.Conditional.Destination;
                             next.AddPredecessor(predecessor);
+                            next.RemovePredecessor(block);
+
+                            blocks.RemoveAt(i);
+                            i--;
+                            count--;
                         }
                     }
-
-                    next.RemovePredecessor(block);
-                    blocks.RemoveAt(i);
-                    i--;
-                    count--;
                 }
             }
         }
@@ -798,6 +835,65 @@ oneMoreTime:
             return result;
         }
 
+        public override IOperation VisitWhileLoop(IWhileLoopOperation operation, int? captureIdForResult)
+        {
+            Debug.Assert(_currentStatement == operation);
+
+            // while (condition) 
+            //   body;
+            //
+            // becomes
+            //
+            // goto continue;
+            // start: 
+            // {
+            //     body
+            //     continue:
+            //     GotoIfTrue condition start;
+            // }
+            // break:
+
+            // do
+            //   body
+            // while (condition);
+            //
+            // becomes
+            //
+            // start: 
+            // {
+            //   body
+            //   continue:
+            //   GotoIfTrue condition start;
+            // }
+            // break:
+
+            BasicBlock beforeLoop = CurrentBasicBlock;
+
+            var start = new BasicBlock(BasicBlockKind.Block);
+            var @continue = new BasicBlock(BasicBlockKind.Block);
+            var @break = new BasicBlock(BasicBlockKind.Block);
+
+            if (operation.ConditionIsTop)
+            {
+                LinkBlocks(CurrentBasicBlock, @continue);
+            }
+            else
+            {
+                LinkBlocks(CurrentBasicBlock, start);
+            }
+
+            AppendNewBlock(start);
+            VisitStatement(operation.Body);
+
+            AppendNewBlock(@continue);
+
+            VisitConditionalBranch(operation.Condition, ref start, sense: operation.ConditionIsUntil ? false : true);
+
+            AppendNewBlock(@break);
+
+            return null;
+        }
+
         private T Visit<T>(T node) where T : IOperation
         {
             return (T)Visit(node, argument: null);
@@ -874,11 +970,6 @@ oneMoreTime:
         public override IOperation VisitDefaultCaseClause(IDefaultCaseClauseOperation operation, int? captureIdForResult)
         {
             return new DefaultCaseClause(semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
-        }
-
-        public override IOperation VisitWhileLoop(IWhileLoopOperation operation, int? captureIdForResult)
-        {
-            return new WhileLoopStatement(Visit(operation.Condition), Visit(operation.Body), Visit(operation.IgnoredCondition), operation.Locals, operation.ConditionIsTop, operation.ConditionIsUntil, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitForLoop(IForLoopOperation operation, int? captureIdForResult)

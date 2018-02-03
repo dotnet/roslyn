@@ -32,6 +32,33 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             for (int i = 0; i < graph.Length; i++)
             {
                 var block = graph[i];
+
+                switch (block.Kind)
+                {
+                    case BasicBlockKind.Block:
+                        Assert.NotEqual(0, i);
+                        Assert.NotEqual(graph.Length - 1, i);
+                        break;
+
+                    case BasicBlockKind.Entry:
+                        Assert.Equal(0, i);
+                        Assert.Empty(block.Statements);
+                        Assert.Null(block.Conditional.Value);
+                        Assert.NotNull(block.Next);
+                        break;
+
+                    case BasicBlockKind.Exit:
+                        Assert.Equal(graph.Length - 1, i);
+                        Assert.Empty(block.Statements);
+                        Assert.Null(block.Conditional.Value);
+                        Assert.Null(block.Next);
+                        break;
+
+                    default:
+                        Assert.False(true, $"Unexpected block kind {block.Kind}");
+                        break;
+                }
+
                 stringBuilder.Builder.AppendLine($"Block[{i}] - {block.Kind}");
 
                 var predecessors = block.Predecessors;
