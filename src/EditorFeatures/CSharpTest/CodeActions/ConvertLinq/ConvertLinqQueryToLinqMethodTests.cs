@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertLinq
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)]
         public async Task Convert1()
         {
-            await Test(
+            await TestInt(
 @"from num in numbers
 where num % 2 == 0
 orderby num
@@ -28,7 +28,7 @@ select num",
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)]
         public async Task Convert2()
         {
-            await Test(
+            await TestInt(
 @"from a in new[] { 1, 2, 3 }
     select a",
 @"new[] { 1, 2, 3 }");
@@ -38,7 +38,7 @@ select num",
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)]
         public async Task Convert3()
         {
-            await Test(
+            await TestInt(
 @"from x in numbers where x< 5 select x* x",
 @"numbers.Where(x => x < 5).Select(x => x * x)");
         }
@@ -46,64 +46,40 @@ select num",
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)]
         public async Task Convert4()
         {
-            await Test(
+            await TestNoActionsInt(
 @"from x in ""123"" 
     let z = x.ToString()
     select z into w
-    select int.Parse(w)",
-@"""123"".Select(x => x.ToString())...");
+    select int.Parse(w)");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)]
         public async Task Convert5()
         {
-            await Test(@"
-        return from t in TypeAndBaseTypes(node)
-                   from f in Fields(t)
-                   select f", @"");
+            await TestNoActionsInt(
+@"from w in ""aaa bbb ccc"".Split(' ')
+    from c in w
+    select c");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)]
-        public async Task Convert6()
-        {
-            await Test(@"
-          return from t in types
-                       where t.InferredType != null && t.InferredType.OriginalDefinition.Equals(taskOfT)
-                       let nt = (INamedTypeSymbol) t.InferredType
-                       where nt.TypeArguments.Length == 1
-                       select new TypeInferenceInfo(nt.TypeArguments[0]);", @"");
-        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)]
         public async Task Convert7()
         {
-            await Test(@"
-        return from a in args join[|$$b |] in args on a equals b;", @"");
+            await TestNoActionsInt("from a in args join b in args on a equals b");
         }
 
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)]
         public async Task Convert8()
         {
-            await Test(@"
-         from a in args select a into[|$$b |] from c in b select c;", @"");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)]
-        public async Task Convert9()
-        {
-            await Test(@"
-         return from handle in reader.MethodDefinitions
-                   let method = reader.GetMethodDefinition(handle)
-                   let import = method.GetImport()
-                   where !import.Name.IsNil
-                   select method", @"");
+            await TestNoActionsInt("from a in args select a into b from c in b select c");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)]
         public async Task Convert10()
         {
-            await Test(@"
+            await TestNoActionsInt(@"
           from sentence in strings
           let words = sentence.Split(' ')
           from word in words
@@ -111,10 +87,31 @@ select num",
           where w[0] == 'a' || w[0] == 'e'
               || w[0] == 'i' || w[0] == 'o'
               || w[0] == 'u'
-          select word", @"");
+          select word");
         }
 
-        private async Task Test(string input, string expectedOutput)
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)]
+        public async Task Convert11()
+        {
+            await TestInt("from a in numbers group a/2 by a*2", "numbers.GroupBy(a => a * 2, a => a / 2)");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)]
+        public async Task Convert12()
+        {
+            await TestInt("from int a in numbers select a", "numbers.Select(a => a is int)");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)]
+        public async Task Convert13()
+        {
+            await TestString(@"from w in words
+            group w by w[0] into fruitGroup
+            where fruitGroup.Count() >= 2
+            select new { FirstLetter = fruitGroup.Key, Words = fruitGroup.Count() }", "words.GroupBy(w => w[0], w => w).Where(fruitGroup => fruitGroup.Count() >= 2).Select(fruitGroup => new { FirstLetter = fruitGroup.Key, Words = fruitGroup.Count() })");
+        }
+
+        private async Task TestInt(string input, string expectedOutput)
         {
             const string code = @"
 using System.Collections.Generic;
@@ -124,6 +121,39 @@ class C
     IEnumerable<int> M()
     {
        return ##;
+    }
+}
+";
+            await TestInRegularAndScriptAsync(code.Replace("##", "[||]" + input), code.Replace("##", expectedOutput));
+        }
+
+        private async Task TestNoActionsInt(string input)
+        {
+            const string code = @"
+using System.Collections.Generic;
+using System.Linq;
+class C
+{
+    IEnumerable<int> M()
+    {
+       return ##;
+    }
+}
+";
+            await TestMissingInRegularAndScriptAsync(code.Replace("##", "[||]" + input));
+        }
+
+        private async Task TestString(string input, string expectedOutput)
+        {
+            const string code = @"
+using System.Collections.Generic;
+using System.Linq;
+class C
+{
+    IEnumerable<object> M()
+    {
+        string[] words = { ""apples"", ""blueberries"", ""oranges"", ""bananas"", ""apricots"" };
+        return ##;
     }
 }
 ";
