@@ -59,6 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
         public static void InsertStatement(
             SyntaxEditor editor,
             SyntaxNode functionDeclaration,
+            IMethodSymbol method,
             SyntaxNode statementToAddAfterOpt,
             StatementSyntax statement)
         {
@@ -68,8 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             {
                 var semicolonToken = GetSemicolonToken(functionDeclaration) ?? SyntaxFactory.Token(SyntaxKind.SemicolonToken);
 
-                if (!TryConvertExpressionBodyToStatement(body, semicolonToken,
-                    CreateReturnStatement(functionDeclaration), out var convertedStatement))
+                if (!TryConvertExpressionBodyToStatement(body, semicolonToken, !method.ReturnsVoid, out var convertedStatement))
                     return;
 
                 //Add the new statement as the first/last statement of the new block 
@@ -131,27 +131,6 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             }
 
             statement = null;
-            return false;
-        }
-
-        private static bool CreateReturnStatement(SyntaxNode functionDeclaration)
-        {
-            switch (functionDeclaration)
-            {
-                case MethodDeclarationSyntax methodDeclaration:
-                    return !methodDeclaration.ReturnType.IsVoid();
-                case LocalFunctionStatementSyntax localFunction:
-                    return !localFunction.ReturnType.IsVoid();
-                case AnonymousFunctionExpressionSyntax anonymousFunction:
-                    return true; // TODO: damn lambdas! need to fix this & add tests
-                case ConversionOperatorDeclarationSyntax _:
-                case OperatorDeclarationSyntax _:
-                    return true;
-                case DestructorDeclarationSyntax _:
-                case ConstructorDeclarationSyntax _:
-                    return false;
-            }
-
             return false;
         }
     }

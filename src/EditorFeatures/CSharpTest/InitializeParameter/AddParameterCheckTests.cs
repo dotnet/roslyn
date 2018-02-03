@@ -496,6 +496,82 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestUpdateLambdaExpressionBodyWithReturn()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    void M()
+    {
+        Func<string, int> f = [||]s => GetValue();
+
+        int GetValue() => 0;
+    }
+}",
+@"
+using System;
+
+class C
+{
+    void M()
+    {
+        Func<string, int> f = s =>
+        {
+            if (s == null)
+            {
+                throw new ArgumentNullException(nameof(s));
+            }
+
+            return GetValue();
+        };
+
+        int GetValue() => 0;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestUpdateLambdaExpressionBodyNoReturn()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    void M()
+    {
+        Action<string> f = [||]s => NoValue();
+
+        void NoValue() { }
+    }
+}",
+@"
+using System;
+
+class C
+{
+    void M()
+    {
+        Action<string> f = s =>
+        {
+            if (s == null)
+            {
+                throw new ArgumentNullException(nameof(s));
+            }
+
+            NoValue();
+        };
+
+        void NoValue() { }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestInsertAfterExistingNullCheck1()
         {
             await TestInRegularAndScript1Async(
@@ -727,7 +803,33 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
-        public async Task TestOnLambdaParameter()
+        public async Task TestOnSimpleLambdaParameter()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    public C()
+    {
+        Func<string, int> f = [||]s => { return 0; }
+    }
+}",
+@"
+using System;
+
+class C
+{
+    public C()
+    {
+        Func<string, int> f = s => { if (s == null) { throw new ArgumentNullException(nameof(s)); } return 0; }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestOnParenthesizedLambdaParameter()
         {
             await TestInRegularAndScript1Async(
 @"
@@ -748,6 +850,32 @@ class C
     public C()
     {
         Func<string, int> f = (string s) => { if (s == null) { throw new ArgumentNullException(nameof(s)); } return 0; }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestOnAnonymousMethodParameter()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    public C()
+    {
+        Func<string, int> f = delegate ([||]string s) { return 0; }
+    }
+}",
+@"
+using System;
+
+class C
+{
+    public C()
+    {
+        Func<string, int> f = delegate (string s) { if (s == null) { throw new ArgumentNullException(nameof(s)); } return 0; }
     }
 }");
         }

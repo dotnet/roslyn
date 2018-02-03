@@ -30,11 +30,11 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         protected abstract SyntaxNode GetTypeBlock(SyntaxNode node);
 
         protected abstract void InsertStatement(
-            SyntaxEditor editor, SyntaxNode functionDeclaration,
+            SyntaxEditor editor, SyntaxNode functionDeclaration, IMethodSymbol method,
             SyntaxNode statementToAddAfterOpt, TStatementSyntax statement);
 
         protected abstract Task<ImmutableArray<CodeAction>> GetRefactoringsAsync(
-            Document document, IParameterSymbol parameter, SyntaxNode functionDeclaration,
+            Document document, IParameterSymbol parameter, SyntaxNode functionDeclaration, IMethodSymbol method,
             IBlockOperation blockStatementOpt, CancellationToken cancellationToken);
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
          
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            // for some reason, semanticModel.GetDeclaredSymbol doesn't return symbols for anonymous functions,
+            // we can't just call GetDeclaredSymbol on functionDeclaration because it could an anonymous function,
             // so first we have to get the parameter symbol and then its containing method symbol
             var parameter = (IParameterSymbol)semanticModel.GetDeclaredSymbol(parameterNode, cancellationToken);
             if (parameter == null || parameter.Name == "")
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             // Ok.  Looks like a reasonable parameter to analyze.  Defer to subclass to 
             // actually determine if there are any viable refactorings here.
             context.RegisterRefactorings(await GetRefactoringsAsync(
-                document, parameter, functionDeclaration, blockStatementOpt, cancellationToken).ConfigureAwait(false));
+                document, parameter, functionDeclaration, method, blockStatementOpt, cancellationToken).ConfigureAwait(false));
         }
 
         private TParameterSyntax GetParameterNode(SyntaxToken token, int position)

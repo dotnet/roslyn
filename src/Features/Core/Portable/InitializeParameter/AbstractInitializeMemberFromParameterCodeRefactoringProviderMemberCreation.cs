@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         protected abstract SyntaxNode TryGetLastStatement(IBlockOperation blockStatementOpt);
 
         protected override async Task<ImmutableArray<CodeAction>> GetRefactoringsAsync(
-            Document document, IParameterSymbol parameter, SyntaxNode functionDeclaration,
+            Document document, IParameterSymbol parameter, SyntaxNode functionDeclaration, IMethodSymbol method,
             IBlockOperation blockStatementOpt, CancellationToken cancellationToken)
         {
             // Only supported for constructor parameters.
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 return ImmutableArray.Create<CodeAction>(new MyCodeAction(
                     title,
                     c => AddSymbolInitializationAsync(
-                        document, parameter, functionDeclaration, blockStatementOpt, fieldOrProperty, c)));
+                        document, parameter, functionDeclaration, method, blockStatementOpt, fieldOrProperty, c)));
             }
             else
             {
@@ -117,9 +117,9 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 // we could consider swapping this if people prefer creating private fields more.
                 return ImmutableArray.Create<CodeAction>(
                     new MyCodeAction(string.Format(FeaturesResources.Create_and_initialize_property_0, property.Name),
-                        c => AddSymbolInitializationAsync(document, parameter, functionDeclaration, blockStatementOpt, property, c)),
+                        c => AddSymbolInitializationAsync(document, parameter, functionDeclaration, method, blockStatementOpt, property, c)),
                     new MyCodeAction(string.Format(FeaturesResources.Create_and_initialize_field_0, field.Name),
-                        c => AddSymbolInitializationAsync(document, parameter, functionDeclaration, blockStatementOpt, field, c)));
+                        c => AddSymbolInitializationAsync(document, parameter, functionDeclaration, method, blockStatementOpt, field, c)));
             }
         }
 
@@ -192,11 +192,9 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         }
 
         private async Task<Document> AddSymbolInitializationAsync(
-            Document document, IParameterSymbol parameter, SyntaxNode functionDeclaration,
+            Document document, IParameterSymbol parameter, SyntaxNode functionDeclaration, IMethodSymbol method,
             IBlockOperation blockStatementOpt, ISymbol fieldOrProperty, CancellationToken cancellationToken)
         {
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
             var workspace = document.Project.Solution.Workspace;
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var editor = new SyntaxEditor(root, workspace);
@@ -258,9 +256,9 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             // We'll want to keep initialization statements in the same order as we see
             // parameters for the constructor.
             var statementToAddAfterOpt = TryGetStatementToAddInitializationAfter(
-                semanticModel, parameter, blockStatementOpt, cancellationToken);
+                parameter, blockStatementOpt, cancellationToken);
 
-            InsertStatement(editor, functionDeclaration, statementToAddAfterOpt, initializationStatement);
+            InsertStatement(editor, functionDeclaration, method, statementToAddAfterOpt, initializationStatement);
 
             return document.WithSyntaxRoot(editor.GetChangedRoot());
         }
@@ -313,7 +311,6 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         }
 
         private SyntaxNode TryGetStatementToAddInitializationAfter(
-            SemanticModel semanticModel,
             IParameterSymbol parameter,
             IBlockOperation blockStatementOpt,
             CancellationToken cancellationToken)

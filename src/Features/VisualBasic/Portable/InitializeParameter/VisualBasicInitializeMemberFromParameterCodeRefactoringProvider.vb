@@ -36,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
             Return InitializeParameterHelpers.IsImplicitConversion(compilation, source, destination)
         End Function
 
-        Protected Overrides Sub InsertStatement(editor As SyntaxEditor, functionDeclaration As SyntaxNode, statementToAddAfterOpt As SyntaxNode, statement As StatementSyntax)
+        Protected Overrides Sub InsertStatement(editor As SyntaxEditor, functionDeclaration As SyntaxNode, method As IMethodSymbol, statementToAddAfterOpt As SyntaxNode, statement As StatementSyntax)
             InitializeParameterHelpers.InsertStatement(editor, DirectCast(functionDeclaration, MethodBlockBaseSyntax), statementToAddAfterOpt, statement)
         End Sub
     End Class

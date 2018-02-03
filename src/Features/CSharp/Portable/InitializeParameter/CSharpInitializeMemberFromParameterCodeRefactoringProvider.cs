@@ -29,8 +29,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
         protected override SyntaxNode TryGetLastStatement(IBlockOperation blockStatementOpt)
             => InitializeParameterHelpers.TryGetLastStatement(blockStatementOpt);
 
-        protected override void InsertStatement(SyntaxEditor editor, SyntaxNode functionDeclaration, SyntaxNode statementToAddAfterOpt, StatementSyntax statement)
-            => InitializeParameterHelpers.InsertStatement(editor, functionDeclaration, statementToAddAfterOpt, statement);
+        protected override void InsertStatement(SyntaxEditor editor, SyntaxNode functionDeclaration, IMethodSymbol method, SyntaxNode statementToAddAfterOpt, StatementSyntax statement)
+            => InitializeParameterHelpers.InsertStatement(editor, functionDeclaration, method, statementToAddAfterOpt, statement);
 
         protected override bool IsImplicitConversion(Compilation compilation, ITypeSymbol source, ITypeSymbol destination)
             => InitializeParameterHelpers.IsImplicitConversion(compilation, source, destination);
