@@ -727,9 +727,9 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
-        public async Task TestNotOnLambdaParameter()
+        public async Task TestOnLambdaParameter()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"
 using System;
 
@@ -738,6 +738,16 @@ class C
     public C()
     {
         Func<string, int> f = ([||]string s) => { return 0; }
+    }
+}",
+@"
+using System;
+
+class C
+{
+    public C()
+    {
+        Func<string, int> f = (string s) => { if (s == null) { throw new ArgumentNullException(nameof(s)); } return 0; }
     }
 }");
         }

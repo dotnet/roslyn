@@ -13,13 +13,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
     Friend Class VisualBasicAddParameterCheckCodeRefactoringProvider
         Inherits AbstractAddParameterCheckCodeRefactoringProvider(Of
             ParameterSyntax,
-            ParameterListSyntax,
             StatementSyntax,
             ExpressionSyntax,
             BinaryExpressionSyntax)
 
-        Protected Overrides Function GetFunctionDeclaration(parameterList As ParameterListSyntax) As SyntaxNode
-            Return InitializeParameterHelpers.GetFunctionDeclaration(parameterList)
+        Protected Overrides Function IsFunctionDeclaration(node As SyntaxNode) As Boolean
+            Return InitializeParameterHelpers.IsFunctionDeclaration(node)
         End Function
 
         Protected Overrides Function GetTypeBlock(node As SyntaxNode) As SyntaxNode

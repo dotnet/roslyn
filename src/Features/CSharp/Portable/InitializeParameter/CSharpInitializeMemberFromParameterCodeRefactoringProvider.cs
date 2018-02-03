@@ -14,12 +14,11 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
     internal class CSharpInitializeMemberFromParameterCodeRefactoringProvider :
         AbstractInitializeMemberFromParameterCodeRefactoringProvider<
             ParameterSyntax,
-            ParameterListSyntax,
             StatementSyntax,
             ExpressionSyntax>
     {
-        protected override SyntaxNode GetFunctionDeclaration(ParameterListSyntax parameterList)
-            => InitializeParameterHelpers.GetFunctionDeclaration(parameterList);
+        protected override bool IsFunctionDeclaration(SyntaxNode node)
+            => InitializeParameterHelpers.IsFunctionDeclaration(node);
 
         protected override SyntaxNode GetTypeBlock(SyntaxNode node)
             => node;

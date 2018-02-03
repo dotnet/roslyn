@@ -17,15 +17,13 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 {
     internal abstract partial class AbstractInitializeParameterCodeRefactoringProvider<
         TParameterSyntax,
-        TParameterListSyntax,
         TStatementSyntax,
         TExpressionSyntax> : CodeRefactoringProvider
         where TParameterSyntax : SyntaxNode
-        where TParameterListSyntax : SyntaxNode
         where TStatementSyntax : SyntaxNode
         where TExpressionSyntax : SyntaxNode
     {
-        protected abstract SyntaxNode GetFunctionDeclaration(TParameterListSyntax parameterList);
+        protected abstract bool IsFunctionDeclaration(SyntaxNode node);
 
         protected abstract SyntaxNode GetBody(SyntaxNode functionDeclaration);
         protected abstract bool IsImplicitConversion(Compilation compilation, ITypeSymbol source, ITypeSymbol destination);
@@ -61,13 +59,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 return;
             }
 
-            var parameterList = parameterNode.FirstAncestorOrSelf<TParameterListSyntax>();
-            if (parameterList == null)
-            {
-                return;
-            }
-
-            var functionDeclaration = GetFunctionDeclaration(parameterList);
+            var functionDeclaration = parameterNode.FirstAncestorOrSelf<SyntaxNode>(node => IsFunctionDeclaration(node));
             if (functionDeclaration == null)
             {
                 return;
@@ -75,7 +67,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var parameterDefault = syntaxFacts.GetDefaultOfParameter(parameterNode);
-
+          
             // Don't offer inside the "=initializer" of a parameter
             if (parameterDefault?.Span.Contains(position) == true)
             {
@@ -83,26 +75,25 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             }
          
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var method = (IMethodSymbol)semanticModel.GetDeclaredSymbol(functionDeclaration, cancellationToken);
-            if (method.IsAbstract ||
+
+            // for some reason, semanticModel.GetDeclaredSymbol doesn't return symbols for anonymous functions,
+            // so first we have to get the parameter symbol and then its containing method symbol
+            var parameter = (IParameterSymbol)semanticModel.GetDeclaredSymbol(parameterNode, cancellationToken);
+            if (parameter == null || parameter.Name == "")
+            {
+                return;
+            }
+
+            var method = (IMethodSymbol)parameter.ContainingSymbol;
+            if (method == null ||
+                method.IsAbstract ||
                 method.IsExtern ||
                 method.PartialImplementationPart != null ||
-                method.ContainingType.TypeKind == TypeKind.Interface)
+                method.ContainingType?.TypeKind == TypeKind.Interface)
             {
                 return;
             }
-
-            var parameter = (IParameterSymbol)semanticModel.GetDeclaredSymbol(parameterNode, cancellationToken);
-            if (!method.Parameters.Contains(parameter))
-            {
-                return;
-            }
-
-            if (parameter.Name == "")
-            {
-                return;
-            }
-
+          
             // Only offered on method-like things that have a body (i.e. non-interface/non-abstract).
             var bodyOpt = GetBody(functionDeclaration);
 
@@ -113,10 +104,6 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             if (bodyOpt != null)
             {
                 blockStatementOpt = semanticModel.GetOperation(bodyOpt, cancellationToken) as IBlockOperation;
-                if (blockStatementOpt == null)
-                {
-                    return;
-                }
             }
 
             // Ok.  Looks like a reasonable parameter to analyze.  Defer to subclass to 

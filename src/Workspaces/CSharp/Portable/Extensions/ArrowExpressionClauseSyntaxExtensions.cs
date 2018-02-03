@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return true;
         }
 
-        private static StatementSyntax ConvertToStatement(
+        public static StatementSyntax ConvertToStatement(
             ExpressionSyntax expression, 
             SyntaxToken semicolonToken, 
             bool createReturnStatementForExpression)

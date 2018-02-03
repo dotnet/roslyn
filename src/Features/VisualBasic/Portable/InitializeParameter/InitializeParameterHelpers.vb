@@ -6,8 +6,8 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
     Friend Class InitializeParameterHelpers
-        Public Shared Function GetFunctionDeclaration(parameterList As ParameterListSyntax) As SyntaxNode
-            Return parameterList.FirstAncestorOrSelf(Of MethodBlockBaseSyntax)
+        Public Shared Function IsFunctionDeclaration(node As SyntaxNode) As Boolean
+            Return TypeOf node Is MethodBlockBaseSyntax
         End Function
 
         Public Shared Function GetBody(methodBlock As MethodBlockBaseSyntax) As SyntaxNode

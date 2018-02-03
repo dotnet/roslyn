@@ -15,13 +15,12 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
     internal class CSharpAddParameterCheckCodeRefactoringProvider :
         AbstractAddParameterCheckCodeRefactoringProvider<
             ParameterSyntax,
-            ParameterListSyntax,
             StatementSyntax,
             ExpressionSyntax,
             BinaryExpressionSyntax>
     {
-        protected override SyntaxNode GetFunctionDeclaration(ParameterListSyntax parameterList)
-            => InitializeParameterHelpers.GetFunctionDeclaration(parameterList);
+        protected override bool IsFunctionDeclaration(SyntaxNode node)
+            => InitializeParameterHelpers.IsFunctionDeclaration(node);
 
         protected override SyntaxNode GetTypeBlock(SyntaxNode node)
             => node;
@@ -37,12 +36,12 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
 
         protected override bool CanOffer(SyntaxNode body)
         {
-            if (body is ArrowExpressionClauseSyntax arrowExpressionClauseSyntax)
+            if (InitializeParameterHelpers.IsExpressionBody(body))
             {
-                return arrowExpressionClauseSyntax.TryConvertToStatement(
-                    semicolonToken: SyntaxFactory.Token(SyntaxKind.SemicolonToken), 
-                    createReturnStatementForExpression: false, 
-                    statement: out var _);              
+                return InitializeParameterHelpers.TryConvertExpressionBodyToStatement(body,
+                    semicolonToken: SyntaxFactory.Token(SyntaxKind.SemicolonToken),
+                    createReturnStatementForExpression: false,
+                    statement: out var _);
             }
 
             return true;

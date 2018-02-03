@@ -11,35 +11,41 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
 {
     internal static class InitializeParameterHelpers
     {
-        private static (BlockSyntax body, ArrowExpressionClauseSyntax expression, SyntaxToken semicolonToken) GetFunctionSyntaxElements(SyntaxNode functionDeclaration)
-        {
-            Debug.Assert(functionDeclaration is BaseMethodDeclarationSyntax || functionDeclaration is LocalFunctionStatementSyntax);
-
-            return
-                functionDeclaration is BaseMethodDeclarationSyntax methodDeclaration
-                    ? (methodDeclaration.Body, methodDeclaration.ExpressionBody, methodDeclaration.SemicolonToken) :
-                functionDeclaration is LocalFunctionStatementSyntax localFunction
-                    ? (localFunction.Body, localFunction.ExpressionBody, localFunction.SemicolonToken) : default;
-        }
-
-        private static SyntaxNode FunctionDeclarationWithBody(SyntaxNode functionDeclaration, BlockSyntax body)
-        {
-            Debug.Assert(functionDeclaration is BaseMethodDeclarationSyntax || functionDeclaration is LocalFunctionStatementSyntax);
-
-            return
-                functionDeclaration is BaseMethodDeclarationSyntax methodDeclaration
-                    ? (SyntaxNode)methodDeclaration.WithSemicolonToken(default).WithBody(body) :
-                functionDeclaration is LocalFunctionStatementSyntax localFunction
-                    ? (SyntaxNode)localFunction.WithSemicolonToken(default).WithBody(body) : default;
-        }
-
-        public static SyntaxNode GetFunctionDeclaration(ParameterListSyntax parameterList)
-            => parameterList.FirstAncestorOrSelf<SyntaxNode>(node => node is BaseMethodDeclarationSyntax || node is LocalFunctionStatementSyntax);
+        public static bool IsFunctionDeclaration(SyntaxNode node)
+            => node is BaseMethodDeclarationSyntax
+            || node is LocalFunctionStatementSyntax
+            || node is AnonymousFunctionExpressionSyntax;
 
         public static SyntaxNode GetBody(SyntaxNode functionDeclaration)
         {
-            var (body, expressionBody, _) = GetFunctionSyntaxElements(functionDeclaration);
-            return (SyntaxNode)body ?? expressionBody;
+            switch (functionDeclaration)
+            {
+                case BaseMethodDeclarationSyntax methodDeclaration:
+                    return (SyntaxNode)methodDeclaration.Body ?? methodDeclaration.ExpressionBody;
+                case LocalFunctionStatementSyntax localFunction:
+                    return (SyntaxNode)localFunction.Body ?? localFunction.ExpressionBody;
+                case AnonymousFunctionExpressionSyntax anonymousFunction:
+                    return (SyntaxNode)anonymousFunction.Body;
+                default:
+                    Debug.Fail($"Unexpected {nameof(functionDeclaration)} type");
+                    return default;
+            }
+        }
+
+        private static SyntaxToken? GetSemicolonToken(SyntaxNode functionDeclaration)
+        {
+            switch (functionDeclaration)
+            {
+                case BaseMethodDeclarationSyntax methodDeclaration:
+                    return methodDeclaration.SemicolonToken;
+                case LocalFunctionStatementSyntax localFunction:
+                    return localFunction.SemicolonToken;
+                case AnonymousFunctionExpressionSyntax _:
+                    return null;
+                default:
+                    Debug.Fail($"Unexpected {nameof(functionDeclaration)} type");
+                    return default;
+            }
         }
 
         public static bool IsImplicitConversion(Compilation compilation, ITypeSymbol source, ITypeSymbol destination)
@@ -56,31 +62,26 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             SyntaxNode statementToAddAfterOpt,
             StatementSyntax statement)
         {
-            var (body, expressionBody, semicolonToken) = GetFunctionSyntaxElements(functionDeclaration);
+            var body = GetBody(functionDeclaration);
 
-            if (expressionBody != null)
+            if (IsExpressionBody(body))
             {
-                // If this is a => method, then we'll have to convert the method to have a block
-                // body.  Add the new statement as the first/last statement of the new block 
-                // depending if we were asked to go after something or not.
-                if (!expressionBody.TryConvertToStatement(semicolonToken, CreateReturnStatement(functionDeclaration), out var declaration))
-                {
-                    return;
-                }
+                var semicolonToken = GetSemicolonToken(functionDeclaration) ?? SyntaxFactory.Token(SyntaxKind.SemicolonToken);
 
-                if (statementToAddAfterOpt == null)
-                {
-                    editor.SetStatements(functionDeclaration, ImmutableArray.Create(statement, declaration));
-                }
-                else
-                {
-                    editor.SetStatements(functionDeclaration, ImmutableArray.Create(declaration, statement));
-                }
+                if (!TryConvertExpressionBodyToStatement(body, semicolonToken,
+                    CreateReturnStatement(functionDeclaration), out var convertedStatement))
+                    return;
+
+                //Add the new statement as the first/last statement of the new block 
+                // depending if we were asked to go after something or not.
+                editor.SetStatements(functionDeclaration, statementToAddAfterOpt == null
+                    ? ImmutableArray.Create(statement, convertedStatement)
+                    : ImmutableArray.Create(convertedStatement, statement)
+                    );
             }
-            else if (body != null)
+            else if (body is BlockSyntax block)
             {
                 // Look for the statement we were asked to go after.
-                var block = body;
                 var indexToAddAfter = block.Statements.IndexOf(s => s == statementToAddAfterOpt);
                 if (indexToAddAfter >= 0)
                 {
@@ -103,19 +104,46 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             }
             else
             {
-                var newDeclaration = FunctionDeclarationWithBody(functionDeclaration, SyntaxFactory.Block(statement));
-                editor.ReplaceNode(functionDeclaration, newDeclaration);
+                editor.SetStatements(functionDeclaration, ImmutableArray.Create(statement));
             }
         }
 
-        private static bool CreateReturnStatement(SyntaxNode declarationSyntax)
+        public static bool IsExpressionBody(SyntaxNode body)
         {
-            switch(declarationSyntax)
+            // either expression lambda or expression bodied member
+            return body is ExpressionSyntax || body is ArrowExpressionClauseSyntax;
+        }
+
+        public static bool TryConvertExpressionBodyToStatement(SyntaxNode body, SyntaxToken semicolonToken, bool createReturnStatementForExpression, out StatementSyntax statement)
+        {
+            Debug.Assert(IsExpressionBody(body));
+
+            if (body is ArrowExpressionClauseSyntax arrowClause)
             {
-                case LocalFunctionStatementSyntax function:
-                    return !function.ReturnType.IsVoid();
-                case MethodDeclarationSyntax method:
-                    return !method.ReturnType.IsVoid();
+                // If this is a => method, then we'll have to convert the method to have a block body.
+                return arrowClause.TryConvertToStatement(semicolonToken, createReturnStatementForExpression, out statement);
+            }
+            else if (body is ExpressionSyntax expression)
+            {
+                // must be a lambda
+                statement = ArrowExpressionClauseSyntaxExtensions.ConvertToStatement(expression, semicolonToken, createReturnStatementForExpression);
+                return true;
+            }
+
+            statement = null;
+            return false;
+        }
+
+        private static bool CreateReturnStatement(SyntaxNode functionDeclaration)
+        {
+            switch (functionDeclaration)
+            {
+                case MethodDeclarationSyntax methodDeclaration:
+                    return !methodDeclaration.ReturnType.IsVoid();
+                case LocalFunctionStatementSyntax localFunction:
+                    return !localFunction.ReturnType.IsVoid();
+                case AnonymousFunctionExpressionSyntax anonymousFunction:
+                    return true; // TODO: damn lambdas! need to fix this & add tests
                 case ConversionOperatorDeclarationSyntax _:
                 case OperatorDeclarationSyntax _:
                     return true;

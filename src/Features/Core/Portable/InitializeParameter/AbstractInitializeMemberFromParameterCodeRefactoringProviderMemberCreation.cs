@@ -23,15 +23,12 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 {
     internal abstract partial class AbstractInitializeMemberFromParameterCodeRefactoringProvider<
         TParameterSyntax,
-        TParameterListSyntax,
         TStatementSyntax,
         TExpressionSyntax> : AbstractInitializeParameterCodeRefactoringProvider<
             TParameterSyntax,
-            TParameterListSyntax,
             TStatementSyntax,
             TExpressionSyntax>
         where TParameterSyntax : SyntaxNode
-        where TParameterListSyntax : SyntaxNode
         where TStatementSyntax : SyntaxNode
         where TExpressionSyntax : SyntaxNode
     {
