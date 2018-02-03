@@ -36,6 +36,20 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
                 int pendingRuntimes = 0;
                 int runtimeCount = 0;
 
+                void CancelWork()
+                {
+                    if (builders != null)
+                    {
+                        FreeBuilders(builders);
+                        builders = null;
+
+                        workList.Cancel();
+
+                        // make sure we cancel with the token we received from the caller:
+                        completion.TrySetCanceled(cancellationToken);
+                    }
+                }
+
                 foreach (var process in DkmProcess.GetProcesses())
                 {
                     foreach (var runtimeInstance in process.GetRuntimeInstances())
@@ -51,12 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
                             {
                                 if (cancellationToken.IsCancellationRequested)
                                 {
-                                    FreeBuilders(builders);
-
-                                    workList.Cancel();
-
-                                    // make sure we cancel with the token we received from the caller:
-                                    completion.TrySetCanceled(cancellationToken);
+                                    CancelWork();
                                     return;
                                 }
 
@@ -76,13 +85,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
                                     {
                                         if (cancellationToken.IsCancellationRequested)
                                         {
-                                            FreeBuilders(builders);
-
-                                            workList.Cancel();
-
-                                            // make sure we cancel with the token we received from the caller:
-                                            completion.TrySetCanceled(cancellationToken);
-
+                                            CancelWork();
                                             return;
                                         }
 
