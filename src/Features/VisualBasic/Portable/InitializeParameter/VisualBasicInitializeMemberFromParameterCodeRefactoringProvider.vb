@@ -25,11 +25,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
         End Function
 
         Protected Overrides Function TryGetLastStatement(blockStatement As IBlockOperation) As SyntaxNode
-            Return DirectCast(blockStatement.Syntax, MethodBlockBaseSyntax).Statements.LastOrDefault()
+            Return InitializeParameterHelpers.TryGetLastStatement(blockStatement)
         End Function
 
         Protected Overrides Function GetBody(functionDeclaration As SyntaxNode) As SyntaxNode
-            Return InitializeParameterHelpers.GetBody(DirectCast(functionDeclaration, MethodBlockBaseSyntax))
+            Return InitializeParameterHelpers.GetBody(functionDeclaration)
         End Function
 
         Protected Overrides Function IsImplicitConversion(compilation As Compilation, source As ITypeSymbol, destination As ITypeSymbol) As Boolean
@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
         End Function
 
         Protected Overrides Sub InsertStatement(editor As SyntaxEditor, functionDeclaration As SyntaxNode, method As IMethodSymbol, statementToAddAfterOpt As SyntaxNode, statement As StatementSyntax)
-            InitializeParameterHelpers.InsertStatement(editor, DirectCast(functionDeclaration, MethodBlockBaseSyntax), statementToAddAfterOpt, statement)
+            InitializeParameterHelpers.InsertStatement(editor, functionDeclaration, statementToAddAfterOpt, statement)
         End Sub
     End Class
 End Namespace

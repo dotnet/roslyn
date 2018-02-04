@@ -268,15 +268,114 @@ end class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
-        Public Async Function TestNotOnLambdaParameter() As Task
-            Await TestMissingInRegularAndScriptAsync(
+        Public Async Function TestOnMultiLineSubLambdaParameter() As Task
+            Await TestInRegularAndScript1Async(
+"
+Imports System
+
+class C
+    public sub new()
+        dim f = sub ([||]s as string)
+                end sub
+    end sub
+end class",
+"
+Imports System
+
+class C
+    public sub new()
+        dim f = sub (s as string)
+
+                    If s Is Nothing Then
+                        Throw New ArgumentNullException(NameOf(s))
+                    End If
+                end sub
+    end sub
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        Public Async Function TestOnMultiLineFunctionLambdaParameter() As Task
+            Await TestInRegularAndScript1Async(
 "
 Imports System
 
 class C
     public sub new()
         dim f = function ([||]s as string)
+                    return 0
                 end function
+    end sub
+end class",
+"
+Imports System
+
+class C
+    public sub new()
+        dim f = function (s as string)
+
+                    If s Is Nothing Then
+                        Throw New ArgumentNullException(NameOf(s))
+                    End If
+
+                    return 0
+                end function
+    end sub
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        Public Async Function TestOnSingleLineSubLambdaParameter() As Task
+            Await TestInRegularAndScript1Async(
+"
+Imports System
+
+class C
+    public sub new()
+        dim f = sub ([||]x) console.writeline(x)
+    end sub
+end class",
+"
+Imports System
+
+class C
+    public sub new()
+        dim f = sub (x)
+
+                    If x Is Nothing Then
+                        Throw New ArgumentNullException(NameOf(x))
+                    End If
+
+                    console.writeline(x)
+                End Sub
+    end sub
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        Public Async Function TestOnSingleLineFunctionLambdaParameter() As Task
+            Await TestInRegularAndScript1Async(
+"
+Imports System
+
+class C
+    public sub new()
+        dim f = function ([||]x) x
+    end sub
+end class",
+"
+Imports System
+
+class C
+    public sub new()
+        dim f = function (x)
+
+                    If x Is Nothing Then
+                        Throw New ArgumentNullException(NameOf(x))
+                    End If
+
+                    Return x
+                End Function
     end sub
 end class")
         End Function
