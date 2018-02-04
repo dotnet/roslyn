@@ -26,12 +26,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
         protected AbstractGraphProvider(
             IGlyphService glyphService,
             SVsServiceProvider serviceProvider,
-            Workspace workspace,
-            IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
+            CodeAnalysis.Workspace workspace,
+            IAsynchronousOperationListenerProvider listenerProvider)
         {
             _glyphService = glyphService;
             _serviceProvider = serviceProvider;
-            var asyncListener = new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.GraphProvider);
+            var asyncListener = listenerProvider.GetListener(FeatureAttribute.GraphProvider);
             _graphQueryManager = new GraphQueryManager(workspace, asyncListener);
         }
 

@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (rewrittenCondition.ConstantValue == null)
             {
-                return node.Update(rewrittenCondition, rewrittenConsequence, rewrittenAlternative, node.ConstantValueOpt, node.Type);
+                return node.Update(node.IsRef, rewrittenCondition, rewrittenConsequence, rewrittenAlternative, node.ConstantValueOpt, node.Type);
             }
 
             return RewriteConditionalOperator(
@@ -33,7 +33,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rewrittenConsequence,
                 rewrittenAlternative,
                 node.ConstantValueOpt,
-                node.Type);
+                node.Type,
+                node.IsRef);
         }
 
         private static BoundExpression RewriteConditionalOperator(
@@ -42,21 +43,33 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression rewrittenConsequence,
             BoundExpression rewrittenAlternative,
             ConstantValue constantValueOpt,
-            TypeSymbol rewrittenType)
+            TypeSymbol rewrittenType,
+            bool isRef)
         {
             ConstantValue conditionConstantValue = rewrittenCondition.ConstantValue;
             if (conditionConstantValue == ConstantValue.True)
             {
-                return EnsureNotAssignableIfUsedAsMethodReceiver(rewrittenConsequence);
+                if (!isRef)
+                {
+                    rewrittenConsequence = EnsureNotAssignableIfUsedAsMethodReceiver(rewrittenConsequence);
+                }
+
+                return rewrittenConsequence;
             }
             else if (conditionConstantValue == ConstantValue.False)
             {
-                return EnsureNotAssignableIfUsedAsMethodReceiver(rewrittenAlternative);
+                if (!isRef)
+                {
+                    rewrittenAlternative = EnsureNotAssignableIfUsedAsMethodReceiver(rewrittenAlternative);
+                }
+
+                return rewrittenAlternative;
             }
             else
             {
                 return new BoundConditionalOperator(
                     syntax,
+                    isRef,
                     rewrittenCondition,
                     rewrittenConsequence,
                     rewrittenAlternative,

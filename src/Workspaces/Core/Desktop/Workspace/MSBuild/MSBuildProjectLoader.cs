@@ -535,7 +535,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
         }
 
-        private void CheckDocuments(IEnumerable<DocumentFileInfo> docs, string projectFilePath, ProjectId projectId)
+        private void CheckDocuments(ImmutableArray<DocumentFileInfo> docs, string projectFilePath, ProjectId projectId)
         {
             var paths = new HashSet<string>();
             foreach (var doc in docs)

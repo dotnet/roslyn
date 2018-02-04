@@ -2,8 +2,16 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
   <metadata>
     <id>Microsoft.VisualStudio.IntegrationTest.Utilities</id>
-    <summary>Utility methods used to run Visual Studio integration tests.</summary>
-    <description>$commitPathMessage$</description>
+    <summary>
+      Utility methods used to run Visual Studio integration tests.
+    </summary>
+    <description>
+      Utility methods used to run Visual Studio integration tests.
+
+      More details at https://aka.ms/roslyn-packages
+
+      $commitPathMessage$
+    </description>
     <language>en-US</language>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <version>$version$</version>
@@ -14,13 +22,13 @@
     <tags>$tags$</tags>
     <dependencies>
       <dependency id="Microsoft.VisualStudio.LanguageServices" version="$version$" />
-      <dependency id="Microsoft.VisualStudio.Setup.Configuration.Interop" version="1.3.269-rc" />
-      <dependency id="Microsoft.VisualStudio.Setup.Configuration.Native.x86" version="1.3.269-rc" />
+      <dependency id="Microsoft.VisualStudio.Setup.Configuration.Interop" version="$MicrosoftVisualStudioSetupConfigurationInteropVersion$" />
+      <dependency id="System.Diagnostics.Process" version="$SystemDiagnosticsProcessVersion$" />
     </dependencies>
   </metadata>
   <files>
-    <file src="Dlls\TestUtilities\net46\Roslyn.Test.Utilities.dll" target="lib\net46" />
-    <file src="Dlls\VisualStudioIntegrationTestUtilities\Microsoft.VisualStudio.IntegrationTest.Utilities.dll" target="lib\net46" />
-    <file src="Dlls\ServicesTestUtilities\Roslyn.Services.Test.Utilities.dll" target="lib\net46" />
+    <file src="Dlls\TestUtilities\net461\Roslyn.Test.Utilities.dll" target="lib\net461" />
+    <file src="Dlls\VisualStudioIntegrationTestUtilities\Microsoft.VisualStudio.IntegrationTest.Utilities.dll" target="lib\net461" />
+    <file src="Dlls\ServicesTestUtilities\Roslyn.Services.Test.Utilities.dll" target="lib\net461" />
   </files>
 </package>

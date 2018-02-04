@@ -1,7 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\..\build\Targets\SettingsSdk.props" />
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <MinimumVisualStudioVersion>14.0</MinimumVisualStudioVersion>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
@@ -26,6 +25,9 @@
   <ItemGroup>
     <Compile Include="..\..\Shared\BuildServerConnection.cs">
       <Link>BuildServerConnection.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Shared\CoreClrShim.cs">
+      <Link>CoreClrShim.cs</Link>
     </Compile>
     <Compile Include="..\Portable\CorLightup.cs">
       <Link>CorLightup.cs</Link>
@@ -73,6 +75,7 @@
     <PackageReference Include="System.IO.FileSystem" Version="$(SystemIOFileSystemVersion)" />
     <PackageReference Include="System.IO.FileSystem.DriveInfo" Version="$(SystemIOFileSystemDriveInfoVersion)" />
     <PackageReference Include="System.IO.Pipes" Version="$(SystemIOPipesVersion)" />
+    <PackageReference Include="System.IO.Pipes.AccessControl" Version="$(SystemIOPipesAccessControlVersion)" />
     <PackageReference Include="System.Linq" Version="$(SystemLinqVersion)" />
     <PackageReference Include="System.Reflection" Version="$(SystemReflectionVersion)" />
     <PackageReference Include="System.Security.AccessControl" Version="$(SystemSecurityAccessControlVersion)" />
@@ -84,5 +87,4 @@
     <PackageReference Include="System.Threading.Thread" Version="$(SystemThreadingThreadVersion)" />
   </ItemGroup>
   <Import Project="..\CommandLine\CommandLine.projitems" Label="Shared" />
-  <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>

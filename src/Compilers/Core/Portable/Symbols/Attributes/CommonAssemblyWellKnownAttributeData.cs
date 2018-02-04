@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis
         }
         #endregion
 
-        #region ReferenceAssemblyeAttribute
+        #region ReferenceAssemblyAttribute
         private bool _hasReferenceAssemblyAttribute;
         public bool HasReferenceAssemblyAttribute
         {

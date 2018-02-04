@@ -27,14 +27,17 @@ namespace Roslyn.Test.Utilities.Remote
             var inprocServices = new InProcRemoteServices(runCacheCleanup);
 
             var remoteHostStream = await inprocServices.RequestServiceAsync(WellKnownRemoteHostServices.RemoteHostService, cancellationToken).ConfigureAwait(false);
-            var remotableDataRpc = new RemotableDataJsonRpc(workspace, await inprocServices.RequestServiceAsync(WellKnownServiceHubServices.SnapshotService, cancellationToken).ConfigureAwait(false));
+            var remotableDataRpc = new RemotableDataJsonRpc(workspace, inprocServices.Logger, await inprocServices.RequestServiceAsync(WellKnownServiceHubServices.SnapshotService, cancellationToken).ConfigureAwait(false));
 
             var instance = new InProcRemoteHostClient(workspace, inprocServices, new ReferenceCountedDisposable<RemotableDataJsonRpc>(remotableDataRpc), remoteHostStream);
 
             // make sure connection is done right
             var current = $"VS ({Process.GetCurrentProcess().Id})";
             var telemetrySession = default(string);
-            var host = await instance._rpc.InvokeAsync<string>(nameof(IRemoteHostService.Connect), current, telemetrySession).ConfigureAwait(false);
+            var uiCultureLCIDE = 0;
+            var cultureLCID = 0;
+
+            var host = await instance._rpc.InvokeAsync<string>(nameof(IRemoteHostService.Connect), current, uiCultureLCIDE, cultureLCID, telemetrySession).ConfigureAwait(false);
 
             // TODO: change this to non fatal watson and make VS to use inproc implementation
             Contract.ThrowIfFalse(host == current.ToString());
@@ -80,7 +83,7 @@ namespace Roslyn.Test.Utilities.Remote
             // this is what consumer actually use to communicate information
             var serviceStream = await _inprocServices.RequestServiceAsync(serviceName, cancellationToken).ConfigureAwait(false);
 
-            return new JsonRpcConnection(callbackTarget, serviceStream, _remotableDataRpc.TryAddReference());
+            return new JsonRpcConnection(_inprocServices.Logger, callbackTarget, serviceStream, _remotableDataRpc.TryAddReference());
         }
 
         protected override void OnStarted()
@@ -109,7 +112,7 @@ namespace Roslyn.Test.Utilities.Remote
             public ServiceProvider(bool runCacheCleanup)
             {
                 _storage = runCacheCleanup ?
-                    new AssetStorage(cleanupInterval: TimeSpan.FromSeconds(30), purgeAfter: TimeSpan.FromMinutes(1)) :
+                    new AssetStorage(cleanupInterval: TimeSpan.FromSeconds(30), purgeAfter: TimeSpan.FromMinutes(1), gcAfter: TimeSpan.FromMinutes(5)) :
                     new AssetStorage();
             }
 
@@ -148,6 +151,7 @@ namespace Roslyn.Test.Utilities.Remote
             }
 
             public AssetStorage AssetStorage => _serviceProvider.AssetStorage;
+            public TraceSource Logger { get; } = new TraceSource("Default");
 
             public void RegisterService(string name, Func<Stream, IServiceProvider, ServiceHubServiceBase> serviceCreator)
             {

@@ -6,10 +6,12 @@
   <PropertyGroup>
     <FinalizeManifest>true</FinalizeManifest>
     <FinalizeSkipLayout>true</FinalizeSkipLayout>
-    <OutputPath>$(OutputPath)\Insertion\</OutputPath>
+    <OutputPath>$(OutputPath)\Vsix\PortableFacades</OutputPath>
     <IsPackage>true</IsPackage>
     <FinalizeValidate>false</FinalizeValidate>
     <ValidateManifest>false</ValidateManifest>
+    <ImportDirectoryBuildProps>false</ImportDirectoryBuildProps>
+    <ImportDirectoryBuildTargets>false</ImportDirectoryBuildTargets>
   </PropertyGroup>
 
   <Import Project="$(NuGetPackageRoot)\MicroBuild.Core\$(MicroBuildCoreVersion)\build\MicroBuild.Core.props" />
@@ -24,4 +26,7 @@
   </ItemGroup>
 
   <Target Name="ValidateManifest" />
+
+  <!-- Disable automatic signing. This will be signed in the batch phase -->
+  <Target Name="AddTargetPathToFilesToSign" />
 </Project>

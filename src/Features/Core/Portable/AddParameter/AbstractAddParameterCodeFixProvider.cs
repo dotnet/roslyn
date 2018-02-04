@@ -19,7 +19,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddParameter
 {
+#pragma warning disable RS1016 // Code fix providers should provide FixAll support. https://github.com/dotnet/roslyn/issues/23528
     internal abstract class AbstractAddParameterCodeFixProvider<
+#pragma warning restore RS1016 // Code fix providers should provide FixAll support.
         TArgumentSyntax,
         TAttributeArgumentSyntax,
         TArgumentListSyntax,
@@ -121,7 +123,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
                     NonParamsParameterCount(constructor) < arguments.Count)
                 {
                     var argumentToAdd = DetermineFirstArgumentToAdd(
-                        semanticModel, syntaxFacts, comparer, constructor, 
+                        semanticModel, syntaxFacts, comparer, constructor,
                         arguments, argumentOpt);
 
                     if (argumentToAdd != null)
@@ -164,7 +166,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
             => method.IsParams() ? method.Parameters.Length - 1 : method.Parameters.Length;
 
         private async Task<Document> FixAsync(
-            Document invocationDocument, 
+            Document invocationDocument,
             IMethodSymbol method,
             TArgumentSyntax argument,
             SeparatedSyntaxList<TArgumentSyntax> argumentList,
@@ -191,7 +193,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
             AddParameter(
                 syntaxFacts, editor, methodDeclaration, argument,
                 insertionIndex, parameterDeclaration, cancellationToken);
-            
+
             var newRoot = editor.GetChangedRoot();
             var newDocument = methodDocument.WithSyntaxRoot(newRoot);
 
@@ -337,7 +339,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
         }
 
         private static List<SyntaxTrivia> GetDesiredLeadingIndentation(
-            SyntaxGenerator generator, ISyntaxFactsService syntaxFacts, 
+            SyntaxGenerator generator, ISyntaxFactsService syntaxFacts,
             SyntaxNode node, bool includeLeadingNewLine)
         {
             var triviaList = new List<SyntaxTrivia>();
@@ -346,8 +348,8 @@ namespace Microsoft.CodeAnalysis.AddParameter
                 triviaList.Add(generator.ElasticCarriageReturnLineFeed);
             }
 
-            var lastWhitespace = default(SyntaxTrivia); 
-            foreach(var trivia in node.GetLeadingTrivia().Reverse())
+            var lastWhitespace = default(SyntaxTrivia);
+            foreach (var trivia in node.GetLeadingTrivia().Reverse())
             {
                 if (syntaxFacts.IsWhitespaceTrivia(trivia))
                 {
@@ -440,10 +442,14 @@ namespace Microsoft.CodeAnalysis.AddParameter
 
                     // Now check the type of the argument versus the type of the parameter.  If they
                     // don't match, then this is the argument we should make the parameter for.
-                    var expressionOfArgumment = syntaxFacts.GetExpressionOfArgument(argument);
-                    var argumentTypeInfo = semanticModel.GetTypeInfo(expressionOfArgumment);
-                    var isNullLiteral = syntaxFacts.IsNullLiteralExpression(expressionOfArgumment);
-                    var isDefaultLiteral = syntaxFacts.IsDefaultLiteralExpression(expressionOfArgumment);
+                    var expressionOfArgument = syntaxFacts.GetExpressionOfArgument(argument);
+                    if (expressionOfArgument is null)
+                    {
+                        return null;
+                    }
+                    var argumentTypeInfo = semanticModel.GetTypeInfo(expressionOfArgument);
+                    var isNullLiteral = syntaxFacts.IsNullLiteralExpression(expressionOfArgument);
+                    var isDefaultLiteral = syntaxFacts.IsDefaultLiteralExpression(expressionOfArgument);
 
                     if (argumentTypeInfo.Type == null && argumentTypeInfo.ConvertedType == null)
                     {

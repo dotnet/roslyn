@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
 
         public static Task CompletesTrackingOperation(this Task task, IDisposable token)
         {
-            if (token == null)
+            if (token == null || token == EmptyAsyncToken.Instance)
             {
                 return task;
             }

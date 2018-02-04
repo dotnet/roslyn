@@ -454,5 +454,74 @@ class B
     }
 }");
         }
+
+        [WorkItem(22926, "https://github.com/dotnet/roslyn/issues/22926")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseThrowExpression)]
+        public async Task TestNotWhenUnconstrainedTypeParameter()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+class A<T>
+{
+    T x;
+    public A(T t)
+    {
+        if (t == null) [|throw|] new ArgumentNullException();
+        x = t;
+    }
+}");
+        }
+
+        [WorkItem(22926, "https://github.com/dotnet/roslyn/issues/22926")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseThrowExpression)]
+        public async Task TestWhenClassConstrainedTypeParameter()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class A<T> where T: class
+{
+    T x;
+    public A(T t)
+    {
+        if (t == null) [|throw|] new ArgumentNullException();
+        x = t;
+    }
+}",
+@"using System;
+class A<T> where T: class
+{
+    T x;
+    public A(T t)
+    {
+        x = t ?? throw new ArgumentNullException();
+    }
+}");
+        }
+
+        [WorkItem(22926, "https://github.com/dotnet/roslyn/issues/22926")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseThrowExpression)]
+        public async Task TestWhenStructConstrainedTypeParameter()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class A<T> where T: struct
+{
+    T? x;
+    public A(T? t)
+    {
+        if (t == null) [|throw|] new ArgumentNullException();
+        x = t;
+    }
+}",
+@"using System;
+class A<T> where T: struct
+{
+    T? x;
+    public A(T? t)
+    {
+        x = t ?? throw new ArgumentNullException();
+    }
+}");
+        }
     }
 }

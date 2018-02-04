@@ -149,6 +149,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ObjectBrowser
                     AddText("protected internal ");
                     break;
 
+                case Accessibility.ProtectedAndInternal:
+                    AddText("private protected ");
+                    break;
+
                 default:
                     AddText("internal ");
                     break;

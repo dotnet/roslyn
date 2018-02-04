@@ -2408,16 +2408,18 @@ class C
 
             diff7.VerifyIL(
 @"{
-  // Code size       16 (0x10)
-  .maxstack  8
+  // Code size       18 (0x12)
+  .maxstack  1
   IL_0000:  nop
   IL_0001:  ldarg.0
   IL_0002:  call       0x06000008
   IL_0007:  nop
   IL_0008:  ldarg.0
-  IL_0009:  call       0x06000009
-  IL_000e:  nop
-  IL_000f:  ret
+  IL_0009:  stloc.0
+  IL_000a:  ldloc.0
+  IL_000b:  call       0x06000009
+  IL_0010:  nop
+  IL_0011:  ret
 }");
 
             //static void M(object[][] b)
@@ -3451,6 +3453,9 @@ class B : A<B>
 }");
             diff1.VerifyPdb(new[] { 0x06000001, 0x06000002, 0x06000003, 0x06000004 }, @"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method token=""0x6000003"">
       <customDebugInfo>
@@ -3459,13 +3464,13 @@ class B : A<B>
         </using>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""19"" />
-        <entry offset=""0x7"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""22"" />
-        <entry offset=""0xd"" startLine=""12"" startColumn=""9"" endLine=""12"" endColumn=""24"" />
-        <entry offset=""0x14"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""14"" />
-        <entry offset=""0x1c"" startLine=""14"" startColumn=""9"" endLine=""14"" endColumn=""14"" />
-        <entry offset=""0x23"" startLine=""15"" startColumn=""5"" endLine=""15"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""19"" document=""1"" />
+        <entry offset=""0x7"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""22"" document=""1"" />
+        <entry offset=""0xd"" startLine=""12"" startColumn=""9"" endLine=""12"" endColumn=""24"" document=""1"" />
+        <entry offset=""0x14"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""14"" document=""1"" />
+        <entry offset=""0x1c"" startLine=""14"" startColumn=""9"" endLine=""14"" endColumn=""14"" document=""1"" />
+        <entry offset=""0x23"" startLine=""15"" startColumn=""5"" endLine=""15"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x24"">
         <local name=""z"" il_index=""3"" il_start=""0x0"" il_end=""0x24"" attributes=""0"" />
@@ -3505,6 +3510,9 @@ class B : A<B>
 
             diff2.VerifyPdb(new[] { 0x06000001, 0x06000002, 0x06000003, 0x06000004 }, @"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method token=""0x6000003"">
       <customDebugInfo>
@@ -3513,12 +3521,12 @@ class B : A<B>
         </using>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""24"" />
-        <entry offset=""0x8"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""19"" />
-        <entry offset=""0xe"" startLine=""12"" startColumn=""9"" endLine=""12"" endColumn=""14"" />
-        <entry offset=""0x16"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""14"" />
-        <entry offset=""0x1d"" startLine=""14"" startColumn=""5"" endLine=""14"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""24"" document=""1"" />
+        <entry offset=""0x8"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""19"" document=""1"" />
+        <entry offset=""0xe"" startLine=""12"" startColumn=""9"" endLine=""12"" endColumn=""14"" document=""1"" />
+        <entry offset=""0x16"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""14"" document=""1"" />
+        <entry offset=""0x1d"" startLine=""14"" startColumn=""5"" endLine=""14"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x1e"">
         <local name=""x"" il_index=""5"" il_start=""0x0"" il_end=""0x1e"" attributes=""0"" />
@@ -3559,6 +3567,9 @@ class B : A<B>
 }");
             diff3.VerifyPdb(new[] { 0x06000001, 0x06000002, 0x06000003, 0x06000004 }, @"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method token=""0x6000004"">
       <customDebugInfo>
@@ -3567,12 +3578,12 @@ class B : A<B>
         </using>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""16"" startColumn=""5"" endLine=""16"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""17"" startColumn=""9"" endLine=""17"" endColumn=""24"" />
-        <entry offset=""0x7"" startLine=""18"" startColumn=""9"" endLine=""18"" endColumn=""24"" />
-        <entry offset=""0xd"" startLine=""19"" startColumn=""9"" endLine=""19"" endColumn=""14"" />
-        <entry offset=""0x14"" startLine=""20"" startColumn=""9"" endLine=""20"" endColumn=""14"" />
-        <entry offset=""0x1b"" startLine=""21"" startColumn=""5"" endLine=""21"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""16"" startColumn=""5"" endLine=""16"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""17"" startColumn=""9"" endLine=""17"" endColumn=""24"" document=""1"" />
+        <entry offset=""0x7"" startLine=""18"" startColumn=""9"" endLine=""18"" endColumn=""24"" document=""1"" />
+        <entry offset=""0xd"" startLine=""19"" startColumn=""9"" endLine=""19"" endColumn=""14"" document=""1"" />
+        <entry offset=""0x14"" startLine=""20"" startColumn=""9"" endLine=""20"" endColumn=""14"" document=""1"" />
+        <entry offset=""0x1b"" startLine=""21"" startColumn=""5"" endLine=""21"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x1c"">
         <local name=""c"" il_index=""2"" il_start=""0x0"" il_end=""0x1c"" attributes=""0"" />
@@ -3645,6 +3656,9 @@ class B : A<B>
 }");
             diff2.VerifyPdb(new[] { 0x06000002 }, @"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <methods>
     <method token=""0x6000002"">
       <customDebugInfo>
@@ -3653,10 +3667,10 @@ class B : A<B>
         </using>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" startLine=""4"" startColumn=""5"" endLine=""4"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""5"" startColumn=""9"" endLine=""5"" endColumn=""19"" />
-        <entry offset=""0x3"" startLine=""6"" startColumn=""9"" endLine=""6"" endColumn=""30"" />
-        <entry offset=""0x9"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" />
+        <entry offset=""0x0"" startLine=""4"" startColumn=""5"" endLine=""4"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""5"" startColumn=""9"" endLine=""5"" endColumn=""19"" document=""1"" />
+        <entry offset=""0x3"" startLine=""6"" startColumn=""9"" endLine=""6"" endColumn=""30"" document=""1"" />
+        <entry offset=""0x9"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0xa"">
         <local name=""a"" il_index=""2"" il_start=""0x0"" il_end=""0xa"" attributes=""0"" />
@@ -7450,7 +7464,7 @@ class C
                 throw new ArgumentOutOfRangeException();
             });
 
-            // the compiler shound't swallow any exceptions but InvalidDataException
+            // the compiler should't swallow any exceptions but InvalidDataException
             Assert.Throws<ArgumentOutOfRangeException>(() =>
                 compilation1.EmitDifference(
                     generation0,
@@ -7602,7 +7616,7 @@ class C
             var v0 = CompileAndVerify(compilation0);
             v0.VerifyIL("C.F", @"
 {
-  // Code size       40 (0x28)
+  // Code size       37 (0x25)
   .maxstack  2
   .locals init (int V_0, //i
                 bool V_1,
@@ -7610,30 +7624,28 @@ class C
                 int V_3)
   IL_0000:  nop
   IL_0001:  ldarg.0
-  IL_0002:  stloc.2
-  IL_0003:  ldloc.2
+  IL_0002:  dup
+  IL_0003:  stloc.2
   IL_0004:  isinst     ""int""
-  IL_0009:  ldnull
-  IL_000a:  cgt.un
-  IL_000c:  dup
-  IL_000d:  brtrue.s   IL_0012
-  IL_000f:  ldc.i4.0
-  IL_0010:  br.s       IL_0018
-  IL_0012:  ldloc.2
-  IL_0013:  unbox.any  ""int""
-  IL_0018:  stloc.0
-  IL_0019:  stloc.1
-  IL_001a:  ldloc.1
-  IL_001b:  brfalse.s  IL_0022
-  IL_001d:  nop
-  IL_001e:  ldloc.0
-  IL_001f:  stloc.3
-  IL_0020:  br.s       IL_0026
-  IL_0022:  ldc.i4.0
-  IL_0023:  stloc.3
-  IL_0024:  br.s       IL_0026
-  IL_0026:  ldloc.3
-  IL_0027:  ret
+  IL_0009:  brfalse.s  IL_0015
+  IL_000b:  ldloc.2
+  IL_000c:  unbox.any  ""int""
+  IL_0011:  stloc.0
+  IL_0012:  ldc.i4.1
+  IL_0013:  br.s       IL_0016
+  IL_0015:  ldc.i4.0
+  IL_0016:  stloc.1
+  IL_0017:  ldloc.1
+  IL_0018:  brfalse.s  IL_001f
+  IL_001a:  nop
+  IL_001b:  ldloc.0
+  IL_001c:  stloc.3
+  IL_001d:  br.s       IL_0023
+  IL_001f:  ldc.i4.0
+  IL_0020:  stloc.3
+  IL_0021:  br.s       IL_0023
+  IL_0023:  ldloc.3
+  IL_0024:  ret
 }");
 
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
@@ -7646,7 +7658,7 @@ class C
 
             diff1.VerifyIL("C.F", @"
 {
-  // Code size       56 (0x38)
+  // Code size       52 (0x34)
   .maxstack  2
   .locals init ([int] V_0,
                 [bool] V_1,
@@ -7658,34 +7670,32 @@ class C
                 int V_7)
   IL_0000:  nop
   IL_0001:  ldarg.0
-  IL_0002:  stloc.s    V_6
-  IL_0004:  ldloc.s    V_6
-  IL_0006:  isinst     ""bool""
-  IL_000b:  ldnull
-  IL_000c:  cgt.un
-  IL_000e:  dup
-  IL_000f:  brtrue.s   IL_0014
-  IL_0011:  ldc.i4.0
-  IL_0012:  br.s       IL_001b
-  IL_0014:  ldloc.s    V_6
-  IL_0016:  unbox.any  ""bool""
-  IL_001b:  stloc.s    V_4
-  IL_001d:  stloc.s    V_5
-  IL_001f:  ldloc.s    V_5
-  IL_0021:  brfalse.s  IL_0030
-  IL_0023:  nop
-  IL_0024:  ldloc.s    V_4
-  IL_0026:  brtrue.s   IL_002b
-  IL_0028:  ldc.i4.0
-  IL_0029:  br.s       IL_002c
-  IL_002b:  ldc.i4.1
-  IL_002c:  stloc.s    V_7
-  IL_002e:  br.s       IL_0035
-  IL_0030:  ldc.i4.0
-  IL_0031:  stloc.s    V_7
-  IL_0033:  br.s       IL_0035
-  IL_0035:  ldloc.s    V_7
-  IL_0037:  ret
+  IL_0002:  dup
+  IL_0003:  stloc.s    V_6
+  IL_0005:  isinst     ""bool""
+  IL_000a:  brfalse.s  IL_0018
+  IL_000c:  ldloc.s    V_6
+  IL_000e:  unbox.any  ""bool""
+  IL_0013:  stloc.s    V_4
+  IL_0015:  ldc.i4.1
+  IL_0016:  br.s       IL_0019
+  IL_0018:  ldc.i4.0
+  IL_0019:  stloc.s    V_5
+  IL_001b:  ldloc.s    V_5
+  IL_001d:  brfalse.s  IL_002c
+  IL_001f:  nop
+  IL_0020:  ldloc.s    V_4
+  IL_0022:  brtrue.s   IL_0027
+  IL_0024:  ldc.i4.0
+  IL_0025:  br.s       IL_0028
+  IL_0027:  ldc.i4.1
+  IL_0028:  stloc.s    V_7
+  IL_002a:  br.s       IL_0031
+  IL_002c:  ldc.i4.0
+  IL_002d:  stloc.s    V_7
+  IL_002f:  br.s       IL_0031
+  IL_0031:  ldloc.s    V_7
+  IL_0033:  ret
 }");
 
             var diff2 = compilation2.EmitDifference(
@@ -7695,7 +7705,7 @@ class C
 
             diff2.VerifyIL("C.F", @"
 {
-  // Code size       50 (0x32)
+  // Code size       46 (0x2e)
   .maxstack  2
   .locals init ([int] V_0,
                 [bool] V_1,
@@ -7711,30 +7721,28 @@ class C
                 int V_11)
   IL_0000:  nop
   IL_0001:  ldarg.0
-  IL_0002:  stloc.s    V_10
-  IL_0004:  ldloc.s    V_10
-  IL_0006:  isinst     ""int""
-  IL_000b:  ldnull
-  IL_000c:  cgt.un
-  IL_000e:  dup
-  IL_000f:  brtrue.s   IL_0014
-  IL_0011:  ldc.i4.0
-  IL_0012:  br.s       IL_001b
-  IL_0014:  ldloc.s    V_10
-  IL_0016:  unbox.any  ""int""
-  IL_001b:  stloc.s    V_8
-  IL_001d:  stloc.s    V_9
-  IL_001f:  ldloc.s    V_9
-  IL_0021:  brfalse.s  IL_002a
-  IL_0023:  nop
-  IL_0024:  ldloc.s    V_8
-  IL_0026:  stloc.s    V_11
-  IL_0028:  br.s       IL_002f
-  IL_002a:  ldc.i4.0
-  IL_002b:  stloc.s    V_11
-  IL_002d:  br.s       IL_002f
-  IL_002f:  ldloc.s    V_11
-  IL_0031:  ret
+  IL_0002:  dup
+  IL_0003:  stloc.s    V_10
+  IL_0005:  isinst     ""int""
+  IL_000a:  brfalse.s  IL_0018
+  IL_000c:  ldloc.s    V_10
+  IL_000e:  unbox.any  ""int""
+  IL_0013:  stloc.s    V_8
+  IL_0015:  ldc.i4.1
+  IL_0016:  br.s       IL_0019
+  IL_0018:  ldc.i4.0
+  IL_0019:  stloc.s    V_9
+  IL_001b:  ldloc.s    V_9
+  IL_001d:  brfalse.s  IL_0026
+  IL_001f:  nop
+  IL_0020:  ldloc.s    V_8
+  IL_0022:  stloc.s    V_11
+  IL_0024:  br.s       IL_002b
+  IL_0026:  ldc.i4.0
+  IL_0027:  stloc.s    V_11
+  IL_0029:  br.s       IL_002b
+  IL_002b:  ldloc.s    V_11
+  IL_002d:  ret
 }");
         }
 
@@ -7769,7 +7777,7 @@ class C
             var v0 = CompileAndVerify(compilation0);
             v0.VerifyIL("C.F", @"
 {
-  // Code size       40 (0x28)
+  // Code size       37 (0x25)
   .maxstack  2
   .locals init (int V_0, //i
                 bool V_1,
@@ -7777,30 +7785,28 @@ class C
                 int V_3)
   IL_0000:  nop
   IL_0001:  ldarg.0
-  IL_0002:  stloc.2
-  IL_0003:  ldloc.2
+  IL_0002:  dup
+  IL_0003:  stloc.2
   IL_0004:  isinst     ""int""
-  IL_0009:  ldnull
-  IL_000a:  cgt.un
-  IL_000c:  dup
-  IL_000d:  brtrue.s   IL_0012
-  IL_000f:  ldc.i4.0
-  IL_0010:  br.s       IL_0018
-  IL_0012:  ldloc.2
-  IL_0013:  unbox.any  ""int""
-  IL_0018:  stloc.0
-  IL_0019:  stloc.1
-  IL_001a:  ldloc.1
-  IL_001b:  brfalse.s  IL_0022
-  IL_001d:  nop
-  IL_001e:  ldloc.0
-  IL_001f:  stloc.3
-  IL_0020:  br.s       IL_0026
-  IL_0022:  ldc.i4.0
-  IL_0023:  stloc.3
-  IL_0024:  br.s       IL_0026
-  IL_0026:  ldloc.3
-  IL_0027:  ret
+  IL_0009:  brfalse.s  IL_0015
+  IL_000b:  ldloc.2
+  IL_000c:  unbox.any  ""int""
+  IL_0011:  stloc.0
+  IL_0012:  ldc.i4.1
+  IL_0013:  br.s       IL_0016
+  IL_0015:  ldc.i4.0
+  IL_0016:  stloc.1
+  IL_0017:  ldloc.1
+  IL_0018:  brfalse.s  IL_001f
+  IL_001a:  nop
+  IL_001b:  ldloc.0
+  IL_001c:  stloc.3
+  IL_001d:  br.s       IL_0023
+  IL_001f:  ldc.i4.0
+  IL_0020:  stloc.3
+  IL_0021:  br.s       IL_0023
+  IL_0023:  ldloc.3
+  IL_0024:  ret
 }");
 
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
@@ -7848,7 +7854,7 @@ class C
 
             diff2.VerifyIL("C.F", @"
 {
-  // Code size       50 (0x32)
+  // Code size       46 (0x2e)
   .maxstack  2
   .locals init ([int] V_0,
                 [bool] V_1,
@@ -7862,30 +7868,28 @@ class C
                 int V_9)
   IL_0000:  nop
   IL_0001:  ldarg.0
-  IL_0002:  stloc.s    V_8
-  IL_0004:  ldloc.s    V_8
-  IL_0006:  isinst     ""int""
-  IL_000b:  ldnull
-  IL_000c:  cgt.un
-  IL_000e:  dup
-  IL_000f:  brtrue.s   IL_0014
-  IL_0011:  ldc.i4.0
-  IL_0012:  br.s       IL_001b
-  IL_0014:  ldloc.s    V_8
-  IL_0016:  unbox.any  ""int""
-  IL_001b:  stloc.s    V_6
-  IL_001d:  stloc.s    V_7
-  IL_001f:  ldloc.s    V_7
-  IL_0021:  brfalse.s  IL_002a
-  IL_0023:  nop
-  IL_0024:  ldloc.s    V_6
-  IL_0026:  stloc.s    V_9
-  IL_0028:  br.s       IL_002f
-  IL_002a:  ldc.i4.0
-  IL_002b:  stloc.s    V_9
-  IL_002d:  br.s       IL_002f
-  IL_002f:  ldloc.s    V_9
-  IL_0031:  ret
+  IL_0002:  dup
+  IL_0003:  stloc.s    V_8
+  IL_0005:  isinst     ""int""
+  IL_000a:  brfalse.s  IL_0018
+  IL_000c:  ldloc.s    V_8
+  IL_000e:  unbox.any  ""int""
+  IL_0013:  stloc.s    V_6
+  IL_0015:  ldc.i4.1
+  IL_0016:  br.s       IL_0019
+  IL_0018:  ldc.i4.0
+  IL_0019:  stloc.s    V_7
+  IL_001b:  ldloc.s    V_7
+  IL_001d:  brfalse.s  IL_0026
+  IL_001f:  nop
+  IL_0020:  ldloc.s    V_6
+  IL_0022:  stloc.s    V_9
+  IL_0024:  br.s       IL_002b
+  IL_0026:  ldc.i4.0
+  IL_0027:  stloc.s    V_9
+  IL_0029:  br.s       IL_002b
+  IL_002b:  ldloc.s    V_9
+  IL_002d:  ret
 }");
         }
 

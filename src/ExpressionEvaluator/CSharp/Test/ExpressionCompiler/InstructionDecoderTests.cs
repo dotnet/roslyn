@@ -453,7 +453,7 @@ class C
             // async/iterator "MoveNext" methods to the original source method.
             MethodSymbol method = compilation.GetSourceMethod(
                 ((PEModuleSymbol)frame.ContainingModule).Module.GetModuleVersionIdOrThrow(),
-                MetadataTokens.GetToken(frame.Handle));
+                frame.Handle);
             if (serializedTypeArgumentNames != null)
             {
                 Assert.NotEmpty(serializedTypeArgumentNames);

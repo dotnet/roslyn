@@ -2,6 +2,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -48,16 +49,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
                 {
                     return WaitIndicatorResult.Canceled;
                 }
-                catch (AggregateException e)
+                catch (AggregateException aggregate) when (aggregate.InnerExceptions.All(e => e is OperationCanceledException))
                 {
-                    if (e.InnerExceptions[0] is OperationCanceledException operationCanceledException)
-                    {
-                        return WaitIndicatorResult.Canceled;
-                    }
-                    else
-                    {
-                        throw;
-                    }
+                    return WaitIndicatorResult.Canceled;
                 }
             }
         }

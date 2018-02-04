@@ -13,6 +13,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     internal class GraphQueryManager
     {
         private readonly Workspace _workspace;
@@ -27,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
         // We update all of our tracked queries when this delay elapses.
         private ResettableDelay _delay;
 
-        internal GraphQueryManager(Workspace workspace, AggregateAsynchronousOperationListener asyncListener)
+        internal GraphQueryManager(Workspace workspace, IAsynchronousOperationListener asyncListener)
         {
             _workspace = workspace;
             _asyncListener = asyncListener;

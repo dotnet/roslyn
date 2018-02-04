@@ -65,7 +65,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Case SyntaxKind.ElseIfStatement
                     ' ElseIf without a preceding If.
-                    Debug.Assert(node.ContainsDiagnostics)
+                    Debug.Assert(IsSemanticModelBinder OrElse node.ContainsDiagnostics)
                     Dim condition = BindBooleanExpression(DirectCast(node, ElseIfStatementSyntax).Condition, diagnostics)
                     Return New BoundBadStatement(node, ImmutableArray.Create(Of BoundNode)(condition), hasErrors:=True)
 
@@ -196,7 +196,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     '     where only the ones that can appear in a method body have been selected).
                     '
                     '   We simply need to ignore this, the error is already created by the parser.
-                    Debug.Assert(node.ContainsDiagnostics OrElse
+                    Debug.Assert(IsSemanticModelBinder OrElse node.ContainsDiagnostics OrElse
                                  (node.IsMissing AndAlso
                                   (node.Parent.Kind = SyntaxKind.MultiLineSubLambdaExpression OrElse
                                    node.Parent.Kind = SyntaxKind.MultiLineFunctionLambdaExpression OrElse
@@ -264,7 +264,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' not handling here and then throwing ExceptionUtilities.UnexpectedValue in the else case, but
             ' there are just too many statement SyntaxKinds in VB (e.g. declarations, statements corresponding
             ' to blocks handled above, etc).
-            Debug.Assert(node.ContainsDiagnostics)
+            Debug.Assert(IsSemanticModelBinder OrElse node.ContainsDiagnostics)
             Return New BoundBadStatement(node, ImmutableArray(Of BoundNode).Empty, hasErrors:=True)
         End Function
 
@@ -383,7 +383,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     locals = localBuilder.ToImmutableAndFree()
                 End If
 
-                statements.Add(New BoundReturnStatement(methodBlock.EndBlockStatement, New BoundLocal(methodBlock.EndBlockStatement, localForFunctionValue, isLValue:=False, type:=localForFunctionValue.Type), Nothing, Nothing))
+                statements.Add(New BoundReturnStatement(methodBlock.EndBlockStatement,
+                                                        New BoundLocal(methodBlock.EndBlockStatement, localForFunctionValue, isLValue:=False, type:=localForFunctionValue.Type).MakeCompilerGenerated(),
+                                                        Nothing, Nothing))
             Else
                 statements.Add(New BoundReturnStatement(methodBlock.EndBlockStatement, Nothing, Nothing, Nothing))
             End If
@@ -740,12 +742,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function BindEraseStatement(node As EraseStatementSyntax, diagnostics As DiagnosticBag) As BoundStatement
             Dim clauses = ArrayBuilder(Of BoundAssignmentOperator).GetInstance()
 
-            Dim nothingLiteral = New BoundLiteral(node, ConstantValue.Nothing, Nothing).MakeCompilerGenerated()
-
             For Each operand As ExpressionSyntax In node.Expressions
                 Dim target As BoundExpression = BindAssignmentTarget(operand, diagnostics)
                 Debug.Assert(target IsNot Nothing)
 
+                Dim nothingLiteral = New BoundLiteral(operand, ConstantValue.Nothing, Nothing).MakeCompilerGenerated()
                 Dim clause As BoundAssignmentOperator
 
                 If target.HasErrors Then
@@ -1013,11 +1014,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' and put the initializer on the BoundAsNewDeclaration. The local declarations are marked as initialized by the as-new.
                     Dim var0 As BoundLocalDeclaration = locals(0)
                     Dim asNewInitializer = var0.InitializerOpt
-                    locals(0) = var0.Update(var0.LocalSymbol, Nothing, True)
+                    locals(0) = var0.Update(var0.LocalSymbol, Nothing, var0.IdentifierInitializerOpt, True)
 #If DEBUG Then
                     For i = 0 To names.Count - 1
                         Debug.Assert(locals(i).InitializedByAsNew)
-                        Debug.Assert(locals(i).InitializerOpt Is Nothing OrElse locals(i).InitializerOpt.Kind = BoundKind.BadExpression)
+                        Debug.Assert(locals(i).InitializerOpt Is Nothing OrElse locals(i).InitializerOpt.Kind = BoundKind.BadExpression OrElse locals(i).InitializerOpt.Kind = BoundKind.ArrayCreation)
                     Next
 #End If
 
@@ -1064,7 +1065,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim symbol As LocalSymbol = GetLocalForDeclaration(name.Identifier)
 
-            Dim valueExpression As BoundExpression = Nothing
+            Dim declarationInitializer As BoundExpression = Nothing
             Dim declType As TypeSymbol = Nothing
             Dim boundArrayBounds As ImmutableArray(Of BoundExpression) = Nothing
 
@@ -1087,7 +1088,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                          name,
                                                          asClauseOpt,
                                                          equalsValueOpt,
-                                                         valueExpression,
+                                                         declarationInitializer,
                                                          declType,
                                                          diagnostics)
 
@@ -1120,25 +1121,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End If
 
-            If valueExpression Is Nothing Then
+            If declarationInitializer Is Nothing Then
 
                 ' We computed the type without needing to do type inference so bind the expression now.
                 ' Because this symbol has a type, there is no danger of infinite recursion so we don't need
                 ' a special binder.
 
                 If symbol.IsConst Then
-                    valueExpression = symbol.GetConstantExpression(Me)
+                    declarationInitializer = symbol.GetConstantExpression(Me)
 
                 ElseIf equalsValueOpt IsNot Nothing Then
                     Dim valueSyntax = equalsValueOpt.Value
-                    valueExpression = BindValue(valueSyntax, diagnostics)
+                    declarationInitializer = BindValue(valueSyntax, diagnostics)
                 End If
 
             End If
 
-            If valueExpression IsNot Nothing AndAlso Not symbol.IsConst Then
+            If declarationInitializer IsNot Nothing AndAlso Not symbol.IsConst Then
                 ' Only apply the conversion for non constants.  Conversions for constants are handled in GetConstantExpression.
-                valueExpression = ApplyImplicitConversion(valueExpression.Syntax, type, valueExpression, diagnostics)
+                declarationInitializer = ApplyImplicitConversion(declarationInitializer.Syntax, type, declarationInitializer, diagnostics)
             End If
 
             If isInitializedByAsNew Then
@@ -1151,27 +1152,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' If there is an AsNew clause then create the object as well.
                     Select Case asNew.NewExpression.Kind
                         Case SyntaxKind.ObjectCreationExpression
-                            Debug.Assert(valueExpression Is Nothing)
+                            Debug.Assert(declarationInitializer Is Nothing)
 
                             If Not skipAsNewInitializer Then
-                                Dim objectCreationExpressionSyntax = DirectCast(asNew.NewExpression, objectCreationExpressionSyntax)
+                                DisallowNewOnTupleType(asNew.Type, diagnostics)
 
+                                Dim objectCreationExpressionSyntax = DirectCast(asNew.NewExpression, ObjectCreationExpressionSyntax)
                                 Dim asNewVariablePlaceholder As New BoundWithLValueExpressionPlaceholder(asClauseOpt, symbol.Type)
                                 asNewVariablePlaceholder.SetWasCompilerGenerated()
 
-                                valueExpression = BindObjectCreationExpression(asNew.Type,
+                                declarationInitializer = BindObjectCreationExpression(asNew.Type,
                                                                                objectCreationExpressionSyntax.ArgumentList,
                                                                                declType,
                                                                                objectCreationExpressionSyntax,
                                                                                diagnostics,
                                                                                asNewVariablePlaceholder)
 
-                                Debug.Assert(valueExpression.Type.IsSameTypeIgnoringAll(declType))
+                                Debug.Assert(declarationInitializer.Type.IsSameTypeIgnoringAll(declType))
                             End If
 
                         Case SyntaxKind.AnonymousObjectCreationExpression
                             ' Is supposed to be already bound by ComputeVariableType
-                            Debug.Assert(valueExpression IsNot Nothing)
+                            Debug.Assert(declarationInitializer IsNot Nothing)
 
                         Case Else
                             Throw ExceptionUtilities.UnexpectedValue(asNew.NewExpression.Kind)
@@ -1180,27 +1182,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If type.IsArrayType Then
                         ' Arrays cannot be declared with AsNew syntax
                         ReportDiagnostic(diagnostics, asNew.NewExpression.NewKeyword, ERRID.ERR_AsNewArray)
-                        valueExpression = BadExpression(asNew, valueExpression, type)
-                    ElseIf valueExpression IsNot Nothing AndAlso Not valueExpression.HasErrors AndAlso
-                           Not type.IsSameTypeIgnoringAll(valueExpression.Type) Then
+                        declarationInitializer = BadExpression(asNew, declarationInitializer, type).MakeCompilerGenerated()
+                    ElseIf declarationInitializer IsNot Nothing AndAlso Not declarationInitializer.HasErrors AndAlso
+                           Not type.IsSameTypeIgnoringAll(declarationInitializer.Type) Then
                         ' An error must have been reported elsewhere.    
-                        valueExpression = BadExpression(asNew, valueExpression, valueExpression.Type)
+                        declarationInitializer = BadExpression(asNew, declarationInitializer, declarationInitializer.Type).MakeCompilerGenerated()
                     End If
                 End If
 
             End If
 
+            Dim identifierInitializer As BoundArrayCreation = Nothing
             If name.ArrayBounds IsNot Nothing Then
                 ' It is an error to have both array bounds and an initializer expression
-                If valueExpression IsNot Nothing Then
+                identifierInitializer = New BoundArrayCreation(name, boundArrayBounds, Nothing, type).MakeCompilerGenerated()
+                If declarationInitializer IsNot Nothing Then
                     If Not isInitializedByAsNew Then
                         ReportDiagnostic(diagnostics, name, ERRID.ERR_InitWithExplicitArraySizes)
                     Else
                         ' Must have reported ERR_AsNewArray already.
-                        Debug.Assert(valueExpression.Kind = BoundKind.BadExpression)
+                        Debug.Assert(declarationInitializer.Kind = BoundKind.BadExpression)
                     End If
-                Else
-                    valueExpression = New BoundArrayCreation(name, boundArrayBounds, Nothing, type)
                 End If
             End If
 
@@ -1221,7 +1223,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End If
 
-            Return New BoundLocalDeclaration(name, symbol, valueExpression, isInitializedByAsNew)
+            Return New BoundLocalDeclaration(name, symbol, declarationInitializer, identifierInitializer, isInitializedByAsNew)
         End Function
 
         ''' <summary>
@@ -1994,15 +1996,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim placeholder As BoundCompoundAssignmentTargetPlaceholder = Nothing
 
-            If Not isError Then
-                placeholder = New BoundCompoundAssignmentTargetPlaceholder(left.Syntax, targetType).MakeCompilerGenerated()
-                right = BindBinaryOperator(node, placeholder, right, operatorTokenKind, operatorKind, isOperandOfConditionalBranch:=False, diagnostics:=diagnostics)
-                right.SetWasCompilerGenerated()
-                right = ApplyImplicitConversion(node, targetType, right, diagnostics)
-            Else
-                ' Try to reclassify 'right' if we still can.
-                right = MakeRValueAndIgnoreDiagnostics(right)
+            If isError Then
+                ' Suppress all additional diagnostics. This ensures that we still generate the appropriate tree shape
+                ' even in error scenarios
+                diagnostics = New DiagnosticBag()
             End If
+
+            placeholder = New BoundCompoundAssignmentTargetPlaceholder(left.Syntax, targetType).MakeCompilerGenerated()
+            right = BindBinaryOperator(node, placeholder, right, operatorTokenKind, operatorKind, isOperandOfConditionalBranch:=False, diagnostics:=diagnostics)
+            right.SetWasCompilerGenerated()
+            right = ApplyImplicitConversion(node, targetType, right, diagnostics)
 
             left = left.SetGetSetAccessKindIfAppropriate()
 
@@ -2135,7 +2138,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 expr = BindCompoundAssignment(node, op1, op2, binaryTokenKind, operatorKind, diagnostics)
             End If
 
-            Return New BoundExpressionStatement(node, expr)
+            Return New BoundExpressionStatement(node, expr.MakeCompilerGenerated())
         End Function
 
         Private Function BindMidAssignmentStatement(node As AssignmentStatementSyntax, diagnostics As DiagnosticBag) As BoundExpressionStatement
@@ -2206,7 +2209,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Return New BoundExpressionStatement(node, New BoundAssignmentOperator(node, target, placeholder, right, False,
                                                                                   Compilation.GetSpecialType(SpecialType.System_Void),
-                                                                                  hasErrors:=isError))
+                                                                                  hasErrors:=isError).MakeCompilerGenerated())
         End Function
 
         Private Function BindAddRemoveHandlerStatement(node As AddRemoveHandlerStatementSyntax, diagnostics As DiagnosticBag) As BoundAddRemoveHandlerStatement
@@ -2539,7 +2542,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                    ImmutableArray.Create(fireMethod),
                                                    LookupResultKind.Good,
                                                    receiver,
-                                                   QualificationKind.QualifiedViaValue)
+                                                   QualificationKind.QualifiedViaValue).MakeCompilerGenerated()
 
             'NOTE: Dev10 allows and ignores type characters on the event here.
             Dim invocation = BindInvocationExpression(node,
@@ -2709,7 +2712,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim alternative As BoundStatement = Nothing
 
             condition = BindBooleanExpression(node.Condition, diagnostics)
-            consequence = BindBlock(node, node.Statements, diagnostics)
+            consequence = BindBlock(node, node.Statements, diagnostics).MakeCompilerGenerated()
             If node.ElseClause IsNot Nothing Then
                 alternative = BindBlock(node.ElseClause, node.ElseClause.Statements, diagnostics)
             End If
@@ -2727,12 +2730,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim conditions As ArrayBuilder(Of BoundExpression) = ArrayBuilder(Of BoundExpression).GetInstance()
 
             conditions.Add(BindBooleanExpression(node.IfStatement.Condition, diagnostics))
-            blocks.Add(BindBlock(node, node.Statements, diagnostics))
+            blocks.Add(BindBlock(node, node.Statements, diagnostics).MakeCompilerGenerated())
 
             For i = 0 To node.ElseIfBlocks.Count - 1
                 Dim elseIfBlock = node.ElseIfBlocks(i)
                 conditions.Add(BindBooleanExpression(elseIfBlock.ElseIfStatement.Condition, diagnostics))
-                blocks.Add(BindBlock(elseIfBlock, elseIfBlock.Statements, diagnostics))
+                blocks.Add(BindBlock(elseIfBlock, elseIfBlock.Statements, diagnostics).MakeCompilerGenerated())
             Next
 
             Dim currentAlternative As BoundStatement = Nothing
@@ -2777,7 +2780,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim loopBodyBinder = GetBinder(DirectCast(node, VisualBasicSyntaxNode))
 
             ' Bind the body of the loop.
-            Dim loopBody As BoundBlock = loopBodyBinder.BindBlock(node, node.Statements, diagnostics)
+            Dim loopBody As BoundBlock = loopBodyBinder.BindBlock(node, node.Statements, diagnostics).MakeCompilerGenerated()
 
             ' Bind the bottom condition, if any.
             Dim bottomConditionSyntax = node.LoopStatement.WhileOrUntilClause
@@ -2803,7 +2806,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim loopBodyBinder = GetBinder(node)
 
             ' Bind the body of the loop.
-            Dim loopBody As BoundBlock = loopBodyBinder.BindBlock(node, node.Statements, diagnostics)
+            Dim loopBody As BoundBlock = loopBodyBinder.BindBlock(node, node.Statements, diagnostics).MakeCompilerGenerated()
 
             ' Create the bound node.
             Return New BoundWhileStatement(node, condition, loopBody,
@@ -2989,7 +2992,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             diagnostics As DiagnosticBag)
 
             ' Bind the body of the loop.
-            loopBody = BindBlock(node, node.Statements, diagnostics)
+            loopBody = BindBlock(node, node.Statements, diagnostics).MakeCompilerGenerated()
 
             ' bind the variables of the next statement.
 
@@ -3117,9 +3120,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If targetTypeIsValid Then
                 initialValue = ApplyImplicitConversion(initialValue.Syntax, targetType, initialValue, diagnostics)
                 limit = ApplyImplicitConversion(limit.Syntax, targetType, limit, diagnostics)
+                Dim stepValueBeforeConversion = stepValue
                 stepValue = ApplyConversion(stepValue.Syntax, targetType, stepValue,
                                             isExplicit:=forStatement.StepClause Is Nothing,
                                             diagnostics:=diagnostics)
+
+                If stepValue IsNot stepValueBeforeConversion AndAlso stepValue.Kind = BoundKind.Conversion AndAlso
+                   forStatement.StepClause Is Nothing Then
+                    stepValue.MakeCompilerGenerated()
+                End If
             Else
                 initialValue = MakeRValueAndIgnoreDiagnostics(initialValue)
                 limit = MakeRValueAndIgnoreDiagnostics(limit)
@@ -4338,7 +4347,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function BindWithBlock(node As WithBlockSyntax, diagnostics As DiagnosticBag) As BoundStatement
             Dim binder As Binder = Me.GetBinder(DirectCast(node, VisualBasicSyntaxNode))
-            Return Binder.CreateBoundWithBlock(node, binder, diagnostics)
+            Return binder.CreateBoundWithBlock(node, binder, diagnostics)
         End Function
 
         Protected Overridable Function CreateBoundWithBlock(node As WithBlockSyntax, boundBlockBinder As Binder, diagnostics As DiagnosticBag) As BoundStatement
@@ -4461,7 +4470,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             ' Bind the body of the using statement.
-            Dim usingBody As BoundBlock = BindBlock(node, node.Statements, diagnostics)
+            Dim usingBody As BoundBlock = BindBlock(node, node.Statements, diagnostics).MakeCompilerGenerated()
             Dim usingInfo As New usingInfo(node, placeholderInfo)
 
             Return New BoundUsingStatement(node, resourceList, resourceExpression, usingBody, usingInfo)
@@ -4648,14 +4657,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End If
 
-            Dim boundBody = BindBlock(node, node.Statements, diagnostics)
+            Dim boundBody = BindBlock(node, node.Statements, diagnostics).MakeCompilerGenerated()
             Return New BoundSyncLockStatement(node, lockExpression, boundBody)
         End Function
 
         Public Function BindTryBlock(node As TryBlockSyntax, diagnostics As DiagnosticBag) As BoundTryStatement
             Debug.Assert(node IsNot Nothing)
 
-            Dim tryBlock As BoundBlock = BindBlock(node, node.Statements, diagnostics)
+            Dim tryBlock As BoundBlock = BindBlock(node, node.Statements, diagnostics).MakeCompilerGenerated()
             Dim catchBlocks As ImmutableArray(Of BoundCatchBlock) = BindCatchBlocks(node.CatchBlocks, diagnostics)
 
             Dim finallyBlockOpt As BoundBlock
@@ -4802,7 +4811,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Next
             End If
 
-            Dim block = Me.BindBlock(node, node.Statements, diagnostics)
+            Dim block = Me.BindBlock(node, node.Statements, diagnostics).MakeCompilerGenerated()
             Return New BoundCatchBlock(node, catchLocal, exceptionSource,
                                        errorLineNumberOpt:=Nothing,
                                        exceptionFilterOpt:=exceptionFilter,

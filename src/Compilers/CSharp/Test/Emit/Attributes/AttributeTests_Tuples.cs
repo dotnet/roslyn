@@ -1,15 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
+using System.Linq;
+using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Xunit;
-using System.Linq;
-using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
-using System.Reflection.Metadata;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -112,7 +112,11 @@ public class Derived<T> : Outer<(int e1, (int e2, int e3) e4)>.Inner<
             var comp = CreateStandardCompilation(s_tuplesTestSource,
                 options: TestOptions.UnsafeReleaseDll,
                 references: s_attributeRefs);
-            TupleAttributeValidator.ValidateTupleAttributes(comp);
+
+            CompileAndVerify(comp, verify: Verification.Passes, symbolValidator: module =>
+            {
+                TupleAttributeValidator.ValidateTupleAttributes(module);
+            });
         }
 
         [Fact]
@@ -134,7 +138,11 @@ namespace System.Runtime.CompilerServices
                 references: new[] { SystemCoreRef },
                 options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics();
-            TupleAttributeValidator.ValidateTupleAttributes(comp);
+
+            CompileAndVerify(comp, symbolValidator: module =>
+            {
+                TupleAttributeValidator.ValidateTupleAttributes(module);
+            });
         }
 
         [Fact]
@@ -221,7 +229,8 @@ class C
             ModuleSymbol peModule = null;
             CompileAndVerify(s_tuplesTestSource,
                 options: TestOptions.UnsafeReleaseDll,
-                additionalRefs: s_attributeRefs,
+                additionalRefs: s_attributeRefs, 
+                verify: Verification.Passes,
                 sourceSymbolValidator: m => sourceModule = m,
                 symbolValidator: m => peModule = m);
 
@@ -236,7 +245,7 @@ class C
                 var srcType = srcTypes[i];
                 var peType = peTypes[i];
 
-                Assert.Equal(ToTestString(srcType.BaseType), ToTestString(peType.BaseType));
+                Assert.Equal(ToTestString(srcType.BaseType()), ToTestString(peType.BaseType()));
 
                 var srcMembers = srcType.GetMembers()
                     .Where(m => !m.Name.Contains("k__BackingField"))
@@ -264,7 +273,7 @@ class C
                     break;
                 case SymbolKind.NamedType:
                     var namedType = (NamedTypeSymbol)symbol;
-                    typeSymbols.Add(namedType.BaseType ?? namedType);
+                    typeSymbols.Add(namedType.BaseType() ?? namedType);
                     break;
                 case SymbolKind.Field:
                     typeSymbols.Add(((FieldSymbol)symbol).Type);
@@ -284,19 +293,16 @@ class C
 
         private struct TupleAttributeValidator
         {
-            private readonly MethodSymbol _tupleAttrTransformNames;
-            private readonly CSharpCompilation _comp;
-            private readonly NamedTypeSymbol _base0Class, _base1Class,
-                _base2Class, _outerClass, _derivedClass;
+            private readonly NamedTypeSymbol
+                _base0Class,
+                _base1Class,
+                _base2Class,
+                _outerClass,
+                _derivedClass;
 
-            private TupleAttributeValidator(CSharpCompilation compilation)
+            private TupleAttributeValidator(ModuleSymbol module)
             {
-                _tupleAttrTransformNames = (MethodSymbol)compilation.GetWellKnownTypeMember(
-                    WellKnownMember.System_Runtime_CompilerServices_TupleElementNamesAttribute__ctorTransformNames);
-                Assert.NotNull(_tupleAttrTransformNames);
-
-                _comp = compilation;
-                var globalNs = compilation.SourceModule.GlobalNamespace;
+                var globalNs = module.GlobalNamespace;
 
                 _base0Class = globalNs.GetTypeMember("Base0");
                 _base1Class = globalNs.GetTypeMember("Base1");
@@ -305,9 +311,9 @@ class C
                 _derivedClass = globalNs.GetTypeMember("Derived");
             }
 
-            internal static void ValidateTupleAttributes(CSharpCompilation comp)
+            internal static void ValidateTupleAttributes(ModuleSymbol module)
             {
-                var validator = new TupleAttributeValidator(comp);
+                var validator = new TupleAttributeValidator(module);
 
                 validator.ValidateAttributesOnNamedTypes();
                 validator.ValidateAttributesOnFields();
@@ -329,13 +335,13 @@ class C
 
                 var invokeMethod = delegate1.DelegateInvokeMethod;
                 Assert.NotNull(invokeMethod);
-                ValidateTupleNameAttribute(invokeMethod, expectedTupleNamesAttribute: false);
+                ValidateTupleNameAttribute(invokeMethod.GetAttributes(), expectedTupleNamesAttribute: false);
 
                 Assert.Equal(2, invokeMethod.ParameterCount);
                 var sender = invokeMethod.Parameters[0];
                 Assert.Equal("sender", sender.Name);
                 Assert.Equal(SpecialType.System_Object, sender.Type.SpecialType);
-                ValidateTupleNameAttribute(sender, expectedTupleNamesAttribute: false);
+                ValidateTupleNameAttribute(sender.GetAttributes(), expectedTupleNamesAttribute: false);
 
                 var args = invokeMethod.Parameters[1];
                 Assert.Equal("args", args.Name);
@@ -344,11 +350,12 @@ class C
                 {
                     null, null, null, "e4", "e5", "e1", "e2", "e3", null, null
                 };
-                ValidateTupleNameAttribute(args,
+                ValidateTupleNameAttribute(args.GetAttributes(),
                     expectedTupleNamesAttribute: true,
                     expectedElementNames: expectedElementNames);
+
                 AttributeTests_Dynamic.DynamicAttributeValidator.ValidateDynamicAttribute(
-                    args, _comp,
+                    args.GetAttributes(),
                     expectedDynamicAttribute: true,
                     expectedTransformFlags: new[]
                     {
@@ -365,14 +372,14 @@ class C
                 var event1 = _derivedClass.GetMember<EventSymbol>("Event1");
                 Assert.NotNull(event1);
 
-                ValidateTupleNameAttribute(event1,
+                ValidateTupleNameAttribute(event1.GetAttributes(),
                     expectedTupleNamesAttribute: true,
                     expectedElementNames: new[]
                     {
                         "e1", "e4", null, "e2", "e3"
                     });
                 AttributeTests_Dynamic.DynamicAttributeValidator.ValidateDynamicAttribute(
-                    event1, _comp,
+                    event1.GetAttributes(),
                     expectedDynamicAttribute: true,
                     expectedTransformFlags: new[]
                     {
@@ -384,18 +391,18 @@ class C
             private void ValidateAttributesOnNamedTypes()
             {
                 // public class Base0 { }
-                ValidateTupleNameAttribute(_base0Class, expectedTupleNamesAttribute: false);
+                ValidateTupleNameAttribute(_base0Class.GetAttributes(), expectedTupleNamesAttribute: false);
 
                 // public class Base1<T> { }
-                ValidateTupleNameAttribute(_base1Class, expectedTupleNamesAttribute: false);
+                ValidateTupleNameAttribute(_base1Class.GetAttributes(), expectedTupleNamesAttribute: false);
 
                 // public class Base2<T, U> { }
-                ValidateTupleNameAttribute(_base2Class, expectedTupleNamesAttribute: false);
+                ValidateTupleNameAttribute(_base2Class.GetAttributes(), expectedTupleNamesAttribute: false);
 
                 // public class Outer<T> : Base1<(int key, int val)>
-                Assert.True(_outerClass.BaseType.ContainsTuple());
+                Assert.True(_outerClass.BaseType().ContainsTuple());
                 var expectedElementNames = new[] { "key", "val" };
-                ValidateTupleNameAttribute(_outerClass,
+                ValidateTupleNameAttribute(_outerClass.GetAttributes(),
                     expectedTupleNamesAttribute: true,
                     expectedElementNames: expectedElementNames);
 
@@ -408,7 +415,7 @@ class C
                     "e10", "e13", "e14", "e11", "e12", "e17", "e22", "e15",
                     "e16", "e18", "e21", "e19", "e20"
                 };
-                ValidateTupleNameAttribute(_derivedClass,
+                ValidateTupleNameAttribute(_derivedClass.GetAttributes(),
                     expectedTupleNamesAttribute: true,
                     expectedElementNames: expectedElementNames);
             }
@@ -418,24 +425,24 @@ class C
                 // public static (int e1, int e2) Field1;
                 var field1 = _derivedClass.GetMember<FieldSymbol>("Field1");
                 var expectedElementNames = new[] { "e1", "e2" };
-                ValidateTupleNameAttribute(field1, expectedTupleNamesAttribute: true, expectedElementNames: expectedElementNames);
+                ValidateTupleNameAttribute(field1.GetAttributes(), expectedTupleNamesAttribute: true, expectedElementNames: expectedElementNames);
 
                 // public static (int e1, int e2) Field2;
                 var field2 = _derivedClass.GetMember<FieldSymbol>("Field2");
                 expectedElementNames = new[] { "e1", "e2" };
-                ValidateTupleNameAttribute(field2, expectedTupleNamesAttribute: true, expectedElementNames: expectedElementNames);
+                ValidateTupleNameAttribute(field2.GetAttributes(), expectedTupleNamesAttribute: true, expectedElementNames: expectedElementNames);
 
                 // public static Base1<(int e1, (int e2, int e3) e4)> Field3;
                 var field3 = _derivedClass.GetMember<FieldSymbol>("Field3");
                 expectedElementNames = new[] { "e1", "e4", "e2", "e3" };
-                ValidateTupleNameAttribute(field3, expectedTupleNamesAttribute: true, expectedElementNames: expectedElementNames);
+                ValidateTupleNameAttribute(field3.GetAttributes(), expectedTupleNamesAttribute: true, expectedElementNames: expectedElementNames);
 
                 // public static ValueTuple<Base1<(int e1, (int, (dynamic, dynamic)) e2)>, int> Field4;
                 var field4 = _derivedClass.GetMember<FieldSymbol>("Field4");
                 expectedElementNames = new[] { null, null, "e1", "e2", null, null, null, null };
-                ValidateTupleNameAttribute(field4, expectedTupleNamesAttribute: true, expectedElementNames: expectedElementNames);
+                ValidateTupleNameAttribute(field4.GetAttributes(), expectedTupleNamesAttribute: true, expectedElementNames: expectedElementNames);
                 AttributeTests_Dynamic.DynamicAttributeValidator.ValidateDynamicAttribute(
-                    field4, _comp,
+                    field4.GetAttributes(),
                     expectedDynamicAttribute: true,
                     expectedTransformFlags: new[] {
                         false, false, false, false,
@@ -448,11 +455,11 @@ class C
                 //             ValueTuple<dynamic, dynamic>> Field5;
                 var field5 = _derivedClass.GetMember<FieldSymbol>("Field5");
                 expectedElementNames = new[] { "e1", "e2", "e3", "e4", null, null };
-                ValidateTupleNameAttribute(field5,
+                ValidateTupleNameAttribute(field5.GetAttributes(),
                     expectedTupleNamesAttribute: true,
                     expectedElementNames: expectedElementNames);
                 AttributeTests_Dynamic.DynamicAttributeValidator.ValidateDynamicAttribute(
-                    field5, _comp,
+                    field5.GetAttributes(),
                     expectedDynamicAttribute: true,
                     expectedTransformFlags: new[]
                     {
@@ -463,11 +470,11 @@ class C
 
                 // public static Base1<(int, ValueTuple<int, ValueTuple>)> Field6;
                 var field6 = _derivedClass.GetMember<FieldSymbol>("Field6");
-                ValidateTupleNameAttribute(field6, expectedTupleNamesAttribute: false);
+                ValidateTupleNameAttribute(field6.GetAttributes(), expectedTupleNamesAttribute: false);
                 var field6Type = Assert.IsType<ConstructedNamedTypeSymbol>(field6.Type);
                 Assert.Equal("Base1", field6Type.Name);
                 Assert.Equal(1, field6Type.TypeParameters.Length);
-                var firstTuple = field6Type.TypeArguments.Single();
+                var firstTuple = field6Type.TypeArguments().Single();
                 Assert.True(firstTuple.IsTupleType);
                 Assert.True(firstTuple.TupleElementNames.IsDefault);
                 Assert.Equal(2, firstTuple.TupleElementTypes.Length);
@@ -478,7 +485,7 @@ class C
 
                 // public static ValueTuple Field7;
                 var field7 = _derivedClass.GetMember<FieldSymbol>("Field7");
-                ValidateTupleNameAttribute(field7, expectedTupleNamesAttribute: false);
+                ValidateTupleNameAttribute(field7.GetAttributes(), expectedTupleNamesAttribute: false);
                 Assert.False(field7.Type.IsTupleType);
 
                 // public static (int e1, int e2, int e3, int e4, int e5, int e6, int e7, int e8, int e9) Field8;
@@ -488,7 +495,7 @@ class C
                     "e1", "e2", "e3", "e4", "e5",
                     "e6", "e7", "e8", "e9", null, null
                 };
-                ValidateTupleNameAttribute(field8, expectedTupleNamesAttribute: true,
+                ValidateTupleNameAttribute(field8.GetAttributes(), expectedTupleNamesAttribute: true,
                     expectedElementNames: expectedElementNames);
 
                 // public static Base<(int e1, int e2, int e3, int e4, int e5, int e6, int e7, int e8, int e9)> Field9;
@@ -498,7 +505,7 @@ class C
                     "e1", "e2", "e3", "e4", "e5",
                     "e6", "e7", "e8", "e9", null, null
                 };
-                ValidateTupleNameAttribute(field9, expectedTupleNamesAttribute: true,
+                ValidateTupleNameAttribute(field9.GetAttributes(), expectedTupleNamesAttribute: true,
                     expectedElementNames: expectedElementNames);
             }
 
@@ -507,39 +514,36 @@ class C
                 // public static (int e1, int e2) Method1() => (0, 0);
                 var method1 = _derivedClass.GetMember<MethodSymbol>("Method1");
                 var expectedElementNames = new[] { "e1", "e2" };
-                ValidateTupleNameAttribute(method1,
+                ValidateTupleNameAttribute(method1.GetReturnTypeAttributes(),
                     expectedTupleNamesAttribute: true,
-                    expectedElementNames: expectedElementNames,
-                    forReturnType: true);
+                    expectedElementNames: expectedElementNames);
 
                 // public static void Method2((int e1, int e2) x) { }
                 var method2 = _derivedClass.GetMember<MethodSymbol>("Method2");
                 expectedElementNames = new[] { "e1", "e2" };
-                ValidateTupleNameAttribute(method2.Parameters.Single(),
+                ValidateTupleNameAttribute(method2.Parameters.Single().GetAttributes(),
                     expectedTupleNamesAttribute: true,
                     expectedElementNames: expectedElementNames);
 
                 // public static (int e1, int e2) Method3((int e3, int e4) x) => (0, 0);
                 var method3 = _derivedClass.GetMember<MethodSymbol>("Method3");
                 expectedElementNames = new[] { "e1", "e2" };
-                ValidateTupleNameAttribute(method3,
+                ValidateTupleNameAttribute(method3.GetReturnTypeAttributes(),
                     expectedTupleNamesAttribute: true,
-                    expectedElementNames: expectedElementNames,
-                    forReturnType: true);
+                    expectedElementNames: expectedElementNames);
                 expectedElementNames = new[] { "e3", "e4" };
-                ValidateTupleNameAttribute(method3.Parameters.Single(),
+                ValidateTupleNameAttribute(method3.Parameters.Single().GetAttributes(),
                     expectedTupleNamesAttribute: true,
                     expectedElementNames: expectedElementNames);
 
                 // public static (int e1, int e2) Method4(ref (int e3, int e4) x) => x;
                 var method4 = _derivedClass.GetMember<MethodSymbol>("Method4");
                 expectedElementNames = new[] { "e1", "e2" };
-                ValidateTupleNameAttribute(method4,
+                ValidateTupleNameAttribute(method4.GetReturnTypeAttributes(),
                     expectedTupleNamesAttribute: true,
-                    expectedElementNames: expectedElementNames,
-                    forReturnType: true);
+                    expectedElementNames: expectedElementNames);
                 expectedElementNames = new[] { "e3", "e4" };
-                ValidateTupleNameAttribute(method4.Parameters.Single(),
+                ValidateTupleNameAttribute(method4.Parameters.Single().GetAttributes(),
                     expectedTupleNamesAttribute: true,
                     expectedElementNames: expectedElementNames);
 
@@ -550,12 +554,9 @@ class C
                 //                ValueTuple) Method5(ref (object,dynamic) x) =>
                 //     ((0, (null, (null, null)), null, 0), default(ValueTuple));
                 var method5 = _derivedClass.GetMember<MethodSymbol>("Method5");
-                ValidateTupleNameAttribute(method5,
-                    expectedTupleNamesAttribute: false,
-                    forReturnType: true);
+                ValidateTupleNameAttribute(method5.GetReturnTypeAttributes(), expectedTupleNamesAttribute: false);
 
-                ValidateTupleNameAttribute(method5.Parameters.Single(),
-                    expectedTupleNamesAttribute: false);
+                ValidateTupleNameAttribute(method5.Parameters.Single().GetAttributes(), expectedTupleNamesAttribute: false);
 
                 // public static (int e1, int e2, int e3, int e4, int e5,
                 //                int e6, int e7, int e8, int e9) Method6() => (0, 0, 0, 0,
@@ -566,9 +567,7 @@ class C
                     "e1", "e2", "e3", "e4", "e5",
                     "e6", "e7", "e8", "e9", null, null
                 };
-                ValidateTupleNameAttribute(method6, expectedTupleNamesAttribute: true,
-                    expectedElementNames: expectedElementNames,
-                    forReturnType: true);
+                ValidateTupleNameAttribute(method6.GetReturnTypeAttributes(), expectedTupleNamesAttribute: true, expectedElementNames: expectedElementNames);
             }
 
             private void ValidateAttributesOnProperties()
@@ -576,40 +575,36 @@ class C
                 // public static (int e1, int e2) Prop1 => (0, 0);
                 var prop1 = _derivedClass.GetMember("Prop1");
                 var expectedTupleNames = new[] { "e1", "e2" };
-                ValidateTupleNameAttribute(prop1,
+                ValidateTupleNameAttribute(prop1.GetAttributes(),
                     expectedTupleNamesAttribute: true,
                     expectedElementNames: expectedTupleNames);
 
                 // public static (int e1, int e2) Prop2 { get; set; }
                 var prop2 = _derivedClass.GetMember("Prop2");
                 expectedTupleNames = new[] { "e1", "e2" };
-                ValidateTupleNameAttribute(prop2,
+                ValidateTupleNameAttribute(prop2.GetAttributes(),
                     expectedTupleNamesAttribute: true,
                     expectedElementNames: expectedTupleNames);
 
                 // public (int e1, int e2) this[(int e3, int e4) param]
-                var indexer = (SourcePropertySymbol)_derivedClass.GetMember("this[]");
+                var indexer = (PropertySymbol)_derivedClass.GetMember("this[]");
                 expectedTupleNames = new[] { "e1", "e2" };
-                ValidateTupleNameAttribute(indexer,
+                ValidateTupleNameAttribute(indexer.GetAttributes(),
                     expectedTupleNamesAttribute: true,
                     expectedElementNames: expectedTupleNames);
                 expectedTupleNames = new[] { "e3", "e4" };
-                ValidateTupleNameAttribute(indexer.Parameters.Single(),
+                ValidateTupleNameAttribute(indexer.Parameters.Single().GetAttributes(),
                     expectedTupleNamesAttribute: true,
                     expectedElementNames: expectedTupleNames);
             }
 
             private void ValidateTupleNameAttribute(
-                Symbol symbol,
+                ImmutableArray<CSharpAttributeData> attributes,
                 bool expectedTupleNamesAttribute,
-                string[] expectedElementNames = null,
-                bool forReturnType = false)
+                string[] expectedElementNames = null)
             {
-                var synthesizedTupleElementNamesAttr = symbol.GetSynthesizedAttributes(forReturnType)
-                    .Where(attr => string.Equals(attr.AttributeClass.Name,
-                                                 "TupleElementNamesAttribute",
-                                                 StringComparison.Ordinal))
-                    .AsImmutable();
+                var synthesizedTupleElementNamesAttr = attributes.Where(attr => string.Equals(attr.AttributeClass.Name, "TupleElementNamesAttribute", StringComparison.Ordinal));
+
                 if (!expectedTupleNamesAttribute)
                 {
                     Assert.Empty(synthesizedTupleElementNamesAttr);
@@ -618,7 +613,8 @@ class C
                 else
                 {
                     var tupleAttr = synthesizedTupleElementNamesAttr.Single();
-                    Assert.Equal(_tupleAttrTransformNames, tupleAttr.AttributeConstructor);
+                    Assert.Equal("System.Runtime.CompilerServices.TupleElementNamesAttribute", tupleAttr.AttributeClass.ToTestDisplayString());
+                    Assert.Equal("System.String[]", tupleAttr.AttributeConstructor.Parameters.Single().Type.ToTestDisplayString());
 
                     if (expectedElementNames == null)
                     {
@@ -808,34 +804,34 @@ public struct S
 }";
             var comp = CreateStandardCompilation(text, references: s_attributeRefs);
             comp.VerifyDiagnostics(
-                // (31,2): error CS8208: Cannot reference 'System.Runtime.CompilerServices.TupleElementNamesAttribute' explicitly. Use the tuple syntax to define tuple names.
+                // (31,2): error CS8331: Cannot reference 'System.Runtime.CompilerServices.TupleElementNamesAttribute' explicitly. Use the tuple syntax to define tuple names.
                 // [TupleElementNames(new[] { "a", "b" })]
                 Diagnostic(ErrorCode.ERR_ExplicitTupleElementNamesAttribute, @"TupleElementNames(new[] { ""a"", ""b"" })").WithLocation(31, 2),
-                // (5,2): error CS8208: Cannot reference 'System.Runtime.CompilerServices.TupleElementNamesAttribute' explicitly. Use the tuple syntax to define tuple names.
+                // (5,2): error CS8331: Cannot reference 'System.Runtime.CompilerServices.TupleElementNamesAttribute' explicitly. Use the tuple syntax to define tuple names.
                 // [TupleElementNames(new[] { "a", "b" })]
                 Diagnostic(ErrorCode.ERR_ExplicitTupleElementNamesAttribute, @"TupleElementNames(new[] { ""a"", ""b"" })").WithLocation(5, 2),
-                // (18,10): error CS8208: Cannot reference 'System.Runtime.CompilerServices.TupleElementNamesAttribute' explicitly. Use the tuple syntax to define tuple names.
+                // (18,10): error CS8331: Cannot reference 'System.Runtime.CompilerServices.TupleElementNamesAttribute' explicitly. Use the tuple syntax to define tuple names.
                 //         [TupleElementNames(new[] { "x" })]ValueTuple<T> args);
                 Diagnostic(ErrorCode.ERR_ExplicitTupleElementNamesAttribute, @"TupleElementNames(new[] { ""x"" })").WithLocation(18, 10),
-                // (11,6): error CS8208: Cannot reference 'System.Runtime.CompilerServices.TupleElementNamesAttribute' explicitly. Use the tuple syntax to define tuple names.
+                // (11,6): error CS8331: Cannot reference 'System.Runtime.CompilerServices.TupleElementNamesAttribute' explicitly. Use the tuple syntax to define tuple names.
                 //     [TupleElementNames(new[] { "x", "y" })]
                 Diagnostic(ErrorCode.ERR_ExplicitTupleElementNamesAttribute, @"TupleElementNames(new[] { ""x"", ""y"" })").WithLocation(11, 6),
-                // (14,14): error CS8208: Cannot reference 'System.Runtime.CompilerServices.TupleElementNamesAttribute' explicitly. Use the tuple syntax to define tuple names.
+                // (14,14): error CS8331: Cannot reference 'System.Runtime.CompilerServices.TupleElementNamesAttribute' explicitly. Use the tuple syntax to define tuple names.
                 //     [return: TupleElementNames(new string[] { null, null })]
                 Diagnostic(ErrorCode.ERR_ExplicitTupleElementNamesAttribute, "TupleElementNames(new string[] { null, null })").WithLocation(14, 14),
-                // (15,36): error CS8208: Cannot reference 'System.Runtime.CompilerServices.TupleElementNamesAttribute' explicitly. Use the tuple syntax to define tuple names.
+                // (15,36): error CS8331: Cannot reference 'System.Runtime.CompilerServices.TupleElementNamesAttribute' explicitly. Use the tuple syntax to define tuple names.
                 //     public ValueTuple<int, int> M([TupleElementNames(new string[] { null})] ValueTuple x) => (0, 0);
                 Diagnostic(ErrorCode.ERR_ExplicitTupleElementNamesAttribute, "TupleElementNames(new string[] { null})").WithLocation(15, 36),
                 // (20,6): error CS0592: Attribute 'TupleElementNames' is not valid on this declaration type. It is only valid on 'class, struct, property, indexer, field, parameter, return' declarations.
                 //     [TupleElementNames(new[] { "y" })]
                 Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "TupleElementNames").WithArguments("TupleElementNames", "class, struct, property, indexer, field, parameter, return").WithLocation(20, 6),
-                // (27,6): error CS8208: Cannot reference 'System.Runtime.CompilerServices.TupleElementNamesAttribute' explicitly. Use the tuple syntax to define tuple names.
+                // (27,6): error CS8331: Cannot reference 'System.Runtime.CompilerServices.TupleElementNamesAttribute' explicitly. Use the tuple syntax to define tuple names.
                 //     [TupleElementNames(new[] { "a", "b" })]
                 Diagnostic(ErrorCode.ERR_ExplicitTupleElementNamesAttribute, @"TupleElementNames(new[] { ""a"", ""b"" })").WithLocation(27, 6),
-                // (28,33): error CS8208: Cannot reference 'System.Runtime.CompilerServices.TupleElementNamesAttribute' explicitly. Use the tuple syntax to define tuple names.
+                // (28,33): error CS8331: Cannot reference 'System.Runtime.CompilerServices.TupleElementNamesAttribute' explicitly. Use the tuple syntax to define tuple names.
                 //     public (int x, int y) this[[TupleElementNames](int a, int b) t] => t;
                 Diagnostic(ErrorCode.ERR_ExplicitTupleElementNamesAttribute, "TupleElementNames").WithLocation(28, 33),
-                // (8,6): error CS8208: Cannot reference 'System.Runtime.CompilerServices.TupleElementNamesAttribute' explicitly. Use the tuple syntax to define tuple names.
+                // (8,6): error CS8331: Cannot reference 'System.Runtime.CompilerServices.TupleElementNamesAttribute' explicitly. Use the tuple syntax to define tuple names.
                 //     [TupleElementNames(new string[] { null, null })]
                 Diagnostic(ErrorCode.ERR_ExplicitTupleElementNamesAttribute, "TupleElementNames(new string[] { null, null })").WithLocation(8, 6));
         }
@@ -928,8 +924,8 @@ public interface I3<T>
                 void verifyTupleImpls(NamedTypeSymbol t, string[] tupleNames)
                 {
                     var typeParam = t.TypeParameters.Single();
-                    var constraint = (NamedTypeSymbol)typeParam.ConstraintTypes.Single();
-                    var typeArg = constraint.TypeArguments.Single();
+                    var constraint = (NamedTypeSymbol)typeParam.ConstraintTypes().Single();
+                    var typeArg = constraint.TypeArguments().Single();
                     Assert.True(typeArg.IsTupleType);
                     Assert.Equal(tupleNames, typeArg.TupleElementNames);
                 }
@@ -1027,8 +1023,8 @@ public interface I3 : I1<(int c, int d)> {}";
 
                 void VerifyTupleImpls(NamedTypeSymbol t, string[] tupleNames)
                 {
-                    var interfaceImpl = t.Interfaces.Single();
-                    var typeArg = interfaceImpl.TypeArguments.Single();
+                    var interfaceImpl = t.Interfaces().Single();
+                    var typeArg = interfaceImpl.TypeArguments().Single();
                     Assert.True(typeArg.IsTupleType);
                     Assert.Equal(tupleNames, typeArg.TupleElementNames);
                 }

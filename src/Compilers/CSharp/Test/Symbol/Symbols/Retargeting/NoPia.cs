@@ -1393,7 +1393,7 @@ public class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, assemblyName: "comp");
+            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.ReleaseDll, assemblyName: "comp");
             comp.VerifyDiagnostics();
             CompileAndVerify(comp);
 
@@ -1439,7 +1439,7 @@ public class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, assemblyName: "comp");
+            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.ReleaseDll, assemblyName: "comp");
             comp.VerifyDiagnostics();
 
             var assemblies1 = MetadataTestHelpers.GetSymbolsForReferences(

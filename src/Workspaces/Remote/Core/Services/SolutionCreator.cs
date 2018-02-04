@@ -413,17 +413,17 @@ namespace Microsoft.CodeAnalysis.Remote
             return GetDocumentMapAsync(project, project.State.DocumentStates, documents);
         }
 
-        private async Task<Dictionary<DocumentId, DocumentStateChecksums>> GetDocumentMapAsync<T>(Project project, ImmutableDictionary<DocumentId, T> states, HashSet<Checksum> documents)
+        private async Task<Dictionary<DocumentId, DocumentStateChecksums>> GetDocumentMapAsync<T>(Project project, IImmutableDictionary<DocumentId, T> states, HashSet<Checksum> documents)
             where T : TextDocumentState
         {
             var map = new Dictionary<DocumentId, DocumentStateChecksums>();
 
             foreach (var kv in states)
             {
-                var doucmentChecksums = await kv.Value.GetStateChecksumsAsync(_cancellationToken).ConfigureAwait(false);
-                if (documents.Contains(doucmentChecksums.Checksum))
+                var documentChecksums = await kv.Value.GetStateChecksumsAsync(_cancellationToken).ConfigureAwait(false);
+                if (documents.Contains(documentChecksums.Checksum))
                 {
-                    map.Add(kv.Key, doucmentChecksums);
+                    map.Add(kv.Key, documentChecksums);
                 }
             }
 

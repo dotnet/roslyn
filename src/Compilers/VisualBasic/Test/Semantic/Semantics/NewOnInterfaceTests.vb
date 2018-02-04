@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -1656,6 +1657,8 @@ BC30456: 'Quit' is not a member of 'GooClass'.
 </errors>)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <WorkItem(23810, "https://github.com/dotnet/roslyn/issues/23810")>
         <Fact()>
         Public Sub NewOnCoClassInterface_Lookup_AddRemoveHandler2()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -1717,6 +1720,62 @@ End Class
                     </compilation>)
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <errors></errors>)
+
+            Dim tree = compilation.SyntaxTrees.Single()
+            Dim nodes = tree.GetRoot().DescendantNodes().OfType(Of AddRemoveHandlerStatementSyntax)().ToArray()
+
+            Assert.Equal("AddHandler (((Instance1).Quit.Quit).Quit), AddressOf Quit2", nodes(0).ToString())
+
+            compilation.VerifyOperationTree(nodes(0), expectedOperationTree:=
+            <![CDATA[
+IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'AddHandler  ... essOf Quit2')
+  Expression: 
+    IEventAssignmentOperation (EventAdd) (OperationKind.EventAssignment, Type: null, IsImplicit) (Syntax: 'AddHandler  ... essOf Quit2')
+      Event Reference: 
+        null
+      Handler: 
+        IDelegateCreationOperation (OperationKind.DelegateCreation, Type: Goo2.QuitEventHandler, IsImplicit) (Syntax: 'AddressOf Quit2')
+          Target: 
+            IMethodReferenceOperation: Sub GooGooClass.Quit2() (OperationKind.MethodReference, Type: null) (Syntax: 'AddressOf Quit2')
+              Instance Receiver: 
+                IInstanceReferenceOperation (OperationKind.InstanceReference, Type: GooGooClass, IsImplicit) (Syntax: 'Quit2')
+]]>.Value)
+
+            Assert.Equal("RemoveHandler Instance3.Quit.Quit.Quit.Quit.Quit.Quit, AddressOf Quit2", nodes(1).ToString())
+
+            compilation.VerifyOperationTree(nodes(1), expectedOperationTree:=
+            <![CDATA[
+IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'RemoveHandl ... essOf Quit2')
+  Expression: 
+    IEventAssignmentOperation (EventRemove) (OperationKind.EventAssignment, Type: null, IsImplicit) (Syntax: 'RemoveHandl ... essOf Quit2')
+      Event Reference: 
+        IEventReferenceOperation: Event Goo2.Quit() (OperationKind.EventReference, Type: Goo2.QuitEventHandler) (Syntax: 'Instance3.Q ... t.Quit.Quit')
+          Instance Receiver: 
+            IInvocationOperation (virtual Function Goo1.Quit() As Goo) (OperationKind.Invocation, Type: Goo) (Syntax: 'Instance3.Q ... t.Quit.Quit')
+              Instance Receiver: 
+                IInvocationOperation (virtual Function Goo1.Quit() As Goo) (OperationKind.Invocation, Type: Goo) (Syntax: 'Instance3.Q ... t.Quit.Quit')
+                  Instance Receiver: 
+                    IInvocationOperation (virtual Function Goo1.Quit() As Goo) (OperationKind.Invocation, Type: Goo) (Syntax: 'Instance3.Quit.Quit.Quit')
+                      Instance Receiver: 
+                        IInvocationOperation (virtual Function Goo1.Quit() As Goo) (OperationKind.Invocation, Type: Goo) (Syntax: 'Instance3.Quit.Quit')
+                          Instance Receiver: 
+                            IInvocationOperation (virtual Function Goo1.Quit() As Goo) (OperationKind.Invocation, Type: Goo) (Syntax: 'Instance3.Quit')
+                              Instance Receiver: 
+                                IFieldReferenceOperation: GooGooClass.Instance3 As Goo (OperationKind.FieldReference, Type: Goo) (Syntax: 'Instance3')
+                                  Instance Receiver: 
+                                    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: GooGooClass, IsImplicit) (Syntax: 'Instance3')
+                              Arguments(0)
+                          Arguments(0)
+                      Arguments(0)
+                  Arguments(0)
+              Arguments(0)
+      Handler: 
+        IDelegateCreationOperation (OperationKind.DelegateCreation, Type: Goo2.QuitEventHandler, IsImplicit) (Syntax: 'AddressOf Quit2')
+          Target: 
+            IMethodReferenceOperation: Sub GooGooClass.Quit2() (OperationKind.MethodReference, Type: null) (Syntax: 'AddressOf Quit2')
+              Instance Receiver: 
+                IInstanceReferenceOperation (OperationKind.InstanceReference, Type: GooGooClass, IsImplicit) (Syntax: 'Quit2')
+]]>.Value)
         End Sub
 
         <WorkItem(546560, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546560")>

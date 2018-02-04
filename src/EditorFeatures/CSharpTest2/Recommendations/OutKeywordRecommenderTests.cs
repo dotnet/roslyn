@@ -239,6 +239,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(24079, "https://github.com/dotnet/roslyn/issues/24079")]
         public async Task TestNotAfterOperator()
         {
             await VerifyAbsenceAsync(
@@ -404,6 +405,14 @@ $$");
 }";
 
             await VerifyKeywordAsync(text);
+        }
+
+        [WorkItem(22253, "https://github.com/dotnet/roslyn/issues/22253")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInLocalFunction()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"void F(int x, $$"));
         }
     }
 }

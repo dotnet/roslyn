@@ -1,12 +1,13 @@
 # Getting the Code
 
+1. Install the [.NET Core SDK](https://www.microsoft.com/net/download/core)
 1. Clone https://github.com/dotnet/roslyn
-1. Run `make toolset` to download the bootstrap compiler, mono and NuGet packages.
-1. Run `make` to build the code.  
+1. Run `dotnet restore CrossPlatform.sln`
+1. Run `dotnet build CrossPlatform.sln`
 
 # Running Tests
 
-After building run `make test` in order to run the unit tests.
+After building run `build\scrits\test.sh` in order to run the unit tests.
 
 # Contributing
 

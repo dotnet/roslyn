@@ -2706,6 +2706,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             End If
 
             Dim newTokens = GetModifierList(accessibility, mods, GetDeclarationKind(declaration), isDefault)
+            'GetDeclarationKind returns None for Field if the count is > 1
+            'To handle multiple declarations on a field if the Accessibility is NotApplicable, we need to add the Dim
+            If declaration.Kind = SyntaxKind.FieldDeclaration AndAlso accessibility = Accessibility.NotApplicable AndAlso newTokens.Count = 0 Then
+                ' Add the Dim
+                newTokens = newTokens.Add(SyntaxFactory.Token(SyntaxKind.DimKeyword))
+            End If
+
             Return WithModifierTokens(declaration, Merge(tokens, newTokens))
         End Function
 
@@ -2784,6 +2791,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                     _list = _list.Add(SyntaxFactory.Token(SyntaxKind.ProtectedKeyword))
                 Case Accessibility.ProtectedOrInternal
                     _list = _list.Add(SyntaxFactory.Token(SyntaxKind.FriendKeyword)).Add(SyntaxFactory.Token(SyntaxKind.ProtectedKeyword))
+                Case Accessibility.ProtectedAndInternal
+                    _list = _list.Add(SyntaxFactory.Token(SyntaxKind.PrivateKeyword)).Add(SyntaxFactory.Token(SyntaxKind.ProtectedKeyword))
                 Case Accessibility.NotApplicable
                 Case Else
                     Throw New NotSupportedException(String.Format("Accessibility '{0}' not supported.", accessibility))
@@ -2870,7 +2879,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                     Case SyntaxKind.PublicKeyword
                         accessibility = Accessibility.Public
                     Case SyntaxKind.PrivateKeyword
-                        accessibility = Accessibility.Private
+                        If accessibility = Accessibility.Protected Then
+                            accessibility = Accessibility.ProtectedAndFriend
+                        Else
+                            accessibility = Accessibility.Private
+                        End If
                     Case SyntaxKind.FriendKeyword
                         If accessibility = Accessibility.Protected Then
                             accessibility = Accessibility.ProtectedOrFriend
@@ -2880,6 +2893,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                     Case SyntaxKind.ProtectedKeyword
                         If accessibility = Accessibility.Friend Then
                             accessibility = Accessibility.ProtectedOrFriend
+                        ElseIf accessibility = Accessibility.Private
+                            accessibility = Accessibility.ProtectedAndFriend
                         Else
                             accessibility = Accessibility.Protected
                         End If

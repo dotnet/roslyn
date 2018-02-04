@@ -233,6 +233,14 @@ namespace Microsoft.CodeAnalysis.SQLite
             }
         }
 
+        /// <summary>
+        /// Gets an <see cref="SqlConnection"/> from the connection pool, or creates one if none are available.
+        /// </summary>
+        /// <remarks>
+        /// Database connections have a large amount of overhead, and should be returned to the pool when they are no
+        /// longer in use. In particular, make sure to avoid letting a connection lease cross an <see langword="await"/>
+        /// boundary, as it will prevent code in the asynchronous operation from using the existing connection.
+        /// </remarks>
         private PooledConnection GetPooledConnection()
             => new PooledConnection(this, GetConnection());
 
@@ -242,6 +250,19 @@ namespace Microsoft.CodeAnalysis.SQLite
             using (var pooledConnection = GetPooledConnection())
             {
                 var connection = pooledConnection.Connection;
+
+                // Enable write-ahead logging to increase write performance by reducing amount of disk writes,
+                // by combining writes at checkpoint, salong with using sequential-only writes to populate the log.
+                // Also, WAL allows for relaxed ("normal") "synchronous" mode, see below.
+                connection.ExecuteCommand("pragma journal_mode=wal", throwOnError: false);
+
+                // Set "synchronous" mode to "normal" instead of default "full" to reduce the amount of buffer flushing syscalls,
+                // significantly reducing both the blocked time and the amount of context switches.
+                // When coupled with WAL, this (according to https://sqlite.org/pragma.html#pragma_synchronous and 
+                // https://www.sqlite.org/wal.html#performance_considerations) is unlikely to significantly affect durability,
+                // while significantly increasing performance, because buffer flushing is done for each checkpoint, instead of each
+                // transaction. While some writes can be lost, they are never reordered, and higher layers will recover from that.
+                connection.ExecuteCommand("pragma synchronous=normal", throwOnError: false);
 
                 // First, create all our tables
                 connection.ExecuteCommand(
@@ -270,12 +291,16 @@ $@"create table if not exists ""{DocumentDataTableName}"" (
     ""{DataColumnName}"" blob)");
 
                 // Also get the known set of string-to-id mappings we already have in the DB.
-                FetchStringTable(connection);
+                // Do this in one batch if possible.
+                var fetched = TryFetchStringTable(connection);
+
+                // If we weren't able to retrieve the entire string table in one batch,
+                // attempt to retrieve it for each 
+                var fetchStringTable = !fetched;
 
                 // Try to bulk populate all the IDs we'll need for strings/projects/documents.
                 // Bulk population is much faster than trying to do everything individually.
-                // Note: we don't need to fetch the string table as we did it right above this.
-                BulkPopulateIds(connection, solution, fetchStringTable: false);
+                BulkPopulateIds(connection, solution, fetchStringTable);
             }
         }
     }

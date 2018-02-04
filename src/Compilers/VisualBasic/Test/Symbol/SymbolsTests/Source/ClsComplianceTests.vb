@@ -1661,7 +1661,7 @@ Imports System
                                 End Sub
 
             CompileAndVerify(source, options:=TestOptions.ReleaseDll, sourceSymbolValidator:=validator(True, True), symbolValidator:=validator(True, False))
-            CompileAndVerify(source, options:=TestOptions.ReleaseModule, sourceSymbolValidator:=validator(True, True), symbolValidator:=validator(False, True), verify:=False) ' PEVerify doesn't like netmodules
+            CompileAndVerify(source, options:=TestOptions.ReleaseModule, sourceSymbolValidator:=validator(True, True), symbolValidator:=validator(False, True), verify:=Verification.Fails) ' PEVerify doesn't like netmodules
         End Sub
 
         <Fact>

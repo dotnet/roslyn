@@ -10,6 +10,8 @@ def branchName = GithubBranchName
 // Folder that the project jobs reside in (project/branch)
 def projectFoldername = Utilities.getFolderName(projectName) + '/' + Utilities.getFolderName(branchName)
 
+def windowsUnitTestMachine = 'win2016-base'
+
 static void addRoslynJob(def myJob, String jobName, String branchName, Boolean isPr, String triggerPhraseExtra, Boolean triggerPhraseOnly = false) {
   def archiveSettings = new ArchivalSettings()
   archiveSettings.addFiles('Binaries/**/*.pdb')
@@ -51,14 +53,14 @@ static void addRoslynJob(def myJob, String jobName, String branchName, Boolean i
   }
 }
 
-// True when this is a PR job, false for commit.  On feature branches we do PR jobs only. 
+// True when this is a PR job, false for commit.  On feature branches we do PR jobs only.
 def commitPullList = [false, true]
 if (branchName.startsWith("features/")) {
   commitPullList = [true]
-} 
+}
 
 // Windows Desktop CLR
-commitPullList.each { isPr -> 
+commitPullList.each { isPr ->
   ['debug', 'release'].each { configuration ->
         ['unit32', 'unit64'].each { buildTarget ->
       def jobName = Utilities.getFullJobName(projectName, "windows_${configuration}_${buildTarget}", isPr)
@@ -71,7 +73,7 @@ commitPullList.each { isPr ->
 
       def triggerPhraseOnly = false
       def triggerPhraseExtra = ""
-      Utilities.setMachineAffinity(myJob, 'Windows_NT', 'win2016-base')
+      Utilities.setMachineAffinity(myJob, 'Windows_NT', windowsUnitTestMachine)
       Utilities.addXUnitDotNETResults(myJob, '**/xUnitResults/*.xml')
       addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
     }
@@ -85,42 +87,42 @@ commitPullList.each { isPr ->
     def myJob = job(jobName) {
       description("Windows CoreCLR unit tests")
             steps {
-              batchFile(""".\\build\\scripts\\cibuild.cmd ${(configuration == 'debug') ? '-debug' : '-release'} -testCoreClr""")
+              batchFile(""".\\build\\scripts\\cibuild.cmd ${(configuration == 'debug') ? '-debug' : '-release'} -buildCoreClr -testCoreClr""")
             }
     }
 
     def triggerPhraseOnly = false
     def triggerPhraseExtra = ""
-    Utilities.setMachineAffinity(myJob, 'Windows_NT', 'win2016-base')
+    Utilities.setMachineAffinity(myJob, 'Windows_NT', windowsUnitTestMachine)
     Utilities.addXUnitDotNETResults(myJob, '**/xUnitResults/*.xml')
     addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
   }
 }
 
-// Ubuntu 14.04
-commitPullList.each { isPr -> 
-  def jobName = Utilities.getFullJobName(projectName, "ubuntu_14_debug", isPr)
+// Ubuntu 16.04
+commitPullList.each { isPr ->
+  def jobName = Utilities.getFullJobName(projectName, "ubuntu_16_debug", isPr)
   def myJob = job(jobName) {
-    description("Ubuntu 14.04 tests")
+    description("Ubuntu 16.04 tests")
                   steps {
-                    shell("./cibuild.sh --debug")
+                    shell("./build/scripts/cibuild.sh --debug")
                   }
                 }
 
   def triggerPhraseOnly = false
   def triggerPhraseExtra = "linux"
-  Utilities.setMachineAffinity(myJob, 'Ubuntu14.04', 'latest-or-auto')
+  Utilities.setMachineAffinity(myJob, 'Ubuntu16.04', 'latest-or-auto')
   Utilities.addXUnitDotNETResults(myJob, '**/xUnitResults/*.xml')
   addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
 }
 
-// Ubuntu 16.04
-commitPullList.each { isPr -> 
-  def jobName = Utilities.getFullJobName(projectName, "ubuntu_16_debug", isPr)
+// Ubuntu 16.04 mono
+commitPullList.each { isPr ->
+  def jobName = Utilities.getFullJobName(projectName, "ubuntu_16_mono_debug", isPr)
   def myJob = job(jobName) {
-    description("Ubuntu 16.04 tests")
+    description("Ubuntu 16.04 mono tests")
                   steps {
-                    shell("./cibuild.sh --debug")
+                    shell("./build/scripts/cibuild.sh --debug --mono")
                   }
                 }
 
@@ -132,12 +134,12 @@ commitPullList.each { isPr ->
 }
 
 // Mac
-commitPullList.each { isPr -> 
+commitPullList.each { isPr ->
   def jobName = Utilities.getFullJobName(projectName, "mac_debug", isPr)
   def myJob = job(jobName) {
     description("Mac tests")
     steps {
-      shell("./cibuild.sh --debug")
+      shell("./build/scripts/cibuild.sh --debug")
     }
   }
 
@@ -149,7 +151,7 @@ commitPullList.each { isPr ->
   }
 
 // Determinism
-commitPullList.each { isPr -> 
+commitPullList.each { isPr ->
   def jobName = Utilities.getFullJobName(projectName, "windows_determinism", isPr)
   def myJob = job(jobName) {
     description('Determinism tests')
@@ -160,12 +162,12 @@ commitPullList.each { isPr ->
 
   def triggerPhraseOnly = false
   def triggerPhraseExtra = "determinism"
-  Utilities.setMachineAffinity(myJob, 'Windows_NT', 'win2016-base')
+  Utilities.setMachineAffinity(myJob, 'Windows_NT', windowsUnitTestMachine)
   addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
 }
 
 // Build correctness tests
-commitPullList.each { isPr -> 
+commitPullList.each { isPr ->
   def jobName = Utilities.getFullJobName(projectName, "windows_build_correctness", isPr)
   def myJob = job(jobName) {
     description('Build correctness tests')
@@ -176,7 +178,7 @@ commitPullList.each { isPr ->
 
   def triggerPhraseOnly = false
   def triggerPhraseExtra = ""
-  Utilities.setMachineAffinity(myJob, 'Windows_NT', 'win2016-base')
+  Utilities.setMachineAffinity(myJob, 'Windows_NT', windowsUnitTestMachine)
   addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
 }
 
@@ -192,7 +194,7 @@ commitPullList.each { isPr ->
 
   def triggerPhraseOnly = false
   def triggerPhraseExtra = "perf-correctness"
-  Utilities.setMachineAffinity(myJob, 'Windows_NT', 'latest-dev15-3-preview2')
+  Utilities.setMachineAffinity(myJob, 'Windows_NT', windowsUnitTestMachine)
   addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
 }
 
@@ -208,7 +210,7 @@ commitPullList.each { isPr ->
 
   def triggerPhraseOnly = false
   def triggerPhraseExtra = "microbuild"
-  Utilities.setMachineAffinity(myJob, 'Windows_NT', 'win2016-base')
+  Utilities.setMachineAffinity(myJob, 'Windows_NT', windowsUnitTestMachine)
   addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
 }
 

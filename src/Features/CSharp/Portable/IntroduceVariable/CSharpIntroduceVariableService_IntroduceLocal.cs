@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                     SyntaxFactory.SingletonSeparatedList(SyntaxFactory.VariableDeclarator(
                         newLocalNameToken.WithAdditionalAnnotations(RenameAnnotation.Create()),
                         null,
-                        SyntaxFactory.EqualsValueClause(expression.WithoutTrailingTrivia().WithoutLeadingTrivia())))));
+                        SyntaxFactory.EqualsValueClause(expression.WithoutTrivia())))));
 
             switch (containerToGenerateInto)
             {

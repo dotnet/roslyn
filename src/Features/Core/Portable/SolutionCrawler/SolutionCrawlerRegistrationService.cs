@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         [ImportingConstructor]
         public SolutionCrawlerRegistrationService(
             [ImportMany] IEnumerable<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> analyzerProviders,
-            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
+            IAsynchronousOperationListenerProvider listenerProvider)
         {
             _gate = new object();
 
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             AssertAnalyzerProviders(_analyzerProviders);
 
             _documentWorkCoordinatorMap = new Dictionary<Workspace, WorkCoordinator>(ReferenceEqualityComparer.Instance);
-            _listener = new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.SolutionCrawler);
+            _listener = listenerProvider.GetListener(FeatureAttribute.SolutionCrawler);
 
             _progressReporter = new SolutionCrawlerProgressReporter(_listener);
         }
@@ -111,7 +111,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     }
 
                     var analyzer = lazyProvider.Value.CreateIncrementalAnalyzer(workspace);
-                    coordinator.AddAnalyzer(analyzer, metadata.HighPriorityForActiveFile);
+                    if (analyzer != null)
+                    {
+                        coordinator.AddAnalyzer(analyzer, metadata.HighPriorityForActiveFile);
+                    }
                 }
             }
         }
@@ -131,22 +134,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 // no specific projects or documents provided
                 if (projectIds == null && documentIds == null)
                 {
-                    coordinator.Reanalyze(analyzer, workspace.CurrentSolution.Projects.SelectMany(p => p.DocumentIds).ToSet(), highPriority);
+                    coordinator.Reanalyze(analyzer, new ReanalyzeScope(workspace.CurrentSolution.Id), highPriority);
                     return;
                 }
 
-                // specific documents provided
-                if (projectIds == null)
-                {
-                    coordinator.Reanalyze(analyzer, documentIds.ToSet(), highPriority);
-                    return;
-                }
-
-                var solution = workspace.CurrentSolution;
-                var set = new HashSet<DocumentId>(documentIds ?? SpecializedCollections.EmptyEnumerable<DocumentId>());
-                set.UnionWith(projectIds.Select(id => solution.GetProject(id)).SelectMany(p => p.DocumentIds));
-
-                coordinator.Reanalyze(analyzer, set, highPriority);
+                coordinator.Reanalyze(analyzer, new ReanalyzeScope(projectIds, documentIds), highPriority);
             }
         }
 

@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.IO
+Imports Microsoft.CodeAnalysis.CSharp
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -2483,6 +2484,64 @@ Dim o As New Object()
                 references:=references)
             s1.VerifyDiagnostics()
             Assert.True(s1.SourceAssembly.MightContainExtensionMethods)
+        End Sub
+
+        <Fact>
+        Public Sub ConsumeRefExtensionMethods()
+            Dim options = New CSharpParseOptions(CodeAnalysis.CSharp.LanguageVersion.Latest)
+            Dim csharp = CreateCSharpCompilation("
+public static class Extensions
+{
+    public static void PrintValue(ref this int p)
+    {
+        System.Console.Write(p);
+    }
+}", referencedAssemblies:={MscorlibRef, SystemCoreRef}, parseOptions:=options).EmitToImageReference()
+
+            Dim vb = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="AssemblyName">
+    <file name="a.vb">
+        <![CDATA[
+Module Program
+    Sub Main()
+        Dim value = 5
+        value.PrintValue()
+    End Sub 
+End Module
+]]>
+    </file>
+</compilation>, options:=TestOptions.ReleaseExe, additionalRefs:={csharp})
+
+            CompileAndVerify(vb, expectedOutput:="5")
+        End Sub
+
+        <Fact>
+        Public Sub ConsumeInExtensionMethods()
+            Dim options = New CSharpParseOptions(CodeAnalysis.CSharp.LanguageVersion.Latest)
+            Dim csharp = CreateCSharpCompilation("
+public static class Extensions
+{
+    public static void PrintValue(in this int p)
+    {
+        System.Console.Write(p);
+    }
+}", referencedAssemblies:={MscorlibRef, SystemCoreRef}, parseOptions:=options).EmitToImageReference()
+
+            Dim vb = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="AssemblyName">
+    <file name="a.vb">
+        <![CDATA[
+Module Program
+    Sub Main()
+        Dim value = 5
+        value.PrintValue()
+    End Sub 
+End Module
+]]>
+    </file>
+</compilation>, options:=TestOptions.ReleaseExe, additionalRefs:={csharp})
+
+            CompileAndVerify(vb, expectedOutput:="5")
         End Sub
 
     End Class

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -10,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
@@ -107,24 +109,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
                 }
 
                 var variable = variableDeclaration.Variables.Single();
+                var initializer = variable.Initializer.Value;
+
+                // Do not suggest var replacement for stackalloc span expressions.
+                // This will change the bound type from a span to a pointer.
+                if (!variableDeclaration.Type.IsKind(SyntaxKind.PointerType))
+                {
+                    var containsStackAlloc = initializer
+                        .DescendantNodesAndSelf(descendIntoChildren: node => !node.IsAnyLambdaOrAnonymousMethod())
+                        .Any(node => node.IsKind(SyntaxKind.StackAllocArrayCreationExpression));
+
+                    if (containsStackAlloc)
+                    {
+                        issueSpan = default;
+                        return false;
+                    }
+                }
+
                 if (AssignmentSupportsStylePreference(
-                        variable.Identifier, typeName, variable.Initializer.Value,
+                        variable.Identifier, typeName, initializer,
                         semanticModel, optionSet, cancellationToken))
                 {
                     issueSpan = candidateIssueSpan;
                     return true;
                 }
             }
-            else if (typeName.Parent is ForEachStatementSyntax foreachStatment)
+            else if (typeName.Parent is ForEachStatementSyntax foreachStatement)
             {
-                var foreachStatementInfo = semanticModel.GetForEachStatementInfo(foreachStatment);
+                var foreachStatementInfo = semanticModel.GetForEachStatementInfo(foreachStatement);
                 if (foreachStatementInfo.ElementConversion.IsIdentityOrImplicitReference())
                 {
                     issueSpan = candidateIssueSpan;
                     return true;
                 }
             }
-            else if (typeName.Parent is DeclarationExpressionSyntax declarationExpressionSyntax)
+            else if (typeName.Parent is DeclarationExpressionSyntax declarationExpression &&
+                     TryAnalyzeDeclarationExpression(declarationExpression, semanticModel, optionSet, cancellationToken))
             {
                 issueSpan = candidateIssueSpan;
                 return true;
@@ -132,6 +152,61 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
 
             issueSpan = default;
             return false;
+        }
+
+        private bool TryAnalyzeDeclarationExpression(
+            DeclarationExpressionSyntax declarationExpression,
+            SemanticModel semanticModel,
+            OptionSet optionSet,
+            CancellationToken cancellationToken)
+        {
+            // It's not always safe to convert a decl expression like "Method(out int i)" to 
+            // "Method(out var i)".  Changing to 'var' may cause overload resolution errors.  
+            // Have to see if using 'var' means not resolving to the same type as before.  
+            // Note: this is fairly expensive, so we try to avoid this if we can by seeing if
+            // there are multiple candidates with the original call.  If not, then we don't
+            // have to do anything.
+            if (declarationExpression.Parent is ArgumentSyntax argument &&
+                argument.Parent is ArgumentListSyntax argumentList &&
+                argumentList.Parent is InvocationExpressionSyntax invocationExpression)
+            {
+                // If there was only one member in the group, and it was non-generic itself,
+                // then this change is safe to make without doing any complex analysis.  
+                // Multiple methods mean that switching to 'var' might remove information
+                // that affects overload resolution.  And if the method is generic, then 
+                // switching to 'var' may mean that inference might not work properly.
+                var memberGroup = semanticModel.GetMemberGroup(invocationExpression.Expression, cancellationToken);
+                if (memberGroup.Length == 1 &&
+                    memberGroup[0].GetTypeParameters().IsEmpty)
+                {
+                    return true;
+                }
+            }
+
+            // Do the expensive check.  Note: we can't use the SpeculationAnalyzer (or any 
+            // speculative analyzers) here.  This is due to https://github.com/dotnet/roslyn/issues/20724.
+            // Specifically, all the speculative helpers do not deal with with changes to code that 
+            // introduces a variable (in this case, the declaration expression).  The compiler sees
+            // this as an error because there are now two colliding variables, which causes all sorts
+            // of errors to be reported.
+            var tree = semanticModel.SyntaxTree;
+            var root = tree.GetRoot(cancellationToken);
+            var annotation = new SyntaxAnnotation();
+
+            var declarationTypeNode = declarationExpression.Type;
+            var declarationType = semanticModel.GetTypeInfo(declarationTypeNode, cancellationToken).Type;
+
+            var newRoot = root.ReplaceNode(
+                declarationTypeNode,
+                SyntaxFactory.IdentifierName("var").WithTriviaFrom(declarationTypeNode).WithAdditionalAnnotations(annotation));
+
+            var newTree = tree.WithRootAndOptions(newRoot, tree.Options);
+            var newSemanticModel = semanticModel.Compilation.ReplaceSyntaxTree(tree, newTree).GetSemanticModel(newTree);
+
+            var newDeclarationTypeNode = newTree.GetRoot(cancellationToken).GetAnnotatedNodes(annotation).Single();
+            var newDeclarationType = newSemanticModel.GetTypeInfo(newDeclarationTypeNode, cancellationToken).Type;
+
+            return SymbolEquivalenceComparer.Instance.Equals(declarationType, newDeclarationType);
         }
 
         /// <summary>
@@ -157,10 +232,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
                 return false;
             }
 
-            // cannot use implicit typing on method group, anonymous function or on dynamic
+            // cannot use implicit typing on method group or on dynamic
             var declaredType = semanticModel.GetTypeInfo(typeName, cancellationToken).Type;
-            if (declaredType != null &&
-               (declaredType.TypeKind == TypeKind.Delegate || declaredType.TypeKind == TypeKind.Dynamic))
+            if (declaredType != null && declaredType.TypeKind == TypeKind.Dynamic)
             {
                 return false;
             }

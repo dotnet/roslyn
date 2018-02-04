@@ -1,4 +1,4 @@
-﻿This document provides guidance for thinking about language interactions and testing compiler changes.
+This document provides guidance for thinking about language interactions and testing compiler changes.
 
 # General concerns:
 - Completeness of the specification as a guide for testing (is the spec complete enough to suggest what the compiler should do in each scenario?)
@@ -30,7 +30,12 @@
 - Performance and stress testing
  
 # Type and members
-- Access modifiers (public, protected, internal, protected internal, private), static modifier
+- Access modifiers (public, protected, internal, protected internal, private protected, private), static, ref
+    - types
+    - methods
+    - fields
+    - properties (including get/set accessors)
+    - events (including add/remove accessors)
 - Parameter modifiers (ref, out, params)
 - Attributes (including security attribute)
 - Generics (type arguments, constraints, variance)
@@ -92,6 +97,7 @@ Interaction with IDE, Debugger, and EnC should be worked out with relevant teams
     - Typing experience and dealing with incomplete code
     - Intellisense (squiggles, dot completion)
     - "go to" and renaming
+    - cref comments
     - UpgradeProject code fixer
     - More: [IDE Test Plan](https://github.com/dotnet/roslyn/blob/master/docs/contributing/IDE%20Test%20Plan.md)
 

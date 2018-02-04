@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var name = new AssemblyName("goo");
             name.Flags = AssemblyNameFlags.Retargetable | AssemblyNameFlags.PublicKey | AssemblyNameFlags.EnableJITcompileOptimizer | AssemblyNameFlags.EnableJITcompileTracking;
-            name.CultureInfo = new CultureInfo("en-US");
+            name.CultureInfo = new CultureInfo("en-US", useUserOverride: false);
             name.ContentType = AssemblyContentType.Default;
             name.Version = new Version(1, 2, 3, 4);
             name.ProcessorArchitecture = ProcessorArchitecture.X86;

@@ -43,9 +43,9 @@ namespace BuildBoss
         {
             Key = key;
             Document = document;
+            Namespace = document.Root.Name.Namespace;
             Manager = new XmlNamespaceManager(new NameTable());
-            Manager.AddNamespace("mb", SharedUtil.MSBuildNamespaceUriRaw);
-            Namespace = SharedUtil.MSBuildNamespace;
+            Manager.AddNamespace("mb", Namespace == XNamespace.None ? "" : SharedUtil.MSBuildNamespaceUriRaw);
         }
 
         internal RoslynProjectData GetRoslynProjectData()
@@ -60,7 +60,7 @@ namespace BuildBoss
 
         internal bool TryGetRoslynProjectData(out RoslynProjectData data, out string error)
         {
-            data = default(RoslynProjectData);
+            data = default;
             error = null;
 
             var typeElement = FindSingleProperty("RoslynProjectType");
@@ -122,6 +122,24 @@ namespace BuildBoss
         internal XElement GetTargetFramework() => Document.XPathSelectElements("//mb:TargetFramework", Manager).FirstOrDefault();
 
         internal XElement GetTargetFrameworks() => Document.XPathSelectElements("//mb:TargetFrameworks", Manager).FirstOrDefault();
+
+        internal IEnumerable<string> GetAllTargetFrameworks()
+        {
+            var targetFramework = GetTargetFramework();
+            if (targetFramework != null)
+            {
+                return new[] { targetFramework.Value.ToString() };
+            }
+
+            var targetFrameworks = GetTargetFrameworks();
+            if (targetFrameworks != null)
+            {
+                var all = targetFrameworks.Value.ToString().Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+                return all;
+            }
+
+            throw new InvalidOperationException();
+        }
 
         internal IEnumerable<XElement> GetAllPropertyGroupElements()
         {

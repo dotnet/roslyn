@@ -425,6 +425,19 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
         }
 
+        public static ImmutableArray<ITypeParameterSymbol> GetAllTypeParameters(this ISymbol symbol)
+        {
+            var results = ArrayBuilder<ITypeParameterSymbol>.GetInstance();
+
+            while (symbol != null)
+            {
+                results.AddRange(symbol.GetTypeParameters());
+                symbol = symbol.ContainingType;
+            }
+
+            return results.ToImmutableAndFree();
+        }
+
         public static ImmutableArray<ITypeSymbol> GetTypeArguments(this ISymbol symbol)
         {
             switch (symbol)

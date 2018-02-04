@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var oldTree = this.Parse(text);
             var newTree = oldTree.WithReplaceFirst("goo", "bar");
             Assert.Equal(0, oldTree.GetCompilationUnitRoot().Errors().Length);
-            Assert.NotEqual(0, newTree.GetCompilationUnitRoot().Errors().Length);
+            Assert.Equal(0, newTree.GetCompilationUnitRoot().Errors().Length);
 
             var diffs = SyntaxDifferences.GetRebuiltNodes(oldTree, newTree);
             TestDiffsInOrder(diffs,
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var text = "class goo { bar() { } }";
             var oldTree = this.Parse(text);
             var newTree = oldTree.WithReplaceFirst("goo", "bar");
-            Assert.NotEqual(0, oldTree.GetCompilationUnitRoot().Errors().Length);
+            Assert.Equal(0, oldTree.GetCompilationUnitRoot().Errors().Length);
             Assert.Equal(0, newTree.GetCompilationUnitRoot().Errors().Length);
 
             var diffs = SyntaxDifferences.GetRebuiltNodes(oldTree, newTree);

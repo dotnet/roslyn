@@ -18,22 +18,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
 
         private readonly IServiceProvider _serviceProvider;
         private readonly IForegroundNotificationService _notificationService;
-        private readonly IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> _asyncListeners;
+        private readonly IAsynchronousOperationListenerProvider _listenerProvider;
 
         [ImportingConstructor]
         public DesignerAttributeIncrementalAnalyzerProvider(
             SVsServiceProvider serviceProvider,
             IForegroundNotificationService notificationService,
-            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
+            IAsynchronousOperationListenerProvider listenerProvider)
         {
             _serviceProvider = serviceProvider;
             _notificationService = notificationService;
-            _asyncListeners = asyncListeners;
+            _listenerProvider = listenerProvider;
         }
 
-        public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
+        public IIncrementalAnalyzer CreateIncrementalAnalyzer(CodeAnalysis.Workspace workspace)
         {
-            return new DesignerAttributeIncrementalAnalyzer(_serviceProvider, _notificationService, _asyncListeners);
+            return new DesignerAttributeIncrementalAnalyzer(_serviceProvider, _notificationService, _listenerProvider);
         }
     }
 }

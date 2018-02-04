@@ -336,10 +336,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             var localDeclaration = (LocalDeclarationStatementSyntax)variableDeclaration.Parent;
             var scope = GetScope(variableDeclarator);
 
-            var newLocalDeclaration = localDeclaration.RemoveNode(variableDeclarator, SyntaxRemoveOptions.KeepNoTrivia)
-                .WithAdditionalAnnotations(Formatter.Annotation);
+            var newLocalDeclaration = variableDeclarator.GetLeadingTrivia().Any(t => t.IsDirective)
+                ? localDeclaration.RemoveNode(variableDeclarator, SyntaxRemoveOptions.KeepExteriorTrivia)
+                : localDeclaration.RemoveNode(variableDeclarator, SyntaxRemoveOptions.KeepNoTrivia);
 
-            return scope.ReplaceNode(localDeclaration, newLocalDeclaration);
+            return scope.ReplaceNode(
+                localDeclaration,
+                newLocalDeclaration.WithAdditionalAnnotations(Formatter.Annotation));
         }
 
         private SyntaxNode RemoveDeclaratorFromScope(VariableDeclaratorSyntax variableDeclarator, SyntaxNode scope)
@@ -536,13 +539,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
                             newInitializerSymbolInfo = newSemanticModelForInlinedDocument.GetSymbolInfo(inlinedNode, cancellationToken);
                             if (!SpeculationAnalyzer.SymbolInfosAreCompatible(originalInitializerSymbolInfo, newInitializerSymbolInfo, performEquivalenceCheck: true))
                             {
-                                if (replacementNodesWithChangedSemantics == null)
-                                {
-                                    replacementNodesWithChangedSemantics = new Dictionary<SyntaxNode, SyntaxNode>();
-                                }
-
+                                replacementNodesWithChangedSemantics = replacementNodesWithChangedSemantics ?? new Dictionary<SyntaxNode, SyntaxNode>();
                                 replacementNodesWithChangedSemantics.Add(inlinedNode, originalNode);
                             }
+                        }
+
+                        // Verification: Do not inline a variable into the left side of a deconstruction-assignment
+                        if (IsInDeconstructionAssignmentLeft(innerInitializerInInlineNode))
+                        {
+                            replacementNodesWithChangedSemantics = replacementNodesWithChangedSemantics ?? new Dictionary<SyntaxNode, SyntaxNode>();
+                            replacementNodesWithChangedSemantics.Add(inlinedNode, originalNode);
                         }
                     }
                 }
@@ -559,6 +565,32 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
                     newNode.WithAdditionalAnnotations(ConflictAnnotation.Create(CSharpFeaturesResources.Conflict_s_detected));
 
             return await inlinedDocument.ReplaceNodesAsync(replacementNodesWithChangedSemantics.Keys, conflictAnnotationAdder, cancellationToken).ConfigureAwait(false);
+        }
+
+        private static bool IsInDeconstructionAssignmentLeft(ExpressionSyntax node)
+        {
+            var parent = node.Parent;
+            while (parent.IsKind(SyntaxKind.ParenthesizedExpression, SyntaxKind.CastExpression))
+            {
+                parent = parent.Parent;
+            }
+
+            while (parent.IsKind(SyntaxKind.Argument))
+            {
+                parent = parent.Parent;
+                if (!parent.IsKind(SyntaxKind.TupleExpression))
+                {
+                    return false;
+                }
+                else if (parent.IsParentKind(SyntaxKind.SimpleAssignmentExpression))
+                {
+                    return ((AssignmentExpressionSyntax)parent.Parent).Left == parent;
+                }
+
+                parent = parent.Parent;
+            }
+
+            return false;
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction

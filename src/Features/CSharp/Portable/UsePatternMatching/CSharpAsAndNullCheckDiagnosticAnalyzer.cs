@@ -6,6 +6,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.ExtractMethod;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -39,7 +40,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
         protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterSyntaxNodeAction(SyntaxNodeAction,
-                SyntaxKind.IfStatement, SyntaxKind.WhileStatement);
+                SyntaxKind.IfStatement,
+                SyntaxKind.WhileStatement,
+                SyntaxKind.ReturnStatement,
+                SyntaxKind.LocalDeclarationStatement);
 
         private void SyntaxNodeAction(SyntaxNodeAnalysisContext syntaxContext)
         {
@@ -68,33 +72,71 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 return;
             }
 
-            var ifOrWhileStatement = (StatementSyntax)node;
-            var leftmostCondition = GetLeftmostCondition(ifOrWhileStatement);
-            if (!leftmostCondition.IsKind(SyntaxKind.NotEqualsExpression, out BinaryExpressionSyntax comparison))
+            var targetStatement = (StatementSyntax)node;
+            var leftmostCondition = GetLeftmostCondition(targetStatement);
+            if (leftmostCondition == null)
             {
                 return;
             }
 
+            bool isNegativeNullCheck;
+            switch (leftmostCondition.Kind())
+            {
+                case SyntaxKind.NotEqualsExpression:
+                    isNegativeNullCheck = false;
+                    break;
+                case SyntaxKind.EqualsExpression:
+                    isNegativeNullCheck = true;
+                    break;
+                default:
+                    return;
+            }
+
+            // The pattern variable is only definitely assigned if the pattern succeeded,
+            // so in the following cases it would not be safe to use pattern-matching.
+            // For example:
+            //
+            //      if ((x = o as string) == null && SomeExpression)
+            //      if ((x = o as string) != null || SomeExpression)
+            //
+            // x would never be definitely assigned if pattern matching were used
+            switch ((leftmostCondition.Parent as ExpressionSyntax)?.WalkUpParentheses().Kind())
+            {
+                case SyntaxKind.LogicalAndExpression when isNegativeNullCheck:
+                case SyntaxKind.LogicalOrExpression when !isNegativeNullCheck:
+                    return;
+            }
+
+            var comparison = (BinaryExpressionSyntax)leftmostCondition;
             var operand = GetNullCheckOperand(comparison.Left, comparison.Right)?.WalkDownParentheses();
             if (operand == null)
             {
                 return;
             }
 
+            var semanticModel = syntaxContext.SemanticModel;
+            if (operand.IsKind(SyntaxKind.CastExpression, out CastExpressionSyntax castExpression))
+            {
+                // Unwrap object cast
+                var castType = semanticModel.GetTypeInfo(castExpression.Type).Type;
+                if (castType.IsObjectType())
+                {
+                    operand = castExpression.Expression;
+                }
+            }
+
             // if/while has to be in a block so we can at least look for a preceding local variable declaration.
-            if (!ifOrWhileStatement.Parent.IsKind(SyntaxKind.Block, out BlockSyntax parentBlock))
+            if (!targetStatement.Parent.IsKind(SyntaxKind.Block, out BlockSyntax parentBlock))
             {
                 return;
             }
 
-            var blockStatements = parentBlock.Statements;
-            if (!TryGetTypeCheckParts(operand, ifOrWhileStatement, blockStatements,
+            if (!TryGetTypeCheckParts(operand, targetStatement, parentBlock,
                     out var declarator, out var asExpression))
             {
                 return;
             }
 
-            var semanticModel = syntaxContext.SemanticModel;
             if (semanticModel.GetSymbolInfo(comparison).GetAnySymbol().IsUserDefinedOperator())
             {
                 return;
@@ -138,8 +180,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             // If we convert this to 'if (o is Type x)' then 'x' will not be definitely assigned
             // in the Else branch of the IfStatement, or after the IfStatement. Make sure
             // that doesn't cause definite assignment issues.
-            if (IsAccessedBeforeAssignment(semanticModel, localSymbol,
-                    declarationStatement, ifOrWhileStatement, blockStatements, cancellationToken))
+            if (!CheckDefiniteAssignment(semanticModel, localSymbol,
+                    declarationStatement, targetStatement, parentBlock, isNegativeNullCheck))
             {
                 return;
             }
@@ -147,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             // Looks good!
             var additionalLocations = ImmutableArray.Create(
                 declarationStatement.GetLocation(),
-                ifOrWhileStatement.GetLocation(),
+                targetStatement.GetLocation(),
                 leftmostCondition.GetLocation(),
                 asExpression.GetLocation());
 
@@ -158,111 +200,112 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 additionalLocations));
         }
 
-        private static bool IsAccessedBeforeAssignment(
+        // Ensure that all usages of the pattern variable are
+        // in scope and definitely assigned after replacement.
+        private static bool CheckDefiniteAssignment(
             SemanticModel semanticModel,
             ISymbol localVariable,
             StatementSyntax declarationStatement,
-            StatementSyntax usageStatement,
-            SyntaxList<StatementSyntax> blockStatements,
-            CancellationToken cancellationToken)
+            StatementSyntax targetStatement,
+            BlockSyntax parentBlock,
+            bool isNegativeNullCheck)
         {
-            var isAssigned = false;
-            var isAccessedBeforeAssignment = false;
-
-            var usageIndex = blockStatements.IndexOf(usageStatement);
-            var declarationIndex = blockStatements.IndexOf(declarationStatement);
+            var statements = parentBlock.Statements;
+            var targetIndex = statements.IndexOf(targetStatement);
+            var declarationIndex = statements.IndexOf(declarationStatement);
 
             // Since we're going to remove this declaration-statement,
             // we need to first ensure that it's not used up to the target statement.
-            for (var index = declarationIndex + 1; index < usageIndex; index++)
+            if (declarationIndex + 1 < targetIndex)
             {
-                CheckDefiniteAssignment(
-                    semanticModel, localVariable, blockStatements[index],
-                    out isAssigned, out isAccessedBeforeAssignment,
-                    cancellationToken);
+                var dataFlow = semanticModel.AnalyzeDataFlow(
+                    statements[declarationIndex + 1], 
+                    statements[targetIndex - 1]);
 
-                if (isAssigned || isAccessedBeforeAssignment)
-                {
-                    return true;
-                }
-            }
-
-            // In case of an if-statement, we need to check if the variable
-            // is being accessed before assignment in the else clause.
-            if (usageStatement is IfStatementSyntax ifStatement)
-            {
-                CheckDefiniteAssignment(
-                    semanticModel, localVariable, ifStatement.Else,
-                    out isAssigned, out isAccessedBeforeAssignment,
-                    cancellationToken);
-
-                if (isAccessedBeforeAssignment)
-                {
-                    return true;
-                }
-
-                if (isAssigned)
+                if (dataFlow.ReadInside.Contains(localVariable) || 
+                    dataFlow.WrittenInside.Contains(localVariable))
                 {
                     return false;
                 }
             }
 
-            // Make sure that no access is made to the variable before assignment in the subsequent statements
-            for (int index = usageIndex + 1, n = blockStatements.Count; index < n; index++)
+            // In case of an if-statement, we need to check if the variable
+            // is being accessed before assignment in the opposite branch.
+            if (targetStatement.IsKind(SyntaxKind.IfStatement, out IfStatementSyntax ifStatement))
             {
-                CheckDefiniteAssignment(
-                    semanticModel, localVariable, blockStatements[index],
-                    out isAssigned, out isAccessedBeforeAssignment,
-                    cancellationToken);
-
-                if (isAccessedBeforeAssignment)
+                var statement = isNegativeNullCheck ? ifStatement.Statement : ifStatement.Else?.Statement;
+                if (statement != null)
                 {
-                    return true;
+                    var dataFlow = semanticModel.AnalyzeDataFlow(statement);
+                    if (dataFlow.DataFlowsIn.Contains(localVariable))
+                    {
+                        // Access before assignment is not safe in the opposite branch
+                        // as the variable is not definitely assgined at this point.
+                        // For example:
+                        //
+                        //    if (o is string x) { }
+                        //    else { Use(x); }
+                        //
+                        return false;
+                    }
+                    
+                    if (dataFlow.AlwaysAssigned.Contains(localVariable))
+                    {
+                        // If the variable is always assigned here, we don't need to check
+                        // subsequent statements as it's definitely assigned afterwards.
+                        // For example:
+                        //
+                        //     if (o is string x) { }
+                        //     else { x = null; }
+                        //
+                        return true;
+                    }
                 }
+            }
 
-                if (isAssigned)
+            // Make sure that no access is made to the variable before assignment in the subsequent statements
+            if (targetIndex + 1 < statements.Count)
+            {
+                var dataFlow = semanticModel.AnalyzeDataFlow(
+                    statements[targetIndex + 1],
+                    statements[statements.Count - 1]);
+
+                if (targetStatement.Kind() == SyntaxKind.WhileStatement)
                 {
                     // The scope of pattern variables in a while-statement does not leak out to
                     // the enclosing block so we bail also if there is any assignments afterwards.
-                    return usageStatement.Kind() == SyntaxKind.WhileStatement;
+                    if (dataFlow.ReadInside.Contains(localVariable) ||
+                        dataFlow.WrittenInside.Contains(localVariable))
+                    {
+                        return false;
+                    }
                 }
-            }
-
-            return false;
-        }
-
-        private static void CheckDefiniteAssignment(
-            SemanticModel semanticModel, ISymbol localVariable, SyntaxNode node,
-            out bool isAssigned, out bool isAccessedBeforeAssignment,
-            CancellationToken cancellationToken)
-        {
-            if (node != null)
-            {
-                foreach (var descendantNode in node.DescendantNodes())
+                else if (dataFlow.DataFlowsIn.Contains(localVariable))
                 {
-                    if(!descendantNode.IsKind(SyntaxKind.IdentifierName, out IdentifierNameSyntax id))
-                    {
-                        continue;
-                    }
-
-                    var symbol = semanticModel.GetSymbolInfo(id, cancellationToken).GetAnySymbol();
-                    if (localVariable.Equals(symbol))
-                    {
-                        isAssigned = id.IsOnlyWrittenTo();
-                        isAccessedBeforeAssignment = !isAssigned;
-                        return;
-                    }
+                    // Access before assignment here is only valid if we have a negative
+                    // pattern-matching in an if-statement with an unreachable endpoint.
+                    // For example:
+                    //
+                    //      if (!(o is string x)) {
+                    //        return;
+                    //      }
+                    //
+                    //      // The 'return' statement above ensures x is definitely assigned here
+                    //      Console.WriteLine(x);
+                    //
+                    return isNegativeNullCheck &&
+                       ifStatement != null &&
+                       !semanticModel.AnalyzeControlFlow(ifStatement.Statement).EndPointIsReachable;
                 }
             }
 
-            isAssigned = false;
-            isAccessedBeforeAssignment = false;
+            return true;
         }
 
         private static bool TryGetTypeCheckParts(
             SyntaxNode operand,
-            StatementSyntax usageStatement,
-            SyntaxList<StatementSyntax> blockStatements,
+            StatementSyntax targetStatement,
+            BlockSyntax parentBlock,
             out SyntaxNode variableDeclarator,
             out SyntaxNode asExpression)
         {
@@ -279,12 +322,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 //
                 // That's because in this case, unlike the original code, we're type-checking in every iteration
                 // so we do not replace simple null check with the "is" operator if it's in a while loop
-                case SyntaxKind.IdentifierName when usageStatement.Kind() != SyntaxKind.WhileStatement:
+                case SyntaxKind.IdentifierName when targetStatement.Kind() != SyntaxKind.WhileStatement:
                 {
                     // var x = e as T;
                     // if (x != null) F(x);
                     var identifier = (IdentifierNameSyntax)operand;
-                    var declarator = TryFindVariableDeclarator(identifier, usageStatement, blockStatements);
+                    var declarator = TryFindVariableDeclarator(identifier, targetStatement, parentBlock);
                     var initializerValue = declarator?.Initializer?.Value;
                     if (!initializerValue.IsKind(SyntaxKind.AsExpression))
                     {
@@ -308,7 +351,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                     }
 
                     var identifier = (IdentifierNameSyntax)assignment.Left;
-                    var declarator = TryFindVariableDeclarator(identifier, usageStatement, blockStatements);
+                    var declarator = TryFindVariableDeclarator(identifier, targetStatement, parentBlock);
                     if (declarator == null)
                     {
                         break;
@@ -326,12 +369,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
         }
 
         private static VariableDeclaratorSyntax TryFindVariableDeclarator(
-            IdentifierNameSyntax identifier, StatementSyntax usageStatement, SyntaxList<StatementSyntax> blockStatements)
+            IdentifierNameSyntax identifier, StatementSyntax targetStatement, BlockSyntax parentBlock)
         {
-            var usageIndex = blockStatements.IndexOf(usageStatement);
-            for (var index = usageIndex - 1; index >= 0; index--)
+            var statement = parentBlock.Statements;
+            var targetIndex = statement.IndexOf(targetStatement);
+            for (var index = targetIndex - 1; index >= 0; index--)
             {
-                if (!blockStatements[index].IsKind(SyntaxKind.LocalDeclarationStatement,
+                if (!statement[index].IsKind(SyntaxKind.LocalDeclarationStatement,
                         out LocalDeclarationStatementSyntax declarationStatement))
                 {
                     continue;
@@ -376,6 +420,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                         continue;
                     case SyntaxKind.IfStatement:
                         node = ((IfStatementSyntax)node).Condition;
+                        continue;
+                    case SyntaxKind.ReturnStatement:
+                        node = ((ReturnStatementSyntax)node).Expression;
+                        continue;
+                    case SyntaxKind.LocalDeclarationStatement:
+                        var declarators = ((LocalDeclarationStatementSyntax)node).Declaration.Variables;
+                        // We require this to be the only declarator in the declaration statement
+                        // to simplify definitive assignment check and the code fix for now
+                        var value = declarators.Count == 1 ? declarators[0].Initializer?.Value : null;
+                        if (value == null)
+                        {
+                            return null;
+                        }
+
+                        node = value;
                         continue;
                     case SyntaxKind.ParenthesizedExpression:
                         node = ((ParenthesizedExpressionSyntax)node).Expression;

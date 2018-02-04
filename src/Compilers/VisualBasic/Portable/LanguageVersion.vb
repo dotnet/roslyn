@@ -159,6 +159,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Function DisallowInferredTupleElementNames(self As LanguageVersion) As Boolean
             Return self < Feature.InferredTupleNames.GetLanguageVersion()
         End Function
+
+        <Extension>
+        Friend Function AllowNonTrailingNamedArguments(self As LanguageVersion) As Boolean
+            Return self >= Feature.NonTrailingNamedArguments.GetLanguageVersion()
+        End Function
     End Module
 
     Friend Class VisualBasicRequiredLanguageVersion

@@ -107,7 +107,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' A non-empty SingleLookupResult with the result is returned.
         '
         ' For symbols from outside of this compilation the method also checks 
-        ' if the symbol is marked with 'Microsoft.VisualBasic.Embedded' attribute.
+        ' if the symbol is marked with 'Microsoft.VisualBasic.Embedded' or 'Microsoft.CodeAnalysis.Embedded' attributes.
         '
         ' If arity passed in is -1, no arity checks are done.
         Friend Function CheckViability(sym As Symbol,
@@ -153,9 +153,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 unwrappedSym = asAlias.Target
             End If
 
-            ' Check for external symbols marked with 'Microsoft.VisualBasic.Embedded' attribute
-            If unwrappedSym.ContainingModule IsNot Me.ContainingModule AndAlso unwrappedSym.IsHiddenByEmbeddedAttribute() Then
-                Return SingleLookupResult.Empty
+            ' Check for external symbols marked with 'Microsoft.VisualBasic.Embedded' or 'Microsoft.CodeAnalysis.Embedded' attributes
+            If unwrappedSym.ContainingModule IsNot Me.ContainingModule Then
+                If unwrappedSym.IsHiddenByVisualBasicEmbeddedAttribute() OrElse unwrappedSym.IsHiddenByCodeAnalysisEmbeddedAttribute() Then
+                    Return SingleLookupResult.Empty
+                End If
             End If
 
             If unwrappedSym.Kind = SymbolKind.NamedType AndAlso unwrappedSym.EmbeddedSymbolKind = EmbeddedSymbolKind.EmbeddedAttribute AndAlso

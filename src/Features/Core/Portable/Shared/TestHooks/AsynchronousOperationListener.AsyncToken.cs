@@ -6,7 +6,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
 {
     internal partial class AsynchronousOperationListener
     {
-        protected internal class AsyncToken : IAsyncToken
+        internal class AsyncToken : IAsyncToken
         {
             private readonly AsynchronousOperationListener _listener;
 

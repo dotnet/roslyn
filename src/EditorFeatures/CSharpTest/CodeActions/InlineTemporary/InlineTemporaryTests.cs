@@ -1375,6 +1375,8 @@ class C
 @"
 {
         int y,
+#if true
+
 #endif
         z;
 
@@ -1399,7 +1401,9 @@ class C
 {
         int y,
 #if true
-        z;
+        z
+#endif
+        ;
 
         int a = 1;
 }");
@@ -4210,18 +4214,16 @@ class C
         var t = ((i, (i, _)) = (1, (i, 3)));
     }
 }";
-
             var expected = @"
 class C
 {
     static int y = 1;
     void M()
     {
-        var t = (((int)C.y, ((int)C.y, _)) = (1, (C.y, 3)));
+        int i = C.y;
+        var t = (({|Conflict:(int)C.y|}, ({|Conflict:(int)C.y|}, _)) = (1, (C.y, 3)));
     }
 }";
-            // This refactoring should be blocked with an annotation, as the result of a cast is an L-value
-            // Follow-up issue: https://github.com/dotnet/roslyn/issues/19047
             await TestInRegularAndScriptAsync(code, expected);
         }
 
@@ -4239,18 +4241,16 @@ class C
         var t = ((i, _) = (1, 2));
     }
 }";
-
             var expected = @"
 class C
 {
     static int y = 1;
     void M()
     {
-        var t = (((int)C.y, _) = (1, 2));
+        int i = C.y;
+        var t = (({|Conflict:(int)C.y|}, _) = (1, 2));
     }
 }";
-            // This refactoring should be blocked with an annotation, as the result of a cast is an L-value
-            // Follow-up issue: https://github.com/dotnet/roslyn/issues/19047
             await TestInRegularAndScriptAsync(code, expected);
         }
 
@@ -4446,8 +4446,7 @@ class C
     void M()
     {
         var t = new {
-            /*comment*/
-            i = 1 + 2,
+            /*comment*/ i = 1 + 2,
             /*comment*/ j = 3
         };
     }
@@ -4538,6 +4537,32 @@ class C
     bool M<T>(out T x) 
     {
         return M(out x) || M(out x);
+    }
+}");
+        }
+
+        [WorkItem(16819, "https://github.com/dotnet/roslyn/issues/16819")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task InlineVariableDoesNotAddsDuplicateCast()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        var [||]o = (Exception)null;
+        Console.Write(o == new Exception());
+    }
+}",
+@"using System;
+
+class C
+{
+    void M()
+    {
+        Console.Write((Exception)null == new Exception());
     }
 }");
         }

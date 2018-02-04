@@ -1240,7 +1240,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     // The lambda has already been included when enumerating parent body matches.
                     Debug.Assert(
                         !map.ContainsKey(pair.Key) ||
-                        pair.Key == lambdaBodyMatch.OldRoot && pair.Value == lambdaBodyMatch.NewRoot && IsLambda(pair.Key));
+                        pair.Key == lambdaBodyMatch.OldRoot && pair.Value == lambdaBodyMatch.NewRoot && IsLambda(pair.Key) && IsLambda(pair.Value));
 
                     map[pair.Key] = pair.Value;
                     reverseMap[pair.Value] = pair.Key;
@@ -3318,7 +3318,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         private ValueTuple<SyntaxNode, int> GetParameterKey(IParameterSymbol parameter, CancellationToken cancellationToken)
         {
             var containingLambda = parameter.ContainingSymbol as IMethodSymbol;
-            if (containingLambda?.MethodKind == MethodKind.LambdaMethod)
+            if (containingLambda?.MethodKind == MethodKind.LambdaMethod ||
+                containingLambda?.MethodKind == MethodKind.LocalFunction)
             {
                 var oldContainingLambdaSyntax = GetSymbolSyntax(containingLambda, cancellationToken);
                 return ValueTuple.Create(oldContainingLambdaSyntax, parameter.Ordinal);

@@ -14,6 +14,7 @@ using System.Globalization;
 using System.Text;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Scripting.Test;
+using KeyValuePair = Roslyn.Utilities.KeyValuePair;
 
 namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
 {

@@ -224,7 +224,7 @@ VerifyIL("Test.<G>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNe
     IL_0009:  ble.un.s   IL_0012
     IL_000b:  ldarg.0
     IL_000c:  ldc.i4.1
-    IL_000d:  stfld      ""int Test.<G>d__0.<x>5__1""
+    IL_000d:  stfld      ""int Test.<G>d__0.<x>5__2""
     IL_0012:  nop
     .try
     {
@@ -287,10 +287,10 @@ VerifyIL("Test.<G>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNe
           IL_0093:  call       ""void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()""
           IL_0098:  ldarg.0
           IL_0099:  ldarg.0
-          IL_009a:  ldfld      ""int Test.<G>d__0.<x>5__1""
+          IL_009a:  ldfld      ""int Test.<G>d__0.<x>5__2""
           IL_009f:  ldc.i4.1
           IL_00a0:  add
-          IL_00a1:  stfld      ""int Test.<G>d__0.<x>5__1""
+          IL_00a1:  stfld      ""int Test.<G>d__0.<x>5__2""
           IL_00a6:  call       ""System.Runtime.CompilerServices.YieldAwaitable System.Threading.Tasks.Task.Yield()""
           IL_00ab:  stloc.3
           IL_00ac:  ldloca.s   V_3
@@ -328,10 +328,10 @@ VerifyIL("Test.<G>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNe
           IL_00fe:  call       ""void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()""
           IL_0103:  ldarg.0
           IL_0104:  ldarg.0
-          IL_0105:  ldfld      ""int Test.<G>d__0.<x>5__1""
+          IL_0105:  ldfld      ""int Test.<G>d__0.<x>5__2""
           IL_010a:  ldc.i4.1
           IL_010b:  add
-          IL_010c:  stfld      ""int Test.<G>d__0.<x>5__1""
+          IL_010c:  stfld      ""int Test.<G>d__0.<x>5__2""
           IL_0111:  call       ""System.Runtime.CompilerServices.YieldAwaitable System.Threading.Tasks.Task.Yield()""
           IL_0116:  stloc.3
           IL_0117:  ldloca.s   V_3
@@ -369,10 +369,10 @@ VerifyIL("Test.<G>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNe
           IL_0169:  call       ""void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()""
           IL_016e:  ldarg.0
           IL_016f:  ldarg.0
-          IL_0170:  ldfld      ""int Test.<G>d__0.<x>5__1""
+          IL_0170:  ldfld      ""int Test.<G>d__0.<x>5__2""
           IL_0175:  ldc.i4.1
           IL_0176:  add
-          IL_0177:  stfld      ""int Test.<G>d__0.<x>5__1""
+          IL_0177:  stfld      ""int Test.<G>d__0.<x>5__2""
           IL_017c:  call       ""System.Runtime.CompilerServices.YieldAwaitable System.Threading.Tasks.Task.Yield()""
           IL_0181:  stloc.3
           IL_0182:  ldloca.s   V_3
@@ -410,10 +410,10 @@ VerifyIL("Test.<G>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNe
           IL_01d4:  call       ""void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()""
           IL_01d9:  ldarg.0
           IL_01da:  ldarg.0
-          IL_01db:  ldfld      ""int Test.<G>d__0.<x>5__1""
+          IL_01db:  ldfld      ""int Test.<G>d__0.<x>5__2""
           IL_01e0:  ldc.i4.1
           IL_01e1:  add
-          IL_01e2:  stfld      ""int Test.<G>d__0.<x>5__1""
+          IL_01e2:  stfld      ""int Test.<G>d__0.<x>5__2""
           IL_01e7:  call       ""System.Runtime.CompilerServices.YieldAwaitable System.Threading.Tasks.Task.Yield()""
           IL_01ec:  stloc.3
           IL_01ed:  ldloca.s   V_3
@@ -451,10 +451,10 @@ VerifyIL("Test.<G>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNe
           IL_023f:  call       ""void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()""
           IL_0244:  ldarg.0
           IL_0245:  ldarg.0
-          IL_0246:  ldfld      ""int Test.<G>d__0.<x>5__1""
+          IL_0246:  ldfld      ""int Test.<G>d__0.<x>5__2""
           IL_024b:  ldc.i4.1
           IL_024c:  add
-          IL_024d:  stfld      ""int Test.<G>d__0.<x>5__1""
+          IL_024d:  stfld      ""int Test.<G>d__0.<x>5__2""
           IL_0252:  call       ""System.Runtime.CompilerServices.YieldAwaitable System.Threading.Tasks.Task.Yield()""
           IL_0257:  stloc.3
           IL_0258:  ldloca.s   V_3
@@ -492,10 +492,10 @@ VerifyIL("Test.<G>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNe
           IL_02aa:  call       ""void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()""
           IL_02af:  ldarg.0
           IL_02b0:  ldarg.0
-          IL_02b1:  ldfld      ""int Test.<G>d__0.<x>5__1""
+          IL_02b1:  ldfld      ""int Test.<G>d__0.<x>5__2""
           IL_02b6:  ldc.i4.1
           IL_02b7:  add
-          IL_02b8:  stfld      ""int Test.<G>d__0.<x>5__1""
+          IL_02b8:  stfld      ""int Test.<G>d__0.<x>5__2""
           IL_02bd:  leave.s    IL_02d2
         }
         finally
@@ -505,10 +505,10 @@ VerifyIL("Test.<G>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNe
           IL_02c1:  bge.s      IL_02d1
           IL_02c3:  ldarg.0
           IL_02c4:  ldarg.0
-          IL_02c5:  ldfld      ""int Test.<G>d__0.<x>5__1""
+          IL_02c5:  ldfld      ""int Test.<G>d__0.<x>5__2""
           IL_02ca:  ldc.i4.1
           IL_02cb:  add
-          IL_02cc:  stfld      ""int Test.<G>d__0.<x>5__1""
+          IL_02cc:  stfld      ""int Test.<G>d__0.<x>5__2""
           IL_02d1:  endfinally
         }
         IL_02d2:  leave.s    IL_02e7
@@ -520,10 +520,10 @@ VerifyIL("Test.<G>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNe
         IL_02d6:  bge.s      IL_02e6
         IL_02d8:  ldarg.0
         IL_02d9:  ldarg.0
-        IL_02da:  ldfld      ""int Test.<G>d__0.<x>5__1""
+        IL_02da:  ldfld      ""int Test.<G>d__0.<x>5__2""
         IL_02df:  ldc.i4.1
         IL_02e0:  add
-        IL_02e1:  stfld      ""int Test.<G>d__0.<x>5__1""
+        IL_02e1:  stfld      ""int Test.<G>d__0.<x>5__2""
         IL_02e6:  endfinally
       }
       IL_02e7:  leave.s    IL_02fc
@@ -535,14 +535,14 @@ VerifyIL("Test.<G>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNe
       IL_02eb:  bge.s      IL_02fb
       IL_02ed:  ldarg.0
       IL_02ee:  ldarg.0
-      IL_02ef:  ldfld      ""int Test.<G>d__0.<x>5__1""
+      IL_02ef:  ldfld      ""int Test.<G>d__0.<x>5__2""
       IL_02f4:  ldc.i4.1
       IL_02f5:  add
-      IL_02f6:  stfld      ""int Test.<G>d__0.<x>5__1""
+      IL_02f6:  stfld      ""int Test.<G>d__0.<x>5__2""
       IL_02fb:  endfinally
     }
     IL_02fc:  ldarg.0
-    IL_02fd:  ldfld      ""int Test.<G>d__0.<x>5__1""
+    IL_02fd:  ldfld      ""int Test.<G>d__0.<x>5__2""
     IL_0302:  stloc.1
     IL_0303:  leave.s    IL_031e
   }
@@ -955,6 +955,9 @@ class Test
 
             v.VerifyPdb("Test.G", @"
 <symbols>
+  <files>
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+  </files>
   <entryPoint declaringType=""Test"" methodName=""Main"" />
   <methods>
     <method containingType=""Test"" name=""G"">

@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
 
             // Enable shared cache so that multiple connections inside of same process share cache
             // see https://sqlite.org/threadsafe.html for more detail
-            var flags = OpenFlags.SQLITE_OPEN_CREATE | OpenFlags.SQLITE_OPEN_READWRITE | OpenFlags.SQLITE_OPEN_SHAREDCACHE;
+            var flags = OpenFlags.SQLITE_OPEN_CREATE | OpenFlags.SQLITE_OPEN_READWRITE | OpenFlags.SQLITE_OPEN_NOMUTEX | OpenFlags.SQLITE_OPEN_SHAREDCACHE;
             var result = (Result)raw.sqlite3_open_v2(databasePath, out var handle, (int)flags, vfs: null);
 
             if (result != Result.OK)
@@ -146,6 +146,7 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
             catch (SqlException ex) when (ex.Result == Result.FULL ||
                                           ex.Result == Result.IOERR ||
                                           ex.Result == Result.BUSY ||
+                                          ex.Result == Result.LOCKED ||
                                           ex.Result == Result.NOMEM)
             {
                 // See documentation here: https://sqlite.org/lang_transaction.html
@@ -156,6 +157,7 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
                 // SQLITE_FULL: database or disk full
                 // SQLITE_IOERR: disk I/ O error
                 // SQLITE_BUSY: database in use by another process
+                // SQLITE_LOCKED: database in use by another connection in the same process
                 // SQLITE_NOMEM: out or memory
 
                 // It is recommended that applications respond to the errors listed above by
@@ -277,6 +279,8 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
             => Throw(_handle, result);
 
         public static void Throw(sqlite3 handle, Result result)
-            => throw new SqlException(result, raw.sqlite3_errmsg(handle));
+            => throw new SqlException(result,
+                raw.sqlite3_errmsg(handle) + "\r\n" +
+                raw.sqlite3_errstr(raw.sqlite3_extended_errcode(handle)));
     }
 }

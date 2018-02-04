@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UseAutoProperty
     <Export>
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
-    Friend Class UseAutoPropertyAnalyzer
+    Friend Class VisualBasicUseAutoPropertyAnalyzer
         Inherits AbstractUseAutoPropertyAnalyzer(Of PropertyBlockSyntax, FieldDeclarationSyntax, ModifiedIdentifierSyntax, ExpressionSyntax)
 
         Protected Overrides Function SupportsReadOnlyProperties(compilation As Compilation) As Boolean
@@ -21,7 +21,47 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UseAutoProperty
             Return DirectCast(compilation, VisualBasicCompilation).LanguageVersion >= LanguageVersion.VisualBasic10
         End Function
 
-        Protected Overrides Sub RegisterIneligibleFieldsAction(context As CompilationStartAnalysisContext, ineligibleFields As ConcurrentBag(Of IFieldSymbol))
+        Protected Overrides Function CanExplicitInterfaceImplementationsBeFixed() As Boolean
+            Return True
+        End Function
+
+        Protected Overrides Sub AnalyzeCompilationUnit(context As SemanticModelAnalysisContext, root As SyntaxNode, analysisResults As List(Of AnalysisResult))
+            AnalyzeMembers(context, DirectCast(root, CompilationUnitSyntax).Members, analysisResults)
+        End Sub
+
+        Private Sub AnalyzeMembers(context As SemanticModelAnalysisContext,
+                                   members As SyntaxList(Of StatementSyntax),
+                                   analysisResults As List(Of AnalysisResult))
+            For Each member In members
+                AnalyzeMember(context, member, analysisResults)
+            Next
+        End Sub
+
+        Private Sub AnalyzeMember(context As SemanticModelAnalysisContext,
+                                  member As StatementSyntax,
+                                  analysisResults As List(Of AnalysisResult))
+
+            If member.Kind() = SyntaxKind.NamespaceBlock Then
+                Dim namespaceBlock = DirectCast(member, NamespaceBlockSyntax)
+                AnalyzeMembers(context, namespaceBlock.Members, analysisResults)
+            End If
+
+            ' If we have a class or struct or module, recurse inwards.
+            If member.IsKind(SyntaxKind.ClassBlock) OrElse
+               member.IsKind(SyntaxKind.StructureBlock) OrElse
+               member.IsKind(SyntaxKind.ModuleBlock) Then
+
+                Dim typeBlock = DirectCast(member, TypeBlockSyntax)
+                AnalyzeMembers(context, typeBlock.Members, analysisResults)
+            End If
+
+            Dim propertyDeclaration = TryCast(member, PropertyBlockSyntax)
+            If propertyDeclaration IsNot Nothing Then
+                AnalyzeProperty(context, propertyDeclaration, analysisResults)
+            End If
+        End Sub
+
+        Protected Overrides Sub RegisterIneligibleFieldsAction(analysisResults As List(Of AnalysisResult), ineligibleFields As HashSet(Of IFieldSymbol), compilation As Compilation, cancellationToken As CancellationToken)
             ' There are no syntactic constructs that make a field ineligible to be replaced with 
             ' a property.  In C# you can't use a property in a ref/out position.  But that restriction
             ' doesn't apply to VB.
@@ -37,7 +77,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UseAutoProperty
                 Dim memberAccessExpression = DirectCast(expression, MemberAccessExpressionSyntax)
                 Return memberAccessExpression.Expression.Kind() = SyntaxKind.MeExpression AndAlso
                     memberAccessExpression.Name.Kind() = SyntaxKind.IdentifierName
-            ElseIf expression.IsKind(SyntaxKind.IdentifierName)
+            ElseIf expression.IsKind(SyntaxKind.IdentifierName) Then
                 Return True
             End If
 
