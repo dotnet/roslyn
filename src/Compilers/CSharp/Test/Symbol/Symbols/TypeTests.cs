@@ -1865,6 +1865,12 @@ public interface I1
             var i1 = compilation.SourceAssembly.GetTypeByMetadataName("I1");
 
             Assert.True(i1.IsExplicitDefinitionOfNoPiaLocalType);
+
+            compilation = CreateStandardCompilation(code);
+            i1 = compilation.SourceAssembly.GetTypeByMetadataName("I1");
+            i1.GetAttributes();
+
+            Assert.True(i1.IsExplicitDefinitionOfNoPiaLocalType);
         }
 
         [Fact]
@@ -1911,6 +1917,11 @@ namespace NS1
                 //     [alias1]
                 Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "alias1").WithArguments("TypeIdentifier").WithLocation(8, 6)
                 );
+
+            compilation = CreateStandardCompilation(code);
+            i1 = compilation.SourceAssembly.GetTypeByMetadataName("NS1.I1");
+            i1.GetAttributes();
+            Assert.False(i1.IsExplicitDefinitionOfNoPiaLocalType);
         }
 
         [Fact]
