@@ -455,6 +455,29 @@ class B
 }");
         }
 
+        [WorkItem(24628, "https://github.com/dotnet/roslyn/issues/24628")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseThrowExpression)]
+        public async Task TestNotWhenAccessedOnLineBefore()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+using System.Collections.Generic;
+
+class B
+{
+    public B(object arg)
+    {
+        Dictionary<object, object> map = null;
+
+        if (arg == null) [|throw|] new ArgumentNullException();
+        var key = MakeKey(arg);
+        map[key] = arg;
+    }
+
+    object MakeKey(object x) => null;
+}");
+        }
+
         [WorkItem(22926, "https://github.com/dotnet/roslyn/issues/22926")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseThrowExpression)]
         public async Task TestNotWhenUnconstrainedTypeParameter()
