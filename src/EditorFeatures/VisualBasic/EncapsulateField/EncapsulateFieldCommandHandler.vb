@@ -6,9 +6,12 @@ Imports Microsoft.CodeAnalysis.Editor.Implementation.EncapsulateField
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.VisualStudio.Utilities
+Imports VSCommanding = Microsoft.VisualStudio.Commanding
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EncapsulateField
-    <ExportCommandHandler(PredefinedCommandHandlerNames.EncapsulateField, ContentTypeNames.VisualBasicContentType)>
+    <Export(GetType(VSCommanding.ICommandHandler))>
+    <ContentType(ContentTypeNames.VisualBasicContentType)>
+    <Name(PredefinedCommandHandlerNames.EncapsulateField)>
     <Order(After:=PredefinedCommandHandlerNames.DocumentationComments)>
     Friend Class EncapsulateFieldCommandHandler
         Inherits AbstractEncapsulateFieldCommandHandler
