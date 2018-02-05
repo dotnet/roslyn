@@ -108,8 +108,8 @@
                                           Checked="ExpanderToggleButton_CheckedChanged" Unchecked="ExpanderToggleButton_CheckedChanged"/>
                             <Border Name="SeverityIconBorder" Height="16" Width="16" Margin="-3,0,0,-2"/>
                             <TextBlock Name="IdTextBlock" Margin="2,0">
-                                <Hyperlink Name="IdHyperlink" 
-                                           IsEnabled="False" 
+                                <Hyperlink Name="IdHyperlink"
+                                           IsEnabled="False"
                                            RequestNavigate="LearnMoreHyperlink_RequestNavigate"
                                            Style="{StaticResource PreviewPaneHyperlinkStyle}"/>
                             </TextBlock>

@@ -97,6 +97,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
 
         private void PreviewPane_Loaded(object sender, RoutedEventArgs e)
         {
+            Loaded -= PreviewPane_Loaded;
             ParentElement = Parent as FrameworkElement;
         }
 
