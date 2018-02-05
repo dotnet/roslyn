@@ -133,9 +133,9 @@ namespace Microsoft.CodeAnalysis.AddParameter
             var arguments = (SeparatedSyntaxList<TArgumentSyntax>)syntaxFacts.GetArgumentsOfObjectCreationExpression(objectCreation);
             var methodCandidates = type.InstanceConstructors;
 
-            var constructorsAndArgumentToAdd = GetArgumentInsertPositionForMethodCandidates(argumentOpt, semanticModel, syntaxFacts, arguments, methodCandidates);
+            var insertionData = GetArgumentInsertPositionForMethodCandidates(argumentOpt, semanticModel, syntaxFacts, arguments, methodCandidates);
 
-            RegisterFixForMethodOverloads(context, arguments, constructorsAndArgumentToAdd);
+            RegisterFixForMethodOverloads(context, arguments, insertionData);
         }
 
         private void RegisterFixForMethodOverloads(
