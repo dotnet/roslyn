@@ -447,6 +447,29 @@ public class Test : short { }
         }
 
         [Fact]
+        [WorkItem(3898, "https://github.com/dotnet/roslyn/issues/3898")]
+        public void Retarget_IsSerializable()
+        {
+            var source = @"
+public class Test { }
+[System.Serializable]
+public class TestS { }
+";
+
+            var comp = CreateStandardCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var retargetingAssembly = new RetargetingAssemblySymbol((SourceAssemblySymbol)comp.Assembly, isLinked: false);
+            var retargetingType = retargetingAssembly.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
+            Assert.IsType<RetargetingNamedTypeSymbol>(retargetingType);
+            Assert.False(((INamedTypeSymbol)retargetingType).IsSerializable);
+
+            var retargetingTypeS = retargetingAssembly.GlobalNamespace.GetMember<NamedTypeSymbol>("TestS");
+            Assert.IsType<RetargetingNamedTypeSymbol>(retargetingTypeS);
+            Assert.True(((INamedTypeSymbol)retargetingTypeS).IsSerializable);
+        }
+
+        [Fact]
         [WorkItem(604878, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/604878")]
         public void RetargetInvalidBaseType_Struct()
         {

@@ -239,13 +239,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        // The iterator transformation causes some unreachable code to become
-        // reachable from the code gen's point of view, so we analyze the unreachable code too.
-        protected override LocalState UnreachableState()
-        {
-            return this.State;
-        }
-
         protected override void VisitLvalueParameter(BoundParameter node)
         {
             TryHoistTopLevelParameter(node);

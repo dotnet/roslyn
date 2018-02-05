@@ -2040,7 +2040,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal override bool IsSerializable
+        public override bool IsSerializable
         {
             get { return (_flags & TypeAttributes.Serializable) != 0; }
         }
