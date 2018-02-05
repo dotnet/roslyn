@@ -142,16 +142,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 var varDecl = variableDeclarator.Parent as VariableDeclarationSyntax;
                 switch (varDecl.Parent)
                 {
-                    case ParameterSyntax parameter:
-                        return ClassificationTypeNames.ParameterName;
                     case FieldDeclarationSyntax fieldDeclaration:
-                        return fieldDeclaration.Modifiers.Any(m => m.IsKind(SyntaxKind.ConstKeyword)) ? ClassificationTypeNames.ConstantName : ClassificationTypeNames.LocalName;
+                        return fieldDeclaration.Modifiers.Any(m => m.IsKind(SyntaxKind.ConstKeyword)) ? ClassificationTypeNames.ConstantName : ClassificationTypeNames.FieldName;
                     case LocalDeclarationStatementSyntax localDeclarationStatement:
                         return localDeclarationStatement.IsConst ? ClassificationTypeNames.ConstantName : ClassificationTypeNames.LocalName;
+                    case FixedStatementSyntax fixedStatementSyntax:
+                        return ClassificationTypeNames.LocalName;
                     case EventDeclarationSyntax eventDeclarationSyntax:
                         return ClassificationTypeNames.EventName;
                 }
                 return ClassificationTypeNames.Identifier;
+            }
+            else if (token.Parent is ParameterSyntax parameterSyntax && parameterSyntax.Identifier == token)
+            {
+                return ClassificationTypeNames.ParameterName;
+            }
+            else if (token.Parent is ForEachStatementSyntax forEachStatementSyntax && forEachStatementSyntax.Identifier == token)
+            {
+                return ClassificationTypeNames.LocalName;
             }
             else if (IsActualContextualKeyword(token))
             {

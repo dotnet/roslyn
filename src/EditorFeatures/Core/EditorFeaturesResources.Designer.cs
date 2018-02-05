@@ -1745,16 +1745,117 @@ namespace Microsoft.CodeAnalysis.Editor {
                 return ResourceManager.GetString("User_Types_Structures", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to User Types - Type Parameters.
         /// </summary>
-        internal static string User_Types_Type_Parameters {
-            get {
+        internal static string User_Types_Type_Parameters
+        {
+            get
+            {
                 return ResourceManager.GetString("User_Types_Type_Parameters", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to User Types - Fields.
+        /// </summary>
+        internal static string User_Types_Fields
+        {
+            get
+            {
+                return ResourceManager.GetString("User_Types_Fields", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to User Types - Enum Fields.
+        /// </summary>
+        internal static string User_Types_EnumFields
+        {
+            get
+            {
+                return ResourceManager.GetString("User_Types_Enum_Fields", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to User Types - Locals.
+        /// </summary>
+        internal static string User_Types_Locals
+        {
+            get
+            {
+                return ResourceManager.GetString("User_Types_Locals", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to User Types - Constants
+        /// </summary>
+        internal static string User_Types_Constants
+        {
+            get
+            {
+                return ResourceManager.GetString("User_Types_Constants", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to User Types - Parameters.
+        /// </summary>
+        internal static string User_Types_Parameters
+        {
+            get
+            {
+                return ResourceManager.GetString("User_Types_Parameters", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to User Types - Methods.
+        /// </summary>
+        internal static string User_Types_Methods
+        {
+            get
+            {
+                return ResourceManager.GetString("User_Types_Methods", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to User Types - Extension Methods.
+        /// </summary>
+        internal static string User_Types_ExtensionMethods
+        {
+            get
+            {
+                return ResourceManager.GetString("User_Types_Extension_Methods", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to User Types - Properties.
+        /// </summary>
+        internal static string User_Types_Properties
+        {
+            get
+            {
+                return ResourceManager.GetString("User_Types_Properties", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to User Types - Events.
+        /// </summary>
+        internal static string User_Types_Events
+        {
+            get
+            {
+                return ResourceManager.GetString("User_Types_Events", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to VB XML Literals - Attribute Name.
         /// </summary>

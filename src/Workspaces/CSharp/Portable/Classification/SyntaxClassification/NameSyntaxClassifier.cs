@@ -176,6 +176,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                     classifiedSpan = new ClassifiedSpan(token.Span, ClassificationTypeNames.EventName);
                     return true;
                 case IParameterSymbol parameterSymbol:
+                    if (parameterSymbol.IsImplicitlyDeclared && parameterSymbol.Name == "value")
+                        break;
                     token = name.GetNameToken();
                     classifiedSpan = new ClassifiedSpan(token.Span, ClassificationTypeNames.ParameterName);
                     return true;
