@@ -849,5 +849,89 @@ class Program : IReadOnlyCollection<int,string>
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestExtensionMethodDeclaration()
+        {
+            await TestAsync(
+@"static class ExtMethod
+{
+    public static void TestMethod(this C c)
+    {
+    }
+}
+",
+                Keyword("static"),
+                Keyword("class"),
+                Class("ExtMethod"),
+                Punctuation.OpenCurly,
+                Keyword("public"),
+                Keyword("static"),
+                Keyword("void"),
+                ExtensionMethod("TestMethod"),
+                Punctuation.OpenParen,
+                Keyword("this"),
+                Identifier("C"),
+                Parameter("c"),
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestExtensionMethodUsage()
+        {
+            await TestAsync(
+@"static class ExtMethod
+{
+    public static void TestMethod(this C c)
+    {
+    }
+}
+
+class C
+{
+    void Test()
+    {
+        TestMethod(new C());
+    }
+}
+",
+                Keyword("static"),
+                Keyword("class"),
+                Class("ExtMethod"),
+                Punctuation.OpenCurly,
+                Keyword("public"),
+                Keyword("static"),
+                Keyword("void"),
+                ExtensionMethod("TestMethod"),
+                Punctuation.OpenParen,
+                Keyword("this"),
+                Class("C"),
+                Parameter("c"),
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly,
+                Keyword("class"),
+                Class("C"),
+                Punctuation.OpenCurly,
+                Keyword("void"),
+                Method("Test"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                ExtensionMethod("TestMethod"),
+                Punctuation.OpenParen,
+                Keyword("new"),
+                Class("C"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Punctuation.CloseParen,
+                Punctuation.Semicolon,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly);
+        }
     }
 }
