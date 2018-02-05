@@ -40,16 +40,15 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
         internal FindReferencesCommandHandler(
             [ImportMany] IEnumerable<IDefinitionsAndReferencesPresenter> synchronousPresenters,
             [ImportMany] IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters,
-            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
+            IAsynchronousOperationListenerProvider listenerProvider)
         {
             Contract.ThrowIfNull(synchronousPresenters);
             Contract.ThrowIfNull(streamingPresenters);
-            Contract.ThrowIfNull(asyncListeners);
+            Contract.ThrowIfNull(listenerProvider);
 
             _synchronousPresenters = synchronousPresenters;
             _streamingPresenters = streamingPresenters;
-            _asyncListener = new AggregateAsynchronousOperationListener(
-                asyncListeners, FeatureAttribute.FindReferences);
+            _asyncListener = listenerProvider.GetListener(FeatureAttribute.FindReferences);
         }
 
         public VSCommanding.CommandState GetCommandState(FindReferencesCommandArgs args)

@@ -355,7 +355,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Public ReadOnly DocumentProvider As Mock(Of IDocumentProvider)
             Public ReadOnly Provider As MockSignatureHelpProvider
 
-            Public Sub New(view As Mock(Of ITextView), buffer As ITextBuffer, presenter As Mock(Of IIntelliSensePresenter(Of ISignatureHelpPresenterSession, ISignatureHelpSession)), presenterSession As Mock(Of ISignatureHelpPresenterSession), asyncListener As Mock(Of IAsynchronousOperationListener), documentProvider As Mock(Of IDocumentProvider), provider As MockSignatureHelpProvider)
+            Public Sub New(view As Mock(Of ITextView),
+                           buffer As ITextBuffer,
+                           presenter As Mock(Of IIntelliSensePresenter(Of ISignatureHelpPresenterSession, ISignatureHelpSession)),
+                           presenterSession As Mock(Of ISignatureHelpPresenterSession),
+                           asyncListener As Mock(Of IAsynchronousOperationListener),
+                           documentProvider As Mock(Of IDocumentProvider),
+                           provider As MockSignatureHelpProvider)
                 Me.View = view
                 Me.Buffer = buffer
                 Me.Presenter = presenter
