@@ -1,9 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
-using Xunit;
 using Roslyn.Test.Utilities;
+using Xunit;
+using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive.Commands
 {
@@ -176,7 +176,7 @@ $@"#define DEF
             using (var workspace = InteractiveWindowCommandHandlerTestState.CreateTestState(code))
             {
                 PrepareSubmissionBuffer(submissionBuffer, workspace);
-                Assert.Equal(CommandState.Available, workspace.GetStateForExecuteInInteractive());
+                Assert.Equal(VSCommanding.CommandState.Available, workspace.GetStateForExecuteInInteractive());
 
                 workspace.Evaluator.OnExecute += appendSubmission;
                 workspace.ExecuteInInteractive();
