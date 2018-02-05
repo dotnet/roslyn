@@ -13,8 +13,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         public void UniqueIDEDiagnosticIds()
         {
             Type type = typeof(IDEDiagnosticIds);
-            List<string> ListOfIDEDiagnosticIds = type.GetFields().Select(x => x.GetValue(null).ToString()).ToList();
-            Assert.Equal(ListOfIDEDiagnosticIds.Count, ListOfIDEDiagnosticIds.Distinct().Count());
+            List<string> listOfIDEDiagnosticIds = type.GetFields().Select(x => x.GetValue(null).ToString()).ToList();
+            Assert.Equal(listOfIDEDiagnosticIds.Count, listOfIDEDiagnosticIds.Distinct().Count());
         }
     }
 }
