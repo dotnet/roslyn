@@ -3400,7 +3400,7 @@ BC30625: 'Module' statement must end with a matching 'End Module'.
 
         <Fact>
         Public Sub IsExplicitDefinitionOfNoPiaLocalType_01()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim sources =
 <compilation>
     <file><![CDATA[
 Imports System.Runtime.InteropServices
@@ -3409,10 +3409,16 @@ Imports System.Runtime.InteropServices
 Public Interface I1
 End Interface
     ]]></file>
-</compilation>)
+</compilation>
 
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(sources)
             Dim i1 = compilation.SourceAssembly.GetTypeByMetadataName("I1")
 
+            Assert.True(i1.IsExplicitDefinitionOfNoPiaLocalType)
+
+            compilation = CompilationUtils.CreateCompilationWithMscorlib(sources)
+            i1 = compilation.SourceAssembly.GetTypeByMetadataName("I1")
+            i1.GetAttributes()
             Assert.True(i1.IsExplicitDefinitionOfNoPiaLocalType)
         End Sub
 
@@ -3436,7 +3442,7 @@ End Interface
 
         <Fact>
         Public Sub IsExplicitDefinitionOfNoPiaLocalType_03()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim sources =
 <compilation>
     <file><![CDATA[
 Imports alias1 = System.Runtime.InteropServices.TypeIdentifier
@@ -3445,8 +3451,9 @@ Imports alias1 = System.Runtime.InteropServices.TypeIdentifier
 Public Interface I1
 End Interface
     ]]></file>
-</compilation>)
+</compilation>
 
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(sources)
             Dim i1 = compilation.SourceAssembly.GetTypeByMetadataName("I1")
 
             Assert.False(i1.IsExplicitDefinitionOfNoPiaLocalType)
@@ -3460,6 +3467,11 @@ BC30182: Type expected.
 <alias1>
  ~~~~~~
 ]]></expected>)
+
+            compilation = CompilationUtils.CreateCompilationWithMscorlib(sources)
+            i1 = compilation.SourceAssembly.GetTypeByMetadataName("I1")
+            i1.GetAttributes()
+            Assert.False(i1.IsExplicitDefinitionOfNoPiaLocalType)
         End Sub
 
         <Fact>
