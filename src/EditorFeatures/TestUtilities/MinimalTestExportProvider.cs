@@ -128,8 +128,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         {
             // make sure we enable this for all unit tests
             AsynchronousOperationListenerProvider.Enable(true);
-
-            var configuration = CompositionConfiguration.Create(catalog.WithCompositionService());
+          
+            var configuration = CompositionConfiguration.Create(catalog.WithDesktopSupport().WithCompositionService());
             var runtimeComposition = RuntimeComposition.CreateRuntimeComposition(configuration);
             return runtimeComposition.CreateExportProviderFactory().CreateExportProvider();
         }

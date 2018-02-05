@@ -212,11 +212,19 @@ class Program
 
                 var textView = workspace.Documents.Single().GetTextView();
 
-                var handler = new EncapsulateFieldCommandHandler(workspace.GetService<ITextBufferUndoManagerProvider>(),
+                var handler = new EncapsulateFieldCommandHandler(workspace.GetService<Host.IWaitIndicator>(), workspace.GetService<ITextBufferUndoManagerProvider>(),
                                                                  workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>());
 
-                var state = handler.GetCommandState(new EncapsulateFieldCommandArgs(textView, textView.TextBuffer));
-                Assert.True(state.IsUnspecified);
+                var delegatedToNext = false;
+                CommandState nextHandler()
+                {
+                    delegatedToNext = true;
+                    return CommandState.Unavailable;
+                }
+
+                var state = handler.GetCommandState(new Commands.EncapsulateFieldCommandArgs(textView, textView.TextBuffer), nextHandler);
+                Assert.True(delegatedToNext);
+                Assert.False(state.IsAvailable);
             }
         }
     }

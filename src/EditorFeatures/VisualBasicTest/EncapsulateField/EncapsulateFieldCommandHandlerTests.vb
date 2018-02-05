@@ -152,10 +152,18 @@ End Class
 
                 Dim textView = workspace.Documents.Single().GetTextView()
 
-                Dim handler = New EncapsulateFieldCommandHandler(workspace.GetService(Of ITextBufferUndoManagerProvider),
-                                                                 workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)())
-                Dim state = handler.GetCommandState(New EncapsulateFieldCommandArgs(textView, textView.TextBuffer))
-                Assert.True(state.IsUnspecified)
+                Dim handler = New EncapsulateFieldCommandHandler(workspace.GetService(Of Host.IWaitIndicator), workspace.GetService(Of ITextBufferUndoManagerProvider),
+                    workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)())
+                Dim delegatedToNext = False
+                Dim nextHandler =
+                    Function()
+                        delegatedToNext = True
+                        Return CommandState.Unavailable
+                    End Function
+
+                Dim state = handler.GetCommandState(New Commands.EncapsulateFieldCommandArgs(textView, textView.TextBuffer), nextHandler)
+                Assert.True(delegatedToNext)
+                Assert.False(state.IsAvailable)
             End Using
         End Sub
     End Class
