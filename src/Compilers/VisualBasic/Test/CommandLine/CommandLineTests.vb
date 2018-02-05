@@ -2172,7 +2172,7 @@ End Module").Path
             Assert.Contains(references, Function(r) r.IsUnresolved)
             Assert.Contains(references, Function(r)
                                             Dim peRef = TryCast(r, PortableExecutableReference)
-                                            Return peRef Is Nothing OrElse
+                                            Return peRef IsNot Nothing AndAlso
                                                    peRef.FilePath.EndsWith("mscorlib.dll", StringComparison.Ordinal)
                                         End Function)
         End Sub
@@ -2188,7 +2188,7 @@ End Module").Path
             Assert.DoesNotContain(references, Function(r) r.IsUnresolved)
             Assert.Contains(references, Function(r)
                                             Dim peRef = TryCast(r, PortableExecutableReference)
-                                            Return peRef Is Nothing OrElse
+                                            Return peRef IsNot Nothing AndAlso
                                                    peRef.FilePath.EndsWith("mscorlib.dll", StringComparison.Ordinal)
                                         End Function)
         End Sub
