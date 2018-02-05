@@ -195,7 +195,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitLocalFunctionStatement(LocalFunctionStatementSyntax node)
         {
-            var body = (CSharpSyntaxNode)node.Body ?? node.ExpressionBody;
+            if (node.Body != null)
+            {
+                VisitLocalFunctionBody(node, node.Body);
+            }
+            if (node.ExpressionBody != null)
+            {
+                VisitLocalFunctionBody(node, node.ExpressionBody);
+            }
+        }
+
+        private void VisitLocalFunctionBody(LocalFunctionStatementSyntax node, CSharpSyntaxNode body)
+        {
             LocalFunctionSymbol match = null;
             // Don't use LookupLocalFunction because it recurses up the tree, as it
             // should be defined in the directly enclosing block (see note below)
