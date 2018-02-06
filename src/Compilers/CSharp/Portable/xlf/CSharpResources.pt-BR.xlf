@@ -4386,7 +4386,7 @@ Um bloco catch() depois de um bloco catch (System.Exception e) poderá capturar 
         <note />
       </trans-unit>
       <trans-unit id="ERR_AnonDelegateCantUse">
-        <source>Cannot use ref or out parameter '{0}' inside an anonymous method, lambda expression, query expression, or local function</source>
+        <source>Cannot use ref, out, or in parameter '{0}' inside an anonymous method, lambda expression, query expression, or local function</source>
         <target state="needs-review-translation">Não é possível usar parâmetro ref ou out "{0}" dentro de um método anônimo, expressão lambda ou expressão de consulta</target>
         <note />
       </trans-unit>
