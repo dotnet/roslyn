@@ -1,13 +1,13 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
-Imports Microsoft.CodeAnalysis.Editor.Commands
 Imports Microsoft.CodeAnalysis.Editor.FindReferences
 Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.FindUsages
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
+Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Public Class FindReferencesCommandHandlerTests
@@ -34,21 +34,19 @@ class C
                 view.Selection.Select(
                     testDocument.AnnotatedSpans("Selection").Single().ToSnapshotSpan(snapshot), isReversed:=False)
 
-                Dim listenerProvider = New AsynchronousOperationListenerProvider()
+                Dim waiter = New Waiter()
 
                 Dim context = New FindReferencesTests.TestContext()
                 Dim commandHandler = New FindReferencesCommandHandler(
-                    workspace.GetService(Of IWaitIndicator),
                     {}, {New Lazy(Of IStreamingFindUsagesPresenter)(Function() New MockStreamingFindReferencesPresenter(context))},
-                    listenerProvider)
+                    {New Lazy(Of IAsynchronousOperationListener, FeatureMetadata)(Function() waiter, New FeatureMetadata(FeatureAttribute.FindReferences))})
 
                 Dim document = workspace.CurrentSolution.GetDocument(testDocument.Id)
                 commandHandler.ExecuteCommand(
-                    New FindReferencesCommandArgs(view, textBuffer), Sub()
-                                                                     End Sub)
+                    New FindReferencesCommandArgs(view, textBuffer), Utilities.TestCommandExecutionContext.Create())
 
                 ' Wait for the find refs to be done.
-                Await listenerProvider.GetWaiter(FeatureAttribute.FindReferences).CreateWaitTask()
+                Await waiter.CreateWaitTask()
 
                 Assert.Equal(1, context.Definitions.Count)
                 Assert.Equal(testDocument.AnnotatedSpans("Definition").Single(),
@@ -76,6 +74,11 @@ class C
             Public Function StartSearch(title As String, supportsReferences As Boolean) As FindUsagesContext Implements IStreamingFindUsagesPresenter.StartSearch
                 Return _context
             End Function
+        End Class
+
+        Private Class Waiter
+            Inherits AsynchronousOperationListener
+
         End Class
     End Class
 End Namespace

@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.ExtractMethod;
 using Microsoft.CodeAnalysis.Editor.CSharp.ExtractMethod;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Host;
@@ -13,6 +14,7 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -142,10 +144,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
                 var handler = new ExtractMethodCommandHandler(
                     workspace.ExportProvider.GetExportedValue<ITextBufferUndoManagerProvider>(),
                     workspace.ExportProvider.GetExportedValue<IEditorOperationsFactoryService>(),
-                    workspace.ExportProvider.GetExportedValue<IInlineRenameService>(),
-                    workspace.ExportProvider.GetExportedValue<IWaitIndicator>());
+                    workspace.ExportProvider.GetExportedValue<IInlineRenameService>());
 
-                handler.ExecuteCommand(new Commands.ExtractMethodCommandArgs(view, view.TextBuffer), () => { });
+                handler.ExecuteCommand(new ExtractMethodCommandArgs(view, view.TextBuffer), TestCommandExecutionContext.Create());
 
                 Assert.True(called);
             }

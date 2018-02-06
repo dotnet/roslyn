@@ -16,7 +16,7 @@
       $commitPathMessage$
     </description>
     <dependencies>
-      <dependency id="Microsoft.CodeAnalysis.Remote.Workspaces" version="$version$" />
+      <dependency id="Microsoft.CodeAnalysis.Remote.Workspaces" version="[$version$]" />
     </dependencies>
 
     <language>en-US</language>

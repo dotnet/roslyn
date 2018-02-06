@@ -212,16 +212,6 @@
         <target state="translated">Using-Direktiven &amp;entfernen und sortieren</target>
         <note />
       </trans-unit>
-      <trans-unit id="Autoselect_disabled_due_to_potential_implicit_array_creation">
-        <source>Autoselect disabled due to potential implicit array creation.</source>
-        <target state="translated">Automatische Auswahl aufgrund einer möglichen implizieten Arrayerstellung deaktiviert.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="implicit_array_creation">
-        <source>&lt;implicit array creation&gt;</source>
-        <target state="translated">&lt;implizite Arrayerstellung&gt;</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Insert_await">
         <source>Insert 'await'.</source>
         <target state="translated">"await" einfügen.</target>
