@@ -804,7 +804,7 @@ class C1 : Base
 @"
 class Base
 {
-    protected virtual void M1() { }
+    protected virtual void M1(int v) { }
 }
 class C1 : Base
 {
@@ -841,7 +841,7 @@ interface I1
 }
 class C1 : I1
 {
-    void I1.M1() { }
+    void I1.M1(int v) { }
     void M2()
     {
         ((I1)this).M1(1);
@@ -870,7 +870,7 @@ class C1 : I1
 @"
 interface I1
 {
-    void M1();
+    void M1(int v);
 }
 class C1 : I1
 {
@@ -1361,6 +1361,112 @@ class C1 : I1
         }
     }
 ";
+            await TestInRegularAndScriptAsync(code, fix0);
+        }
+
+        [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestInvocation_Cascading_FixingVirtualFixesOverrideToo()
+        {
+            // error CS1501: No overload for method 'M1' takes 1 arguments
+            var code =
+@"
+    class BaseClass
+    {
+        protected virtual void M1() { }
+    }
+    class Derived1: BaseClass
+    {
+        protected override void M1() { }
+    }
+    class Test: BaseClass
+    {
+        void M2() 
+        {
+            [|M1|](1);
+        }
+    }
+";
+            var fix0 =
+@"
+    class BaseClass
+    {
+        protected virtual void M1(int v) { }
+    }
+    class Derived1: BaseClass
+    {
+        protected override void M1(int v) { }
+    }
+    class Test: BaseClass
+    {
+        void M2() 
+        {
+            M1(1);
+        }
+    }
+";
+            await TestInRegularAndScriptAsync(code, fix0);
+        }
+        [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestInvocation_Cascading_PartialMethods()
+        {
+            var code =
+@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+namespace N1
+{
+    partial class C1
+    {
+        partial void PartialM();
+    }
+}
+        </Document>
+        <Document>
+namespace N1
+{
+    partial class C1
+    {
+        partial void PartialM() { }
+        void M1()
+        {
+            [|PartialM|](1);
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>";
+            var fix0 =
+@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+namespace N1
+{
+    partial class C1
+    {
+        partial void PartialM(int v);
+    }
+}
+        </Document>
+        <Document>
+namespace N1
+{
+    partial class C1
+    {
+        partial void PartialM(int v) { }
+        void M1()
+        {
+            PartialM(1);
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>";
             await TestInRegularAndScriptAsync(code, fix0);
         }
     }

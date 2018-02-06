@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -207,78 +208,111 @@ namespace Microsoft.CodeAnalysis.AddParameter
         private int NonParamsParameterCount(IMethodSymbol method)
             => method.IsParams() ? method.Parameters.Length - 1 : method.Parameters.Length;
 
-        private async Task<Document> FixAsync(
+        private async Task<Solution> FixAsync(
             Document invocationDocument,
             IMethodSymbol method,
             TArgumentSyntax argument,
             SeparatedSyntaxList<TArgumentSyntax> argumentList,
             CancellationToken cancellationToken)
         {
-            var methodDeclaration = await method.DeclaringSyntaxReferences[0].GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
-
-            var (parameterSymbol, isNamedArgument) = await CreateParameterSymbolAsync(
-                invocationDocument, method, argument, cancellationToken).ConfigureAwait(false);
-
-            var methodDocument = invocationDocument.Project.Solution.GetDocument(methodDeclaration.SyntaxTree);
-            var syntaxFacts = methodDocument.GetLanguageService<ISyntaxFactsService>();
-            var methodDeclarationRoot = methodDeclaration.SyntaxTree.GetRoot(cancellationToken);
-            var editor = new SyntaxEditor(methodDeclarationRoot, methodDocument.Project.Solution.Workspace);
-
-            var parameterDeclaration = editor.Generator.ParameterDeclaration(parameterSymbol)
-                                                       .WithAdditionalAnnotations(Formatter.Annotation);
-
-            var existingParameters = editor.Generator.GetParameters(methodDeclaration);
-            var insertionIndex = isNamedArgument
-                ? existingParameters.Count
-                : argumentList.IndexOf(argument);
-
-            if (method.IsExtensionMethod)
+            var newSolution = invocationDocument.Project.Solution;
+            var semanticModel = await invocationDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var invocationDocumentSyntaxFacts = invocationDocument.GetLanguageService<ISyntaxFactsService>();
+            var invocationDocumentSemanticFacts = invocationDocument.GetLanguageService<ISemanticFactsService>();
+            var argumentExpression = invocationDocumentSyntaxFacts.GetExpressionOfArgument(argument);
+            var argumentType = semanticModel.GetTypeInfo(argumentExpression).Type ?? semanticModel.Compilation.ObjectType;
+            (var argumentNameSuggestion, var isNamedArgument) = await GetNameSuggestionForArgumentAsync(invocationDocument, argument, cancellationToken).ConfigureAwait(false);
+            var referencedSymbol = await FindMethodDeclarationReferences(invocationDocument, method, cancellationToken).ConfigureAwait(false);
+            var definitions = referencedSymbol.Select(reference => reference.Definition).OfType<IMethodSymbol>();
+            var declarationLocations = definitions.SelectMany(definition
+                => definition.Locations.Select(location => new { Definition = definition, Location = location }));
+            var locationsInSource = declarationLocations.Where(declarationLocation => declarationLocation.Location.IsInSource);
+            var locationsByDocument = locationsInSource.ToLookup(declarationLocation
+                => invocationDocument.Project.Solution.GetDocument(declarationLocation.Location.SourceTree, invocationDocument.Project.Id));
+            foreach (var documentLookup in locationsByDocument)
             {
-                insertionIndex++;
+                var document = documentLookup.Key;
+                var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+                var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                var editor = new SyntaxEditor(syntaxRoot, document.Project.Solution.Workspace);
+                var generator = editor.Generator;
+                var methodDeclarations = documentLookup.Select(declarationLocation => new
+                {
+                    Node = syntaxRoot.FindNode(declarationLocation.Location.SourceSpan),
+                    Symbol = declarationLocation.Definition
+                }).ToImmutableArray();
+                foreach (var methodDeclaration in methodDeclarations)
+                {
+                    var methodNode = methodDeclaration.Node;
+                    var methodSymbol = methodDeclaration.Symbol;
+                    var parameterSymbol = CreateParameterSymbol(
+                        methodSymbol, argumentType, argumentNameSuggestion);
+
+                    var parameterDeclaration = generator.ParameterDeclaration(parameterSymbol)
+                                                        .WithAdditionalAnnotations(Formatter.Annotation);
+
+                    var existingParameters = generator.GetParameters(methodNode);
+                    var insertionIndex = isNamedArgument
+                        ? existingParameters.Count
+                        : argumentList.IndexOf(argument);
+
+                    if (method.IsExtensionMethod)
+                    {
+                        insertionIndex++;
+                    }
+
+                    AddParameter(
+                        syntaxFacts, editor, methodNode, argument,
+                        insertionIndex, parameterDeclaration, cancellationToken);
+
+                }
+                var newRoot = editor.GetChangedRoot();
+                newSolution = newSolution.WithDocumentSyntaxRoot(document.Id, newRoot);
             }
-
-            AddParameter(
-                syntaxFacts, editor, methodDeclaration, argument,
-                insertionIndex, parameterDeclaration, cancellationToken);
-
-            var newRoot = editor.GetChangedRoot();
-            var newDocument = methodDocument.WithSyntaxRoot(newRoot);
-
-            return newDocument;
+            return newSolution;
         }
 
-        private async Task<(IParameterSymbol, bool isNamedArgument)> CreateParameterSymbolAsync(
-            Document invocationDocument,
-            IMethodSymbol method,
-            TArgumentSyntax argument,
-            CancellationToken cancellationToken)
+        private static async Task<ImmutableArray<ReferencedSymbol>> FindMethodDeclarationReferences(Document invocationDocument, IMethodSymbol method, CancellationToken cancellationToken)
+        {
+            var progress = new StreamingProgressCollector(StreamingFindReferencesProgress.Instance);
+
+            await SymbolFinder.FindReferencesAsync(
+                symbolAndProjectId: SymbolAndProjectId.Create(method, invocationDocument.Project.Id),
+                solution: invocationDocument.Project.Solution,
+                documents: null,
+                progress: progress,
+                cancellationToken: cancellationToken).ConfigureAwait(false);
+            return progress.GetReferencedSymbols();
+        }
+
+        private async Task<(string argumentNameSuggestion, bool isNamed)> GetNameSuggestionForArgumentAsync(Document invocationDocument, TArgumentSyntax argument, CancellationToken cancellationToken)
         {
             var syntaxFacts = invocationDocument.GetLanguageService<ISyntaxFactsService>();
-            var semanticFacts = invocationDocument.GetLanguageService<ISemanticFactsService>();
             var argumentName = syntaxFacts.GetNameForArgument(argument);
-            var expression = syntaxFacts.GetExpressionOfArgument(argument);
-
-            var semanticModel = await invocationDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var parameterType = semanticModel.GetTypeInfo(expression).Type ?? semanticModel.Compilation.ObjectType;
-
             if (!string.IsNullOrWhiteSpace(argumentName))
             {
-                var newParameterSymbol = CodeGenerationSymbolFactory.CreateParameterSymbol(
-                    attributes: default, refKind: RefKind.None, isParams: false, type: parameterType, name: argumentName);
-
-                return (newParameterSymbol, isNamedArgument: true);
+                return (argumentNameSuggestion: argumentName, isNamed: true);
             }
             else
             {
-                var name = semanticFacts.GenerateNameForExpression(
+                var expression = syntaxFacts.GetExpressionOfArgument(argument);
+                var semanticFacts = invocationDocument.GetLanguageService<ISemanticFactsService>();
+                var semanticModel = await invocationDocument.Project.Solution.GetDocument(expression.SyntaxTree).GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                argumentName = semanticFacts.GenerateNameForExpression(
                     semanticModel, expression, capitalize: false, cancellationToken: cancellationToken);
-                var uniqueName = NameGenerator.EnsureUniqueness(name, method.Parameters.Select(p => p.Name));
-
-                var newParameterSymbol = CodeGenerationSymbolFactory.CreateParameterSymbol(
-                    attributes: default, refKind: RefKind.None, isParams: false, type: parameterType, name: uniqueName);
-
-                return (newParameterSymbol, isNamedArgument: false);
+                return (argumentNameSuggestion: argumentName, isNamed: false);
             }
+        }
+
+        private IParameterSymbol CreateParameterSymbol(
+            IMethodSymbol method,
+            ITypeSymbol parameterType,
+            string argumentNameSuggestion)
+        {
+            var uniqueName = NameGenerator.EnsureUniqueness(argumentNameSuggestion, method.Parameters.Select(p => p.Name));
+            var newParameterSymbol = CodeGenerationSymbolFactory.CreateParameterSymbol(
+                    attributes: default, refKind: RefKind.None, isParams: false, type: parameterType, name: uniqueName);
+            return newParameterSymbol;
         }
 
         private static void AddParameter(
@@ -571,12 +605,12 @@ namespace Microsoft.CodeAnalysis.AddParameter
             return false;
         }
 
-        private class MyCodeAction : CodeAction.DocumentChangeAction
+        private class MyCodeAction : CodeAction.SolutionChangeAction
         {
             public MyCodeAction(
                 string title,
-                Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument)
+                Func<CancellationToken, Task<Solution>> createChangedSolution)
+                : base(title, createChangedSolution)
             {
             }
         }
