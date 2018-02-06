@@ -26,13 +26,9 @@
     <file src="$additionalFilesPath$/Microsoft.NETCore.Compilers.props" target="build" />
 
     <!-- Targets and task files -->
-    <file src="Dlls/MSBuildTask/netstandard1.3/publish/Microsoft.Build.Tasks.CodeAnalysis.dll" target="tools" />
-    <file src="Dlls/MSbuildTask/netstandard1.3/publish/Microsoft.CSharp.Core.targets" target="tools" />
-    <file src="Dlls/MSbuildTask/netstandard1.3/publish/Microsoft.VisualBasic.Core.targets" target="tools" />
-    <!-- N.B.: The backslashes below cannot be replaced with forward slashes. 
-         https://github.com/NuGet/Home/issues/3584 -->
-    <file src="Dlls\MSBuildTask\netstandard1.3\publish\System.*.dll" target="tools" />
-    <file src="Dlls\MSBuildTask\netstandard1.3\publish\runtimes\**" target="tools\runtimes" />
+    <file src="Dlls/MSBuildTask/netcoreapp2.0/Microsoft.Build.Tasks.CodeAnalysis.dll" target="tools" />
+    <file src="Dlls/MSbuildTask/netcoreapp2.0/Microsoft.CSharp.Core.targets" target="tools" />
+    <file src="Dlls/MSbuildTask/netcoreapp2.0/Microsoft.VisualBasic.Core.targets" target="tools" />
 
     <!-- Compiler exe files -->
     <file src="Dlls/CodeAnalysis/Microsoft.CodeAnalysis.dll" target="tools/bincore" />

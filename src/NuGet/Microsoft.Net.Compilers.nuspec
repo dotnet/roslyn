@@ -49,9 +49,9 @@
     <file src="Exes\vbc\net46\vbc.rsp"  target="tools" />
     <file src="Exes\VBCSCompiler\net46\VBCSCompiler.exe" target="tools" />
     <file src="Exes\VBCSCompiler\net46\VBCSCompiler.exe.config" target="tools" />
-    <file src="Dlls\MSBuildTask\Microsoft.Build.Tasks.CodeAnalysis.dll" target="tools" />
-    <file src="Dlls\MSbuildTask\Microsoft.CSharp.Core.targets" target="tools" />
-    <file src="Dlls\MSbuildTask\Microsoft.VisualBasic.Core.targets" target="tools" />
+    <file src="Dlls\MSBuildTask\net46\Microsoft.Build.Tasks.CodeAnalysis.dll" target="tools" />
+    <file src="Dlls\MSbuildTask\net46\Microsoft.CSharp.Core.targets" target="tools" />
+    <file src="Dlls\MSbuildTask\net46\Microsoft.VisualBasic.Core.targets" target="tools" />
 
     <!-- The assemblies are not signed by us and any deployed copy can be used.
          The Exes\Toolset directory specifically has all of the assemblies we need.

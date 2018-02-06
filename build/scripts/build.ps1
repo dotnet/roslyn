@@ -240,6 +240,7 @@ function Build-Artifacts() {
 # finish building these before we can run signing.
 function Build-ExtraSignArtifacts() { 
 
+    Ensure-NuGet | Out-Null
     Push-Location (Join-Path $repoDir "src\Setup")
     try {
         # Publish the CoreClr projects (CscCore and VbcCore) and dependencies for later NuGet packaging.
@@ -249,8 +250,6 @@ function Build-ExtraSignArtifacts() {
         Run-MSBuild "..\Compilers\VisualBasic\vbc\vbc.csproj" "/p:TargetFramework=netcoreapp2.0 /t:PublishWithoutBuilding"
         Write-Host "Publishing VBCSCompiler"
         Run-MSBuild "..\Compilers\Server\VBCSCompiler\VBCSCompiler.csproj" "/p:TargetFramework=netcoreapp2.0 /t:PublishWithoutBuilding"
-        Write-Host "Publishing MSBuildTask"
-        Run-MSBuild "..\Compilers\Core\MSBuildTask\MSBuildTask.csproj" "/p:TargetFramework=netstandard1.3 /t:PublishWithoutBuilding"
 
         $dest = @(
             $configDir)
