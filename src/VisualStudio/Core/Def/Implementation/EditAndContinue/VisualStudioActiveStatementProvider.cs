@@ -43,7 +43,11 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
                         FreeBuilders(builders);
                         builders = null;
 
-                        workList.Cancel();
+                        // TODO: DkmWorkList.Cancel doesn't currently work when invoked on the completion callback.
+                        // We continue execute all the queued callbacks -- they will be no-ops.
+                        // See https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems/edit/562781.
+                        // 
+                        // workList.Cancel();
 
                         // make sure we cancel with the token we received from the caller:
                         completion.TrySetCanceled(cancellationToken);
