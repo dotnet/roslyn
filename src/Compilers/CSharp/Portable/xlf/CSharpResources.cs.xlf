@@ -7479,7 +7479,20 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
                                název výstupního souboru s příponou .pdb).
  /errorendlocation             Vypíše řádek a sloupec koncového umístění 
                                jednotlivých chyb.
- /preferreduil</target>
+ /preferreduilang              Určuje název upřednostňovaného výstupního jazyka.
+ /nostdlib[+|-]                Neodkazuje na standardní knihovnu (mscorlib.dll).
+ /subsystemversion:&lt;řetězec&gt;   Určuje verzi subsystému tohoto sestavení.
+ /lib:&lt;seznam souborů&gt;         Určuje další adresáře, ve kterých se mají 
+                               hledat reference.
+ /errorreport:&lt;řetězec&gt;        Určuje způsob zpracování interních chyb kompilátoru: 
+                               prompt, send, queue nebo none. Výchozí možnost 
+                               je queue (zařadit do fronty).
+ /appconfig:&lt;soubor&gt;           Určuje konfigurační soubor aplikace, 
+                               který obsahuje nastavení vazby sestavení.
+ /moduleassemblyname:&lt;řetězec&gt; Určuje název sestavení, jehož součástí bude 
+                               tento modul.
+ /modulename:&lt;řetězec&gt;         Určuje název zdrojového modulu.
+</target>
         <note>Visual C# Compiler Options</note>
       </trans-unit>
       <trans-unit id="ERR_ComImportWithInitializers">

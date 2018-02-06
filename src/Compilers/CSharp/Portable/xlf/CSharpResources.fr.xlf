@@ -7467,7 +7467,32 @@ Pour supprimer l'avertissement, vous pouvez utiliser la commande /reference (dé
                                des fichiers sources
  /utf8output                   Messages du compilateur de sortie encodés en UTF-8
  /main:&lt;type&gt;                  Spécifier le type qui contient le point d'entrée
-                               (ignorer tous les autres points</target>
+                               (ignorer tous les autres points d'entrée possibles) (forme
+                               abrégée : /m)
+ /fullpaths                    Le compilateur génère des chemins qualifiés complets
+ /filealign:&lt;n&gt;                Spécifier l'alignement utilisé pour les
+                               sections du fichier de sortie
+ /pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
+                               Spécifier un mappage pour les noms de chemins sources sortis par
+                               le compilateur.
+ /pdb:&lt;fichier&gt;                Spécifier le nom du fichier des informations de débogage (par défaut :
+                               nom du fichier de sortie avec l'extension .pdb)
+ /errorendlocation             Ligne et colonne de sortie de l'emplacement final de
+                               chaque erreur
+ /preferreduilang              Spécifier le nom du langage de sortie préféré.
+ /nostdlib[+|-]                Ne pas référencer la bibliothèque standard (mscorlib.dll)
+ /subsystemversion:&lt;chaîne&gt;    Spécifier la version du sous-système de cet assembly
+ /lib:&lt;liste_fichiers&gt;         Spécifier des répertoires supplémentaires dans lesquels rechercher les
+                               références
+ /errorreport:&lt;chaîne&gt;         Spécifier comment prendre en charge les erreurs internes du compilateur :
+                               prompt, send, queue ou none. La valeur par défaut est
+                               queue.
+ /appconfig:&lt;fichier&gt;          Spécifier un fichier de configuration de l'application
+                               contenant des paramètres de liaison d'assembly
+ /moduleassemblyname:&lt;chaîne&gt;  Nom de l'assembly dont ce module
+                               doit faire partie
+ /modulename:&lt;chaîne&gt;          Spécifier le nom du module source
+</target>
         <note>Visual C# Compiler Options</note>
       </trans-unit>
       <trans-unit id="ERR_ComImportWithInitializers">
