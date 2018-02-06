@@ -6468,4 +6468,33 @@ namespace Microsoft.CodeAnalysis.Operations
             return visitor.VisitFlowCapture(this, argument);
         }
     }
+
+    internal sealed partial class IsNullOperation : Operation, IIsNullOperation
+    {
+        public IsNullOperation(SyntaxNode syntax, IOperation operand, ITypeSymbol type, Optional<object> constantValue) :
+            base(OperationKind.IsNull, semanticModel: null, syntax: syntax, type: type, constantValue: constantValue, isImplicit: true)
+        {
+            Debug.Assert(operand != null);
+            Operand = SetParentOperation(operand, this);
+        }
+
+        public IOperation Operand { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                yield return Operand;
+            }
+        }
+
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitIsNull(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitIsNull(this, argument);
+        }
+    }
 }

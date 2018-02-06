@@ -186,6 +186,8 @@ namespace Microsoft.CodeAnalysis
         FlowCapture = 0x57,
         /// <summary>Indicates an <see cref="IFlowCaptureReferenceOperation"/>.</summary>
         FlowCaptureReference = 0x58,
+        /// <summary>Indicates an <see cref="IIsNullOperation"/>.</summary>
+        IsNull = 0x59,
 
         // /// <summary>Indicates an <see cref="IFixedOperation"/>.</summary>
         // https://github.com/dotnet/roslyn/issues/21281

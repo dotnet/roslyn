@@ -794,6 +794,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogCommonPropertiesAndNewLine(operation);
         }
 
+        public override void VisitIsNull(IIsNullOperation operation)
+        {
+            LogString(nameof(IIsNullOperation));
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.Operand, "Operand");
+        }
+
         public override void VisitParameterReference(IParameterReferenceOperation operation)
         {
             LogString(nameof(IParameterReferenceOperation));

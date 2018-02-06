@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
                 BasicBlock next = block.Next;
 
-                if (block.Conditional.Value == null)
+                if (block.Conditional.Condition == null)
                 {
                     if (next != block)
                     {
@@ -80,10 +80,10 @@ namespace Microsoft.CodeAnalysis.Operations
                                 next.AddPredecessor(predecessor);
                             }
 
-                            (IOperation condition, ConditionalBranchKind kind, BasicBlock destination) = predecessor.Conditional;
+                            (IOperation condition, bool jumpIfTrue, BasicBlock destination) = predecessor.Conditional;
                             if (destination == block)
                             {
-                                predecessor.Conditional = (condition, kind, next);
+                                predecessor.Conditional = (condition, jumpIfTrue, next);
                                 next.AddPredecessor(predecessor);
                             }
                         }
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Operations
                     {
                         BasicBlock predecessor = predecessors.Single();
 
-                        if (predecessor.Kind != BasicBlockKind.Entry && predecessor.Next == block && predecessor.Conditional.Value == null)
+                        if (predecessor.Kind != BasicBlockKind.Entry && predecessor.Next == block && predecessor.Conditional.Condition == null)
                         {
                             predecessor.Next = next;
                             next.AddPredecessor(predecessor);
@@ -590,17 +590,17 @@ oneMoreTime:
                 default:
                     condition = Operation.SetParentOperation(Visit(condition), null);
                     dest = dest ?? new BasicBlock(BasicBlockKind.Block);
-                    LinkBlocks(CurrentBasicBlock, (condition, sense ? ConditionalBranchKind.IfTrue : ConditionalBranchKind.IfFalse, dest));
+                    LinkBlocks(CurrentBasicBlock, (condition, sense, dest));
                     _currentBasicBlock = null;
                     return;
             }
         }
 
-        private static void LinkBlocks(BasicBlock previous, (IOperation Value, ConditionalBranchKind Kind, BasicBlock Destination) next)
+        private static void LinkBlocks(BasicBlock previous, (IOperation Condition, bool JumpIfTrue, BasicBlock Destination) next)
         {
-            Debug.Assert(previous.Conditional.Value == null);
-            Debug.Assert(next.Value != null);
-            Debug.Assert(next.Value.Parent == null);
+            Debug.Assert(previous.Conditional.Condition == null);
+            Debug.Assert(next.Condition != null);
+            Debug.Assert(next.Condition.Parent == null);
             next.Destination.AddPredecessor(previous);
             previous.Conditional = next;
         }
@@ -614,13 +614,18 @@ oneMoreTime:
             int testExpressionCaptureId = VisitAndCapture(operation.Value);
 
             var whenNull = new BasicBlock(BasicBlockKind.Block);
+            Optional<object> constantValue = operation.Value.ConstantValue;
+
             LinkBlocks(CurrentBasicBlock,
-                       (Operation.SetParentOperation(new FlowCaptureReference(testExpressionCaptureId, valueSyntax, valueTypeOpt, operation.Value.ConstantValue), null),
-                        ConditionalBranchKind.IfNull, whenNull));
+                       (Operation.SetParentOperation(MakeIsNullOperation(((Operation)operation).SemanticModel,
+                                                                         new FlowCaptureReference(testExpressionCaptureId, valueSyntax, valueTypeOpt, constantValue)),
+                                                     null),
+                        true,
+                        whenNull));
             _currentBasicBlock = null;
 
             CommonConversion testConversion = operation.ValueConversion;
-            var capturedValue = new FlowCaptureReference(testExpressionCaptureId, valueSyntax, valueTypeOpt, operation.Value.ConstantValue);
+            var capturedValue = new FlowCaptureReference(testExpressionCaptureId, valueSyntax, valueTypeOpt, constantValue);
             IOperation convertedTestExpression = null;
 
             if (testConversion.Exists)
@@ -682,6 +687,14 @@ oneMoreTime:
                                         constantValue: default, isImplicit: true);
         }
 
+        private static IsNullOperation MakeIsNullOperation(SemanticModel semanticModel, IOperation operand)
+        {
+            Optional<object> constantValue = operand.ConstantValue;
+            return new IsNullOperation(operand.Syntax, operand,
+                                       semanticModel.Compilation.GetSpecialType(SpecialType.System_Boolean),
+                                       constantValue.HasValue ? new Optional<object>(constantValue.Value == null) : default);
+        }
+
         private static IOperation TryUnwrapNullableValue(IOperation value)
         {
             ITypeSymbol valueType = value.Type;
@@ -729,12 +742,17 @@ oneMoreTime:
                 ITypeSymbol testExpressionType = testExpression.Type;
 
                 int testExpressionCaptureId = VisitAndCapture(testExpression);
+                Optional<object> constantValue = testExpression.ConstantValue;
+
                 LinkBlocks(CurrentBasicBlock,
-                           (Operation.SetParentOperation(new FlowCaptureReference(testExpressionCaptureId, testExpressionSyntax, testExpressionType, testExpression.ConstantValue), null),
-                            ConditionalBranchKind.IfNull, whenNull));
+                           (Operation.SetParentOperation(MakeIsNullOperation(((Operation)operation).SemanticModel,
+                                                                             new FlowCaptureReference(testExpressionCaptureId, testExpressionSyntax, testExpressionType, constantValue)), 
+                                                         null),
+                            true, 
+                            whenNull));
                 _currentBasicBlock = null;
 
-                IOperation receiver = new FlowCaptureReference(testExpressionCaptureId, testExpressionSyntax, testExpressionType, testExpression.ConstantValue);
+                IOperation receiver = new FlowCaptureReference(testExpressionCaptureId, testExpressionSyntax, testExpressionType, constantValue);
 
                 if (ITypeSymbolHelpers.IsNullableType(testExpressionType))
                 {
@@ -1340,6 +1358,11 @@ oneMoreTime:
         }
 
         public override IOperation VisitFlowCaptureReference(IFlowCaptureReferenceOperation operation, int? captureIdForResult)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        public override IOperation VisitIsNull(IIsNullOperation operation, int? captureIdForResult)
         {
             throw ExceptionUtilities.Unreachable;
         }

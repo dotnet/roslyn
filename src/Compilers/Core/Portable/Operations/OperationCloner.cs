@@ -529,5 +529,10 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             throw ExceptionUtilities.Unreachable;
         }
+
+        public override IOperation VisitIsNull(IIsNullOperation operation, object argument)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
     }
 }

@@ -43,14 +43,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     case BasicBlockKind.Entry:
                         Assert.Equal(0, i);
                         Assert.Empty(block.Statements);
-                        Assert.Null(block.Conditional.Value);
+                        Assert.Null(block.Conditional.Condition);
                         Assert.NotNull(block.Next);
                         break;
 
                     case BasicBlockKind.Exit:
                         Assert.Equal(graph.Length - 1, i);
                         Assert.Empty(block.Statements);
-                        Assert.Null(block.Conditional.Value);
+                        Assert.Null(block.Conditional.Condition);
                         Assert.Null(block.Next);
                         break;
 
@@ -80,28 +80,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     stringBuilder.Builder.AppendLine(OperationTreeVerifier.GetOperationTree(compilation, statement, initialIndent: 8));
                 }
 
-                if (block.Conditional.Value != null)
+                if (block.Conditional.Condition != null)
                 {
                     Assert.True(map.TryGetValue(block.Conditional.Destination, out int index));
-                    stringBuilder.Builder.AppendLine($"    Jump if {branchKindDisplay(block.Conditional.Kind)} to Block[{index}]");
+                    stringBuilder.Builder.AppendLine($"    Jump if {(block.Conditional.JumpIfTrue ? "True" : "False")} to Block[{index}]");
 
-                    string branchKindDisplay(ConditionalBranchKind kind)
-                    {
-                        switch (kind)
-                        {
-                            case ConditionalBranchKind.IfTrue:
-                                return "True";
-                            case ConditionalBranchKind.IfFalse:
-                                return "False";
-                            case ConditionalBranchKind.IfNull:
-                                return "Null";
-                            default:
-                                Assert.False(true, $"Unexpected branch kind {kind}");
-                                return "invalid";
-                        }
-                    }
-
-                    IOperation value = block.Conditional.Value;
+                    IOperation value = block.Conditional.Condition;
                     validateRoot(value);
                     stringBuilder.Builder.AppendLine(OperationTreeVerifier.GetOperationTree(compilation, value, initialIndent: 8));
                 }
@@ -233,6 +217,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 case OperationKind.UnaryOperator:
                 case OperationKind.FlowCapture:
                 case OperationKind.FlowCaptureReference:
+                case OperationKind.IsNull:
                     return true;
             }
 

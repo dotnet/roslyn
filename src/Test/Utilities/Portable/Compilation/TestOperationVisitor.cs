@@ -1118,5 +1118,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.True(operation.IsImplicit);
             Assert.Empty(operation.Children);
         }
+
+        public override void VisitIsNull(IIsNullOperation operation)
+        {
+            Assert.Equal(OperationKind.IsNull, operation.Kind);
+            Assert.True(operation.IsImplicit);
+            Assert.Same(operation.Operand, operation.Children.Single());
+        }
     }
 }
