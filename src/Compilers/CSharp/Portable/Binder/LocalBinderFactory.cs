@@ -52,9 +52,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         // This may change if the language is extended to allow iterator lambdas, in which case the lambda would also be returned.
         // (lambdas currently throw a diagnostic in WithLambdaParametersBinder.GetIteratorElementType when a yield is used within them)
         public static SmallDictionary<SyntaxNode, Binder> BuildMap(
-            Symbol containingMemberOrLambda, 
-            SyntaxNode syntax, 
-            Binder enclosing, 
+            Symbol containingMemberOrLambda,
+            SyntaxNode syntax,
+            Binder enclosing,
             ArrayBuilder<SyntaxNode> methodsWithYields,
             Action<Binder, SyntaxNode> binderUpdatedHandler = null)
         {
@@ -204,10 +204,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrowExpressionClauseSyntax arrowBody = node.ExpressionBody;
             var body = (CSharpSyntaxNode)blockBody ?? arrowBody;
 
-            InMethodBinder inMethodBinder = null;
+            Binder binder = null;
             if (body != null)
             {
-                VisitLocalFunctionBody(node, body, match, ref inMethodBinder);
+                if (match != null)
+                {
+                    var oldMethod = _containingMemberOrLambda;
+                    _containingMemberOrLambda = match;
+
+                    binder = match.IsGenericMethod
+                        ? new WithMethodTypeParametersBinder(match, _enclosing)
+                        : _enclosing;
+
+                    binder = binder.WithUnsafeRegionIfNecessary(node.Modifiers);
+                    binder = new InMethodBinder(match, binder);
+                }
+
+                VisitLocalFunctionBody(node, body, match, binder);
 
                 if (_sawYield)
                 {
@@ -217,15 +230,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (blockBody != null && arrowBody != null)
             {
-                // There is an extraneous arrow body. We'll create binders for it too, re-using the inMethodBinder.
-                // We ignore whether this one has "yield".
-                VisitLocalFunctionBody(node, arrowBody, match, ref inMethodBinder);
+                // There is an extraneous arrow body
+                _sawYield = false;
+                VisitLocalFunctionBody(node, arrowBody, match, binder);
+                Debug.Assert(!_sawYield);
             }
 
             _sawYield = oldSawYield;
         }
 
-        private void VisitLocalFunctionBody(LocalFunctionStatementSyntax node, CSharpSyntaxNode body, LocalFunctionSymbol match, ref InMethodBinder inMethodBinder)
+        private void VisitLocalFunctionBody(LocalFunctionStatementSyntax node, CSharpSyntaxNode body, LocalFunctionSymbol match, Binder binder)
         {
             Debug.Assert(body != null);
 
@@ -234,17 +248,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var oldMethod = _containingMemberOrLambda;
                 _containingMemberOrLambda = match;
 
-                if (inMethodBinder is null)
-                {
-                    Binder binder = match.IsGenericMethod
-                        ? new WithMethodTypeParametersBinder(match, _enclosing)
-                        : _enclosing;
-
-                    binder = binder.WithUnsafeRegionIfNecessary(node.Modifiers);
-                    inMethodBinder = new InMethodBinder(match, binder);
-                }
-
-                Visit(body, inMethodBinder);
+                Visit(body, binder);
 
                 _containingMemberOrLambda = oldMethod;
             }
@@ -429,7 +433,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 foreach (var initializer in node.Initializers)
                 {
                     Visit(initializer, binder);
-                } 
+                }
             }
 
             ExpressionSyntax condition = node.Condition;
@@ -744,7 +748,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // If this ever breaks, make sure that all callers of
             // CanHaveAssociatedLocalBinder are in sync.
-            Debug.Assert(node.CanHaveAssociatedLocalBinder() || 
+            Debug.Assert(node.CanHaveAssociatedLocalBinder() ||
                 (node == _root && node is ExpressionSyntax));
 
             // Cleverness: for some nodes (e.g. lock), we want to specify a binder flag that
