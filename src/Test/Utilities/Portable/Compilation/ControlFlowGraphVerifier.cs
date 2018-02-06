@@ -11,33 +11,34 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 {
     public static class ControlFlowGraphVerifier
     {
-        public static void VerifyGraph(Compilation compilation, string expectedFlowGraph, ImmutableArray<BasicBlock> graph)
+        public static void VerifyGraph(Compilation compilation, string expectedFlowGraph, ControlFlowGraph graph)
         {
             var actualFlowGraph = GetFlowGraph(compilation, graph);
             OperationTreeVerifier.Verify(expectedFlowGraph, actualFlowGraph);
         }
 
-        public static string GetFlowGraph(Compilation compilation, ImmutableArray<BasicBlock> graph)
+        public static string GetFlowGraph(Compilation compilation, ControlFlowGraph graph)
         {
+            ImmutableArray<BasicBlock> blocks = graph.Blocks;
             var map = new Dictionary<Operations.BasicBlock, int>();
 
-            for (int i = 0; i < graph.Length; i++)
+            for (int i = 0; i < blocks.Length; i++)
             {
-                map.Add(graph[i], i);
+                map.Add(blocks[i], i);
             }
 
             var visitor = TestOperationVisitor.Singleton;
             var stringBuilder = PooledObjects.PooledStringBuilder.GetInstance();
 
-            for (int i = 0; i < graph.Length; i++)
+            for (int i = 0; i < blocks.Length; i++)
             {
-                var block = graph[i];
+                var block = blocks[i];
 
                 switch (block.Kind)
                 {
                     case BasicBlockKind.Block:
                         Assert.NotEqual(0, i);
-                        Assert.NotEqual(graph.Length - 1, i);
+                        Assert.NotEqual(blocks.Length - 1, i);
                         break;
 
                     case BasicBlockKind.Entry:
@@ -48,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         break;
 
                     case BasicBlockKind.Exit:
-                        Assert.Equal(graph.Length - 1, i);
+                        Assert.Equal(blocks.Length - 1, i);
                         Assert.Empty(block.Statements);
                         Assert.Null(block.Conditional.Condition);
                         Assert.Null(block.Next);

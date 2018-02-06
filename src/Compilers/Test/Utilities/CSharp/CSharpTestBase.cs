@@ -1133,7 +1133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             var model = compilation.GetSemanticModel(tree);
             SyntaxNode syntaxNode = GetSyntaxNodeOfTypeForBinding<TSyntaxNode>(GetSyntaxNodeList(tree));
 
-            ImmutableArray<Operations.BasicBlock> graph = SemanticModel.GetControlFlowGraph((Operations.IBlockOperation)model.GetOperation(syntaxNode));
+            Operations.ControlFlowGraph graph = SemanticModel.GetControlFlowGraph((Operations.IBlockOperation)model.GetOperation(syntaxNode));
             ControlFlowGraphVerifier.VerifyGraph(compilation, expectedFlowGraph, graph);
         }
 

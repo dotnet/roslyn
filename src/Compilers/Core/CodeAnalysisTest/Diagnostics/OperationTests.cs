@@ -133,8 +133,9 @@ class C
                 }
                 else
                 {
-                    ImmutableArray<BasicBlock> graph = SemanticModel.GetControlFlowGraph(operation);
-                    Assert.NotEmpty(graph);
+                    ControlFlowGraph graph = SemanticModel.GetControlFlowGraph(operation);
+                    Assert.NotNull(graph);
+                    Assert.NotEmpty(graph.Blocks);
                 }
             }
 
