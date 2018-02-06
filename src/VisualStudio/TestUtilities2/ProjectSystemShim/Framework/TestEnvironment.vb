@@ -32,7 +32,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
         Private ReadOnly _workspace As TestWorkspace
         Private ReadOnly _projectFilePaths As New List(Of String)
 
-        Public Sub New(Optional solutionIsFullyLoaded As Boolean = True)
+        Public Sub New(Optional solutionIsFullyLoaded As Boolean = True, Optional neverPushProjects As Boolean = False)
             ' As a policy, if anything goes wrong don't use exception filters, just throw exceptions for the
             ' test harness to catch normally. Otherwise debugging things can be annoying when your test process
             ' goes away
@@ -55,7 +55,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
             _projectTracker.InitializeProviders(documentProvider, metadataReferenceProvider, ruleSetFileProvider)
 
             Dim workspaceHost = New WorkspaceHost(_workspace)
-            _projectTracker.RegisterWorkspaceHost(workspaceHost)
+            _projectTracker.RegisterWorkspaceHost(workspaceHost, neverPushProjects)
             _projectTracker.StartSendingEventsToWorkspaceHost(workspaceHost)
         End Sub
 

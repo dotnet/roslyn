@@ -18,6 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             private readonly IVisualStudioWorkspaceHost _workspaceHost;
             private readonly VisualStudioProjectTracker _tracker;
             private readonly HashSet<AbstractProject> _pushedProjects;
+            private readonly bool _neverPushProjects;
 
             /// <summary>
             /// Set to true if we've already called <see cref="IVisualStudioWorkspaceHost.OnSolutionAdded(Microsoft.CodeAnalysis.SolutionInfo)"/>
@@ -25,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             /// </summary>
             private bool _solutionAdded;
 
-            public WorkspaceHostState(VisualStudioProjectTracker tracker, IVisualStudioWorkspaceHost workspaceHost)
+            public WorkspaceHostState(VisualStudioProjectTracker tracker, IVisualStudioWorkspaceHost workspaceHost, bool neverPushProjects)
                 : base(assertIsForeground: true)
             {
                 _tracker = tracker;
@@ -33,6 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _pushedProjects = new HashSet<AbstractProject>();
 
                 this.HostReadyForEvents = false;
+                _neverPushProjects = neverPushProjects;
                 _solutionAdded = false;
             }
 
@@ -89,7 +91,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 // Also, if the solution is closing we shouldn't do anything either, because all of our state is
                 // in the process of going away. This can happen if we receive notification that a document has
                 // opened in the middle of the solution close operation.
-                if (!this.HostReadyForEvents || _tracker._solutionIsClosing)
+                if (!this.HostReadyForEvents || _tracker._solutionIsClosing || _neverPushProjects)
                 {
                     return;
                 }
