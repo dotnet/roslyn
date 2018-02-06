@@ -255,7 +255,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // By invoking StartPushingToWorkspaceHosts upfront, any project state changes on the background thread will enqueue notifications to workspace hosts on foreground scheduled tasks.
             foreach (var project in inOrderToPush)
             {
-                project.StartPushingToWorkspaceHosts();
+                project.PushingChangesToWorkspace = true;
             }
 
             using (WorkspaceServices.GetService<IGlobalOperationNotificationService>()?.Start("Add Project to Workspace"))
@@ -555,7 +555,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             foreach (var p in this.ImmutableProjects)
             {
-                p.StopPushingToWorkspaceHosts();
+                p.PushingChangesToWorkspace = false;
             }
 
             _solutionLoadComplete = false;

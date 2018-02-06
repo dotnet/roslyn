@@ -42,7 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var analyzer = new VisualStudioAnalyzer(analyzerAssemblyFullPath, fileChangeService, this.HostDiagnosticUpdateSource, this.Id, this.Workspace, analyzerLoader, this.Language);
             this.AddOrUpdateAnalyzer(analyzerAssemblyFullPath, analyzer);
 
-            if (_pushingChangesToWorkspaceHosts)
+            if (PushingChangesToWorkspace)
             {
                 var analyzerReference = analyzer.GetReference();
                 this.ProjectTracker.NotifyWorkspace(workspace => workspace.OnAnalyzerReferenceAdded(Id, analyzerReference));
@@ -91,7 +91,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             RemoveAnalyzer(analyzerAssemblyFullPath);
 
-            if (_pushingChangesToWorkspaceHosts)
+            if (PushingChangesToWorkspace)
             {
                 var analyzerReference = analyzer.GetReference();
                 this.ProjectTracker.NotifyWorkspace(workspace => workspace.OnAnalyzerReferenceRemoved(Id, analyzerReference));
