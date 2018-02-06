@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis
         /// </param>
         /// <param name="explicitReferences">
         /// An array of references passed to the compilation and resolved from #r directives.
-        /// May contain references that were skipped during resolution (they don't have a corresponding explicit assmebly).
+        /// May contain references that were skipped during resolution (they don't have a corresponding explicit assembly).
         /// </param>
         /// <param name="explicitReferenceMap">
         /// Maps index to <paramref name="explicitReferences"/> to an index of a resolved assembly or module in <paramref name="explicitAssemblies"/> or modules.
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis
                 // What does similar mean?
                 // Similar means: 
                 // 1) The same references are resolved against the assemblies that we are given 
-                //   (or were found duiring implicit assembly resolution).
+                //   (or were found during implicit assembly resolution).
                 // 2) The same assembly is used as the COR library.
 
                 var boundInputs = new BoundInputAssembly[referenceBindings.Count];

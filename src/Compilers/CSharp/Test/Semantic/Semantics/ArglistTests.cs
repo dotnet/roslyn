@@ -226,6 +226,30 @@ public struct C
         }
 
         [Fact]
+        [WorkItem(23369, "https://github.com/dotnet/roslyn/issues/23369")]
+        public void ArglistWithVoidMethod()
+        {
+            var text = @"
+public class C
+{
+    void M()
+    {
+        M2(__arglist(1, M()));
+    }
+    void M2(__arglist)
+    {
+    }
+}";
+
+            var comp = CreateStandardCompilation(text);
+            comp.VerifyDiagnostics(
+                // (6,25): error CS8361: __arglist cannot have an argument of void type
+                //         M2(__arglist(1, M()));
+                Diagnostic(ErrorCode.ERR_CantUseVoidInArglist, "M()").WithLocation(6, 25)
+                );
+        }
+
+        [Fact]
         public void RefValueUnsafeToReturn()
         {
             var text = @"

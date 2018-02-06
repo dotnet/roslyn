@@ -404,7 +404,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         //       The "strict" ones do not permit implicit copying, so the same situation should result in an error.
                         if (refKind != RefKind.None && refKind != RefKind.RefReadOnly)
                         {
-                            Debug.Assert(conditional.IsByRef);
+                            Debug.Assert(conditional.IsRef);
                             _F.Diagnostics.Add(ErrorCode.ERR_RefConditionalAndAwait, _F.Syntax.Location);
                         }
                         refKind = RefKind.None;
@@ -453,7 +453,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool forceSpill = false,
             bool sideEffectsOnly = false)
         {
+            Debug.Assert(!sideEffectsOnly || refKinds.IsDefault);
             Debug.Assert(refKinds.IsDefault || refKinds.Length == args.Length);
+
+            if (args.Length == 0)
+            {
+                return args;
+            }
 
             var newList = VisitList(args);
             Debug.Assert(newList.Length == args.Length);
@@ -461,7 +467,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             int lastSpill;
             if (forceSpill)
             {
-                lastSpill = newList.Length - 1;
+                lastSpill = newList.Length;
             }
             else
             {
@@ -486,22 +492,33 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder = new BoundSpillSequenceBuilder();
             }
 
-            var result = ArrayBuilder<BoundExpression>.GetInstance();
-            for (int i = 0; i <= lastSpill; i++)
+            var result = ArrayBuilder<BoundExpression>.GetInstance(newList.Length);
+
+            // everything up until the last spill must be spilled entirely
+            for (int i = 0; i < lastSpill; i++)
             {
                 var refKind = refKinds.IsDefault ? RefKind.None : refKinds[i];
                 var replacement = Spill(builder, newList[i], refKind, sideEffectsOnly);
 
                 Debug.Assert(sideEffectsOnly || replacement != null);
+
                 if (!sideEffectsOnly)
                 {
                     result.Add(replacement);
                 }
             }
 
-            for (int i = lastSpill + 1; i < newList.Length; i++)
+            // the value of the last spill and everything that follows is not spilled
+            if (lastSpill < newList.Length)
             {
-                result.Add(newList[i]);
+                var lastSpillNode = (BoundSpillSequenceBuilder)newList[lastSpill];
+                builder.Include(lastSpillNode);
+                result.Add(lastSpillNode.Value);
+
+                for (int i = lastSpill + 1; i < newList.Length; i++)
+                {
+                    result.Add(newList[i]);
+                }
             }
 
             return result.ToImmutableAndFree();
@@ -740,7 +757,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder = leftBuilder;
             }
 
-            return UpdateExpression(builder, node.Update(left, right, node.RefKind, node.Type));
+            return UpdateExpression(builder, node.Update(left, right, node.IsRef, node.Type));
         }
 
         public override BoundNode VisitBadExpression(BoundBadExpression node)
@@ -838,7 +855,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (consequenceBuilder == null && alternativeBuilder == null)
             {
-                return UpdateExpression(conditionBuilder, node.Update(node.IsByRef, condition, consequence, alternative, node.ConstantValueOpt, node.Type));
+                return UpdateExpression(conditionBuilder, node.Update(node.IsRef, condition, consequence, alternative, node.ConstantValueOpt, node.Type));
             }
 
             if (conditionBuilder == null) conditionBuilder = new BoundSpillSequenceBuilder();

@@ -72,6 +72,7 @@ IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: Syst
 ";
             string expectedOperationTree = @"
 ITupleOperation (OperationKind.Tuple, Type: (System.Int32 i1, System.Int32 i2)) (Syntax: '(int i1, int i2)')
+  NaturalType: (System.Int32 i1, System.Int32 i2)
   Elements(2):
       IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Int32) (Syntax: 'int i1')
         IFieldReferenceOperation: System.Int32 Script.i1 (IsDeclaration: True) (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'i1')
@@ -121,6 +122,7 @@ IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: Syst
 ";
             string expectedOperationTree = @"
 ITupleOperation (OperationKind.Tuple, Type: (System.Int32 i1, System.Int32 i2)) (Syntax: '(var i1, var i2)')
+  NaturalType: (System.Int32 i1, System.Int32 i2)
   Elements(2):
       IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Int32) (Syntax: 'var i1')
         IFieldReferenceOperation: System.Int32 Script.i1 (IsDeclaration: True) (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'i1')
@@ -147,6 +149,7 @@ ITupleOperation (OperationKind.Tuple, Type: (System.Int32 i1, System.Int32 i2)) 
             string expectedOperationTree = @"
 IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: (System.Int32 i1, System.Int32 i2)) (Syntax: 'var (i1, i2)')
   ITupleOperation (OperationKind.Tuple, Type: (System.Int32 i1, System.Int32 i2)) (Syntax: '(i1, i2)')
+    NaturalType: (System.Int32 i1, System.Int32 i2)
     Elements(2):
         IFieldReferenceOperation: System.Int32 Script.i1 (IsDeclaration: True) (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'i1')
           Instance Receiver: 

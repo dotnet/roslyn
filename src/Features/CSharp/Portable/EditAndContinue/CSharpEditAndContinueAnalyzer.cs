@@ -520,12 +520,21 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                 // We use the parent node as a root:
                 // - for field/property initializers the root is EqualsValueClause. 
-                // - for expression-bodies the root is ArrowExpressionClauseSyntax. 
+                // - for member expression-bodies the root is ArrowExpressionClauseSyntax.
                 // - for block bodies the root is a method/operator/accessor declaration (only happens when matching expression body with a block body)
                 // - for lambdas the root is a LambdaExpression.
                 // - for query lambdas the root is the query clause containing the lambda (e.g. where).
+                // - for local functions the root is LocalFunctionStatement.
 
-                return new StatementSyntaxComparer(oldBody, newBody).ComputeMatch(oldBody.Parent, newBody.Parent, knownMatches);
+                SyntaxNode GetMatchingRoot(SyntaxNode body)
+                {
+                    var parent = body.Parent;
+                    // We could apply this change across all ArrowExpressionClause consistently not just for ones with LocalFunctionStatement parents
+                    // but it would require an essential refactoring. 
+                    return parent.IsKind(SyntaxKind.ArrowExpressionClause) && parent.Parent.IsKind(SyntaxKind.LocalFunctionStatement) ? parent.Parent : parent;
+                }
+
+                return new StatementSyntaxComparer(oldBody, newBody).ComputeMatch(GetMatchingRoot(oldBody), GetMatchingRoot(newBody), knownMatches);
             }
 
             if (oldBody.Parent.IsKind(SyntaxKind.ConstructorDeclaration))
@@ -564,6 +573,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 default:
                     // TODO: Consider mapping an expression body to an equivalent statement expression or return statement and vice versa.
                     // It would benefit transformations of expression bodies to block bodies of lambdas, methods, operators and properties.
+                    // See https://github.com/dotnet/roslyn/issues/22696
 
                     // field initializer, lambda and query expressions:
                     if (oldStatement == oldBody && !newBody.IsKind(SyntaxKind.Block))

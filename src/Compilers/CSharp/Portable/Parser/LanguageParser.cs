@@ -1157,18 +1157,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     return DeclarationModifiers.None;
             }
         }
-
-        private bool IsPossibleModifier()
-        {
-            return IsPossibleModifier(this.CurrentToken);
-        }
-
-        private static bool IsPossibleModifier(SyntaxToken token)
-        {
-            return GetModifier(token) != DeclarationModifiers.None;
-        }
-
-        private void ParseModifiers(SyntaxListBuilder tokens)
+        
+        private void ParseModifiers(SyntaxListBuilder tokens, bool forAccessors)
         {
             while (true)
             {
@@ -1227,6 +1217,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             {
                                 modTok = this.EatToken();
                                 modTok = CheckFeatureAvailability(modTok, MessageID.IDS_FeatureRefStructs);
+                            }
+                            else if (forAccessors && this.IsPossibleAccessorModifier())
+                            {
+                                // Accept ref as a modifier for properties and event accessors, to produce an error later during binding.
+                                modTok = this.EatToken();
                             }
                             else
                             {
@@ -2102,7 +2097,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
 
                 // All modifiers that might start an expression are processed above.
-                this.ParseModifiers(modifiers);
+                this.ParseModifiers(modifiers, forAccessors: false);
                 if (modifiers.Count > 0)
                 {
                     acceptStatement = false;
@@ -3183,33 +3178,36 @@ parse_member_name:;
             // Note: we allow all modifiers here.  That's because we want to parse things like
             // "abstract get" as an accessor.  This way we can provide a good error message
             // to the user that this is not allowed.
-            if (IsPossibleModifier())
+
+            if (GetModifier(this.CurrentToken) == DeclarationModifiers.None)
             {
-                var peekIndex = 1;
-                while (IsPossibleModifier(this.PeekToken(peekIndex)))
-                {
-                    peekIndex++;
-                }
-
-                var token = this.PeekToken(peekIndex);
-                if (token.Kind == SyntaxKind.CloseBraceToken || token.Kind == SyntaxKind.EndOfFileToken)
-                {
-                    // If we see "{ get { } public }
-                    // then we will think that "public" likely starts an accessor.
-                    return true;
-                }
-
-                switch (token.ContextualKind)
-                {
-                    case SyntaxKind.GetKeyword:
-                    case SyntaxKind.SetKeyword:
-                    case SyntaxKind.AddKeyword:
-                    case SyntaxKind.RemoveKeyword:
-                        return true;
-                }
+                return false;
             }
 
-            return false;
+            var peekIndex = 1;
+            while (GetModifier(this.PeekToken(peekIndex)) != DeclarationModifiers.None)
+            {
+                peekIndex++;
+            }
+
+            var token = this.PeekToken(peekIndex);
+            if (token.Kind == SyntaxKind.CloseBraceToken || token.Kind == SyntaxKind.EndOfFileToken)
+            {
+                // If we see "{ get { } public }
+                // then we will think that "public" likely starts an accessor.
+                return true;
+            }
+
+            switch (token.ContextualKind)
+            {
+                case SyntaxKind.GetKeyword:
+                case SyntaxKind.SetKeyword:
+                case SyntaxKind.AddKeyword:
+                case SyntaxKind.RemoveKeyword:
+                    return true;
+                default:
+                    return false;
+            }
         }
 
         private enum PostSkipAction
@@ -3386,7 +3384,7 @@ parse_member_name:;
             try
             {
                 this.ParseAttributeDeclarations(accAttrs);
-                this.ParseModifiers(accMods);
+                this.ParseModifiers(accMods, forAccessors: true);
 
                 if (!isEvent)
                 {
@@ -5128,6 +5126,8 @@ tryAgain:
             // This could be a type-argument list, or it could be an expression.  Need to see
             // what came after the last '>' to find out which it is.
 
+            // Scan for a type argument list. If we think it's a type argument list
+            // then assume it is unless we see specific tokens following it.
             SyntaxToken lastTokenOfList = null;
             ScanTypeFlags possibleTypeArgumentFlags = ScanPossibleTypeArgumentList(
                 ref lastTokenOfList, out bool isDefinitelyTypeArgumentList);
@@ -5142,8 +5142,12 @@ tryAgain:
                 return ScanTypeArgumentListKind.DefiniteTypeArgumentList;
             }
 
-            // Scan for a type argument list. If we think it's a type argument list
-            // then assume it is unless we see specific tokens following it.
+            // If we did not definitively determine from immediate syntax that it was or
+            // was not a type argument list, we must have scanned the entire thing up through
+            // the closing greater-than token. In that case we will disambiguate based on the
+            // token that follows it.
+            Debug.Assert(lastTokenOfList.Kind == SyntaxKind.GreaterThanToken);
+
             switch (this.CurrentToken.Kind)
             {
                 case SyntaxKind.IdentifierToken:
@@ -5225,10 +5229,11 @@ tryAgain:
                 {
                     lastTokenOfList = this.EatToken();
 
-                    // We currently do not have the ability to scan attributes, so if this is an open square, we early out and assume it is an attribute
+                    // Type arguments cannot contain attributes, so if this is an open square, we early out and assume it is not a type argument
                     if (this.CurrentToken.Kind == SyntaxKind.OpenBracketToken)
                     {
-                        return result;
+                        lastTokenOfList = null;
+                        return ScanTypeFlags.NotType;
                     }
 
                     if (this.CurrentToken.Kind == SyntaxKind.GreaterThanToken)
@@ -5259,7 +5264,7 @@ tryAgain:
                             //
                             //  var v = ImmutableDictionary<Int32,
                             //
-                            // Here this might actualy be a relational expression and the comma is meant
+                            // Here this might actually be a relational expression and the comma is meant
                             // to separate out the variable declarator 'v' from the next variable.
                             //
                             // Note: we check if we got 'MustBeType' which triggers for predefined types,
@@ -5304,7 +5309,7 @@ tryAgain:
                             //
                             //      X < Y ? Z : W
                             //
-                            // We'd see a nullable type here, but htis is definitley not a type arg list.
+                            // We'd see a nullable type here, but htis is definitely not a type arg list.
 
                             break;
 
@@ -5443,7 +5448,7 @@ tryAgain:
 
                 // Consider the case where someone supplies an invalid type argument
                 // Such as Action<0> or Action<static>.  In this case we generate a missing 
-                // identifer in ParseType, but if we continue as is we'll immediately start to 
+                // identifier in ParseType, but if we continue as is we'll immediately start to 
                 // interpret 0 as the start of a new expression when we can tell it's most likely
                 // meant to be part of the type list.  
                 //
@@ -5979,7 +5984,12 @@ tryAgain:
                 case ParseTypeMode.FirstElementOfPossibleTupleLiteral:
                 case ParseTypeMode.AfterTupleComma:
                     // We are parsing the type for a declaration expression in a tuple, which does
-                    // not permit pointer types. In that context a `*` is parsed as a multiplication.
+                    // not permit pointer types except as an element type of an array type.
+                    // In that context a `*` is parsed as a multiplication.
+                    if (PointerTypeModsFollowedByRankAndDimensionSpecifier())
+                    {
+                        goto default;
+                    }
                     break;
                 default:
                     while (this.CurrentToken.Kind == SyntaxKind.AsteriskToken)
@@ -6202,14 +6212,17 @@ tryAgain:
                 }
             }
 
-            // Check for pointer types (only if pType is NOT an array type)
             switch (mode)
             {
                 case ParseTypeMode.AfterIs:
                 case ParseTypeMode.AfterCase:
                 case ParseTypeMode.AfterTupleComma:
                 case ParseTypeMode.FirstElementOfPossibleTupleLiteral:
-                    // these contexts do not permit a pointer type.
+                    // these contexts do not permit a pointer type except as an element type of an array.
+                    if (PointerTypeModsFollowedByRankAndDimensionSpecifier())
+                    {
+                        type = this.ParsePointerTypeMods(type);
+                    }
                     break;
                 case ParseTypeMode.Normal:
                 case ParseTypeMode.Parameter:
@@ -6246,28 +6259,26 @@ tryAgain:
             return type;
         }
 
+        private bool PointerTypeModsFollowedByRankAndDimensionSpecifier()
+        {
+            // Are pointer specifiers (if any) followed by an array specifier?
+            for (int i = 0; ; i++)
+            {
+                switch (this.PeekToken(i).Kind)
+                {
+                    case SyntaxKind.AsteriskToken:
+                        continue;
+                    case SyntaxKind.OpenBracketToken:
+                        return true;
+                    default:
+                        return false;
+                }
+            }
+        }
+
         private bool IsPossibleRankAndDimensionSpecifier()
         {
-            if (this.CurrentToken.Kind == SyntaxKind.OpenBracketToken)
-            {
-                // When specifying rank and dimension, only commas and close square
-                // brackets are valid after an open square bracket. However, we accept
-                // numbers as well as the user might (mistakenly) try to specify the
-                // array size here. This way, when the parser actually consumes these
-                // tokens it will be able to specify an appropriate error message.
-                /*
-                SyntaxKind k = this.PeekToken(1).Kind;
-                if (k == SyntaxKind.Comma ||
-                    k == SyntaxKind.CloseBracket ||
-                    k == SyntaxKind.NumericLiteral)
-                {
-                    return true;
-                }
-                 */
-                return true;
-            }
-
-            return false;
+            return this.CurrentToken.Kind == SyntaxKind.OpenBracketToken;
         }
 
         private ArrayRankSpecifierSyntax ParseArrayRankSpecifier(bool isArrayCreation, bool expectSizes, out bool sawNonOmittedSize)
@@ -6714,7 +6725,7 @@ tryAgain:
             //      Task.await Task
             //
             // This does not represent user intent, and it causes all sorts of problems to higher 
-            // layers.  This is because both the parse tree is strage, and the symbol tables have
+            // layers.  This is because both the parse tree is strange, and the symbol tables have
             // entries that throw things off (like a bogus 'Task' local).
             //
             // Note that we explicitly do this check when we see that the code spreads over multiple 
@@ -9048,9 +9059,23 @@ tryAgain:
             {
                 var questionToken = this.EatToken();
                 var colonLeft = this.ParsePossibleRefExpression();
-                var colon = this.EatToken(SyntaxKind.ColonToken);
-                var colonRight = this.ParsePossibleRefExpression();
-                leftOperand = _syntaxFactory.ConditionalExpression(leftOperand, questionToken, colonLeft, colon, colonRight);
+                if (this.CurrentToken.Kind == SyntaxKind.EndOfFileToken && this.lexer.InterpolationFollowedByColon)
+                {
+                    // We have an interpolated string with an interpolation that contains a conditional expression.
+                    // Unfortunately, the precedence demands that the colon is considered to signal the start of the
+                    // format string. Without this code, the compiler would complain about a missing colon, and point
+                    // to the colon that is present, which would be confusing. We aim to give a better error message.
+                    var colon = SyntaxFactory.MissingToken(SyntaxKind.ColonToken);
+                    var colonRight = _syntaxFactory.IdentifierName(SyntaxFactory.MissingToken(SyntaxKind.IdentifierToken));
+                    leftOperand = _syntaxFactory.ConditionalExpression(leftOperand, questionToken, colonLeft, colon, colonRight);
+                    leftOperand = this.AddError(leftOperand, ErrorCode.ERR_ConditionalInInterpolation);
+                }
+                else
+                {
+                    var colon = this.EatToken(SyntaxKind.ColonToken);
+                    var colonRight = this.ParsePossibleRefExpression();
+                    leftOperand = _syntaxFactory.ConditionalExpression(leftOperand, questionToken, colonLeft, colon, colonRight);
+                }
             }
 
             return leftOperand;
@@ -9934,7 +9959,7 @@ tryAgain:
                     //  ( <expr>,    must be a tuple
                     if (this.CurrentToken.Kind == SyntaxKind.CommaToken)
                     {
-                        var firstArg = _syntaxFactory.Argument(nameColon: null, refOrOutKeyword: default(SyntaxToken), expression: expression);
+                        var firstArg = _syntaxFactory.Argument(nameColon: null, refKindKeyword: default(SyntaxToken), expression: expression);
                         return ParseTupleExpressionTail(openParen, firstArg);
                     }
 
@@ -9944,7 +9969,7 @@ tryAgain:
                         var nameColon = _syntaxFactory.NameColon((IdentifierNameSyntax)expression, EatToken());
                         expression = this.ParseExpressionOrDeclaration(ParseTypeMode.FirstElementOfPossibleTupleLiteral, feature: 0, permitTupleDesignation: true);
 
-                        var firstArg = _syntaxFactory.Argument(nameColon, refOrOutKeyword: default(SyntaxToken), expression: expression);
+                        var firstArg = _syntaxFactory.Argument(nameColon, refKindKeyword: default(SyntaxToken), expression: expression);
                         return ParseTupleExpressionTail(openParen, firstArg);
                     }
 
@@ -9977,11 +10002,11 @@ tryAgain:
                     {
                         var nameColon = _syntaxFactory.NameColon((IdentifierNameSyntax)expression, EatToken());
                         expression = ParseExpressionOrDeclaration(ParseTypeMode.AfterTupleComma, feature: 0, permitTupleDesignation: true);
-                        arg = _syntaxFactory.Argument(nameColon, refOrOutKeyword: default(SyntaxToken), expression: expression);
+                        arg = _syntaxFactory.Argument(nameColon, refKindKeyword: default(SyntaxToken), expression: expression);
                     }
                     else
                     {
-                        arg = _syntaxFactory.Argument(nameColon: null, refOrOutKeyword: default(SyntaxToken), expression: expression);
+                        arg = _syntaxFactory.Argument(nameColon: null, refKindKeyword: default(SyntaxToken), expression: expression);
                     }
 
                     list.Add(arg);
@@ -9991,7 +10016,7 @@ tryAgain:
                 {
                     list.AddSeparator(SyntaxFactory.MissingToken(SyntaxKind.CommaToken));
                     var missing = this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_TupleTooFewElements);
-                    list.Add(_syntaxFactory.Argument(nameColon: null, refOrOutKeyword: default(SyntaxToken), expression: missing));
+                    list.Add(_syntaxFactory.Argument(nameColon: null, refKindKeyword: default(SyntaxToken), expression: missing));
                 }
 
                 var closeParen = this.EatToken(SyntaxKind.CloseParenToken);

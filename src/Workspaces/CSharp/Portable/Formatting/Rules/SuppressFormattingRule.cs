@@ -62,22 +62,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             if (node is MemberDeclarationSyntax memberDeclNode)
             {
-                // Attempt to keep the part of a member that follows hte attributes on a single
+                // Attempt to keep the part of a member that follows the attributes on a single
                 // line if that's how it's currently written.
                 var tokens = memberDeclNode.GetFirstAndLastMemberDeclarationTokensAfterAttributes();
                 AddSuppressWrappingIfOnSingleLineOperation(list, tokens.Item1, tokens.Item2);
 
+                // Also, If the member is on single line with its attributes on it, then keep 
+                // it on a single line.  This is for code like the following:
+                //
+                //      [Import] public int Field1;
+                //      [Import] public int Field2;
                 var attributes = memberDeclNode.GetAttributes();
-                if (attributes.Count > 0)
+                var endToken = node.GetLastToken(includeZeroWidth: true);
+                for (var i = 0; i < attributes.Count; ++i)
                 {
-                    // Also, If the member is on single line with its attributes on it, then keep 
-                    // it on a single line.  This is for code like the following:
-                    //
-                    //      [Import] public int Field1;
-                    //      [Import] public int Field2;
                     AddSuppressWrappingIfOnSingleLineOperation(list,
-                        node.GetFirstToken(includeZeroWidth: true),
-                        node.GetLastToken(includeZeroWidth: true));
+                        attributes[i].GetFirstToken(includeZeroWidth: true),
+                        endToken);
                 }
 
                 var propertyDeclNode = node as PropertyDeclarationSyntax;

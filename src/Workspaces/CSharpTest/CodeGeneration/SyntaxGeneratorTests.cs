@@ -159,8 +159,8 @@ public class MyAttribute : Attribute { public MyAttribute(E value) { } }",
             VerifySyntax<AttributeListSyntax>(_g.Attribute(GetAttributeData(
 @"using System; 
 public class MyAttribute : Attribute { public MyAttribute(Type value) { } }",
-@"[MyAttribute(typeof(MyAttribute))]")),
-@"[global::MyAttribute(typeof (global::MyAttribute))]");
+@"[MyAttribute(typeof (MyAttribute))]")),
+@"[global::MyAttribute(typeof(global::MyAttribute))]");
 
             VerifySyntax<AttributeListSyntax>(_g.Attribute(GetAttributeData(
 @"using System; 
@@ -393,7 +393,7 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
         {
             VerifySyntax<BinaryExpressionSyntax>(_g.IsTypeExpression(_g.IdentifierName("x"), _g.IdentifierName("y")), "(x) is y");
             VerifySyntax<BinaryExpressionSyntax>(_g.TryCastExpression(_g.IdentifierName("x"), _g.IdentifierName("y")), "(x) as y");
-            VerifySyntax<TypeOfExpressionSyntax>(_g.TypeOfExpression(_g.IdentifierName("x")), "typeof (x)");
+            VerifySyntax<TypeOfExpressionSyntax>(_g.TypeOfExpression(_g.IdentifierName("x")), "typeof(x)");
         }
 
         [Fact]
@@ -913,7 +913,7 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                 _g.ConstructorDeclaration("c",
                     parameters: new[] { _g.ParameterDeclaration("p", _g.IdentifierName("t")) },
                     baseConstructorArguments: new[] { _g.IdentifierName("p") }),
-                "c(t p): base (p)\r\n{\r\n}");
+                "c(t p): base(p)\r\n{\r\n}");
         }
 
         [Fact]
@@ -1614,13 +1614,13 @@ public class C { } // end").Members[0];
                 _g.WithTypeConstraint(
                     _g.WithTypeParameters(_g.MethodDeclaration("m", modifiers: DeclarationModifiers.Abstract), "a"),
                     "a", _g.IdentifierName("b")),
-                "abstract void m<a>()where a : b;");
+                "abstract void m<a>()\r\n    where a : b;");
 
             VerifySyntax<MethodDeclarationSyntax>(
                 _g.WithTypeConstraint(
                     _g.WithTypeParameters(_g.MethodDeclaration("m", modifiers: DeclarationModifiers.Abstract), "a"),
                     "a", _g.IdentifierName("b"), _g.IdentifierName("c")),
-                "abstract void m<a>()where a : b, c;");
+                "abstract void m<a>()\r\n    where a : b, c;");
 
             VerifySyntax<MethodDeclarationSyntax>(
                 _g.WithTypeConstraint(
@@ -1640,43 +1640,43 @@ public class C { } // end").Members[0];
                         _g.WithTypeParameters(_g.MethodDeclaration("m", modifiers: DeclarationModifiers.Abstract), "a", "x"),
                         "a", _g.IdentifierName("b"), _g.IdentifierName("c")),
                     "x", _g.IdentifierName("y")),
-                "abstract void m<a, x>()where a : b, c where x : y;");
+                "abstract void m<a, x>()\r\n    where a : b, c where x : y;");
 
             VerifySyntax<MethodDeclarationSyntax>(
                 _g.WithTypeConstraint(
                     _g.WithTypeParameters(_g.MethodDeclaration("m", modifiers: DeclarationModifiers.Abstract), "a"),
                     "a", SpecialTypeConstraintKind.Constructor),
-                "abstract void m<a>()where a : new ();");
+                "abstract void m<a>()\r\n    where a : new();");
 
             VerifySyntax<MethodDeclarationSyntax>(
                 _g.WithTypeConstraint(
                     _g.WithTypeParameters(_g.MethodDeclaration("m", modifiers: DeclarationModifiers.Abstract), "a"),
                     "a", SpecialTypeConstraintKind.ReferenceType),
-                "abstract void m<a>()where a : class;");
+                "abstract void m<a>()\r\n    where a : class;");
 
             VerifySyntax<MethodDeclarationSyntax>(
                 _g.WithTypeConstraint(
                     _g.WithTypeParameters(_g.MethodDeclaration("m", modifiers: DeclarationModifiers.Abstract), "a"),
                     "a", SpecialTypeConstraintKind.ValueType),
-                "abstract void m<a>()where a : struct;");
+                "abstract void m<a>()\r\n    where a : struct;");
 
             VerifySyntax<MethodDeclarationSyntax>(
                 _g.WithTypeConstraint(
                     _g.WithTypeParameters(_g.MethodDeclaration("m", modifiers: DeclarationModifiers.Abstract), "a"),
                     "a", SpecialTypeConstraintKind.ReferenceType | SpecialTypeConstraintKind.Constructor),
-                "abstract void m<a>()where a : class, new ();");
+                "abstract void m<a>()\r\n    where a : class, new();");
 
             VerifySyntax<MethodDeclarationSyntax>(
                 _g.WithTypeConstraint(
                     _g.WithTypeParameters(_g.MethodDeclaration("m", modifiers: DeclarationModifiers.Abstract), "a"),
                     "a", SpecialTypeConstraintKind.ReferenceType | SpecialTypeConstraintKind.ValueType),
-                "abstract void m<a>()where a : class;");
+                "abstract void m<a>()\r\n    where a : class;");
 
             VerifySyntax<MethodDeclarationSyntax>(
                 _g.WithTypeConstraint(
                     _g.WithTypeParameters(_g.MethodDeclaration("m", modifiers: DeclarationModifiers.Abstract), "a"),
                     "a", SpecialTypeConstraintKind.ReferenceType, _g.IdentifierName("b"), _g.IdentifierName("c")),
-                "abstract void m<a>()where a : class, b, c;");
+                "abstract void m<a>()\r\n    where a : class, b, c;");
 
             // type declarations
             VerifySyntax<ClassDeclarationSyntax>(
@@ -1709,7 +1709,7 @@ public class C { } // end").Members[0];
                         _g.DelegateDeclaration("d"),
                         "a", "b"),
                     "a", _g.IdentifierName("x")),
-            "delegate void d<a, b>()where a : x;");
+            "delegate void d<a, b>()\r\n    where a : x;");
         }
 
         [Fact]

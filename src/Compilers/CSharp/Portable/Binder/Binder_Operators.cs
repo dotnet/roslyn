@@ -1920,7 +1920,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Conversion.NoConversion,
                     Conversion.NoConversion,
                     LookupResultKind.Empty,
-                    GetSpecialType(SpecialType.System_Object, diagnostics, node),
+                    CreateErrorType(),
                     hasErrors: true);
             }
 
@@ -1958,7 +1958,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Conversion.NoConversion,
                     resultKind,
                     originalUserDefinedOperators,
-                    GetSpecialType(SpecialType.System_Object, diagnostics, node),
+                    CreateErrorType(),
                     hasErrors: true);
             }
 
@@ -2233,7 +2233,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundUnaryOperator(node, kind, operand, ConstantValue.NotAvailable,
                     methodOpt: null,
                     resultKind: LookupResultKind.Empty,
-                    type: GetSpecialType(SpecialType.System_Object, diagnostics, node),
+                    type: CreateErrorType(),
                     hasErrors: true);
             }
 
@@ -2270,7 +2270,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     null,
                     resultKind,
                     originalUserDefinedOperators,
-                    GetSpecialType(SpecialType.System_Object, diagnostics, node),
+                    CreateErrorType(),
                     hasErrors: true);
             }
 
@@ -2682,7 +2682,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var boundConstantPattern = BindConstantPattern(
-                    node.Right, operand.Type, node.Right, node.Right.HasErrors, isPatternDiagnostics, out wasExpression, wasSwitchCase: false);
+                    node.Right, operand.Type, node.Right, node.Right.HasErrors, isPatternDiagnostics, out wasExpression);
                 boundConstantPattern.WasCompilerGenerated = true;
                 if (wasExpression)
                 {
@@ -3520,6 +3520,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     diagnostics.Add(ErrorCode.ERR_RefConditionalNeedsTwoRefs, whenTrue.GetFirstToken().GetLocation());
                 }
+            }
+            else
+            {
+                CheckFeatureAvailability(node, MessageID.IDS_FeatureRefConditional, diagnostics);
             }
 
             BoundExpression condition = BindBooleanExpression(node.Condition, diagnostics);

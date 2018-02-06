@@ -483,6 +483,9 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
+            [PerformanceSensitive(
+                "https://github.com/dotnet/roslyn/issues/23582",
+                Constraint = "Avoid calling " + nameof(Compilation.AddSyntaxTrees) + " in a loop due to allocation overhead.")]
             private async Task<Compilation> BuildDeclarationCompilationFromScratchAsync(
                 SolutionState solution, CancellationToken cancellationToken)
             {
@@ -490,12 +493,16 @@ namespace Microsoft.CodeAnalysis
                 {
                     var compilation = CreateEmptyCompilation();
 
+                    var trees = new SyntaxTree[ProjectState.DocumentIds.Count];
+                    var index = 0;
                     foreach (var document in this.ProjectState.OrderedDocumentStates)
                     {
                         cancellationToken.ThrowIfCancellationRequested();
-                        compilation = compilation.AddSyntaxTrees(await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false));
+                        trees[index] = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                        index++;
                     }
 
+                    compilation = compilation.AddSyntaxTrees(trees);
                     this.WriteState(new FullDeclarationState(compilation), solution);
                     return compilation;
                 }

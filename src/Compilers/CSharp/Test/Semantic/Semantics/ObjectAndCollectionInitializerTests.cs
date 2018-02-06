@@ -132,6 +132,23 @@ class MemberInitializerTest<T> where T : Base, new()
 ";
             string expectedOperationTree = @"
 ITypeParameterObjectCreationOperation (OperationKind.TypeParameterObjectCreation, Type: T) (Syntax: 'new T() { x = 0, y = 0 }')
+  Initializer: 
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: T) (Syntax: '{ x = 0, y = 0 }')
+      Initializers(2):
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'x = 0')
+            Left: 
+              IFieldReferenceOperation: System.Int32 Base.x (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'x')
+                Instance Receiver: 
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: T, IsImplicit) (Syntax: 'x')
+            Right: 
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'y = 0')
+            Left: 
+              IPropertyReferenceOperation: System.Int32 Base.y { get; set; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'y')
+                Instance Receiver: 
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: T, IsImplicit) (Syntax: 'y')
+            Right: 
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -1408,7 +1425,18 @@ class MemberInitializerTest<T>
 ";
             string expectedOperationTree = @"
 IInvalidOperation (OperationKind.Invalid, Type: T, IsInvalid) (Syntax: 'new T() { x = 0 }')
-  Children(0)
+  Children(1):
+      IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: T, IsInvalid) (Syntax: '{ x = 0 }')
+        Initializers(1):
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: 'x = 0')
+              Left: 
+                IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'x')
+                  Children(1):
+                      IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'x')
+                        Children(1):
+                            IInstanceReferenceOperation (OperationKind.InstanceReference, Type: T, IsInvalid, IsImplicit) (Syntax: 'T')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsInvalid) (Syntax: '0')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0117: 'T' does not contain a definition for 'x'
@@ -1496,7 +1524,7 @@ IObjectCreationOperation (Constructor: MemberInitializerTest..ctor()) (Operation
                   IInstanceReferenceOperation (OperationKind.InstanceReference, Type: MemberInitializerTest, IsImplicit) (Syntax: 'x')
             Right: 
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
-          IIncrementOrDecrementOperation (Postfix) (OperationKind.Increment, Type: System.Object, IsInvalid) (Syntax: 'y++')
+          IIncrementOrDecrementOperation (Postfix) (OperationKind.Increment, Type: ?, IsInvalid) (Syntax: 'y++')
             Target: 
               IFieldReferenceOperation: System.Int32 MemberInitializerTest.y (OperationKind.FieldReference, Type: System.Int32, IsInvalid) (Syntax: 'y')
                 Instance Receiver: 
@@ -2211,7 +2239,7 @@ IObjectCreationOperation (Constructor: MemberInitializerTest..ctor()) (Operation
       Initializers(1):
           IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'y++')
             Children(1):
-                IIncrementOrDecrementOperation (Postfix) (OperationKind.Increment, Type: System.Object, IsInvalid) (Syntax: 'y++')
+                IIncrementOrDecrementOperation (Postfix) (OperationKind.Increment, Type: ?, IsInvalid) (Syntax: 'y++')
                   Target: 
                     IFieldReferenceOperation: System.Int32 MemberInitializerTest.y (OperationKind.FieldReference, Type: System.Int32, IsInvalid) (Syntax: 'y')
                       Instance Receiver: 

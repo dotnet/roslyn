@@ -689,28 +689,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                             builder.Add(BindDeclarationVariables(declType, n, n, diagnostics));
                             namesBuilder.Add(InferTupleElementName(n));
                         }
-                        var subExpressions = builder.ToImmutableAndFree();
+                        ImmutableArray<BoundExpression> subExpressions = builder.ToImmutableAndFree();
 
                         var uniqueFieldNames = PooledHashSet<string>.GetInstance();
-                        RemoveDuplicateInferredTupleNames(namesBuilder, uniqueFieldNames);
+                        RemoveDuplicateInferredTupleNamesAndFreeIfEmptied(ref namesBuilder, uniqueFieldNames);
                         uniqueFieldNames.Free();
 
-                        var tupleNames = namesBuilder.ToImmutableAndFree();
-                        var inferredPositions = tupleNames.SelectAsArray(n => n != null);
+                        ImmutableArray<string> tupleNames = namesBuilder is null ? default : namesBuilder.ToImmutableAndFree();
+                        ImmutableArray<bool> inferredPositions = tupleNames.IsDefault ? default : tupleNames.SelectAsArray(n => n != null);
                         bool disallowInferredNames = this.Compilation.LanguageVersion.DisallowInferredTupleElementNames();
 
                         // We will not check constraints at this point as this code path
                         // is failure-only and the caller is expected to produce a diagnostic.
                         var tupleType = TupleTypeSymbol.Create(
-                            null,
+                            locationOpt: null,
                             subExpressions.SelectAsArray(e => e.Type),
-                            default(ImmutableArray<Location>),
+                            elementLocations: default,
                             tupleNames,
                             Compilation,
                             shouldCheckConstraints: false,
-                            errorPositions: disallowInferredNames ? inferredPositions : default(ImmutableArray<bool>));
+                            errorPositions: disallowInferredNames ? inferredPositions : default);
 
-                        return new BoundTupleLiteral(syntax, default(ImmutableArray<string>), inferredPositions, subExpressions, tupleType);
+                        return new BoundTupleLiteral(syntax, argumentNamesOpt: default, inferredPositions, subExpressions, tupleType);
                     }
                 default:
                     throw ExceptionUtilities.UnexpectedValue(node.Kind());
@@ -833,7 +833,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CollectTupleFieldMemberName(inferredName, i, numElements, ref inferredElementNames);
             }
 
-            RemoveDuplicateInferredTupleNames(inferredElementNames, uniqueFieldNames);
+            RemoveDuplicateInferredTupleNamesAndFreeIfEmptied(ref inferredElementNames, uniqueFieldNames);
             uniqueFieldNames.Free();
 
             var result = MergeTupleElementNames(elementNames, inferredElementNames);
@@ -882,7 +882,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (elementNames.ToImmutable(), builder.ToImmutableAndFree());
         }
 
-        private static void RemoveDuplicateInferredTupleNames(ArrayBuilder<string> inferredElementNames, HashSet<string> uniqueFieldNames)
+        /// <summary>
+        /// Removes duplicate entries in <paramref name="inferredElementNames"/> and frees it if only nulls remain.
+        /// </summary>
+        private static void RemoveDuplicateInferredTupleNamesAndFreeIfEmptied(ref ArrayBuilder<string> inferredElementNames, HashSet<string> uniqueFieldNames)
         {
             if (inferredElementNames == null)
             {
@@ -908,6 +911,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
             toRemove.Free();
+
+            if (inferredElementNames.All(n => n is null))
+            {
+                inferredElementNames.Free();
+                inferredElementNames = null;
+            }
         }
 
         private static string InferTupleElementName(SyntaxNode syntax)
@@ -3664,7 +3673,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundExpression MakeBadExpressionForObjectCreation(ObjectCreationExpressionSyntax node, NamedTypeSymbol type, BoundExpression boundInitializerOpt, AnalyzedArguments analyzedArguments)
+        private BoundExpression MakeBadExpressionForObjectCreation(ObjectCreationExpressionSyntax node, TypeSymbol type, BoundExpression boundInitializerOpt, AnalyzedArguments analyzedArguments)
         {
             var children = ArrayBuilder<BoundExpression>.GetInstance();
             children.AddRange(BuildArgumentsForErrorRecovery(analyzedArguments));
@@ -4263,7 +4272,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (implicitReceiver.Type.IsDynamic())
             {
-                var hasErrors = ReportBadDynamicArguments(elementInitializer, boundElementInitializerExpressions, diagnostics, queryClause: null);
+                var hasErrors = ReportBadDynamicArguments(elementInitializer, boundElementInitializerExpressions, refKinds: default, diagnostics, queryClause: null);
 
                 return new BoundDynamicCollectionElementInitializer(
                     elementInitializer,
@@ -4420,15 +4429,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (overloadResolutionResult.HasAnyApplicableMember)
                 {
                     var argArray = BuildArgumentsForDynamicInvocation(analyzedArguments, diagnostics);
+                    var refKindsArray = analyzedArguments.RefKinds.ToImmutableOrNull();
 
-                    hasErrors &= ReportBadDynamicArguments(node, argArray, diagnostics, queryClause: null);
+                    hasErrors &= ReportBadDynamicArguments(node, argArray, refKindsArray, diagnostics, queryClause: null);
 
                     result = new BoundDynamicObjectCreationExpression(
                         node,
                         typeName,
                         argArray,
                         analyzedArguments.GetNames(),
-                        analyzedArguments.RefKinds.ToImmutableOrNull(),
+                        refKindsArray,
                         boundInitializerOpt,
                         overloadResolutionResult.GetAllApplicableMembers(),
                         type,
@@ -4702,22 +4712,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindArgumentsAndNames(node.ArgumentList, diagnostics, analyzedArguments);
 
             bool hasArguments = analyzedArguments.Arguments.Count > 0;
-            analyzedArguments.Free();
 
-            if (!typeParameter.HasConstructorConstraint && !typeParameter.IsValueType)
+            try
             {
-                diagnostics.Add(ErrorCode.ERR_NoNewTyvar, node.Location, typeParameter);
-            }
-            else if (hasArguments)
-            {
-                diagnostics.Add(ErrorCode.ERR_NewTyvarWithArgs, node.Location, typeParameter);
-            }
-            else
-            {
-                return new BoundNewT(node, boundInitializerOpt, typeParameter);
-            }
+                if (!typeParameter.HasConstructorConstraint && !typeParameter.IsValueType)
+                {
+                    diagnostics.Add(ErrorCode.ERR_NoNewTyvar, node.Location, typeParameter);
+                }
+                else if (hasArguments)
+                {
+                    diagnostics.Add(ErrorCode.ERR_NewTyvarWithArgs, node.Location, typeParameter);
+                }
+                else
+                {
+                    return new BoundNewT(node, boundInitializerOpt, typeParameter);
+                }
 
-            return new BoundBadExpression(node, LookupResultKind.NotCreatable, ImmutableArray.Create<Symbol>(typeParameter), ImmutableArray<BoundExpression>.Empty, typeParameter);
+                return MakeBadExpressionForObjectCreation(node, typeParameter, boundInitializerOpt, analyzedArguments);
+            }
+            finally
+            {
+                analyzedArguments.Free();
+            }
         }
 
         /// <summary>
@@ -6696,15 +6712,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var argArray = BuildArgumentsForDynamicInvocation(arguments, diagnostics);
+            var refKindsArray = arguments.RefKinds.ToImmutableOrNull();
 
-            hasErrors &= ReportBadDynamicArguments(syntax, argArray, diagnostics, queryClause: null);
+            hasErrors &= ReportBadDynamicArguments(syntax, argArray, refKindsArray, diagnostics, queryClause: null);
 
             return new BoundDynamicIndexerAccess(
                 syntax,
                 receiverOpt,
                 argArray,
                 arguments.GetNames(),
-                arguments.RefKinds.ToImmutableOrNull(),
+                refKindsArray,
                 applicableProperties,
                 AssemblySymbol.DynamicType,
                 hasErrors);
@@ -7071,9 +7088,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return GenerateBadConditionalAccessNodeError(node, receiver, access, diagnostics);
             }
 
-            // access cannot have unconstrained generic type
-            // access cannot be a pointer
-            if ((!accessType.IsReferenceType && !accessType.IsValueType) || accessType.IsPointerType())
+            // The resulting type must be either a reference type T or Nullable<T>
+            // Therefore we must reject cases resulting in types that are not reference types and cannot be lifted into nullable.
+            // - access cannot have unconstrained generic type
+            // - access cannot be a pointer
+            // - access cannot be a restricted type
+            if ((!accessType.IsReferenceType && !accessType.IsValueType) || accessType.IsPointerType() || accessType.IsRestrictedType())
             {
                 // Result type of the access is void when result value cannot be made nullable.
                 // For improved diagnostics we detect the cases where the value will be used and produce a

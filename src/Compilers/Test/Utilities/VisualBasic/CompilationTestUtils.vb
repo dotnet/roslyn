@@ -288,11 +288,11 @@ Friend Module CompilationUtils
                                                     Optional options As VisualBasicCompilationOptions = Nothing,
                                                     Optional parseOptions As VisualBasicParseOptions = Nothing,
                                                     Optional assemblyName As String = Nothing) As VisualBasicCompilation
-        Dim sourceTrees = ParseSouceXml(sources, parseOptions, assemblyName)
+        Dim sourceTrees = ParseSourceXml(sources, parseOptions, assemblyName)
         Return CreateCompilationWithReferences(sourceTrees, references, options, assemblyName)
     End Function
 
-    Public Function ParseSouceXml(sources As XElement,
+    Public Function ParseSourceXml(sources As XElement,
                                   parseOptions As VisualBasicParseOptions,
                                   Optional ByRef assemblyName As String = Nothing,
                                   Optional ByRef spans As IEnumerable(Of IEnumerable(Of TextSpan)) = Nothing) As IEnumerable(Of SyntaxTree)

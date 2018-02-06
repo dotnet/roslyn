@@ -6,8 +6,9 @@ using System.Diagnostics;
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
+
+using static System.Linq.ImmutableArrayExtensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 {
@@ -767,7 +768,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         }
 
         /// <summary>
-        /// Defines sequence locals and record them so tht they could be retained for the duration of the encompassing expresson
+        /// Defines sequence locals and record them so that they could be retained for the duration of the encompassing expression
         /// Use this when taking a reference of the sequence, which can indirectly refer to any of its locals.
         /// </summary>
         private void DefineAndRecordLocals(BoundSequence sequence)
@@ -788,7 +789,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         /// <summary>
         /// Closes the visibility/debug scopes for the sequence locals, but keep the local slots from reuse
-        /// for the duration of the encompassing expresson.
+        /// for the duration of the encompassing expression.
         /// Use this paired with DefineAndRecordLocals when taking a reference of the sequence, which can indirectly refer to any of its locals.
         /// </summary>
         private void CloseScopeAndKeepLocals(BoundSequence sequence)
@@ -813,32 +814,42 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
-        private void EmitArguments(ImmutableArray<BoundExpression> arguments, ImmutableArray<ParameterSymbol> parameters, ImmutableArray<RefKind> refKindsOpt)
+        private void EmitArguments(ImmutableArray<BoundExpression> arguments, ImmutableArray<ParameterSymbol> parameters, ImmutableArray<RefKind> argRefKindsOpt)
         {
             // We might have an extra argument for the __arglist() of a varargs method.
             Debug.Assert(arguments.Length == parameters.Length || arguments.Length == parameters.Length + 1, "argument count must match parameter count");
+            Debug.Assert(parameters.All(p => p.RefKind == RefKind.None) || !argRefKindsOpt.IsDefault, "there are nontrivial parameters, so we must have argRefKinds");
+            Debug.Assert(argRefKindsOpt.IsDefault || argRefKindsOpt.Length == arguments.Length, "if we have argRefKinds, we should have one for each argument");
+
             for (int i = 0; i < arguments.Length; i++)
             {
-                RefKind refKind;
+                RefKind argRefKind;
 
-                if (!refKindsOpt.IsDefault && i < refKindsOpt.Length)
+                if (i < parameters.Length)
                 {
-                    // if we have an explicit refKind for the given argument, use that
-                    refKind = refKindsOpt[i];
-                }
-                else if (i < parameters.Length)
-                {
-                    // otherwise check the parameter
-                    refKind = parameters[i].RefKind;
+                    if (!argRefKindsOpt.IsDefault && i < argRefKindsOpt.Length)
+                    {
+                        // if we have an explicit refKind for the given argument, use that
+                        argRefKind = argRefKindsOpt[i];
+
+                        Debug.Assert(argRefKind == parameters[i].RefKind ||
+                                argRefKind == RefKindExtensions.StrictIn && parameters[i].RefKind == RefKind.In,
+                                "in Emit the argument RefKind must be compatible with the corresponding parameter");
+                    }
+                    else
+                    {
+                        // otherwise fallback to the refKind of the parameter
+                        argRefKind = parameters[i].RefKind;
+                    }
                 }
                 else
                 {
                     // vararg case
                     Debug.Assert(arguments[i].Kind == BoundKind.ArgListOperator);
-                    refKind = RefKind.None;
+                    argRefKind = RefKind.None;
                 }
 
-                EmitArgument(arguments[i], refKind);
+                EmitArgument(arguments[i], argRefKind);
             }
         }
 
@@ -963,7 +974,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             Debug.Assert(!field.IsConst || field.ContainingType.SpecialType == SpecialType.System_Decimal,
                 "rewriter should lower constant fields into constant expressions");
 
-            // static field access is sideeffecting since it gurantees that ..ctor has run.
+            // static field access is sideeffecting since it guarantees that ..ctor has run.
             // we emit static accesses even if unused.
             if (field.IsStatic)
             {
@@ -1481,7 +1492,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     {
                         // if method is defined in the struct itself it is assumed to be mutating, unless 
                         // it is a member of a readonly struct and is not a constructor
-                        var receiverAddresskind = methodContainingType.IsReadOnly && method.MethodKind != MethodKind.Constructor ?
+                        var receiverAddresskind = IsReadOnlyCall(method, methodContainingType) ?
                                                                         AddressKind.ReadOnly :
                                                                         AddressKind.Writeable;
                         if (MayUseCallForStructMethod(method))
@@ -1659,6 +1670,30 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             FreeOptTemp(tempOpt);
         }
 
+        private bool IsReadOnlyCall(MethodSymbol method, NamedTypeSymbol methodContainingType)
+        {
+            Debug.Assert(methodContainingType.IsVerifierValue(), "only struct calls can be readonly");
+
+            if (methodContainingType.IsReadOnly && method.MethodKind != MethodKind.Constructor)
+            {
+                return true;
+            }
+
+            if (methodContainingType.IsNullableType())
+            {
+                var originalMethod = method.OriginalDefinition;
+
+                if ((object)originalMethod == this._module.Compilation.GetSpecialTypeMember(SpecialMember.System_Nullable_T_GetValueOrDefault) ||
+                    (object)originalMethod == this._module.Compilation.GetSpecialTypeMember(SpecialMember.System_Nullable_T_get_Value) ||
+                    (object)originalMethod == this._module.Compilation.GetSpecialTypeMember(SpecialMember.System_Nullable_T_get_HasValue))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         // returns true when receiver is already a ref.
         // in such cases calling through a ref could be preferred over 
         // calling through indirectly loaded value.
@@ -1763,8 +1798,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             var containingType = method.ContainingType;
-            // overrides in structs that are special types can be caled directly.
-            // we can assume that special types will not be removing oiverrides
+            // overrides in structs that are special types can be called directly.
+            // we can assume that special types will not be removing overrides
             return containingType.SpecialType != SpecialType.None;
         }
 
@@ -1848,7 +1883,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             EmitExpression(expression.Count, used);
 
-            // the only sideeffect of a localloc is a nondeterminisic and generaly fatal StackOverflow.
+            // the only sideeffect of a localloc is a nondeterministic and generally fatal StackOverflow.
             // we can ignore that if the actual result is unused
             if (used)
             {
@@ -1922,7 +1957,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             if (TryEmitAssignmentInPlace(assignmentOperator, useKind != UseKind.Unused))
             {
-                Debug.Assert(assignmentOperator.RefKind == RefKind.None);
+                Debug.Assert(!assignmentOperator.IsRef);
                 return;
             }
 
@@ -2211,7 +2246,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         // and then do an indirect store. In that case we need to have the
                         // contents of addr on the stack.
 
-                        if (left.LocalSymbol.RefKind != RefKind.None && assignmentOperator.RefKind == RefKind.None)
+                        if (left.LocalSymbol.RefKind != RefKind.None && !assignmentOperator.IsRef)
                         {
                             if (!IsStackLocal(left.LocalSymbol))
                             {
@@ -2274,7 +2309,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 case BoundKind.ConditionalOperator:
                     {
                         var left = (BoundConditionalOperator)assignmentTarget;
-                        Debug.Assert(left.IsByRef);
+                        Debug.Assert(left.IsRef);
 
                         var temp = EmitAddress(left, AddressKind.Writeable);
                         Debug.Assert(temp == null, "taking ref of this should not create a temp");
@@ -2301,7 +2336,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         // Since sequence is used as a variable, we will keep the locals for the extent of the containing expression
                         DefineAndRecordLocals(sequence);
                         EmitSideEffects(sequence);
-                        lhsUsesStack = EmitAssignmentPreamble(assignmentOperator.Update(sequence.Value, assignmentOperator.Right, assignmentOperator.RefKind, assignmentOperator.Type));
+                        lhsUsesStack = EmitAssignmentPreamble(assignmentOperator.Update(sequence.Value, assignmentOperator.Right, assignmentOperator.IsRef, assignmentOperator.Type));
                         CloseScopeAndKeepLocals(sequence);
                     }
                     break;
@@ -2342,7 +2377,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitAssignmentValue(BoundAssignmentOperator assignmentOperator)
         {
-            if (assignmentOperator.RefKind == RefKind.None)
+            if (!assignmentOperator.IsRef)
             {
                 EmitExpression(assignmentOperator.Right, used: true);
             }
@@ -2412,7 +2447,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     // is created here. And also that either its value or its indirected value is read out
                     // after the store, in EmitAssignmentPostfix, below.
 
-                    Debug.Assert(assignmentOperator.RefKind == RefKind.None);
+                    Debug.Assert(!assignmentOperator.IsRef);
 
                     temp = AllocateTemp(assignmentOperator.Left.Type, assignmentOperator.Left.Syntax);
                     _builder.EmitLocalStore(temp);
@@ -2439,7 +2474,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                     // See the comments in EmitAssignmentExpression above for details.
                     BoundLocal local = (BoundLocal)expression;
-                    if (local.LocalSymbol.RefKind != RefKind.None && assignment.RefKind == RefKind.None)
+                    if (local.LocalSymbol.RefKind != RefKind.None && !assignment.IsRef)
                     {
                         EmitIndirectStore(local.LocalSymbol.Type, local.Syntax);
                     }
@@ -2477,7 +2512,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     break;
 
                 case BoundKind.ConditionalOperator:
-                    Debug.Assert(((BoundConditionalOperator)expression).IsByRef);
+                    Debug.Assert(((BoundConditionalOperator)expression).IsRef);
                     EmitIndirectStore(expression.Type, expression.Syntax);
                     break;
 
@@ -2490,7 +2525,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 case BoundKind.Sequence:
                     {
                         var sequence = (BoundSequence)expression;
-                        EmitStore(assignment.Update(sequence.Value, assignment.Right, assignment.RefKind, assignment.Type));
+                        EmitStore(assignment.Update(sequence.Value, assignment.Right, assignment.IsRef, assignment.Type));
                     }
                     break;
 
@@ -2522,7 +2557,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 FreeTemp(temp);
             }
 
-            if (useKind == UseKind.UsedAsValue && assignment.RefKind != RefKind.None)
+            if (useKind == UseKind.UsedAsValue && assignment.IsRef)
             {
                 EmitLoadIndirect(assignment.Type, assignment.Syntax);
             }
@@ -3144,7 +3179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private TypeSymbol StackMergeType(BoundExpression expr)
         {
             // these cases are not interesting. Merge type is the same or derived. No difference.
-            if (!(expr.Type.IsArray() || expr.Type.IsInterfaceType() || expr.Type.IsDelegateType()))
+            if (!(expr.Type.IsInterfaceType() || expr.Type.IsDelegateType()))
             {
                 return expr.Type;
             }

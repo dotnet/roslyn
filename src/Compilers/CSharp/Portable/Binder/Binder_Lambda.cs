@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     hasSignature = true;
                     var paren = (ParenthesizedLambdaExpressionSyntax)syntax;
                     parameterSyntaxList = paren.ParameterList.Parameters;
-                    CheckParanthesizedLambdaParameters(parameterSyntaxList.Value, diagnostics);
+                    CheckParenthesizedLambdaParameters(parameterSyntaxList.Value, diagnostics);
                     isAsync = (paren.AsyncKeyword.Kind() == SyntaxKind.AsyncKeyword);
                     break;
                 case SyntaxKind.AnonymousMethodExpression:
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Tuple.Create(refKinds, types, names, isAsync);
         }
 
-        private void CheckParanthesizedLambdaParameters(
+        private void CheckParenthesizedLambdaParameters(
             SeparatedSyntaxList<ParameterSyntax> parameterSyntaxList, DiagnosticBag diagnostics)
         {
             if (parameterSyntaxList.Count > 0)

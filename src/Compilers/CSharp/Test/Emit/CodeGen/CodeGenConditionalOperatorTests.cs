@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -2431,7 +2432,7 @@ class Program
 ";
             string expectedOutput = @"1
 1";
-            CompileAndVerify(source, expectedOutput: expectedOutput, options: TestOptions.UnsafeReleaseExe);
+            CompileAndVerify(source, expectedOutput: expectedOutput, options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails);
         }
 
         [Fact, WorkItem(17756, "https://github.com/dotnet/roslyn/issues/17756")]
@@ -2670,21 +2671,21 @@ class Program
             condition ? ref local1 : ref local2 : 
             condition ? ref local1 : ref local2).Mutate();
 
-        // must print '2', the above mutaiton is applied to an rvalue.
+        // must print '2', the above mutation is applied to an rvalue.
         System.Console.WriteLine(local2.field);
 
         (false ? 
             condition ? ref local1 : ref local2 : 
             condition ? ref local1 : ref local2).Mutate();
 
-        // must print '2', the above mutaiton is applied to an rvalue.
+        // must print '2', the above mutation is applied to an rvalue.
         System.Console.WriteLine(local2.field);
 
         (false ? 
             false ? ref local1 : ref local2 : 
             false ? ref local1 : ref local2).Mutate();
 
-        // must print '2', the above mutaiton is applied to an rvalue.
+        // must print '2', the above mutation is applied to an rvalue.
         System.Console.WriteLine(local2.field);
     }
 

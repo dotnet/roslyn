@@ -1,10 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" TreatAsLocalProperty="DeployExtension">
-  <PropertyGroup>
-    <ProjectLanguage>CSharp</ProjectLanguage>
-  </PropertyGroup>
-  <Import Project="..\..\..\..\build\Targets\SettingsSdk.props" />
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -85,6 +81,7 @@
     <ProjectReference Include="..\..\..\Workspaces\Core\Desktop\Workspaces.Desktop.csproj" />
     <ProjectReference Include="..\..\..\Workspaces\CSharp\Portable\CSharpWorkspace.csproj" />
     <ProjectReference Include="..\..\..\EditorFeatures\Core\EditorFeatures.csproj" />
+    <ProjectReference Include="..\..\..\EditorFeatures\Core.Wpf\EditorFeatures.Wpf.csproj" />
     <ProjectReference Include="..\..\..\Workspaces\Core\Portable\Workspaces.csproj" />
     <ProjectReference Include="..\..\..\Features\Core\Portable\Features.csproj" />
     <ProjectReference Include="..\..\..\EditorFeatures\Text\TextEditorFeatures.csproj" />
@@ -107,7 +104,7 @@
     <InternalsVisibleTo Include="Roslyn.VisualStudio.Setup" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.VisualBasic.Repl" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.DiagnosticsWindow" />
-    <InternalsVisibleTo Include="Roslyn.VisualStudio.RemoteHostClientMock" />
+    <InternalsVisibleToTest Include="Roslyn.VisualStudio.RemoteHostClientMock" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.Managed" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.Managed.VS" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.CSharp" />
@@ -134,6 +131,8 @@
     <InternalsVisibleToTypeScript Include="ManagedSourceCodeAnalysis" />
     <InternalsVisibleToTypeScript Include="CodeAnalysis" />
     <InternalsVisibleToTypeScript Include="StanCore" />
+    <InternalsVisibleToRemoteLS Include="Microsoft.VisualStudio.LanguageServices.Remote" />
+    <InternalsVisibleToRemoteLS Include="Microsoft.VisualStudio.LanguageServices.Remote.CSharp" />
     <InternalsVisibleToFSharp Include="FSharp.Editor" />
     <InternalsVisibleToFSharp Include="FSharp.LanguageService" />
   </ItemGroup>
@@ -198,7 +197,6 @@
     <PackageReference Include="Microsoft.DiaSymReader" Version="$(MicrosoftDiaSymReaderVersion)" />
     <PackageReference Include="Microsoft.MSXML" Version="$(MicrosoftMSXMLVersion)" />
     <PackageReference Include="Microsoft.Build" Version="$(MicrosoftBuildVersion)" />
-    <PackageReference Include="RoslynDependencies.Microsoft.VisualStudio.Workspace" Version="$(RoslynDependenciesMicrosoftVisualStudioWorkspaceVersion)" />
     <PackageReference Include="StreamJsonRpc" Version="$(StreamJsonRpcVersion)" />
     <PackageReference Include="VSLangProj" Version="$(VSLangProjVersion)" />
     <PackageReference Include="VSLangProj2" Version="$(VSLangProj2Version)" />
@@ -277,5 +275,4 @@
   </ItemGroup>
   <Import Project="..\..\..\Dependencies\CodeAnalysis.Debugging\Microsoft.CodeAnalysis.Debugging.projitems" Label="Shared" />
   <Import Project="..\..\..\..\build\Targets\Vsdconfig.targets" />
-  <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>

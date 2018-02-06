@@ -9,6 +9,7 @@ Imports Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
 Imports Microsoft.VisualStudio.LanguageServices.Implementation
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
+Imports Microsoft.VisualStudio.LanguageServices.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.ObjectBrowser
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
@@ -38,6 +39,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
 
     <Guid(Guids.VisualBasicPackageIdString)>
     <PackageRegistration(UseManagedResourcesOnly:=True)>
+    <ProvideRoslynVersionRegistration(Guids.VisualBasicPackageIdString, "Microsoft Visual Basic", 113, 114)>
     <ProvideLanguageExtension(GetType(VisualBasicLanguageService), ".bas")>
     <ProvideLanguageExtension(GetType(VisualBasicLanguageService), ".cls")>
     <ProvideLanguageExtension(GetType(VisualBasicLanguageService), ".ctl")>

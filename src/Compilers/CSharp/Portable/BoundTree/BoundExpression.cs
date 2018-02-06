@@ -440,6 +440,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal BoundObjectCreationExpression UpdateArgumentsAndInitializer(
             ImmutableArray<BoundExpression> newArguments,
+            ImmutableArray<RefKind> newRefKinds,
             BoundExpression newInitializerExpression,
             TypeSymbol changeTypeOpt = null)
         {
@@ -447,7 +448,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 constructor: Constructor,
                 arguments: newArguments,
                 argumentNamesOpt: default(ImmutableArray<string>),
-                argumentRefKindsOpt: ArgumentRefKindsOpt,
+                argumentRefKindsOpt: newRefKinds,
                 expanded: false,
                 argsToParamsOpt: default(ImmutableArray<int>),
                 constantValueOpt: ConstantValueOpt,

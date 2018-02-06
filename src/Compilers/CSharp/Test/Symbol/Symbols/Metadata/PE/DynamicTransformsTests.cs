@@ -50,20 +50,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             CommonTestInitialization();
 
             // public class Base0 { }
-            Assert.Equal(_objectType, _base0Class.BaseType);
+            Assert.Equal(_objectType, _base0Class.BaseType());
             Assert.False(_base0Class.ContainsDynamic());
 
             // public class Base1<T> { }
-            Assert.Equal(_objectType, _base1Class.BaseType);
+            Assert.Equal(_objectType, _base1Class.BaseType());
             Assert.False(_base1Class.ContainsDynamic());
 
             // public class Base2<T, U> { }
-            Assert.Equal(_objectType, _base2Class.BaseType);
+            Assert.Equal(_objectType, _base2Class.BaseType());
             Assert.False(_base2Class.ContainsDynamic());
 
             // public class Derived<T> : Outer<dynamic>.Inner<Outer<dynamic>.Inner<T[], dynamic>.InnerInner<int>[], dynamic>.InnerInner<dynamic> where T : Derived<T> { ... }
             Assert.False(_derivedClass.ContainsDynamic());
-            Assert.True(_derivedClass.BaseType.ContainsDynamic());
+            Assert.True(_derivedClass.BaseType().ContainsDynamic());
 
             // Outer<dynamic>
             var outerClassOfDynamic = _outerClass.Construct(s_dynamicType);
@@ -79,39 +79,39 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             // Outer<dynamic>.Inner<Outer<dynamic>.Inner<T[], dynamic>.InnerInner<int>[], dynamic>.InnerInner<dynamic>
             var memberInnerInnerOfDynamic = memberComplicatedInner.GetTypeMember("InnerInner").Construct(s_dynamicType);
 
-            Assert.Equal(memberInnerInnerOfDynamic, _derivedClass.BaseType);
+            Assert.Equal(memberInnerInnerOfDynamic, _derivedClass.BaseType());
 
             // public class Outer<T> : Base1<dynamic>
             Assert.False(_outerClass.ContainsDynamic());
-            Assert.True(_outerClass.BaseType.ContainsDynamic());
+            Assert.True(_outerClass.BaseType().ContainsDynamic());
             var base1OfDynamic = _base1Class.Construct(s_dynamicType);
-            Assert.Equal(base1OfDynamic, _outerClass.BaseType);
+            Assert.Equal(base1OfDynamic, _outerClass.BaseType());
 
             // public class Inner<U, V> : Base2<dynamic, V>
             Assert.False(_innerClass.ContainsDynamic());
-            Assert.True(_innerClass.BaseType.ContainsDynamic());
+            Assert.True(_innerClass.BaseType().ContainsDynamic());
             var base2OfDynamicV = _base2Class.Construct(s_dynamicType, _innerClass.TypeParameters[1]);
-            Assert.Equal(base2OfDynamicV, _innerClass.BaseType);
+            Assert.Equal(base2OfDynamicV, _innerClass.BaseType());
 
             // public class InnerInner<W> : Base1<dynamic> { }
             Assert.False(_innerInnerClass.ContainsDynamic());
-            Assert.True(_innerInnerClass.BaseType.ContainsDynamic());
-            Assert.Equal(base1OfDynamic, _innerInnerClass.BaseType);
+            Assert.True(_innerInnerClass.BaseType().ContainsDynamic());
+            Assert.Equal(base1OfDynamic, _innerInnerClass.BaseType());
 
             // public class Outer2<T> : Base1<dynamic>
             Assert.False(_outer2Class.ContainsDynamic());
-            Assert.True(_outer2Class.BaseType.ContainsDynamic());
-            Assert.Equal(base1OfDynamic, _outer2Class.BaseType);
+            Assert.True(_outer2Class.BaseType().ContainsDynamic());
+            Assert.Equal(base1OfDynamic, _outer2Class.BaseType());
 
             // public class Inner2<U, V> : Base0
             Assert.False(_inner2Class.ContainsDynamic());
-            Assert.False(_inner2Class.BaseType.ContainsDynamic());
-            Assert.Equal(_base0Class, _inner2Class.BaseType);
+            Assert.False(_inner2Class.BaseType().ContainsDynamic());
+            Assert.Equal(_base0Class, _inner2Class.BaseType());
 
             // public class InnerInner2<W> : Base0 { }
             Assert.False(_innerInner2Class.ContainsDynamic());
-            Assert.False(_innerInner2Class.BaseType.ContainsDynamic());
-            Assert.Equal(_base0Class, _innerInner2Class.BaseType);
+            Assert.False(_innerInner2Class.BaseType().ContainsDynamic());
+            Assert.Equal(_base0Class, _innerInner2Class.BaseType());
 
             // public class Inner3<U>
             Assert.False(_inner3Class.ContainsDynamic());
@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             // public unsafe class UnsafeClass<T> : Base2<int*[], Outer<dynamic>.Inner<Outer<dynamic>.Inner<T[], dynamic>.InnerInner<int*[][]>[], dynamic>.InnerInner<dynamic>[][]> { }
             var unsafeClass = _assembly.Modules[0].GlobalNamespace.GetMember<NamedTypeSymbol>("UnsafeClass");
             Assert.False(unsafeClass.ContainsDynamic());
-            Assert.True(unsafeClass.BaseType.ContainsDynamic());
+            Assert.True(unsafeClass.BaseType().ContainsDynamic());
 
             var unsafeClassTypeParam = unsafeClass.TypeParameters[0];
             // T[]
@@ -351,7 +351,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             // Base2<int*[], Outer<dynamic>.Inner<Outer<dynamic>.Inner<T[], dynamic>.InnerInner<int*[][]>[], dynamic>.InnerInner<dynamic>[][]>
             var baseType = _base2Class.Construct(arrayOfPointerToInt, complicatedInnerInnerArrayOfArray);
 
-            Assert.Equal(baseType, unsafeClass.BaseType);
+            Assert.Equal(baseType, unsafeClass.BaseType());
         }
 
         [Fact]
@@ -551,11 +551,11 @@ str";
             CompileAndVerify(compilation, expectedOutput: expectedOutput);
 
             var classDerived = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");
-            var field1 = classDerived.BaseType.GetMember<FieldSymbol>("field1");
+            var field1 = classDerived.BaseType().GetMember<FieldSymbol>("field1");
             Assert.False(field1.Type.ContainsDynamic());
 
             var classDerived2 = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived2");
-            field1 = classDerived.BaseType.GetMember<FieldSymbol>("field1");
+            field1 = classDerived.BaseType().GetMember<FieldSymbol>("field1");
             Assert.False(field1.Type.ContainsDynamic());
 
             var classB = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("B");

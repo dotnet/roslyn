@@ -582,7 +582,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else if (argument.Kind != BoundKind.TupleLiteral ||
                 !MakeExplicitParameterTypeInferences(binder, (BoundTupleLiteral)argument, target, isExactInference, ref useSiteDiagnostics))
             {
-                // Either the argument is not a tuple literal, or we were unable to do the inference from its elements, let' try to infer from arguments's type
+                // Either the argument is not a tuple literal, or we were unable to do the inference from its elements, let's try to infer from argument type
                 if (IsReallyAType(source))
                 {
                     if (isExactInference)

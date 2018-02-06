@@ -67,6 +67,11 @@ namespace Microsoft.CodeAnalysis.DesignerAttributes
         private async Task<DesignerAttributeResult> ScanDesignerAttributesInRemoteHostAsync(RemoteHostClient client, Document document, CancellationToken cancellationToken)
         {
             var keepAliveSession = await TryGetKeepAliveSessionAsync(client, cancellationToken).ConfigureAwait(false);
+            if (keepAliveSession == null)
+            {
+                // The client is not currently running, so we don't know the state of the DesignerAttribute.
+                return new DesignerAttributeResult(designerAttributeArgument: null, containsErrors: false, applicable: false);
+            }
 
             var result = await keepAliveSession.TryInvokeAsync<DesignerAttributeResult>(
                 nameof(IRemoteDesignerAttributeService.ScanDesignerAttributesAsync),
@@ -103,7 +108,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttributes
                         {
                             // The DesignerCategoryAttribute doesn't exist. either not applicable or
                             // no idea on design attribute status, just leave things as it is.
-                            return new DesignerAttributeResult(designerAttributeArgument, documentHasError, notApplicable: true);
+                            return new DesignerAttributeResult(designerAttributeArgument, documentHasError, applicable: false);
                         }
                     }
 
@@ -134,7 +139,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttributes
                         if (attribute != null && attribute.ConstructorArguments.Length == 1)
                         {
                             designerAttributeArgument = GetArgumentString(attribute.ConstructorArguments[0]);
-                            return new DesignerAttributeResult(designerAttributeArgument, documentHasError, notApplicable: false);
+                            return new DesignerAttributeResult(designerAttributeArgument, documentHasError, applicable: true);
                         }
                     }
                 }
@@ -146,7 +151,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttributes
                 }
             }
 
-            return new DesignerAttributeResult(designerAttributeArgument, documentHasError, notApplicable: false);
+            return new DesignerAttributeResult(designerAttributeArgument, documentHasError, applicable: true);
         }
 
         private static string GetArgumentString(TypedConstant argument)

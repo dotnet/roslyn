@@ -2325,5 +2325,27 @@ class Program
     }
 }", Keyword("var"));
         }
+
+        [WorkItem(23940, "https://github.com/dotnet/roslyn/issues/23940")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestAliasQualifiedClass()
+        {
+            await TestAsync(
+@"
+using System;
+using Col = System.Collections.Generic;
+
+namespace AliasTest
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            var list1 = new Col::List
+        }
+    }
+}",
+    Keyword("var"), Class("List"));
+        }
     }
 }

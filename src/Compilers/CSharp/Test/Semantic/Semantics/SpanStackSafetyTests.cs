@@ -1121,6 +1121,7 @@ public class Program
             );
         }
 
+        [WorkItem(21979, "https://github.com/dotnet/roslyn/issues/21979")]
         [Fact]
         public void MethodConversion()
         {
@@ -1131,7 +1132,7 @@ public class Program
 {
     static void Main()
     {
-        // we allow this. Is that because it would be a breaking change?
+        // we no longer allow this.
         // see https://github.com/dotnet/roslyn/issues/21979
         Func<int> d0 = default(TypedReference).GetHashCode;
 
@@ -1148,6 +1149,9 @@ public class Program
             CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
 
             comp.VerifyEmitDiagnostics(
+                // (10,48): error CS0123: No overload for 'GetHashCode' matches delegate 'Func<int>'
+                //         Func<int> d0 = default(TypedReference).GetHashCode;
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "GetHashCode").WithArguments("GetHashCode", "System.Func<int>").WithLocation(10, 48),
                 // (13,43): error CS0123: No overload for 'GetHashCode' matches delegate 'Func<int>'
                 //         Func<int> d1 = default(Span<int>).GetHashCode;
                 Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "GetHashCode").WithArguments("GetHashCode", "System.Func<int>").WithLocation(13, 43),
@@ -1314,6 +1318,69 @@ class Program
                 // (7,23): error CS8346: Conversion of a stackalloc expression of type 'int' to type 'Span<int>' is not possible.
                 //         Span<int> x = stackalloc int [10];
                 Diagnostic(ErrorCode.ERR_StackAllocConversionNotPossible, "stackalloc int [10]").WithArguments("int", "System.Span<int>").WithLocation(7, 23));
+        }
+
+        [Fact]
+        [WorkItem(23627, "https://github.com/dotnet/roslyn/issues/23627")]
+        public void CreateVariableFromRefStructFieldInNonRefStruct()
+        {
+            var code = @"
+public ref struct Point
+{
+}
+class Program
+{
+    public Point field1 = new Point();
+    public static Point field2 = new Point();
+
+    void Check()
+    {
+        var temp1 = field1;
+        var temp2 = field2;
+    }
+}";
+
+            CreateStandardCompilation(code).VerifyDiagnostics(
+                // (8,19): error CS8345: Field or auto-implemented property cannot be of type 'Point' unless it is an instance member of a ref struct.
+                //     public static Point field2 = new Point();
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "Point").WithArguments("Point").WithLocation(8, 19),
+                // (7,12): error CS8345: Field or auto-implemented property cannot be of type 'Point' unless it is an instance member of a ref struct.
+                //     public Point field1 = new Point();
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "Point").WithArguments("Point").WithLocation(7, 12));
+        }
+
+        [Fact]
+        [WorkItem(23627, "https://github.com/dotnet/roslyn/issues/23627")]
+        public void CreateVariableFromRefStructFieldInRefStruct()
+        {
+            var code = @"
+public ref struct Point
+{
+}
+ref struct Program
+{
+    public static Point field1;
+    public static Point field2 = new Point();
+
+    public Program(Point p)
+    {
+        field1 = p;
+    }
+
+    void Check()
+    {
+        var temp1 = field1;
+        var temp2 = field2;
+    }
+}";
+
+            CreateStandardCompilation(code).VerifyDiagnostics(
+                // (8,19): error CS8345: Field or auto-implemented property cannot be of type 'Point' unless it is an instance member of a ref struct.
+                //     public static Point field2 = new Point();
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "Point").WithArguments("Point").WithLocation(8, 19),
+                // (7,19): error CS8345: Field or auto-implemented property cannot be of type 'Point' unless it is an instance member of a ref struct.
+                //     public static Point field1;
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "Point").WithArguments("Point").WithLocation(7, 19));
         }
     }
 }

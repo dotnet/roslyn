@@ -767,8 +767,8 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
             Instance Receiver: 
               null
         Right: 
-          IOperation:  (OperationKind.None, Type: null) (Syntax: 'x')
-      IOperation:  (OperationKind.None, Type: null) (Syntax: 'x')
+          IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
+      IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -825,8 +825,12 @@ class ClassA
             string expectedOperationTree = @"
 IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: System.Int32 x, System.String y>) (Syntax: 'new { x, y }')
   Initializers(2):
-      IOperation:  (OperationKind.None, Type: null) (Syntax: 'x')
-      IOperation:  (OperationKind.None, Type: null) (Syntax: 'y')
+      IPropertyReferenceOperation: System.Int32 <anonymous type: System.Int32 x, System.String y>.x { get; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'x')
+        Instance Receiver: 
+          IParameterReferenceOperation: <>h__TransparentIdentifier0 (OperationKind.ParameterReference, Type: <anonymous type: System.Int32 x, System.String y>, IsImplicit) (Syntax: 'x')
+      IPropertyReferenceOperation: System.String <anonymous type: System.Int32 x, System.String y>.y { get; } (OperationKind.PropertyReference, Type: System.String) (Syntax: 'y')
+        Instance Receiver: 
+          IParameterReferenceOperation: <>h__TransparentIdentifier0 (OperationKind.ParameterReference, Type: <anonymous type: System.Int32 x, System.String y>, IsImplicit) (Syntax: 'y')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -1696,7 +1700,7 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
             var namedType = type as NamedTypeSymbol;
             Assert.NotNull(namedType);
 
-            var objType = namedType.BaseType;
+            var objType = namedType.BaseType();
             Assert.NotNull(objType);
             Assert.Equal("System.Object", objType.ToTestDisplayString());
 

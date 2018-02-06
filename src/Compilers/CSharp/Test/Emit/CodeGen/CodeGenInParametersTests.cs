@@ -1,9 +1,5 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -28,7 +24,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: false);
+            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails);
 
             comp.VerifyIL("Program.M(in int)", @"
 {
@@ -76,7 +72,7 @@ struct Program
 }
 ";
 
-            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: false, expectedOutput: @"42
+            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: @"42
 84");
 
             comp.VerifyIL("Program.Main()", @"
@@ -130,7 +126,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: false, expectedOutput: @"42
+            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: @"42
 11
 42
 42");
@@ -193,7 +189,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: false, expectedOutput: "42");
+            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: "42");
 
             comp.VerifyIL("Program.Main()", @"
 {
@@ -215,7 +211,7 @@ class Program
   IL_0001:  ret
 }");
 
-            comp = CompileAndVerify(text, verify: false, expectedOutput: "42", parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
+            comp = CompileAndVerify(text, verify: Verification.Fails, expectedOutput: "42", parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
 
             comp.VerifyIL("Program.Main()", @"
 {
@@ -254,7 +250,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: false, expectedOutput: "42");
+            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: "42");
 
             comp.VerifyIL("Program.Main()", @"
 {
@@ -276,7 +272,7 @@ class Program
   IL_0001:  ret
 }");
 
-            comp = CompileAndVerify(text, verify: false, expectedOutput: "42", parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
+            comp = CompileAndVerify(text, verify: Verification.Fails, expectedOutput: "42", parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
 
             comp.VerifyIL("Program.Main()", @"
 {
@@ -316,7 +312,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: false, expectedOutput: "42");
+            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: "42");
 
             comp.VerifyIL("Program.M(in int)", @"
 {
@@ -367,7 +363,7 @@ class P1 : Program
 }
 ";
 
-            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: false, expectedOutput: @"hi
+            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: @"hi
 42");
 
             comp.VerifyIL("P1..ctor(in string)", @"
@@ -404,7 +400,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: false);
+            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails);
 
             comp.VerifyIL("Program.M(in int)", @"
 {
@@ -611,7 +607,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular, verify: false);
+            var comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular, verify: Verification.Fails);
 
             comp.VerifyIL("Program.M", @"
 {
@@ -654,7 +650,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular, verify: false);
+            var comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular, verify: Verification.Fails);
 
             comp.VerifyIL("Program.<M>g__M1|0_0(in int, in (int Alice, int Bob))", @"
 {
@@ -724,7 +720,7 @@ class Program
 
 ";
 
-            var comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular, verify: false, expectedOutput:@"42");
+            var comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput:@"42");
 
             comp.VerifyIL("Program.Main", @"
 {
@@ -757,7 +753,7 @@ class Program
 
 ";
 
-            var comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular, verify: false, expectedOutput: @"42");
+            var comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"42");
 
             comp.VerifyIL("Program.Main", @"
 {
@@ -807,7 +803,7 @@ class Program
 ";
 
             var comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, verify: false, expectedOutput: @"6");
+            CompileAndVerify(comp, verify: Verification.Passes, expectedOutput: @"6");
         }
 
         [Fact]
@@ -901,7 +897,7 @@ class Program
 ";
 
             var comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.UnsafeReleaseExe);
-            var result = CompileAndVerify(comp, verify: false, expectedOutput: @"47");
+            var result = CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: @"47");
 
             var expectedIL = @"
 {
@@ -987,7 +983,7 @@ class Program
             result.VerifyIL("Program.<Test>d__2.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", expectedIL);
 
             comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.UnsafeReleaseExe, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
-            result = CompileAndVerify(comp, verify: false, expectedOutput: @"47");
+            result = CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: @"47");
 
             result.VerifyIL("Program.<Test>d__2.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", expectedIL);
 
@@ -1026,7 +1022,7 @@ class Program
 ";
 
             var comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, verify: false, expectedOutput: @"6");
+            CompileAndVerify(comp, verify: Verification.Passes, expectedOutput: @"6");
         }
 
         [WorkItem(20764, "https://github.com/dotnet/roslyn/issues/20764")]
@@ -1086,7 +1082,7 @@ public struct S1
 ";
 
             var comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, verify: false, expectedOutput: @"
+            CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: @"
 3
 42
 3
@@ -1154,7 +1150,7 @@ public struct S1
 ";
 
             var comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, verify: false, expectedOutput: @"
+            CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: @"
 3
 42
 3
@@ -1217,7 +1213,7 @@ public struct S1
 ";
 
             var comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, verify: false, expectedOutput: @"
+            CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: @"
 2
 42
 2
@@ -1274,7 +1270,7 @@ public class S1
 ";
 
             var comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, verify: false, expectedOutput: @"
+            CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: @"
 2
 42
 2
@@ -1334,7 +1330,7 @@ public struct S1
 ";
 
             var comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, verify: false, expectedOutput: @"
+            CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: @"
 2
 42
 2
@@ -1413,7 +1409,7 @@ public readonly struct S1
 ";
 
             var comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, verify: false, expectedOutput: @"
+            CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: @"
 3
 42
 3
@@ -1428,7 +1424,7 @@ public readonly struct S1
 3");
 
             comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
-            CompileAndVerify(comp, verify: false, expectedOutput: @"
+            CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: @"
 3
 42
 2
@@ -1494,7 +1490,7 @@ public readonly struct S1
 ";
 
             var comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe);
-            var v = CompileAndVerify(comp, verify: false, expectedOutput: @"
+            var v = CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: @"
 1
 2
 3
@@ -1581,7 +1577,7 @@ public readonly struct S1
 ");
 
             comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
-            v = CompileAndVerify(comp, verify: true, expectedOutput: @"
+            v = CompileAndVerify(comp, verify: Verification.Passes, expectedOutput: @"
 1
 2
 3
@@ -1724,7 +1720,7 @@ public readonly struct S1
     }
 ";
 
-            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: false, expectedOutput: @"0");
+            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"0");
 
             comp.VerifyIL("D.M1<T>(in T)", @"
 {
@@ -1782,7 +1778,7 @@ public readonly struct S1
     }
 ";
 
-            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: false, expectedOutput: @"");
+            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"");
 
             comp.VerifyIL("D.M1<T>(in T)", @"
 {
@@ -1817,6 +1813,1088 @@ class Program
         Print(9);
     }
 }", expectedOutput: "5-9");
+        }
+
+        [WorkItem(23338, "https://github.com/dotnet/roslyn/issues/23338")]
+        [Fact]
+        public void InParamsNullable()
+        {
+            var text = @"
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        S1 s = new S1();
+        s.val = 42;
+
+        S1? ns = s;
+
+        Test1(in ns);
+        Test2(ref ns);
+    }
+
+    static void Test1(in S1? arg)
+    {
+        // cannot not mutate
+        System.Console.Write(arg.GetValueOrDefault());
+        // should not mutate
+        arg.ToString();
+        // cannot not mutate
+        System.Console.Write(arg.GetValueOrDefault());
+    }
+
+    static void Test2(ref S1? arg)
+    {
+        // cannot not mutate
+        System.Console.Write(arg.GetValueOrDefault());
+        // can mutate
+        arg.ToString();
+        // cannot not mutate
+        System.Console.Write(arg.GetValueOrDefault());
+    }
+
+}
+
+struct S1
+{
+    public int val;
+
+    public override string ToString()
+    {
+        var result = val.ToString();
+        val = 0;
+
+        return result;
+    }
+}
+";
+
+            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"4242420");
+
+            comp.VerifyIL("Program.Test1(in S1?)", @"
+{
+  // Code size       54 (0x36)
+  .maxstack  1
+  .locals init (S1? V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""S1 S1?.GetValueOrDefault()""
+  IL_0006:  box        ""S1""
+  IL_000b:  call       ""void System.Console.Write(object)""
+  IL_0010:  ldarg.0
+  IL_0011:  ldobj      ""S1?""
+  IL_0016:  stloc.0
+  IL_0017:  ldloca.s   V_0
+  IL_0019:  constrained. ""S1?""
+  IL_001f:  callvirt   ""string object.ToString()""
+  IL_0024:  pop
+  IL_0025:  ldarg.0
+  IL_0026:  call       ""S1 S1?.GetValueOrDefault()""
+  IL_002b:  box        ""S1""
+  IL_0030:  call       ""void System.Console.Write(object)""
+  IL_0035:  ret
+}");
+
+            comp.VerifyIL("Program.Test2(ref S1?)", @"
+{
+  // Code size       46 (0x2e)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""S1 S1?.GetValueOrDefault()""
+  IL_0006:  box        ""S1""
+  IL_000b:  call       ""void System.Console.Write(object)""
+  IL_0010:  ldarg.0
+  IL_0011:  constrained. ""S1?""
+  IL_0017:  callvirt   ""string object.ToString()""
+  IL_001c:  pop
+  IL_001d:  ldarg.0
+  IL_001e:  call       ""S1 S1?.GetValueOrDefault()""
+  IL_0023:  box        ""S1""
+  IL_0028:  call       ""void System.Console.Write(object)""
+  IL_002d:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(530136, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=530136")]
+        public void OperatorsWithInParametersFromMetadata_Binary()
+        {
+            var reference = CreateStandardCompilation(@"
+public class Test
+{
+    public int Value { get; set; }
+
+    public static int operator +(in Test a, in Test b)
+    {
+        return a.Value + b.Value;
+    }
+}");
+
+            var code = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        var a = new Test { Value = 3 };
+        var b = new Test { Value = 6 };
+
+        System.Console.WriteLine(a + b);
+    }
+}";
+
+            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "9");
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "9");
+        }
+
+        [Fact]
+        [WorkItem(530136, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=530136")]
+        public void OperatorsWithInParametersFromMetadata_Binary_Right()
+        {
+            var reference = CreateStandardCompilation(@"
+public class Test
+{
+    public int Value { get; set; }
+
+    public static int operator +(Test a, in Test b)
+    {
+        return a.Value + b.Value;
+    }
+}");
+
+            var code = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        var a = new Test { Value = 3 };
+        var b = new Test { Value = 6 };
+
+        System.Console.WriteLine(a + b);
+    }
+}";
+
+            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "9");
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "9");
+        }
+
+        [Fact]
+        [WorkItem(530136, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=530136")]
+        public void OperatorsWithInParametersFromMetadata_Binary_Left()
+        {
+            var reference = CreateStandardCompilation(@"
+public class Test
+{
+    public int Value { get; set; }
+
+    public static int operator +(in Test a, Test b)
+    {
+        return a.Value + b.Value;
+    }
+}");
+
+            var code = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        var a = new Test { Value = 3 };
+        var b = new Test { Value = 6 };
+
+        System.Console.WriteLine(a + b);
+    }
+}";
+
+            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "9");
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "9");
+        }
+
+        [Fact]
+        [WorkItem(530136, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=530136")]
+        public void OperatorsWithInParametersFromMetadata_Unary()
+        {
+            var reference = CreateStandardCompilation(@"
+public class Test
+{
+    public bool Value { get; set; }
+
+    public static bool operator !(in Test a)
+    {
+        return !a.Value;
+    }
+}");
+
+            var code = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        var a = new Test { Value = true };
+
+        System.Console.WriteLine(!a);
+    }
+}";
+
+            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "False");
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "False");
+        }
+
+        [Fact]
+        [WorkItem(530136, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=530136")]
+        public void OperatorsWithInParametersFromMetadata_Conversion()
+        {
+            var reference = CreateStandardCompilation(@"
+public class Test
+{
+    public bool Value { get; set; }
+
+    public static explicit operator int(in Test a)
+    {
+        return a.Value ? 3 : 5;
+    }
+}");
+
+            var code = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        var a = new Test { Value = true };
+
+        System.Console.WriteLine((int)a);
+    }
+}";
+
+            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "3");
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "3");
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.ReadOnlyReferences)]
+        [WorkItem(23691, "https://github.com/dotnet/roslyn/issues/23691")]
+        public void OptionalInParameters_Method_Optional_NoArgs()
+        {
+            var code = @"
+class Program
+{
+    static void Test(in int value = 5)
+    {
+        System.Console.WriteLine(value);
+    }
+
+    static void Main(string[] args)
+    {
+        /*<bind>*/Test()/*<bind>*/;
+    }
+}";
+
+            CompileAndVerify(code, expectedOutput: "5").VerifyIL("Program.Main", @"
+{
+  // Code size       10 (0xa)
+  .maxstack  1
+  .locals init (int V_0)
+  IL_0000:  ldc.i4.5
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""void Program.Test(in int)""
+  IL_0009:  ret
+}");
+
+
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(code, @"
+IInvocationOperation (void Program.Test([in System.Int32 value = 5])) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Test()')
+  Instance Receiver: 
+    null
+  Arguments(1):
+      IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: value) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'Test()')
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5, IsImplicit) (Syntax: 'Test()')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)",
+        DiagnosticDescription.None);
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.ReadOnlyReferences)]
+        [WorkItem(23691, "https://github.com/dotnet/roslyn/issues/23691")]
+        public void OptionalInParameters_Method_Optional_OneArg()
+        {
+            var code = @"
+class Program
+{
+    static void Test(in int value = 5)
+    {
+        System.Console.WriteLine(value);
+    }
+
+    static void Main(string[] args)
+    {
+        /*<bind>*/Test(10)/*<bind>*/;
+    }
+}";
+
+            CompileAndVerify(code, expectedOutput: "10").VerifyIL("Program.Main", @"
+{
+  // Code size       11 (0xb)
+  .maxstack  1
+  .locals init (int V_0)
+  IL_0000:  ldc.i4.s   10
+  IL_0002:  stloc.0
+  IL_0003:  ldloca.s   V_0
+  IL_0005:  call       ""void Program.Test(in int)""
+  IL_000a:  ret
+}");
+
+
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(code, @"
+IInvocationOperation (void Program.Test([in System.Int32 value = 5])) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Test(10)')
+  Instance Receiver: 
+    null
+  Arguments(1):
+      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '10')
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)",
+        DiagnosticDescription.None);
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.ReadOnlyReferences)]
+        [WorkItem(23691, "https://github.com/dotnet/roslyn/issues/23691")]
+        public void OptionalInParameters_Method_Optional_Optional_NoArgs()
+        {
+            var code = @"
+class Program
+{
+    static void Test(in int value1 = 1, in int value2 = 5)
+    {
+        System.Console.WriteLine($""({value1}, {value2})"");
+    }
+
+    static void Main(string[] args)
+    {
+        /*<bind>*/Test()/*<bind>*/;
+    }
+}";
+
+            CompileAndVerify(code, expectedOutput: "(1, 5)").VerifyIL("Program.Main", @"
+{
+  // Code size       14 (0xe)
+  .maxstack  2
+  .locals init (int V_0,
+                int V_1)
+  IL_0000:  ldc.i4.1
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  ldc.i4.5
+  IL_0005:  stloc.1
+  IL_0006:  ldloca.s   V_1
+  IL_0008:  call       ""void Program.Test(in int, in int)""
+  IL_000d:  ret
+}");
+
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(code, @"
+IInvocationOperation (void Program.Test([in System.Int32 value1 = 1], [in System.Int32 value2 = 5])) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Test()')
+  Instance Receiver: 
+    null
+  Arguments(2):
+      IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: value1) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'Test()')
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'Test()')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: value2) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'Test()')
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5, IsImplicit) (Syntax: 'Test()')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)",
+        DiagnosticDescription.None);
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.ReadOnlyReferences)]
+        [WorkItem(23691, "https://github.com/dotnet/roslyn/issues/23691")]
+        public void OptionalInParameters_Method_Optional_Optional_OneArg()
+        {
+            var code = @"
+class Program
+{
+    static void Test(in int value1 = 1, in int value2 = 5)
+    {
+        System.Console.WriteLine($""({value1}, {value2})"");
+    }
+
+    static void Main(string[] args)
+    {
+        /*<bind>*/Test(2)/*<bind>*/;
+    }
+}";
+
+            CompileAndVerify(code, expectedOutput: "(2, 5)").VerifyIL("Program.Main", @"
+{
+  // Code size       14 (0xe)
+  .maxstack  2
+  .locals init (int V_0,
+                int V_1)
+  IL_0000:  ldc.i4.2
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  ldc.i4.5
+  IL_0005:  stloc.1
+  IL_0006:  ldloca.s   V_1
+  IL_0008:  call       ""void Program.Test(in int, in int)""
+  IL_000d:  ret
+}");
+
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(code, @"
+IInvocationOperation (void Program.Test([in System.Int32 value1 = 1], [in System.Int32 value2 = 5])) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Test(2)')
+  Instance Receiver: 
+    null
+  Arguments(2):
+      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value1) (OperationKind.Argument, Type: null) (Syntax: '2')
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: value2) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'Test(2)')
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5, IsImplicit) (Syntax: 'Test(2)')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)",
+        DiagnosticDescription.None);
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.ReadOnlyReferences)]
+        [WorkItem(23691, "https://github.com/dotnet/roslyn/issues/23691")]
+        public void OptionalInParameters_Method_Optional_Optional_TwoArgs()
+        {
+            var code = @"
+class Program
+{
+    static void Test(in int value1 = 1, in int value2 = 5)
+    {
+        System.Console.WriteLine($""({value1}, {value2})"");
+    }
+
+    static void Main(string[] args)
+    {
+        /*<bind>*/Test(3, 10)/*<bind>*/;
+    }
+}";
+
+            CompileAndVerify(code, expectedOutput: "(3, 10)").VerifyIL("Program.Main", @"
+{
+  // Code size       15 (0xf)
+  .maxstack  2
+  .locals init (int V_0,
+                int V_1)
+  IL_0000:  ldc.i4.3
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  ldc.i4.s   10
+  IL_0006:  stloc.1
+  IL_0007:  ldloca.s   V_1
+  IL_0009:  call       ""void Program.Test(in int, in int)""
+  IL_000e:  ret
+}");
+
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(code, @"
+IInvocationOperation (void Program.Test([in System.Int32 value1 = 1], [in System.Int32 value2 = 5])) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Test(3, 10)')
+  Instance Receiver: 
+    null
+  Arguments(2):
+      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value1) (OperationKind.Argument, Type: null) (Syntax: '3')
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value2) (OperationKind.Argument, Type: null) (Syntax: '10')
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)",
+        DiagnosticDescription.None);
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.ReadOnlyReferences)]
+        [WorkItem(23691, "https://github.com/dotnet/roslyn/issues/23691")]
+        public void OptionalInParameters_Method_Required_Optional_OneArg()
+        {
+            var code = @"
+class Program
+{
+    static void Test(in int value1, in int value2 = 5)
+    {
+        System.Console.WriteLine($""({value1}, {value2})"");
+    }
+
+    static void Main(string[] args)
+    {
+        /*<bind>*/Test(1)/*<bind>*/;
+    }
+}";
+
+            CompileAndVerify(code, expectedOutput: "(1, 5)").VerifyIL("Program.Main", @"
+{
+  // Code size       14 (0xe)
+  .maxstack  2
+  .locals init (int V_0,
+                int V_1)
+  IL_0000:  ldc.i4.1
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  ldc.i4.5
+  IL_0005:  stloc.1
+  IL_0006:  ldloca.s   V_1
+  IL_0008:  call       ""void Program.Test(in int, in int)""
+  IL_000d:  ret
+}");
+
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(code, @"
+IInvocationOperation (void Program.Test(in System.Int32 value1, [in System.Int32 value2 = 5])) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Test(1)')
+  Instance Receiver: 
+    null
+  Arguments(2):
+      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value1) (OperationKind.Argument, Type: null) (Syntax: '1')
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: value2) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'Test(1)')
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5, IsImplicit) (Syntax: 'Test(1)')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)",
+        DiagnosticDescription.None);
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.ReadOnlyReferences)]
+        [WorkItem(23691, "https://github.com/dotnet/roslyn/issues/23691")]
+        public void OptionalInParameters_Method_Required_Optional_TwoArgs()
+        {
+            var code = @"
+class Program
+{
+    static void Test(in int value1, in int value2 = 5)
+    {
+        System.Console.WriteLine($""({value1}, {value2})"");
+    }
+
+    static void Main(string[] args)
+    {
+        /*<bind>*/Test(2, 10)/*<bind>*/;
+    }
+}";
+
+            CompileAndVerify(code, expectedOutput: "(2, 10)").VerifyIL("Program.Main", @"
+{
+  // Code size       15 (0xf)
+  .maxstack  2
+  .locals init (int V_0,
+                int V_1)
+  IL_0000:  ldc.i4.2
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  ldc.i4.s   10
+  IL_0006:  stloc.1
+  IL_0007:  ldloca.s   V_1
+  IL_0009:  call       ""void Program.Test(in int, in int)""
+  IL_000e:  ret
+}");
+
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(code, @"
+IInvocationOperation (void Program.Test(in System.Int32 value1, [in System.Int32 value2 = 5])) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Test(2, 10)')
+  Instance Receiver: 
+    null
+  Arguments(2):
+      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value1) (OperationKind.Argument, Type: null) (Syntax: '2')
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value2) (OperationKind.Argument, Type: null) (Syntax: '10')
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)",
+        DiagnosticDescription.None);
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.ReadOnlyReferences)]
+        [WorkItem(23691, "https://github.com/dotnet/roslyn/issues/23691")]
+        public void OptionalInParameters_CompoundAssignment_Optional_Optional_OneArg()
+        {
+            var code = @"
+class Program
+{
+    public int this[in int p1 = 1, in int p2 = 2]
+    {
+        get
+        {
+            System.Console.WriteLine($""get p1={p1} p2={p2}"");
+            return 0;
+        }
+        set
+        {
+            System.Console.WriteLine($""set p1={p1} p2={p2} to {value}"");
+        }
+    }
+
+    static void Main(string[] args)
+    {
+        var obj = new Program();
+
+        /*<bind>*/obj[3]/*<bind>*/ += 10;
+    }
+}";
+
+            CompileAndVerify(code, expectedOutput: @"
+get p1=3 p2=2
+set p1=3 p2=2 to 10
+").VerifyIL("Program.Main", @"
+{
+  // Code size       39 (0x27)
+  .maxstack  6
+  .locals init (Program V_0,
+                int V_1,
+                int V_2,
+                int V_3,
+                int V_4)
+  IL_0000:  newobj     ""Program..ctor()""
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  ldc.i4.3
+  IL_0008:  stloc.1
+  IL_0009:  ldloca.s   V_1
+  IL_000b:  ldc.i4.2
+  IL_000c:  stloc.2
+  IL_000d:  ldloca.s   V_2
+  IL_000f:  ldloc.0
+  IL_0010:  ldc.i4.3
+  IL_0011:  stloc.3
+  IL_0012:  ldloca.s   V_3
+  IL_0014:  ldc.i4.2
+  IL_0015:  stloc.s    V_4
+  IL_0017:  ldloca.s   V_4
+  IL_0019:  callvirt   ""int Program.this[in int, in int].get""
+  IL_001e:  ldc.i4.s   10
+  IL_0020:  add
+  IL_0021:  callvirt   ""void Program.this[in int, in int].set""
+  IL_0026:  ret
+}");
+
+            VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(code, @"
+IPropertyReferenceOperation: System.Int32 Program.this[[in System.Int32 p1 = 1], [in System.Int32 p2 = 2]] { get; set; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'obj[3]')
+  Instance Receiver: 
+    ILocalReferenceOperation: obj (OperationKind.LocalReference, Type: Program) (Syntax: 'obj')
+  Arguments(2):
+      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: p1) (OperationKind.Argument, Type: null) (Syntax: '3')
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: p2) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'obj[3]')
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'obj[3]')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)",
+        DiagnosticDescription.None);
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.ReadOnlyReferences)]
+        [WorkItem(23691, "https://github.com/dotnet/roslyn/issues/23691")]
+        public void OptionalInParameters_CompoundAssignment_Optional_Optional_TwoArgs()
+        {
+            var code = @"
+class Program
+{
+    public int this[in int p1 = 1, in int p2 = 2]
+    {
+        get
+        {
+            System.Console.WriteLine($""get p1={p1} p2={p2}"");
+            return 0;
+        }
+        set
+        {
+            System.Console.WriteLine($""set p1={p1} p2={p2} to {value}"");
+        }
+    }
+
+    static void Main(string[] args)
+    {
+        var obj = new Program();
+
+        /*<bind>*/obj[4, 5]/*<bind>*/ += 11;
+    }
+}";
+
+            CompileAndVerify(code, expectedOutput: @"
+get p1=4 p2=5
+set p1=4 p2=5 to 11
+").VerifyIL("Program.Main", @"
+{
+  // Code size       39 (0x27)
+  .maxstack  6
+  .locals init (Program V_0,
+                int V_1,
+                int V_2,
+                int V_3,
+                int V_4)
+  IL_0000:  newobj     ""Program..ctor()""
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  ldc.i4.4
+  IL_0008:  stloc.1
+  IL_0009:  ldloca.s   V_1
+  IL_000b:  ldc.i4.5
+  IL_000c:  stloc.2
+  IL_000d:  ldloca.s   V_2
+  IL_000f:  ldloc.0
+  IL_0010:  ldc.i4.4
+  IL_0011:  stloc.3
+  IL_0012:  ldloca.s   V_3
+  IL_0014:  ldc.i4.5
+  IL_0015:  stloc.s    V_4
+  IL_0017:  ldloca.s   V_4
+  IL_0019:  callvirt   ""int Program.this[in int, in int].get""
+  IL_001e:  ldc.i4.s   11
+  IL_0020:  add
+  IL_0021:  callvirt   ""void Program.this[in int, in int].set""
+  IL_0026:  ret
+}");
+
+            VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(code, @"
+IPropertyReferenceOperation: System.Int32 Program.this[[in System.Int32 p1 = 1], [in System.Int32 p2 = 2]] { get; set; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'obj[4, 5]')
+  Instance Receiver: 
+    ILocalReferenceOperation: obj (OperationKind.LocalReference, Type: Program) (Syntax: 'obj')
+  Arguments(2):
+      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: p1) (OperationKind.Argument, Type: null) (Syntax: '4')
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4) (Syntax: '4')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: p2) (OperationKind.Argument, Type: null) (Syntax: '5')
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)",
+        DiagnosticDescription.None);
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.ReadOnlyReferences)]
+        [WorkItem(23691, "https://github.com/dotnet/roslyn/issues/23691")]
+        public void OptionalInParameters_CompoundAssignment_Required_Optional_OneArg()
+        {
+            var code = @"
+class Program
+{
+    public int this[in int p1, in int p2 = 2]
+    {
+        get
+        {
+            System.Console.WriteLine($""get p1={p1} p2={p2}"");
+            return 0;
+        }
+        set
+        {
+            System.Console.WriteLine($""set p1={p1} p2={p2} to {value}"");
+        }
+    }
+
+    static void Main(string[] args)
+    {
+        var obj = new Program();
+
+        /*<bind>*/obj[3]/*<bind>*/ += 10;
+    }
+}";
+
+            CompileAndVerify(code, expectedOutput: @"
+get p1=3 p2=2
+set p1=3 p2=2 to 10
+").VerifyIL("Program.Main", @"
+{
+  // Code size       39 (0x27)
+  .maxstack  6
+  .locals init (Program V_0,
+                int V_1,
+                int V_2,
+                int V_3,
+                int V_4)
+  IL_0000:  newobj     ""Program..ctor()""
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  ldc.i4.3
+  IL_0008:  stloc.1
+  IL_0009:  ldloca.s   V_1
+  IL_000b:  ldc.i4.2
+  IL_000c:  stloc.2
+  IL_000d:  ldloca.s   V_2
+  IL_000f:  ldloc.0
+  IL_0010:  ldc.i4.3
+  IL_0011:  stloc.3
+  IL_0012:  ldloca.s   V_3
+  IL_0014:  ldc.i4.2
+  IL_0015:  stloc.s    V_4
+  IL_0017:  ldloca.s   V_4
+  IL_0019:  callvirt   ""int Program.this[in int, in int].get""
+  IL_001e:  ldc.i4.s   10
+  IL_0020:  add
+  IL_0021:  callvirt   ""void Program.this[in int, in int].set""
+  IL_0026:  ret
+}");
+
+            VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(code, @"
+IPropertyReferenceOperation: System.Int32 Program.this[in System.Int32 p1, [in System.Int32 p2 = 2]] { get; set; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'obj[3]')
+  Instance Receiver: 
+    ILocalReferenceOperation: obj (OperationKind.LocalReference, Type: Program) (Syntax: 'obj')
+  Arguments(2):
+      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: p1) (OperationKind.Argument, Type: null) (Syntax: '3')
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: p2) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'obj[3]')
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'obj[3]')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)",
+        DiagnosticDescription.None);
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.ReadOnlyReferences)]
+        [WorkItem(23691, "https://github.com/dotnet/roslyn/issues/23691")]
+        public void OptionalInParameters_CompoundAssignment_Required_Optional_TwoArgs()
+        {
+            var code = @"
+class Program
+{
+    public int this[in int p1, in int p2 = 2]
+    {
+        get
+        {
+            System.Console.WriteLine($""get p1={p1} p2={p2}"");
+            return 0;
+        }
+        set
+        {
+            System.Console.WriteLine($""set p1={p1} p2={p2} to {value}"");
+        }
+    }
+
+    static void Main(string[] args)
+    {
+        var obj = new Program();
+
+        /*<bind>*/obj[4, 5]/*<bind>*/ += 11;
+    }
+}";
+
+            CompileAndVerify(code, expectedOutput: @"
+get p1=4 p2=5
+set p1=4 p2=5 to 11
+").VerifyIL("Program.Main", @"
+{
+  // Code size       39 (0x27)
+  .maxstack  6
+  .locals init (Program V_0,
+                int V_1,
+                int V_2,
+                int V_3,
+                int V_4)
+  IL_0000:  newobj     ""Program..ctor()""
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  ldc.i4.4
+  IL_0008:  stloc.1
+  IL_0009:  ldloca.s   V_1
+  IL_000b:  ldc.i4.5
+  IL_000c:  stloc.2
+  IL_000d:  ldloca.s   V_2
+  IL_000f:  ldloc.0
+  IL_0010:  ldc.i4.4
+  IL_0011:  stloc.3
+  IL_0012:  ldloca.s   V_3
+  IL_0014:  ldc.i4.5
+  IL_0015:  stloc.s    V_4
+  IL_0017:  ldloca.s   V_4
+  IL_0019:  callvirt   ""int Program.this[in int, in int].get""
+  IL_001e:  ldc.i4.s   11
+  IL_0020:  add
+  IL_0021:  callvirt   ""void Program.this[in int, in int].set""
+  IL_0026:  ret
+}");
+
+            VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(code, @"
+IPropertyReferenceOperation: System.Int32 Program.this[in System.Int32 p1, [in System.Int32 p2 = 2]] { get; set; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'obj[4, 5]')
+  Instance Receiver: 
+    ILocalReferenceOperation: obj (OperationKind.LocalReference, Type: Program) (Syntax: 'obj')
+  Arguments(2):
+      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: p1) (OperationKind.Argument, Type: null) (Syntax: '4')
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4) (Syntax: '4')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: p2) (OperationKind.Argument, Type: null) (Syntax: '5')
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)",
+        DiagnosticDescription.None);
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.ReadOnlyReferences)]
+        [WorkItem(23691, "https://github.com/dotnet/roslyn/issues/23691")]
+        public void Issue23691_PassingInOptionalArgumentsByRef_OneArg()
+        {
+            var code = @"
+class Program
+{
+    static void Main()
+    {
+        /*<bind>*/A(1)/*<bind>*/;
+    }
+
+    static void A(in double x = 1, in string y = ""test"") => System.Console.WriteLine(y);
+    static void B(in float x, in float y, in float z = 3.0f) => System.Console.WriteLine(x * y * z);
+
+}";
+
+            CompileAndVerify(code, expectedOutput: "test").VerifyIL("Program.Main", @"
+{
+  // Code size       26 (0x1a)
+  .maxstack  2
+  .locals init (double V_0,
+                string V_1)
+  IL_0000:  ldc.r8     1
+  IL_0009:  stloc.0
+  IL_000a:  ldloca.s   V_0
+  IL_000c:  ldstr      ""test""
+  IL_0011:  stloc.1
+  IL_0012:  ldloca.s   V_1
+  IL_0014:  call       ""void Program.A(in double, in string)""
+  IL_0019:  ret
+}");
+
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(code, @"
+IInvocationOperation (void Program.A([in System.Double x = 1], [in System.String y = ""test""])) (OperationKind.Invocation, Type: System.Void) (Syntax: 'A(1)')
+  Instance Receiver: 
+    null
+  Arguments(2):
+      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: '1')
+        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Double, Constant: 1, IsImplicit) (Syntax: '1')
+          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          Operand: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: y) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'A(1)')
+        ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""test"", IsImplicit) (Syntax: 'A(1)')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)",
+        DiagnosticDescription.None);
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.ReadOnlyReferences)]
+        [WorkItem(23691, "https://github.com/dotnet/roslyn/issues/23691")]
+        public void Issue23691_PassingInOptionalArgumentsByRef_TwoArgs()
+        {
+            var code = @"
+class Program
+{
+    static void Main()
+    {
+        /*<bind>*/B(1, 2)/*<bind>*/;
+    }
+
+    static void A(in double x = 1, in string y = ""test"") => System.Console.WriteLine(y);
+    static void B(in float x, in float y, in float z = 3.0f) => System.Console.WriteLine(x * y * z);
+
+}";
+
+            CompileAndVerify(code, expectedOutput: "6").VerifyIL("Program.Main", @"
+{
+  // Code size       30 (0x1e)
+  .maxstack  3
+  .locals init (float V_0,
+                float V_1,
+                float V_2)
+  IL_0000:  ldc.r4     1
+  IL_0005:  stloc.0
+  IL_0006:  ldloca.s   V_0
+  IL_0008:  ldc.r4     2
+  IL_000d:  stloc.1
+  IL_000e:  ldloca.s   V_1
+  IL_0010:  ldc.r4     3
+  IL_0015:  stloc.2
+  IL_0016:  ldloca.s   V_2
+  IL_0018:  call       ""void Program.B(in float, in float, in float)""
+  IL_001d:  ret
+}");
+
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(code, @"
+IInvocationOperation (void Program.B(in System.Single x, in System.Single y, [in System.Single z = 3])) (OperationKind.Invocation, Type: System.Void) (Syntax: 'B(1, 2)')
+  Instance Receiver: 
+    null
+  Arguments(3):
+      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: '1')
+        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Single, Constant: 1, IsImplicit) (Syntax: '1')
+          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          Operand: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: y) (OperationKind.Argument, Type: null) (Syntax: '2')
+        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Single, Constant: 2, IsImplicit) (Syntax: '2')
+          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          Operand: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: z) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'B(1, 2)')
+        ILiteralOperation (OperationKind.Literal, Type: System.Single, Constant: 3, IsImplicit) (Syntax: 'B(1, 2)')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)",
+        DiagnosticDescription.None);
+        }
+
+        [WorkItem(23692, "https://github.com/dotnet/roslyn/issues/23692")]
+        [Fact]
+        public void ThisToInParam()
+        {
+            var code = @"
+using System;
+
+static class Ex
+{
+    public static void InMethod(in X arg) => Console.Write(arg);
+}
+
+class X
+{
+    public void M()
+    {
+        // pass `this` by in-parameter.
+        Ex.InMethod(this);
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var x = new X();
+
+        // baseline
+        Ex.InMethod(x);
+
+        x.M();
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(code, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(compilation, expectedOutput: "XX");
+
+            verifier.VerifyIL("X.M()", @"
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""void Ex.InMethod(in X)""
+  IL_0007:  ret
+}
+");
         }
     }
 }

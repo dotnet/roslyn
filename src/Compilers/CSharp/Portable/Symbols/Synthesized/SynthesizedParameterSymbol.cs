@@ -50,15 +50,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _refKind; }
         }
 
-        internal override bool IsMetadataIn
-        {
-            get { return false; }
-        }
+        internal override bool IsMetadataIn => RefKind == RefKind.In;
 
-        internal override bool IsMetadataOut
-        {
-            get { return _refKind == RefKind.Out; }
-        }
+        internal override bool IsMetadataOut => RefKind == RefKind.Out;
 
         internal override MarshalPseudoCustomAttributeData MarshallingInformation
         {

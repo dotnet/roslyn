@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
-        Public Sub SimpleRetuenFromRegularMethod()
+        Public Sub SimpleReturnFromRegularMethod()
             Dim source = <![CDATA[
 Class C
     Sub M()

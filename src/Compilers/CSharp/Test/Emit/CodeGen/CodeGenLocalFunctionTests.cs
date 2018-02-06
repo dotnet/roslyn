@@ -4484,7 +4484,7 @@ class Program
 2
 2
 ";
-            VerifyOutput(source, output, TestOptions.ReleaseExe.WithAllowUnsafe(true).WithWarningLevel(0));
+            VerifyOutput(source, output, TestOptions.ReleaseExe.WithAllowUnsafe(true).WithWarningLevel(0), verify: Verification.Passes);
         }
 
         [Fact]
@@ -4510,7 +4510,7 @@ class Program
     }
 }
 ";
-            VerifyOutput(source, "2", TestOptions.ReleaseExe.WithAllowUnsafe(true));
+            VerifyOutput(source, "2", TestOptions.ReleaseExe.WithAllowUnsafe(true), verify: Verification.Fails);
         }
 
         [Fact]
@@ -4536,7 +4536,7 @@ class Program
     }
 }
 ";
-            VerifyOutput(source, "2", TestOptions.ReleaseExe.WithAllowUnsafe(true));
+            VerifyOutput(source, "2", TestOptions.ReleaseExe.WithAllowUnsafe(true), verify: Verification.Fails);
         }
 
         [Fact]
@@ -4563,7 +4563,7 @@ class Program
     }
 }
 ";
-            VerifyOutput(source, "2", TestOptions.ReleaseExe.WithAllowUnsafe(true));
+            VerifyOutput(source, "2", TestOptions.ReleaseExe.WithAllowUnsafe(true), verify: Verification.Fails);
         }
 
         [Fact]
@@ -4603,7 +4603,7 @@ class C
         Console.WriteLine(y);
     }
 }";
-            VerifyOutput(src, "10\r\n4", TestOptions.ReleaseExe.WithAllowUnsafe(true));
+            VerifyOutput(src, "10\r\n4", TestOptions.ReleaseExe.WithAllowUnsafe(true), verify: Verification.Fails);
         }
 
         [Fact]
@@ -5007,7 +5007,7 @@ class Program
 
         [Fact]
         [WorkItem(19119, "https://github.com/dotnet/roslyn/issues/19119")]
-        public void StructFrameInitUnnecesary()
+        public void StructFrameInitUnnecessary()
         {
             var c = CompileAndVerify(@"
     class Program
@@ -5072,10 +5072,10 @@ class Program
 ");
         }
 
-        internal CompilationVerifier VerifyOutput(string source, string output, CSharpCompilationOptions options)
+        internal CompilationVerifier VerifyOutput(string source, string output, CSharpCompilationOptions options, Verification verify = Verification.Passes)
         {
             var comp = CreateCompilationWithMscorlib45AndCSruntime(source, options: options);
-            return CompileAndVerify(comp, expectedOutput: output).VerifyDiagnostics(); // no diagnostics
+            return CompileAndVerify(comp, expectedOutput: output, verify: verify).VerifyDiagnostics(); // no diagnostics
         }
 
         internal CompilationVerifier VerifyOutput(string source, string output)

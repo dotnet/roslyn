@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.UseInferredMemberN
 Class C
     Sub M()
         Dim a As Integer = 1
-        Dim t = ([||]a:=a, 2)
+        Dim t = ( [||]a:= a, 2)
     End Sub
 End Class
 ",
@@ -40,13 +40,28 @@ End Class
         End Function
 
         <Fact>
+        <WorkItem(23659, "https://github.com/dotnet/roslyn/issues/23659")>
+        Public Async Function TestMissingForObjectCreation() As Task
+            Await TestMissingAsync(
+"
+Public Class C
+    Public Property P As Integer
+
+    Sub M(p As Integer)
+        Dim f = New C With { [|.P|] = p }
+    End Sub
+End Class
+", New TestParameters(s_parseOptions))
+        End Function
+
+        <Fact>
         Public Async Function TestInferredTupleName2() As Task
             Await TestAsync(
 "
 Class C
     Sub M()
         Dim a As Integer = 2
-        Dim t = (1, [||]a:=a)
+        Dim t = (1,  [||]a:= a )
     End Sub
 End Class
 ",

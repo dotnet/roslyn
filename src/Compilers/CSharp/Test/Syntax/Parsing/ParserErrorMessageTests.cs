@@ -2020,9 +2020,9 @@ public class mine {
                 // (18,9): error CS1017: Catch clauses cannot follow the general catch clause of a try statement
                 //         catch when (false) {}
                 Diagnostic(ErrorCode.ERR_TooManyCatches, "catch").WithLocation(18, 9),
-                // (18,21): warning CS7095: Filter expression is a constant, consider removing the filter
+                // (18,21): warning CS8359: Filter expression is a constant 'false', consider removing the catch clause
                 //         catch when (false) {}
-                Diagnostic(ErrorCode.WRN_FilterIsConstant, "false").WithLocation(18, 21));
+                Diagnostic(ErrorCode.WRN_FilterIsConstantFalse, "false").WithLocation(18, 21));
         }
 
         [Fact]
@@ -3084,79 +3084,32 @@ class Program
         }
 
         [Fact]
-        public void BadParameterModifiers_ThisWithRef()
+        public void BadRefOrInWithThisParameterModifiers()
         {
             var test = @"
-using System;
 public static class Extensions
 {
-    //No type parameters
-    public static void Goo1(this ref int i) {}
-    //Single type parameter
-    public static void Goo1<T>(this ref T t) where T : struct {}
-    //Multiple type parameters
-    public static void Goo1<T,U,V>(this ref U u) where U : struct {}
-}
-public static class GenExtensions<X> where X : struct
-{
-    //No type parameters
-    public static void Goo2(this ref int i) {}
-    public static void Goo2(this ref X x) {}
-    //Single type parameter
-    public static void Goo2<T>(this ref T t) where T : struct {}
-    public static void Goo2<T>(this ref X x) {}
-    //Multiple type parameters
-    public static void Goo2<T,U,V>(this ref U u) where U : struct {}
-    public static void Goo2<T,U,V>(this ref X x) {}
+    public static void M1(ref this ref int i) {}
+    public static void M2(ref this in int i) {}
+    public static void M3(in this ref int i) {}
+    public static void M4(in this in int i) {}
 }
 ";
 
             CreateCompilationWithMscorlibAndSystemCore(test).GetDeclarationDiagnostics().Verify(
-                // (10,41): error CS8328:  The parameter modifier 'ref' cannot be used after the modifier 'this' 
-                //     public static void Goo1<T,U,V>(this ref U u) {}
-                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "ref").WithArguments("ref", "this").WithLocation(10, 41),
-                // (22,41): error CS8339:  The parameter modifier 'ref' cannot be used after the modifier 'this' 
-                //     public static void Goo2<T,U,V>(this ref X x) {}
-                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "ref").WithArguments("ref", "this").WithLocation(22, 41),
-                // (12,21): error CS1106: Extension method must be defined in a non-generic static class
-                // public static class GenExtensions<X>
-                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
-                // (8,37): error CS8339:  The parameter modifier 'ref' cannot be used after the modifier 'this' 
-                //     public static void Goo1<T>(this ref T t) {}
-                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "ref").WithArguments("ref", "this").WithLocation(8, 37),
-                // (16,34): error CS8339:  The parameter modifier 'ref' cannot be used after the modifier 'this' 
-                //     public static void Goo2(this ref X x) {}
-                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "ref").WithArguments("ref", "this").WithLocation(16, 34),
-                // (12,21): error CS1106: Extension method must be defined in a non-generic static class
-                // public static class GenExtensions<X>
-                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
-                // (6,34): error CS8339:  The parameter modifier 'ref' cannot be used after the modifier 'this' 
-                //     public static void Goo1(this ref int i) {}
-                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "ref").WithArguments("ref", "this").WithLocation(6, 34),
-                // (18,37): error CS8339:  The parameter modifier 'ref' cannot be used after the modifier 'this' 
-                //     public static void Goo2<T>(this ref T t) {}
-                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "ref").WithArguments("ref", "this").WithLocation(18, 37),
-                // (12,21): error CS1106: Extension method must be defined in a non-generic static class
-                // public static class GenExtensions<X>
-                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
-                // (19,37): error CS8339:  The parameter modifier 'ref' cannot be used after the modifier 'this' 
-                //     public static void Goo2<T>(this ref X x) {}
-                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "ref").WithArguments("ref", "this").WithLocation(19, 37),
-                // (12,21): error CS1106: Extension method must be defined in a non-generic static class
-                // public static class GenExtensions<X>
-                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
-                // (21,41): error CS8339:  The parameter modifier 'ref' cannot be used after the modifier 'this' 
-                //     public static void Goo2<T,U,V>(this ref U u) {}
-                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "ref").WithArguments("ref", "this").WithLocation(21, 41),
-                // (12,21): error CS1106: Extension method must be defined in a non-generic static class
-                // public static class GenExtensions<X>
-                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
-                // (15,34): error CS8339:  The parameter modifier 'ref' cannot be used after the modifier 'this' 
-                //     public static void Goo2(this ref int i) {}
-                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "ref").WithArguments("ref", "this").WithLocation(15, 34),
-                // (12,21): error CS1106: Extension method must be defined in a non-generic static class
-                // public static class GenExtensions<X>
-                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21));
+                // (7,35): error CS1107: A parameter can only have one 'in' modifier
+                //     public static void M4(in this in int i) {}
+                Diagnostic(ErrorCode.ERR_DupParamMod, "in").WithArguments("in").WithLocation(7, 35),
+                // (5,36): error CS8328:  The parameter modifier 'in' cannot be used with 'ref'
+                //     public static void M2(ref this in int i) {}
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "in").WithArguments("in", "ref").WithLocation(5, 36),
+                // (6,35): error CS8328:  The parameter modifier 'ref' cannot be used with 'in'
+                //     public static void M3(in this ref int i) {}
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "ref").WithArguments("ref", "in").WithLocation(6, 35),
+                // (4,36): error CS1107: A parameter can only have one 'ref' modifier
+                //     public static void M1(ref this ref int i) {}
+                Diagnostic(ErrorCode.ERR_DupParamMod, "ref").WithArguments("ref").WithLocation(4, 36)
+                );
         }
 
         [Fact]
@@ -3486,26 +3439,26 @@ public static void Method6<T, U, V>(ref in int i) { }
                 // (6,32): error CS8328:  The parameter modifier 'in' cannot be used with 'ref'
                 // public static void Method2(ref in int i) { }
                 Diagnostic(ErrorCode.ERR_BadParameterModifiers, "in").WithArguments("in", "ref").WithLocation(6, 32),
-                // (9,34): error CS8328:  The parameter modifier 'out' cannot be used with 'in'
+                // (9,34): error CS8328:  The parameter modifier 'ref' cannot be used with 'in'
                 // public static void Method3<T>(in ref int i) { }
-                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "ref").WithArguments("out", "in").WithLocation(9, 34),
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "ref").WithArguments("ref", "in").WithLocation(9, 34),
                 // (10,35): error CS8328:  The parameter modifier 'in' cannot be used with 'ref'
                 // public static void Method4<T>(ref in int i) { }
                 Diagnostic(ErrorCode.ERR_BadParameterModifiers, "in").WithArguments("in", "ref").WithLocation(10, 35),
-                // (13,40): error CS8328:  The parameter modifier 'out' cannot be used with 'in'
+                // (13,40): error CS8328:  The parameter modifier 'ref' cannot be used with 'in'
                 // public static void Method5<T, U, V>(in ref int i) { }
-                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "ref").WithArguments("out", "in").WithLocation(13, 40),
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "ref").WithArguments("ref", "in").WithLocation(13, 40),
                 // (14,41): error CS8328:  The parameter modifier 'in' cannot be used with 'ref'
                 // public static void Method6<T, U, V>(ref in int i) { }
                 Diagnostic(ErrorCode.ERR_BadParameterModifiers, "in").WithArguments("in", "ref").WithLocation(14, 41),
-                // (5,31): error CS8328:  The parameter modifier 'out' cannot be used with 'in'
+                // (5,31): error CS8328:  The parameter modifier 'ref' cannot be used with 'in'
                 // public static void Method1(in ref int i) { }
-                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "ref").WithArguments("out", "in").WithLocation(5, 31));
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "ref").WithArguments("ref", "in").WithLocation(5, 31));
         }
 
         [Fact]
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
-        public void BadInWithThisParameterModifiers()
+        public void InWithThis_ParameterModifiers()
         {
             var test = @"
 public static class TestType
@@ -3524,16 +3477,7 @@ public static void Method6<T, U, V>(this in int i) { }
 }
 ";
 
-            CreateCompilationWithMscorlibAndSystemCore(test).GetDeclarationDiagnostics().Verify(
-                // (14,42): error CS8339: The parameter modifier 'in' cannot be used after the modifier 'this'
-                // public static void Method6<T, U, V>(this in int i) { }
-                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "in").WithArguments("in", "this").WithLocation(14, 42),
-                // (6,33): error CS8339: The parameter modifier 'in' cannot be used after the modifier 'this'
-                // public static void Method2(this in int i) { }
-                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "in").WithArguments("in", "this").WithLocation(6, 33),
-                // (10,36): error CS8339: The parameter modifier 'in' cannot be used after the modifier 'this'
-                // public static void Method4<T>(this in int i) { }
-                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "in").WithArguments("in", "this").WithLocation(10, 36));
+            CreateCompilationWithMscorlibAndSystemCore(test).VerifyDiagnostics();
         }
 
         [Fact]
@@ -3561,21 +3505,21 @@ public static void Method6<T, U, V>(params in int[] i) { }
                 // (6,35): error CS1611: The params parameter cannot be declared as in
                 // public static void Method2(params in int[] i) { }
                 Diagnostic(ErrorCode.ERR_ParamsCantBeWithModifier, "in").WithArguments("in").WithLocation(6, 35),
-                // (9,34): error CS8328:  The parameter modifier 'out' cannot be used with 'in'
+                // (9,34): error CS8328:  The parameter modifier 'params' cannot be used with 'in'
                 // public static void Method3<T>(in params int[] i) { }
-                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "params").WithArguments("out", "in").WithLocation(9, 34),
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "params").WithArguments("params", "in").WithLocation(9, 34),
                 // (10,38): error CS1611: The params parameter cannot be declared as in
                 // public static void Method4<T>(params in int[] i) { }
                 Diagnostic(ErrorCode.ERR_ParamsCantBeWithModifier, "in").WithArguments("in").WithLocation(10, 38),
-                // (13,40): error CS8328:  The parameter modifier 'out' cannot be used with 'in'
+                // (13,40): error CS8328:  The parameter modifier 'params' cannot be used with 'in'
                 // public static void Method5<T, U, V>(in params int[] i) { }
-                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "params").WithArguments("out", "in").WithLocation(13, 40),
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "params").WithArguments("params", "in").WithLocation(13, 40),
                 // (14,44): error CS1611: The params parameter cannot be declared as in
                 // public static void Method6<T, U, V>(params in int[] i) { }
                 Diagnostic(ErrorCode.ERR_ParamsCantBeWithModifier, "in").WithArguments("in").WithLocation(14, 44),
-                // (5,31): error CS8328:  The parameter modifier 'out' cannot be used with 'in'
+                // (5,31): error CS8328:  The parameter modifier 'params' cannot be used with 'in'
                 // public static void Method1(in params int[] i) { }
-                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "params").WithArguments("out", "in").WithLocation(5, 31));
+                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "params").WithArguments("params", "in").WithLocation(5, 31));
         }
 
         [Fact]

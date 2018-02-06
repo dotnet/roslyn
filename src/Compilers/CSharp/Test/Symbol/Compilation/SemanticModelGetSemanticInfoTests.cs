@@ -5,6 +5,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -1433,7 +1434,7 @@ Public Class A
         End Set
     End Property
 End Class";
-            var reference1 = BasicCompilationUtils.CompileToMetadata(source1, verify: false);
+            var reference1 = BasicCompilationUtils.CompileToMetadata(source1, verify: Verification.Skipped);
 
             // Assignment (property group).
             var source2 =
@@ -1572,7 +1573,7 @@ Public Class B
         End Get
     End Property
 End Class";
-            var reference1 = BasicCompilationUtils.CompileToMetadata(source1, verify: false);
+            var reference1 = BasicCompilationUtils.CompileToMetadata(source1, verify: Verification.Skipped);
 
             // Overridden property.
             var source2 =
@@ -9164,23 +9165,23 @@ class Program
             Assert.Equal("B", type.Name);
             Assert.True(type.IsUnboundGenericType);
             Assert.False(type.IsErrorType());
-            Assert.True(type.TypeArguments[0].IsErrorType());
+            Assert.True(type.TypeArguments()[0].IsErrorType());
 
             var constructedFrom = type.ConstructedFrom;
             Assert.Equal(constructedFrom, constructedFrom.ConstructedFrom);
             Assert.Equal(constructedFrom, constructedFrom.TypeParameters[0].ContainingSymbol);
-            Assert.Equal(constructedFrom.TypeArguments[0], constructedFrom.TypeParameters[0]);
+            Assert.Equal(constructedFrom.TypeArguments()[0], constructedFrom.TypeParameters[0]);
             Assert.Equal(type.ContainingSymbol, constructedFrom.ContainingSymbol);
             Assert.Equal(type.TypeParameters[0], constructedFrom.TypeParameters[0]);
-            Assert.False(constructedFrom.TypeArguments[0].IsErrorType());
+            Assert.False(constructedFrom.TypeArguments()[0].IsErrorType());
             Assert.NotEqual(type, constructedFrom);
             Assert.False(constructedFrom.IsUnboundGenericType);
             var a = type.ContainingType;
             Assert.Equal(constructedFrom, a.GetTypeMembers("B").Single());
             Assert.NotEqual(type.TypeParameters[0], type.OriginalDefinition.TypeParameters[0]); // alpha renamed
-            Assert.Null(type.BaseType);
-            Assert.Empty(type.Interfaces);
-            Assert.NotNull(constructedFrom.BaseType);
+            Assert.Null(type.BaseType());
+            Assert.Empty(type.Interfaces());
+            Assert.NotNull(constructedFrom.BaseType());
             Assert.Empty(type.GetMembers());
             Assert.NotEmpty(constructedFrom.GetMembers());
             Assert.True(a.IsUnboundGenericType);
@@ -13635,10 +13636,11 @@ public class MemberInitializerTest
 ";
             var semanticInfo = GetSemanticInfoForTest<PostfixUnaryExpressionSyntax>(sourceCode);
 
-            Assert.Equal("System.Object", semanticInfo.Type.ToTestDisplayString());
-            Assert.Equal(TypeKind.Class, semanticInfo.Type.TypeKind);
-            Assert.Equal("System.Object", semanticInfo.ConvertedType.ToTestDisplayString());
-            Assert.Equal(TypeKind.Class, semanticInfo.ConvertedType.TypeKind);
+            Assert.Equal("?", semanticInfo.Type.ToTestDisplayString());
+            Assert.Equal(TypeKind.Error, semanticInfo.Type.TypeKind);
+            Assert.Equal("?", semanticInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(TypeKind.Error, semanticInfo.ConvertedType.TypeKind);
+
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Null(semanticInfo.Symbol);

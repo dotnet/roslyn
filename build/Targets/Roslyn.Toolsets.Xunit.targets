@@ -4,7 +4,7 @@
 
   <PropertyGroup>
     <!-- xUnit.net Console Runner -->
-    <XUnitPath>$(NuGetPackageRoot)\xunit.runner.console\$(xunitrunnerconsoleVersion)\tools\xunit.console.x86.exe</XUnitPath>
+    <XUnitPath>$(NuGetPackageRoot)\xunit.runner.console\$(xunitrunnerconsoleVersion)\tools\net452\xunit.console.x86.exe</XUnitPath>
     <XUnitTestResultsDirectory>$(OutDir)\xUnitResults</XUnitTestResultsDirectory>
     <XUnitArguments>"$(OutDir)\$(AssemblyName).dll" -html "$(XUnitTestResultsDirectory)\$(AssemblyName).html" -noshadow</XUnitArguments>
     <PrepareForBuildDependsOn>$(PrepareForBuildDependsOn);AddDefaultTestAppConfig</PrepareForBuildDependsOn>
@@ -16,7 +16,7 @@
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <ForceGenerationOfBindingRedirects>true</ForceGenerationOfBindingRedirects>
 
-    <RuntimeIdentifier Condition="'$(TargetFramework)' == 'net461' AND '$(RuntimeIdentifier)' == '' AND '$(OS)' == 'Windows_NT'">win7</RuntimeIdentifier>
+    <RuntimeIdentifier Condition="'$(TargetFramework)' == 'net461' AND '$(RuntimeIdentifier)' == '' AND '$(OS)' == 'Windows_NT'">$(RoslynDesktopRuntimeIdentifier)</RuntimeIdentifier>
   </PropertyGroup>
     
   <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp2.0'">

@@ -797,6 +797,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        public static DeconstructionInfo GetDeconstructionInfo(this SemanticModel semanticModel, AssignmentExpressionSyntax assignment)
+        {
+            return semanticModel is CSharpSemanticModel csmodel ? csmodel.GetDeconstructionInfo(assignment) : default;
+        }
+
+        public static DeconstructionInfo GetDeconstructionInfo(this SemanticModel semanticModel, ForEachVariableStatementSyntax @foreach)
+        {
+            return semanticModel is CSharpSemanticModel csmodel ? csmodel.GetDeconstructionInfo(@foreach) : default;
+        }
+
         public static AwaitExpressionInfo GetAwaitExpressionInfo(this SemanticModel semanticModel, AwaitExpressionSyntax awaitExpression)
         {
             var csmodel = semanticModel as CSharpSemanticModel;

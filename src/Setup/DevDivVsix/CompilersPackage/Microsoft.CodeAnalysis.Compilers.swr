@@ -44,6 +44,7 @@ folder InstallDir:\MSBuild\15.0\Bin\Roslyn
     file source=$(OutputPath)\Vsix\CompilerExtension\System.IO.FileSystem.DriveInfo.dll vs.file.ngenArchitecture=all
     file source=$(OutputPath)\Vsix\CompilerExtension\System.IO.FileSystem.Primitives.dll vs.file.ngenArchitecture=all
     file source=$(OutputPath)\Vsix\CompilerExtension\System.IO.Pipes.dll vs.file.ngenArchitecture=all
+    file source=$(OutputPath)\Vsix\CompilerExtension\System.IO.Pipes.AccessControl.dll vs.file.ngenArchitecture=all
     file source=$(OutputPath)\Vsix\CompilerExtension\System.Security.AccessControl.dll vs.file.ngenArchitecture=all
     file source=$(OutputPath)\Vsix\CompilerExtension\System.Security.Claims.dll vs.file.ngenArchitecture=all
     file source=$(OutputPath)\Vsix\CompilerExtension\System.Security.Cryptography.Algorithms.dll vs.file.ngenArchitecture=all
@@ -61,4 +62,4 @@ folder InstallDir:\MSBuild\15.0\Bin\Roslyn
     file source=$(OutputPath)\Vsix\CompilerExtension\Microsoft.Win32.Primitives.dll vs.file.ngenArchitecture=all
 
 folder InstallDir:\Common7\Tools\vsdevcmd\ext
-    file source=$(OutputPath)\Insertion\roslyn.bat
+    file source=$(RepoRoot)\src\Setup\MSBuildScripts\roslyn.bat

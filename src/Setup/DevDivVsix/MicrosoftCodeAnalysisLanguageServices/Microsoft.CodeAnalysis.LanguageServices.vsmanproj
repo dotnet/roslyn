@@ -6,36 +6,26 @@
   <PropertyGroup>
     <FinalizeManifest>true</FinalizeManifest>
     <FinalizeSkipLayout>true</FinalizeSkipLayout>
-    <OutputPath>$(OutputPath)\Insertion</OutputPath>
+    <OutputPath>$(OutputPath)\Vsix\CodeAnalysisLanguageServices</OutputPath>
     <IsPackage>true</IsPackage>
     <FinalizeValidate>false</FinalizeValidate>
     <ValidateManifest>false</ValidateManifest>
+    <ImportDirectoryBuildProps>false</ImportDirectoryBuildProps>
+    <ImportDirectoryBuildTargets>false</ImportDirectoryBuildTargets>
   </PropertyGroup>
 
   <Import Project="$(NuGetPackageRoot)\MicroBuild.Core\$(MicroBuildCoreVersion)\build\MicroBuild.Core.props" />
   <Import Project="$(NuGetPackageRoot)\MicroBuild.Core\$(MicroBuildCoreVersion)\build\MicroBuild.Core.targets" />
 
   <ItemGroup>
-    <RoslynVsixFileToCopy Include="$(OutputPath)..\Vsix\ExpressionEvaluatorPackage\Microsoft.CodeAnalysis.ExpressionEvaluator.json" />
-    <RoslynVsixFileToCopy Include="$(OutputPath)..\Vsix\ExpressionEvaluatorPackage\ExpressionEvaluatorPackage.vsix" />
-    <RoslynVsixFileToCopy Include="$(OutputPath)..\Vsix\VisualStudioInteractiveComponents\Microsoft.CodeAnalysis.VisualStudio.InteractiveComponents.json" />
-    <RoslynVsixFileToCopy Include="$(OutputPath)..\Vsix\VisualStudioInteractiveComponents\Roslyn.VisualStudio.InteractiveComponents.vsix" />
-    <RoslynVsixFileToCopy Include="$(OutputPath)..\Vsix\VisualStudioSetup\Microsoft.CodeAnalysis.VisualStudio.Setup.json" />
-    <RoslynVsixFileToCopy Include="$(OutputPath)..\Vsix\VisualStudioSetup\Roslyn.VisualStudio.Setup.vsix" />
-    <RoslynVsixFileToCopy Include="$(OutputPath)..\Vsix\VisualStudioSetup.Next\Microsoft.CodeAnalysis.VisualStudio.Setup.Next.json" />
-    <RoslynVsixFileToCopy Include="$(OutputPath)..\Vsix\VisualStudioSetup.Next\Roslyn.VisualStudio.Setup.Next.vsix" />
-  </ItemGroup>
-
-  <Target Name="BeforeBuild">
-    <Copy SourceFiles="@(RoslynVsixFileToCopy)" DestinationFolder="$(OutputPath)" OverwriteReadOnlyFiles="true" SkipUnchangedFiles="true" />
-  </Target>
-
-  <ItemGroup>
-    <MergeManifest Include="$(OutputPath)Microsoft.CodeAnalysis.ExpressionEvaluator.json" />
-    <MergeManifest Include="$(OutputPath)Microsoft.CodeAnalysis.VisualStudio.InteractiveComponents.json" />
-    <MergeManifest Include="$(OutputPath)Microsoft.CodeAnalysis.VisualStudio.Setup.json" />
-    <MergeManifest Include="$(OutputPath)Microsoft.CodeAnalysis.VisualStudio.Setup.Next.json" />
+    <MergeManifest Include="$(OutputPath)\..\ExpressionEvaluatorPackage\Microsoft.CodeAnalysis.ExpressionEvaluator.json" />
+    <MergeManifest Include="$(OutputPath)\..\VisualStudioInteractiveComponents\Microsoft.CodeAnalysis.VisualStudio.InteractiveComponents.json" />
+    <MergeManifest Include="$(OutputPath)\..\VisualStudioSetup\Microsoft.CodeAnalysis.VisualStudio.Setup.json" />
+    <MergeManifest Include="$(OutputPath)\..\VisualStudioSetup.Next\Microsoft.CodeAnalysis.VisualStudio.Setup.Next.json" />
   </ItemGroup>
 
   <Target Name="ValidateManifest" />
+
+  <!-- Disable automatic signing. This will be signed in the batch phase -->
+  <Target Name="AddTargetPathToFilesToSign" />
 </Project>

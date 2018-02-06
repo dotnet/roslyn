@@ -53,7 +53,7 @@ Namespace Microsoft.CodeAnalysis
         ''' <summary>
         ''' Determines if a SyntaxNodeOrToken is a specified kind.
         ''' </summary>
-        ''' <param name="nodeOrToken">The source SyntaxNodeOrToke.</param>
+        ''' <param name="nodeOrToken">The source SyntaxNodeOrToken.</param>
         ''' <param name="kind">The SyntaxKind to test for.</param>
         ''' <returns>A boolean value if nodeOrToken is of specified kind; otherwise false.</returns>
         <Extension>

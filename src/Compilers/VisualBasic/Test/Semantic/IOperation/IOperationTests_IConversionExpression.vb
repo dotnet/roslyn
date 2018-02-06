@@ -2257,6 +2257,8 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             ITypeParameterObjectCreationOperation (OperationKind.TypeParameterObjectCreation, Type: T) (Syntax: 'New T')
+              Initializer: 
+                null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -2299,6 +2301,8 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
           Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             ITypeParameterObjectCreationOperation (OperationKind.TypeParameterObjectCreation, Type: T, IsInvalid) (Syntax: 'New T')
+              Initializer: 
+                null
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -2345,6 +2349,8 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             ITypeParameterObjectCreationOperation (OperationKind.TypeParameterObjectCreation, Type: T) (Syntax: 'New T')
+              Initializer: 
+                null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -2380,6 +2386,8 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             ITypeParameterObjectCreationOperation (OperationKind.TypeParameterObjectCreation, Type: U) (Syntax: 'New U')
+              Initializer: 
+                null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -2415,6 +2423,8 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
           Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
             ITypeParameterObjectCreationOperation (OperationKind.TypeParameterObjectCreation, Type: U, IsInvalid) (Syntax: 'New U')
+              Initializer: 
+                null
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -2464,7 +2474,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
-        Public Sub ConversionExpressin_Implicit_WideningConstantConversion()
+        Public Sub ConversionExpression_Implicit_WideningConstantConversion()
             Dim source = <![CDATA[
 Option Strict On
 Module Module1
@@ -2991,6 +3001,182 @@ BC36755: 'Action(Of Object)' cannot be converted to 'Action(Of Integer)' because
             VerifyOperationTreeAndDiagnosticsForTest(Of LocalDeclarationStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub Conversion_CType_ParenthesizedExpressionTree()
+            Dim source = <![CDATA[
+Imports System
+Imports System.Linq.Expressions
+
+Public Class C
+    Public Sub M1()
+        Dim a = CType(((Function(ByVal i) i < 5)), Expression(Of Func(Of Integer, Boolean)))'BIND:"CType(((Function(ByVal i) i < 5)), Expression(Of Func(Of Integer, Boolean)))"
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Linq.Expressions.Expression(Of System.Func(Of System.Int32, System.Boolean))) (Syntax: 'CType(((Fun ...  Boolean)))')
+  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Operand: 
+    IParenthesizedOperation (OperationKind.Parenthesized, Type: null) (Syntax: '((Function( ...  i) i < 5))')
+      Operand: 
+        IParenthesizedOperation (OperationKind.Parenthesized, Type: null) (Syntax: '(Function(B ... l i) i < 5)')
+          Operand: 
+            IAnonymousFunctionOperation (Symbol: Function (i As System.Int32) As System.Boolean) (OperationKind.AnonymousFunction, Type: null) (Syntax: 'Function(ByVal i) i < 5')
+              IBlockOperation (3 statements, 1 locals) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Function(ByVal i) i < 5')
+                Locals: Local_1: <anonymous local> As System.Boolean
+                IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'i < 5')
+                  ReturnedValue: 
+                    IBinaryOperation (BinaryOperatorKind.LessThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 5')
+                      Left: 
+                        IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
+                      Right: 
+                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
+                ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'Function(ByVal i) i < 5')
+                  Statement: 
+                    null
+                IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'Function(ByVal i) i < 5')
+                  ReturnedValue: 
+                    ILocalReferenceOperation:  (OperationKind.LocalReference, Type: System.Boolean, IsImplicit) (Syntax: 'Function(ByVal i) i < 5')
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of CTypeExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub Conversion_DirectCast_ParenthesizedExpressionTree()
+            Dim source = <![CDATA[
+Imports System
+Imports System.Linq.Expressions
+
+Public Class C
+    Public Sub M1()
+        Dim a = DirectCast(((Function(ByVal i) i < 5)), Expression(Of Func(Of Integer, Boolean)))'BIND:"DirectCast(((Function(ByVal i) i < 5)), Expression(Of Func(Of Integer, Boolean)))"
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Linq.Expressions.Expression(Of System.Func(Of System.Int32, System.Boolean))) (Syntax: 'DirectCast( ...  Boolean)))')
+  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Operand: 
+    IParenthesizedOperation (OperationKind.Parenthesized, Type: null) (Syntax: '((Function( ...  i) i < 5))')
+      Operand: 
+        IParenthesizedOperation (OperationKind.Parenthesized, Type: null) (Syntax: '(Function(B ... l i) i < 5)')
+          Operand: 
+            IAnonymousFunctionOperation (Symbol: Function (i As System.Int32) As System.Boolean) (OperationKind.AnonymousFunction, Type: null) (Syntax: 'Function(ByVal i) i < 5')
+              IBlockOperation (3 statements, 1 locals) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Function(ByVal i) i < 5')
+                Locals: Local_1: <anonymous local> As System.Boolean
+                IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'i < 5')
+                  ReturnedValue: 
+                    IBinaryOperation (BinaryOperatorKind.LessThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 5')
+                      Left: 
+                        IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
+                      Right: 
+                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
+                ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'Function(ByVal i) i < 5')
+                  Statement: 
+                    null
+                IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'Function(ByVal i) i < 5')
+                  ReturnedValue: 
+                    ILocalReferenceOperation:  (OperationKind.LocalReference, Type: System.Boolean, IsImplicit) (Syntax: 'Function(ByVal i) i < 5')
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of DirectCastExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub Conversion_TryCast_ParenthesizedExpressionTree()
+            Dim source = <![CDATA[
+Imports System
+Imports System.Linq.Expressions
+
+Public Class C
+    Public Sub M1()
+        Dim a = TryCast(((Function(ByVal i) i < 5)), Expression(Of Func(Of Integer, Boolean)))'BIND:"TryCast(((Function(ByVal i) i < 5)), Expression(Of Func(Of Integer, Boolean)))"
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IConversionOperation (TryCast: True, Unchecked) (OperationKind.Conversion, Type: System.Linq.Expressions.Expression(Of System.Func(Of System.Int32, System.Boolean))) (Syntax: 'TryCast(((F ...  Boolean)))')
+  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Operand: 
+    IParenthesizedOperation (OperationKind.Parenthesized, Type: null) (Syntax: '((Function( ...  i) i < 5))')
+      Operand: 
+        IParenthesizedOperation (OperationKind.Parenthesized, Type: null) (Syntax: '(Function(B ... l i) i < 5)')
+          Operand: 
+            IAnonymousFunctionOperation (Symbol: Function (i As System.Int32) As System.Boolean) (OperationKind.AnonymousFunction, Type: null) (Syntax: 'Function(ByVal i) i < 5')
+              IBlockOperation (3 statements, 1 locals) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Function(ByVal i) i < 5')
+                Locals: Local_1: <anonymous local> As System.Boolean
+                IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'i < 5')
+                  ReturnedValue: 
+                    IBinaryOperation (BinaryOperatorKind.LessThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 5')
+                      Left: 
+                        IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
+                      Right: 
+                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
+                ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'Function(ByVal i) i < 5')
+                  Statement: 
+                    null
+                IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'Function(ByVal i) i < 5')
+                  ReturnedValue: 
+                    ILocalReferenceOperation:  (OperationKind.LocalReference, Type: System.Boolean, IsImplicit) (Syntax: 'Function(ByVal i) i < 5')
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of TryCastExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub Conversion_Implicit_ParenthesizedExpressionTree()
+            Dim source = <![CDATA[
+Imports System
+Imports System.Linq.Expressions
+
+Public Class C
+    Public Sub M1()
+        Dim a As Expression(Of Func(Of Integer, Boolean)) = ((Function(ByVal i) i < 5))'BIND:"= ((Function(ByVal i) i < 5))"
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= ((Functio ...  i) i < 5))')
+  IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Linq.Expressions.Expression(Of System.Func(Of System.Int32, System.Boolean))) (Syntax: '((Function( ...  i) i < 5))')
+    Operand: 
+      IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Linq.Expressions.Expression(Of System.Func(Of System.Int32, System.Boolean))) (Syntax: '(Function(B ... l i) i < 5)')
+        Operand: 
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Linq.Expressions.Expression(Of System.Func(Of System.Int32, System.Boolean)), IsImplicit) (Syntax: 'Function(ByVal i) i < 5')
+            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Operand: 
+              IAnonymousFunctionOperation (Symbol: Function (i As System.Int32) As System.Boolean) (OperationKind.AnonymousFunction, Type: null) (Syntax: 'Function(ByVal i) i < 5')
+                IBlockOperation (3 statements, 1 locals) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Function(ByVal i) i < 5')
+                  Locals: Local_1: <anonymous local> As System.Boolean
+                  IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'i < 5')
+                    ReturnedValue: 
+                      IBinaryOperation (BinaryOperatorKind.LessThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 5')
+                        Left: 
+                          IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
+                        Right: 
+                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
+                  ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'Function(ByVal i) i < 5')
+                    Statement: 
+                      null
+                  IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'Function(ByVal i) i < 5')
+                    ReturnedValue: 
+                      ILocalReferenceOperation:  (OperationKind.LocalReference, Type: System.Boolean, IsImplicit) (Syntax: 'Function(ByVal i) i < 5')
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of EqualsValueSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
 
 #End Region
 
