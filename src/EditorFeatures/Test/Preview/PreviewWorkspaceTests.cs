@@ -236,17 +236,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
                 {
                     var foregroundService = workspace.GetService<IForegroundNotificationService>();
 
-                    var waiter = new ErrorSquiggleWaiter();
-                    var listeners = AsynchronousOperationListener.CreateListeners(FeatureAttribute.ErrorSquiggles, waiter);
+                    var listenerProvider = new AsynchronousOperationListenerProvider();
 
                     // set up tagger for both buffers
                     var leftBuffer = diffView.Viewer.LeftView.BufferGraph.GetTextBuffers(t => t.ContentType.IsOfType(ContentTypeNames.CSharpContentType)).First();
-                    var leftProvider = new DiagnosticsSquiggleTaggerProvider(diagnosticService, foregroundService, listeners);
+                    var leftProvider = new DiagnosticsSquiggleTaggerProvider(diagnosticService, foregroundService, listenerProvider);
                     var leftTagger = leftProvider.CreateTagger<IErrorTag>(leftBuffer);
                     using (var leftDisposable = leftTagger as IDisposable)
                     {
                         var rightBuffer = diffView.Viewer.RightView.BufferGraph.GetTextBuffers(t => t.ContentType.IsOfType(ContentTypeNames.CSharpContentType)).First();
-                        var rightProvider = new DiagnosticsSquiggleTaggerProvider(diagnosticService, foregroundService, listeners);
+                        var rightProvider = new DiagnosticsSquiggleTaggerProvider(diagnosticService, foregroundService, listenerProvider);
                         var rightTagger = rightProvider.CreateTagger<IErrorTag>(rightBuffer);
                         using (var rightDisposable = rightTagger as IDisposable)
                         {
@@ -259,7 +258,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
                             }
 
                             // wait taggers
-                            await waiter.CreateWaitTask();
+                            await listenerProvider.GetWaiter(FeatureAttribute.ErrorSquiggles).CreateWaitTask();
 
                             // check left buffer
                             var leftSnapshot = leftBuffer.CurrentSnapshot;
@@ -281,7 +280,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
         {
             // Verify that analyzer execution doesn't leak solution instances from the preview workspace.
 
-            var previewWorkspace = new PreviewWorkspace();            
+            var previewWorkspace = new PreviewWorkspace();
             Assert.NotNull(previewWorkspace.CurrentSolution);
             var project = previewWorkspace.CurrentSolution.AddProject("project", "project.dll", LanguageNames.CSharp);
             Assert.True(previewWorkspace.TryApplyChanges(project.Solution));
@@ -306,7 +305,5 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             var result = compilationWithAnalyzers.GetAnalysisResultAsync(CancellationToken.None).Result;
             Assert.Equal(1, result.CompilationDiagnostics.Count);
         }
-
-        private class ErrorSquiggleWaiter : AsynchronousOperationListener { }
     }
 }
