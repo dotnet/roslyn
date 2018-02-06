@@ -195,23 +195,71 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitLocalFunctionStatement(LocalFunctionStatementSyntax node)
         {
-            if (node.Body != null)
+            LocalFunctionSymbol match = FindLocalFunction(node, _enclosing);
+
+            bool oldSawYield = _sawYield;
+            _sawYield = false;
+
+            BlockSyntax blockBody = node.Body;
+            ArrowExpressionClauseSyntax arrowBody = node.ExpressionBody;
+            var body = (CSharpSyntaxNode)blockBody ?? arrowBody;
+
+            if (body != null)
             {
-                VisitLocalFunctionBody(node, node.Body);
+                VisitLocalFunctionBody(node, body, match);
+
+                if (_sawYield)
+                {
+                    _methodsWithYields.Add(body);
+                }
             }
-            if (node.ExpressionBody != null)
+
+            if (blockBody != null && arrowBody != null)
             {
-                VisitLocalFunctionBody(node, node.ExpressionBody);
+                // There is an extraneous arrow body. We'll create binders for it too.
+                // We ignore whether this one has "yield".
+                VisitLocalFunctionBody(node, arrowBody, match);
+            }
+
+            _sawYield = oldSawYield;
+        }
+
+        private void VisitLocalFunctionBody(LocalFunctionStatementSyntax node, CSharpSyntaxNode body, LocalFunctionSymbol match)
+        {
+            Debug.Assert(body != null);
+
+            if (match != null)
+            {
+                var oldMethod = _containingMemberOrLambda;
+                _containingMemberOrLambda = match;
+
+                Binder binder = match.IsGenericMethod
+                    ? new WithMethodTypeParametersBinder(match, _enclosing)
+                    : _enclosing;
+
+                binder = binder.WithUnsafeRegionIfNecessary(node.Modifiers);
+
+                Visit(body, new InMethodBinder(match, binder));
+
+                _containingMemberOrLambda = oldMethod;
+            }
+            else
+            {
+                // The enclosing block should have found this node and created a LocalFunctionMethodSymbol
+                // The code that does so is in LocalScopeBinder.BuildLocalFunctions
+
+                // do our best to attempt to bind
+                Visit(body);
             }
         }
 
-        private void VisitLocalFunctionBody(LocalFunctionStatementSyntax node, CSharpSyntaxNode body)
+        private static LocalFunctionSymbol FindLocalFunction(LocalFunctionStatementSyntax node, Binder enclosing)
         {
             LocalFunctionSymbol match = null;
             // Don't use LookupLocalFunction because it recurses up the tree, as it
             // should be defined in the directly enclosing block (see note below)
 
-            Binder possibleScopeBinder = _enclosing;
+            Binder possibleScopeBinder = enclosing;
             while (possibleScopeBinder != null && !possibleScopeBinder.IsLocalFunctionsScopeBinder)
             {
                 possibleScopeBinder = possibleScopeBinder.Next;
@@ -228,44 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            bool oldSawYield = _sawYield;
-            _sawYield = false;
-
-            if (match != null)
-            {
-                var oldMethod = _containingMemberOrLambda;
-                _containingMemberOrLambda = match;
-
-                if (body != null)
-                {
-                    Binder binder = match.IsGenericMethod
-                        ? new WithMethodTypeParametersBinder(match, _enclosing)
-                        : _enclosing;
-
-                    binder = binder.WithUnsafeRegionIfNecessary(node.Modifiers);
-
-                    Visit(body, new InMethodBinder(match, binder));
-                }
-
-                _containingMemberOrLambda = oldMethod;
-            }
-            else
-            {
-                // The enclosing block should have found this node and created a LocalFunctionMethodSymbol
-                // The code that does so is in LocalScopeBinder.BuildLocalFunctions
-
-                if (body != null)
-                {
-                    // do our best to attempt to bind
-                    Visit(body);
-                }
-            }
-
-            if (_sawYield)
-            {
-                _methodsWithYields.Add(body);
-            }
-            _sawYield = oldSawYield;
+            return match;
         }
 
         public override void VisitArrowExpressionClause(ArrowExpressionClauseSyntax node)

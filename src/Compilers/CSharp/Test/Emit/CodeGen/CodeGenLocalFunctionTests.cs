@@ -84,7 +84,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        void Func() { } => new object();
+        void local() { } => new object();
     }
 }");
             var tree = comp.SyntaxTrees.Single();
