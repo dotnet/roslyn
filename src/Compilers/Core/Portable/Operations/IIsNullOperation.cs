@@ -6,7 +6,7 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents result of checking whether the <see cref="Operand"/> is null. 
     /// For reference types this checks if the <see cref="Operand"/> is a null reference, 
     /// for nullable types this checks if the <see cref="Operand"/> doesn’t have a value.
-    /// The node is only produced as part of a flow graph during rewrite of <see cref="ICoalesceOperation"/> and 
+    /// The node is produced as part of a flow graph during rewrite of <see cref="ICoalesceOperation"/> and 
     /// <see cref="IConditionalAccessOperation"/> nodes.
     /// </summary>
     public interface IIsNullOperation : IOperation

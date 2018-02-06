@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// PROTOTYPE(dataflow): Add documentation. Also, we should guard this API with a feature flag before we merge it to master.
         /// </summary>
-        public static ImmutableArray<Operations.BasicBlock> GetControlFlowGraph(Operations.IBlockOperation body)
+        public static Operations.ControlFlowGraph GetControlFlowGraph(Operations.IBlockOperation body)
         {
             if (body == null)
             {

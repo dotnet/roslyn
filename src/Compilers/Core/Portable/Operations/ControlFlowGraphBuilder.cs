@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private ControlFlowGraphBuilder()
         { }
 
-        public static ImmutableArray<BasicBlock> Create(IBlockOperation body)
+        public static ControlFlowGraph Create(IBlockOperation body)
         {
             var builder = new ControlFlowGraphBuilder();
             var blocks = ArrayBuilder<BasicBlock>.GetInstance();
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Operations
             Debug.Assert(builder._evalStack.Count == 0);
             builder._evalStack.Free();
 
-            return blocks.ToImmutableAndFree();
+            return new ControlFlowGraph(blocks.ToImmutableAndFree());
         }
 
         /// <summary>
