@@ -204,9 +204,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrowExpressionClauseSyntax arrowBody = node.ExpressionBody;
             var body = (CSharpSyntaxNode)blockBody ?? arrowBody;
 
+            InMethodBinder inMethodBinder = null;
             if (body != null)
             {
-                VisitLocalFunctionBody(node, body, match);
+                VisitLocalFunctionBody(node, body, match, ref inMethodBinder);
 
                 if (_sawYield)
                 {
@@ -216,15 +217,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (blockBody != null && arrowBody != null)
             {
-                // There is an extraneous arrow body. We'll create binders for it too.
+                // There is an extraneous arrow body. We'll create binders for it too, re-using the inMethodBinder.
                 // We ignore whether this one has "yield".
-                VisitLocalFunctionBody(node, arrowBody, match);
+                VisitLocalFunctionBody(node, arrowBody, match, ref inMethodBinder);
             }
 
             _sawYield = oldSawYield;
         }
 
-        private void VisitLocalFunctionBody(LocalFunctionStatementSyntax node, CSharpSyntaxNode body, LocalFunctionSymbol match)
+        private void VisitLocalFunctionBody(LocalFunctionStatementSyntax node, CSharpSyntaxNode body, LocalFunctionSymbol match, ref InMethodBinder inMethodBinder)
         {
             Debug.Assert(body != null);
 
@@ -233,13 +234,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var oldMethod = _containingMemberOrLambda;
                 _containingMemberOrLambda = match;
 
-                Binder binder = match.IsGenericMethod
-                    ? new WithMethodTypeParametersBinder(match, _enclosing)
-                    : _enclosing;
+                if (inMethodBinder is null)
+                {
+                    Binder binder = match.IsGenericMethod
+                        ? new WithMethodTypeParametersBinder(match, _enclosing)
+                        : _enclosing;
 
-                binder = binder.WithUnsafeRegionIfNecessary(node.Modifiers);
+                    binder = binder.WithUnsafeRegionIfNecessary(node.Modifiers);
+                    inMethodBinder = new InMethodBinder(match, binder);
+                }
 
-                Visit(body, new InMethodBinder(match, binder));
+                Visit(body, inMethodBinder);
 
                 _containingMemberOrLambda = oldMethod;
             }
