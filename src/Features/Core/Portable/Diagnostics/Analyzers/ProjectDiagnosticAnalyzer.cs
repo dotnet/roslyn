@@ -28,6 +28,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Priority is ascending order and this only works on HostDiagnosticAnalyzer meaning Vsix installed analyzers in VS.
         /// This is to support partner teams (such as typescript and F#) who want to order their analyzer's execution order.
         /// </summary>
-        public virtual int Priority { get; } = DefaultPriority;
+        public virtual int Priority => DefaultPriority;
     }
 }
