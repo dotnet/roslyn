@@ -1507,7 +1507,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 optimizations = OptimizationLevel.Release
             End If
 
-            Dim builder As ILBuilder = New ILBuilder(moduleBuilder, localSlotManager, optimizations)
+            Dim builder As ILBuilder = New ILBuilder(moduleBuilder, localSlotManager, optimizations, localsAreZeroed:=True)
 
             Try
                 Debug.Assert(Not diagnostics.HasAnyErrors)
@@ -1610,6 +1610,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                       builder.RealizedSequencePoints,
                                       debugDocumentProvider,
                                       builder.RealizedExceptionHandlers,
+                                      localsAreZeroed:=True,
                                       localScopes,
                                       hasDynamicLocalVariables:=False,
                                       importScopeOpt:=importScopeOpt,

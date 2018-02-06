@@ -166,6 +166,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private OverriddenOrHiddenMembersResult _lazyOverriddenOrHiddenMembers;
 
+        protected bool _localsAreZeroed;
+
         // some symbols may not have a syntax (e.g. lambdas, synthesized event accessors)
         protected readonly SyntaxReference syntaxReferenceOpt;
 
@@ -202,6 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(!locations.IsEmpty);
 
             _containingType = containingType;
+            _localsAreZeroed = true;
             this.syntaxReferenceOpt = syntaxReferenceOpt;
             this.bodySyntaxReferenceOpt = bodySyntaxReferenceOpt;
             this.locations = locations;
@@ -355,6 +358,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 return null;
+            }
+        }
+
+        public bool LocalsAreZeroed
+        {
+            get
+            {
+                return _localsAreZeroed;
             }
         }
 
@@ -1127,6 +1138,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     arguments.Diagnostics.Add(ErrorCode.ERR_SecurityCriticalOrSecuritySafeCriticalOnAsync, arguments.AttributeSyntaxOpt.Location, arguments.AttributeSyntaxOpt.GetErrorDisplayName());
                 }
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.SkipLocalsInitAttribute))
+            {
+                _localsAreZeroed &= false;
             }
             else
             {

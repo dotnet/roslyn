@@ -1346,7 +1346,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var localSlotManager = new LocalSlotManager(variableSlotAllocatorOpt);
             var optimizations = compilation.Options.OptimizationLevel;
 
-            ILBuilder builder = new ILBuilder(moduleBuilder, localSlotManager, optimizations);
+            ILBuilder builder = new ILBuilder(moduleBuilder, localSlotManager, optimizations, (method as SourceMemberMethodSymbol)?.LocalsAreZeroed ?? true);
             DiagnosticBag diagnosticsForThisMethod = DiagnosticBag.GetInstance();
             try
             {
@@ -1460,6 +1460,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     builder.RealizedSequencePoints,
                     debugDocumentProvider,
                     builder.RealizedExceptionHandlers,
+                    builder.LocalsAreZeroed,
                     builder.GetAllScopes(),
                     builder.HasDynamicLocal,
                     importScopeOpt,
