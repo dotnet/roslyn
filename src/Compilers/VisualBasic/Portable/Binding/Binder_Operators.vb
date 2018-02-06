@@ -1184,13 +1184,13 @@ Done:
                 Else
                     resultType = GetSpecialType(intrinsicOperatorType, node.Operand, diagnostics)
 
-                    If operandType.OriginalDefinition.SpecialType = SpecialType.System_Nullable_T Then
+                    If operandType.IsNullableType() Then
                         resultType = DirectCast(operandType.OriginalDefinition, NamedTypeSymbol).Construct(resultType)
                     End If
                 End If
             End If
 
-            Debug.Assert(((operatorKind And UnaryOperatorKind.Lifted) <> 0) = (resultType.OriginalDefinition.SpecialType = SpecialType.System_Nullable_T))
+            Debug.Assert(((operatorKind And UnaryOperatorKind.Lifted) <> 0) = resultType.IsNullableType())
 
             ' Option Strict disallows all unary operations on Object operands. Otherwise just warn.
             If operandType.SpecialType = SpecialType.System_Object Then

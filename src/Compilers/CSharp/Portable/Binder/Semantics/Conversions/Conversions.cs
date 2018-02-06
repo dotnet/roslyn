@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 hasErrors = true;
                             }
                         }
-                        else if (method.OriginalDefinition.ContainingType.SpecialType == SpecialType.System_Nullable_T && !method.IsOverride)
+                        else if (method.ContainingType.IsNullableType() && !method.IsOverride)
                         {
                             // CS1728: Cannot bind delegate to '{0}' because it is a member of 'System.Nullable<T>'
                             diagnostics.Add(
@@ -262,8 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return Conversion.NoConversion;
             }
 
-            if (method.OriginalDefinition.ContainingType.SpecialType == SpecialType.System_Nullable_T &&
-                !method.IsOverride)
+            if (method.ContainingType.IsNullableType() && !method.IsOverride)
             {
                 return Conversion.NoConversion;
             }
