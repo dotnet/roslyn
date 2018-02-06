@@ -3,6 +3,7 @@
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
@@ -35,7 +36,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
             _subjectBuffer = subjectBuffer;
             CurrentHandlers = commandHandlerServiceFactory.GetService(subjectBuffer);
-            NextCommandTarget = nextCommandTarget;
+            // Setup all command handlers migrated to the modern editor commandig to be execited next
+            var componentModel = Shell.ServiceProvider.GlobalProvider.GetService(typeof(SComponentModel)) as IComponentModel;
+            var vsCommandHandlerServiceAdapterFactory = componentModel?.GetService<IVsCommandHandlerServiceAdapterFactory>();
+            if (vsCommandHandlerServiceAdapterFactory != null)
+            {
+                var vsCommandHandlerServiceAdapter = vsCommandHandlerServiceAdapterFactory.Create(wpfTextView, _subjectBuffer, nextCommandTarget);
+                NextCommandTarget = vsCommandHandlerServiceAdapter;
+            }
+            else
+            {
+                NextCommandTarget = nextCommandTarget;
+            }
         }
 
         protected override ITextBuffer GetSubjectBufferContainingCaret()

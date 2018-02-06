@@ -1048,11 +1048,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (interfaceMethodIsAccessor && !implicitImplIsAccessor && !interfaceMethod.IsIndexedPropertyAccessor())
                 {
-                    diagnostics.Add(ErrorCode.ERR_MethodImplementingAccessor, implicitImpl.Locations[0], implicitImpl, interfaceMethod, implementingType);
+                    diagnostics.Add(ErrorCode.ERR_MethodImplementingAccessor, GetImplicitImplementationDiagnosticLocation(interfaceMember, implementingType, implicitImpl), implicitImpl, interfaceMethod, implementingType);
                 }
                 else if (!interfaceMethodIsAccessor && implicitImplIsAccessor)
                 {
-                    diagnostics.Add(ErrorCode.ERR_AccessorImplementingMethod, implicitImpl.Locations[0], implicitImpl, interfaceMethod, implementingType);
+                    diagnostics.Add(ErrorCode.ERR_AccessorImplementingMethod, GetImplicitImplementationDiagnosticLocation(interfaceMember, implementingType, implicitImpl), implicitImpl, interfaceMethod, implementingType);
                 }
                 else
                 {
@@ -1061,7 +1061,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     if (implicitImplMethod.IsConditional)
                     {
                         // CS0629: Conditional member '{0}' cannot implement interface member '{1}' in type '{2}'
-                        diagnostics.Add(ErrorCode.ERR_InterfaceImplementedByConditional, implicitImpl.Locations[0], implicitImpl, interfaceMethod, implementingType);
+                        diagnostics.Add(ErrorCode.ERR_InterfaceImplementedByConditional, GetImplicitImplementationDiagnosticLocation(interfaceMember, implementingType, implicitImpl), implicitImpl, interfaceMethod, implementingType);
                     }
                     else
                     {
@@ -1073,7 +1073,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (implicitImpl.ContainsTupleNames() && MemberSignatureComparer.ConsideringTupleNamesCreatesDifference(implicitImpl, interfaceMember))
             {
                 // it is ok to implement implicitly with no tuple names, for compatibility with C# 6, but otherwise names should match
-                diagnostics.Add(ErrorCode.ERR_ImplBadTupleNames, implicitImpl.Locations[0], implicitImpl, interfaceMember);
+                diagnostics.Add(ErrorCode.ERR_ImplBadTupleNames, GetImplicitImplementationDiagnosticLocation(interfaceMember, implementingType, implicitImpl), implicitImpl, interfaceMember);
             }
 
             // In constructed types, it is possible to see multiple members with the same (runtime) signature.
@@ -1090,7 +1090,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     else if (MemberSignatureComparer.RuntimeImplicitImplementationComparer.Equals(interfaceMember, member) && !member.IsAccessor())
                     {
                         // CONSIDER: Dev10 does not seem to report this for indexers or their accessors.
-                        diagnostics.Add(ErrorCode.WRN_MultipleRuntimeImplementationMatches, member.Locations[0], member, interfaceMember, implementingType);
+                        diagnostics.Add(ErrorCode.WRN_MultipleRuntimeImplementationMatches, GetImplicitImplementationDiagnosticLocation(interfaceMember, implementingType, member), member, interfaceMember, implementingType);
                     }
                 }
             }
@@ -1107,7 +1107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var @interface = interfaceMember.ContainingType;
                 SourceMemberContainerTypeSymbol snt = implementingType as SourceMemberContainerTypeSymbol;
-                interfaceLocation = snt.GetImplementsLocation(@interface) ?? implementingType.Locations[0];
+                interfaceLocation = snt?.GetImplementsLocation(@interface) ?? implementingType.Locations[0];
             }
             else
             {
@@ -1207,12 +1207,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         // A.M that it does not satisfy I.M even though A does not implement I. Furthermore if
                         // A is defined in metadata, there is no location for A.M. Instead, we simply report the
                         // error on B if the match to I.M is in a base class.)
-                        var location = (implicitImpl.ContainingType == implementingType) ?
-                            implicitImpl.Locations[0] :
-                            implementingType.Locations[0];
-                        diagnostics.Add(ErrorCode.ERR_ImplBadConstraints, location, typeParameter2.Name, implicitImpl, typeParameter1.Name, interfaceMethod);
+                        diagnostics.Add(ErrorCode.ERR_ImplBadConstraints, GetImplicitImplementationDiagnosticLocation(interfaceMethod, implementingType, implicitImpl), typeParameter2.Name, implicitImpl, typeParameter1.Name, interfaceMethod);
                     }
                 }
+            }
+        }
+
+        private static Location GetImplicitImplementationDiagnosticLocation(Symbol interfaceMember, TypeSymbol implementingType, Symbol member)
+        {
+            if (member.ContainingType == implementingType)
+            {
+                return member.Locations[0];
+            }
+            else
+            {
+                var @interface = interfaceMember.ContainingType;
+                SourceMemberContainerTypeSymbol snt = implementingType as SourceMemberContainerTypeSymbol;
+                return snt?.GetImplementsLocation(@interface) ?? implementingType.Locations[0];
             }
         }
 

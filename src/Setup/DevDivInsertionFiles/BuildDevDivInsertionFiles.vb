@@ -74,14 +74,14 @@ Public Class BuildDevDivInsertionFiles
         "Newtonsoft.Json.dll",
         "StreamJsonRpc.dll",
         "StreamJsonRpc.resources.dll",
-        "codeAnalysisService.servicehub.service.json",
-        "remoteHostService.servicehub.service.json",
-        "snapshotService.servicehub.service.json",
-        "remoteSymbolSearchUpdateEngine.servicehub.service.json",
-        "codeAnalysisService64.servicehub.service.json",
-        "remoteHostService64.servicehub.service.json",
-        "snapshotService64.servicehub.service.json",
-        "remoteSymbolSearchUpdateEngine64.servicehub.service.json",
+        "roslynCodeAnalysis.servicehub.service.json",
+        "roslynRemoteHost.servicehub.service.json",
+        "roslynSnapshot.servicehub.service.json",
+        "roslynRemoteSymbolSearchUpdateEngine.servicehub.service.json",
+        "roslynCodeAnalysis64.servicehub.service.json",
+        "roslynRemoteHost64.servicehub.service.json",
+        "roslynSnapshot64.servicehub.service.json",
+        "roslynRemoteSymbolSearchUpdateEngine64.servicehub.service.json",
         "Microsoft.Build.Conversion.Core.dll",
         "Microsoft.Build.dll",
         "Microsoft.Build.Engine.dll",
@@ -144,7 +144,6 @@ Public Class BuildDevDivInsertionFiles
         "Microsoft.VisualStudio.LanguageServices.dll",
         "Microsoft.VisualStudio.LanguageServices.Implementation.dll",
         "Microsoft.VisualStudio.LanguageServices.VisualBasic.dll",
-        "Microsoft.VisualStudio.Platform.VSEditor.Interop.dll",
         "Roslyn.Compilers.Test.Resources.dll",
         "Roslyn.Hosting.Diagnostics.dll",
         "Roslyn.Test.PdbUtilities.dll"
@@ -289,7 +288,6 @@ Public Class BuildDevDivInsertionFiles
         "Microsoft.VisualStudio.LanguageServices.Implementation.dll",
         "Microsoft.VisualStudio.LanguageServices.SolutionExplorer.dll",
         "Microsoft.VisualStudio.LanguageServices.VisualBasic.dll",
-        "Microsoft.VisualStudio.Platform.VSEditor.Interop.dll",
         "Moq.dll",
         "csc.exe",
         "csc.exe.config",
@@ -550,7 +548,7 @@ Public Class BuildDevDivInsertionFiles
                                                                 packageName,
                                                                 packageVersion,
                                                                 isNative:=native IsNot Nothing,
-                                                                isFacade:=frameworkAssemblies IsNot Nothing))
+                                                                isFacade:=frameworkAssemblies IsNot Nothing OrElse packageName = "System.IO.Pipes.AccessControl"))
                     End If
                 Next
             Next
@@ -838,7 +836,6 @@ Public Class BuildDevDivInsertionFiles
         add("UnitTests\CSharpCompilerEmitTest\Microsoft.DiaSymReader.dll")
         add("UnitTests\CSharpCompilerEmitTest\Microsoft.DiaSymReader.Native.amd64.dll")
         add("UnitTests\CSharpCompilerEmitTest\Microsoft.DiaSymReader.Native.x86.dll")
-        add("UnitTests\EditorServicesTest\Microsoft.VisualStudio.Platform.VSEditor.Interop.dll")
         add("Vsix\ExpressionEvaluatorPackage\Microsoft.VisualStudio.Debugger.Engine.dll")
         add("Vsix\VisualStudioIntegrationTestSetup\Microsoft.Diagnostics.Runtime.dll")
         add("Exes\Toolset\System.AppContext.dll")
@@ -852,6 +849,7 @@ Public Class BuildDevDivInsertionFiles
         add("Exes\Toolset\System.IO.FileSystem.DriveInfo.dll")
         add("Exes\Toolset\System.IO.FileSystem.Primitives.dll")
         add("Exes\Toolset\System.IO.Pipes.dll")
+        add("Exes\Toolset\System.IO.Pipes.AccessControl.dll")
         add("Exes\Toolset\System.Reflection.Metadata.dll")
         add("Exes\Toolset\System.Security.AccessControl.dll")
         add("Exes\Toolset\System.Security.Claims.dll")

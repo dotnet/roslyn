@@ -213,12 +213,7 @@
       Condition="Exists('$(NuGetPackageRoot)\Microsoft.VSSDK.BuildTools\$(VisualStudioBuildToolsVersion)\build\Microsoft.VsSDK.BuildTools.props')" />
   </ImportGroup>
 
-  <!-- 
-    Temporarirly disable Toolset builds on Unix 
-
-    https://github.com/dotnet/roslyn/issues/21725
-   -->
-  <Import Project="$(ToolsetCompilerPropsFilePath)" Condition="Exists('$(ToolsetCompilerPropsFilePath)') AND '$(BootstrapBuildPath)' == '' AND '$(OS)' == 'Windows_NT'" />
+  <Import Project="$(ToolsetCompilerPropsFilePath)" Condition="Exists('$(ToolsetCompilerPropsFilePath)') AND '$(BootstrapBuildPath)' == ''"  />
 
   <!--
       When building WPF projects MSBuild will create a temporary project with an extension of

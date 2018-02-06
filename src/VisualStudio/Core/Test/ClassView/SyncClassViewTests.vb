@@ -1,10 +1,9 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Threading.Tasks
-Imports Microsoft.CodeAnalysis.Editor.Commands
-Imports Microsoft.CodeAnalysis.Editor.Host
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.Utilities.VsNavInfo
+Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
@@ -870,11 +869,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
 
                 Dim navigationTool = New MockNavigationTool(canonicalNodes:=Nothing, presentationNodes:=presentationNodes)
                 Dim serviceProvider = New MockServiceProvider(navigationTool)
-                Dim commandHandler = New MockSyncClassViewCommandHandler(serviceProvider, workspace.GetService(Of IWaitIndicator))
+                Dim commandHandler = New MockSyncClassViewCommandHandler(serviceProvider)
 
                 commandHandler.ExecuteCommand(
-                    args:=New SyncClassViewCommandArgs(textView, subjectBuffer),
-                    nextHandler:=Sub() Exit Sub)
+                    args:=New SyncClassViewCommandArgs(textView, subjectBuffer), TestCommandExecutionContext.Create())
 
                 navigationTool.VerifyNavInfo()
             End Using

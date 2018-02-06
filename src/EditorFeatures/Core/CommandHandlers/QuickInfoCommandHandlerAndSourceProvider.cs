@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
-using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
@@ -14,9 +13,11 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor.Commanding;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Utilities;
 
-#pragma warning disable CS0618 // IQuickInfo* is obsolete
+#pragma warning disable CS0618 // IQuickInfo* is obsolete, tracked by https://github.com/dotnet/roslyn/issues/24094
 namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 {
     [Export]
@@ -28,17 +29,17 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         ForegroundThreadAffinitizedObject,
         IQuickInfoSourceProvider
     {
-        private readonly IAsynchronousOperationListener _listener;
         private readonly IIntelliSensePresenter<IQuickInfoPresenterSession, IQuickInfoSession> _presenter;
+        private readonly IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> _asyncListeners;
         private readonly IList<Lazy<IQuickInfoProvider, OrderableLanguageMetadata>> _providers;
 
         [ImportingConstructor]
         public QuickInfoCommandHandlerAndSourceProvider(
-            [ImportMany] IEnumerable<Lazy<IIntelliSensePresenter<IQuickInfoPresenterSession, IQuickInfoSession>, OrderableMetadata>> presenters,
             [ImportMany] IEnumerable<Lazy<IQuickInfoProvider, OrderableLanguageMetadata>> providers,
-            IAsynchronousOperationListenerProvider listenerProvider)
+            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners,
+            [ImportMany] IEnumerable<Lazy<IIntelliSensePresenter<IQuickInfoPresenterSession, IQuickInfoSession>, OrderableMetadata>> presenters)
             : this(ExtensionOrderer.Order(presenters).Select(lazy => lazy.Value).FirstOrDefault(),
-                   providers, listenerProvider)
+                   providers, asyncListeners)
         {
         }
 
@@ -46,14 +47,14 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         public QuickInfoCommandHandlerAndSourceProvider(
             IIntelliSensePresenter<IQuickInfoPresenterSession, IQuickInfoSession> presenter,
             [ImportMany] IEnumerable<Lazy<IQuickInfoProvider, OrderableLanguageMetadata>> providers,
-            IAsynchronousOperationListenerProvider listenerProvider)
+            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
         {
             _providers = ExtensionOrderer.Order(providers);
-            _listener = listenerProvider.GetListener(FeatureAttribute.QuickInfo);
+            _asyncListeners = asyncListeners;
             _presenter = presenter;
         }
 
-        private bool TryGetController(CommandArgs args, out Controller controller)
+        private bool TryGetController(EditorCommandArgs args, out Controller controller)
         {
             AssertIsForeground();
 
@@ -74,7 +75,10 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 
             // TODO(cyrusn): If there are no presenters then we should not create a controller.
             // Otherwise we'll be affecting the user's typing and they'll have no idea why :)
-            controller = Controller.GetInstance(args, _presenter, _listener, _providers);
+            controller = Controller.GetInstance(
+                args, _presenter,
+                new AggregateAsynchronousOperationListener(_asyncListeners, FeatureAttribute.QuickInfo),
+                _providers);
             return true;
         }
 
@@ -94,4 +98,4 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         }
     }
 }
-#pragma warning restore CS0618 // IQuickInfo* is obsolete
+#pragma warning restore CS0618 // IQuickInfo* is obsolete, tracked by https://github.com/dotnet/roslyn/issues/24094

@@ -57,6 +57,7 @@
     <NuGetPackageToIncludeInVsix Include="System.IO.FileSystem.DriveInfo" />
     <NuGetPackageToIncludeInVsix Include="System.IO.FileSystem.Primitives" />
     <NuGetPackageToIncludeInVsix Include="System.IO.Pipes" />
+    <NuGetPackageToIncludeInVsix Include="System.IO.Pipes.AccessControl" />
     <NuGetPackageToIncludeInVsix Include="System.Linq.Expressions" />
     <NuGetPackageToIncludeInVsix Include="System.Linq.Parallel" />
     <NuGetPackageToIncludeInVsix Include="System.ObjectModel" />
