@@ -778,6 +778,17 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogCommonPropertiesAndNewLine(operation);
         }
 
+        public override void VisitFlowCapture(IFlowCaptureOperation operation)
+        {
+            LogString(nameof(IFlowCaptureOperation));
+            LogString($": {operation.Id}");
+            if (operation.IsInitialization)
+            {
+                LogString($" (IsInitialization: {operation.IsInitialization})");
+            }
+            LogCommonPropertiesAndNewLine(operation);
+        }
+
         public override void VisitParameterReference(IParameterReferenceOperation operation)
         {
             LogString(nameof(IParameterReferenceOperation));
