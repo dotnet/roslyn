@@ -17654,6 +17654,28 @@ class Program
         }
 
         [Fact]
+        public void ExplicitTypeArguments()
+        {
+            var source =
+@"interface I<T> { }
+class C
+{
+    C P => throw new System.Exception();
+    I<T> F<T>(T t)
+    {
+        throw new System.Exception();
+    }
+    static void M(C c)
+    {
+        c.P.F<object>(string.Empty);
+        (new[]{ c })[0].F<object>(string.Empty);
+    }
+}";
+            var comp = CreateCompilationWithMscorlibAndSystemCore(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void MultipleConversions_01()
         {
             var source =

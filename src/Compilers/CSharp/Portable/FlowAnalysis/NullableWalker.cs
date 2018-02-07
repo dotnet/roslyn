@@ -1583,7 +1583,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var arguments = RemoveArgumentConversions(node.Arguments, refKindsOpt, out conversions);
                 ImmutableArray<Result> results = VisitArgumentsEvaluate(arguments, refKindsOpt, node.Expanded);
                 ImmutableArray<BoundExpression> updatedArguments = CreatePlaceholderExpressionsIfNecessary(arguments, results);
-                if (method.IsGenericMethod && !HasExplicitTypeArguments(node))
+                if (method.IsGenericMethod && HasImplicitTypeArguments(node))
                 {
                     method = InferMethod(node, method, updatedArguments);
                 }
@@ -1602,19 +1602,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private static bool HasExplicitTypeArguments(BoundCall node)
+        private static bool HasImplicitTypeArguments(BoundCall node)
         {
             var syntax = node.Syntax;
             if (syntax.Kind() != SyntaxKind.InvocationExpression)
             {
+                // Unexpected syntax kind.
                 return false;
             }
-            syntax = ((InvocationExpressionSyntax)syntax).Expression;
-            if (syntax.Kind() == SyntaxKind.QualifiedName)
+            var nameSyntax = Binder.GetNameSyntax(((InvocationExpressionSyntax)syntax).Expression, out var _);
+            if (nameSyntax  == null)
             {
-                syntax = ((QualifiedNameSyntax)syntax).Right;
+                // Unexpected syntax kind.
+                return false;
             }
-            return syntax.Kind() == SyntaxKind.GenericName;
+            nameSyntax = nameSyntax.GetUnqualifiedName();
+            return nameSyntax.Kind() != SyntaxKind.GenericName;
         }
 
         protected override void VisitArguments(ImmutableArray<BoundExpression> arguments, ImmutableArray<RefKind> refKindsOpt, MethodSymbol method)
