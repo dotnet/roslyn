@@ -951,8 +951,7 @@ namespace Microsoft.CodeAnalysis.Operations
                     // We can't use the IdentifierToken as the syntax for the local reference, so we use the entire declarator as the node
                     var localRef = new LocalReferenceExpression(localSymbol, isDeclaration: true, semanticModel: null, declarator.Syntax, localSymbol.Type, constantValue: default, isImplicit: true);
 
-                    // prototype(dataflow): determine if this is a ref assignment
-                    var statement = new ExpressionStatement(new SimpleAssignmentExpression(localRef, isRef: false, initializer, semanticModel: null, assignmentSyntax, localRef.Type, constantValue: default, isImplicit: true),
+                    var statement = new ExpressionStatement(new SimpleAssignmentExpression(localRef, isRef: localSymbol.IsRef, initializer, semanticModel: null, assignmentSyntax, localRef.Type, constantValue: default, isImplicit: true),
                                                             semanticModel: null, assignmentSyntax, type: null, constantValue: default, isImplicit: true);
                     AddStatement(statement);
                 }

@@ -2656,6 +2656,210 @@ Block[2] - Exit
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void VariableDeclaration_08()
+        {
+            string source = @"
+class C
+{
+    void M()
+    /*<bind>*/{
+#pragma warning disable CS0219 // Variable is assigned but its value is never used
+        int a = 1;
+        ref int b = ref a;
+    }/*</bind>*/
+}
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            string expectedFlowGraph = @"
+Block[0] - Entry
+    Statements (0)
+    Next Block[1]
+Block[1] - Block
+    Predecessors (1)
+        [0]
+    Statements (2)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'a = 1')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'a = 1')
+              Left: 
+                ILocalReferenceOperation: a (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'a = 1')
+              Right: 
+                IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 1')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'b = ref a')
+          Expression: 
+            ISimpleAssignmentOperation (IsRef) (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'b = ref a')
+              Left: 
+                ILocalReferenceOperation: b (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'b = ref a')
+              Right: 
+                IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= ref a')
+                  ILocalReferenceOperation: a (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'a')
+
+    Next Block[2]
+Block[2] - Exit
+    Predecessors (1)
+        [1]
+    Statements (0)
+";
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void VariableDeclaration_09()
+        {
+            string source = @"
+class C
+{
+    int _c = 1;
+    void M()
+    /*<bind>*/{
+#pragma warning disable CS0219 // Variable is assigned but its value is never used
+        ref int b = ref _c;
+    }/*</bind>*/
+}
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            string expectedFlowGraph = @"
+Block[0] - Entry
+    Statements (0)
+    Next Block[1]
+Block[1] - Block
+    Predecessors (1)
+        [0]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'b = ref _c')
+          Expression: 
+            ISimpleAssignmentOperation (IsRef) (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'b = ref _c')
+              Left: 
+                ILocalReferenceOperation: b (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'b = ref _c')
+              Right: 
+                IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= ref _c')
+                  IFieldReferenceOperation: System.Int32 C._c (OperationKind.FieldReference, Type: System.Int32) (Syntax: '_c')
+                    Instance Receiver: 
+                      IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: '_c')
+
+    Next Block[2]
+Block[2] - Exit
+    Predecessors (1)
+        [1]
+    Statements (0)
+";
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void VariableDeclaration_10()
+        {
+            string source = @"
+class C
+{
+    void M()
+    /*<bind>*/{
+#pragma warning disable CS0219 // Variable is assigned but its value is never used
+        ref int b = 1;
+    }/*</bind>*/
+}
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS8172: Cannot initialize a by-reference variable with a value
+                //         ref int b = 1;
+                Diagnostic(ErrorCode.ERR_InitializeByReferenceVariableWithValue, "b = 1").WithLocation(7, 17),
+                // CS1510: A ref or out value must be an assignable variable
+                //         ref int b = 1;
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "1").WithLocation(7, 21)
+            };
+
+            string expectedFlowGraph = @"
+Block[0] - Entry
+    Statements (0)
+    Next Block[1]
+Block[1] - Block
+    Predecessors (1)
+        [0]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid, IsImplicit) (Syntax: 'b = 1')
+          Expression: 
+            ISimpleAssignmentOperation (IsRef) (OperationKind.SimpleAssignment, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'b = 1')
+              Left: 
+                ILocalReferenceOperation: b (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'b = 1')
+              Right: 
+                IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= 1')
+                  IInvalidOperation (OperationKind.Invalid, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: '1')
+                    Children(1):
+                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+
+    Next Block[2]
+Block[2] - Exit
+    Predecessors (1)
+        [1]
+    Statements (0)
+";
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void VariableDeclaration_11()
+        {
+            string source = @"
+class C
+{
+    void M()
+    /*<bind>*/{
+#pragma warning disable CS0219 // Variable is assigned but its value is never used
+        int a = 1;
+        ref int b = a;
+    }/*</bind>*/
+}
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS8172: Cannot initialize a by-reference variable with a value
+                //         ref int b = a;
+                Diagnostic(ErrorCode.ERR_InitializeByReferenceVariableWithValue, "b = a").WithLocation(8, 17)
+            };
+
+            string expectedFlowGraph = @"
+Block[0] - Entry
+    Statements (0)
+    Next Block[1]
+Block[1] - Block
+    Predecessors (1)
+        [0]
+    Statements (2)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'a = 1')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'a = 1')
+              Left: 
+                ILocalReferenceOperation: a (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'a = 1')
+              Right: 
+                IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 1')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid, IsImplicit) (Syntax: 'b = a')
+          Expression: 
+            ISimpleAssignmentOperation (IsRef) (OperationKind.SimpleAssignment, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'b = a')
+              Left: 
+                ILocalReferenceOperation: b (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'b = a')
+              Right: 
+                IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= a')
+                  ILocalReferenceOperation: a (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'a')
+
+    Next Block[2]
+Block[2] - Exit
+    Predecessors (1)
+        [1]
+    Statements (0)
+";
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
+
         // prototype(dataflow): test using/for/fixed constructs after support has been added.
 
         #endregion
