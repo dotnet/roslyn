@@ -17726,6 +17726,41 @@ class C
         }
 
         [Fact]
+        public void MultipleConversions_03()
+        {
+            var source =
+@"struct S<T>
+{
+    public static implicit operator S<T>(T t) => default;
+    static void M()
+    {
+        S<object> s = true; // (ImplicitUserDefined)(Boxing)
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void MultipleConversions_04()
+        {
+            var source =
+@"struct S<T>
+{
+    public static implicit operator T(S<T> s) => throw new System.Exception();
+    static void M()
+    {
+        bool b = new S<object>(); // (Unboxing)(ExplicitUserDefined)
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (6,18): error CS0266: Cannot implicitly convert type 'S<object>' to 'bool'. An explicit conversion exists (are you missing a cast?)
+                //         bool b = new S<object>(); // (Unboxing)(ExplicitUserDefined)
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "new S<object>()").WithArguments("S<object>", "bool").WithLocation(6, 18));
+        }
+
+        [Fact]
         public void MultipleTupleConversions_01()
         {
             var source =

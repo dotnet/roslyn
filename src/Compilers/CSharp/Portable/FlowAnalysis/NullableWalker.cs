@@ -689,29 +689,31 @@ namespace Microsoft.CodeAnalysis.CSharp
             var result = VisitRvalue(expr);
 
             //if (this.State.Reachable) // PROTOTYPE(NullableReferenceTypes): Consider reachability?
-            if (expr.Type?.IsErrorType() != true)
+            if (expr.Type?.IsErrorType() == true)
             {
-                TypeSymbolWithAnnotations returnType = GetReturnType(this._currentMethodOrLambda);
-                var unconvertedType = result.Type;
-                result = ApplyConversion(expr, conversion, returnType.TypeSymbol, result, checkConversion: true, requireIdentity: false, canConvert: out bool canConvert);
+                return null;
+            }
 
-                if ((object)returnType != null && !ConversionsBase.HasTopLevelNullabilityImplicitConversion(result.Type, returnType))
+            TypeSymbolWithAnnotations returnType = GetReturnType(compilation, _currentMethodOrLambda);
+            var unconvertedType = result.Type;
+            result = ApplyConversion(expr, conversion, returnType.TypeSymbol, result, checkConversion: true, requireIdentity: false, canConvert: out bool canConvert);
+
+            if ((object)returnType != null && !ConversionsBase.HasTopLevelNullabilityImplicitConversion(result.Type, returnType))
+            {
+                if (!CheckNullAsNonNullableReference(expr))
                 {
-                    if (!CheckNullAsNonNullableReference(expr))
-                    {
-                        ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullReferenceReturn, expr.Syntax);
-                    }
+                    ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullReferenceReturn, expr.Syntax);
                 }
-                else if (!canConvert)
-                {
-                    ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullabilityMismatchInAssignment, expr.Syntax, unconvertedType.TypeSymbol, returnType.TypeSymbol);
-                }
+            }
+            else if (!canConvert)
+            {
+                ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullabilityMismatchInAssignment, expr.Syntax, unconvertedType.TypeSymbol, returnType.TypeSymbol);
             }
 
             return null;
         }
 
-        private TypeSymbolWithAnnotations GetReturnType(MethodSymbol method)
+        private static TypeSymbolWithAnnotations GetReturnType(CSharpCompilation compilation, MethodSymbol method)
         {
             var returnType = method.ReturnType;
             return method.IsGenericTaskReturningAsync(compilation) ?
@@ -1885,60 +1887,67 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static BoundExpression RemoveImplicitConversion(BoundExpression expr, out Conversion conversion)
         {
-            bool canRemove(BoundConversion conv)
+            BoundConversion asImplicitConversion(BoundExpression e)
             {
-                if (conv.ExplicitCastInCode)
+                if (e.Kind == BoundKind.Conversion)
                 {
-                    return false;
+                    var c = (BoundConversion)e;
+                    if (!c.ExplicitCastInCode)
+                    {
+                        return c;
+                    }
                 }
-                switch (conv.Conversion.Kind)
-                {
-                    case ConversionKind.Identity:
-                    case ConversionKind.DefaultOrNullLiteral:
-                    case ConversionKind.ImplicitReference:
-                    case ConversionKind.ImplicitTuple:
-                    case ConversionKind.ImplicitTupleLiteral:
-                    case ConversionKind.ImplicitUserDefined:
-                    case ConversionKind.MethodGroup:
-                        return true;
-                    default:
-                        return false;
-                }
-            }
-
-            Conversion mergeConversions(Conversion previous, Conversion next)
-            {
-                switch (previous.Kind)
-                {
-                    case ConversionKind.Identity:
-                        return next;
-                    case ConversionKind.ImplicitUserDefined:
-                        Debug.Assert(previous.UserDefinedFromConversion == next);
-                        return previous;
-                }
-                switch (next.Kind)
-                {
-                    case ConversionKind.Identity:
-                        return previous;
-                    case ConversionKind.ImplicitUserDefined:
-                        Debug.Assert(next.UserDefinedToConversion == previous);
-                        return next;
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(next.Kind);
-                }
+                return null;
             }
 
             conversion = Conversion.Identity;
-            while (expr.Kind == BoundKind.Conversion)
+
+            var conv = asImplicitConversion(expr);
+            if (conv == null)
             {
-                var conv = (BoundConversion)expr;
-                if (!canRemove(conv))
+                return expr;
+            }
+
+            switch (conv.Conversion.Kind)
+            {
+                case ConversionKind.Identity:
+                case ConversionKind.DefaultOrNullLiteral:
+                case ConversionKind.ImplicitReference:
+                case ConversionKind.ImplicitTuple:
+                case ConversionKind.ImplicitTupleLiteral:
+                case ConversionKind.ImplicitUserDefined:
+                case ConversionKind.MethodGroup:
+                    break;
+                default:
+                    return expr;
+            }
+
+            conversion = conv.Conversion;
+            expr = conv.Operand;
+
+            while (true)
+            {
+                conv = asImplicitConversion(expr);
+                if (conv == null)
                 {
+                    Debug.Assert(conversion.Kind != ConversionKind.ImplicitUserDefined || conversion.UserDefinedFromConversion.Kind == ConversionKind.Identity);
+                    return expr;
+                }
+
+                var next = conv.Conversion;
+                expr = conv.Operand;
+
+                if (conversion.Kind == ConversionKind.ImplicitUserDefined)
+                {
+                    Debug.Assert(conversion.UserDefinedFromConversion == next);
                     break;
                 }
-                expr = conv.Operand;
-                conversion = mergeConversions(conversion, conv.Conversion);
+
+                Debug.Assert(next.Kind == ConversionKind.ImplicitUserDefined);
+                Debug.Assert(next.UserDefinedToConversion == conversion);
+                conversion = next;
             }
+
             return expr;
         }
 
