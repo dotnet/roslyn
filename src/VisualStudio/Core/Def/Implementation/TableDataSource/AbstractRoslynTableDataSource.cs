@@ -55,17 +55,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             SolutionCrawlerProgressChanged(reporter.InProgress);
         }
 
-        private void OnSolutionCrawlerProgressChanged(object sender, bool started)
+        private void OnSolutionCrawlerProgressChanged(object sender, bool running)
         {
-            SolutionCrawlerProgressChanged(started);
+            SolutionCrawlerProgressChanged(running);
         }
 
-        private void SolutionCrawlerProgressChanged(bool started)
+        private void SolutionCrawlerProgressChanged(bool running)
         {
-            IsStable = !started;
+            IsStable = !running;
             ChangeStableState(IsStable);
 
-            _reporterOpt?.Started(started);
+            _reporterOpt?.Started(running);
         }
     }
 }

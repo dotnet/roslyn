@@ -97,15 +97,15 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
             private Task RaiseStarted()
             {
-                return RaiseEvent(nameof(ProgressChanged), started: true);
+                return RaiseEvent(nameof(ProgressChanged), running: true);
             }
 
             private Task RaiseStopped()
             {
-                return RaiseEvent(nameof(ProgressChanged), started: false);
+                return RaiseEvent(nameof(ProgressChanged), running: false);
             }
 
-            private Task RaiseEvent(string eventName, bool started)
+            private Task RaiseEvent(string eventName, bool running)
             {
                 // this method name doesn't have Async since it should work as async void.
                 var ev = _eventMap.GetEventHandlers<EventHandler<bool>>(eventName);
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 {
                     return _eventQueue.ScheduleTask(() =>
                     {
-                        ev.RaiseEvent(handler => handler(this, started));
+                        ev.RaiseEvent(handler => handler(this, running));
                     });
                 }
 

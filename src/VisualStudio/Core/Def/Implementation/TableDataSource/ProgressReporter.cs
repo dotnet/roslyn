@@ -35,9 +35,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             };
         }
 
-        public void Started(bool started)
+        public void Started(bool running)
         {
-            if (started)
+            if (running)
             {
                 // if there is any pending one. make sure it is finished.
                 _currentTask?.TrySetResult(true);

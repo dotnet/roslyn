@@ -1503,9 +1503,9 @@ Eu concordo com todo o conteúdo supracitado:</target>
         <target state="new">Analyzing '{0}'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Analyzing_errors">
-        <source>Analyzing errors</source>
-        <target state="new">Analyzing errors</target>
+      <trans-unit id="Live_code_analysis">
+        <source>Live code analysis</source>
+        <target state="new">Live code analysis</target>
         <note />
       </trans-unit>
     </body>
