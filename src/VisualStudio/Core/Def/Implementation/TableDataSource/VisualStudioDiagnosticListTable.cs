@@ -80,7 +80,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             ITableManagerProvider provider) :
             base(serviceProvider, workspace, diagnosticService, provider)
         {
-            var taskStatusCenter = serviceProvider.GetService(typeof(SVsTaskStatusCenterService)) as IVsTaskStatusCenterService;
+            // serviceprovider can be null in unit test
+            var taskStatusCenter = serviceProvider?.GetService(typeof(SVsTaskStatusCenterService)) as IVsTaskStatusCenterService;
             if (taskStatusCenter != null)
             {
                 _reporter = new ProgressReporter(ServicesVSResources.Live_code_analysis, taskStatusCenter);
