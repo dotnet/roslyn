@@ -96,4 +96,4 @@ Example: `Func<int> f = default(TypedReference).GetHashCode; // new error CS0123
     ```
     This is changed in 15.6 to now produce an error that the variable is not definitely assigned.
 
-- VS 15.7 : https://github.com/dotnet/roslyn/issues/19792 C# compiler will now reject [IsReadOnly] symbols that should have an [InAttribute] modreq, but don't.
+- Visual Studio 2017 version 15.7: https://github.com/dotnet/roslyn/issues/19792 C# compiler will now reject [IsReadOnly] symbols that should have an [InAttribute] modreq, but don't.
