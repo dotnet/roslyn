@@ -8595,6 +8595,11 @@ Aby usunąć ostrzeżenie, możesz zamiast tego użyć opcji /reference (ustaw w
         <target state="new">ref conditional expression</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InterfaceImplementedImplicitlyByVariadic">
+        <source>'{0}' cannot implement interface member '{1}' in type '{2}' because it has an __arglist parameter. Use an explicit interface implementation.</source>
+        <target state="new">'{0}' cannot implement interface member '{1}' in type '{2}' because it has an __arglist parameter. Use an explicit interface implementation.</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

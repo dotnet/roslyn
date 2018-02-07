@@ -5579,6 +5579,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Variadic member &apos;{0}&apos; cannot implement interface member &apos;{1}&apos; in type &apos;{2}&apos;. Use an explicit interface implementation..
+        /// </summary>
+        internal static string ERR_InterfaceImplementedImplicitlyByVariadic {
+            get {
+                return ResourceManager.GetString("ERR_InterfaceImplementedImplicitlyByVariadic", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos;: interface members cannot have a definition.
         /// </summary>
         internal static string ERR_InterfaceMemberHasBody {
