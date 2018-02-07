@@ -441,7 +441,7 @@ namespace Microsoft.CodeAnalysis
 
                     throw new ArgumentException(Scripting.ScriptingResources.InvalidCharactersInAssemblyName, nameof(name));
 
-#elif WORKSPACE_DESKTOP
+#elif WORKSPACE_DESKTOP || EDITOR_FEATURES
 
                     throw new ArgumentException(Microsoft.CodeAnalysis.WorkspaceDesktopResources.Invalid_characters_in_assembly_name, nameof(name));
 
@@ -471,7 +471,7 @@ namespace Microsoft.CodeAnalysis
 
                     throw new ArgumentException(Microsoft.CodeAnalysis.Scripting.ScriptingResources.InvalidCharactersInAssemblyName, nameof(name));
 
-#elif WORKSPACE_DESKTOP
+#elif WORKSPACE_DESKTOP || EDITOR_FEATURES
 
                     throw new ArgumentException(Microsoft.CodeAnalysis.WorkspaceDesktopResources.Invalid_characters_in_assembly_name, nameof(name));
 
