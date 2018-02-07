@@ -60,6 +60,7 @@
     <Reference Include="UIAutomationTypes" />
     <PackageReference Include="EnvDTE" Version="$(EnvDTEVersion)" />
     <PackageReference Include="EnvDTE80" Version="$(EnvDTE80Version)" />
+    <PackageReference Include="Microsoft.Test.Apex.VisualStudio" Version="$(MicrosoftTestApexVersion)" />
     <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" />
     <PackageReference Include="xunit" Version="$(xunitVersion)" />
     <PackageReference Include="xunit.analyzers" Version="$(xunitanalyzersVersion)" />
