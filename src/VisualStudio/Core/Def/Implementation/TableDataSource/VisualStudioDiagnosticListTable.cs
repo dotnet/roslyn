@@ -1,20 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.Options;
-using Microsoft.Internal.VisualStudio.Shell;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.TableManager;
-using Roslyn.Utilities;
+using Microsoft.VisualStudio.TaskStatusCenter;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
@@ -28,8 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         private readonly IErrorList _errorList;
         private readonly LiveTableDataSource _liveTableSource;
         private readonly BuildTableDataSource _buildTableSource;
-
-        private const string TypeScriptLanguageName = "TypeScript";
+        private readonly ProgressReporter _reporter;
 
         [ImportingConstructor]
         public VisualStudioDiagnosticListTable(
@@ -86,7 +80,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             ITableManagerProvider provider) :
             base(serviceProvider, workspace, diagnosticService, provider)
         {
-            _liveTableSource = new LiveTableDataSource(serviceProvider, workspace, diagnosticService, IdentifierString);
+            var taskStatusCenter = serviceProvider.GetService(typeof(SVsTaskStatusCenterService)) as IVsTaskStatusCenterService;
+            if (taskStatusCenter != null)
+            {
+                _reporter = new ProgressReporter(ServicesVSResources.Analyzing_errors, taskStatusCenter);
+            }
+
+            _liveTableSource = new LiveTableDataSource(workspace, diagnosticService, IdentifierString, _reporter);
             _buildTableSource = new BuildTableDataSource(workspace, errorSource);
         }
 

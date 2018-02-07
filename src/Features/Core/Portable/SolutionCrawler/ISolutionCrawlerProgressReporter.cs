@@ -15,13 +15,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         bool InProgress { get; }
 
         /// <summary>
-        /// Raised when there is pending work in solution crawler.
+        /// Raised when solution crawler progress changed
         /// </summary>
-        event EventHandler Started;
-
-        /// <summary>
-        /// Raised when there is no more pending work in solution crawler.
-        /// </summary>
-        event EventHandler Stopped;
+        event EventHandler<bool> ProgressChanged;
     }
 }

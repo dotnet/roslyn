@@ -1015,4 +1015,10 @@ I agree to all of the foregoing:</value>
   <data name="Decompiler_Legal_Notice_Title" xml:space="preserve">
     <value>Decompiler Legal Notice</value>
   </data>
+  <data name="Analyzing_0" xml:space="preserve">
+    <value>Analyzing '{0}'</value>
+  </data>
+  <data name="Analyzing_errors" xml:space="preserve">
+    <value>Analyzing errors</value>
+  </data>
 </root>

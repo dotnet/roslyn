@@ -28,15 +28,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         {
             private readonly string _identifier;
             private readonly IDiagnosticService _diagnosticService;
-            private readonly IServiceProvider _serviceProvider;
             private readonly Workspace _workspace;
             private readonly OpenDocumentTracker<DiagnosticData> _tracker;
 
-            public LiveTableDataSource(IServiceProvider serviceProvider, Workspace workspace, IDiagnosticService diagnosticService, string identifier) :
-                base(workspace)
+            public LiveTableDataSource(Workspace workspace, IDiagnosticService diagnosticService, string identifier, ProgressReporter reporterOpt = null) :
+                base(workspace, reporterOpt)
             {
                 _workspace = workspace;
-                _serviceProvider = serviceProvider;
                 _identifier = identifier;
 
                 _tracker = new OpenDocumentTracker<DiagnosticData>(_workspace);
@@ -152,6 +150,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                         return;
                     }
 
+                    ChangeProgress(e);
+
                     if (e.Diagnostics.Length == 0)
                     {
                         OnDataRemoved(e);
@@ -166,6 +166,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     }
 
                     OnDataAddedOrChanged(e);
+                }
+            }
+
+            private void ChangeProgress(DiagnosticsUpdatedArgs e)
+            {
+                var solution = e.Solution;
+                if (solution == null)
+                {
+                    return;
+                }
+
+                var document = solution.GetDocument(e.DocumentId);
+                if (document != null)
+                {
+                    ChangeProgress(string.Format(ServicesVSResources.Analyzing_0, document.Name ?? document.FilePath ?? "..."));
+                    return;
+                }
+
+                var project = solution.GetProject(e.ProjectId);
+                if (project != null)
+                {
+                    ChangeProgress(string.Format(ServicesVSResources.Analyzing_0, project.Name ?? project.FilePath ?? "..."));
+                    return;
                 }
             }
 

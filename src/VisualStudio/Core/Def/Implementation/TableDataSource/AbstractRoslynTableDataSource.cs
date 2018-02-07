@@ -14,8 +14,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
     /// </summary>
     internal abstract class AbstractRoslynTableDataSource<TData> : AbstractTableDataSource<TData>
     {
-        public AbstractRoslynTableDataSource(Workspace workspace) : base(workspace)
+        private readonly ProgressReporter _reporterOpt;
+
+        public AbstractRoslynTableDataSource(Workspace workspace, ProgressReporter reporterOpt = null) : base(workspace)
         {
+            _reporterOpt = reporterOpt;
+
             ConnectToSolutionCrawlerService(workspace);
         }
 
@@ -30,6 +34,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             return solution.GetDocumentIdsWithFilePath(document.FilePath);
         }
 
+        protected void ChangeProgress(string message)
+        {
+            _reporterOpt?.ChangeProgress(message);
+        }
+
         private void ConnectToSolutionCrawlerService(Workspace workspace)
         {
             var crawlerService = workspace.Services.GetService<ISolutionCrawlerService>();
@@ -40,26 +49,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             }
 
             var reporter = crawlerService.GetProgressReporter(workspace);
+            reporter.ProgressChanged += OnSolutionCrawlerProgressChanged;
 
             // set initial value
-            IsStable = !reporter.InProgress;
-
-            ChangeStableState(stable: IsStable);
-
-            reporter.Started += OnSolutionCrawlerStarted;
-            reporter.Stopped += OnSolutionCrawlerStopped;
+            SolutionCrawlerProgressChanged(reporter.InProgress);
         }
 
-        private void OnSolutionCrawlerStarted(object sender, EventArgs e)
+        private void OnSolutionCrawlerProgressChanged(object sender, bool started)
         {
-            IsStable = false;
-            ChangeStableState(IsStable);
+            SolutionCrawlerProgressChanged(started);
         }
 
-        private void OnSolutionCrawlerStopped(object sender, EventArgs e)
+        private void SolutionCrawlerProgressChanged(bool started)
         {
-            IsStable = true;
+            IsStable = !started;
             ChangeStableState(IsStable);
+
+            _reporterOpt?.Started(started);
         }
     }
 }

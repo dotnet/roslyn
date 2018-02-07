@@ -263,6 +263,24 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Analyzing &apos;{0}&apos;.
+        /// </summary>
+        internal static string Analyzing_0 {
+            get {
+                return ResourceManager.GetString("Analyzing_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Analyzing errors.
+        /// </summary>
+        internal static string Analyzing_errors {
+            get {
+                return ResourceManager.GetString("Analyzing_errors", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Applying remove suppressions fix....
         /// </summary>
         internal static string Applying_remove_suppressions_fix {

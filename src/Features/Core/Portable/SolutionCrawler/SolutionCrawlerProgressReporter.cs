@@ -45,36 +45,34 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 }
             }
 
-            public event EventHandler Started
+            public event EventHandler<bool> ProgressChanged
             {
                 add
                 {
-                    _eventMap.AddEventHandler(nameof(Started), value);
+                    _eventMap.AddEventHandler(nameof(ProgressChanged), value);
                 }
 
                 remove
                 {
-                    _eventMap.RemoveEventHandler(nameof(Started), value);
+                    _eventMap.RemoveEventHandler(nameof(ProgressChanged), value);
                 }
             }
 
-            public event EventHandler Stopped
-            {
-                add
-                {
-                    _eventMap.AddEventHandler(nameof(Stopped), value);
-                }
-
-                remove
-                {
-                    _eventMap.RemoveEventHandler(nameof(Stopped), value);
-                }
-            }
+#if DEBUG
+            // while dogfooding, encountered a case where ref count not get to 0 once. but
+            // couldn't repro it again. adding this in case it happens again then I do have
+            // actionable data to find out what went wrong.
+            private string _lastCallStackDebug;
+#endif
 
             public Task Start()
             {
                 if (Interlocked.Increment(ref _count) == 1)
                 {
+#if DEBUG
+                    _lastCallStackDebug = Environment.StackTrace;
+#endif
+
                     var asyncToken = _listener.BeginAsyncOperation("ProgressReportStart");
                     return RaiseStarted().CompletesAsyncOperation(asyncToken);
                 }
@@ -86,6 +84,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             {
                 if (Interlocked.Decrement(ref _count) == 0)
                 {
+#if DEBUG
+                    _lastCallStackDebug = null;
+#endif
+
                     var asyncToken = _listener.BeginAsyncOperation("ProgressReportStop");
                     return RaiseStopped().CompletesAsyncOperation(asyncToken);
                 }
@@ -95,23 +97,23 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
             private Task RaiseStarted()
             {
-                return RaiseEvent(nameof(Started));
+                return RaiseEvent(nameof(ProgressChanged), started: true);
             }
 
             private Task RaiseStopped()
             {
-                return RaiseEvent(nameof(Stopped));
+                return RaiseEvent(nameof(ProgressChanged), started: false);
             }
 
-            private Task RaiseEvent(string eventName)
+            private Task RaiseEvent(string eventName, bool started)
             {
                 // this method name doesn't have Async since it should work as async void.
-                var ev = _eventMap.GetEventHandlers<EventHandler>(eventName);
+                var ev = _eventMap.GetEventHandlers<EventHandler<bool>>(eventName);
                 if (ev.HasHandlers)
                 {
                     return _eventQueue.ScheduleTask(() =>
                     {
-                        ev.RaiseEvent(handler => handler(this, EventArgs.Empty));
+                        ev.RaiseEvent(handler => handler(this, started));
                     });
                 }
 
@@ -128,13 +130,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
             public bool InProgress => false;
 
-            public event EventHandler Started
-            {
-                add { }
-                remove { }
-            }
-
-            public event EventHandler Stopped
+            public event EventHandler<bool> ProgressChanged
             {
                 add { }
                 remove { }
