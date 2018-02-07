@@ -27,10 +27,8 @@ args=
 
 while [[ $# > 0 ]]; do
     case $1 in
-        # FIXME: temp variable
-        --mono)
+        --docker)
             export BUILD_IN_DOCKER=1
-            args="$args --build-mono"
             ;;
         *)
             args="$args $1"
