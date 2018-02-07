@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using ICSharpCode.Decompiler;
@@ -116,6 +117,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
                     var useDecompiler = allowDecompilation;
                     if (useDecompiler)
                     {
+                        useDecompiler = !symbol.ContainingAssembly.GetAttributes().Any(attribute => attribute.AttributeClass.Name == nameof(SuppressIldasmAttribute));
+                    }
+
+                    if (useDecompiler)
+                    {
                         try
                         {
                             temporaryDocument = await DecompileSymbolAsync(temporaryDocument, symbol, cancellationToken).ConfigureAwait(false);
@@ -220,15 +226,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
             {
                 foreach (var assembly in parentCompilation.GetReferencedAssemblySymbols())
                 {
-                    if (assembly.Identity.Name == name.Name
-                        && assembly.Identity.Version == name.Version
-                        && assembly.Identity.PublicKeyToken.SequenceEqual(name.PublicKeyToken ?? Array.Empty<byte>()))
+                    if (assembly.Identity.Name != name.Name
+                        || !assembly.Identity.PublicKeyToken.SequenceEqual(name.PublicKeyToken ?? Array.Empty<byte>()))
                     {
-                        // reference assemblies should be fine here...
-                        var reference = parentCompilation.GetMetadataReference(assembly);
-                        return AssemblyDefinition.ReadAssembly(reference.Display);
+                        continue;
                     }
+
+                    if (assembly.Identity.Version != name.Version
+                        && !string.Equals("mscorlib", assembly.Identity.Name, StringComparison.OrdinalIgnoreCase))
+                    {
+                        // MSBuild treats mscorlib special for the purpose of assembly resolution/unification, where all
+                        // versions of the assembly are considered equal. The same policy is adopted here.
+                        continue;
+                    }
+
+                    // reference assemblies should be fine here...
+                    var reference = parentCompilation.GetMetadataReference(assembly);
+                    return AssemblyDefinition.ReadAssembly(reference.Display);
                 }
+
                 // not found
                 return null;
             }

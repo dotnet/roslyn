@@ -2751,7 +2751,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 operandType = GetSpecialType(SpecialType.System_Object, diagnostics, node);
             }
 
-            Conversion conversion = Conversions.ClassifyConversionFromType(operandType, targetType, ref useSiteDiagnostics);
+            Conversion conversion = Conversions.ClassifyBuiltInConversion(operandType, targetType, ref useSiteDiagnostics);
             diagnostics.Add(node, useSiteDiagnostics);
             ReportIsOperatorConstantWarnings(node, diagnostics, operandType, targetType, conversion.Kind, operand.ConstantValue);
             return new BoundIsOperator(node, operand, typeExpression, conversion, resultType);
@@ -3520,6 +3520,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     diagnostics.Add(ErrorCode.ERR_RefConditionalNeedsTwoRefs, whenTrue.GetFirstToken().GetLocation());
                 }
+            }
+            else
+            {
+                CheckFeatureAvailability(node, MessageID.IDS_FeatureRefConditional, diagnostics);
             }
 
             BoundExpression condition = BindBooleanExpression(node.Condition, diagnostics);

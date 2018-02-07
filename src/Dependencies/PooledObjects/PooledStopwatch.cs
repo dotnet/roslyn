@@ -14,12 +14,6 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         private PooledStopwatch(ObjectPool<PooledStopwatch> pool)
         {
             _pool = pool;
-            UpdateValueFactory = (_, accumulated) => accumulated + Elapsed;
-        }
-
-        public Func<object, TimeSpan, TimeSpan> UpdateValueFactory
-        {
-            get;
         }
 
         public void Free()

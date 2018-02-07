@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             return path;
         }
 
-        private string GetDirectory(Assembly assembly) => Path.GetDirectoryName(Utilities.GetLocation(assembly));
+        private string GetDirectory(Assembly assembly) => Path.GetDirectoryName(Utilities.TryGetAssemblyPath(assembly));
 
         internal static void AddFailedLoad(AssemblyName name)
         {

@@ -764,7 +764,7 @@ End Class
                         </Document>
                     </Project>
                 </Workspace>,
-                "(ExampleClass Events)",
+                $"(ExampleClass { FeaturesResources.Events })",
                 Function(items) items.First(Function(i) i.Text = "ExampleEvent"),
                 <Result>
 Public Class ExampleClass

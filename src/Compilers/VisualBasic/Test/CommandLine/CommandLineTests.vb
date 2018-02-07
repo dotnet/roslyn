@@ -2133,6 +2133,66 @@ End Module").Path
             parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/reference-:")) ' TODO: Dev11 reports ERR_ArgumentRequired
         End Sub
 
+        Private Class SimpleMetadataResolver
+            Inherits MetadataReferenceResolver
+
+            Private ReadOnly _pathResolver As RelativePathResolver
+
+            Public Sub New(baseDirectory As String)
+                _pathResolver = New RelativePathResolver(ImmutableArray(Of String).Empty, baseDirectory)
+            End Sub
+
+            Public Overrides Function ResolveReference(reference As String, baseFilePath As String, properties As MetadataReferenceProperties) As ImmutableArray(Of PortableExecutableReference)
+                Dim resolvedPath = _pathResolver.ResolvePath(reference, baseFilePath)
+
+                If resolvedPath Is Nothing OrElse Not File.Exists(reference) Then
+                    Return Nothing
+                End If
+
+                Return ImmutableArray.Create(MetadataReference.CreateFromFile(resolvedPath, properties))
+            End Function
+
+            Public Overrides Function Equals(other As Object) As Boolean
+                Return True
+            End Function
+
+            Public Overrides Function GetHashCode() As Integer
+                Return 1
+            End Function
+        End Class
+
+        <Fact>
+        Public Sub Reference_CorLibraryAddedWhenThereAreUnresolvedReferences()
+            Dim parsedArgs = DefaultParse({"/r:unresolved", "a.vb"}, _baseDirectory)
+
+            Dim metadataResolver = New SimpleMetadataResolver(_baseDirectory)
+            Dim references = parsedArgs.ResolveMetadataReferences(metadataResolver).ToImmutableArray()
+
+            Assert.Equal(4, references.Length)
+            Assert.Contains(references, Function(r) r.IsUnresolved)
+            Assert.Contains(references, Function(r)
+                                            Dim peRef = TryCast(r, PortableExecutableReference)
+                                            Return peRef IsNot Nothing AndAlso
+                                                   peRef.FilePath.EndsWith("mscorlib.dll", StringComparison.Ordinal)
+                                        End Function)
+        End Sub
+
+        <Fact>
+        Public Sub Reference_CorLibraryAddedWhenThereAreNoUnresolvedReferences()
+            Dim parsedArgs = DefaultParse({"a.vb"}, _baseDirectory)
+
+            Dim metadataResolver = New SimpleMetadataResolver(_baseDirectory)
+            Dim references = parsedArgs.ResolveMetadataReferences(metadataResolver).ToImmutableArray()
+
+            Assert.Equal(3, references.Length)
+            Assert.DoesNotContain(references, Function(r) r.IsUnresolved)
+            Assert.Contains(references, Function(r)
+                                            Dim peRef = TryCast(r, PortableExecutableReference)
+                                            Return peRef IsNot Nothing AndAlso
+                                                   peRef.FilePath.EndsWith("mscorlib.dll", StringComparison.Ordinal)
+                                        End Function)
+        End Sub
+
         <Fact>
         Public Sub ParseAnalyzers()
             Dim parsedArgs = DefaultParse({"/a:goo.dll", "a.vb"}, _baseDirectory)
