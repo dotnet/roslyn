@@ -1407,6 +1407,7 @@ class C1 : I1
 ";
             await TestInRegularAndScriptAsync(code, fix0);
         }
+
         [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
         public async Task TestInvocation_Cascading_PartialMethods()
@@ -1468,6 +1469,232 @@ namespace N1
     </Project>
 </Workspace>";
             await TestInRegularAndScriptAsync(code, fix0);
+        }
+
+
+        [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestInvocation_Cascading_BaseNotInSource()
+        {
+            // error CS1501: No overload for method 'M' takes 1 arguments
+            var code =
+@"
+<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"">
+        <MetadataReferenceFromSource Language=""C#"" CommonReferences=""true"">
+            <Document FilePath=""ReferencedDocument"">
+namespace N
+{
+    public class BaseClass
+    {
+        public virtual void M() { }
+    }
+}
+            </Document>
+        </MetadataReferenceFromSource>
+        <Document FilePath=""TestDocument"">
+namespace N
+{
+    public class Derived: BaseClass
+    {
+        public void M2()
+        {
+            [|M|](1);
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>";
+            await TestMissingAsync(code);
+        }
+
+        [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestInvocation_Cascading_RootNotInSource()
+        {
+            // error CS1501: No overload for method 'M' takes 1 arguments
+            var code =
+@"
+<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"">
+        <MetadataReferenceFromSource Language=""C#"" CommonReferences=""true"">
+            <Document FilePath=""ReferencedDocument"">
+namespace N
+{
+    public class BaseClass
+    {
+        public virtual void M() { }
+    }
+}
+            </Document>
+        </MetadataReferenceFromSource>
+        <Document FilePath=""TestDocument"">
+namespace N
+{
+    public class Derived: BaseClass
+    {
+        public override void M() { }
+    }
+    public class DerivedDerived: Derived
+    {
+        public void M2()
+        {
+            [|M|](1);
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>";
+            var fix =
+@"
+<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"">
+        <MetadataReferenceFromSource Language=""C#"" CommonReferences=""true"">
+            <Document FilePath=""ReferencedDocument"">
+namespace N
+{
+    public class BaseClass
+    {
+        public virtual void M() { }
+    }
+}
+            </Document>
+        </MetadataReferenceFromSource>
+        <Document FilePath=""TestDocument"">
+namespace N
+{
+    public class Derived: BaseClass
+    {
+        public override void M(int v) { }
+    }
+    public class DerivedDerived: Derived
+    {
+        public void M2()
+        {
+            M(1);
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>";
+            await TestInRegularAndScriptAsync(code, fix);
+        }
+
+        [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestInvocation_Cascading_ManyReferencesInManyProjects()
+        {
+            // error CS1501: No overload for method 'M' takes 1 arguments
+            var code =
+@"
+<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""A1"">
+        <Document FilePath=""ReferencedDocument"">
+namespace N
+{
+    public class BaseClass
+    {
+        public virtual void M() { }
+    }
+}
+        </Document>
+    </Project>
+    <Project Language=""C#"" CommonReferences=""true""  AssemblyName=""A2"">
+        <ProjectReference>A1</ProjectReference>
+        <Document>
+namespace N
+{
+    public class Derived1: BaseClass
+    {
+        public override void M() { }
+    }
+}
+        </Document>
+    </Project>
+    <Project Language=""C#"" CommonReferences=""true""  AssemblyName=""A3"">
+        <ProjectReference>A1</ProjectReference>
+        <Document>
+namespace N
+{
+    public class Derived2: BaseClass
+    {
+        public override void M() { }
+    }
+}
+        </Document>
+    </Project>
+    <Project Language=""C#"" CommonReferences=""true""  AssemblyName=""A4"">
+        <ProjectReference>A3</ProjectReference>
+        <Document>
+namespace N
+{
+    public class T
+    {
+        public void Test() { 
+            new Derived2().[|M|](1);
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>";
+            var fix =
+@"
+<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""A1"">
+        <Document FilePath=""ReferencedDocument"">
+namespace N
+{
+    public class BaseClass
+    {
+        public virtual void M(int v) { }
+    }
+}
+        </Document>
+    </Project>
+    <Project Language=""C#"" CommonReferences=""true""  AssemblyName=""A2"">
+        <ProjectReference>A1</ProjectReference>
+        <Document>
+namespace N
+{
+    public class Derived1: BaseClass
+    {
+        public override void M(int v) { }
+    }
+}
+        </Document>
+    </Project>
+    <Project Language=""C#"" CommonReferences=""true""  AssemblyName=""A3"">
+        <ProjectReference>A1</ProjectReference>
+        <Document>
+namespace N
+{
+    public class Derived2: BaseClass
+    {
+        public override void M(int v) { }
+    }
+}
+        </Document>
+    </Project>
+    <Project Language=""C#"" CommonReferences=""true""  AssemblyName=""A4"">
+        <ProjectReference>A3</ProjectReference>
+        <Document>
+namespace N
+{
+    public class T
+    {
+        public void Test() { 
+            new Derived2().M(1);
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>";
+            await TestInRegularAndScriptAsync(code, fix);
         }
     }
 }

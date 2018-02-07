@@ -215,26 +215,27 @@ namespace Microsoft.CodeAnalysis.AddParameter
             SeparatedSyntaxList<TArgumentSyntax> argumentList,
             CancellationToken cancellationToken)
         {
-            var newSolution = invocationDocument.Project.Solution;
-            var semanticModel = await invocationDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var invocationDocumentSyntaxFacts = invocationDocument.GetLanguageService<ISyntaxFactsService>();
-            var invocationDocumentSemanticFacts = invocationDocument.GetLanguageService<ISemanticFactsService>();
-            var argumentExpression = invocationDocumentSyntaxFacts.GetExpressionOfArgument(argument);
-            var argumentType = semanticModel.GetTypeInfo(argumentExpression).Type ?? semanticModel.Compilation.ObjectType;
+            var solution = invocationDocument.Project.Solution;
+            var argumentType = await GetArgumentTypeAsync(invocationDocument, argument, cancellationToken).ConfigureAwait(false);
+            // the argumentNameSuggestion is the base for the parameter name. For each method declaration the name is made unique to avoid name collisions.
             (var argumentNameSuggestion, var isNamedArgument) = await GetNameSuggestionForArgumentAsync(invocationDocument, argument, cancellationToken).ConfigureAwait(false);
-            var referencedSymbol = await FindMethodDeclarationReferences(invocationDocument, method, cancellationToken).ConfigureAwait(false);
-            var definitions = referencedSymbol.Select(reference => reference.Definition).OfType<IMethodSymbol>();
+            var referencedSymbols = await FindMethodDeclarationReferences(invocationDocument, method, cancellationToken).ConfigureAwait(false);
+            // get all definitions (virtual, override, interface definition and interface implementations)
+            var definitions = referencedSymbols.Select(reference => reference.Definition).OfType<IMethodSymbol>();
+            // group definitions defined in source by document
             var declarationLocations = definitions.SelectMany(definition
                 => definition.Locations.Select(location => new { Definition = definition, Location = location }));
             var locationsInSource = declarationLocations.Where(declarationLocation => declarationLocation.Location.IsInSource);
+            // TODO: Insert code comment with a warning if anySymbolsReferenceNotInSource is true
+            var anySymbolsReferenceNotInSource = declarationLocations.Any(declarationLocation => !declarationLocation.Location.IsInSource);
             var locationsByDocument = locationsInSource.ToLookup(declarationLocation
-                => invocationDocument.Project.Solution.GetDocument(declarationLocation.Location.SourceTree, invocationDocument.Project.Id));
+                => solution.GetDocument(declarationLocation.Location.SourceTree));
             foreach (var documentLookup in locationsByDocument)
             {
                 var document = documentLookup.Key;
                 var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
                 var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                var editor = new SyntaxEditor(syntaxRoot, document.Project.Solution.Workspace);
+                var editor = new SyntaxEditor(syntaxRoot, solution.Workspace);
                 var generator = editor.Generator;
                 var methodDeclarations = documentLookup.Select(declarationLocation => new
                 {
@@ -267,9 +268,19 @@ namespace Microsoft.CodeAnalysis.AddParameter
 
                 }
                 var newRoot = editor.GetChangedRoot();
-                newSolution = newSolution.WithDocumentSyntaxRoot(document.Id, newRoot);
+                solution = solution.WithDocumentSyntaxRoot(document.Id, newRoot);
             }
-            return newSolution;
+
+            return solution;
+        }
+
+        private static async Task<ITypeSymbol> GetArgumentTypeAsync(Document invocationDocument, TArgumentSyntax argument, CancellationToken cancellationToken)
+        {
+            var syntaxFacts = invocationDocument.GetLanguageService<ISyntaxFactsService>();
+            var semanticModel = await invocationDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var argumentExpression = syntaxFacts.GetExpressionOfArgument(argument);
+            var argumentType = semanticModel.GetTypeInfo(argumentExpression).Type ?? semanticModel.Compilation.ObjectType;
+            return argumentType;
         }
 
         private static async Task<ImmutableArray<ReferencedSymbol>> FindMethodDeclarationReferences(Document invocationDocument, IMethodSymbol method, CancellationToken cancellationToken)
@@ -288,6 +299,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
         private async Task<(string argumentNameSuggestion, bool isNamed)> GetNameSuggestionForArgumentAsync(Document invocationDocument, TArgumentSyntax argument, CancellationToken cancellationToken)
         {
             var syntaxFacts = invocationDocument.GetLanguageService<ISyntaxFactsService>();
+
             var argumentName = syntaxFacts.GetNameForArgument(argument);
             if (!string.IsNullOrWhiteSpace(argumentName))
             {
@@ -295,9 +307,9 @@ namespace Microsoft.CodeAnalysis.AddParameter
             }
             else
             {
+                var semanticModel = await invocationDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var expression = syntaxFacts.GetExpressionOfArgument(argument);
                 var semanticFacts = invocationDocument.GetLanguageService<ISemanticFactsService>();
-                var semanticModel = await invocationDocument.Project.Solution.GetDocument(expression.SyntaxTree).GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 argumentName = semanticFacts.GenerateNameForExpression(
                     semanticModel, expression, capitalize: false, cancellationToken: cancellationToken);
                 return (argumentNameSuggestion: argumentName, isNamed: false);
