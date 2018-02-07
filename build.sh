@@ -76,7 +76,7 @@ do
         test_=true
         shift 1
         ;;
-        --mono)
+        --build-mono)
         use_mono=true
         shift 1
         ;;
