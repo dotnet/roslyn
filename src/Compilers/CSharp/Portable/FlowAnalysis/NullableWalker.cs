@@ -785,9 +785,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitSequence(BoundSequence node)
         {
             DeclareVariables(node.Locals);
-            var result = base.VisitSequence(node);
-            SetUnknownResultNullability();
-            return result;
+            return base.VisitSequence(node);
         }
 
         // PROTOTYPE(NullableReferenceTypes): Remove if not needed.
@@ -1076,8 +1074,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             var arrayType = (ArrayTypeSymbol)node.Type;
             var elementType = arrayType.ElementType;
 
-            var elementBuilder = ArrayBuilder<BoundExpression>.GetInstance();
-            GetArrayElements(node.InitializerOpt, elementBuilder);
+            var initialization = node.InitializerOpt;
+            var elementBuilder = ArrayBuilder<BoundExpression>.GetInstance(initialization.Initializers.Length);
+            GetArrayElements(initialization, elementBuilder);
 
             int n = elementBuilder.Count;
             var conversionsBuilder = ArrayBuilder<Conversion>.GetInstance(n);
@@ -1529,22 +1528,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            bool? GetIsNullable(Result result) => (object)result.Type == null ? true : result.Type.IsNullable;
+            bool? getIsNullable(Result result) => (object)result.Type == null ? true : result.Type.IsNullable;
             bool? resultIsNullable;
 
             if (IsConstantTrue(node.Condition))
             {
                 SetState(consequenceState);
-                resultIsNullable = GetIsNullable(consequenceResult);
+                resultIsNullable = getIsNullable(consequenceResult);
             }
             else if (IsConstantFalse(node.Condition))
             {
-                resultIsNullable = GetIsNullable(alternativeResult);
+                resultIsNullable = getIsNullable(alternativeResult);
             }
             else
             {
                 IntersectWith(ref this.State, ref consequenceState);
-                resultIsNullable = (GetIsNullable(consequenceResult) | GetIsNullable(alternativeResult));
+                resultIsNullable = (getIsNullable(consequenceResult) | getIsNullable(alternativeResult));
             }
 
             _result = TypeSymbolWithAnnotations.Create(resultType ?? node.Type, resultIsNullable);
@@ -1578,18 +1577,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!node.HasErrors)
             {
-                var namesOpt = node.ArgumentNamesOpt;
                 var refKindsOpt = node.ArgumentRefKindsOpt;
-                var argsToParamsOpt = node.ArgsToParamsOpt;
                 ImmutableArray<Conversion> conversions;
                 var arguments = RemoveArgumentConversions(node.Arguments, refKindsOpt, out conversions);
                 ImmutableArray<Result> results = VisitArgumentsEvaluate(arguments, refKindsOpt, node.Expanded);
-                ImmutableArray<BoundExpression> updatedArguments = CreatePlaceholderExpressionsIfNecessary(arguments, results);
                 if (method.IsGenericMethod && HasImplicitTypeArguments(node))
                 {
+                    ImmutableArray<BoundExpression> updatedArguments = CreatePlaceholderExpressionsIfNecessary(arguments, results);
                     method = InferMethod(node, method, updatedArguments);
                 }
-                VisitArgumentsWarn(arguments, conversions, refKindsOpt, method.Parameters, argsToParamsOpt, node.Expanded, results);
+                VisitArgumentsWarn(arguments, conversions, refKindsOpt, method.Parameters, node.ArgsToParamsOpt, node.Expanded, results);
             }
 
             UpdateStateForCall(node);
@@ -1930,7 +1927,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 conv = asImplicitConversion(expr);
                 if (conv == null)
                 {
-                    Debug.Assert(conversion.Kind != ConversionKind.ImplicitUserDefined || conversion.UserDefinedFromConversion.Kind == ConversionKind.Identity);
+                    Debug.Assert(conversion.Kind != ConversionKind.ImplicitUserDefined ||
+                        conversion.UserDefinedFromConversion.Kind == ConversionKind.Identity ||
+                        conversion.UserDefinedFromConversion.Kind == ConversionKind.NoConversion ||
+                        conversion.UserDefinedFromConversion.Kind == ConversionKind.ImplicitTupleLiteral);
                     return expr;
                 }
 
@@ -1943,8 +1943,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
                 }
 
-                Debug.Assert(next.Kind == ConversionKind.ImplicitUserDefined);
-                Debug.Assert(next.UserDefinedToConversion == conversion);
+                Debug.Assert(conversion.Kind == ConversionKind.Identity ||
+                    (next.Kind == ConversionKind.ImplicitUserDefined && next.UserDefinedToConversion == conversion));
                 conversion = next;
             }
 
@@ -2455,10 +2455,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             rightResult = ApplyConversion(right, conversion, leftResult.Type?.TypeSymbol, rightResult);
-            TrackNullableStateForAssignment(left, leftResult.Slot, leftResult.Type, right, rightResult.Type, rightResult.Slot);
 
-            // PROTOTYPE(NullableReferenceTypes): Check node.Type.IsErrorType() instead?
-            _result = node.HasErrors ? Result.Create(TypeSymbolWithAnnotations.Create(node.Type)) : rightResult;
+            if (left.Kind == BoundKind.EventAccess && ((BoundEventAccess)left).EventSymbol.IsWindowsRuntimeEvent)
+            {
+                // Event assignment is a call to an Add method.
+                _result = TypeSymbolWithAnnotations.Create(node.Type);
+            }
+            else
+            {
+                TrackNullableStateForAssignment(left, leftResult.Slot, leftResult.Type, right, rightResult.Type, rightResult.Slot);
+                // PROTOTYPE(NullableReferenceTypes): Check node.Type.IsErrorType() instead?
+                _result = node.HasErrors ? Result.Create(TypeSymbolWithAnnotations.Create(node.Type)) : rightResult;
+            }
+
             return null;
         }
 
