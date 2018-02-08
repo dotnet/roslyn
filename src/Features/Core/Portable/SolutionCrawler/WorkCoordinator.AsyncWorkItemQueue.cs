@@ -66,13 +66,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         // so don't call cancel on the source only because we are done using it.
                         _cancellationMap.Remove(key);
 
-                        if (!HasAnyWork_NoLock)
-                        {
-                            Contract.Requires(_cancellationMap.Count == 0);
-
-                            // last work is done.
-                            _progressReporter.Stop();
-                        }
+                        _progressReporter.Stop();
                     }
                 }
 
@@ -85,19 +79,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 {
                     lock (_gate)
                     {
-                        // we need to check both work enqueued and work sent
-                        // out that are still running before start new progress
-                        // report otherwise, we can start progress again
-                        // while last work item is still running causing
-                        // progress bar to be broken
-                        if (!HasAnyWork_NoLock && _cancellationMap.Count == 0)
-                        {
-                            // first work is added.
-                            _progressReporter.Start();
-                        }
-
                         if (AddOrReplace_NoLock(item))
                         {
+                            // progress reporter itself has ref counting
+                            _progressReporter.Start();
+
                             // increase count 
                             _semaphore.Release();
                             return true;
