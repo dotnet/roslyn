@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Operations;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
 {
@@ -27,8 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
                 case AnonymousFunctionExpressionSyntax anonymousFunction:
                     return (SyntaxNode)anonymousFunction.Body;
                 default:
-                    Debug.Fail($"Unexpected {nameof(functionDeclaration)} type");
-                    return default;
+                    throw ExceptionUtilities.UnexpectedValue(functionDeclaration);
             }
         }
 
@@ -43,8 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
                 case AnonymousFunctionExpressionSyntax _:
                     return null;
                 default:
-                    Debug.Fail($"Unexpected {nameof(functionDeclaration)} type");
-                    return default;
+                    throw ExceptionUtilities.UnexpectedValue(functionDeclaration);
             }
         }
 
@@ -72,12 +71,11 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
                 if (!TryConvertExpressionBodyToStatement(body, semicolonToken, !method.ReturnsVoid, out var convertedStatement))
                     return;
 
-                //Add the new statement as the first/last statement of the new block 
+                // Add the new statement as the first/last statement of the new block 
                 // depending if we were asked to go after something or not.
                 editor.SetStatements(functionDeclaration, statementToAddAfterOpt == null
                     ? ImmutableArray.Create(statement, convertedStatement)
-                    : ImmutableArray.Create(convertedStatement, statement)
-                    );
+                    : ImmutableArray.Create(convertedStatement, statement));
             }
             else if (body is BlockSyntax block)
             {
@@ -108,11 +106,9 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             }
         }
 
+        // either from an expression lambda or expression bodied member
         public static bool IsExpressionBody(SyntaxNode body)
-        {
-            // either expression lambda or expression bodied member
-            return body is ExpressionSyntax || body is ArrowExpressionClauseSyntax;
-        }
+            => body is ExpressionSyntax || body is ArrowExpressionClauseSyntax;
 
         public static bool TryConvertExpressionBodyToStatement(SyntaxNode body, SyntaxToken semicolonToken, bool createReturnStatementForExpression, out StatementSyntax statement)
         {

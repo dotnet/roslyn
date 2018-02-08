@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 return;
             }
 
-            var functionDeclaration = parameterNode.FirstAncestorOrSelf<SyntaxNode>(node => IsFunctionDeclaration(node));
+            var functionDeclaration = parameterNode.FirstAncestorOrSelf<SyntaxNode>(IsFunctionDeclaration);
             if (functionDeclaration == null)
             {
                 return;
@@ -85,11 +85,10 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             }
 
             var method = (IMethodSymbol)parameter.ContainingSymbol;
-            if (method == null ||
-                method.IsAbstract ||
+            if (method.IsAbstract ||
                 method.IsExtern ||
                 method.PartialImplementationPart != null ||
-                method.ContainingType?.TypeKind == TypeKind.Interface)
+                method.ContainingType.TypeKind == TypeKind.Interface)
             {
                 return;
             }
@@ -100,11 +99,8 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             // We support initializing parameters, even when the containing member doesn't have a
             // body. This is useful for when the user is typing a new constructor and hasn't written
             // the body yet.
-            var blockStatementOpt = default(IBlockOperation);
-            if (bodyOpt != null)
-            {
-                blockStatementOpt = semanticModel.GetOperation(bodyOpt, cancellationToken) as IBlockOperation;
-            }
+            var blockStatementOpt = bodyOpt != null
+                ? semanticModel.GetOperation(bodyOpt, cancellationToken) as IBlockOperation : null;
 
             // Ok.  Looks like a reasonable parameter to analyze.  Defer to subclass to 
             // actually determine if there are any viable refactorings here.

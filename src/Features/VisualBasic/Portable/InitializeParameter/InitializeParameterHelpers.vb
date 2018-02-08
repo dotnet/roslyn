@@ -19,19 +19,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
         Private Shared Function GetStatements(functionDeclaration As SyntaxNode) As SyntaxList(Of StatementSyntax)
             If TypeOf functionDeclaration Is MethodBlockBaseSyntax Then
                 Dim methodBlock = DirectCast(functionDeclaration, MethodBlockBaseSyntax)
-                return methodBlock.Statements
+                Return methodBlock.Statements
             ElseIf TypeOf functionDeclaration Is MultiLineLambdaExpressionSyntax Then
                 Dim multiLineLambda = DirectCast(functionDeclaration, MultiLineLambdaExpressionSyntax)
-                return multiLineLambda.Statements
+                Return multiLineLambda.Statements
             ElseIf TypeOf functionDeclaration Is SingleLineLambdaExpressionSyntax Then
                 Dim singleLineLambda = DirectCast(functionDeclaration, SingleLineLambdaExpressionSyntax)
                 Dim convertedStatement = If(TypeOf singleLineLambda.Body Is StatementSyntax,
                     DirectCast(singleLineLambda.Body, StatementSyntax),
                     SyntaxFactory.ReturnStatement(DirectCast(singleLineLambda.Body, ExpressionSyntax)))
-                return SyntaxFactory.List(ImmutableArray.Create(convertedStatement))
+                Return SyntaxFactory.List(ImmutableArray.Create(convertedStatement))
             Else
-                Debug.Fail($"Unexpected {NameOf(functionDeclaration)} type")
-                return SyntaxFactory.List(Of StatementSyntax)
+                Throw ExceptionUtilities.UnexpectedValue(functionDeclaration)
             End If
         End Function
 

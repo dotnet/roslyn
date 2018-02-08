@@ -60,8 +60,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             IBlockOperation blockStatementOpt, CancellationToken cancellationToken)
         {
             // Only supported for constructor parameters.
-            var methodSymbol = parameter.ContainingSymbol as IMethodSymbol;
-            if (methodSymbol?.MethodKind != MethodKind.Constructor)
+            if (method.MethodKind != MethodKind.Constructor)
             {
                 return ImmutableArray<CodeAction>.Empty;
             }
