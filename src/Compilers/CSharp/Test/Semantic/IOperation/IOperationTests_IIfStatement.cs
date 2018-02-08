@@ -1196,8 +1196,7 @@ Block[1] - Block
               Left: 
                 ILocalReferenceOperation: condition (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Boolean, IsImplicit) (Syntax: 'condition = false')
               Right: 
-                IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= false')
-                  ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
 
     Jump if False to Block[3]
         ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
@@ -1266,8 +1265,7 @@ Block[1] - Block
               Left: 
                 ILocalReferenceOperation: condition (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Boolean, IsImplicit) (Syntax: 'condition = false')
               Right: 
-                IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= false')
-                  ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
 
     Jump if False to Block[3]
         ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')

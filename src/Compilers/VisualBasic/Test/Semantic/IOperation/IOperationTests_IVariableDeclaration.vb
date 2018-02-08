@@ -2798,8 +2798,7 @@ Block[1] - Block
               Left: 
                 ILocalReferenceOperation: a (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'a')
               Right: 
-                IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 1')
-                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'b = 2')
           Expression: 
@@ -2807,8 +2806,7 @@ Block[1] - Block
               Left: 
                 ILocalReferenceOperation: b (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'b')
               Right: 
-                IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 2')
-                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
 
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'c = 3')
           Expression: 
@@ -2816,8 +2814,7 @@ Block[1] - Block
               Left: 
                 ILocalReferenceOperation: c (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'c')
               Right: 
-                IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 3')
-                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
 
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'd = 4')
           Expression: 
@@ -2825,8 +2822,7 @@ Block[1] - Block
               Left: 
                 ILocalReferenceOperation: d (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'd')
               Right: 
-                IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 4')
-                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4) (Syntax: '4')
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4) (Syntax: '4')
 
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'e, f As New Integer()')
           Expression: 
@@ -2834,11 +2830,10 @@ Block[1] - Block
               Left: 
                 ILocalReferenceOperation: e (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'e')
               Right: 
-                IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: 'As New Integer()')
-                  IObjectCreationOperation (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreation, Type: System.Int32) (Syntax: 'New Integer()')
-                    Arguments(0)
-                    Initializer: 
-                      null
+                IObjectCreationOperation (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreation, Type: System.Int32) (Syntax: 'New Integer()')
+                  Arguments(0)
+                  Initializer: 
+                    null
 
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'e, f As New Integer()')
           Expression: 
@@ -2846,11 +2841,10 @@ Block[1] - Block
               Left: 
                 ILocalReferenceOperation: f (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'f')
               Right: 
-                IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: 'As New Integer()')
-                  IObjectCreationOperation (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreation, Type: System.Int32) (Syntax: 'New Integer()')
-                    Arguments(0)
-                    Initializer: 
-                      null
+                IObjectCreationOperation (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreation, Type: System.Int32) (Syntax: 'New Integer()')
+                  Arguments(0)
+                  Initializer: 
+                    null
 
         ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
           Statement: 
@@ -2972,8 +2966,7 @@ Block[4] - Block
               Left: 
                 ILocalReferenceOperation: d (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'd')
               Right: 
-                IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= If(a, b, c)')
-                  IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(a, b, c)')
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(a, b, c)')
 
         ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
           Statement: 
@@ -3024,9 +3017,8 @@ Block[1] - Block
               Left: 
                 ILocalReferenceOperation: d (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'd')
               Right: 
-                IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '=')
-                  IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
-                    Children(0)
+                IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
+                  Children(0)
 
         ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
           Statement: 
@@ -3077,9 +3069,8 @@ Block[1] - Block
               Left: 
                 ILocalReferenceOperation: d (IsDeclaration: True) (OperationKind.LocalReference, Type: ?, IsImplicit) (Syntax: 'd')
               Right: 
-                IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: 'As New')
-                  IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'New')
-                    Children(0)
+                IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'New')
+                  Children(0)
 
         ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
           Statement: 
@@ -3128,8 +3119,7 @@ Block[1] - Block
               Left: 
                 ILocalReferenceOperation: a (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'a')
               Right: 
-                IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 1')
-                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'b As Integer = 1')
           Expression: 
@@ -3137,8 +3127,7 @@ Block[1] - Block
               Left: 
                 ILocalReferenceOperation: b (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'b')
               Right: 
-                IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 1')
-                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 
         ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
           Statement: 
@@ -3185,16 +3174,15 @@ Block[1] - Block
               Left: 
                 ILocalReferenceOperation: a (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32(), IsImplicit) (Syntax: 'a(10)')
               Right: 
-                IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsImplicit) (Syntax: 'a(10)')
-                  IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(), IsImplicit) (Syntax: 'a(10)')
-                    Dimension Sizes(1):
-                        IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 11, IsImplicit) (Syntax: '10')
-                          Left: 
-                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
-                          Right: 
-                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '10')
-                    Initializer: 
-                      null
+                IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(), IsImplicit) (Syntax: 'a(10)')
+                  Dimension Sizes(1):
+                      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 11, IsImplicit) (Syntax: '10')
+                        Left: 
+                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
+                        Right: 
+                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '10')
+                  Initializer: 
+                    null
 
         ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
           Statement: 
@@ -3250,22 +3238,20 @@ Block[1] - Block
               Right: 
                 IInvalidOperation (OperationKind.Invalid, Type: System.Int32(), IsInvalid, IsImplicit) (Syntax: 'a(10) As Integer = 1')
                   Children(2):
-                      IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid, IsImplicit) (Syntax: 'a(10)')
-                        IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(), IsInvalid, IsImplicit) (Syntax: 'a(10)')
-                          Dimension Sizes(1):
-                              IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 11, IsInvalid, IsImplicit) (Syntax: '10')
-                                Left: 
-                                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10, IsInvalid) (Syntax: '10')
-                                Right: 
-                                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit) (Syntax: '10')
-                          Initializer: 
-                            null
-                      IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= 1')
-                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32(), IsInvalid, IsImplicit) (Syntax: '1')
-                          Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                            (DelegateRelaxationLevelNone)
-                          Operand: 
-                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+                      IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(), IsInvalid, IsImplicit) (Syntax: 'a(10)')
+                        Dimension Sizes(1):
+                            IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 11, IsInvalid, IsImplicit) (Syntax: '10')
+                              Left: 
+                                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10, IsInvalid) (Syntax: '10')
+                              Right: 
+                                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit) (Syntax: '10')
+                        Initializer: 
+                          null
+                      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32(), IsInvalid, IsImplicit) (Syntax: '1')
+                        Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          (DelegateRelaxationLevelNone)
+                        Operand: 
+                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
 
         ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
           Statement: 
@@ -3318,23 +3304,21 @@ Block[1] - Block
               Right: 
                 IInvalidOperation (OperationKind.Invalid, Type: System.Int32(), IsInvalid, IsImplicit) (Syntax: 'a(10) As New Integer()')
                   Children(2):
-                      IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsImplicit) (Syntax: 'a(10)')
-                        IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(), IsImplicit) (Syntax: 'a(10)')
-                          Dimension Sizes(1):
-                              IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 11, IsImplicit) (Syntax: '10')
-                                Left: 
-                                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
-                                Right: 
-                                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '10')
-                          Initializer: 
-                            null
-                      IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: 'As New Integer()')
-                        IInvalidOperation (OperationKind.Invalid, Type: System.Int32(), IsInvalid, IsImplicit) (Syntax: 'As New Integer()')
-                          Children(1):
-                              IObjectCreationOperation (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreation, Type: System.Int32, IsInvalid) (Syntax: 'New Integer()')
-                                Arguments(0)
-                                Initializer: 
-                                  null
+                      IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(), IsImplicit) (Syntax: 'a(10)')
+                        Dimension Sizes(1):
+                            IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 11, IsImplicit) (Syntax: '10')
+                              Left: 
+                                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
+                              Right: 
+                                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '10')
+                        Initializer: 
+                          null
+                      IInvalidOperation (OperationKind.Invalid, Type: System.Int32(), IsInvalid, IsImplicit) (Syntax: 'As New Integer()')
+                        Children(1):
+                            IObjectCreationOperation (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreation, Type: System.Int32, IsInvalid) (Syntax: 'New Integer()')
+                              Arguments(0)
+                              Initializer: 
+                                null
 
         ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
           Statement: 
@@ -3390,8 +3374,7 @@ Block[1] - Block
               Left: 
                 ILocalReferenceOperation:  (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: '')
               Right: 
-                IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= 1')
-                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 
         ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
           Statement: 

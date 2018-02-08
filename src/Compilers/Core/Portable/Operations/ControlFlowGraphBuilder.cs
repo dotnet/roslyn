@@ -912,15 +912,15 @@ namespace Microsoft.CodeAnalysis.Operations
             // We erase variable declarations from the control flow graph, as variable lifetime information is contained in a parallel data structure.
             foreach (var declaration in operation.Declarations)
             {
-                VisitVariableDeclaration(declaration, captureIdForResult);
+                HandleVariableDeclaration(declaration, captureIdForResult);
             }
 
             return null;
         }
 
-        public override IOperation VisitVariableDeclaration(IVariableDeclarationOperation operation, int? captureIdForResult)
+        private void HandleVariableDeclaration(IVariableDeclarationOperation operation, int? captureIdForResult)
         {
-            foreach (var declarator in operation.Declarators)
+            foreach (IVariableDeclaratorOperation declarator in operation.Declarators)
             {
                 ILocalSymbol localSymbol = declarator.Symbol;
 
@@ -928,13 +928,13 @@ namespace Microsoft.CodeAnalysis.Operations
                 SyntaxNode assignmentSyntax = null;
                 if (declarator.Initializer != null)
                 {
-                    initializer = Visit(declarator.Initializer);
+                    initializer = Visit(declarator.Initializer.Value, captureIdForResult);
                     assignmentSyntax = declarator.Syntax;
                 }
 
                 if (operation.Initializer != null)
                 {
-                    IOperation operationInitializer = Visit(operation.Initializer);
+                    IOperation operationInitializer = Visit(operation.Initializer.Value, captureIdForResult);
                     assignmentSyntax = operation.Syntax;
                     if (initializer != null)
                     {
@@ -950,19 +950,30 @@ namespace Microsoft.CodeAnalysis.Operations
                 {
                     // We can't use the IdentifierToken as the syntax for the local reference, so we use the entire declarator as the node
                     var localRef = new LocalReferenceExpression(localSymbol, isDeclaration: true, semanticModel: null, declarator.Syntax, localSymbol.Type, constantValue: default, isImplicit: true);
-
+                    // prototype(dataflow): We'd like to remove ExpressionStatements from the CFG altogether, as they're useless when all you need to do is look to see if the parent is null
                     var statement = new ExpressionStatement(new SimpleAssignmentExpression(localRef, isRef: localSymbol.IsRef, initializer, semanticModel: null, assignmentSyntax, localRef.Type, constantValue: default, isImplicit: true),
                                                             semanticModel: null, assignmentSyntax, type: null, constantValue: default, isImplicit: true);
                     AddStatement(statement);
                 }
             }
+        }
 
-            return null;
+        public override IOperation VisitVariableDeclaration(IVariableDeclarationOperation operation, int? captureIdForResult)
+        {
+            // All variable declarators should be handled by VisitVariableDeclarationGroup.
+            throw ExceptionUtilities.Unreachable;
         }
 
         public override IOperation VisitVariableDeclarator(IVariableDeclaratorOperation operation, int? captureIdForResult)
         {
-            // All variable declarators should be handled by the VisitVariableDeclaration.
+            // All variable declarators should be handled by VisitVariableDeclaration.
+            // prototype(dataflow): try/catch can get directly here, as can foreach control variables
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        public override IOperation VisitVariableInitializer(IVariableInitializerOperation operation, int? captureIdForResult)
+        {
+            // All variable initializers should be removed from the tree by VisitVariableDeclaration.
             throw ExceptionUtilities.Unreachable;
         }
 
@@ -1041,6 +1052,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public override IOperation VisitForEachLoop(IForEachLoopOperation operation, int? captureIdForResult)
         {
+            // prototype(dataflow): note that the loop control variable can be an IVariableDeclarator directly, and this function is expected to handle it without calling Visit(IVariableDeclarator)
             return new ForEachLoopStatement(operation.Locals, Visit(operation.LoopControlVariable), Visit(operation.Collection), VisitArray(operation.NextVariables), Visit(operation.Body), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
@@ -1258,11 +1270,6 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation VisitFieldInitializer(IFieldInitializerOperation operation, int? captureIdForResult)
         {
             return new FieldInitializer(operation.InitializedFields, Visit(operation.Value), operation.Kind, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
-        }
-
-        public override IOperation VisitVariableInitializer(IVariableInitializerOperation operation, int? captureIdForResult)
-        {
-            return new VariableInitializer(Visit(operation.Value), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitPropertyInitializer(IPropertyInitializerOperation operation, int? captureIdForResult)

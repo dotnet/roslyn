@@ -2322,8 +2322,7 @@ Block[1] - Block
               Left: 
                 ILocalReferenceOperation: a (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'a = 1')
               Right: 
-                IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 1')
-                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'b = 2')
           Expression: 
@@ -2331,8 +2330,7 @@ Block[1] - Block
               Left: 
                 ILocalReferenceOperation: b (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'b = 2')
               Right: 
-                IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 2')
-                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
 
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'c = 3')
           Expression: 
@@ -2340,8 +2338,7 @@ Block[1] - Block
               Left: 
                 ILocalReferenceOperation: c (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'c = 3')
               Right: 
-                IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 3')
-                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
 
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'd = 4')
           Expression: 
@@ -2349,8 +2346,7 @@ Block[1] - Block
               Left: 
                 ILocalReferenceOperation: d (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'd = 4')
               Right: 
-                IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 4')
-                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4) (Syntax: '4')
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4) (Syntax: '4')
 
     Next Block[2]
 Block[2] - Exit
@@ -2460,8 +2456,7 @@ Block[4] - Block
               Left: 
                 ILocalReferenceOperation: d (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'd = a ? b : c')
               Right: 
-                IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= a ? b : c')
-                  IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'a ? b : c')
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'a ? b : c')
 
     Next Block[5]
 Block[5] - Exit
@@ -2506,9 +2501,8 @@ Block[1] - Block
               Left: 
                 ILocalReferenceOperation: d (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'd = ')
               Right: 
-                IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= ')
-                  IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
-                    Children(0)
+                IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
+                  Children(0)
 
     Next Block[2]
 Block[2] - Exit
@@ -2549,8 +2543,7 @@ Block[1] - Block
               Left: 
                 ILocalReferenceOperation: d (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'd = 1')
               Right: 
-                IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 1')
-                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 
     Next Block[2]
 Block[2] - Exit
@@ -2598,8 +2591,7 @@ Block[1] - Block
               Left: 
                 ILocalReferenceOperation: d (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'd[10] = 1')
               Right: 
-                IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 1')
-                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 
     Next Block[2]
 Block[2] - Exit
@@ -2644,8 +2636,7 @@ Block[1] - Block
               Left: 
                 ILocalReferenceOperation:  (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: '= 5')
               Right: 
-                IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= 5')
-                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
 
     Next Block[2]
 Block[2] - Exit
@@ -2687,8 +2678,7 @@ Block[1] - Block
               Left: 
                 ILocalReferenceOperation: a (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'a = 1')
               Right: 
-                IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 1')
-                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'b = ref a')
           Expression: 
@@ -2696,8 +2686,7 @@ Block[1] - Block
               Left: 
                 ILocalReferenceOperation: b (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'b = ref a')
               Right: 
-                IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= ref a')
-                  ILocalReferenceOperation: a (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'a')
+                ILocalReferenceOperation: a (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'a')
 
     Next Block[2]
 Block[2] - Exit
@@ -2739,10 +2728,9 @@ Block[1] - Block
               Left: 
                 ILocalReferenceOperation: b (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'b = ref _c')
               Right: 
-                IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= ref _c')
-                  IFieldReferenceOperation: System.Int32 C._c (OperationKind.FieldReference, Type: System.Int32) (Syntax: '_c')
-                    Instance Receiver: 
-                      IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: '_c')
+                IFieldReferenceOperation: System.Int32 C._c (OperationKind.FieldReference, Type: System.Int32) (Syntax: '_c')
+                  Instance Receiver: 
+                    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: '_c')
 
     Next Block[2]
 Block[2] - Exit
@@ -2790,10 +2778,9 @@ Block[1] - Block
               Left: 
                 ILocalReferenceOperation: b (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'b = 1')
               Right: 
-                IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= 1')
-                  IInvalidOperation (OperationKind.Invalid, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: '1')
-                    Children(1):
-                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+                IInvalidOperation (OperationKind.Invalid, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: '1')
+                  Children(1):
+                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
 
     Next Block[2]
 Block[2] - Exit
@@ -2839,8 +2826,7 @@ Block[1] - Block
               Left: 
                 ILocalReferenceOperation: a (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'a = 1')
               Right: 
-                IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= 1')
-                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid, IsImplicit) (Syntax: 'b = a')
           Expression: 
@@ -2848,8 +2834,7 @@ Block[1] - Block
               Left: 
                 ILocalReferenceOperation: b (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'b = a')
               Right: 
-                IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= a')
-                  ILocalReferenceOperation: a (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'a')
+                ILocalReferenceOperation: a (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'a')
 
     Next Block[2]
 Block[2] - Exit
