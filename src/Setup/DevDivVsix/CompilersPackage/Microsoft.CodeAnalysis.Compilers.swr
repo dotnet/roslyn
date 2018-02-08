@@ -37,11 +37,9 @@ folder InstallDir:\MSBuild\15.0\Bin\Roslyn
     file source=$(OutputPath)\Vsix\CompilerExtension\System.AppContext.dll vs.file.ngenArchitecture=all
     file source=$(OutputPath)\Vsix\CompilerExtension\System.Console.dll vs.file.ngenArchitecture=all
     file source=$(OutputPath)\Vsix\CompilerExtension\System.Diagnostics.FileVersionInfo.dll vs.file.ngenArchitecture=all
-    file source=$(OutputPath)\Vsix\CompilerExtension\System.Diagnostics.Process.dll vs.file.ngenArchitecture=all
     file source=$(OutputPath)\Vsix\CompilerExtension\System.Diagnostics.StackTrace.dll vs.file.ngenArchitecture=all
     file source=$(OutputPath)\Vsix\CompilerExtension\System.IO.Compression.dll vs.file.ngenArchitecture=all
     file source=$(OutputPath)\Vsix\CompilerExtension\System.IO.FileSystem.dll vs.file.ngenArchitecture=all
-    file source=$(OutputPath)\Vsix\CompilerExtension\System.IO.FileSystem.DriveInfo.dll vs.file.ngenArchitecture=all
     file source=$(OutputPath)\Vsix\CompilerExtension\System.IO.FileSystem.Primitives.dll vs.file.ngenArchitecture=all
     file source=$(OutputPath)\Vsix\CompilerExtension\System.IO.Pipes.dll vs.file.ngenArchitecture=all
     file source=$(OutputPath)\Vsix\CompilerExtension\System.IO.Pipes.AccessControl.dll vs.file.ngenArchitecture=all
@@ -53,7 +51,6 @@ folder InstallDir:\MSBuild\15.0\Bin\Roslyn
     file source=$(OutputPath)\Vsix\CompilerExtension\System.Security.Cryptography.X509Certificates.dll vs.file.ngenArchitecture=all
     file source=$(OutputPath)\Vsix\CompilerExtension\System.Security.Principal.Windows.dll vs.file.ngenArchitecture=all
     file source=$(OutputPath)\Vsix\CompilerExtension\System.Text.Encoding.CodePages.dll vs.file.ngenArchitecture=all
-    file source=$(OutputPath)\Vsix\CompilerExtension\System.Threading.Thread.dll vs.file.ngenArchitecture=all
     file source=$(OutputPath)\Vsix\CompilerExtension\System.Xml.ReaderWriter.dll vs.file.ngenArchitecture=all
     file source=$(OutputPath)\Vsix\CompilerExtension\System.Xml.XmlDocument.dll vs.file.ngenArchitecture=all
     file source=$(OutputPath)\Vsix\CompilerExtension\System.Xml.XPath.dll vs.file.ngenArchitecture=all

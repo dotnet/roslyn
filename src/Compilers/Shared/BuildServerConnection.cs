@@ -508,12 +508,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
             return pipeStream.GetAccessControl();
         }
 
-        private static string GetUserName() =>
-            (string)typeof(Environment)
-            .GetTypeInfo()
-            .GetDeclaredProperty("UserName")
-            ?.GetMethod?.Invoke(null, parameters: null);
-
         /// <returns>
         /// Null if not enough information was found to create a valid pipe name.
         /// </returns>
@@ -530,7 +524,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 isAdmin = principal.IsInRole(WindowsBuiltInRole.Administrator);
             }
 
-            var userName = GetUserName();
+            var userName = Environment.UserName;
             if (userName == null)
             {
                 return null;
