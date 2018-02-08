@@ -378,24 +378,13 @@
        since a rebuild may overwrite signed binaries in the output directory with unsigned binaries
        from the intermediate output directory. -->
   <Target Name="PublishWithoutBuilding"
-        DependsOnTargets="PreventProjectReferencesFromBuilding;
+        DependsOnTargets="BuildOnlySettings;
+                          PreventProjectReferencesFromBuilding;
                           ResolveReferences;
+                          PrepareForPublish;
                           ComputeAndCopyFilesToPublishDirectory;
                           GeneratePublishDependencyFile;
                           GeneratePublishRuntimeConfigurationFile" />                                                           
-
-  <!-- 
-    Work around bug in Microsoft.NET.Sdk < v2.0 where satellites were deployed on top of each other in root. 
-    https://github.com/dotnet/sdk/issues/1360
-  -->
-  <Target Name="WorkaroundIncorrectSatelliteDeployment" AfterTargets="ResolveLockFileCopyLocalProjectDeps">
-    <ItemGroup>
-      <ReferenceCopyLocalPaths Remove="@(ResourceCopyLocalItems)" />
-      <ReferenceCopyLocalPaths Include="@(ResourceCopyLocalItems)"  Condition="'@(ResourceCopyLocalItems)' != ''">
-        <DestinationSubDirectory>$([System.IO.Directory]::GetParent(%(ResourceCopyLocalItems.FullPath)).get_Name())\</DestinationSubDirectory>
-      </ReferenceCopyLocalPaths>
-    </ItemGroup>
-  </Target>
 
   <!--
      Work around to fix Intellisense file generation for XAML projects

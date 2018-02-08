@@ -52,6 +52,12 @@
     <file src="Exes/VBCSCompiler/netcoreapp2.0/publish/VBCSCompiler.deps.json" target="tools/bincore" />
     <file src="Exes/VBCSCompiler/netcoreapp2.0/publish/VBCSCompiler.runtimeconfig.json" target="tools/bincore" />
 
+    <!-- Satellite assemblies -->
+    <file src="Dlls\MSBuildTask\**\Microsoft.Build.Tasks.CodeAnalysis.resources.dll" target="tools" />
+    <file src="Dlls\CodeAnalysis\**\Microsoft.CodeAnalysis.resources.dll" target="tools/bincore" />
+    <file src="Dlls\CSharpCodeAnalysis\**\Microsoft.CodeAnalysis.CSharp.resources.dll" target="tools/bincore" />
+    <file src="Dlls\BasicCodeAnalysis\**\Microsoft.CodeAnalysis.VisualBasic.resources.dll" target="tools/bincore" />
+
     <!-- References that are either not in the target framework or are a higher version -->
     <!-- N.B.: The backslashes below cannot be replaced with forward slashes.
          https://github.com/NuGet/Home/issues/3584 -->
