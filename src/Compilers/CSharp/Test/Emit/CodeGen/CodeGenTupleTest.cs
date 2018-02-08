@@ -642,7 +642,7 @@ val: -2
         [Fact]
         public void BadTupleNameMetadata()
         {
-            var comp = CreateCompilationWithCustomILSource("",
+            var comp = CreateStandardCompilationWithCustomILSource("",
 @"
 .assembly extern mscorlib { }
 .assembly extern System.ValueTuple
@@ -738,7 +738,7 @@ references: s_valueTupleRefs);
         [Fact]
         public void MetadataForPartiallyNamedTuples()
         {
-            var comp = CreateCompilationWithCustomILSource("",
+            var comp = CreateStandardCompilationWithCustomILSource("",
 @"
 .assembly extern mscorlib { }
 .assembly extern System.ValueTuple
@@ -837,7 +837,7 @@ references: s_valueTupleRefs);
         [Fact]
         public void NestedTuplesNoAttribute()
         {
-            var comp = CreateCompilationWithCustomILSource("",
+            var comp = CreateStandardCompilationWithCustomILSource("",
 @"
 .assembly extern mscorlib { }
 .assembly extern System.ValueTuple
@@ -19524,7 +19524,7 @@ public class C : Base2
     public override (int notA, int notB) M() { return (1, 2); }
 }";
 
-            var compMatching = CreateCompilationWithCustomILSource(sourceWithMatchingNames, ilSource,
+            var compMatching = CreateStandardCompilationWithCustomILSource(sourceWithMatchingNames, ilSource,
                             references: s_valueTupleRefs,
                             options: TestOptions.DebugDll);
 
@@ -19536,7 +19536,7 @@ public class C : Base2
     public override (int a, int b) M() { return (1, 2); }
 }";
 
-            var compDifferent1 = CreateCompilationWithCustomILSource(sourceWithDifferentNames1, ilSource,
+            var compDifferent1 = CreateStandardCompilationWithCustomILSource(sourceWithDifferentNames1, ilSource,
                             references: s_valueTupleRefs,
                             options: TestOptions.DebugDll);
 
@@ -19552,7 +19552,7 @@ public class C : Base2
     public override (int, int) M() { return (1, 2); }
 }";
 
-            var compDifferent2 = CreateCompilationWithCustomILSource(sourceWithDifferentNames2, ilSource,
+            var compDifferent2 = CreateStandardCompilationWithCustomILSource(sourceWithDifferentNames2, ilSource,
                             references: s_valueTupleRefs,
                             options: TestOptions.DebugDll);
 

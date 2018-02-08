@@ -2907,7 +2907,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilationWithCustomILSource(text, il);
+            var comp = CreateStandardCompilationWithCustomILSource(text, il);
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
 
@@ -2999,7 +2999,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilationWithCustomILSource(text, il);
+            var comp = CreateStandardCompilationWithCustomILSource(text, il);
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
 
@@ -5822,7 +5822,7 @@ class Test
     void Goo(ref X. x) { }
 }";
 
-            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef });
+            var comp = CreateStandardCompilation(source);
             var diag = comp.GetDiagnostics();
         }
 

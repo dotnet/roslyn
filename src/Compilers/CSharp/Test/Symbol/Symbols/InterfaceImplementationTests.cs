@@ -1279,7 +1279,7 @@ class Program
 
 } // end of class Base";
 
-            var comp = CreateCompilationWithCustomILSource(csharp, il);
+            var comp = CreateStandardCompilationWithCustomILSource(csharp, il);
             comp.VerifyDiagnostics(
                 // (7,7): error CS0535: 'Derived' does not implement interface member 'Interface.M(ref int)'
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Derived", "Interface.M(ref int)"));
@@ -1335,7 +1335,7 @@ class Program
 
 } // end of class Interface";
 
-            var comp = CreateCompilationWithCustomILSource(csharp, il);
+            var comp = CreateStandardCompilationWithCustomILSource(csharp, il);
             comp.VerifyDiagnostics(
                 // (10,7): error CS0535: 'Derived' does not implement interface member 'Interface.M(ref int)'
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Derived", "Interface.M(ref int)"));
@@ -1410,7 +1410,7 @@ class Program
 
 } // end of class Base";
 
-            var comp = CreateCompilationWithCustomILSource(csharp, il);
+            var comp = CreateStandardCompilationWithCustomILSource(csharp, il);
             comp.VerifyDiagnostics(
                 // (2,7): error CS0535: 'Derived' does not implement interface member 'Interface.M(ref int)'
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Derived", "Interface.M(ref int)"));
@@ -1433,7 +1433,7 @@ class Program
 class C : I<int>.I2 { }
 ";
 
-            var comp = CreateCompilationWithCustomILSource(csharp, il);
+            var comp = CreateStandardCompilationWithCustomILSource(csharp, il);
             comp.VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_BogusType));
         }
@@ -1529,7 +1529,7 @@ class Program
 
 } // end of class Derived";
 
-            var comp = CreateCompilationWithCustomILSource(csharp, il);
+            var comp = CreateStandardCompilationWithCustomILSource(csharp, il);
             comp.VerifyDiagnostics();
 
             // CONSIDER: dev10 probably regards the interface method as unimplemented, 
@@ -1752,7 +1752,7 @@ class D : I
 }
 ";
 
-            var compilation = CreateCompilationWithCustomILSource(csharp, il);
+            var compilation = CreateStandardCompilationWithCustomILSource(csharp, il);
             compilation.VerifyDiagnostics();
 
             var globalNamespace = compilation.GlobalNamespace;
@@ -1816,7 +1816,7 @@ class C : object, B.I<string>
 @"
 class D : C { }
 ";
-            CreateCompilationWithCustomILSource(csharpSource, ilSource).VerifyDiagnostics(
+            CreateStandardCompilationWithCustomILSource(csharpSource, ilSource).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_GenericArgIsStaticClass, "B"));
         }
 
@@ -1949,7 +1949,7 @@ class Derived : Base, I2
 }
 ";
 
-            var comp = CreateCompilationWithCustomILSource(source, il);
+            var comp = CreateStandardCompilationWithCustomILSource(source, il);
             comp.VerifyDiagnostics();
 
             var global = comp.GlobalNamespace;
@@ -2012,7 +2012,7 @@ public class D : B, I
 }
 ";
 
-            var comp = CreateCompilationWithCustomILSource(source, il);
+            var comp = CreateStandardCompilationWithCustomILSource(source, il);
             comp.VerifyDiagnostics();
 
             var global = comp.GlobalNamespace;
@@ -2047,7 +2047,7 @@ public class D : B, I
 }
 ";
 
-            CreateCompilationWithCustomILSource(source2, il).VerifyDiagnostics();
+            CreateStandardCompilationWithCustomILSource(source2, il).VerifyDiagnostics();
         }
 
         [WorkItem(547149, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547149")]
@@ -2203,7 +2203,7 @@ public class Program
 }
 ";
 
-            var comp = CreateCompilationWithCustomILSource(source, il, options: TestOptions.ReleaseExe);
+            var comp = CreateStandardCompilationWithCustomILSource(source, il, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: @"
 Explicit implementation
 Explicit implementation
@@ -2279,7 +2279,7 @@ public class Derived : Base, I
 }
 ";
 
-            var comp = CreateCompilationWithCustomILSource(source, il);
+            var comp = CreateStandardCompilationWithCustomILSource(source, il);
             comp.VerifyDiagnostics();
 
             var global = comp.GlobalNamespace;
@@ -2447,7 +2447,7 @@ class Derived : Base, IDerived
 	}
 }";
 
-            var comp = CreateCompilationWithCustomILSource(source, il, options: TestOptions.DebugExe);
+            var comp = CreateStandardCompilationWithCustomILSource(source, il, options: TestOptions.DebugExe);
             CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: @"set_P1
 g_P1
 s_P2

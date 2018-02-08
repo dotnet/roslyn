@@ -1140,7 +1140,7 @@ class B
         o = a.R[3];
     }
 }";
-            CreateStandardCompilation(source, new[] { SystemRef }).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (14,13): error CS0021: Cannot apply indexing with [] to an expression of type 'object'
                 Diagnostic(ErrorCode.ERR_BadIndexLHS, "a.P[1]").WithArguments("object").WithLocation(14, 13),
                 // (16,15): error CS1061: 'A' does not contain a definition for 'R' and no extension method 'R' accepting a first argument of type 'A' could be found (are you missing a using directive or an assembly reference?)
@@ -2322,7 +2322,7 @@ class B
 }
 ";
 
-            var compilation2 = CompileAndVerify(source2, new[] { reference1, SystemCoreRef }, verify: Verification.Passes, expectedOutput:
+            var compilation2 = CompileAndVerify(source2, new[] { reference1 }, verify: Verification.Passes, expectedOutput:
 @"P1(2).get
 P1(2).get
 P1(2).get
@@ -2496,7 +2496,7 @@ class D : CodeModule
     public string get_ProcOfLine(int line, out Microsoft.Vbe.Interop.vbext_ProcKind procKind) { throw null; }
 }
 ";
-            var comp = CreateCompilationWithCustomILSource(source, il);
+            var comp = CreateStandardCompilationWithCustomILSource(source, il);
             comp.VerifyDiagnostics(
                 // (4,7): error CS0535: 'C' does not implement interface member 'Microsoft.Vbe.Interop._CodeModule.ProcOfLine[int, out Microsoft.Vbe.Interop.vbext_ProcKind].get'
                 // class C : CodeModule
@@ -2576,7 +2576,7 @@ class Test
 ";
             string expectedOutput = @"1
 0";
-            var compilation = CreateCompilationWithCustomILSource(source, il, options: TestOptions.ReleaseExe);
+            var compilation = CreateStandardCompilationWithCustomILSource(source, il, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 

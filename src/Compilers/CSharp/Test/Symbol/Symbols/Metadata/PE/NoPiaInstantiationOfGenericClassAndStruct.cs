@@ -573,7 +573,7 @@ public class TypeRefs1
 
         public CSharpCompilation CreateCompilation(string source)
         {
-            return CreateStandardCompilation(
+            return CreateCompilationWithMscorlib46(
                 assemblyName: "Dummy",
                 sources: (null == source) ? null : new string[] { source },
                 references: new[]

@@ -1478,7 +1478,7 @@ namespace System
 }
 ";
 
-            var pia = CreateStandardCompilation(piaSource, options: TestOptions.ReleaseDll, assemblyName: "pia");
+            var pia = CreateCompilationWithMscorlib46(piaSource, options: TestOptions.ReleaseDll, assemblyName: "pia");
             pia.VerifyDiagnostics();
 
             string source = @"
@@ -1520,11 +1520,11 @@ public class C
                 Diagnostic(ErrorCode.ERR_GenericsUsedInNoPIAType, "(x, y)").WithArguments("System.ValueTuple<T1, T2>").WithLocation(19, 31)
             };
 
-            var comp1 = CreateStandardCompilation(source, options: TestOptions.ReleaseDll,
+            var comp1 = CreateCompilationWithMscorlib46(source, options: TestOptions.ReleaseDll,
                             references: new MetadataReference[] { pia.ToMetadataReference(embedInteropTypes: true) });
             comp1.VerifyDiagnostics(expectedDiagnostics);
 
-            var comp2 = CreateStandardCompilation(source, options: TestOptions.ReleaseDll,
+            var comp2 = CreateCompilationWithMscorlib46(source, options: TestOptions.ReleaseDll,
                             references: new MetadataReference[] { pia.EmitToImageReference(embedInteropTypes: true) });
             comp2.VerifyDiagnostics(expectedDiagnostics);
         }
@@ -1761,10 +1761,10 @@ public class D
     public static S<int> M2() { throw new System.Exception(); }
 }";
 
-            var pia = CreateStandardCompilation(piaSource, options: TestOptions.ReleaseDll, assemblyName: "pia");
+            var pia = CreateCompilationWithMscorlib46(piaSource, options: TestOptions.ReleaseDll, assemblyName: "pia");
             pia.VerifyDiagnostics();
 
-            var lib = CreateStandardCompilation(libSource, options: TestOptions.ReleaseDll, references: new[] { pia.ToMetadataReference() });
+            var lib = CreateCompilationWithMscorlib46(libSource, options: TestOptions.ReleaseDll, references: new[] { pia.ToMetadataReference() });
             lib.VerifyEmitDiagnostics();
 
             string source = @"
@@ -1792,11 +1792,11 @@ public class C
                 Diagnostic(ErrorCode.ERR_GenericsUsedInNoPIAType).WithArguments("S<T>").WithLocation(1, 1)
             };
 
-            var comp1 = CreateStandardCompilation(source, options: TestOptions.ReleaseDll,
+            var comp1 = CreateCompilationWithMscorlib46(source, options: TestOptions.ReleaseDll,
                             references: new MetadataReference[] { pia.ToMetadataReference(embedInteropTypes: true), lib.ToMetadataReference() });
             comp1.VerifyEmitDiagnostics(expectedDiagnostics);
 
-            var comp2 = CreateStandardCompilation(source, options: TestOptions.ReleaseDll,
+            var comp2 = CreateCompilationWithMscorlib46(source, options: TestOptions.ReleaseDll,
                             references: new MetadataReference[] { pia.EmitToImageReference(embedInteropTypes: true), lib.EmitToImageReference() });
             comp2.VerifyEmitDiagnostics(expectedDiagnostics);
         }
@@ -1814,7 +1814,7 @@ using System.Runtime.InteropServices;
 public struct Generic<T1> { }
 ";
 
-            var pia = CreateStandardCompilation(piaSource, options: TestOptions.ReleaseDll, assemblyName: "pia");
+            var pia = CreateCompilationWithMscorlib46(piaSource, options: TestOptions.ReleaseDll, assemblyName: "pia");
             pia.VerifyDiagnostics();
 
             string source = @"
@@ -1837,7 +1837,7 @@ namespace System
     }
 }";
 
-            var comp1 = CreateStandardCompilation(source, options: TestOptions.ReleaseDll,
+            var comp1 = CreateCompilationWithMscorlib46(source, options: TestOptions.ReleaseDll,
                             references: new MetadataReference[] { new CSharpCompilationReference(pia).WithEmbedInteropTypes(true) });
             comp1.VerifyDiagnostics(
                 // (8,13): error CS1768: Type 'Generic<T1>' cannot be embedded because it has a generic argument. Consider setting the 'Embed Interop Types' property to false.
@@ -1854,7 +1854,7 @@ namespace System
                 Diagnostic(ErrorCode.ERR_GenericsUsedInNoPIAType, "Generic<string>").WithArguments("Generic<T1>").WithLocation(4, 47)
                 );
 
-            var comp2 = CreateStandardCompilation(source, options: TestOptions.ReleaseDll,
+            var comp2 = CreateCompilationWithMscorlib46(source, options: TestOptions.ReleaseDll,
                             references: new MetadataReference[] { MetadataReference.CreateFromImage(pia.EmitToArray()).WithEmbedInteropTypes(true) });
             comp2.VerifyDiagnostics(
                 // (8,13): error CS1768: Type 'Generic<T1>' cannot be embedded because it has a generic argument. Consider setting the 'Embed Interop Types' property to false.

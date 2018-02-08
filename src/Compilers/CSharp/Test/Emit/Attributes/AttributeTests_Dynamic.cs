@@ -555,7 +555,7 @@ public delegate dynamic[] MyDelegate(dynamic[] x);
         [Fact]
         public void CS1980ERR_DynamicAttributeMissing()
         {
-            var comp = CreateStandardCompilation(s_dynamicTestSource, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.UnsafeReleaseDll);
+            var comp = CreateCompilationWithMscorlib46(s_dynamicTestSource, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.UnsafeReleaseDll);
             comp.VerifyDiagnostics(
                 // (6,31): error CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
                 // public class Outer<T> : Base1<dynamic>
@@ -662,7 +662,7 @@ public delegate dynamic[] MyDelegate(dynamic[] x);
                 // (57,25): error CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
                 //     public static Outer<dynamic>.Inner<Outer<dynamic>.Inner<T[], dynamic>.InnerInner<int>[], dynamic>.InnerInner<dynamic>[][] F4(Outer<dynamic>.Inner<Outer<dynamic>.Inner<T[], dynamic>.InnerInner<int>[], dynamic>.InnerInner<dynamic>[][] x) { return x; }
                 Diagnostic(ErrorCode.ERR_DynamicAttributeMissing, "dynamic").WithArguments("System.Runtime.CompilerServices.DynamicAttribute").WithLocation(57, 25),
-                // (57,46): error CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
+                // (57,46): error CS198 0: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
                 //     public static Outer<dynamic>.Inner<Outer<dynamic>.Inner<T[], dynamic>.InnerInner<int>[], dynamic>.InnerInner<dynamic>[][] F4(Outer<dynamic>.Inner<Outer<dynamic>.Inner<T[], dynamic>.InnerInner<int>[], dynamic>.InnerInner<dynamic>[][] x) { return x; }
                 Diagnostic(ErrorCode.ERR_DynamicAttributeMissing, "dynamic").WithArguments("System.Runtime.CompilerServices.DynamicAttribute").WithLocation(57, 46),
                 // (57,66): error CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
@@ -686,7 +686,7 @@ public delegate dynamic[] MyDelegate(dynamic[] x);
                 // (60,66): error CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
                 //     public static Outer<dynamic>.Inner<Outer<dynamic>.Inner<T[], dynamic>.InnerInner<int>[], dynamic>.InnerInner<dynamic>[][] Prop2 { get { return field17; } set { field17 = value; } }
                 Diagnostic(ErrorCode.ERR_DynamicAttributeMissing, "dynamic").WithArguments("System.Runtime.CompilerServices.DynamicAttribute").WithLocation(60, 66),
-                // (60,94): error CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
+                // (60,94): error CS1980: C annot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
                 //     public static Outer<dynamic>.Inner<Outer<dynamic>.Inner<T[], dynamic>.InnerInner<int>[], dynamic>.InnerInner<dynamic>[][] Prop2 { get { return field17; } set { field17 = value; } }
                 Diagnostic(ErrorCode.ERR_DynamicAttributeMissing, "dynamic").WithArguments("System.Runtime.CompilerServices.DynamicAttribute").WithLocation(60, 94),
                 // (60,114): error CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
@@ -710,7 +710,7 @@ public delegate dynamic[] MyDelegate(dynamic[] x);
                 // (68,37): error CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
                 //     public static (dynamic, object, dynamic) F5((dynamic, object, dynamic) x) { return x; }
                 Diagnostic(ErrorCode.ERR_DynamicAttributeMissing, "dynamic").WithArguments("System.Runtime.CompilerServices.DynamicAttribute").WithLocation(68, 37),
-                // (34,19): error CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
+                // (34,19): error CS1980: Cannot  define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
                 //     public static dynamic[] field2;
                 Diagnostic(ErrorCode.ERR_DynamicAttributeMissing, "dynamic").WithArguments("System.Runtime.CompilerServices.DynamicAttribute").WithLocation(34, 19),
                 // (35,19): error CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
@@ -923,14 +923,14 @@ namespace System
         }
     }
 }";
-            var customRef = CreateStandardCompilation(customDynamicAttrSource).ToMetadataReference();
+            var customRef = CreateCompilationWithMscorlib46(customDynamicAttrSource).ToMetadataReference();
 
             var source = @"
 public class C<T>
 {
     public C<dynamic> field2;   // Uses missing ctor ""DynamicAttribute(bool[] transformFlags)"", generates CS1980
 }";
-            var comp = CreateStandardCompilation(source, references: new[] { customRef });
+            var comp = CreateCompilationWithMscorlib46(source, references: new[] { customRef });
             comp.VerifyDiagnostics(
                 // (4,14): error CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
                 //     public C<dynamic> field2;   // Uses missing ctor "DynamicAttribute(bool[] transformFlags)", generates CS1980
@@ -942,7 +942,7 @@ public class C<T>
     public dynamic field1;      // Uses available ctor ""DynamicAttribute()"", No CS1980 in native compiler.
 }";
             // Bug 531108-Won't Fix
-            comp = CreateStandardCompilation(source, references: new[] { customRef });
+            comp = CreateCompilationWithMscorlib46(source, references: new[] { customRef });
             comp.VerifyDiagnostics(
                 // (4,12): error CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
                 //     public dynamic field1;      // Uses available ctor "DynamicAttribute()", No CS1980 in native compiler.

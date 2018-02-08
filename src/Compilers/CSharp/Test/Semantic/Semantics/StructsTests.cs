@@ -440,7 +440,7 @@ public class C
 ";
 
             // Calls constructor (vs initobj), then initobj
-            var compilation = CreateCompilationWithCustomILSource(csharpSource, ilSource);
+            var compilation = CreateStandardCompilationWithCustomILSource(csharpSource, ilSource);
             // TODO (tomat)
             CompileAndVerify(compilation).VerifyIL("C.M", @"
 {
@@ -494,7 +494,7 @@ public class C
             // Uses initobj for both
             // CONSIDER: This is the dev10 behavior, but it seems like a bug.
             // Shouldn't there be an error for trying to call an inaccessible ctor?
-            var comp = CreateCompilationWithCustomILSource(csharpSource, ilSource);
+            var comp = CreateStandardCompilationWithCustomILSource(csharpSource, ilSource);
 
             CompileAndVerify(comp).VerifyIL("C.M", @"
 {

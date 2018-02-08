@@ -64,7 +64,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithCustomILSource(source, il);
+            var comp = CreateStandardCompilationWithCustomILSource(source, il);
             var emitResult = comp.Emit(new System.IO.MemoryStream());
             emitResult.Diagnostics.Verify(Diagnostic(ErrorCode.ERR_BadDelegateConstructor, "Goo").WithArguments("F"));
         }
@@ -1822,8 +1822,7 @@ struct Goo
     internal static void E<T>(this T t, object o) where T : new() { }
     internal static void E<T>(this T t, object o) where T : class { }
     internal static void E<U>(this U u, object o) { }
-}",
-                references: new[] { SystemCoreRef });
+}");
             compilation.VerifyDiagnostics(
                 // (4,26): error CS0111: Type 'S' already defines a member called 'E' with the same parameter types
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "E").WithArguments("E", "S").WithLocation(4, 26),
@@ -2989,7 +2988,7 @@ class C<T>
     NB b;
     N.C<N.D> c;
 }";
-            CreateStandardCompilation(text, references: new[] { SystemCoreRef }).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
                 // (2,16): error CS0234: The type or namespace name 'B<>' does not exist in the namespace 'N' (are you missing an assembly reference?)
                 // using NB = C<N.B<object>>;
                 Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "B<object>").WithArguments("B<>", "N").WithLocation(2, 16),
@@ -7972,7 +7971,7 @@ class Derived2 : Base_VirtGet_Set
     }
 }
 ";
-            var comp = CreateCompilationWithCustomILSource(text, s_typeWithMixedProperty);
+            var comp = CreateStandardCompilationWithCustomILSource(text, s_typeWithMixedProperty);
             comp.VerifyDiagnostics(
                 // (4,25): error CS0506: 'Derived2.Prop.set': cannot override inherited member 'Base_VirtGet_Set.Prop.set' because it is not marked virtual, abstract, or override
                 //         get { return base.Prop; }
@@ -8003,7 +8002,7 @@ class Derived2 : Base_VirtGet_Set
     }
 }
 ";
-            var comp = CreateCompilationWithCustomILSource(text, s_typeWithMixedProperty);
+            var comp = CreateStandardCompilationWithCustomILSource(text, s_typeWithMixedProperty);
             comp.VerifyDiagnostics();
         }
 
@@ -13456,8 +13455,7 @@ public partial class C : IF
     static partial void M2(object o) { }
     static partial void M2(this object o);
 }";
-            var reference = SystemCoreRef;
-            CreateStandardCompilation(text, references: new[] { reference }).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
                 // (4,25): error CS0755: Both partial method declarations must be extension methods or neither may be an extension method
                 Diagnostic(ErrorCode.ERR_PartialMethodExtensionDifference, "M1").WithLocation(4, 25),
                 // (5,25): error CS0755: Both partial method declarations must be extension methods or neither may be an extension method
@@ -13554,8 +13552,7 @@ static partial class EExtensionMethod
     static partial void M() { }
 }
 ";
-            var reference = SystemCoreRef;
-            CreateStandardCompilation(text, references: new[] { reference }).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
                 // (9,25): error CS0759: No defining declaration found for implementing declaration of partial method'EExtensionMethod.M()'
                 Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "M").WithArguments("EExtensionMethod.M()").WithLocation(9, 25));
         }
@@ -14055,7 +14052,6 @@ class Goo1
             // Note that the dev11 compiler does not report error CS0721, that C cannot be used as a parameter type.
             // This appears to be a shortcoming of the dev11 compiler; there is no good reason to not report the error.
 
-            var reference = SystemCoreRef;
             var compilation = CreateStandardCompilation(
 @"static class C
 {
@@ -14063,8 +14059,7 @@ class Goo1
     static void M2(this C c) { }
     static void M3(this dynamic d) { }
     static void M4(this dynamic[] d) { }
-}",
-references: new[] { reference });
+}");
 
             compilation.VerifyDiagnostics(
                 // (3,25): error CS0246: The type or namespace name 'Unknown' could not be found (are you missing a using directive or an assembly reference?)
@@ -14104,7 +14099,6 @@ references: new[] { reference });
         [Fact]
         public void CS1106ERR_BadExtensionAgg01()
         {
-            var reference = SystemCoreRef;
             var compilation = CreateStandardCompilation(
 @"class A
 {
@@ -14133,8 +14127,7 @@ struct T
 struct U<T>
 {
     static void M(this object o) { }
-}",
-references: new[] { reference });
+}");
 
             compilation.VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_BadExtensionAgg, "A").WithLocation(1, 7),
@@ -14167,7 +14160,6 @@ references: new[] { reference });
         [Fact]
         public void CS1109ERR_ExtensionMethodsDecl()
         {
-            var reference = SystemCoreRef;
             var compilation = CreateStandardCompilation(
 @"class A
 {
@@ -14189,8 +14181,7 @@ struct S
     {
         static void M(this object o) { }
     }
-}",
- references: new[] { reference });
+}");
 
             compilation.VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_ExtensionMethodsDecl, "M").WithArguments("C").WithLocation(5, 21),
@@ -14254,7 +14245,7 @@ static class B
     [Extension(0)]
     static object F;
 }";
-            var compilation = CreateStandardCompilation(source, references: new[] { SystemCoreRef });
+            var compilation = CreateStandardCompilation(source);
             compilation.VerifyDiagnostics(
                 // (2,2): error CS1112: Do not use 'System.Runtime.CompilerServices.ExtensionAttribute'. Use the 'this' keyword instead.
                 // [System.Runtime.CompilerServices.ExtensionAttribute]
@@ -15244,7 +15235,7 @@ class NamedExample
     static void M2(this object o = null) { }
     static void M3(object o, this int i = 0) { }
 }";
-            var compilation = CreateStandardCompilation(text, references: new[] { SystemCoreRef });
+            var compilation = CreateStandardCompilation(text);
             compilation.VerifyDiagnostics(
                 // (4,20): error CS1743: Cannot specify a default value for the 'this' parameter
                 Diagnostic(ErrorCode.ERR_DefaultValueForExtensionParameter, "this").WithLocation(4, 20),
@@ -15702,7 +15693,7 @@ public interface ISomeInterface
     void Bad([Optional] [DefaultParameterValue(""true"")] bool b);   // CS1908
 }
 ";
-            CreateStandardCompilation(text, new[] { SystemRef }).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
                 // (4,26): error CS1908: The type of the argument to the DefaultValue attribute must match the parameter type
                 Diagnostic(ErrorCode.ERR_DefaultValueTypeMustMatch, "DefaultParameterValue"));
         }
@@ -15722,7 +15713,7 @@ public interface ISomeInterface
 }
 ";
             // Dev10 reports CS1909, we don't
-            CreateStandardCompilation(text, new[] { SystemRef }).VerifyDiagnostics();
+            CreateStandardCompilation(text).VerifyDiagnostics();
         }
 
         [Fact]
@@ -15737,7 +15728,7 @@ public interface ISomeInterface
 }
 ";
             // CS1910
-            CreateStandardCompilation(text, new[] { SystemRef }).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
                 // (4,17): error CS1910: Argument of type 'int[]' is not applicable for the DefaultValue attribute
                 Diagnostic(ErrorCode.ERR_DefaultValueBadValueType, "DefaultParameterValue").WithArguments("int[]"),
                 // (5,17): error CS1910: Argument of type 'int[]' is not applicable for the DefaultValue attribute
@@ -15756,7 +15747,7 @@ public interface ISomeInterface
 }
 ";
             // Dev10 reports CS1909, we don't
-            CreateStandardCompilation(text, new[] { SystemRef }).VerifyDiagnostics();
+            CreateStandardCompilation(text).VerifyDiagnostics();
         }
 
         [Fact]
@@ -15773,7 +15764,7 @@ public interface ISomeInterface
     void Test4<T>([DefaultParameterValue(null)]T t) where T : struct; // error
 }
 ";
-            CreateStandardCompilation(text, new[] { SystemRef }).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
                 // (6,20): error CS1908: The type of the argument to the DefaultValue attribute must match the parameter type
                 //     void Test1<T>([DefaultParameterValue(null)]T t);                  // error
                 Diagnostic(ErrorCode.ERR_DefaultValueTypeMustMatch, "DefaultParameterValue"),
@@ -15791,7 +15782,7 @@ public interface ISomeInterface
     void Test1([DefaultParameterValue(typeof(int))]object t);   // CS1910
 }
 ";
-            CreateStandardCompilation(text, new[] { SystemRef }).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
                 // (4,17): error CS1910: Argument of type 'System.Type' is not applicable for the DefaultValue attribute
                 Diagnostic(ErrorCode.ERR_DefaultValueBadValueType, "DefaultParameterValue").WithArguments("System.Type"));
         }
@@ -15805,7 +15796,7 @@ public interface ISomeInterface
     void Test1([DefaultParameterValue(typeof(int))]System.Type t);   // CS1910
 }
 ";
-            CreateStandardCompilation(text, new[] { SystemRef }).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
                 // (4,17): error CS1910: Argument of type 'System.Type' is not applicable for the DefaultValue attribute
                 Diagnostic(ErrorCode.ERR_DefaultValueBadValueType, "DefaultParameterValue").WithArguments("System.Type"));
         }
@@ -17002,8 +16993,7 @@ class System { }
 
             // NOTE: both mscorlib.dll and System.Core.dll define types in the System namespace.
             var compilation = CreateStandardCompilation(
-                Parse(source, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5)),
-                new[] { SystemCoreRef });
+                Parse(source, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5)));
 
             compilation.VerifyDiagnostics(
                 // (2,7): warning CS0437: The type 'System' in '' conflicts with the imported namespace 'System' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
@@ -19643,7 +19633,7 @@ namespace ForwardingNamespace
 {
 	.assembly extern Destination2
 }";
-            var compilation = CreateCompilationWithCustomILSource(userCode, forwardingIL, appendDefaultHeader: false);
+            var compilation = CreateStandardCompilationWithCustomILSource(userCode, forwardingIL, appendDefaultHeader: false);
 
             compilation.VerifyDiagnostics(
                 // (8,29): error CS8329: Module 'ForwarderModule.dll' in assembly 'Forwarder, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null' is forwarding the type 'Destination.TestClass' to multiple assemblies: 'Destination1, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null' and 'Destination2, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'.
@@ -19706,7 +19696,7 @@ namespace ForwardingNamespace
 	.assembly extern Destination2
 }";
 
-            var compilation = CreateCompilationWithCustomILSource(userCode, forwardingIL, appendDefaultHeader: false);
+            var compilation = CreateStandardCompilationWithCustomILSource(userCode, forwardingIL, appendDefaultHeader: false);
 
             compilation.VerifyDiagnostics(
                 // (8,29): error CS8329: Module 'ForwarderModule.dll' in assembly 'Forwarder, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' is forwarding the type 'Destination.TestClass' to multiple assemblies: 'Destination1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'Destination2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.

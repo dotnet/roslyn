@@ -504,7 +504,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithCustomILSource(source, il, options: TestOptions.ReleaseDll);
+            var compilation = CreateStandardCompilationWithCustomILSource(source, il, options: TestOptions.ReleaseDll);
             var result = CompileAndVerify(compilation);
 
             result.VerifyIL("C.A", @"
@@ -578,7 +578,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithCustomILSource(source, il, options: TestOptions.DebugDll);
+            var compilation = CreateStandardCompilationWithCustomILSource(source, il, options: TestOptions.DebugDll);
             var result = CompileAndVerify(compilation);
 
             result.VerifyIL("C.A",
@@ -823,7 +823,7 @@ class Clazz
     }
 }
 ";
-            var compilation = CreateCompilationWithCustomILSource(source, il, options: TestOptions.ReleaseExe);
+            var compilation = CreateStandardCompilationWithCustomILSource(source, il, options: TestOptions.ReleaseExe);
             var result = CompileAndVerify(compilation, expectedOutput: "Struct1 Struct2 ");
 
             result.VerifyIL("Clazz.Main", @"
@@ -12997,7 +12997,7 @@ enum " + "\u0915\u094d\u200d\u0937" + @"
   .field public static literal valuetype E '" + "\u0915\u094d\u200d\u0937" + @"' = int32(0x00000000)
 } // end of class E
 ";
-            var comp = CreateCompilationWithCustomILSource("", il);
+            var comp = CreateStandardCompilationWithCustomILSource("", il);
             var @enum = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("E");
             var field = @enum.GetMembers().OfType<FieldSymbol>().Single();
             Assert.False(field.CanBeReferencedByName);

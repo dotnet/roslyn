@@ -323,7 +323,7 @@ public class Derived2 : Derived1
 }
 ";
 
-            var compilation = CreateCompilationWithCustomILSource(csharp, il);
+            var compilation = CreateStandardCompilationWithCustomILSource(csharp, il);
             var global = compilation.GlobalNamespace;
 
             var ilGetter = global.GetMember<NamedTypeSymbol>("Base").GetMember<PropertySymbol>("P").GetMethod;
@@ -353,7 +353,7 @@ public class C : I
 }
 ";
 
-            var compilation = CreateCompilationWithCustomILSource(csharp, il);
+            var compilation = CreateStandardCompilationWithCustomILSource(csharp, il);
             var global = compilation.GlobalNamespace;
 
             var ilGetter = global.GetMember<NamedTypeSymbol>("I").GetMember<PropertySymbol>("P").GetMethod;
@@ -386,7 +386,7 @@ public class C : I
 }
 ";
 
-            var compilation = CreateCompilationWithCustomILSource(csharp, il);
+            var compilation = CreateStandardCompilationWithCustomILSource(csharp, il);
             var global = compilation.GlobalNamespace;
 
             var ilGetter = global.GetMember<NamedTypeSymbol>("I").GetMember<PropertySymbol>("P").GetMethod;
@@ -762,7 +762,7 @@ public class C : I
 }
 ";
 
-            var compilation = CreateCompilationWithCustomILSource(csharp, il);
+            var compilation = CreateStandardCompilationWithCustomILSource(csharp, il);
             var global = compilation.GlobalNamespace;
 
             var @interface = global.GetMember<NamedTypeSymbol>("I");

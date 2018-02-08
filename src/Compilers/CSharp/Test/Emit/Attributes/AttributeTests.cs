@@ -6219,7 +6219,7 @@ public class Test
 	}
 }";
 
-            var comp = CreateCompilationWithCustomILSource(csharpSource, ilSource);
+            var comp = CreateStandardCompilationWithCustomILSource(csharpSource, ilSource);
 
             comp.VerifyDiagnostics(
                 // (2,2): error CS0404: Cannot apply attribute class 'Gen<T>' because it is generic
@@ -7137,7 +7137,7 @@ class Test
 
             // NOTE: Dev11 does not give an error for "[Alias]" - it just silently drops the
             // attribute at emit-time.
-            var comp = CreateCompilationWithCustomILSource(source, il);
+            var comp = CreateStandardCompilationWithCustomILSource(source, il);
             comp.VerifyDiagnostics(
                 // (4,2): error CS0404: Cannot apply attribute class 'C<int>' because it is generic
                 // [Alias]

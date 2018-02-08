@@ -51,7 +51,7 @@ namespace ClassLibrary1
     }
 } 
 ";
-            var classLib1 = CreateStandardCompilation(text: class1Source, references: new[] { SystemRef }, assemblyName: "ClassLibrary1");
+            var classLib1 = CreateStandardCompilation(text: class1Source, assemblyName: "ClassLibrary1");
 
             string class2Source = @"using System;
 using ClassLibrary1;
@@ -66,7 +66,7 @@ namespace ClassLibrary2
         }
     }
 }";
-            var classLib2 = CreateStandardCompilation(text: class2Source, assemblyName: "ClassLibrary2", references: new[] { SystemRef, SystemCoreRef, classLib1.ToMetadataReference() });
+            var classLib2 = CreateStandardCompilation(text: class2Source, assemblyName: "ClassLibrary2", references: new[] { classLib1.ToMetadataReference() });
 
             string consoleApplicationSource = @"using ClassLibrary2;
 using ClassLibrary1;
@@ -83,7 +83,7 @@ namespace ConsoleApplication
     }
 }";
             var tree = Parse(consoleApplicationSource);
-            var comp = CreateStandardCompilation(tree, new[] { SystemRef, SystemCoreRef, classLib1.ToMetadataReference(), classLib2.ToMetadataReference() }, assemblyName: "ConsoleApplication");
+            var comp = CreateStandardCompilation(tree, new[] { classLib1.ToMetadataReference(), classLib2.ToMetadataReference() }, assemblyName: "ConsoleApplication");
             var model = comp.GetSemanticModel(tree) as CSharpSemanticModel;
 
             var syntax = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single().Expression;
@@ -217,7 +217,6 @@ using System.Reflection;
             var ivtCompilation = CreateStandardCompilation(
                 assemblyName: "IVT",
                 options: TestOptions.ReleaseDll.WithStrongNameProvider(new DesktopStrongNameProvider()),
-                references: new[] { SystemCoreRef },
                 trees: new[]
                 {
                     Parse(@"

@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
         #region Compilation Factories
 
-        public static CSharpCompilation CreateCompilationWithCustomILSource(
+        public static CSharpCompilation CreateStandardCompilationWithCustomILSource(
             string source,
             string ilSource,
             IEnumerable<MetadataReference> references = null,
@@ -261,6 +261,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             }
 
             return CreateStandardCompilation(source, metadataReferences, options);
+        }
+
+        public static CSharpCompilation CreateCompilationWithCustomILSource(
+            string source,
+            string ilSource,
+            IEnumerable<MetadataReference> references = null,
+            CSharpCompilationOptions options = null,
+            bool appendDefaultHeader = true)
+        {
+            IEnumerable<MetadataReference> metadataReferences = new[] { CompileIL(ilSource, appendDefaultHeader) };
+            if (references != null)
+            {
+                metadataReferences = metadataReferences.Concat(references);
+            }
+
+            return CreateCompilation(source, metadataReferences, options);
         }
 
         public static CSharpCompilation CreateCompilationWithMscorlib45(
@@ -1166,9 +1182,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             bool useLatestFrameworkReferences = false)
             where TSyntaxNode : SyntaxNode
         {
-            var defaultRefs = useLatestFrameworkReferences ? s_latestOperationReferences : s_defaultOperationReferences;
-            var references = additionalReferences == null ? defaultRefs : additionalReferences.Concat(defaultRefs);
-            var compilation = CreateStandardCompilation(testSrc, references, sourceFileName: "file.cs", options: compilationOptions ?? TestOptions.ReleaseDll, parseOptions: parseOptions);
+            CSharpCompilation compilation;
+            if (!useLatestFrameworkReferences)
+            {
+                compilation = CreateStandardCompilation(testSrc, additionalReferences, sourceFileName: "file.cs", options: compilationOptions ?? TestOptions.ReleaseDll, parseOptions: parseOptions);
+            }
+            else
+            {
+                var defaultRefs = useLatestFrameworkReferences ? s_latestOperationReferences : s_defaultOperationReferences;
+                var references = additionalReferences == null ? defaultRefs : additionalReferences.Concat(defaultRefs);
+                compilation = CreateCompilation(
+                    new[] { Parse(testSrc, filename: "file.cs", parseOptions) },
+                    references,
+                    options: compilationOptions ?? TestOptions.ReleaseDll);
+            }
             VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(compilation, expectedOperationTree, expectedDiagnostics, additionalOperationTreeVerifier);
         }
 

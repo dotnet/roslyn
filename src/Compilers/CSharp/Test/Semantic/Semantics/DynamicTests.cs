@@ -3634,7 +3634,7 @@ class Program
 
 } // end of class Generic`2
 ";
-            var comp = CreateCompilationWithCustomILSource("", il, new[] { SystemCoreRef }, appendDefaultHeader: false);
+            var comp = CreateStandardCompilationWithCustomILSource("", il, new[] { SystemCoreRef }, appendDefaultHeader: false);
             var global = comp.GlobalNamespace;
             var typeD = global.GetMember<NamedTypeSymbol>("D");
             var typeG = global.GetMember<NamedTypeSymbol>("Generic");

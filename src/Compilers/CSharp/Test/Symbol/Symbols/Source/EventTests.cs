@@ -409,7 +409,7 @@ public class C
     public void RaiseEvent() => E1(this); 
     public void Print() => System.Console.WriteLine(""Print method ran.""); 
 }";
-            var libComp = CreateStandardCompilation(text: libText, references: new[] { SystemCoreRef }).VerifyDiagnostics();
+            var libComp = CreateStandardCompilation(text: libText).VerifyDiagnostics();
             var libAssemblyRef = libComp.EmitToImageReference();
 
             var source = @"
@@ -440,7 +440,7 @@ class LambdaConsumer
                 Assert.Equal("dynamic", parameterSymbol.Type.ToTestDisplayString());
             };
 
-            CompileAndVerify(source: source, additionalRefs: new[] { SystemCoreRef, CSharpRef, libAssemblyRef },
+            CompileAndVerify(source: source, additionalRefs: new[] { CSharpRef, libAssemblyRef },
                                                     expectedOutput: "Print method ran.", sourceSymbolValidator: validator);
         }
 
@@ -454,7 +454,7 @@ public class C {
     public void RaiseEvent() => _e1(this); 
     public void Print() => System.Console.WriteLine(""Print method ran.""); 
 }";
-            var libComp = CreateStandardCompilation(text: libText, references: new[] { SystemCoreRef });
+            var libComp = CreateStandardCompilation(text: libText);
             libComp.VerifyDiagnostics();
             var libAssemblyRef = libComp.EmitToImageReference();
 
@@ -486,7 +486,7 @@ class D
                 Assert.Equal("dynamic", parameterSymbol.Type.ToTestDisplayString());
             };
 
-            var compilationVerifier = CompileAndVerify(source: source, additionalRefs: new[] { SystemCoreRef, CSharpRef, libAssemblyRef }, 
+            var compilationVerifier = CompileAndVerify(source: source, additionalRefs: new[] { CSharpRef, libAssemblyRef }, 
                                                     expectedOutput: "Print method ran.");
         }
 
@@ -500,7 +500,7 @@ public class C
     public void RaiseEvent() => E1(this); 
     public void Print() => System.Console.WriteLine(""Print method ran.""); 
 }";
-            var libComp = CreateStandardCompilation(libText, references: new[] { SystemCoreRef });
+            var libComp = CreateStandardCompilation(libText);
             var libCompRef = new CSharpCompilationReference(libComp);
             var source = @"
 class D
@@ -514,7 +514,7 @@ class D
 }";
             var expectedOutput = "Print method ran.";
             var compilationVerifier = CompileAndVerify(source: source,
-                additionalRefs: new[] { SystemCoreRef, CSharpRef, libCompRef },
+                additionalRefs: new[] { CSharpRef, libCompRef },
                 expectedOutput: expectedOutput);
         }
 
@@ -528,7 +528,7 @@ public class C
     public virtual event System.Action<dynamic> E2 { add { System.Console.WriteLine(""Not called""); } remove {} }
     public virtual event System.Action<object> E3 { add { System.Console.WriteLine(""Not called""); } remove {} }
 }";
-            var libComp = CreateStandardCompilation(text: libText, references: new[] { SystemCoreRef });
+            var libComp = CreateStandardCompilation(text: libText);
             var libAssemblyRef = libComp.EmitToImageReference();
             var source = @"
 class B : C
@@ -571,7 +571,7 @@ Printed: Alice
 Printed: Bob
 Printed: Charlie
 ";
-            var compilationVerifier = CompileAndVerify(source: source, additionalRefs: new[] { SystemCoreRef, CSharpRef, libAssemblyRef },
+            var compilationVerifier = CompileAndVerify(source: source, additionalRefs: new[] { CSharpRef, libAssemblyRef },
                                                     expectedOutput: expectedOutput);
         }
 
@@ -584,7 +584,7 @@ public class CL1
     public virtual event System.Action<dynamic> E1 { add {} remove {} }
     public virtual event System.Action<dynamic> E2 { add {} remove {} }
 }";
-            var libComp = CreateStandardCompilation(text: libText, references: new[] { SystemCoreRef });
+            var libComp = CreateStandardCompilation(text: libText);
             var libAssemblyRef = libComp.EmitToImageReference();
 
             var source = @"
@@ -616,7 +616,7 @@ public class CL1
     public virtual event System.Action<dynamic> E1;
     public virtual event System.Action<dynamic> E2;
 }";
-            var libComp = CreateStandardCompilation(text: libText, references: new[] { SystemCoreRef });
+            var libComp = CreateStandardCompilation(text: libText);
             var libAssemblyRef = libComp.EmitToImageReference();
 
             var source = @"
@@ -800,7 +800,7 @@ class D
     }
 }
 ";
-            var compVerifier = CompileAndVerify(source, new[] { CSharpRef, SystemCoreRef, CompileIL(ilSource) }, 
+            var compVerifier = CompileAndVerify(source, new[] { CSharpRef, CompileIL(ilSource) }, 
                                                 expectedOutput: "Event raised");
 
             var comp = compVerifier.Compilation;
@@ -1087,7 +1087,7 @@ class E : Interface
 }
 ";
 
-            CreateCompilationWithCustomILSource(csharpSource, ilSource).VerifyDiagnostics(
+            CreateStandardCompilationWithCustomILSource(csharpSource, ilSource).VerifyDiagnostics(
                 // (2,7): error CS0535: 'C' does not implement interface member 'Interface.raise_e(object, object)'
                 // class C : Interface
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("C", "Interface.raise_e(object, object)"),
@@ -1527,7 +1527,7 @@ class C
 }
 ";
 
-            CreateCompilationWithCustomILSource(csharpSource, ilSource).VerifyDiagnostics(
+            CreateStandardCompilationWithCustomILSource(csharpSource, ilSource).VerifyDiagnostics(
                 // (7,11): error CS1545: Property, indexer, or event 'Base.Event1' is not supported by the language; try directly calling accessor methods 'Base.Event0.add' or 'Base.Event7.add'
                 //         b.Event1 += null;
                 Diagnostic(ErrorCode.ERR_BindToBogusProp2, "Event1").WithArguments("Base.Event1", "Base.Event0.add", "Base.Event7.add"),
@@ -1614,7 +1614,7 @@ class C
 }
 ";
 
-            CreateCompilationWithCustomILSource(csharpSource, ilSource).VerifyDiagnostics(
+            CreateStandardCompilationWithCustomILSource(csharpSource, ilSource).VerifyDiagnostics(
                 // (7,11): error CS0571: 'Base.Event2.add': cannot explicitly call operator or accessor
                 //         b.add_Event2(null);
                 Diagnostic(ErrorCode.ERR_CantCallSpecialMethod, "add_Event2").WithArguments("Base.Event2.add"));
@@ -1709,7 +1709,7 @@ class C
 }
 ";
 
-            CreateCompilationWithCustomILSource(csharpSource, ilSource).VerifyDiagnostics(
+            CreateStandardCompilationWithCustomILSource(csharpSource, ilSource).VerifyDiagnostics(
                 // (6,11): error CS1545: Property, indexer, or event 'Base.Event1' is not supported by the language; try directly calling accessor methods 'Base.add_Event1(System.Action)' or 'Base.remove_Event(System.Action<int>)'
                 //         b.Event1 += null;
                 Diagnostic(ErrorCode.ERR_BindToBogusProp2, "Event1").WithArguments("Base.Event1", "Base.add_Event1(System.Action)", "Base.remove_Event(System.Action<int>)"),
@@ -1795,7 +1795,7 @@ class C
 }
 ";
 
-            var compilation = CreateCompilationWithCustomILSource(csharpSource, ilSource);
+            var compilation = CreateStandardCompilationWithCustomILSource(csharpSource, ilSource);
 
             compilation.VerifyDiagnostics(
                 // (6,9): error CS0122: 'Base.Event1.add' is inaccessible due to its protection level

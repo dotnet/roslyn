@@ -547,7 +547,7 @@ str
 3
 str";
 
-            var compilation = CreateCompilationWithCustomILSource(source, il, references: new[] { SystemCoreRef }, options: TestOptions.ReleaseExe);
+            var compilation = CreateStandardCompilationWithCustomILSource(source, il, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expectedOutput);
 
             var classDerived = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");

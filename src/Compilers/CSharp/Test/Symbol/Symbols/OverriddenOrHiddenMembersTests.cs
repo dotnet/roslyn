@@ -1019,7 +1019,7 @@ class Derived : Base
 }
 ";
 
-            var comp = CreateCompilationWithCustomILSource(csharp, il);
+            var comp = CreateStandardCompilationWithCustomILSource(csharp, il);
             comp.VerifyDiagnostics();
 
             var global = comp.GlobalNamespace;
@@ -1089,7 +1089,7 @@ class Derived : Base
 }
 ";
 
-            var comp = CreateCompilationWithCustomILSource(csharp, il);
+            var comp = CreateStandardCompilationWithCustomILSource(csharp, il);
             comp.VerifyDiagnostics();
 
             var global = comp.GlobalNamespace;
@@ -1562,7 +1562,7 @@ class Derived : AccessorModifierMismatch
 }
 ";
 
-            CreateCompilationWithCustomILSource(csharp, il).VerifyDiagnostics();
+            CreateStandardCompilationWithCustomILSource(csharp, il).VerifyDiagnostics();
         }
 
         [WorkItem(543263, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543263")]
@@ -1754,7 +1754,7 @@ class Derived : AccessorModifierMismatch
     // Failed to implement AddAbstract
 }
 ";
-            CreateCompilationWithCustomILSource(csharp, il).VerifyDiagnostics(
+            CreateStandardCompilationWithCustomILSource(csharp, il).VerifyDiagnostics(
                 // (2,7): error CS0534: 'Derived' does not implement inherited abstract member 'AccessorModifierMismatch.AbstractSealed.add'
                 Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "AccessorModifierMismatch.AbstractSealed.add"));
 
@@ -1765,7 +1765,7 @@ class Derived : AccessorModifierMismatch
     public override void AddAbstract(System.Action a) { }
 }
 ";
-            CreateCompilationWithCustomILSource(csharp, il).VerifyDiagnostics(
+            CreateStandardCompilationWithCustomILSource(csharp, il).VerifyDiagnostics(
                 // (5,26): error CS0115: 'Derived.AddAbstract(System.Action)': no suitable method found to override
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "AddAbstract").WithArguments("Derived.AddAbstract(System.Action)"),
                 // (2,7): error CS0534: 'Derived' does not implement inherited abstract member 'AccessorModifierMismatch.AbstractSealed.add'
@@ -1778,7 +1778,7 @@ class Derived : AccessorModifierMismatch
     public override event System.Action AbstractSealed { add { } }
 }
 ";
-            CreateCompilationWithCustomILSource(csharp, il).VerifyDiagnostics(
+            CreateStandardCompilationWithCustomILSource(csharp, il).VerifyDiagnostics(
                 // (5,41): error CS0065: 'Derived.AbstractSealed': event property must have both add and remove accessors
                 Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "AbstractSealed").WithArguments("Derived.AbstractSealed"),
                 // (5,41): error CS0239: 'Derived.AbstractSealed': cannot override inherited member 'AccessorModifierMismatch.AbstractSealed' because it is sealed
@@ -1791,7 +1791,7 @@ class Derived : AccessorModifierMismatch
     public override event System.Action AbstractSealed { add { } remove { } }
 }
 ";
-            CreateCompilationWithCustomILSource(csharp, il).VerifyDiagnostics(
+            CreateStandardCompilationWithCustomILSource(csharp, il).VerifyDiagnostics(
                 // (5,41): error CS0239: 'Derived.AbstractSealed': cannot override inherited member 'AccessorModifierMismatch.AbstractSealed' because it is sealed
                 Diagnostic(ErrorCode.ERR_CantOverrideSealed, "AbstractSealed").WithArguments("Derived.AbstractSealed", "AccessorModifierMismatch.AbstractSealed"));
         }
@@ -2091,7 +2091,7 @@ class B3 : I
 {
     public static void M<T>() { }
 }";
-            CreateCompilationWithCustomILSource(csharpSource, ilSource).VerifyDiagnostics(
+            CreateStandardCompilationWithCustomILSource(csharpSource, ilSource).VerifyDiagnostics(
                 // (5,15): error CS0736: 'B2' does not implement interface member 'I.M<T>()'. 'A.M<T>()' cannot implement an interface member because it is static.
                 // class B2 : A, I
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberStatic, "I").WithArguments("B2", "I.M<T>()", "A.M<T>()").WithLocation(5, 15),
@@ -2427,7 +2427,7 @@ class Test
         c.GAB(ref c); // modopts A, B (inside and outside ref, respectively)
     }
 }";
-            CompileAndVerify(CreateCompilationWithCustomILSource(csharp, il));
+            CompileAndVerify(CreateStandardCompilationWithCustomILSource(csharp, il));
         }
 
         [WorkItem(545653, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545653")]

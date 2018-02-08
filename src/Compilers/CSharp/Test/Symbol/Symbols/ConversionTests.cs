@@ -1196,7 +1196,7 @@ class C
         }
     }
 }";
-            CreateCompilationWithCustomILSource(csharp, il).VerifyDiagnostics(
+            CreateStandardCompilationWithCustomILSource(csharp, il).VerifyDiagnostics(
                 // (6,16): error CS1674: 'ConvertibleToIDisposable': type used in a using statement must be implicitly convertible to 'System.IDisposable'
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var d = new ConvertibleToIDisposable()").WithArguments("ConvertibleToIDisposable"));
         }
@@ -1861,7 +1861,7 @@ public class C
     static void M(In<string> f) { System.Console.WriteLine('B'); } // Actually chosen, since the other isn't applicable.
 }
 ";
-            CompileAndVerify(source, new[] { SystemCoreRef }, expectedOutput: "B");
+            CompileAndVerify(source, expectedOutput: "B");
         }
 
         [WorkItem(742345, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/742345")]

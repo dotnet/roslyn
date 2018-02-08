@@ -4497,7 +4497,7 @@ enum E2 // Identical to E1, but has [Flags]
 ";
 
             var text = @"";
-            var comp = CreateCompilationWithCustomILSource(text, il);
+            var comp = CreateStandardCompilationWithCustomILSource(text, il);
 
             var format = new SymbolDisplayFormat(
                 memberOptions: SymbolDisplayMemberOptions.IncludeExplicitInterface);
@@ -5886,7 +5886,7 @@ class C
     }
 }");
             var root = srcTree.GetRoot();
-            var comp = CreateStandardCompilation(srcTree, references: new[] { LinqAssemblyRef });
+            var comp = CreateStandardCompilation(srcTree);
 
             var semanticModel = comp.GetSemanticModel(comp.SyntaxTrees.Single());
             var queryExpression = root.DescendantNodes().OfType<QueryExpressionSyntax>().First();

@@ -453,7 +453,7 @@ class Derived : Base
 {
     ~Derived() { }
 }";
-            CreateCompilationWithCustomILSource(source, il).VerifyDiagnostics(
+            CreateStandardCompilationWithCustomILSource(source, il).VerifyDiagnostics(
                 // (4,6): error CS0239: 'Derived.~Derived()': cannot override inherited member 'Base.~Base()' because it is sealed
                 //     ~Derived() { }
                 Diagnostic(ErrorCode.ERR_CantOverrideSealed, "Derived").WithArguments("Derived.~Derived()", "Base.~Base()"));
@@ -491,7 +491,7 @@ class Derived : Base
 
             // BREAK: Dev11 doesn't report this error, but it does generate code that won't run,
             // so this change is reasonable.
-            CreateCompilationWithCustomILSource(source, il).VerifyDiagnostics(
+            CreateStandardCompilationWithCustomILSource(source, il).VerifyDiagnostics(
                 // (4,6): error CS0239: 'Derived.~Derived()': cannot override inherited member 'Base.Finalize()' because it is sealed
                 //     ~Derived() { }
                 Diagnostic(ErrorCode.ERR_CantOverrideSealed, "Derived").WithArguments("Derived.~Derived()", "Base.Finalize()"));

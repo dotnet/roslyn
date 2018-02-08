@@ -730,9 +730,9 @@ class Test
     }
 }
 ";
-            var comp = CreateCompilationWithCustomILSource(source, il,
+            var comp = CreateStandardCompilationWithCustomILSource(source, il,
                 options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All),
-                references: new[] { CSharpRef, SystemCoreRef });
+                references: new[] { CSharpRef });
 
             CompileAndVerify(comp, expectedOutput: "Bug813305.M",
                 symbolValidator: m =>
@@ -763,7 +763,7 @@ class C : I
     void I.M(dynamic x) { }
 }
 ";
-            var comp = CreateCompilationWithCustomILSource(source, il, new[] { SystemCoreRef });
+            var comp = CreateStandardCompilationWithCustomILSource(source, il);
             comp.VerifyDiagnostics();
 
             var global = comp.GlobalNamespace;

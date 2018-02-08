@@ -869,7 +869,7 @@ class C
     {
     }
 }";
-            CreateCompilationWithCustomILSource(cSharpSource, ilSource).VerifyDiagnostics(
+            CreateStandardCompilationWithCustomILSource(cSharpSource, ilSource).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_BadArgType, "A.P").WithArguments("1", "void", "object"),
                 Diagnostic(ErrorCode.ERR_BadArgType, "x.Q").WithArguments("1", "void", "object"));
         }
@@ -1088,7 +1088,7 @@ class B {
   }
 }
 ";
-            CreateCompilationWithCustomILSource(cSharpSource, ilSource).VerifyDiagnostics(
+            CreateStandardCompilationWithCustomILSource(cSharpSource, ilSource).VerifyDiagnostics(
                 // (5,13): error CS0176: Member 'A.Goo' cannot be accessed with an instance reference; qualify it with a type name instead
                 //     int x = a.Goo;
                 Diagnostic(ErrorCode.ERR_ObjectProhibited, "a.Goo").WithArguments("A.Goo"));
@@ -1111,7 +1111,7 @@ class B {
   }
 }
 ";
-            CreateCompilationWithCustomILSource(cSharpSource, ilSource).VerifyDiagnostics(
+            CreateStandardCompilationWithCustomILSource(cSharpSource, ilSource).VerifyDiagnostics(
                 // (4,18): error CS1546: Property, indexer, or event 'A.Goo' is not supported by the language; try directly calling accessor method 'A.get_Goo()'
                 //     object x = A.Goo;
                 Diagnostic(ErrorCode.ERR_BindToBogusProp1, "Goo").WithArguments("A.Goo", "A.get_Goo()"));
@@ -1134,7 +1134,7 @@ class B {
   }
 }
 ";
-            CreateCompilationWithCustomILSource(cSharpSource, ilSource).VerifyDiagnostics(
+            CreateStandardCompilationWithCustomILSource(cSharpSource, ilSource).VerifyDiagnostics(
                 // (4,18): error CS1546: Property, indexer, or event 'A.Goo' is not supported by the language; try directly calling accessor method 'A.get_Goo()'
                 //     object x = A.Goo;
                 Diagnostic(ErrorCode.ERR_BindToBogusProp1, "Goo").WithArguments("A.Goo", "A.get_Goo()"));
@@ -1160,7 +1160,7 @@ class B {
   }
 }
 ";
-            CreateCompilationWithCustomILSource(cSharpSource, ilSource).VerifyDiagnostics(
+            CreateStandardCompilationWithCustomILSource(cSharpSource, ilSource).VerifyDiagnostics(
     // (5,11): error CS0268: Imported type 'E' is invalid. It contains a circular base class dependency.
     //     B y = A.Goo; 
     Diagnostic(ErrorCode.ERR_ImportedCircularBase, "A.Goo").WithArguments("E", "E"),
@@ -1351,7 +1351,7 @@ class B {
   }
 }
 ";
-            CreateCompilationWithCustomILSource(cSharpSource, ilSource).VerifyDiagnostics();
+            CreateStandardCompilationWithCustomILSource(cSharpSource, ilSource).VerifyDiagnostics();
         }
 
         [WorkItem(538845, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538845")]
@@ -1371,7 +1371,7 @@ class B {
   }
 }
 ";
-            CreateCompilationWithCustomILSource(cSharpSource, ilSource).VerifyDiagnostics(
+            CreateStandardCompilationWithCustomILSource(cSharpSource, ilSource).VerifyDiagnostics(
                 // (4,15): error CS1546: Property, indexer, or event 'A.Goo' is not supported by the language; try directly calling accessor method 'A.get_Goo()'
                 //     int x = A.Goo;
                 Diagnostic(ErrorCode.ERR_BindToBogusProp1, "Goo").WithArguments("A.Goo", "A.get_Goo()"));
@@ -1393,7 +1393,7 @@ class B {
   }
 }
 ";
-            CreateCompilationWithCustomILSource(cSharpSource, ilSource).VerifyDiagnostics(
+            CreateStandardCompilationWithCustomILSource(cSharpSource, ilSource).VerifyDiagnostics(
                 // (4,15): error CS1546: Property, indexer, or event 'A.Goo' is not supported by the language; try directly calling accessor method 'A.get_Goo()'
                 //     int x = A.Goo;
                 Diagnostic(ErrorCode.ERR_BindToBogusProp1, "Goo").WithArguments("A.Goo", "A.get_Goo()"));
@@ -1416,7 +1416,7 @@ class B {
   }
 }
 ";
-            CreateCompilationWithCustomILSource(cSharpSource, ilSource).VerifyDiagnostics(
+            CreateStandardCompilationWithCustomILSource(cSharpSource, ilSource).VerifyDiagnostics(
                 // (4,18): error CS1546: Property, indexer, or event 'A.Goo' is not supported by the language; try directly calling accessor method 'A.get_Goo()'
                 //     object x = A.Goo;
                 Diagnostic(ErrorCode.ERR_BindToBogusProp1, "Goo").WithArguments("A.Goo", "A.get_Goo()"));
@@ -1441,7 +1441,7 @@ class B {
   }
 }
 ";
-            CreateCompilationWithCustomILSource(cSharpSource, ilSource).VerifyDiagnostics();
+            CreateStandardCompilationWithCustomILSource(cSharpSource, ilSource).VerifyDiagnostics();
         }
 
         [WorkItem(538787, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538787")]
@@ -1475,7 +1475,7 @@ class C {
     }
 }
 ";
-            CreateCompilationWithCustomILSource(cSharpSource, ilSource).VerifyDiagnostics(
+            CreateStandardCompilationWithCustomILSource(cSharpSource, ilSource).VerifyDiagnostics(
                 // (4,24): error CS1546: Property, indexer, or event 'B.Goo' is not supported by the language; try directly calling accessor method 'B.get_Goo()'
                 //         object goo = B.Goo;
                 Diagnostic(ErrorCode.ERR_BindToBogusProp1, "Goo").WithArguments("B.Goo", "B.get_Goo()"));
@@ -1521,7 +1521,7 @@ class C {
     }
 }
 ";
-            CreateCompilationWithCustomILSource(cSharpSource, ilSource).VerifyDiagnostics(
+            CreateStandardCompilationWithCustomILSource(cSharpSource, ilSource).VerifyDiagnostics(
                 // (4,24): error CS0229: Ambiguity between 'B.Goo' and 'B.Goo'
                 //         object goo = B.Goo;
                 Diagnostic(ErrorCode.ERR_AmbigMember, "Goo").WithArguments("B.Goo", "B.Goo"));
@@ -1548,7 +1548,7 @@ class B {
   }
 }
 ";
-            CreateCompilationWithCustomILSource(cSharpSource, ilSource).VerifyDiagnostics(
+            CreateStandardCompilationWithCustomILSource(cSharpSource, ilSource).VerifyDiagnostics(
                 // (4,16): error CS0029: Cannot implicitly convert type 'void' to 'object'
                 //     object x = A.Goo;
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "A.Goo").WithArguments("void", "object"));
@@ -1576,7 +1576,7 @@ class B {
   }
 }
 ";
-            CreateCompilationWithCustomILSource(cSharpSource, ilSource).VerifyDiagnostics(
+            CreateStandardCompilationWithCustomILSource(cSharpSource, ilSource).VerifyDiagnostics(
                 // (4,16): error CS0104: 'A<>' is an ambiguous reference between 'A<T>' and 'A<T>'
                 //     object x = A<int>.Goo;
                 Diagnostic(ErrorCode.ERR_AmbigContext, "A<int>").WithArguments("A<>", "A<T>", "A<T>").WithLocation(4, 16));
@@ -1604,7 +1604,7 @@ class C {
     }
 }
 ";
-            CreateCompilationWithCustomILSource(cSharpSource, ilSource).VerifyDiagnostics(
+            CreateStandardCompilationWithCustomILSource(cSharpSource, ilSource).VerifyDiagnostics(
                 // (4,24): error CS0117: 'B' does not contain a definition for 'Goo'
                 //         object goo = B.Goo;
                 Diagnostic(ErrorCode.ERR_NoSuchMember, "Goo").WithArguments("B", "Goo"));
@@ -2588,7 +2588,7 @@ public interface IA
 
             var refData = AssemblyMetadata.CreateFromImage(refComp.EmitToArray());
             var mdRef = refData.GetReference(embedInteropTypes: false);
-            var comp = CreateStandardCompilation("", new[] { mdRef });
+            var comp = CreateCompilationWithMscorlib46("", new[] { mdRef });
 
             Assert.Equal(2, comp.ExternalReferences.Length);
             Assert.False(comp.ExternalReferences[1].Properties.EmbedInteropTypes);
@@ -2606,7 +2606,7 @@ public interface IA
             Assert.Equal(SpecialType.System_String, iam2.ReturnType.SpecialType);
 
             var compRef = refComp.ToMetadataReference(embedInteropTypes: false);
-            comp = CreateStandardCompilation("", new[] { compRef });
+            comp = CreateCompilationWithMscorlib46("", new[] { compRef });
 
             Assert.Equal(2, comp.ExternalReferences.Length);
             Assert.False(comp.ExternalReferences[1].Properties.EmbedInteropTypes);
@@ -2624,7 +2624,7 @@ public interface IA
             Assert.Equal(SpecialType.System_String, iam2.ReturnType.SpecialType);
 
             mdRef = refData.GetReference(embedInteropTypes: true);
-            comp = CreateStandardCompilation("", new[] { mdRef });
+            comp = CreateCompilationWithMscorlib46("", new[] { mdRef });
 
             Assert.Equal(2, comp.ExternalReferences.Length);
             Assert.True(comp.ExternalReferences[1].Properties.EmbedInteropTypes);
@@ -2642,7 +2642,7 @@ public interface IA
             Assert.Equal(SpecialType.System_String, iam2.ReturnType.SpecialType);
 
             compRef = refComp.ToMetadataReference(embedInteropTypes: true);
-            comp = CreateStandardCompilation("", new[] { compRef });
+            comp = CreateCompilationWithMscorlib46("", new[] { compRef });
 
             Assert.Equal(2, comp.ExternalReferences.Length);
             Assert.True(comp.ExternalReferences[1].Properties.EmbedInteropTypes);
@@ -2681,7 +2681,7 @@ public interface IA
             refData = AssemblyMetadata.CreateFromImage(refComp.EmitToArray());
             mdRef = refData.GetReference(embedInteropTypes: true);
 
-            comp = CreateStandardCompilation("", new[] { mdRef });
+            comp = CreateCompilationWithMscorlib46("", new[] { mdRef });
 
             Assert.Equal(2, comp.ExternalReferences.Length);
             Assert.True(comp.ExternalReferences[1].Properties.EmbedInteropTypes);
@@ -2699,7 +2699,7 @@ public interface IA
             Assert.Equal(SpecialType.System_String, iam2.ReturnType.SpecialType);
 
             compRef = refComp.ToMetadataReference(embedInteropTypes: true);
-            comp = CreateStandardCompilation("", new[] { compRef });
+            comp = CreateCompilationWithMscorlib46("", new[] { compRef });
 
             Assert.Equal(2, comp.ExternalReferences.Length);
             Assert.True(comp.ExternalReferences[1].Properties.EmbedInteropTypes);

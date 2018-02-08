@@ -1932,7 +1932,7 @@ class Program
 this.set(2)
 ";
 
-            var comp = CreateCompilationWithCustomILSource(source, ilSource, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe);
+            var comp = CreateStandardCompilationWithCustomILSource(source, ilSource, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
         }
 

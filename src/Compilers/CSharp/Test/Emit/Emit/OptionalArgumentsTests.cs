@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
         System.Console.WriteLine(""{0}: {1}"", o.GetType(), o);
     }
 }";
-            var compilation = CreateCompilationWithCustomILSource(csharpSource, ilSource, options: TestOptions.DebugExe);
+            var compilation = CreateStandardCompilationWithCustomILSource(csharpSource, ilSource, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput:
 @"System.Reflection.Missing: System.Reflection.Missing

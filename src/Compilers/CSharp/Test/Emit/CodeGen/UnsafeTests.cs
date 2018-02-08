@@ -9661,7 +9661,7 @@ public unsafe class C
         }
     }
 ";
-            var cscomp = CreateCompilationWithCustomILSource(csharpSource, ilSource);
+            var cscomp = CreateStandardCompilationWithCustomILSource(csharpSource, ilSource);
 
             var expected = new[] {
                 // (7,35): error CS0570: 'AddressHelper.AddressOf<T>(?)' is not supported by the language
@@ -9697,7 +9697,7 @@ public unsafe class C
         }
     }
 ";
-            var compilation = CreateCompilationWithCustomILSource(csharpSource, ilSource, options: TestOptions.ReleaseExe);
+            var compilation = CreateStandardCompilationWithCustomILSource(csharpSource, ilSource, options: TestOptions.ReleaseExe);
 
             compilation.VerifyDiagnostics();
 

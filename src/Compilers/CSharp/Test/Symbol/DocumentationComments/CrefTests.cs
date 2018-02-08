@@ -776,7 +776,7 @@ static class D
 /// </summary>
 class C { }
 ";
-            var compilation = CreateCompilationWithCustomILSource(csharp, il);
+            var compilation = CreateStandardCompilationWithCustomILSource(csharp, il);
             foreach (var crefSyntax in GetCrefSyntaxes(compilation))
             {
                 Assert.Equal(SymbolKind.NamedType, GetReferencedSymbol(crefSyntax, compilation).Kind);
@@ -853,7 +853,7 @@ class B
 /// </summary>
 class C { }
 ";
-            var compilation = CreateCompilationWithCustomILSource(csharp, il);
+            var compilation = CreateStandardCompilationWithCustomILSource(csharp, il);
             foreach (var crefSyntax in GetCrefSyntaxes(compilation))
             {
                 Assert.Equal(SymbolKind.Method, GetReferencedSymbol(crefSyntax, compilation).Kind);

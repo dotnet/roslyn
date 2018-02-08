@@ -1674,7 +1674,7 @@ class Program
                 ";
 
             var netModuleRef = GetNetModuleWithAssemblyAttributesRef(mod, new[] { SystemCoreRef });
-            var appCompilation = CreateStandardCompilation(app, references: new[] { SystemCoreRef, netModuleRef }, options: TestOptions.ReleaseDll);
+            var appCompilation = CreateStandardCompilation(app, references: new[] { netModuleRef }, options: TestOptions.ReleaseDll);
             var diagnostics = appCompilation.GetDiagnostics();
             Assert.False(diagnostics.Any());
         }

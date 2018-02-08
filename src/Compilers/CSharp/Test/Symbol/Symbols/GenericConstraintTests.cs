@@ -770,7 +770,7 @@ class C<T> where T : class
         new B();
     }
 }";
-            CreateStandardCompilation(text, references: new[] { SystemCoreRef }).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
                 // (1,7): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T' in the generic type or method 'C<T>'
                 Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "A").WithArguments("C<T>", "T", "int").WithLocation(1, 7),
                 // (2,7): error CS0452: The type 'bool' must be a reference type in order to use it as parameter 'T' in the generic type or method 'C<T>'
@@ -795,7 +795,7 @@ class C<T> where T : class
     internal delegate void D1<U>() where U : T;
     internal delegate void D2<U>() where U : new();
 }";
-            CreateStandardCompilation(text, references: new[] { SystemCoreRef }).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
                 // (1,7): error CS0453: The type 'int?' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'I<T>'
                 // using A = C<I<int?>>;
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "A").WithArguments("I<T>", "T", "int?"),
@@ -1078,7 +1078,7 @@ static class C
     static void F(this object o) { }
     static void F<T>(this T t) where T : struct { }
 }";
-            CreateStandardCompilation(text, references: new[] { SystemCoreRef }).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
                 // (7,9): error CS0310: 'I' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'C.E<T>(T)'
                 Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "i.E").WithArguments("C.E<T>(T)", "T", "I").WithLocation(7, 9),
                 // (9,9): error CS0453: The type 'I' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'C.F<T>(T)'
@@ -1996,7 +1996,7 @@ class B2 : A2, I { }
 class B3 : A3, I { }
 class B4 : A4, I { }
 class B5 : A5, I { }";
-            CreateCompilationWithCustomILSource(csharpSource, ilSource).VerifyDiagnostics(
+            CreateStandardCompilationWithCustomILSource(csharpSource, ilSource).VerifyDiagnostics(
                 // (2,16): error CS0425: The constraints for type parameter 'T' of method 'A2.M<T>()' must match the constraints for type parameter 'T' of interface method 'I.M<T>()'. Consider using an explicit interface implementation instead.
                 // class B2 : A2, I { }
                 Diagnostic(ErrorCode.ERR_ImplBadConstraints, "I").WithArguments("T", "A2.M<T>()", "T", "I.M<T>()").WithLocation(2, 16),
@@ -2654,7 +2654,7 @@ class C<T> where T : IA, IB
         o = C9<string>.F;
     }
 }";
-            CreateCompilationWithCustomILSource(csharpSource, ilSource).VerifyDiagnostics(
+            CreateStandardCompilationWithCustomILSource(csharpSource, ilSource).VerifyDiagnostics(
                 // (11,16): error CS0311: The type 'string' cannot be used as type parameter 'T' in the generic type or method 'C2<T>'. There is no implicit reference conversion from 'string' to 'System.Enum'.
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "string").WithArguments("C2<T>", "System.Enum", "T", "string").WithLocation(11, 16),
                 // (14,16): error CS0311: The type 'string' cannot be used as type parameter 'T' in the generic type or method 'C3<T>'. There is no implicit reference conversion from 'string' to 'System.ValueType'.
@@ -2697,7 +2697,7 @@ class C<T> where T : IA, IB
         B.M<string, string>();
     }
 }";
-            CreateCompilationWithCustomILSource(csharpSource, ilSource).VerifyDiagnostics(
+            CreateStandardCompilationWithCustomILSource(csharpSource, ilSource).VerifyDiagnostics(
                 // (3,29): error CS0454: Circular constraint dependency involving 'T' and 'T'
                 //     static void M(A<object> a) { }
                 Diagnostic(ErrorCode.ERR_CircularConstraint, "a").WithArguments("T", "T").WithLocation(3, 29),
@@ -2732,7 +2732,7 @@ class C<T> where T : IA, IB
 }";
             // Note: for method overload resolution, methods with use-site errors
             // are ignored so there is no constraint error for B.M<string>().
-            CreateCompilationWithCustomILSource(csharpSource, ilSource).VerifyDiagnostics(
+            CreateStandardCompilationWithCustomILSource(csharpSource, ilSource).VerifyDiagnostics(
                 // (3,29): error CS0012: The type 'C' is defined in an assembly that is not referenced. You must add a reference to assembly 'other, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //     static void M(A<object> a) { }
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "a").WithArguments("C", "other, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(3, 29),
@@ -2893,7 +2893,7 @@ class C5B : B5
         A3.M<object>();
     }
 }";
-            CreateCompilationWithCustomILSource(csharpSource, ilSource).VerifyDiagnostics(
+            CreateStandardCompilationWithCustomILSource(csharpSource, ilSource).VerifyDiagnostics(
                 // (3,30): error CS0012: The type 'B1' is defined in an assembly that is not referenced. You must add a reference to assembly 'other, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //     static void M(A1<object> a) { }
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "a").WithArguments("B1", "other, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(3, 30),
@@ -3010,7 +3010,7 @@ public class A3
     static void M(AIn<IIn<object>> o) { }
     static void M(AOut<IOut<object>> o) { }
 }";
-            CreateCompilationWithCustomILSource(csharpSource, ilSource).VerifyDiagnostics(
+            CreateStandardCompilationWithCustomILSource(csharpSource, ilSource).VerifyDiagnostics(
                 // (3,30): error CS0012: The type 'B' is defined in an assembly that is not referenced. You must add a reference to assembly 'other, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //     static void M(A0<object> o) { }
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "o").WithArguments("B", "other, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(3, 30),
@@ -3197,7 +3197,7 @@ class D
         M1(new C2());
     }
 }";
-            var compilation = CreateCompilationWithCustomILSource(csharpSource, ilSource);
+            var compilation = CreateStandardCompilationWithCustomILSource(csharpSource, ilSource);
             compilation.VerifyDiagnostics(
                 // (1,15): error CS0425: The constraints for type parameter 'T' of method 'B.M<T>()' must match the constraints for type parameter 'T' of interface method 'I.M<T>()'. Consider using an explicit interface implementation instead.
                 // class C2 : B, I { }
@@ -3241,7 +3241,7 @@ class C<T> : IT<T>
 {
     void M<U>() where U : T { }
 }";
-            var compilation = CreateCompilationWithCustomILSource(csharpSource, ilSource);
+            var compilation = CreateStandardCompilationWithCustomILSource(csharpSource, ilSource);
             compilation.VerifyDiagnostics(
                 // (3,14): error CS0648: '' is a type not supported by the language
                 //     void I.M<T>() { }
@@ -3298,7 +3298,7 @@ class P
         ((I<A>)new C()).M<A>();
     }
 }";
-            var compilation = CreateCompilationWithCustomILSource(csharpSource, ilSource);
+            var compilation = CreateStandardCompilationWithCustomILSource(csharpSource, ilSource);
             compilation.VerifyDiagnostics(
                 // (5,7): error CS0311: The type 'A' cannot be used as type parameter 'T' in the generic type or method 'I<T>'. There is no implicit reference conversion from 'A' to '?'.
                 // class C : I<A>
@@ -3429,7 +3429,7 @@ class P
         o = typeof(IIn<object>.IOut); // CS0648 (not reported by Dev11)
     }
 }";
-            var compilation1 = CreateCompilationWithCustomILSource(csharpSource, ilSource);
+            var compilation1 = CreateStandardCompilationWithCustomILSource(csharpSource, ilSource);
             compilation1.VerifyDiagnostics(
                 // (10,31): error CS0648: 'IT<T>.ITU2<U>' is a type not supported by the language
                 //         o = typeof(IT<object>.ITU2<object>); // CS0648
@@ -3530,7 +3530,7 @@ class C2 : IC2<I, A, object> { }
 class C3 : B3<I, A, object>, IC3_1 { }
 class C4 : B4<I, A, object> { }
 ";
-            var compilation = CreateCompilationWithCustomILSource(csharpSource, ilSource);
+            var compilation = CreateStandardCompilationWithCustomILSource(csharpSource, ilSource);
             compilation.VerifyDiagnostics(
                 // (1,11): error CS0453: The type 'I' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'IA1_1<T>'
                 // interface IC1 : IB1<I, A, object> { }
@@ -5091,7 +5091,7 @@ class C
 .class public R1<(A) T> { }
 .class public R2<class (A) T> { }";
             var csharpSource = "";
-            var compilation = CreateCompilationWithCustomILSource(csharpSource, ilSource);
+            var compilation = CreateStandardCompilationWithCustomILSource(csharpSource, ilSource);
             var @namespace = compilation.GlobalNamespace;
             CheckConstraints(@namespace.GetMember<NamedTypeSymbol>("O1").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object");
             CheckConstraints(@namespace.GetMember<NamedTypeSymbol>("O2").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object");
@@ -5134,7 +5134,7 @@ class C
   .method public virtual instance void M2<valuetype (class [mscorlib]System.ValueType)U>() { ret }
 }";
             var csharpSource = "";
-            var compilation = CreateCompilationWithCustomILSource(csharpSource, ilSource);
+            var compilation = CreateStandardCompilationWithCustomILSource(csharpSource, ilSource);
             var @namespace = compilation.GlobalNamespace;
             var type = @namespace.GetMember<NamedTypeSymbol>("B0");
             CheckConstraints(type.GetMember<MethodSymbol>("M1").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object");
@@ -5246,7 +5246,7 @@ class C1 : C0
     public override void M1<U>() { }
     public override void M2<U>() { }
 }";
-            CreateCompilationWithCustomILSource(csharpSource, ilSource).VerifyDiagnostics();
+            CreateStandardCompilationWithCustomILSource(csharpSource, ilSource).VerifyDiagnostics();
         }
 
         /// <summary>
@@ -5315,7 +5315,7 @@ class D<T>
 class D0 : D<object>
 {
 }";
-            var compilation = CreateCompilationWithCustomILSource(csharpSource, ilSource).VerifyDiagnostics();
+            var compilation = CreateStandardCompilationWithCustomILSource(csharpSource, ilSource).VerifyDiagnostics();
             var @namespace = compilation.GlobalNamespace;
             var type = @namespace.GetMember<NamedTypeSymbol>("I0");
             CheckConstraints(type.Interfaces()[0].GetMember<MethodSymbol>("M").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object");
@@ -6208,7 +6208,7 @@ public class Test5
         GStruct<int, int> obj15 = new GStruct<int, int>();
     }
 }";
-            CreateCompilationWithCustomILSource(source, ilSource, appendDefaultHeader: false).VerifyDiagnostics();
+            CreateStandardCompilationWithCustomILSource(source, ilSource, appendDefaultHeader: false).VerifyDiagnostics();
         }
 
         [WorkItem(531630, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531630")]

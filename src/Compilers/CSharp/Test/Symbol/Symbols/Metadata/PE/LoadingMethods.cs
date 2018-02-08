@@ -1170,7 +1170,7 @@ class Override : MetadataModifiers
 } 
 ";
 
-            var compilation = CreateCompilationWithCustomILSource("", ilSource);
+            var compilation = CreateStandardCompilationWithCustomILSource("", ilSource);
 
             foreach (var m in compilation.GetTypeByMetadataName("cls1").GetMembers())
             {
@@ -1232,7 +1232,7 @@ class Override : MetadataModifiers
 } // end of class Microsoft.FSharp.Control.IDelegateEvent`1
 ";
 
-            var compilation = CreateCompilationWithCustomILSource("", ilSource);
+            var compilation = CreateStandardCompilationWithCustomILSource("", ilSource);
 
             foreach (var m in compilation.GetTypeByMetadataName("Microsoft.FSharp.Control.IDelegateEvent`1").GetMembers())
             {
