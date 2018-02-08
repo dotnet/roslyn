@@ -25,7 +25,6 @@ usage()
 root_path="$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 binaries_path="${root_path}"/Binaries
 bootstrap_path="${binaries_path}"/Bootstrap
-bootstrap_framework=netcoreapp2.0
 
 args=
 build_in_docker=false
@@ -33,7 +32,6 @@ build_configuration=Debug
 restore=false
 build=false
 test_=false
-use_mono=false
 build_bootstrap=false
 use_bootstrap=false
 stop_vbcscompiler=false
@@ -111,16 +109,28 @@ then
     exit
 fi
 
+if [[ -n "$use_mono" ]]
+then
+    bootstrap_framework=net46
+else
+    bootstrap_framework=netcoreapp2.0
+fi
+
 source "${root_path}"/build/scripts/obtain_dotnet.sh
 
 if [[ "$restore" == true ]]
 then
-    "${root_path}"/build/scripts/restore.sh
+    "${root_path}"/build/scripts/restore.sh ${use_mono:+--mono}
 fi
 
-build_args="--no-restore -c ${build_configuration} /nologo /maxcpucount:1"
+if [[ -n "$use_mono" ]] 
+then
+    build_args="/v:minimal /nologo /maxcpucount:1"
+else
+    build_args="--no-restore -c ${build_configuration} /nologo /maxcpucount:1"
+fi
 
-if [[ "$build_bootstrap" == true ]]
+if [[ "$build_bootstrap" == true && -n "$use_mono" ]]
 then
     echo "Building bootstrap toolset"
     bootstrap_build_args="${build_args} /p:UseShippingAssemblyVersion=true /p:InitialDefineConstants=BOOTSTRAP"
@@ -130,7 +140,7 @@ then
     dotnet publish "${root_path}"/src/Compilers/Core/MSBuildTask -o "${bootstrap_path}" ${bootstrap_build_args} "/bl:${binaries_path}/BoostrapMSBuildTask.binlog"
 fi
 
-if [[ "${use_bootstrap}" == true ]]
+if [[ "${use_bootstrap}" == true && -n "$use_mono" ]]
 then
     build_args+=" /p:BootstrapBuildPath=${bootstrap_path}"
 fi
@@ -144,8 +154,14 @@ fi
 
 if [[ "${build}" == true ]]
 then
+    if [[ -n "$use_mono" ]] ; then
+        build_cmd="msbuild"
+    else
+        build_cmd="dotnet build"
+    fi
+
     echo "Building Compilers.sln"
-    dotnet build "${root_path}"/Compilers.sln ${build_args} "/bl:${binaries_path}/Build.binlog"
+    $build_cmd "${root_path}"/Compilers.sln ${build_args} "/bl:${binaries_path}/Build.binlog"
 fi
 
 if [[ "${stop_vbcscompiler}" == true ]]
@@ -162,7 +178,7 @@ fi
 
 if [[ "${test_}" == true ]]
 then
-    if [[ "${use_mono}" == true ]]
+    if [[ -n "$use_mono" ]]
     then
         test_runtime=mono
     else
