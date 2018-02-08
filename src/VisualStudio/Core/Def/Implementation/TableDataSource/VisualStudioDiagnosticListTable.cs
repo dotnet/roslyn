@@ -84,7 +84,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             var taskStatusCenter = serviceProvider?.GetService(typeof(SVsTaskStatusCenterService)) as IVsTaskStatusCenterService;
             if (taskStatusCenter != null)
             {
-                _reporter = new ProgressReporter(ServicesVSResources.Live_code_analysis, taskStatusCenter);
+                _reporter = new ProgressReporter(taskStatusCenter);
             }
 
             _liveTableSource = new LiveTableDataSource(workspace, diagnosticService, IdentifierString, _reporter);

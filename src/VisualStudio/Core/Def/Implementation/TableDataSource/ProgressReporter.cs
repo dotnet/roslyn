@@ -1,20 +1,16 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
-using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.Shell.TableControl;
-using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.TaskStatusCenter;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
+    /// <summary>
+    /// This reports table source (error list or todo comments) updating progress to Task Status Center. 
+    /// this is tailored for table sources specifically. and not designed for generic usage. it expects certain
+    /// behavior of error list where all events are serialized from the caller. in another word,
+    /// there will be no concurrent call to any of these methods
+    /// </summary>
     internal class ProgressReporter
     {
         private readonly IVsTaskStatusCenterService _taskCenterService;
@@ -24,13 +20,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         private ITaskHandler _taskHandler;
         private string _lastMessage;
 
-        public ProgressReporter(string title, IVsTaskStatusCenterService taskCenterService)
+        public ProgressReporter(IVsTaskStatusCenterService taskCenterService)
         {
             _taskCenterService = taskCenterService;
 
             _options = new TaskHandlerOptions()
             {
-                Title = title,
+                Title = ServicesVSResources.Live_code_analysis,
                 ActionsAfterCompletion = CompletionActions.None
             };
         }
@@ -42,7 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 // if there is any pending one. make sure it is finished.
                 _currentTask?.TrySetResult(true);
 
-                _taskHandler = _taskCenterService.PreRegister(_options, default);
+                _taskHandler = _taskCenterService.PreRegister(_options, data: default);
 
                 _currentTask = new TaskCompletionSource<bool>();
                 _taskHandler.RegisterTask(_currentTask.Task);

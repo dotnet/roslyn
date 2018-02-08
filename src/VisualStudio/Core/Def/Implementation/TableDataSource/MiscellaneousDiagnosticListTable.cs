@@ -37,7 +37,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             SVsServiceProvider serviceProvider, Workspace workspace, IDiagnosticService diagnosticService, ITableManagerProvider provider) :
             base(serviceProvider, workspace, diagnosticService, provider)
         {
-            _source = new LiveTableDataSource(workspace, diagnosticService, IdentifierString);
+            // we don't report progress for misc project
+            _source = new LiveTableDataSource(workspace, diagnosticService, IdentifierString, reporterOpt: null);
             AddInitialTableSource(workspace.CurrentSolution, _source);
         }
 

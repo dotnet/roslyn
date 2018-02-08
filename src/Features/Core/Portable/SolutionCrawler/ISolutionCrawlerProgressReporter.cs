@@ -16,6 +16,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
         /// <summary>
         /// Raised when solution crawler progress changed
+        /// 
+        /// bool indicates whether progress is started or stopped
         /// </summary>
         event EventHandler<bool> ProgressChanged;
     }
