@@ -30,7 +30,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         internal MiscellaneousDiagnosticListTable(Workspace workspace, IDiagnosticService diagnosticService, ITableManagerProvider provider) :
             base(workspace, diagnosticService, provider)
         {
-            // we don't report progress for misc project
             _source = new LiveTableDataSource(workspace, diagnosticService, IdentifierString);
             AddInitialTableSource(workspace.CurrentSolution, _source);
         }
