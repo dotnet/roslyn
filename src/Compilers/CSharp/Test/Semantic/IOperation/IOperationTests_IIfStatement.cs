@@ -1190,15 +1190,13 @@ Block[1] - Block
     Predecessors (1)
         [0]
     Statements (1)
-        IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'bool condition = false;')
-          IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'bool condition = false')
-            Declarators:
-                IVariableDeclaratorOperation (Symbol: System.Boolean condition) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'condition = false')
-                  Initializer: 
-                    IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= false')
-                      ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
-            Initializer: 
-              null
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'condition = false')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'condition = false')
+              Left: 
+                ILocalReferenceOperation: condition (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Boolean, IsImplicit) (Syntax: 'condition = false')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
 
     Jump if False to Block[3]
         ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
@@ -1261,15 +1259,13 @@ Block[1] - Block
     Predecessors (1)
         [0]
     Statements (1)
-        IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'bool condition = false;')
-          IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'bool condition = false')
-            Declarators:
-                IVariableDeclaratorOperation (Symbol: System.Boolean condition) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'condition = false')
-                  Initializer: 
-                    IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= false')
-                      ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
-            Initializer: 
-              null
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'condition = false')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'condition = false')
+              Left: 
+                ILocalReferenceOperation: condition (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Boolean, IsImplicit) (Syntax: 'condition = false')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
 
     Jump if False to Block[3]
         ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')

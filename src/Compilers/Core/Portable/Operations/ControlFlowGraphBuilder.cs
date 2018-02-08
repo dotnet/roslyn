@@ -433,7 +433,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
 
-        private IOperation VisitShortCircuitingOperator(IBinaryOperation condition, bool sense, bool stopSense, bool stopValue, 
+        private IOperation VisitShortCircuitingOperator(IBinaryOperation condition, bool sense, bool stopSense, bool stopValue,
                                                         int? captureIdForResult, BasicBlock fallToTrueOpt, BasicBlock fallToFalseOpt)
         {
             // we generate:
@@ -529,7 +529,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private void VisitConditionalBranch(IOperation condition, ref BasicBlock dest, bool sense)
         {
-oneMoreTime:
+            oneMoreTime:
 
             switch (condition.Kind)
             {
@@ -733,7 +733,7 @@ oneMoreTime:
             var whenNull = new BasicBlock(BasicBlockKind.Block);
 
             IConditionalAccessOperation currentConditionalAccess = operation;
-            IOperation testExpression; 
+            IOperation testExpression;
 
             while (true)
             {
@@ -907,6 +907,89 @@ oneMoreTime:
             return null;
         }
 
+        public override IOperation VisitVariableDeclarationGroup(IVariableDeclarationGroupOperation operation, int? captureIdForResult)
+        {
+            // Anything that has a declaration group (such as for loops) needs to handle them directly itself,
+            // this should only be encountered by the visitor for declaration statements.
+            Debug.Assert(_currentStatement == operation);
+
+            // We erase variable declarations from the control flow graph, as variable lifetime information is
+            // contained in a parallel data structure.
+            foreach (var declaration in operation.Declarations)
+            {
+                HandleVariableDeclaration(declaration);
+            }
+
+            return null;
+        }
+
+        private void HandleVariableDeclaration(IVariableDeclarationOperation operation)
+        {
+            foreach (IVariableDeclaratorOperation declarator in operation.Declarators)
+            {
+                ILocalSymbol localSymbol = declarator.Symbol;
+
+                IOperation initializer = null;
+                SyntaxNode assignmentSyntax = null;
+                if (declarator.Initializer != null)
+                {
+                    initializer = Visit(declarator.Initializer.Value);
+                    assignmentSyntax = declarator.Syntax;
+                }
+
+                if (operation.Initializer != null)
+                {
+                    IOperation operationInitializer = Visit(operation.Initializer.Value);
+                    assignmentSyntax = operation.Syntax;
+                    if (initializer != null)
+                    {
+                        // PROTOTYPE(dataflow): Add a test with control flow in a shared initializer after
+                        // object creation support has been added
+                        initializer = new InvalidOperation(ImmutableArray.Create(initializer, operationInitializer),
+                                                           semanticModel: null,
+                                                           operation.Syntax,
+                                                           type: localSymbol.Type,
+                                                           constantValue: default,
+                                                           isImplicit: true);
+                    }
+                    else
+                    {
+                        initializer = operationInitializer;
+                    }
+                }
+
+                if (initializer != null)
+                {
+                    // We can't use the IdentifierToken as the syntax for the local reference, so we use the
+                    // entire declarator as the node
+                    var localRef = new LocalReferenceExpression(localSymbol, isDeclaration: true, semanticModel: null, declarator.Syntax, localSymbol.Type, constantValue: default, isImplicit: true);
+                    // PROTOTYPE(dataflow): We'd like to remove ExpressionStatements from the CFG altogether,
+                    // as they're useless when all you need to do is look to see if the parent is null
+                    var assignment = new SimpleAssignmentExpression(localRef, isRef: localSymbol.IsRef, initializer, semanticModel: null, assignmentSyntax, localRef.Type, constantValue: default, isImplicit: true);
+                    var statement = new ExpressionStatement(assignment, semanticModel: null, assignmentSyntax, type: null, constantValue: default, isImplicit: true);
+                    AddStatement(statement);
+                }
+            }
+        }
+
+        public override IOperation VisitVariableDeclaration(IVariableDeclarationOperation operation, int? captureIdForResult)
+        {
+            // All variable declarators should be handled by VisitVariableDeclarationGroup.
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        public override IOperation VisitVariableDeclarator(IVariableDeclaratorOperation operation, int? captureIdForResult)
+        {
+            // All variable declarators should be handled by VisitVariableDeclaration.
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        public override IOperation VisitVariableInitializer(IVariableInitializerOperation operation, int? captureIdForResult)
+        {
+            // All variable initializers should be removed from the tree by VisitVariableDeclaration.
+            throw ExceptionUtilities.Unreachable;
+        }
+
         private T Visit<T>(T node) where T : IOperation
         {
             return (T)Visit(node, argument: null);
@@ -933,21 +1016,6 @@ oneMoreTime:
         {
             // clone the array
             return nodes.SelectAsArray(n => Visit(n));
-        }
-
-        public override IOperation VisitVariableDeclarationGroup(IVariableDeclarationGroupOperation operation, int? captureIdForResult)
-        {
-            return new VariableDeclarationGroupOperation(VisitArray(operation.Declarations), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
-        }
-
-        public override IOperation VisitVariableDeclarator(IVariableDeclaratorOperation operation, int? captureIdForResult)
-        {
-            return new VariableDeclarator(operation.Symbol, Visit(operation.Initializer), VisitArray(operation.IgnoredArguments), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
-        }
-
-        public override IOperation VisitVariableDeclaration(IVariableDeclarationOperation operation, int? captureIdForResult)
-        {
-            return new VariableDeclaration(VisitArray(operation.Declarators), Visit(operation.Initializer), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitConversion(IConversionOperation operation, int? captureIdForResult)
@@ -997,6 +1065,7 @@ oneMoreTime:
 
         public override IOperation VisitForEachLoop(IForEachLoopOperation operation, int? captureIdForResult)
         {
+            // PROTOTYPE(dataflow): note that the loop control variable can be an IVariableDeclarator directly, and this function is expected to handle it without calling Visit(IVariableDeclarator)
             return new ForEachLoopStatement(operation.Locals, Visit(operation.LoopControlVariable), Visit(operation.Collection), VisitArray(operation.NextVariables), Visit(operation.Body), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
@@ -1214,11 +1283,6 @@ oneMoreTime:
         public override IOperation VisitFieldInitializer(IFieldInitializerOperation operation, int? captureIdForResult)
         {
             return new FieldInitializer(operation.InitializedFields, Visit(operation.Value), operation.Kind, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
-        }
-
-        public override IOperation VisitVariableInitializer(IVariableInitializerOperation operation, int? captureIdForResult)
-        {
-            return new VariableInitializer(Visit(operation.Value), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitPropertyInitializer(IPropertyInitializerOperation operation, int? captureIdForResult)

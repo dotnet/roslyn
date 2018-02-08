@@ -142,14 +142,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 case OperationKind.CatchClause:
                 case OperationKind.SwitchCase:
                 case OperationKind.CaseClause:
+                case OperationKind.VariableDeclarationGroup:
+                case OperationKind.VariableDeclaration:
+                case OperationKind.VariableDeclarator:
+                case OperationKind.VariableInitializer:
                     return false;
 
                 case OperationKind.Labeled:
                     return true; // PROTOTYPE(dataflow): should be replaced with the underlying statemen
-
-                case OperationKind.VariableDeclarationGroup:
-                case OperationKind.VariableInitializer:
-                    return true; // PROTOTYPE(dataflow): should be translated into assignments
 
                 case OperationKind.BinaryOperator:
                     var binary = (IBinaryOperation)n;
@@ -208,8 +208,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 case OperationKind.DeconstructionAssignment:
                 case OperationKind.DeclarationExpression:
                 case OperationKind.OmittedArgument:
-                case OperationKind.VariableDeclarator:
-                case OperationKind.VariableDeclaration:
                 case OperationKind.Argument:
                 case OperationKind.InterpolatedStringText:
                 case OperationKind.Interpolation:
