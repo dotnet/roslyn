@@ -55,18 +55,57 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddAccessibilityModifiers
                 Return
             End If
 
-            ' If they already have accessibility, no need to report anything.
+            ' This analyzer bases all of its decisions on the accessibility
             Dim Accessibility = generator.GetAccessibility(member)
-            If Accessibility <> Accessibility.NotApplicable Then
-                Return
+
+            ' Omit will flag any accesibility values that exist and are default
+            ' The other options will remove or ignore accessibility
+            Dim isOmit = [option].Value = AccessibilityModifiersRequired.OmitIfDefault
+
+            If isOmit Then
+                If Accessibility = Accessibility.NotApplicable Then
+                    ' Accessibility modifier already missing.  nothing we need to do.
+                    Return
+                End If
+
+                If Not MatchesDefaultAccessibility(Accessibility, member) Then
+                    ' Explicit accessibility was different than the default accessibility.
+                    ' We have to keep this here.
+                    Return
+                End If
+           
+            Else ' Require all, flag missing modidifers
+                If Accessibility <> Accessibility.NotApplicable Then
+                    Return
+                End If
             End If
 
-            ' Missing accessibility.  Report issue to user.
+            ' Have an issue to flag, either add or remove. Report issue to user.
             Dim additionalLocations = ImmutableArray.Create(member.GetLocation())
             context.ReportDiagnostic(Diagnostic.Create(
                 CreateDescriptorWithSeverity([option].Notification.Value),
                 name.GetLocation(),
                 additionalLocations:=additionalLocations))
         End Sub
+
+        Private Function MatchesDefaultAccessibility(accessibility As Accessibility, member As StatementSyntax) As Boolean
+            ' Top level items in a namespace or file
+            If member.IsParentKind(SyntaxKind.CompilationUnit) OrElse
+               member.IsParentKind(SyntaxKind.NamespaceBlock) Then
+               ' default is Friend
+                Return accessibility = Accessibility.Friend
+            End If
+
+            ' default for const and field in a class is private
+            If member.IsParentKind(SyntaxKind.ClassBlock) OrElse 
+               member.IsParentKind(SyntaxKind.ModuleBlock) Then                
+                If member.IsKind(SyntaxKind.FieldDeclaration) Then
+                    Return accessibility = Accessibility.Private
+                End If
+            End If
+
+            ' Everything else has a default of public
+            Return accessibility = Accessibility.Public
+        End Function
     End Class
 End Namespace

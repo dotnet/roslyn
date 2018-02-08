@@ -112,6 +112,7 @@ End Class
             Assert.Equal(u__c3.GetHashCode(), u_c3.GetHashCode())
             Assert.Equal("C4, C6", String.Join(", ", u_c3.MemberNames))
             Assert.Equal("C3(Of ).C4, C3(Of ).C6(Of T1)", String.Join(", ", u_c3.GetMembers().Select(Function(s) s.ToTestDisplayString())))
+
             Assert.Equal(0, u_c3.GetMembers().As(Of NamedTypeSymbol)().Where(Function(s) Not s.ContainingType.IsUnboundGenericType OrElse s.IsUnboundGenericType <> (s.Arity = 0)).Count)
             Assert.Equal("C3(Of ).C6(Of T1)", String.Join(", ", u_c3.GetMembers("c6").Select(Function(s) s.ToTestDisplayString())))
             Assert.Equal(0, u_c3.GetMembers("c6").As(Of NamedTypeSymbol)().Where(Function(s) Not s.ContainingType.IsUnboundGenericType OrElse s.IsUnboundGenericType <> (s.Arity = 0)).Count)
@@ -238,6 +239,51 @@ End Class
             Assert.Same(u_c7.ContainingSymbol, u_c7_cf.ContainingSymbol)
             Assert.Same(u_c7_cf, u_c7_cf.ConstructedFrom)
             Assert.Same(u_c7, u_c7_cf.ConstructUnboundGenericType())
+        End Sub
+
+        <Fact>
+        <WorkItem(3898, "https://github.com/dotnet/roslyn/issues/3898")>
+        Public Sub UnboundGenericType_IsSerializable()
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="C">
+    <file name="a.vb"><![CDATA[
+
+Class C3(Of T)
+    Class C6(Of T1)
+    End Class
+End Class
+
+<System.Serializable>
+Class C3S(Of T)
+    <System.Serializable>
+    Class C6S(Of T1)
+    End Class
+End Class
+    ]]></file>
+</compilation>)
+
+            Dim c3 = compilation.GetTypeByMetadataName("C3`1")
+            Dim c6 = c3.GetTypeMembers("C6").Single()
+
+            Dim u_c3 = c3.ConstructUnboundGenericType()
+            Assert.Equal("Microsoft.CodeAnalysis.VisualBasic.Symbols.UnboundGenericType+ConstructedSymbol", u_c3.GetType().FullName)
+            Assert.False(DirectCast(u_c3, INamedTypeSymbol).IsSerializable)
+
+            Dim c3c6 = u_c3.GetMember("C6")
+            Assert.Equal("Microsoft.CodeAnalysis.VisualBasic.Symbols.UnboundGenericType+ConstructedFromSymbol", c3c6.GetType().FullName)
+            Assert.False(DirectCast(c3c6, INamedTypeSymbol).IsSerializable)
+
+            Dim c3s = compilation.GetTypeByMetadataName("C3S`1")
+            Dim c6s = c3s.GetTypeMembers("C6S").Single()
+
+            Dim u_c3s = c3s.ConstructUnboundGenericType()
+            Assert.Equal("Microsoft.CodeAnalysis.VisualBasic.Symbols.UnboundGenericType+ConstructedSymbol", u_c3s.GetType().FullName)
+            Assert.True(DirectCast(u_c3s, INamedTypeSymbol).IsSerializable)
+
+            Dim c3c6s = u_c3s.GetMember("C6S")
+            Assert.Equal("Microsoft.CodeAnalysis.VisualBasic.Symbols.UnboundGenericType+ConstructedFromSymbol", c3c6s.GetType().FullName)
+            Assert.True(DirectCast(c3c6s, INamedTypeSymbol).IsSerializable)
         End Sub
 
     End Class

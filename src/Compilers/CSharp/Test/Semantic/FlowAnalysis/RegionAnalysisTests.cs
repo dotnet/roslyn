@@ -3953,6 +3953,26 @@ class C {
         }
 
         [Fact]
+        public void TestMultipleLambdaExpressions()
+        {
+            var analysis = CompileAndAnalyzeDataFlowExpression(@"
+class C
+{
+    void M()
+    {
+        int i;
+        N(/*<bind>*/() => { M(); }/*</bind>*/, () => { i++; });
+    }
+    void N(System.Action x, System.Action y) { }
+}");
+
+            Assert.True(analysis.Succeeded);
+            Assert.Equal("this, i", GetSymbolNamesJoined(analysis.Captured));
+            Assert.Equal("this", GetSymbolNamesJoined(analysis.CapturedInside));
+            Assert.Equal("i", GetSymbolNamesJoined(analysis.CapturedOutside));
+        }
+
+        [Fact]
         public void TestReturnFromLambda()
         {
             var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
@@ -4934,18 +4954,18 @@ public class MyClass : BaseClass
             Assert.Empty(flowAnalysis.Captured);
             Assert.Empty(flowAnalysis.CapturedInside);
             Assert.Empty(flowAnalysis.CapturedOutside);
-            Assert.Equal("MyClass @this", flowAnalysis.DataFlowsIn.Single().ToTestDisplayString());
+            Assert.Equal("MyClass this", flowAnalysis.DataFlowsIn.Single().ToTestDisplayString());
             Assert.Empty(flowAnalysis.DataFlowsOut);
-            Assert.Equal("MyClass @this", flowAnalysis.ReadInside.Single().ToTestDisplayString());
+            Assert.Equal("MyClass this", flowAnalysis.ReadInside.Single().ToTestDisplayString());
             Assert.Empty(flowAnalysis.WrittenInside);
-            Assert.Equal("MyClass @this", flowAnalysis.WrittenOutside.Single().ToTestDisplayString());
+            Assert.Equal("MyClass this", flowAnalysis.WrittenOutside.Single().ToTestDisplayString());
 
             var lambda = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Single();
             flowAnalysis = model.AnalyzeDataFlow(lambda);
-            Assert.Equal("MyClass @this", flowAnalysis.Captured.Single().ToTestDisplayString());
-            Assert.Equal("MyClass @this", flowAnalysis.DataFlowsIn.Single().ToTestDisplayString());
+            Assert.Equal("MyClass this", flowAnalysis.Captured.Single().ToTestDisplayString());
+            Assert.Equal("MyClass this", flowAnalysis.DataFlowsIn.Single().ToTestDisplayString());
             Assert.Empty(flowAnalysis.DataFlowsOut);
-            Assert.Equal("MyClass @this", flowAnalysis.ReadInside.Single().ToTestDisplayString());
+            Assert.Equal("MyClass this", flowAnalysis.ReadInside.Single().ToTestDisplayString());
             Assert.Empty(flowAnalysis.WrittenInside);
             Assert.Equal("this, f", GetSymbolNamesJoined(flowAnalysis.WrittenOutside));
         }

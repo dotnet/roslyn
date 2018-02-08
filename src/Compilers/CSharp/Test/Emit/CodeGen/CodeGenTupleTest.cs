@@ -365,6 +365,7 @@ public class C4 : C3
                 Assert.Equal(1, iface.TypeArguments().Length);
                 TypeSymbol typeArg = iface.TypeArguments()[0];
                 Assert.True(typeArg.IsTupleType);
+                Assert.False(((INamedTypeSymbol)typeArg).IsSerializable);
                 Assert.Equal(2, typeArg.TupleElementTypes.Length);
                 Assert.All(typeArg.TupleElementTypes,
                    t => Assert.Equal(SpecialType.System_Int32, t.SpecialType));
@@ -721,6 +722,7 @@ references: s_valueTupleRefs);
             var tooFewNames = c.GetMember<FieldSymbol>("TooFewNames");
             Assert.True(tooFewNames.Type.IsErrorType());
             Assert.IsType<UnsupportedMetadataTypeSymbol>(tooFewNames.Type);
+            Assert.False(((INamedTypeSymbol)tooFewNames.Type).IsSerializable);
 
             var tooManyNames = c.GetMember<FieldSymbol>("TooManyNames");
             Assert.True(tooManyNames.Type.IsErrorType());
@@ -22997,9 +22999,9 @@ class Derived : Base, I<(int notA, int notB)>
 ";
             var comp = CreateStandardCompilation(source, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
-                // (8,27): error CS8141: The tuple element names in the signature of method 'Base.M()' must match the tuple element names of interface method 'I<(int notA, int notB)>.M()' (including on the return type).
-                //     public (int a, int b) M() { return (1, 2); }
-                Diagnostic(ErrorCode.ERR_ImplBadTupleNames, "M").WithArguments("Base.M()", "I<(int notA, int notB)>.M()").WithLocation(8, 27)
+                // (10,23): error CS8141: The tuple element names in the signature of method 'Base.M()' must match the tuple element names of interface method 'I<(int notA, int notB)>.M()' (including on the return type).
+                // class Derived : Base, I<(int notA, int notB)>
+                Diagnostic(ErrorCode.ERR_ImplBadTupleNames, "I<(int notA, int notB)>").WithArguments("Base.M()", "I<(int notA, int notB)>.M()").WithLocation(10, 23)
                 );
         }
 
@@ -23023,9 +23025,9 @@ class Derived : Base, I<(int notA, int notB)>
 ";
             var comp = CreateStandardCompilation(source, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
-                // (8,27): error CS8141: The tuple element names in the signature of method 'Base.M()' must match the tuple element names of interface method 'I<(int notA, int notB)>.M()' (including on the return type).
-                //     public (int a, int b) M() { return (1, 2); }
-                Diagnostic(ErrorCode.ERR_ImplBadTupleNames, "M").WithArguments("Base.M()", "I<(int notA, int notB)>.M()").WithLocation(8, 27)
+                // (10,23): error CS8141: The tuple element names in the signature of method 'Base.M()' must match the tuple element names of interface method 'I<(int notA, int notB)>.M()' (including on the return type).
+                // class Derived : Base, I<(int notA, int notB)>
+                Diagnostic(ErrorCode.ERR_ImplBadTupleNames, "I<(int notA, int notB)>").WithArguments("Base.M()", "I<(int notA, int notB)>.M()").WithLocation(10, 23)
                 );
         }
 
@@ -23049,9 +23051,9 @@ class Derived : Base, I<(int, int)>
 ";
             var comp = CreateStandardCompilation(source, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
-                // (8,27): error CS8141: The tuple element names in the signature of method 'Base.M()' must match the tuple element names of interface method 'I<(int, int)>.M()' (including on the return type).
-                //     public (int a, int b) M() { return (1, 2); }
-                Diagnostic(ErrorCode.ERR_ImplBadTupleNames, "M").WithArguments("Base.M()", "I<(int, int)>.M()").WithLocation(8, 27)
+                // (10,23): error CS8141: The tuple element names in the signature of method 'Base.M()' must match the tuple element names of interface method 'I<(int, int)>.M()' (including on the return type).
+                // class Derived : Base, I<(int, int)>
+                Diagnostic(ErrorCode.ERR_ImplBadTupleNames, "I<(int, int)>").WithArguments("Base.M()", "I<(int, int)>.M()").WithLocation(10, 23)
                 );
         }
 

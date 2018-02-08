@@ -1457,16 +1457,6 @@ Additional information: {1}</source>
         <target state="translated">ReSharper/IntelliJ/Vim/etc에 대해 키 바인딩을 사용하세요.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Your_keybindings_are_no_longer_mapped_to_Visual_Studio_commands">
-        <source>Your keybindings are no longer mapped to Visual Studio commands.</source>
-        <target state="translated">키 바인딩이 더 이상 Visual Studio 명령에 매핑되지 않습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="We_noticed_you_suspended_ReSharper_Ultimate_Restore_Visual_Studio_keybindings_to_continue_to_navigate_and_refactor">
-        <source>We noticed you suspended ‘ReSharper Ultimate’. Restore Visual Studio keybindings to continue to navigate and refactor.</source>
-        <target state="translated">'ReSharper Ultimate'를 일시 중단했습니다. Visual Studio 키 바인딩을 복원하여 계속 탐색하고 리팩터링하세요.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Enable_navigation_to_decompiled_sources">
         <source>Enable navigation to decompiled sources (experimental)</source>
         <target state="translated">디컴파일된 소스에 탐색을 사용하도록 설정(실험적)</target>
@@ -1496,6 +1486,16 @@ I agree to all of the foregoing:</source>
       <trans-unit id="Decompiler_Legal_Notice_Title">
         <source>Decompiler Legal Notice</source>
         <target state="translated">디컴파일러 법적 고지 사항</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Disabling_the_extension_0_unbound_your_keyboard_bindings">
+        <source>Disabling the extension '{0}' unbound your keyboard bindings.</source>
+        <target state="new">Disabling the extension '{0}' unbound your keyboard bindings.</target>
+        <note>0 is an extension name</note>
+      </trans-unit>
+      <trans-unit id="Code_style_header_use_editor_config">
+        <source>The settings configured here only apply to your machine. To configure these settings to travel with your solution, use .editorconfig files.</source>
+        <target state="new">The settings configured here only apply to your machine. To configure these settings to travel with your solution, use .editorconfig files.</target>
         <note />
       </trans-unit>
     </body>

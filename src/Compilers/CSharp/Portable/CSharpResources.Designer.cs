@@ -377,7 +377,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot use ref or out parameter &apos;{0}&apos; inside an anonymous method, lambda expression, or query expression.
+        ///   Looks up a localized string similar to Cannot use ref, out, or in parameter &apos;{0}&apos; inside an anonymous method, lambda expression, query expression, or local function.
         /// </summary>
         internal static string ERR_AnonDelegateCantUse {
             get {
@@ -5431,6 +5431,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_IndirectRecursiveConstructorCall {
             get {
                 return ResourceManager.GetString("ERR_IndirectRecursiveConstructorCall", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Arguments with &apos;in&apos; modifier cannot be used in dynamically dispatched expessions..
+        /// </summary>
+        internal static string ERR_InDynamicMethodArg {
+            get {
+                return ResourceManager.GetString("ERR_InDynamicMethodArg", resourceCulture);
             }
         }
         
@@ -10697,6 +10706,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_FeatureReadOnlyStructs {
             get {
                 return ResourceManager.GetString("IDS_FeatureReadOnlyStructs", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ref conditional expression.
+        /// </summary>
+        internal static string IDS_FeatureRefConditional {
+            get {
+                return ResourceManager.GetString("IDS_FeatureRefConditional", resourceCulture);
             }
         }
         

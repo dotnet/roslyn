@@ -48,9 +48,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
 
             MyBase.New(
                 workspaceElement,
-                exportProvider:=MinimalTestExportProvider.CreateExportProvider(VisualStudioTestExportProvider.PartCatalog.WithParts(
-                            GetType(CompletionWaiter),
-                            GetType(SignatureHelpWaiter))),
+                exportProvider:=MinimalTestExportProvider.CreateExportProvider(VisualStudioTestExportProvider.PartCatalog),
                 workspaceKind:=WorkspaceKind.Debugger)
 
             Dim languageServices = Me.Workspace.CurrentSolution.Projects.First().LanguageServices
@@ -65,8 +63,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
                 GetService(Of IEditorOperationsFactoryService)(),
                 UndoHistoryRegistry,
                 GetService(Of IInlineRenameService)(),
+                GetExportedValue(Of IAsynchronousOperationListenerProvider)(),
                 New TestCompletionPresenter(Me),
-                GetExports(Of IAsynchronousOperationListener, FeatureMetadata)(),
                 GetExports(Of IBraceCompletionSessionProvider, BraceCompletionMetadata)())
 
             Me.CompletionCommandHandler = New CompletionCommandHandler(Me.AsyncCompletionService)
@@ -74,7 +72,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
             Me.SignatureHelpCommandHandler = New SignatureHelpCommandHandler(
                 New TestSignatureHelpPresenter(Me),
                 GetExports(Of ISignatureHelpProvider, OrderableLanguageMetadata)().Concat(extraSignatureHelpProviders),
-                GetExports(Of IAsynchronousOperationListener, FeatureMetadata)())
+                GetExportedValue(Of IAsynchronousOperationListenerProvider)())
 
             Me.IntelliSenseCommandHandler = New IntelliSenseCommandHandler(CompletionCommandHandler, SignatureHelpCommandHandler, Nothing)
 

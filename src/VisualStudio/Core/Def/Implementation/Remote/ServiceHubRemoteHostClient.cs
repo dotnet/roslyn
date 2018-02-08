@@ -2,6 +2,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -93,9 +94,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     workspace, primary.Logger, await RequestServiceAsync(primary, WellKnownServiceHubServices.SnapshotService, hostGroup, timeout, cancellationToken).ConfigureAwait(false));
                 client = new ServiceHubRemoteHostClient(workspace, primary, hostGroup, new ReferenceCountedDisposable<RemotableDataJsonRpc>(remotableDataRpc), remoteHostStream);
 
+                var uiCultureLCID = CultureInfo.CurrentUICulture.LCID;
+                var cultureLCID = CultureInfo.CurrentCulture.LCID;
+
                 // make sure connection is done right
                 var host = await client._rpc.InvokeWithCancellationAsync<string>(
-                    nameof(IRemoteHostService.Connect), new object[] { current, TelemetryService.DefaultSession.SerializeSettings() }, cancellationToken).ConfigureAwait(false);
+                    nameof(IRemoteHostService.Connect), new object[] { current, uiCultureLCID, cultureLCID, TelemetryService.DefaultSession.SerializeSettings() }, cancellationToken).ConfigureAwait(false);
 
                 return client;
             }

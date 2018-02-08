@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
         private readonly ClassificationTag _classificationTag;
         private readonly IEditorOptionsFactoryService _editorOptionsFactoryService;
 
-        protected internal override IEnumerable<Option<bool>> Options => s_tagSourceOptions;
+        protected override IEnumerable<Option<bool>> Options => s_tagSourceOptions;
 
         [ImportingConstructor]
         public DiagnosticsClassificationTaggerProvider(
@@ -37,8 +37,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             ClassificationTypeMap typeMap,
             IForegroundNotificationService notificationService,
             IEditorOptionsFactoryService editorOptionsFactoryService,
-            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> listeners)
-            : base(diagnosticService, notificationService, new AggregateAsynchronousOperationListener(listeners, FeatureAttribute.Classification))
+            IAsynchronousOperationListenerProvider listenerProvider)
+            : base(diagnosticService, notificationService, listenerProvider.GetListener(FeatureAttribute.Classification))
         {
             _typeMap = typeMap;
             _classificationTag = new ClassificationTag(_typeMap.GetClassificationType(ClassificationTypeDefinitions.UnnecessaryCode));
