@@ -63,34 +63,44 @@ do
             ;;
         --debug)
             build_configuration=Debug
+            args="$args $1"
             ;;
         --release)
             build_configuration=Release
+            args="$args $1"
             ;;
         --restore|-r)
             restore=true
+            args="$args $1"
             ;;
         --build|-b)
             build=true
+            args="$args $1"
             ;;
         --test|-t)
             test_=true
+            args="$args $1"
             ;;
         --mono)
             use_mono=true
+            args="$args $1"
             ;;
         --build-bootstrap)
             build_bootstrap=true
+            args="$args $1"
             ;;
         --use-bootstrap)
             use_bootstrap=true
+            args="$args $1"
             ;;
         --bootstrap)
             build_bootstrap=true
             use_bootstrap=true
+            args="$args $1"
             ;;
         --stop-vbcscompiler)
             stop_vbcscompiler=true
+            args="$args $1"
             ;;
         *)
             echo "$1"
@@ -98,7 +108,6 @@ do
             exit 1
         ;;
     esac
-    args="$args $1"
     shift
 done
 
