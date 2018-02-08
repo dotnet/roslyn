@@ -59,6 +59,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 private class DiagnosticAnalyzerMap
                 {
+                    private const int BuiltInCompilerPriority = -2;
+                    private const int RegularDiagnosticAnalyzerPriority = -1;
+
                     private readonly StateSet _compilerStateSet;
 
                     private readonly ImmutableArray<StateSet> _orderedSet;
@@ -78,6 +81,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         }
 
                         // order statesets
+                        // order will be in this order
+                        // BuiltIn Compiler Analyzer (C#/VB) < Regular DiagnosticAnalyzers < Document/ProjectDiagnosticAnalyzers
                         _orderedSet = _map.Values.OrderBy(PriorityComparison).ToImmutableArray();
                     }
 
@@ -103,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         // compiler gets highest priority
                         if (state == _compilerStateSet)
                         {
-                            return -2;
+                            return BuiltInCompilerPriority;
                         }
 
                         switch (state.Analyzer)
@@ -113,8 +118,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                             case ProjectDiagnosticAnalyzer analyzer:
                                 return Math.Max(0, analyzer.Priority);
                             default:
-                                // regular analyzer get next priority
-                                return -1;
+                                // regular analyzer get next priority after compiler analyzer
+                                return RegularDiagnosticAnalyzerPriority;
                         }
                     }
                 }
