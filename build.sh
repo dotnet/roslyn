@@ -60,6 +60,7 @@ do
             ;;
         --docker)
             build_in_docker=true
+            shift
             continue
             ;;
         --debug)
