@@ -16620,9 +16620,25 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceArgument, "o").WithArguments("o", "void C.F(object o)").WithLocation(8, 15));
         }
 
+        [Fact]
+        public void IsPattern_01()
+        {
+            var source =
+@"class C
+{
+    static void F(object x) { }
+    static void G(string s)
+    {
+        F(s is var o);
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+        }
+
         // PROTOTYPE(NullableReferenceTypes): Should not warn on either call to F(string).
         [Fact(Skip = "TODO")]
-        public void IsPattern()
+        public void IsPattern_02()
         {
             var source =
 @"class C
@@ -17671,7 +17687,7 @@ class C
         (new[]{ c })[0].F<object>(string.Empty);
     }
 }";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
         }
 

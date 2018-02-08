@@ -634,6 +634,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.StateWhenFalse[slot] = true;
             }
 
+            _result = TypeSymbolWithAnnotations.Create(node.Type);
             return result;
         }
 
@@ -707,7 +708,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (!canConvert)
             {
-                ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullabilityMismatchInAssignment, expr.Syntax, unconvertedType.TypeSymbol, returnType.TypeSymbol);
+                ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullabilityMismatchInAssignment, expr.Syntax, GetTypeAsDiagnosticArgument(unconvertedType?.TypeSymbol), returnType.TypeSymbol);
             }
 
             return null;
@@ -862,12 +863,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         // For asserts only.
         private static bool AreCloseEnough(TypeSymbol typeA, TypeSymbol typeB)
         {
-            return typeA.IsErrorType() ||
-                typeB.IsErrorType() ||
-                typeA.IsDynamic() ||
-                typeB.IsDynamic() ||
-                typeA.HasUseSiteError ||
-                typeB.HasUseSiteError ||
+            bool canIgnoreType(TypeSymbol type) => (object)type.VisitType((t, unused1, unused2) => t.IsErrorType() || t.IsDynamic() || t.HasUseSiteError, (object)null) != null;
+            return canIgnoreType(typeA) ||
+                canIgnoreType(typeB) ||
                 typeA.Equals(typeB, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreDynamicAndTupleNames); // Ignore TupleElementNames (see https://github.com/dotnet/roslyn/issues/23651).
         }
 #endif
@@ -950,8 +948,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default:
                     // PROTOTYPE(NullableReferenceTypes): Unwrap implicit conversions and re-calculate.
                     var result = VisitRvalue(node);
-                    var type = GetTypeOrReturnTypeWithAdjustedNullableAnnotations(containingSymbol);
-                    TrackNullableStateForAssignment(node, containingSlot, type, node, result.Type, result.Slot);
+                    if ((object)containingSymbol != null)
+                    {
+                        var type = GetTypeOrReturnTypeWithAdjustedNullableAnnotations(containingSymbol);
+                        TrackNullableStateForAssignment(node, containingSlot, type, node, result.Type, result.Slot);
+                    }
                     break;
             }
         }
@@ -969,8 +970,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             VisitArguments(objectInitializer, objectInitializer.Arguments, objectInitializer.ArgumentNamesOpt, objectInitializer.ArgumentRefKindsOpt, (PropertySymbol)symbol, objectInitializer.ArgsToParamsOpt, objectInitializer.Expanded);
                         }
-                        int slot = (containingSlot < 0) ? -1 : GetOrCreateSlot(symbol, containingSlot);
-                        VisitObjectCreationInitializer(symbol, slot, node.Right);
+                        if ((object)symbol != null)
+                        {
+                            int slot = (containingSlot < 0) ? -1 : GetOrCreateSlot(symbol, containingSlot);
+                            VisitObjectCreationInitializer(symbol, slot, node.Right);
+                        }
                     }
                     break;
                 default:
@@ -1634,13 +1638,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<int> argsToParamsOpt,
             bool expanded)
         {
-            if (node.HasErrors)
-            {
-                return;
-            }
-            arguments = RemoveArgumentConversions(arguments, refKindsOpt, out var conversions);
-            ImmutableArray<Result> results = VisitArgumentsEvaluate(arguments, refKindsOpt, expanded);
-            VisitArgumentsWarn(arguments, conversions, refKindsOpt, (method is null) ? default : method.Parameters, argsToParamsOpt, expanded, results);
+            VisitArguments(node, arguments, namesOpt, refKindsOpt, (method is null) ? default : method.Parameters, argsToParamsOpt, expanded);
         }
 
         private void VisitArguments(
@@ -1652,13 +1650,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<int> argsToParamsOpt,
             bool expanded)
         {
+            VisitArguments(node, arguments, namesOpt, refKindsOpt, (property is null) ? default : property.Parameters, argsToParamsOpt, expanded);
+        }
+
+        private void VisitArguments(
+            BoundExpression node,
+            ImmutableArray<BoundExpression> arguments,
+            ImmutableArray<string> namesOpt,
+            ImmutableArray<RefKind> refKindsOpt,
+            ImmutableArray<ParameterSymbol> parametersOpt,
+            ImmutableArray<int> argsToParamsOpt,
+            bool expanded)
+        {
             if (node.HasErrors)
             {
                 return;
             }
             arguments = RemoveArgumentConversions(arguments, refKindsOpt, out var conversions);
             ImmutableArray<Result> results = VisitArgumentsEvaluate(arguments, refKindsOpt, expanded);
-            VisitArgumentsWarn(arguments, conversions, refKindsOpt, property.Parameters, argsToParamsOpt, expanded, results);
+            if (!parametersOpt.IsDefault)
+            {
+                VisitArgumentsWarn(arguments, conversions, refKindsOpt, parametersOpt, argsToParamsOpt, expanded, results);
+            }
         }
 
         private ImmutableArray<Result> VisitArgumentsEvaluate(
@@ -1786,11 +1799,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static ParameterSymbol GetCorrespondingParameter(int argumentOrdinal, ImmutableArray<ParameterSymbol> parameters, ImmutableArray<int> argsToParamsOpt, ref bool expanded)
         {
-            if (parameters.IsDefault)
-            {
-                expanded = false;
-                return null;
-            }
+            Debug.Assert(!parameters.IsDefault);
 
             ParameterSymbol parameter;
 
@@ -2280,12 +2289,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ExplicitTuple:
                     {
                         var operandTuple = operand.Type.TypeSymbol as TupleTypeSymbol;
-                        if (operandTuple is null)
+                        var targetTuple = targetType as TupleTypeSymbol;
+                        if (operandTuple is null || targetTuple is null)
                         {
                             // May be null in error cases, at least for deconstruction.
                             break;
                         }
-                        var targetTuple = (TupleTypeSymbol)targetType;
                         int n = operandTuple.TupleElementTypes.Length;
                         var builder = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance(n);
                         var underlyingConversions = conversion.UnderlyingConversions;
