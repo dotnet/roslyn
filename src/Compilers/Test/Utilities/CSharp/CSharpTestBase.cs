@@ -405,14 +405,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return CreateStandardCompilation(new SyntaxTree[] { syntaxTree }, references, options, assemblyName);
         }
 
-        private static readonly ImmutableArray<MetadataReference> s_stdRefs = CoreClrShim.IsRunningOnCoreClr
-            ? ImmutableArray.Create<MetadataReference>(NetStandard20.NetStandard, NetStandard20.MscorlibRef, NetStandard20.SystemRuntimeRef, NetStandard20.SystemDynamicRuntimeRef)
-            : ImmutableArray.Create(MscorlibRef);
-
         // Careful! Make sure everything in s_desktopRefsToRemove is constructed with
         // the same object identity, since MetadataReference uses reference equality.
         // this may mean adding Interlocked calls in the construction of the reference.
-        private static readonly ImmutableArray<MetadataReference> s_desktopRefsToRemove = ImmutableArray.Create(SystemRef, SystemCoreRef);
+        private static readonly ImmutableArray<MetadataReference> s_desktopRefsToRemove = ImmutableArray.Create(SystemRef, SystemCoreRef, ValueTupleRef, SystemRuntimeFacadeRef);
+
+        private static readonly ImmutableArray<MetadataReference> s_stdRefs = CoreClrShim.IsRunningOnCoreClr
+            ? ImmutableArray.Create<MetadataReference>(NetStandard20.NetStandard, NetStandard20.MscorlibRef, NetStandard20.SystemRuntimeRef, NetStandard20.SystemDynamicRuntimeRef)
+            : ImmutableArray.Create(MscorlibRef).AddRange(s_desktopRefsToRemove);
+
 
         public static CSharpCompilation CreateStandardCompilation(
             IEnumerable<SyntaxTree> trees,
@@ -420,10 +421,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             CSharpCompilationOptions options = null,
             string assemblyName = "")
         {
-            if (CoreClrShim.IsRunningOnCoreClr)
+            if (references != null)
             {
-                references = references?.Except(s_desktopRefsToRemove);
+                foreach (var reference in references)
+                {
+                    if (s_desktopRefsToRemove.Contains(reference))
+                    {
+                        throw new Exception($"Do not pass standard reference {reference.Display} to {nameof(CreateStandardCompilation)}");
+                    }
+                }
             }
+
             return CreateCompilation(trees, (references != null) ? s_stdRefs.Concat(references) : s_stdRefs, options, assemblyName);
         }
 
