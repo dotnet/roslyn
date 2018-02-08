@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         {
         }
 
-        if ((a = o as string) != null)
+        if ((a = o as string) == null)
         {
         }
 
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         {
         }
 
-        if (o is string a)
+        if (!(o is string a))
         {
         }
 

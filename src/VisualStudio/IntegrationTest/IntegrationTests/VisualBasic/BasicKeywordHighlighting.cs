@@ -39,12 +39,14 @@ End Class");
         private void Verify(string marker, int expectedCount)
         {
             VisualStudio.Editor.PlaceCaret(marker, charsOffset: -1);
-            VisualStudio.Workspace.WaitForAsyncOperations(string.Concat(
-               FeatureAttribute.SolutionCrawler,
-               FeatureAttribute.DiagnosticService,
-               FeatureAttribute.Classification,
-               FeatureAttribute.KeywordHighlighting));
-            //Assert.Equal(expectedCount, VisualStudio.Editor.GetKeywordHighlightTagCount());
+            VisualStudio.Workspace.WaitForAllAsyncOperations(
+                FeatureAttribute.Workspace,
+                FeatureAttribute.SolutionCrawler,
+                FeatureAttribute.DiagnosticService,
+                FeatureAttribute.Classification,
+                FeatureAttribute.KeywordHighlighting);
+
+            // Assert.Equal(expectedCount, VisualStudio.Editor.GetKeywordHighlightTagCount());
         }
     }
 }
