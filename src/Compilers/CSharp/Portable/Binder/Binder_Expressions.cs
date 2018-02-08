@@ -3234,6 +3234,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         GetSpecialType(SpecialType.System_Int32, diagnostics, node))
                 { WasCompilerGenerated = true };
             }
+
             return new BoundStackAllocArrayCreation(node, elementType, sizeOpt, new BoundArrayInitialization(initSyntax, boundInitExprOpt), type, hasErrors);
         }
 

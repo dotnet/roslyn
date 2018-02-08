@@ -335,7 +335,6 @@ unsafe class Test
 }", TestOptions.UnsafeReleaseDll);
 
             comp.VerifyDiagnostics(
-
                 // (11,24): error CS8346: Conversion of a stackalloc expression of type 'int' to type 'double*' is not possible.
                 //         double* obj5 = stackalloc int[3] { 1, 2, 3 };
                 Diagnostic(ErrorCode.ERR_StackAllocConversionNotPossible, "stackalloc int[3] { 1, 2, 3 }").WithArguments("int", "double*").WithLocation(11, 24),
