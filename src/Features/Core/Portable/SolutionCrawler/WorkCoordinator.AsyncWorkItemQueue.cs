@@ -66,6 +66,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         // so don't call cancel on the source only because we are done using it.
                         _cancellationMap.Remove(key);
 
+                        // every works enqueued by "AddOrReplace" will be processed
+                        // at some point, and when it is processed, this method will be called to mark
+                        // work has been done.
                         _progressReporter.Stop();
                     }
                 }
@@ -81,7 +84,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     {
                         if (AddOrReplace_NoLock(item))
                         {
-                            // progress reporter itself has ref counting
+                            // the item is new item that got added to the queue.
+                            // let solution crawler progress report to know about new item enqueued.
+                            // progress reporter will take care of nested/overlapped works by itself
                             _progressReporter.Start();
 
                             // increase count 
