@@ -25,16 +25,47 @@ unsafe class Test
     struct A {}
     struct B {}
 
-    public void Method1()
+    public void Method()
     {
-        var obj1 = stackalloc[] { new A(), new B() };
+        var p1 = stackalloc[] { new A(), new B() };
+        var p2 = stackalloc[] { };
+        var p3 = stackalloc[] { Method() };
+        var p4 = stackalloc[] { null };
+        var p5 = stackalloc[] { (1, null) };
+        var p6 = stackalloc[] { () => { } };
+        var p7 = stackalloc[] { new {} , new { i = 0 } };
+
     }
-}", TestOptions.UnsafeReleaseDll);
+}
+namespace System {
+    public struct ValueTuple<T1, T2> {
+        public ValueTuple(T1 a, T2 b) { }
+    }
+}
+", TestOptions.UnsafeReleaseDll);
 
             comp.VerifyDiagnostics(
-                // (9,20): error CS0826: No best type found for implicitly-typed array
-                //         var obj1 = stackalloc[] { new A(), new B() };
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "stackalloc[] { new A(), new B() }").WithLocation(9, 20)
+                // (9,18): error CS0826: No best type found for implicitly-typed array
+                //         var p1 = stackalloc[] { new A(), new B() };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "stackalloc[] { new A(), new B() }").WithLocation(9, 18),
+                // (10,18): error CS0826: No best type found for implicitly-typed array
+                //         var p2 = stackalloc[] { };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "stackalloc[] { }").WithLocation(10, 18),
+                // (11,18): error CS0826: No best type found for implicitly-typed array
+                //         var p3 = stackalloc[] { Method() };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "stackalloc[] { Method() }").WithLocation(11, 18),
+                // (12,18): error CS0826: No best type found for implicitly-typed array
+                //         var p4 = stackalloc[] { null };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "stackalloc[] { null }").WithLocation(12, 18),
+                // (13,18): error CS0826: No best type found for implicitly-typed array
+                //         var p5 = stackalloc[] { (1, null) };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "stackalloc[] { (1, null) }").WithLocation(13, 18),
+                // (14,18): error CS0826: No best type found for implicitly-typed array
+                //         var p6 = stackalloc[] { () => { } };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "stackalloc[] { () => { } }").WithLocation(14, 18),
+                // (15,18): error CS0826: No best type found for implicitly-typed array
+                //         var p7 = stackalloc[] { new {} , new { i = 0 } };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "stackalloc[] { new {} , new { i = 0 } }").WithLocation(15, 18)
                 );
         }
 
@@ -75,13 +106,17 @@ unsafe class Test
     public void Method1()
     {
         var obj1 = stackalloc[] { """" };
+        var obj2 = stackalloc[] { new {} };
     }
 }", TestOptions.UnsafeReleaseDll);
 
             comp.VerifyDiagnostics(
                 // (6,20): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('string')
                 //         var obj1 = stackalloc[] { "" };
-                Diagnostic(ErrorCode.ERR_ManagedAddr, @"stackalloc[] { """" }").WithArguments("string").WithLocation(6, 20)
+                Diagnostic(ErrorCode.ERR_ManagedAddr, @"stackalloc[] { """" }").WithArguments("string").WithLocation(6, 20),
+                // (7,20): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('<empty anonymous type>')
+                //         var obj2 = stackalloc[] { new {} };
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "stackalloc[] { new {} }").WithArguments("<empty anonymous type>").WithLocation(7, 20)
                 );
         }
 
@@ -120,25 +155,6 @@ unsafe class Test
                 // (6,34): error CS1586: Array creation must have array size or array initializer
                 //         var obj1 = stackalloc int[];
                 Diagnostic(ErrorCode.ERR_MissingArraySize, "[]").WithLocation(6, 34)
-                );
-        }
-
-        [Fact]
-        public void NoBestType2()
-        {
-            var comp = CreateCompilationWithMscorlibAndSpan(@"
-unsafe class Test
-{
-    public void Method1()
-    {
-        var obj1 = stackalloc[]{};
-    }
-}", TestOptions.UnsafeReleaseDll);
-
-            comp.VerifyDiagnostics(
-                // (6,20): error CS0826: No best type found for implicitly-typed array
-                //         var obj1 = stackalloc[]{};
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "stackalloc[]{}").WithLocation(6, 20)
                 );
         }
 
