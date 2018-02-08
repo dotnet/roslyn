@@ -31,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             private readonly Workspace _workspace;
             private readonly OpenDocumentTracker<DiagnosticData> _tracker;
 
-            public LiveTableDataSource(Workspace workspace, IDiagnosticService diagnosticService, string identifier, ProgressReporter reporterOpt = null) :
+            public LiveTableDataSource(Workspace workspace, IDiagnosticService diagnosticService, string identifier, ProgressReporter reporterOpt) :
                 base(workspace, reporterOpt)
             {
                 _workspace = workspace;
