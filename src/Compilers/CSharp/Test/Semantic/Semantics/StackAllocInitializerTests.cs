@@ -90,6 +90,10 @@ unsafe class Test
 
             var obj1Value = model.GetSemanticInfoSummary(obj1.Initializer.Value);
             Assert.Equal(SpecialType.System_Double, ((PointerTypeSymbol)obj1Value.Type).PointedAtType.SpecialType);
+            Assert.Equal(SpecialType.System_Double, ((PointerTypeSymbol)obj1Value.ConvertedType).PointedAtType.SpecialType);
+            Assert.Equal(ConversionKind.Identity, obj1Value.ImplicitConversion.Kind);
+            var declared = model.GetDeclaredSymbol(obj1.Initializer.Value);
+            Assert.Null(declared);
         }
 
         [Fact]
