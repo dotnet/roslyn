@@ -58,21 +58,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 }
             }
 
-#if DEBUG
-            // while dogfooding, encountered a case where ref count not get to 0 once. but
-            // couldn't repro it again. adding this in case it happens again then I do have
-            // actionable data to find out what went wrong.
-            private string _lastCallStackDebug;
-#endif
-
             public Task Start()
             {
                 if (Interlocked.Increment(ref _count) == 1)
                 {
-#if DEBUG
-                    _lastCallStackDebug = Environment.StackTrace;
-#endif
-
                     var asyncToken = _listener.BeginAsyncOperation("ProgressReportStart");
                     return RaiseStarted().CompletesAsyncOperation(asyncToken);
                 }
@@ -84,10 +73,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             {
                 if (Interlocked.Decrement(ref _count) == 0)
                 {
-#if DEBUG
-                    _lastCallStackDebug = null;
-#endif
-
                     var asyncToken = _listener.BeginAsyncOperation("ProgressReportStop");
                     return RaiseStopped().CompletesAsyncOperation(asyncToken);
                 }
