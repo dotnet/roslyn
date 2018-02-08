@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor
 
         public TodoItemsUpdatedArgs(
             object id, Workspace workspace, Solution solution, ProjectId projectId, DocumentId documentId, ImmutableArray<TodoItem> todoItems) :
-            base(id, workspace, projectId, documentId)
+            base(id, workspace, projectId, documentId, null)
         {
             this.Solution = solution;
             this.TodoItems = todoItems;
