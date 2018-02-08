@@ -8559,6 +8559,105 @@ public class C
 
         #endregion
 
+        #region SkipLocalsInitAttribute
+
+        [Fact]
+        public void SkipLocalsInitOnMethod()
+        {
+            var source = @"
+namespace System.Runtime.CompilerServices
+{
+    public class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+public class C
+{
+    [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+    public void M_skip()
+    {
+        int x = 2;
+        x = x + x + x;
+    }
+
+    public void M_init()
+    {
+        int x = 2;
+        x = x + x + x;
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, verify: Verification.Fails);
+
+            comp.VerifyIL("C.M_init", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  .locals init (int V_0) //x
+  IL_0000:  ldc.i4.2
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  add
+  IL_0005:  ldloc.0
+  IL_0006:  add
+  IL_0007:  stloc.0
+  IL_0008:  ret
+}", realIL: true);
+
+            comp.VerifyIL("C.M_skip", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  .locals (int V_0) //x
+  IL_0000:  ldc.i4.2
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  add
+  IL_0005:  ldloc.0
+  IL_0006:  add
+  IL_0007:  stloc.0
+  IL_0008:  ret
+}", realIL: true);
+
+            comp.VerifyIL("C.M_init", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  .locals init (int V_0) //x
+  IL_0000:  ldc.i4.2
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  add
+  IL_0005:  ldloc.0
+  IL_0006:  add
+  IL_0007:  stloc.0
+  IL_0008:  ret
+}", realIL: false);
+
+            comp.VerifyIL("C.M_skip", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  .locals (int V_0) //x
+  IL_0000:  ldc.i4.2
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  add
+  IL_0005:  ldloc.0
+  IL_0006:  add
+  IL_0007:  stloc.0
+  IL_0008:  ret
+}", realIL: false);
+        }
+
+        #endregion
+
         [Fact, WorkItem(807, "https://github.com/dotnet/roslyn/issues/807")]
         public void TestAttributePropagationForAsyncAndIterators_01()
         {
