@@ -190,7 +190,7 @@ function Make-BootstrapBuild() {
         Exec-Console "dotnet" "publish --no-restore src/Compilers/CSharp/csc -o `"$dir/bincore`" --framework $bootstrapFramework $bootstrapArgs -bl:$logDir/BootstrapCsc.binlog"
         Exec-Console "dotnet" "publish --no-restore src/Compilers/VisualBasic/vbc -o `"$dir/bincore`" --framework $bootstrapFramework $bootstrapArgs -bl:$logDir/BootstrapVbc.binlog"
         Exec-Console "dotnet" "publish --no-restore src/Compilers/Server/VBCSCompiler -o `"$dir/bincore`" --framework $bootstrapFramework $bootstrapArgs -bl:$logDir/BootstrapVBCSCompiler.binlog"
-        Exec-Console "dotnet" "publish --no-restore src/Compilers/Core/MSBuildTask -o `"$dir`" $bootstrapArgs -bl:$binariesDir/BootstrapMSBuildTask.binlog"
+        Exec-Console "dotnet" "publish --no-restore src/Compilers/Core/MSBuildTask -o `"$dir`" --framework $bootstrapFramework $bootstrapArgs -bl:$binariesDir/BootstrapMSBuildTask.binlog"
         Stop-BuildProcesses
     }
     else {
