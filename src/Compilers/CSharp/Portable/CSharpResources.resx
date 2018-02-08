@@ -1756,7 +1756,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>Conditional member '{0}' cannot implement interface member '{1}' in type '{2}'</value>
   </data>
   <data name="ERR_InterfaceImplementedImplicitlyByVariadic" xml:space="preserve">
-    <value>'{0}' cannot implement interface member '{1}' in type '{2}' because it has an __arglist parameter. Use an explicit interface implementation.</value>
+    <value>'{0}' cannot implement interface member '{1}' in type '{2}' because it has an __arglist parameter</value>
   </data>
   <data name="ERR_IllegalRefParam" xml:space="preserve">
     <value>ref and out are not valid in this context</value>

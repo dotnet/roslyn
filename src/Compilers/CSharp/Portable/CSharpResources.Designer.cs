@@ -5579,7 +5579,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Variadic member &apos;{0}&apos; cannot implement interface member &apos;{1}&apos; in type &apos;{2}&apos;. Use an explicit interface implementation..
+        ///   Looks up a localized string similar to &apos;{0}&apos; cannot implement interface member &apos;{1}&apos; in type &apos;{2}&apos; because it has an __arglist parameter..
         /// </summary>
         internal static string ERR_InterfaceImplementedImplicitlyByVariadic {
             get {

@@ -8596,8 +8596,8 @@ Um die Warnung zu beheben, können Sie stattdessen /reference verwenden (Einbett
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceImplementedImplicitlyByVariadic">
-        <source>'{0}' cannot implement interface member '{1}' in type '{2}' because it has an __arglist parameter. Use an explicit interface implementation.</source>
-        <target state="new">'{0}' cannot implement interface member '{1}' in type '{2}' because it has an __arglist parameter. Use an explicit interface implementation.</target>
+        <source>'{0}' cannot implement interface member '{1}' in type '{2}' because it has an __arglist parameter</source>
+        <target state="new">'{0}' cannot implement interface member '{1}' in type '{2}' because it has an __arglist parameter</target>
         <note />
       </trans-unit>
     </body>
