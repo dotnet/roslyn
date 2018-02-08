@@ -4676,6 +4676,7 @@ BC30311: Value of type '(Integer, String, C As Integer)' cannot be converted to 
             Dim xSymbol = DirectCast(model.GetDeclaredSymbol(x), LocalSymbol).Type
             Assert.Equal("(System.Int32, A As System.String)", xSymbol.ToTestDisplayString())
             Assert.True(xSymbol.IsTupleType)
+            Assert.False(DirectCast(xSymbol, INamedTypeSymbol).IsSerializable)
 
             Assert.Equal({"System.Int32", "System.String"}, xSymbol.TupleElementTypes.SelectAsArray(Function(t) t.ToTestDisplayString()))
             Assert.Equal({Nothing, "A"}, xSymbol.TupleElementNames)
@@ -9743,10 +9744,12 @@ additionalReferences:=s_valueTupleRefs)
             Assert.True(validFieldWithAttribute.Type.IsErrorType())
             Assert.False(validFieldWithAttribute.Type.IsTupleType)
             Assert.IsType(Of UnsupportedMetadataTypeSymbol)(validFieldWithAttribute.Type)
+            Assert.False(DirectCast(validFieldWithAttribute.Type, INamedTypeSymbol).IsSerializable)
 
             Dim tooFewNames = c.GetMember(Of FieldSymbol)("TooFewNames")
             Assert.True(tooFewNames.Type.IsErrorType())
             Assert.IsType(Of UnsupportedMetadataTypeSymbol)(tooFewNames.Type)
+            Assert.False(DirectCast(tooFewNames.Type, INamedTypeSymbol).IsSerializable)
 
             Dim tooManyNames = c.GetMember(Of FieldSymbol)("TooManyNames")
             Assert.True(tooManyNames.Type.IsErrorType())

@@ -84,9 +84,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
             string workingDirectory = null)
         {
             var io = new TestConsoleIO(input);
+            var clientDir = Path.GetDirectoryName(RuntimeUtilities.GetAssemblyLocation(typeof(CommandLineRunnerTests)));
             var buildPaths = new BuildPaths(
-                clientDir: AppContext.BaseDirectory,
-                workingDir: workingDirectory ?? AppContext.BaseDirectory,
+                clientDir: clientDir,
+                workingDir: workingDirectory ?? clientDir,
                 sdkDir: null,
                 tempDir: Path.GetTempPath());
 
