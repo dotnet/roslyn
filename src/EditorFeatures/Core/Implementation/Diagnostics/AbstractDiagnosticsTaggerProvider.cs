@@ -96,17 +96,26 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             var sourceText = editorSnapshot.AsText();
             foreach (var updateArg in eventArgs)
             {
-                ProduceTags(
-                    context, spanToTag, workspace, document, sourceText,
-                    suppressedDiagnosticsSpans, updateArg, cancellationToken);
+                var diagnosticSourceText = updateArg.OpenSourceText;
+                var diagnosticSnapshot = diagnosticSourceText.FindCorrespondingEditorTextSnapshot();
+                if (diagnosticSnapshot != null)
+                {
+                    ProduceTags(
+                        context, spanToTag, workspace, document,
+                        suppressedDiagnosticsSpans, updateArg, 
+                        sourceText, diagnosticSourceText, diagnosticSnapshot,
+                        cancellationToken);
+                }
             }
         }
 
         private void ProduceTags(
             TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag,
-            Workspace workspace, Document document, SourceText sourceText, 
+            Workspace workspace, Document document, 
             NormalizedSnapshotSpanCollection suppressedDiagnosticsSpans, 
-            UpdatedEventArgs updateArgs, CancellationToken cancellationToken)
+            UpdatedEventArgs updateArgs,
+            SourceText sourceText, SourceText diagnosticText, ITextSnapshot diagnosticSnapshot,
+            CancellationToken cancellationToken)
         {
             try
             {
@@ -134,8 +143,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                         //    So we'll eventually reach a point where the diagnostics exactly match the
                         //    editorSnapshot.
 
-                        var diagnosticSpan = diagnosticData.GetExistingOrCalculatedTextSpan(sourceText)
-                                                           .ToSnapshotSpan(editorSnapshot);
+                        var diagnosticSpan = diagnosticData.GetExistingOrCalculatedTextSpan(diagnosticText)
+                                                           .ToSnapshotSpan(diagnosticSnapshot)
+                                                           .TranslateTo(editorSnapshot, SpanTrackingMode.EdgeExclusive);
 
                         if (diagnosticSpan.IntersectsWith(requestedSpan) &&
                             !IsSuppressed(suppressedDiagnosticsSpans, diagnosticSpan))

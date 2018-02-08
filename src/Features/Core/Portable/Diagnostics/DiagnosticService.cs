@@ -7,7 +7,9 @@ using System.Composition;
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.Common;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -266,7 +268,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                     foreach (var data in list.Object)
                     {
-                        yield return new UpdatedEventArgs(data.Id, data.Workspace, data.ProjectId, data.DocumentId);
+                        yield return new UpdatedEventArgs(
+                            data.Id, data.Workspace, data.ProjectId, data.DocumentId, data.OpenSourceText);
                     }
                 }
             }
@@ -353,19 +356,31 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             public readonly DocumentId DocumentId;
             public readonly object Id;
             public readonly ImmutableArray<DiagnosticData> Diagnostics;
+            public readonly SourceText OpenSourceText;
 
-            public Data(UpdatedEventArgs args) :
+            public Data(DiagnosticsUpdatedArgs args) :
                 this(args, ImmutableArray<DiagnosticData>.Empty)
             {
             }
 
-            public Data(UpdatedEventArgs args, ImmutableArray<DiagnosticData> diagnostics)
+            public Data(DiagnosticsUpdatedArgs args, ImmutableArray<DiagnosticData> diagnostics)
             {
                 this.Workspace = args.Workspace;
                 this.ProjectId = args.ProjectId;
                 this.DocumentId = args.DocumentId;
                 this.Id = args.Id;
                 this.Diagnostics = diagnostics;
+                this.OpenSourceText = null;
+
+                if (args.DocumentId != null)
+                {
+                    var document = args.Solution.GetDocument(args.DocumentId);
+                    if (document.IsOpen() &&
+                        document.TryGetText(out var sourceText))
+                    {
+                        this.OpenSourceText = sourceText;
+                    }
+                }
             }
         }
     }
