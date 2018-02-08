@@ -3377,16 +3377,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var refKinds = analyzedArguments.RefKinds.ToImmutableOrNull();
                     var argsToParamsOpt = memberResolutionResult.Result.ArgsToParamsOpt;
 
-                    hasErrors |= !CheckInvocationArgMixing(
-                        nonNullSyntax,
-                        resultMember,
-                        receiver,
-                        resultMember.Parameters, 
-                        arguments, 
-                        refKinds, 
-                        argsToParamsOpt, 
-                        this.LocalScopeDepth, 
-                        diagnostics);
+                    if (!hasErrors)
+                    {
+                        hasErrors = !CheckInvocationArgMixing(
+                            nonNullSyntax,
+                            resultMember,
+                            receiver,
+                            resultMember.Parameters,
+                            arguments,
+                            refKinds,
+                            argsToParamsOpt,
+                            this.LocalScopeDepth,
+                            diagnostics);
+                    }
 
                     return new BoundCall(
                         nonNullSyntax,
@@ -4491,16 +4494,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var arguments = analyzedArguments.Arguments.ToImmutable();
                 var refKinds = analyzedArguments.RefKinds.ToImmutableOrNull();
                 var argToParams = memberResolutionResult.Result.ArgsToParamsOpt;
-                hasError |= !CheckInvocationArgMixing(
-                    node,
-                    method,
-                    null,
-                    method.Parameters,
-                    arguments,
-                    refKinds,
-                    argToParams,
-                    this.LocalScopeDepth,
-                    diagnostics);
+
+                if (!hasError)
+                {
+                    hasError = !CheckInvocationArgMixing(
+                        node,
+                        method,
+                        null,
+                        method.Parameters,
+                        arguments,
+                        refKinds,
+                        argToParams,
+                        this.LocalScopeDepth,
+                        diagnostics);
+                }
 
                 result = new BoundObjectCreationExpression(
                     node,
@@ -6816,16 +6823,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var arguments = analyzedArguments.Arguments.ToImmutable();
-                gotError |= !CheckInvocationArgMixing(
-                    syntax,
-                    property,
-                    receiver,
-                    property.Parameters,
-                    arguments,
-                    argumentRefKinds,
-                    argsToParams,
-                    this.LocalScopeDepth,
-                    diagnostics);
+
+                if (!gotError)
+                {
+                    gotError = !CheckInvocationArgMixing(
+                        syntax,
+                        property,
+                        receiver,
+                        property.Parameters,
+                        arguments,
+                        argumentRefKinds,
+                        argsToParams,
+                        this.LocalScopeDepth,
+                        diagnostics);
+                }
 
                 propertyAccess = new BoundIndexerAccess(
                     syntax,
