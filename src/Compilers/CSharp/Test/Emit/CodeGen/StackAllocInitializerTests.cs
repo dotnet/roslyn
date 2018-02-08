@@ -17,30 +17,36 @@ using System;
 
 static unsafe class C
 {
-    static byte Method()
+    static byte Method(int i)
     {
-        return 42;
+        Console.Write(i);
+        return 0;
     }
 
     static void Main()
     {
-        byte* p = stackalloc byte[3] { 42, Method(), 42 };
+        var p = stackalloc[] { 42, Method(1), 42, Method(2) };
     }
 }
 ";
             CompileAndVerify(text,
                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_3),
                 options: TestOptions.UnsafeReleaseExe,
+                expectedOutput: "12",
                 verify: Verification.Passes).VerifyIL("C.Main",
 @"{
-  // Code size       10 (0xa)
+  // Code size       19 (0x13)
   .maxstack  1
-  IL_0000:  ldc.i4.3
-  IL_0001:  conv.u
-  IL_0002:  pop
-  IL_0003:  call       ""byte C.Method()""
-  IL_0008:  pop
-  IL_0009:  ret
+  IL_0000:  ldc.i4.s   16
+  IL_0002:  conv.u
+  IL_0003:  pop
+  IL_0004:  ldc.i4.1
+  IL_0005:  call       ""byte C.Method(int)""
+  IL_000a:  pop
+  IL_000b:  ldc.i4.2
+  IL_000c:  call       ""byte C.Method(int)""
+  IL_0011:  pop
+  IL_0012:  ret
 }");
         }
 
