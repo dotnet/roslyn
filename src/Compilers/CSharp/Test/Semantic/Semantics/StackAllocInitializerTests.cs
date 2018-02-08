@@ -1276,5 +1276,333 @@ class Test
     }
 }", TestOptions.ReleaseDll).VerifyDiagnostics();
         }
+
+        [Fact]
+        public void ERR_StackallocInCatchFinally_Catch()
+        {
+            var text = @"
+unsafe class C
+{
+    int x = M(() =>
+    {
+        try
+        {
+            // fine
+            int* p1 = stackalloc int [3] { 1, 2, 3 };
+            int* p2 = stackalloc int [ ] { 1, 2, 3 };
+            int* p3 = stackalloc     [ ] { 1, 2, 3 };
+            System.Action a = () =>
+            {
+                try
+                {
+                    // fine
+                    int* q1 = stackalloc int [3] { 1, 2, 3 };
+                    int* q2 = stackalloc int [ ] { 1, 2, 3 };
+                    int* q3 = stackalloc     [ ] { 1, 2, 3 };
+                }
+                catch
+                {
+                    int* err11 = stackalloc int [3] { 1, 2, 3 };
+                    int* err12 = stackalloc int [ ] { 1, 2, 3 };
+                    int* err13 = stackalloc     [ ] { 1, 2, 3 };
+                }
+            };
+        }
+        catch
+        {
+            int* err21 = stackalloc int [3] { 1, 2, 3 };
+            int* err22 = stackalloc int [ ] { 1, 2, 3 };
+            int* err23 = stackalloc     [ ] { 1, 2, 3 };
+            System.Action a = () =>
+            {
+                try
+                {
+                    // fine
+                    int* p1 = stackalloc int [3] { 1, 2, 3 };
+                    int* p2 = stackalloc int [ ] { 1, 2, 3 };
+                    int* p3 = stackalloc     [ ] { 1, 2, 3 };
+                }
+                catch
+                {
+                    int* err31 = stackalloc int [3] { 1, 2, 3 };
+                    int* err32 = stackalloc int [ ] { 1, 2, 3 };
+                    int* err33 = stackalloc     [ ] { 1, 2, 3 };
+                }
+            };
+        }
+    });
+
+    static int M(System.Action action)
+    {
+        try
+        {
+            // fine
+            int* p1 = stackalloc int [3] { 1, 2, 3 };
+            int* p2 = stackalloc int [ ] { 1, 2, 3 };
+            int* p3 = stackalloc     [ ] { 1, 2, 3 };
+            System.Action a = () =>
+            {
+                try
+                {
+                    // fine
+                    int* q1 = stackalloc int [3] { 1, 2, 3 };
+                    int* q2 = stackalloc int [ ] { 1, 2, 3 };
+                    int* q3 = stackalloc     [ ] { 1, 2, 3 };
+                }
+                catch
+                {
+                    int* err41 = stackalloc int [3] { 1, 2, 3 };
+                    int* err42 = stackalloc int [ ] { 1, 2, 3 };
+                    int* err43 = stackalloc     [ ] { 1, 2, 3 };
+                }
+            };
+        }
+        catch
+        {
+            int* err51 = stackalloc int [3] { 1, 2, 3 };
+            int* err52 = stackalloc int [ ] { 1, 2, 3 };
+            int* err53 = stackalloc     [ ] { 1, 2, 3 };
+            System.Action a = () =>
+            {
+                try
+                {
+                    // fine
+                    int* p1 = stackalloc int [3] { 1, 2, 3 };
+                    int* p2 = stackalloc int [ ] { 1, 2, 3 };
+                    int* p3 = stackalloc     [ ] { 1, 2, 3 };
+                }
+                catch
+                {
+                    int* err61 = stackalloc int [3] { 1, 2, 3 };
+                    int* err62 = stackalloc int [ ] { 1, 2, 3 };
+                    int* err63 = stackalloc     [ ] { 1, 2, 3 };
+                }
+            };
+        }
+        return 0;
+    }
+}
+";
+            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (23,34): error CS0255: stackalloc may not be used in a catch or finally block
+                //                     int* err11 = stackalloc int [3] { 1, 2, 3 };
+                Diagnostic(ErrorCode.ERR_StackallocInCatchFinally, "stackalloc int [3] { 1, 2, 3 }").WithLocation(23, 34),
+                // (24,34): error CS0255: stackalloc may not be used in a catch or finally block
+                //                     int* err12 = stackalloc int [ ] { 1, 2, 3 };
+                Diagnostic(ErrorCode.ERR_StackallocInCatchFinally, "stackalloc int [ ] { 1, 2, 3 }").WithLocation(24, 34),
+                // (25,34): error CS0255: stackalloc may not be used in a catch or finally block
+                //                     int* err13 = stackalloc     [ ] { 1, 2, 3 };
+                Diagnostic(ErrorCode.ERR_StackallocInCatchFinally, "stackalloc     [ ] { 1, 2, 3 }").WithLocation(25, 34),
+                // (31,26): error CS0255: stackalloc may not be used in a catch or finally block
+                //             int* err21 = stackalloc int [3] { 1, 2, 3 };
+                Diagnostic(ErrorCode.ERR_StackallocInCatchFinally, "stackalloc int [3] { 1, 2, 3 }").WithLocation(31, 26),
+                // (32,26): error CS0255: stackalloc may not be used in a catch or finally block
+                //             int* err22 = stackalloc int [ ] { 1, 2, 3 };
+                Diagnostic(ErrorCode.ERR_StackallocInCatchFinally, "stackalloc int [ ] { 1, 2, 3 }").WithLocation(32, 26),
+                // (33,26): error CS0255: stackalloc may not be used in a catch or finally block
+                //             int* err23 = stackalloc     [ ] { 1, 2, 3 };
+                Diagnostic(ErrorCode.ERR_StackallocInCatchFinally, "stackalloc     [ ] { 1, 2, 3 }").WithLocation(33, 26),
+                // (45,34): error CS0255: stackalloc may not be used in a catch or finally block
+                //                     int* err31 = stackalloc int [3] { 1, 2, 3 };
+                Diagnostic(ErrorCode.ERR_StackallocInCatchFinally, "stackalloc int [3] { 1, 2, 3 }").WithLocation(45, 34),
+                // (46,34): error CS0255: stackalloc may not be used in a catch or finally block
+                //                     int* err32 = stackalloc int [ ] { 1, 2, 3 };
+                Diagnostic(ErrorCode.ERR_StackallocInCatchFinally, "stackalloc int [ ] { 1, 2, 3 }").WithLocation(46, 34),
+                // (47,34): error CS0255: stackalloc may not be used in a catch or finally block
+                //                     int* err33 = stackalloc     [ ] { 1, 2, 3 };
+                Diagnostic(ErrorCode.ERR_StackallocInCatchFinally, "stackalloc     [ ] { 1, 2, 3 }").WithLocation(47, 34),
+                // (72,34): error CS0255: stackalloc may not be used in a catch or finally block
+                //                     int* err41 = stackalloc int [3] { 1, 2, 3 };
+                Diagnostic(ErrorCode.ERR_StackallocInCatchFinally, "stackalloc int [3] { 1, 2, 3 }").WithLocation(72, 34),
+                // (73,34): error CS0255: stackalloc may not be used in a catch or finally block
+                //                     int* err42 = stackalloc int [ ] { 1, 2, 3 };
+                Diagnostic(ErrorCode.ERR_StackallocInCatchFinally, "stackalloc int [ ] { 1, 2, 3 }").WithLocation(73, 34),
+                // (74,34): error CS0255: stackalloc may not be used in a catch or finally block
+                //                     int* err43 = stackalloc     [ ] { 1, 2, 3 };
+                Diagnostic(ErrorCode.ERR_StackallocInCatchFinally, "stackalloc     [ ] { 1, 2, 3 }").WithLocation(74, 34),
+                // (80,26): error CS0255: stackalloc may not be used in a catch or finally block
+                //             int* err51 = stackalloc int [3] { 1, 2, 3 };
+                Diagnostic(ErrorCode.ERR_StackallocInCatchFinally, "stackalloc int [3] { 1, 2, 3 }").WithLocation(80, 26),
+                // (81,26): error CS0255: stackalloc may not be used in a catch or finally block
+                //             int* err52 = stackalloc int [ ] { 1, 2, 3 };
+                Diagnostic(ErrorCode.ERR_StackallocInCatchFinally, "stackalloc int [ ] { 1, 2, 3 }").WithLocation(81, 26),
+                // (82,26): error CS0255: stackalloc may not be used in a catch or finally block
+                //             int* err53 = stackalloc     [ ] { 1, 2, 3 };
+                Diagnostic(ErrorCode.ERR_StackallocInCatchFinally, "stackalloc     [ ] { 1, 2, 3 }").WithLocation(82, 26),
+                // (94,34): error CS0255: stackalloc may not be used in a catch or finally block
+                //                     int* err61 = stackalloc int [3] { 1, 2, 3 };
+                Diagnostic(ErrorCode.ERR_StackallocInCatchFinally, "stackalloc int [3] { 1, 2, 3 }").WithLocation(94, 34),
+                // (95,34): error CS0255: stackalloc may not be used in a catch or finally block
+                //                     int* err62 = stackalloc int [ ] { 1, 2, 3 };
+                Diagnostic(ErrorCode.ERR_StackallocInCatchFinally, "stackalloc int [ ] { 1, 2, 3 }").WithLocation(95, 34),
+                // (96,34): error CS0255: stackalloc may not be used in a catch or finally block
+                //                     int* err63 = stackalloc     [ ] { 1, 2, 3 };
+                Diagnostic(ErrorCode.ERR_StackallocInCatchFinally, "stackalloc     [ ] { 1, 2, 3 }").WithLocation(96, 34)
+                );
+        }
+
+        [Fact]
+        public void ERR_StackallocInCatchFinally_Finally()
+        {
+            var text = @"
+unsafe class C
+{
+    int x = M(() =>
+    {
+        try
+        {
+            // fine
+            int* p1 = stackalloc int [3] { 1, 2, 3 };
+            int* p2 = stackalloc int [ ] { 1, 2, 3 };
+            int* p3 = stackalloc     [ ] { 1, 2, 3 };
+            System.Action a = () =>
+            {
+                try
+                {
+                    // fine
+                    int* q1 = stackalloc int [3] { 1, 2, 3 };
+                    int* q2 = stackalloc int [ ] { 1, 2, 3 };
+                    int* q3 = stackalloc     [ ] { 1, 2, 3 };
+                }
+                finally
+                {
+                    int* err11 = stackalloc int [3] { 1, 2, 3 };
+                    int* err12 = stackalloc int [ ] { 1, 2, 3 };
+                    int* err13 = stackalloc     [ ] { 1, 2, 3 };
+                }
+            };
+        }
+        finally
+        {
+            int* err21 = stackalloc int [3] { 1, 2, 3 };
+            int* err22 = stackalloc int [ ] { 1, 2, 3 };
+            int* err23 = stackalloc     [ ] { 1, 2, 3 };
+            System.Action a = () =>
+            {
+                try
+                {
+                    // fine
+                    int* p1 = stackalloc int [3] { 1, 2, 3 };
+                    int* p2 = stackalloc int [ ] { 1, 2, 3 };
+                    int* p3 = stackalloc     [ ] { 1, 2, 3 };
+                }
+                finally
+                {
+                    int* err31 = stackalloc int [3] { 1, 2, 3 };
+                    int* err32 = stackalloc int [ ] { 1, 2, 3 };
+                    int* err33 = stackalloc     [ ] { 1, 2, 3 };
+                }
+            };
+        }
+    });
+
+    static int M(System.Action action)
+    {
+        try
+        {
+            // fine
+            int* p1 = stackalloc int [3] { 1, 2, 3 };
+            int* p2 = stackalloc int [ ] { 1, 2, 3 };
+            int* p3 = stackalloc     [ ] { 1, 2, 3 };
+            System.Action a = () =>
+            {
+                try
+                {
+                    // fine
+                    int* q1 = stackalloc int [3] { 1, 2, 3 };
+                    int* q2 = stackalloc int [ ] { 1, 2, 3 };
+                    int* q3 = stackalloc     [ ] { 1, 2, 3 };
+                }
+                finally
+                {
+                    int* err41 = stackalloc int [3] { 1, 2, 3 };
+                    int* err42 = stackalloc int [ ] { 1, 2, 3 };
+                    int* err43 = stackalloc     [ ] { 1, 2, 3 };
+                }
+            };
+        }
+        finally
+        {
+            int* err51 = stackalloc int [3] { 1, 2, 3 };
+            int* err52 = stackalloc int [ ] { 1, 2, 3 };
+            int* err53 = stackalloc     [ ] { 1, 2, 3 };
+            System.Action a = () =>
+            {
+                try
+                {
+                    // fine
+                    int* p1 = stackalloc int [3] { 1, 2, 3 };
+                    int* p2 = stackalloc int [ ] { 1, 2, 3 };
+                    int* p3 = stackalloc     [ ] { 1, 2, 3 };
+                }
+                finally
+                {
+                    int* err61 = stackalloc int [3] { 1, 2, 3 };
+                    int* err62 = stackalloc int [ ] { 1, 2, 3 };
+                    int* err63 = stackalloc     [ ] { 1, 2, 3 };
+                }
+            };
+        }
+        return 0;
+    }
+}
+";
+            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (23,34): error CS0255: stackalloc may not be used in a catch or finally block
+                //                     int* err11 = stackalloc int [3] { 1, 2, 3 };
+                Diagnostic(ErrorCode.ERR_StackallocInCatchFinally, "stackalloc int [3] { 1, 2, 3 }").WithLocation(23, 34),
+                // (24,34): error CS0255: stackalloc may not be used in a catch or finally block
+                //                     int* err12 = stackalloc int [ ] { 1, 2, 3 };
+                Diagnostic(ErrorCode.ERR_StackallocInCatchFinally, "stackalloc int [ ] { 1, 2, 3 }").WithLocation(24, 34),
+                // (25,34): error CS0255: stackalloc may not be used in a catch or finally block
+                //                     int* err13 = stackalloc     [ ] { 1, 2, 3 };
+                Diagnostic(ErrorCode.ERR_StackallocInCatchFinally, "stackalloc     [ ] { 1, 2, 3 }").WithLocation(25, 34),
+                // (31,26): error CS0255: stackalloc may not be used in a catch or finally block
+                //             int* err21 = stackalloc int [3] { 1, 2, 3 };
+                Diagnostic(ErrorCode.ERR_StackallocInCatchFinally, "stackalloc int [3] { 1, 2, 3 }").WithLocation(31, 26),
+                // (32,26): error CS0255: stackalloc may not be used in a catch or finally block
+                //             int* err22 = stackalloc int [ ] { 1, 2, 3 };
+                Diagnostic(ErrorCode.ERR_StackallocInCatchFinally, "stackalloc int [ ] { 1, 2, 3 }").WithLocation(32, 26),
+                // (33,26): error CS0255: stackalloc may not be used in a catch or finally block
+                //             int* err23 = stackalloc     [ ] { 1, 2, 3 };
+                Diagnostic(ErrorCode.ERR_StackallocInCatchFinally, "stackalloc     [ ] { 1, 2, 3 }").WithLocation(33, 26),
+                // (45,34): error CS0255: stackalloc may not be used in a catch or finally block
+                //                     int* err31 = stackalloc int [3] { 1, 2, 3 };
+                Diagnostic(ErrorCode.ERR_StackallocInCatchFinally, "stackalloc int [3] { 1, 2, 3 }").WithLocation(45, 34),
+                // (46,34): error CS0255: stackalloc may not be used in a catch or finally block
+                //                     int* err32 = stackalloc int [ ] { 1, 2, 3 };
+                Diagnostic(ErrorCode.ERR_StackallocInCatchFinally, "stackalloc int [ ] { 1, 2, 3 }").WithLocation(46, 34),
+                // (47,34): error CS0255: stackalloc may not be used in a catch or finally block
+                //                     int* err33 = stackalloc     [ ] { 1, 2, 3 };
+                Diagnostic(ErrorCode.ERR_StackallocInCatchFinally, "stackalloc     [ ] { 1, 2, 3 }").WithLocation(47, 34),
+                // (72,34): error CS0255: stackalloc may not be used in a catch or finally block
+                //                     int* err41 = stackalloc int [3] { 1, 2, 3 };
+                Diagnostic(ErrorCode.ERR_StackallocInCatchFinally, "stackalloc int [3] { 1, 2, 3 }").WithLocation(72, 34),
+                // (73,34): error CS0255: stackalloc may not be used in a catch or finally block
+                //                     int* err42 = stackalloc int [ ] { 1, 2, 3 };
+                Diagnostic(ErrorCode.ERR_StackallocInCatchFinally, "stackalloc int [ ] { 1, 2, 3 }").WithLocation(73, 34),
+                // (74,34): error CS0255: stackalloc may not be used in a catch or finally block
+                //                     int* err43 = stackalloc     [ ] { 1, 2, 3 };
+                Diagnostic(ErrorCode.ERR_StackallocInCatchFinally, "stackalloc     [ ] { 1, 2, 3 }").WithLocation(74, 34),
+                // (80,26): error CS0255: stackalloc may not be used in a catch or finally block
+                //             int* err51 = stackalloc int [3] { 1, 2, 3 };
+                Diagnostic(ErrorCode.ERR_StackallocInCatchFinally, "stackalloc int [3] { 1, 2, 3 }").WithLocation(80, 26),
+                // (81,26): error CS0255: stackalloc may not be used in a catch or finally block
+                //             int* err52 = stackalloc int [ ] { 1, 2, 3 };
+                Diagnostic(ErrorCode.ERR_StackallocInCatchFinally, "stackalloc int [ ] { 1, 2, 3 }").WithLocation(81, 26),
+                // (82,26): error CS0255: stackalloc may not be used in a catch or finally block
+                //             int* err53 = stackalloc     [ ] { 1, 2, 3 };
+                Diagnostic(ErrorCode.ERR_StackallocInCatchFinally, "stackalloc     [ ] { 1, 2, 3 }").WithLocation(82, 26),
+                // (94,34): error CS0255: stackalloc may not be used in a catch or finally block
+                //                     int* err61 = stackalloc int [3] { 1, 2, 3 };
+                Diagnostic(ErrorCode.ERR_StackallocInCatchFinally, "stackalloc int [3] { 1, 2, 3 }").WithLocation(94, 34),
+                // (95,34): error CS0255: stackalloc may not be used in a catch or finally block
+                //                     int* err62 = stackalloc int [ ] { 1, 2, 3 };
+                Diagnostic(ErrorCode.ERR_StackallocInCatchFinally, "stackalloc int [ ] { 1, 2, 3 }").WithLocation(95, 34),
+                // (96,34): error CS0255: stackalloc may not be used in a catch or finally block
+                //                     int* err63 = stackalloc     [ ] { 1, 2, 3 };
+                Diagnostic(ErrorCode.ERR_StackallocInCatchFinally, "stackalloc     [ ] { 1, 2, 3 }").WithLocation(96, 34)
+                );
+        }
     }
 }

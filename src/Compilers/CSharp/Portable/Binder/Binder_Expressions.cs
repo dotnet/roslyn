@@ -3071,12 +3071,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool inLegalPosition = ReportBadStackAllocPosition(node, diagnostics);
             bool hasErrors = !inLegalPosition;
 
-            // Check if we're syntactically within a catch or finally clause.
-            if (this.Flags.IncludesAny(BinderFlags.InCatchBlock | BinderFlags.InCatchFilter | BinderFlags.InFinallyBlock))
-            {
-                Error(diagnostics, ErrorCode.ERR_StackallocInCatchFinally, node);
-            }
-
             TypeSyntax typeSyntax = node.Type;
 
             if (typeSyntax.Kind() != SyntaxKind.ArrayType)
@@ -3173,6 +3167,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ErrorCode.ERR_InvalidExprTerm,
                     node.GetFirstToken().GetLocation(),
                     SyntaxFacts.GetText(SyntaxKind.StackAllocKeyword));
+            }
+
+            // Check if we're syntactically within a catch or finally clause.
+            if (this.Flags.IncludesAny(BinderFlags.InCatchBlock | BinderFlags.InCatchFilter | BinderFlags.InFinallyBlock))
+            {
+                Error(diagnostics, ErrorCode.ERR_StackallocInCatchFinally, node);
             }
 
             return inLegalPosition;
