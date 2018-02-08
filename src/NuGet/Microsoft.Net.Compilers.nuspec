@@ -61,16 +61,13 @@
          the src/Setup/DevDivInsertionFiles/BuildDevDivInsertionFiles.vb file, the
          src/Setup/DevDivVsix/CompilersPackage/Microsoft.CodeAnalysis.Compilers.swr file,
          and src/Compilers/Extension/CompilerExtension.csproj file. -->
-    <file src="Exes\Toolset\Microsoft.Win32.Primitives.dll" target="tools" />
     <file src="Exes\Toolset\System.AppContext.dll" target="tools" />
     <file src="Exes\Toolset\System.Console.dll" target="tools" />
     <file src="Exes\Toolset\System.Collections.Immutable.dll" target="tools" />
     <file src="Exes\Toolset\System.Diagnostics.FileVersionInfo.dll" target="tools" />
-    <file src="Exes\Toolset\System.Diagnostics.Process.dll" target="tools" />
     <file src="Exes\Toolset\System.Diagnostics.StackTrace.dll" target="tools" />
     <file src="Exes\Toolset\System.IO.Compression.dll" target="tools" />
     <file src="Exes\Toolset\System.IO.FileSystem.dll" target="tools" />
-    <file src="Exes\Toolset\System.IO.FileSystem.DriveInfo.dll" target="tools" />
     <file src="Exes\Toolset\System.IO.FileSystem.Primitives.dll" target="tools" />
     <file src="Exes\Toolset\System.IO.Pipes.dll" target="tools" />
     <file src="Exes\Toolset\System.IO.Pipes.AccessControl.dll" target="tools" />
@@ -83,7 +80,6 @@
     <file src="Exes\Toolset\System.Security.Cryptography.X509Certificates.dll" target="tools" />
     <file src="Exes\Toolset\System.Security.Principal.Windows.dll" target="tools" />
     <file src="Exes\Toolset\System.Text.Encoding.CodePages.dll" target="tools" />
-    <file src="Exes\Toolset\System.Threading.Thread.dll" target="tools" />
     <file src="Exes\Toolset\System.ValueTuple.dll" target="tools" />
     <file src="Exes\Toolset\System.Xml.ReaderWriter.dll" target="tools" />
     <file src="Exes\Toolset\System.Xml.XmlDocument.dll" target="tools" />
