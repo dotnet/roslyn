@@ -1066,16 +1066,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(args.IsDefaultOrEmpty || (object)receiver != (object)args[0]);
 
-            gotError |= !CheckInvocationArgMixing(
-                node,
-                method,
-                receiver,
-                method.Parameters,
-                args,
-                argRefKinds,
-                argsToParams,
-                this.LocalScopeDepth,
-                diagnostics);
+            if (!gotError)
+            {
+                gotError = !CheckInvocationArgMixing(
+                    node,
+                    method,
+                    receiver,
+                    method.Parameters,
+                    args,
+                    argRefKinds,
+                    argsToParams,
+                    this.LocalScopeDepth,
+                    diagnostics);
+            }
 
             if ((object)delegateTypeOpt != null)
             {
