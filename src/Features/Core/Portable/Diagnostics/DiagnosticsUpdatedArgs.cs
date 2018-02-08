@@ -1,8 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Common;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -20,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             DocumentId documentId,
             ImmutableArray<DiagnosticData> diagnostics,
             DiagnosticsUpdatedKind kind)
-                : base(id, workspace, projectId, documentId)
+                : base(id, workspace, projectId, documentId, GetOpenSourceText(solution, documentId))
         {
             Solution = solution;
             Diagnostics = diagnostics;
@@ -30,6 +33,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 Debug.Assert(diagnostics.IsEmpty);
             }
+        }
+
+        internal static SourceText GetOpenSourceText(Solution solution, DocumentId documentId)
+        {
+            var document = solution.GetDocument(documentId);
+            if (document.IsOpen() && document.TryGetText(out var sourceText))
+            {
+                return sourceText;
+            }
+
+            return null;
         }
 
         public static DiagnosticsUpdatedArgs DiagnosticsCreated(

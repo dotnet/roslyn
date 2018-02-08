@@ -370,17 +370,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 this.DocumentId = args.DocumentId;
                 this.Id = args.Id;
                 this.Diagnostics = diagnostics;
-                this.OpenSourceText = null;
-
-                if (args.DocumentId != null)
-                {
-                    var document = args.Solution.GetDocument(args.DocumentId);
-                    if (document.IsOpen() &&
-                        document.TryGetText(out var sourceText))
-                    {
-                        this.OpenSourceText = sourceText;
-                    }
-                }
+                this.OpenSourceText = DiagnosticsUpdatedArgs.GetOpenSourceText(args.Solution, args.DocumentId);
             }
         }
     }
