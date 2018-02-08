@@ -386,7 +386,7 @@ namespace My
             {
                 *intref = 1;
             }
-            fixed (int* p = stackalloc int[100])
+            fixed (int* p = stackalloc int[] { 100 }, q = stackalloc[] { 100 })
             {
                 *intref = 1;
             }

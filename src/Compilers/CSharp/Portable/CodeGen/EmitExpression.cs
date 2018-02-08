@@ -1889,6 +1889,23 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             {
                 _builder.EmitOpCode(ILOpCode.Localloc);
             }
+
+            var initializer = expression.InitializerOpt;
+            if (initializer != null)
+            {
+                if (used)
+                {
+                    EmitStackAllocInitializers(expression.Type, initializer);
+                }
+                else
+                {
+                    // If not used, just emit initializer elements to preserve possible sideeffects
+                    foreach (var init in initializer.Initializers)
+                    {
+                        EmitExpression(init, used: false);
+                    }
+                }
+            }
         }
 
         private void EmitObjectCreationExpression(BoundObjectCreationExpression expression, bool used)

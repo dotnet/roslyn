@@ -8610,6 +8610,11 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <target state="new">ref conditional expression</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureStackAllocInitializer">
+        <source>stackalloc initializer</source>
+        <target state="new">stackalloc initializer</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

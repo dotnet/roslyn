@@ -1444,7 +1444,8 @@
 
   <Node Name="BoundStackAllocArrayCreation" Base="BoundExpression">
     <Field Name="ElementType" Type="TypeSymbol" Null="disallow"/>
-    <Field Name="Count" Type="BoundExpression"/>
+    <Field Name="Count" Type="BoundExpression" Null="disallow" />
+    <Field Name="InitializerOpt" Type="BoundArrayInitialization" Null="allow"/>
   </Node>
 
   <Node Name="BoundConvertedStackAllocExpression" Base="BoundStackAllocArrayCreation">
