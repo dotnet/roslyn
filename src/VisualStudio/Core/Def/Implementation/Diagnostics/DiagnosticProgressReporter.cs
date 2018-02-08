@@ -32,9 +32,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             VisualStudioWorkspace workspace)
         {
             // no event unsubscription since it will remain alive until VS shutdown
-            _taskCenterService = (IVsTaskStatusCenterService)serviceProvider?.GetService(typeof(SVsTaskStatusCenterService));
+            _taskCenterService = (IVsTaskStatusCenterService)serviceProvider.GetService(typeof(SVsTaskStatusCenterService));
             _diagnosticService = diagnosticService;
-            _diagnosticService.DiagnosticsUpdated += OnDiagnosticsUpdated;
 
             var crawlerService = workspace.Services.GetService<ISolutionCrawlerService>();
             var reporter = crawlerService.GetProgressReporter(workspace);
@@ -42,6 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             Started(reporter.InProgress);
 
             reporter.ProgressChanged += OnSolutionCrawlerProgressChanged;
+            _diagnosticService.DiagnosticsUpdated += OnDiagnosticsUpdated;
 
             _options = new TaskHandlerOptions()
             {
@@ -89,10 +89,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                 // if there is any pending one. make sure it is finished.
                 _currentTask?.TrySetResult(true);
 
-                _taskHandler = _taskCenterService.PreRegister(_options, data: default);
+                var taskHandler = _taskCenterService.PreRegister(_options, data: default);
 
                 _currentTask = new TaskCompletionSource<bool>();
-                _taskHandler.RegisterTask(_currentTask.Task);
+                taskHandler.RegisterTask(_currentTask.Task);
 
                 var data = new TaskProgressData
                 {
@@ -101,8 +101,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                     PercentComplete = null,
                 };
 
-                // report progress
-                _taskHandler.Progress.Report(data);
+                // report initial progress
+                taskHandler.Progress.Report(data);
+
+                // set handler
+                _taskHandler = taskHandler;
             }
             else
             {
