@@ -196,13 +196,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override void VisitLocalFunctionStatement(LocalFunctionStatementSyntax node)
         {
             bool oldSawYield = _sawYield;
+            Symbol oldMethod = _containingMemberOrLambda;
             Binder binder = _enclosing;
-            Symbol oldMethod = null;
             LocalFunctionSymbol match = FindLocalFunction(node, _enclosing);
 
             if ((object)match != null)
             {
-                oldMethod = _containingMemberOrLambda;
                 _containingMemberOrLambda = match;
 
                 binder = match.IsGenericMethod
@@ -233,11 +232,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(!_sawYield);
             }
 
-            if ((object)oldMethod != null)
-            {
-                _containingMemberOrLambda = oldMethod;
-            }
-
+            _containingMemberOrLambda = oldMethod;
             _sawYield = oldSawYield;
         }
 
