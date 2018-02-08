@@ -231,17 +231,29 @@ static unsafe class C
         {
             Test("System.Int32",
 @"{
-  // Code size       21 (0x15)
+  // Code size       27 (0x1b)
   .maxstack  4
   IL_0000:  ldc.i4.s   12
   IL_0002:  conv.u
   IL_0003:  localloc
   IL_0005:  dup
-  IL_0006:  ldsflda    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.E429CCA3F703A39CC5954A6572FEC9086135B34E""
-  IL_000b:  ldc.i4.s   12
-  IL_000d:  cpblk
-  IL_000f:  call       ""void C.Print(int*)""
-  IL_0014:  ret
+  IL_0006:  ldc.i4.1
+  IL_0007:  stind.i4
+  IL_0008:  dup
+  IL_0009:  ldc.i4.4
+  IL_000a:  add
+  IL_000b:  ldc.i4.2
+  IL_000c:  stind.i4
+  IL_000d:  dup
+  IL_000e:  ldc.i4.2
+  IL_000f:  conv.i
+  IL_0010:  ldc.i4.4
+  IL_0011:  mul
+  IL_0012:  add
+  IL_0013:  ldc.i4.3
+  IL_0014:  stind.i4
+  IL_0015:  call       ""void C.Print(int*)""
+  IL_001a:  ret
 }");
         }
 
@@ -250,17 +262,32 @@ static unsafe class C
         {
             Test("System.Int64",
 @"{
-  // Code size       21 (0x15)
+  // Code size       30 (0x1e)
   .maxstack  4
   IL_0000:  ldc.i4.s   24
   IL_0002:  conv.u
   IL_0003:  localloc
   IL_0005:  dup
-  IL_0006:  ldsflda    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=24 <PrivateImplementationDetails>.E2D1839ED1706F7D470D87F8C48A5584CAFA5A12""
-  IL_000b:  ldc.i4.s   24
-  IL_000d:  cpblk
-  IL_000f:  call       ""void C.Print(long*)""
-  IL_0014:  ret
+  IL_0006:  ldc.i4.1
+  IL_0007:  conv.i8
+  IL_0008:  stind.i8
+  IL_0009:  dup
+  IL_000a:  ldc.i4.8
+  IL_000b:  add
+  IL_000c:  ldc.i4.2
+  IL_000d:  conv.i8
+  IL_000e:  stind.i8
+  IL_000f:  dup
+  IL_0010:  ldc.i4.2
+  IL_0011:  conv.i
+  IL_0012:  ldc.i4.8
+  IL_0013:  mul
+  IL_0014:  add
+  IL_0015:  ldc.i4.3
+  IL_0016:  conv.i8
+  IL_0017:  stind.i8
+  IL_0018:  call       ""void C.Print(long*)""
+  IL_001d:  ret
 }");
         }
 
@@ -343,7 +370,7 @@ namespace System
             CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: @"123")
                 .VerifyIL("C.Main",
 @"{
-  // Code size       31 (0x1f)
+  // Code size       37 (0x25)
   .maxstack  4
   .locals init (int V_0)
   IL_0000:  ldc.i4.3
@@ -354,14 +381,26 @@ namespace System
   IL_0005:  mul.ovf.un
   IL_0006:  localloc
   IL_0008:  dup
-  IL_0009:  ldsflda    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.E429CCA3F703A39CC5954A6572FEC9086135B34E""
-  IL_000e:  ldc.i4.s   12
-  IL_0010:  cpblk
-  IL_0012:  ldloc.0
-  IL_0013:  newobj     ""System.Span<int>..ctor(void*, int)""
-  IL_0018:  call       ""System.ReadOnlySpan<int> System.ReadOnlySpan<int>.op_Implicit(System.Span<int>)""
-  IL_001d:  pop
-  IL_001e:  ret
+  IL_0009:  ldc.i4.1
+  IL_000a:  stind.i4
+  IL_000b:  dup
+  IL_000c:  ldc.i4.4
+  IL_000d:  add
+  IL_000e:  ldc.i4.2
+  IL_000f:  stind.i4
+  IL_0010:  dup
+  IL_0011:  ldc.i4.2
+  IL_0012:  conv.i
+  IL_0013:  ldc.i4.4
+  IL_0014:  mul
+  IL_0015:  add
+  IL_0016:  ldc.i4.3
+  IL_0017:  stind.i4
+  IL_0018:  ldloc.0
+  IL_0019:  newobj     ""System.Span<int>..ctor(void*, int)""
+  IL_001e:  call       ""System.ReadOnlySpan<int> System.ReadOnlySpan<int>.op_Implicit(System.Span<int>)""
+  IL_0023:  pop
+  IL_0024:  ret
 }");
         }
 

@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             elementType = elementType.EnumUnderlyingType();
 
-            if (elementType.SpecialType.IsBlittable())
+            if (elementType.SpecialType.SizeInBytes() == 1)
             {
                 int initCount = 0;
                 int constCount = 0;
