@@ -31,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             IDiagnosticService diagnosticService,
             ExternalErrorDiagnosticUpdateSource errorSource,
             ITableManagerProvider provider) :
-            this(serviceProvider, (Workspace)workspace, diagnosticService, errorSource, provider)
+            this(workspace, diagnosticService, errorSource, provider)
         {
             ConnectWorkspaceEvents();
 
@@ -59,20 +59,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         /// this is for test only
         internal VisualStudioDiagnosticListTable(Workspace workspace, IDiagnosticService diagnosticService, ITableManagerProvider provider) :
-            this(null, workspace, diagnosticService, null, provider)
+            this(workspace, diagnosticService, errorSource: null, provider)
         {
             AddInitialTableSource(workspace.CurrentSolution, _liveTableSource);
         }
 
         /// this is for test only
-        internal VisualStudioDiagnosticListTable(Workspace workspace, IDiagnosticService diagnosticService, ExternalErrorDiagnosticUpdateSource errorSource, ITableManagerProvider provider) :
-            this(null, workspace, diagnosticService, errorSource, provider)
+        internal VisualStudioDiagnosticListTable(Workspace workspace, ExternalErrorDiagnosticUpdateSource errorSource, ITableManagerProvider provider) :
+            this(workspace, diagnosticService: null, errorSource, provider)
         {
             AddInitialTableSource(workspace.CurrentSolution, _buildTableSource);
         }
 
         private VisualStudioDiagnosticListTable(
-            SVsServiceProvider serviceProvider,
             Workspace workspace,
             IDiagnosticService diagnosticService,
             ExternalErrorDiagnosticUpdateSource errorSource,

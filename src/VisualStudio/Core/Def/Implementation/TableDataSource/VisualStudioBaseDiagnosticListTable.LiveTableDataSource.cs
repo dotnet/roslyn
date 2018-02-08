@@ -40,9 +40,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 _tracker = new OpenDocumentTracker<DiagnosticData>(_workspace);
 
                 _diagnosticService = diagnosticService;
-                _diagnosticService.DiagnosticsUpdated += OnDiagnosticsUpdated;
 
-                PopulateInitialData(workspace, diagnosticService);
+                ConnectToDiagnosticService(workspace, diagnosticService);
             }
 
             public override string DisplayName => ServicesVSResources.CSharp_VB_Diagnostics_Table_Data_Source;
@@ -171,6 +170,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             {
                 var item = (UpdatedEventArgs)data;
                 return new TableEntriesSource(this, item.Workspace, item.ProjectId, item.DocumentId, item.Id);
+            }
+
+            private void ConnectToDiagnosticService(Workspace workspace, IDiagnosticService diagnosticService)
+            {
+                if (diagnosticService == null)
+                {
+                    // it can be null in unit test
+                    return;
+                }
+
+                _diagnosticService.DiagnosticsUpdated += OnDiagnosticsUpdated;
+
+                PopulateInitialData(workspace, diagnosticService);
             }
 
             private static bool ShouldInclude(DiagnosticData diagnostic)
