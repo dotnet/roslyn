@@ -418,7 +418,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             if (valueSlot > 0)
                             {
-                                InheritNullableStateOfTrackableType(targetSlot, valueSlot, isByRefTarget);
+                                InheritNullableStateOfTrackableType(targetSlot, valueSlot, isByRefTarget, slotWatermark: GetSlotWatermark());
                             }
                         }
                     }
@@ -426,10 +426,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (targetSlot > 0 && EmptyStructTypeCache.IsTrackableStructType(targetType.TypeSymbol) &&
                         (value == null || targetType.TypeSymbol.Equals(valueType?.TypeSymbol, TypeCompareKind.ConsiderEverything)))
                 {
-                    InheritNullableStateOfTrackableStruct(targetType.TypeSymbol, targetSlot, valueSlot, IsByRefTarget(targetSlot));
+                    InheritNullableStateOfTrackableStruct(targetType.TypeSymbol, targetSlot, valueSlot, IsByRefTarget(targetSlot), slotWatermark: GetSlotWatermark());
                 }
             }
         }
+
+        private int GetSlotWatermark() => this.State.Capacity;
 
         private bool IsByRefTarget(int slot)
         {
@@ -455,7 +457,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Diagnostics.Add(errorCode, syntaxNode.GetLocation(), arguments);
         }
 
-        private void InheritNullableStateOfTrackableStruct(TypeSymbol targetType, int targetSlot, int valueSlot, bool isByRefTarget)
+        private void InheritNullableStateOfTrackableStruct(TypeSymbol targetType, int targetSlot, int valueSlot, bool isByRefTarget, int slotWatermark)
         {
             Debug.Assert(targetSlot > 0);
             Debug.Assert(EmptyStructTypeCache.IsTrackableStructType(targetType));
@@ -464,12 +466,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             // See ModifyMembers_StructPropertyNoBackingField and PropertyCycle_Struct tests.
             foreach (var field in _emptyStructTypeCache.GetStructInstanceFields(targetType))
             {
-                InheritNullableStateOfFieldOrProperty(targetSlot, valueSlot, field, isByRefTarget);
+                InheritNullableStateOfFieldOrProperty(targetSlot, valueSlot, field, isByRefTarget, slotWatermark);
             }
         }
 
-        private void InheritNullableStateOfFieldOrProperty(int targetContainerSlot, int valueContainerSlot, Symbol fieldOrProperty, bool isByRefTarget)
+        // 'slotWatermark' is used to avoid inheriting members from inherited members.
+        private void InheritNullableStateOfFieldOrProperty(int targetContainerSlot, int valueContainerSlot, Symbol fieldOrProperty, bool isByRefTarget, int slotWatermark)
         {
+            Debug.Assert(valueContainerSlot <= slotWatermark);
+
             TypeSymbolWithAnnotations fieldOrPropertyType = GetTypeOrReturnTypeWithAdjustedNullableAnnotations(fieldOrProperty);
 
             if (fieldOrPropertyType.IsReferenceType)
@@ -499,22 +504,29 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (valueContainerSlot > 0)
                 {
-                    int valueSlot = VariableSlot(fieldOrProperty, valueContainerSlot);
-                    if (valueSlot > 0)
+                    int valueMemberSlot = VariableSlot(fieldOrProperty, valueContainerSlot);
+                    if (valueMemberSlot > 0 && valueMemberSlot <= slotWatermark)
                     {
                         int targetMemberSlot = GetOrCreateSlot(fieldOrProperty, targetContainerSlot);
-                        InheritNullableStateOfTrackableType(targetMemberSlot, valueSlot, isByRefTarget);
+                        InheritNullableStateOfTrackableType(targetMemberSlot, valueMemberSlot, isByRefTarget, slotWatermark);
                     }
                 }
             }
             else if (EmptyStructTypeCache.IsTrackableStructType(fieldOrPropertyType.TypeSymbol))
             {
-                var slot = GetOrCreateSlot(fieldOrProperty, targetContainerSlot);
-                if (slot > 0)
+                var targetMemberSlot = GetOrCreateSlot(fieldOrProperty, targetContainerSlot);
+                if (targetMemberSlot > 0)
                 {
-                    InheritNullableStateOfTrackableStruct(fieldOrPropertyType.TypeSymbol,
-                                                          slot,
-                                                          valueContainerSlot > 0 ? GetOrCreateSlot(fieldOrProperty, valueContainerSlot) : -1, isByRefTarget);
+                    int valueMemberSlot = -1;
+                    if (valueContainerSlot > 0)
+                    {
+                        int slot = GetOrCreateSlot(fieldOrProperty, valueContainerSlot);
+                        if (slot < slotWatermark)
+                        {
+                            valueMemberSlot = slot;
+                        }
+                    }
+                    InheritNullableStateOfTrackableStruct(fieldOrPropertyType.TypeSymbol, targetMemberSlot, valueMemberSlot, isByRefTarget, slotWatermark);
                 }
             }
         }
@@ -536,7 +548,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void InheritNullableStateOfTrackableType(int targetSlot, int valueSlot, bool isByRefTarget)
+        private void InheritNullableStateOfTrackableType(int targetSlot, int valueSlot, bool isByRefTarget, int slotWatermark)
         {
             Debug.Assert(targetSlot > 0);
             Debug.Assert(valueSlot > 0);
@@ -551,7 +563,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 var member = variable.Symbol;
                 Debug.Assert(member.Kind == SymbolKind.Field || member.Kind == SymbolKind.Property);
-                InheritNullableStateOfFieldOrProperty(targetSlot, valueSlot, member, isByRefTarget);
+                InheritNullableStateOfFieldOrProperty(targetSlot, valueSlot, member, isByRefTarget, slotWatermark);
             }
         }
 
@@ -593,7 +605,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var paramType = parameter.Type.TypeSymbol;
                     if (EmptyStructTypeCache.IsTrackableStructType(paramType))
                     {
-                        InheritNullableStateOfTrackableStruct(paramType, slot, -1, parameter.RefKind != RefKind.None);
+                        InheritNullableStateOfTrackableStruct(paramType, slot, valueSlot: -1, isByRefTarget: parameter.RefKind != RefKind.None, slotWatermark: GetSlotWatermark());
                     }
                 }
             }
@@ -900,7 +912,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     slot = GetOrCreateSlot(receiver);
                     if (slot > 0 && isTrackableStructType)
                     {
-                        InheritNullableStateOfTrackableStruct(type, slot, -1, false);
+                        InheritNullableStateOfTrackableStruct(type, slot, valueSlot: -1, isByRefTarget: false, slotWatermark: GetSlotWatermark());
                     }
                 }
             }
@@ -1190,65 +1202,66 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private TypeSymbolWithAnnotations InferResultNullability(BoundBinaryOperator node, TypeSymbolWithAnnotations leftType, TypeSymbolWithAnnotations rightType)
-        {
-            return InferResultNullability(node.OperatorKind, node.MethodOpt, node.Type, leftType, rightType);
-        }
-
         private TypeSymbolWithAnnotations InferResultNullability(BinaryOperatorKind operatorKind, MethodSymbol methodOpt, TypeSymbol resultType, TypeSymbolWithAnnotations leftType, TypeSymbolWithAnnotations rightType)
         {
-            bool? isNullable = InferResultNullability(operatorKind, methodOpt, resultType, leftType?.IsNullable, rightType?.IsNullable);
-            return TypeSymbolWithAnnotations.Create(resultType, isNullable);
-        }
-
-        private bool? InferResultNullability(BinaryOperatorKind operatorKind, MethodSymbol methodOpt, TypeSymbol resultType, bool? leftIsNullable, bool? rightIsNullable)
-        {
+            bool? isNullable = null;
             if (operatorKind.IsUserDefined())
             {
                 if ((object)methodOpt != null && methodOpt.ParameterCount == 2)
                 {
-                    // PROTOTYPE(NullableReferenceTypes): Should return methodOpt.ReturnType
-                    // since that type might include nested nullability inferred from this flow analysis.
-                    return IsResultNullable(methodOpt);
-                }
-                else
-                {
-                    return null;
+                    bool hasLiftedReturnType(BinaryOperatorKind opKind)
+                    {
+                        if (!opKind.IsLifted())
+                        {
+                            return false;
+                        }
+                        switch (opKind.Operator())
+                        {
+                            case BinaryOperatorKind.Equal:
+                            case BinaryOperatorKind.NotEqual:
+                            case BinaryOperatorKind.GreaterThan:
+                            case BinaryOperatorKind.LessThan:
+                            case BinaryOperatorKind.GreaterThanOrEqual:
+                            case BinaryOperatorKind.LessThanOrEqual:
+                                return false;
+                            default:
+                                return true;
+                        }
+                    }
+                    return ConstructNullableIfNecessary(methodOpt.ReturnType, useNullable: hasLiftedReturnType(operatorKind));
                 }
             }
-            else if (operatorKind.IsDynamic())
-            {
-                return null;
-            }
-            else if (resultType.IsReferenceType == true)
+            else if (!operatorKind.IsDynamic() && resultType.IsReferenceType == true)
             {
                 switch (operatorKind.Operator() | operatorKind.OperandTypes())
                 {
                     case BinaryOperatorKind.DelegateCombination:
-                        if (leftIsNullable == false || rightIsNullable == false)
                         {
-                            return false;
+                            bool? leftIsNullable = leftType?.IsNullable;
+                            bool? rightIsNullable = rightType?.IsNullable;
+                            if (leftIsNullable == false || rightIsNullable == false)
+                            {
+                                isNullable = false;
+                            }
+                            else if (leftIsNullable == true && rightIsNullable == true)
+                            {
+                                isNullable = true;
+                            }
+                            else
+                            {
+                                Debug.Assert(leftIsNullable == null || rightIsNullable == null);
+                            }
                         }
-                        else if (leftIsNullable == true && rightIsNullable == true)
-                        {
-                            return true;
-                        }
-                        else
-                        {
-                            Debug.Assert(leftIsNullable == null || rightIsNullable == null);
-                            return null;
-                        }
-
+                        break;
                     case BinaryOperatorKind.DelegateRemoval:
-                        return true; // Delegate removal can produce null.
+                        isNullable = true; // Delegate removal can produce null.
+                        break;
+                    default:
+                        isNullable = false;
+                        break;
                 }
-
-                return false;
             }
-            else
-            {
-                return null;
-            }
+            return TypeSymbolWithAnnotations.Create(resultType, isNullable);
         }
 
         protected override void VisitBinaryOperatorChildren(ArrayBuilder<BoundBinaryOperator> stack)
@@ -1301,7 +1314,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 Debug.Assert(!IsConditionalState);
-                var result = Result.Create(InferResultNullability(binary, leftType, rightType));
+                // PROTOTYPE(NullableReferenceTypes): Update method based on inferred operand type.
+                var result = Result.Create(InferResultNullability(binary.OperatorKind, binary.MethodOpt, binary.Type, leftType, rightType));
                 _result = result;
 
                 BinaryOperatorKind op = binary.OperatorKind.Operator();
@@ -1967,20 +1981,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // PROTOTYPE(NullableReferenceTypes): Support field initializers in local functions.
         }
 
-        private bool? IsResultNullable(Symbol resultSymbol)
-        {
-            TypeSymbolWithAnnotations resultType = GetTypeOrReturnTypeWithAdjustedNullableAnnotations(resultSymbol);
-
-            if (!resultType.IsVoid && resultType.IsReferenceType)
-            {
-                return resultType.IsNullable;
-            }
-            else
-            {
-                return null;
-            }
-        }
-
         /// <summary>
         /// Adjust declared type based on inferred nullability at the point of reference.
         /// </summary>
@@ -2288,7 +2288,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ImplicitTuple:
                 case ConversionKind.ExplicitTuple:
                     {
-                        var operandTuple = operand.Type.TypeSymbol as TupleTypeSymbol;
+                        var operandTuple = operand.Type?.TypeSymbol as TupleTypeSymbol;
                         var targetTuple = targetType as TupleTypeSymbol;
                         if (operandTuple is null || targetTuple is null)
                         {
@@ -2493,7 +2493,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // PROTOTYPE(NullableReferenceTypes): Assign each of the deconstructed values.
             // See IdentityConversion_DeconstructionAssignment test.
-            _result = rightResult;
+            _result = node.HasErrors ? TypeSymbolWithAnnotations.Create(node.Type) : rightResult;
             return null;
         }
 
@@ -2600,6 +2600,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     WarnOnNullReferenceArgument(node.Right, rightResult.Type, node.Operator.Method.Parameters[1]);
                 }
 
+                // PROTOTYPE(NullableReferenceTypes): Update method based on inferred operand type.
                 resultType = InferResultNullability(node.Operator.Kind, node.Operator.Method, node.Operator.ReturnType, leftOnRightResult.Type, rightResult.Type);
                 resultType = ApplyConversion(node, node.FinalConversion, node.Type, Result.Create(resultType)).Type;
             }
@@ -2807,6 +2808,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!IsConditionalState);
 
             var result = base.VisitUnaryOperator(node);
+            TypeSymbolWithAnnotations resultType = null;
 
             // PROTOTYPE(NullableReferenceTypes): Update method based on inferred operand type.
             if (node.OperatorKind.IsUserDefined())
@@ -2815,30 +2817,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if ((object)operatorMethod != null)
                 {
                     WarnOnNullReferenceArgument(node.Operand, _result.Type, operatorMethod.Parameters[0]);
+                    resultType = ConstructNullableIfNecessary(operatorMethod.ReturnType, useNullable: node.OperatorKind.IsLifted());
                 }
             }
 
-            _result = InferResultNullability(node);
-            return null;
+            _result = resultType ?? TypeSymbolWithAnnotations.Create(node.Type);
+            return result;
         }
 
-        private TypeSymbolWithAnnotations InferResultNullability(BoundUnaryOperator node)
+        private TypeSymbolWithAnnotations ConstructNullableIfNecessary(TypeSymbolWithAnnotations type, bool useNullable)
         {
-            if (node.OperatorKind.IsUserDefined())
+            if (useNullable)
             {
-                // PROTOTYPE(NullableReferenceTypes): Update method based on inferred operand type.
-                var operatorMethod = GetUnaryMethodIfAny(node.MethodOpt);
-                if ((object)operatorMethod != null)
-                {
-                    var type = GetTypeOrReturnTypeWithAdjustedNullableAnnotations(node.MethodOpt);
-                    if (node.OperatorKind.IsLifted())
-                    {
-                        type = TypeSymbolWithAnnotations.Create(compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(type.TypeSymbol));
-                    }
-                    return type;
-                }
+                Debug.Assert(type.IsValueType);
+                return TypeSymbolWithAnnotations.Create(compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(type.TypeSymbol));
             }
-            return TypeSymbolWithAnnotations.Create(node.Type);
+            return type;
         }
 
         public override BoundNode VisitPointerIndirectionOperator(BoundPointerIndirectionOperator node)
@@ -2874,19 +2868,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var result = base.VisitRefValueOperator(node);
             SetResult(node);
             return result;
-        }
-
-        private TypeSymbolWithAnnotations InferResultNullability(BoundUserDefinedConditionalLogicalOperator node)
-        {
-            // PROTOTYPE(NullableReferenceTypes): Update method based on inferred operand types.
-            if ((object)node.LogicalOperator != null && node.LogicalOperator.ParameterCount == 2)
-            {
-                return GetTypeOrReturnTypeWithAdjustedNullableAnnotations(node.LogicalOperator);
-            }
-            else
-            {
-                return null;
-            }
         }
 
         protected override void VisitBinaryLogicalOperatorChildren(ArrayBuilder<BoundExpression> stack)
@@ -2988,9 +2969,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (node.Kind)
             {
                 case BoundKind.BinaryOperator:
-                    return InferResultNullability((BoundBinaryOperator)node, leftType, rightType);
+                    {
+                        var binary = (BoundBinaryOperator)node;
+                        // PROTOTYPE(NullableReferenceTypes): Update method based on inferred operand type.
+                        return InferResultNullability(binary.OperatorKind, binary.MethodOpt, binary.Type, leftType, rightType);
+                    }
                 case BoundKind.UserDefinedConditionalLogicalOperator:
-                    return InferResultNullability((BoundUserDefinedConditionalLogicalOperator)node);
+                    {
+                        var binary = (BoundUserDefinedConditionalLogicalOperator)node;
+                        // PROTOTYPE(NullableReferenceTypes): Update method based on inferred operand types.
+                        var method = binary.LogicalOperator;
+                        if ((object)method != null && method.ParameterCount == 2)
+                        {
+                            return ConstructNullableIfNecessary(method.ReturnType, useNullable: binary.OperatorKind.IsLifted());
+                        }
+                        return TypeSymbolWithAnnotations.Create(node.Type);
+                    }
                 default:
                     throw ExceptionUtilities.UnexpectedValue(node.Kind);
             }
@@ -3338,7 +3332,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (type.IsReferenceType)
                 {
-                    bool? memberResultIsNullable = IsResultNullable(member);
+                    bool? memberResultIsNullable = type.IsNullable;
                     if (memberResultIsNullable == true)
                     {
                         // At least one candidate can produce null, assume dynamic access can produce null as well

@@ -10037,6 +10037,89 @@ class CL0
         }
 
         [Fact]
+        public void BinaryOperator_14()
+        {
+            var source =
+@"struct S
+{
+    public static S operator&(S a, S b) => a;
+    public static S operator|(S a, S b) => b;
+    public static bool operator true(S? s) => true;
+    public static bool operator false(S? s) => false;
+    static void And(S x, S? y)
+    {
+        if (x && x) { }
+        if (x && y) { }
+        if (y && x) { }
+        if (y && y) { }
+    }
+    static void Or(S x, S? y)
+    {
+        if (x || x) { }
+        if (x || y) { }
+        if (y || x) { }
+        if (y || y) { }
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void BinaryOperator_15()
+        {
+            var source =
+@"struct S
+{
+    public static S operator+(S a, S b) => a;
+    static void F(S x, S? y)
+    {
+        S? s;
+        s = x + x;
+        s = x + y;
+        s = y + x;
+        s = y + y;
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void BinaryOperator_16()
+        {
+            var source =
+@"struct S
+{
+    public static bool operator<(S a, S b) => true;
+    public static bool operator<=(S a, S b) => true;
+    public static bool operator>(S a, S b) => true;
+    public static bool operator>=(S a, S b) => true;
+    public static bool operator==(S a, S b) => true;
+    public static bool operator!=(S a, S b) => true;
+    public override bool Equals(object other) => true;
+    public override int GetHashCode() => 0;
+    static void F(S x, S? y)
+    {
+        if (x < y) { }
+        if (x <= y) { }
+        if (x > y) { }
+        if (x >= y) { }
+        if (x == y) { }
+        if (x != y) { }
+        if (y < x) { }
+        if (y <= x) { }
+        if (y > x) { }
+        if (y >= x) { }
+        if (y == x) { }
+        if (y != x) { }
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void MethodGroupConversion_01()
         {
             CSharpCompilation c = CreateStandardCompilation(@"
@@ -10327,6 +10410,22 @@ class CL2
                  //         CL1 u2 = !x2;
                  Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "!x2").WithLocation(15, 18)
                 );
+        }
+
+        [Fact]
+        public void UnaryOperator_02()
+        {
+            var source =
+@"struct S
+{
+    public static S operator~(S s) => s;
+    static void F(S? s)
+    {
+        s = ~s;
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
         }
 
         [Fact]

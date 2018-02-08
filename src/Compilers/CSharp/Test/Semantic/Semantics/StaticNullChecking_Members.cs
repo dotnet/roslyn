@@ -990,8 +990,24 @@ class Program
         [Fact]
         public void FieldCycle_Struct()
         {
-            // PROTOTYPE(NullableReferenceTypes): Is NullableWalker invoked for
-            // a recursive struct, even though the struct definition is invalid?
+            var source =
+@"struct S
+{
+    internal C F;
+    internal C? G;
+}
+class C
+{
+    internal S S;
+    static void Main()
+    {
+        var s = new S() { F = new C(), G = new C() };
+        s.F.S = s;
+        s.G.S = s;
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
         }
 
         // Valid struct since the property is not backed by a field.
