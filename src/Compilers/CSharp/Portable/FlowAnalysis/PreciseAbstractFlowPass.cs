@@ -2580,7 +2580,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node.InitializerOpt != null && !node.InitializerOpt.Initializers.IsDefault)
             {
                 foreach (var element in node.InitializerOpt.Initializers)
+                {
                     VisitRvalue(element);
+                }
             }
 
             if (_trackExceptions) NotePossibleException(node);
