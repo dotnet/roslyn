@@ -23,7 +23,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         private readonly IErrorList _errorList;
         private readonly LiveTableDataSource _liveTableSource;
         private readonly BuildTableDataSource _buildTableSource;
-        private readonly ProgressReporter _reporter;
 
         [ImportingConstructor]
         public VisualStudioDiagnosticListTable(
@@ -78,16 +77,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             IDiagnosticService diagnosticService,
             ExternalErrorDiagnosticUpdateSource errorSource,
             ITableManagerProvider provider) :
-            base(serviceProvider, workspace, diagnosticService, provider)
+            base(workspace, diagnosticService, provider)
         {
-            // serviceprovider can be null in unit test
-            var taskStatusCenter = serviceProvider?.GetService(typeof(SVsTaskStatusCenterService)) as IVsTaskStatusCenterService;
-            if (taskStatusCenter != null)
-            {
-                _reporter = new ProgressReporter(taskStatusCenter);
-            }
-
-            _liveTableSource = new LiveTableDataSource(workspace, diagnosticService, IdentifierString, _reporter);
+            _liveTableSource = new LiveTableDataSource(workspace, diagnosticService, IdentifierString);
             _buildTableSource = new BuildTableDataSource(workspace, errorSource);
         }
 

@@ -31,8 +31,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             private readonly Workspace _workspace;
             private readonly OpenDocumentTracker<DiagnosticData> _tracker;
 
-            public LiveTableDataSource(Workspace workspace, IDiagnosticService diagnosticService, string identifier, ProgressReporter reporterOpt) :
-                base(workspace, reporterOpt)
+            public LiveTableDataSource(Workspace workspace, IDiagnosticService diagnosticService, string identifier) :
+                base(workspace)
             {
                 _workspace = workspace;
                 _identifier = identifier;
@@ -150,8 +150,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                         return;
                     }
 
-                    ChangeProgress(e);
-
                     if (e.Diagnostics.Length == 0)
                     {
                         OnDataRemoved(e);
@@ -166,29 +164,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     }
 
                     OnDataAddedOrChanged(e);
-                }
-            }
-
-            private void ChangeProgress(DiagnosticsUpdatedArgs e)
-            {
-                var solution = e.Solution;
-                if (solution == null)
-                {
-                    return;
-                }
-
-                var document = solution.GetDocument(e.DocumentId);
-                if (document != null)
-                {
-                    ChangeProgress(string.Format(ServicesVSResources.Analyzing_0, document.Name ?? document.FilePath ?? "..."));
-                    return;
-                }
-
-                var project = solution.GetProject(e.ProjectId);
-                if (project != null)
-                {
-                    ChangeProgress(string.Format(ServicesVSResources.Analyzing_0, project.Name ?? project.FilePath ?? "..."));
-                    return;
                 }
             }
 

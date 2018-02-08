@@ -14,12 +14,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
     /// </summary>
     internal abstract class AbstractRoslynTableDataSource<TData> : AbstractTableDataSource<TData>
     {
-        private readonly ProgressReporter _reporterOpt;
-
-        public AbstractRoslynTableDataSource(Workspace workspace, ProgressReporter reporterOpt = null) : base(workspace)
+        public AbstractRoslynTableDataSource(Workspace workspace) : base(workspace)
         {
-            _reporterOpt = reporterOpt;
-
             ConnectToSolutionCrawlerService(workspace);
         }
 
@@ -32,11 +28,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             }
 
             return solution.GetDocumentIdsWithFilePath(document.FilePath);
-        }
-
-        protected void ChangeProgress(string message)
-        {
-            _reporterOpt?.ChangeProgress(message);
         }
 
         private void ConnectToSolutionCrawlerService(Workspace workspace)
@@ -64,8 +55,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         {
             IsStable = !running;
             ChangeStableState(IsStable);
-
-            _reporterOpt?.Started(running);
         }
     }
 }
