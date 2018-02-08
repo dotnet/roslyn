@@ -909,10 +909,12 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public override IOperation VisitVariableDeclarationGroup(IVariableDeclarationGroupOperation operation, int? captureIdForResult)
         {
-            // Anything that has a declaration group (such as for loops) needs to handle them directly itself, this should only be encountered by the visitor for declaration statements.
+            // Anything that has a declaration group (such as for loops) needs to handle them directly itself,
+            // this should only be encountered by the visitor for declaration statements.
             Debug.Assert(_currentStatement == operation);
 
-            // We erase variable declarations from the control flow graph, as variable lifetime information is contained in a parallel data structure.
+            // We erase variable declarations from the control flow graph, as variable lifetime information is
+            // contained in a parallel data structure.
             foreach (var declaration in operation.Declarations)
             {
                 HandleVariableDeclaration(declaration);
@@ -941,8 +943,14 @@ namespace Microsoft.CodeAnalysis.Operations
                     assignmentSyntax = operation.Syntax;
                     if (initializer != null)
                     {
-                        // PROTOTYPE(dataflow): Add a test with control flow in a shared initializer after object creation support has been added
-                        initializer = new InvalidOperation(ImmutableArray.Create(initializer, operationInitializer), semanticModel: null, operation.Syntax, type: localSymbol.Type, constantValue: default, isImplicit: true);
+                        // PROTOTYPE(dataflow): Add a test with control flow in a shared initializer after
+                        // object creation support has been added
+                        initializer = new InvalidOperation(ImmutableArray.Create(initializer, operationInitializer),
+                                                           semanticModel: null,
+                                                           operation.Syntax,
+                                                           type: localSymbol.Type,
+                                                           constantValue: default,
+                                                           isImplicit: true);
                     }
                     else
                     {
@@ -952,11 +960,13 @@ namespace Microsoft.CodeAnalysis.Operations
 
                 if (initializer != null)
                 {
-                    // We can't use the IdentifierToken as the syntax for the local reference, so we use the entire declarator as the node
+                    // We can't use the IdentifierToken as the syntax for the local reference, so we use the
+                    // entire declarator as the node
                     var localRef = new LocalReferenceExpression(localSymbol, isDeclaration: true, semanticModel: null, declarator.Syntax, localSymbol.Type, constantValue: default, isImplicit: true);
-                    // PROTOTYPE(dataflow): We'd like to remove ExpressionStatements from the CFG altogether, as they're useless when all you need to do is look to see if the parent is null
-                    var statement = new ExpressionStatement(new SimpleAssignmentExpression(localRef, isRef: localSymbol.IsRef, initializer, semanticModel: null, assignmentSyntax, localRef.Type, constantValue: default, isImplicit: true),
-                                                            semanticModel: null, assignmentSyntax, type: null, constantValue: default, isImplicit: true);
+                    // PROTOTYPE(dataflow): We'd like to remove ExpressionStatements from the CFG altogether,
+                    // as they're useless when all you need to do is look to see if the parent is null
+                    var assignment = new SimpleAssignmentExpression(localRef, isRef: localSymbol.IsRef, initializer, semanticModel: null, assignmentSyntax, localRef.Type, constantValue: default, isImplicit: true);
+                    var statement = new ExpressionStatement(assignment, semanticModel: null, assignmentSyntax, type: null, constantValue: default, isImplicit: true);
                     AddStatement(statement);
                 }
             }

@@ -2922,6 +2922,54 @@ Block[5] - Exit
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void VariableDeclaration_13()
+        {
+            string source = @"
+class C
+{
+    void M()
+    /*<bind>*/{
+#pragma warning disable CS0219 // Variable is assigned but its value is never used
+        a = 1;
+        int a;
+    }/*</bind>*/
+}
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0841: Cannot use local variable 'a' before it is declared
+                //         a = 1;
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "a").WithArguments("a").WithLocation(7, 9)
+            };
+
+            string expectedFlowGraph = @"
+Block[0] - Entry
+    Statements (0)
+    Next Block[1]
+Block[1] - Block
+    Predecessors (1)
+        [0]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'a = 1;')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: var, IsInvalid) (Syntax: 'a = 1')
+              Left: 
+                ILocalReferenceOperation: a (OperationKind.LocalReference, Type: var, IsInvalid) (Syntax: 'a')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+
+    Next Block[2]
+Block[2] - Exit
+    Predecessors (1)
+        [1]
+    Statements (0)
+";
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
+
+
+
         // PROTOTYPE(dataflow): test using/for/fixed constructs after support has been added.
 
         #endregion

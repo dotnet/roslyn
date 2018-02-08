@@ -3477,6 +3477,65 @@ Block[5] - Exit
             VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub VariableDeclaration_12()
+            Dim source = <![CDATA[
+Imports System
+Public Class C
+    Public Sub M()'BIND:"Public Sub M()"
+#Disable Warning BC42024 ' Unused local variable
+        a = 1
+        Dim a
+    End Sub
+End Class]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC32000: Local variable 'a' cannot be referred to before it is declared.
+        a = 1
+        ~
+]]>.Value
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[0] - Entry
+    Statements (0)
+    Next Block[1]
+Block[1] - Block
+    Predecessors (1)
+        [0]
+    Statements (3)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'a = 1')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid, IsImplicit) (Syntax: 'a = 1')
+              Left: 
+                ILocalReferenceOperation: a (OperationKind.LocalReference, Type: ?, IsInvalid) (Syntax: 'a')
+              Right: 
+                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: ?, IsImplicit) (Syntax: '1')
+                  Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    (DelegateRelaxationLevelNone)
+                  Operand: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+
+        ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
+          Statement: 
+            null
+
+        IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
+          ReturnedValue: 
+            null
+
+    Next Block[2]
+Block[2] - Exit
+    Predecessors (1)
+        [1]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
+
+
         ' PROTOTYPE(dataflow): Test Using/For after support has been added
 
 #End Region
