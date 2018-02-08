@@ -8615,6 +8615,16 @@ Pour supprimer l'avertissement, vous pouvez utiliser la commande /reference (dé
         <target state="new">The given expression cannot be used in a fixed statement</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_FixableHelperDoesNotFitThePattern">
+        <source>The method '{0}' does not meet requirements necessary </source>
+        <target state="new">The method '{0}' does not meet requirements necessary </target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureExtensibleFixedStatement">
+        <source>extensible fixed statement</source>
+        <target state="new">extensible fixed statement</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

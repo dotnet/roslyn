@@ -1560,5 +1560,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Note: you will need to re-generate compiler code after adding warnings (build\scripts\generate-compiler-code.cmd)
 
         ERR_ExprCannotBeFixed = 9365,
+        ERR_FixableHelperDoesNotFitThePattern = 9366,
     }
 }

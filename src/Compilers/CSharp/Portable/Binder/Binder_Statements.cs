@@ -1088,26 +1088,48 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     // check for "DangerousGetPinnableReference"
-                    getPinnableMethod = GetDangerousGetPinnableReferenceMethod(initializerOpt);
-
-                    // check for String
-                    // NOTE: We will allow DangerousGetPinnableReferenceMethod to take precendence, but only if it is a member of System.String
-                    if (initializerType.SpecialType == SpecialType.System_String &&
-                        ((object)getPinnableMethod == null || getPinnableMethod.ContainingType.SpecialType == SpecialType.System_String))
+                    var additionalDiagnostics = DiagnosticBag.GetInstance();
+                    try
                     {
-                        elementType = this.GetSpecialType(SpecialType.System_Char, diagnostics, initializerSyntax);
-                        Debug.Assert(!elementType.IsManagedType);
-                        break;
+                        getPinnableMethod = GetDangerousGetPinnableReferenceMethod(initializerOpt, additionalDiagnostics);
+
+                        bool extensisbleFixedEnabled = ((CSharpParseOptions)initializerOpt.SyntaxTree.Options)?.IsFeatureEnabled(MessageID.IDS_FeatureExtensibleFixedStatement) != false;
+
+                        // check for String
+                        // NOTE: We will allow DangerousGetPinnableReferenceMethod to take precendence, but only if it is a member of System.String
+                        if (initializerType.SpecialType == SpecialType.System_String &&
+                            ((object)getPinnableMethod == null || !extensisbleFixedEnabled || getPinnableMethod.ContainingType.SpecialType != SpecialType.System_String))
+                        {
+                            elementType = this.GetSpecialType(SpecialType.System_Char, diagnostics, initializerSyntax);
+                            Debug.Assert(!elementType.IsManagedType);
+                            break;
+                        }
+
+                        if (extensisbleFixedEnabled)
+                        {
+                            // not a specially known type, check for getPinnableMethod
+                            if (getPinnableMethod != null)
+                            {
+                                elementType = getPinnableMethod.ReturnType;
+                                break;
+                            }
+                            else if (additionalDiagnostics != null)
+                            {
+                                diagnostics.AddRange(additionalDiagnostics);
+                            }
+                        }
+                        else if (getPinnableMethod != null)
+                        {
+                            CheckFeatureAvailability(initializerOpt.Syntax, MessageID.IDS_FeatureExtensibleFixedStatement, diagnostics);
+                        }
+
+                        Error(diagnostics, ErrorCode.ERR_ExprCannotBeFixed, initializerSyntax);
+                    }
+                    finally
+                    {
+                        additionalDiagnostics.Free();
                     }
 
-                    // not a specially known type, check for getPinnableMethod
-                    if (getPinnableMethod != null)
-                    {
-                        elementType = getPinnableMethod.ReturnType;
-                        break;
-                    }
-
-                    Error(diagnostics, ErrorCode.ERR_ExprCannotBeFixed, initializerSyntax);
                     return false;
             }
 
@@ -1121,37 +1143,67 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        private MethodSymbol GetDangerousGetPinnableReferenceMethod(BoundExpression initializer)
+        private MethodSymbol GetDangerousGetPinnableReferenceMethod(BoundExpression initializer, DiagnosticBag additionalDiagnostics)
         {
             if (initializer.Type.SpecialType == SpecialType.System_Void)
             {
                 return null;
             }
 
-            DiagnosticBag diagnostics = DiagnosticBag.GetInstance();
-            var getPinnableReferenceCall = MakeInvocationExpression(initializer.Syntax, initializer, "DangerousGetPinnableReference", ImmutableArray<BoundExpression>.Empty, diagnostics);
-            diagnostics.Free();
-
-            if (getPinnableReferenceCall.HasAnyErrors)
+            DiagnosticBag bindingDiagnostics = DiagnosticBag.GetInstance();
+            try
             {
-                return null;
-            }
+                var boundAccess = BindInstanceMemberAccess(initializer.Syntax, initializer.Syntax, initializer, "DangerousGetPinnableReference", rightArity:0, typeArgumentsSyntax: default, typeArguments: default, invoked:true, bindingDiagnostics);
 
-            if (getPinnableReferenceCall.Kind != BoundKind.Call)
+                if (boundAccess.Kind != BoundKind.MethodGroup)
+                {
+                    // the thing is not even a method
+                    return null;
+                }
+
+                var analyzedArguments = AnalyzedArguments.GetInstance();
+                BoundExpression getPinnableReferenceCall = BindMethodGroupInvocation(initializer.Syntax, initializer.Syntax, "DangerousGetPinnableReference", (BoundMethodGroup)boundAccess, analyzedArguments, bindingDiagnostics, queryClause: null, allowUnexpandedForm: false);
+                analyzedArguments.Free();
+
+                if (getPinnableReferenceCall.Kind != BoundKind.Call)
+                {
+                    // did not find anythig callable
+                    return null;
+                }
+
+                var call = (BoundCall)getPinnableReferenceCall;
+                if (call.ResultKind == LookupResultKind.Empty)
+                {
+                    // did not find any methods that even remotely fit
+                    return null;
+                }
+
+                var getPinnableReferenceMethod = call.Method;
+                if (getPinnableReferenceMethod is ErrorMethodSymbol ||
+                    getPinnableReferenceCall.HasAnyErrors)
+                {
+                    // we almost succeded, this is unusual and may be hard to diagnose.
+                    // report additional errors on why we failed to bind the helper
+                    additionalDiagnostics.AddRange(bindingDiagnostics);
+                    return null;
+                }
+
+                if (HasOptionalOrVariableParameters(getPinnableReferenceMethod) ||
+                    getPinnableReferenceMethod.ReturnsVoid ||
+                    !getPinnableReferenceMethod.RefKind.IsManagedReference() ||
+                    !(getPinnableReferenceMethod.ParameterCount == 0 || getPinnableReferenceMethod.IsStatic && getPinnableReferenceMethod.ParameterCount == 1))
+                {
+                    // the method does not fit the pattern
+                    additionalDiagnostics.Add(ErrorCode.WRN_PatternBadSignature, initializer.Syntax.Location, initializer.Type, "fixed", getPinnableReferenceMethod);
+                    return null;
+                }
+
+                return getPinnableReferenceMethod;
+            }
+            finally
             {
-                return null;
+                bindingDiagnostics.Free();
             }
-
-            var getPinnableReferenceMethod = ((BoundCall)getPinnableReferenceCall).Method;
-            if (getPinnableReferenceMethod is ErrorMethodSymbol ||
-                HasOptionalOrVariableParameters(getPinnableReferenceMethod) || // We might have been able to resolve an overload with optional parameters, so check for that here
-                getPinnableReferenceMethod.ReturnsVoid ||
-                !getPinnableReferenceMethod.RefKind.IsManagedReference()) 
-            {
-                return null;
-            }
-
-            return getPinnableReferenceMethod;
         }
 
         /// <summary>

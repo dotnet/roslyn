@@ -324,9 +324,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 refKind: RefKind.RefReadOnly,
                 kind: SynthesizedLocalKind.FixedReference);
 
-            //TODO: VS
-            //       error on ref extensions vs. not writeable receiver
-
             BoundExpression callReceiver;
             int currentConditionalAccessID = 0;
 

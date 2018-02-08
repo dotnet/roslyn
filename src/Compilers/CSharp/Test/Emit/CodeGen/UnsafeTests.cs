@@ -4042,6 +4042,43 @@ unsafe class C
         }
 
         [Fact]
+        public void SimpleCaseOfCustomFixed_oldVersion()
+        {
+            var text = @"
+unsafe class C
+{
+    public static void Main()
+    {
+        fixed (int* p = new Fixable())
+        {
+            System.Console.WriteLine(p[1]);
+        }
+    }
+
+    class Fixable
+    {
+        public ref int DangerousGetPinnableReference()
+        {
+            return ref (new int[]{1,2,3})[0];
+        }
+    }
+
+}
+";
+
+            var compVerifier = CreateCompilationWithMscorlib46(text, options: TestOptions.UnsafeReleaseExe, parseOptions: TestOptions.Regular7_2);
+
+            compVerifier.VerifyDiagnostics(
+                // (6,25): error CS8320: Feature 'extensible fixed statement' is not available in C# 7.2. Please use language version 7.3 or greater.
+                //         fixed (int* p = new Fixable())
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "new Fixable()").WithArguments("extensible fixed statement", "7.3").WithLocation(6, 25),
+                // (6,25): error CS9365: The given expression cannot be used in a fixed statement
+                //         fixed (int* p = new Fixable())
+                Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "new Fixable()").WithLocation(6, 25)
+                );
+        }
+
+        [Fact]
         public void SimpleCaseOfCustomFixedNull()
         {
             var text = @"
@@ -4532,10 +4569,454 @@ static class FixAllExt
 ");
         }
 
-        // TODO: VS:
-        //           in   extension
-        //           in   generic
-        //           ref  extension
+        [Fact]
+        public void CustomFixedGenericRefExtension()
+        {
+            var text = @"
+    unsafe class C
+    {
+        public static void Main()
+        {
+            var b = new FixableStruct();
+            Test(ref b);
+            System.Console.WriteLine(b.x);
+        }
+
+        public static void Test<T>(ref T arg) where T: struct, IFixable
+        {
+            fixed (int* p = arg)
+            {
+                System.Console.Write(p[1]);
+            }
+        }
+    }
+
+    public interface IFixable
+    {
+        ref int DangerousGetPinnableReferenceImpl();
+    }
+
+    public struct FixableStruct : IFixable
+    {
+        public int x;
+
+        public ref int DangerousGetPinnableReferenceImpl()
+        {
+            x = 456;
+            return ref (new int[] { 4, 5, 6 })[0];
+        }
+    }
+
+    public static class FixableExt
+    {
+        public static ref int DangerousGetPinnableReference<T>(ref this T f) where T: struct, IFixable
+        {
+            return ref f.DangerousGetPinnableReferenceImpl();
+        }
+    }
+";
+
+            var compVerifier = CompileAndVerify(text, additionalRefs: new[] { ExtensionAssemblyRef }, options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails, expectedOutput: @"5456");
+
+            compVerifier.VerifyIL("C.Test<T>(ref T)", @"
+{
+  // Code size       21 (0x15)
+  .maxstack  2
+  .locals init (pinned int& V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""ref int FixableExt.DangerousGetPinnableReference<T>(ref T)""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  conv.u
+  IL_0009:  ldc.i4.4
+  IL_000a:  add
+  IL_000b:  ldind.i4
+  IL_000c:  call       ""void System.Console.Write(int)""
+  IL_0011:  ldc.i4.0
+  IL_0012:  conv.u
+  IL_0013:  stloc.0
+  IL_0014:  ret
+}
+");
+        }
+
+        [Fact]
+        public void CustomFixedStructInExtension()
+        {
+            var text = @"
+unsafe class C
+{
+    public static void Main()
+    {
+        fixed (int* p = new Fixable(1))
+        {
+            System.Console.Write(p[1]);
+        }
+
+        var f = new Fixable(1);
+        fixed (int* p = f)
+        {
+            System.Console.Write(p[2]);
+        }
+    }
+}
+
+public struct Fixable
+{
+    public Fixable(int arg){}
+}
+
+public static class FixableExt
+{
+    public static ref int DangerousGetPinnableReference(in this Fixable f)
+    {
+        return ref (new int[]{1,2,3})[0];
+    }
+}
+
+";
+
+            var compVerifier = CompileAndVerify(text, additionalRefs: new[] { ExtensionAssemblyRef }, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"23", verify: Verification.Fails);
+
+            compVerifier.VerifyIL("C.Main", @"
+{
+  // Code size       61 (0x3d)
+  .maxstack  3
+  .locals init (Fixable V_0, //f
+                pinned int& V_1,
+                Fixable V_2)
+  IL_0000:  ldc.i4.1
+  IL_0001:  newobj     ""Fixable..ctor(int)""
+  IL_0006:  stloc.2
+  IL_0007:  ldloca.s   V_2
+  IL_0009:  call       ""ref int FixableExt.DangerousGetPinnableReference(in Fixable)""
+  IL_000e:  stloc.1
+  IL_000f:  ldloc.1
+  IL_0010:  conv.u
+  IL_0011:  ldc.i4.4
+  IL_0012:  add
+  IL_0013:  ldind.i4
+  IL_0014:  call       ""void System.Console.Write(int)""
+  IL_0019:  ldc.i4.0
+  IL_001a:  conv.u
+  IL_001b:  stloc.1
+  IL_001c:  ldloca.s   V_0
+  IL_001e:  ldc.i4.1
+  IL_001f:  call       ""Fixable..ctor(int)""
+  IL_0024:  ldloca.s   V_0
+  IL_0026:  call       ""ref int FixableExt.DangerousGetPinnableReference(in Fixable)""
+  IL_002b:  stloc.1
+  IL_002c:  ldloc.1
+  IL_002d:  conv.u
+  IL_002e:  ldc.i4.2
+  IL_002f:  conv.i
+  IL_0030:  ldc.i4.4
+  IL_0031:  mul
+  IL_0032:  add
+  IL_0033:  ldind.i4
+  IL_0034:  call       ""void System.Console.Write(int)""
+  IL_0039:  ldc.i4.0
+  IL_003a:  conv.u
+  IL_003b:  stloc.1
+  IL_003c:  ret
+}
+");
+        }
+
+        [Fact]
+        public void CustomFixedStructRefExtension()
+        {
+            var text = @"
+unsafe class C
+{
+    public static void Main()
+    {
+        var f = new Fixable(1);
+        fixed (int* p = f)
+        {
+            System.Console.Write(p[2]);
+        }
+    }
+}
+
+public struct Fixable
+{
+    public Fixable(int arg){}
+}
+
+public static class FixableExt
+{
+    public static ref int DangerousGetPinnableReference(ref this Fixable f)
+    {
+        return ref (new int[]{1,2,3})[0];
+    }
+}
+
+";
+
+            var compVerifier = CompileAndVerify(text, additionalRefs: new[] { ExtensionAssemblyRef }, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"3", verify: Verification.Fails);
+
+            compVerifier.VerifyIL("C.Main", @"
+{
+  // Code size       33 (0x21)
+  .maxstack  3
+  .locals init (Fixable V_0, //f
+                pinned int& V_1)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldc.i4.1
+  IL_0003:  call       ""Fixable..ctor(int)""
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  call       ""ref int FixableExt.DangerousGetPinnableReference(ref Fixable)""
+  IL_000f:  stloc.1
+  IL_0010:  ldloc.1
+  IL_0011:  conv.u
+  IL_0012:  ldc.i4.2
+  IL_0013:  conv.i
+  IL_0014:  ldc.i4.4
+  IL_0015:  mul
+  IL_0016:  add
+  IL_0017:  ldind.i4
+  IL_0018:  call       ""void System.Console.Write(int)""
+  IL_001d:  ldc.i4.0
+  IL_001e:  conv.u
+  IL_001f:  stloc.1
+  IL_0020:  ret
+}
+");
+        }
+
+        [Fact]
+        public void CustomFixedStructRefExtensionErr()
+        {
+            var text = @"
+unsafe class C
+{
+    public static void Main()
+    {
+        fixed (int* p = new Fixable(1))
+        {
+            System.Console.Write(p[1]);
+        }
+    }
+}
+
+public struct Fixable
+{
+    public Fixable(int arg){}
+}
+
+public static class FixableExt
+{
+    public static ref int DangerousGetPinnableReference(ref this Fixable f)
+    {
+        return ref (new int[]{1,2,3})[0];
+    }
+}
+
+";
+
+            var compVerifier = CreateCompilationWithMscorlib46(text, options: TestOptions.UnsafeReleaseExe);
+
+            compVerifier.VerifyDiagnostics(
+                // (6,25): error CS1510: A ref or out value must be an assignable variable
+                //         fixed (int* p = new Fixable(1))
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "new Fixable(1)").WithLocation(6, 25),
+                // (6,25): error CS9365: The given expression cannot be used in a fixed statement
+                //         fixed (int* p = new Fixable(1))
+                Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "new Fixable(1)").WithLocation(6, 25)
+                );
+        }
+
+        [Fact]
+        public void CustomFixedStructVariousErr01()
+        {
+            var text = @"
+unsafe class C
+{
+    public static void Main()
+    {
+        fixed (int* p = new Fixable(1))
+        {
+            System.Console.Write(p[1]);
+        }
+    }
+}
+
+public struct Fixable
+{
+    public Fixable(int arg){}
+}
+
+public static class FixableExt
+{
+    private static ref int DangerousGetPinnableReference(this Fixable f)
+    {
+        return ref (new int[]{1,2,3})[0];
+    }
+}
+
+";
+
+            var compVerifier = CreateCompilationWithMscorlib46(text, options: TestOptions.UnsafeReleaseExe);
+
+            compVerifier.VerifyDiagnostics(
+                // (6,25): error CS9365: The given expression cannot be used in a fixed statement
+                //         fixed (int* p = new Fixable(1))
+                Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "new Fixable(1)").WithLocation(6, 25),
+                // (6,25): error CS0122: 'FixableExt.DangerousGetPinnableReference(Fixable)' is inaccessible due to its protection level
+                //         fixed (int* p = new Fixable(1))
+                Diagnostic(ErrorCode.ERR_BadAccess, "new Fixable(1)").WithArguments("FixableExt.DangerousGetPinnableReference(Fixable)").WithLocation(6, 25)
+                );
+        }
+
+        [Fact]
+        public void CustomFixedStructVariousErr01_oldVersion()
+        {
+            var text = @"
+unsafe class C
+{
+    public static void Main()
+    {
+        fixed (int* p = new Fixable(1))
+        {
+            System.Console.Write(p[1]);
+        }
+    }
+}
+
+public struct Fixable
+{
+    public Fixable(int arg){}
+}
+
+public static class FixableExt
+{
+    private static ref int DangerousGetPinnableReference(this Fixable f)
+    {
+        return ref (new int[]{1,2,3})[0];
+    }
+}
+
+";
+
+            var compVerifier = CreateCompilationWithMscorlib46(text, options: TestOptions.UnsafeReleaseExe, parseOptions: TestOptions.Regular7_2);
+
+            compVerifier.VerifyDiagnostics(
+                // (6,25): error CS9365: The given expression cannot be used in a fixed statement
+                //         fixed (int* p = new Fixable(1))
+                Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "new Fixable(1)").WithLocation(6, 25)
+                );
+        }
+
+        [Fact]
+        public void CustomFixedStructVariousErr02()
+        {
+            var text = @"
+unsafe class C
+{
+    public static void Main()
+    {
+        fixed (int* p = new Fixable(1))
+        {
+            System.Console.Write(p[1]);
+        }
+    }
+}
+
+public struct Fixable
+{
+    public Fixable(int arg){}
+
+    public static ref int DangerousGetPinnableReference()
+    {
+        return ref (new int[]{1,2,3})[0];
+    }
+}
+
+";
+
+            var compVerifier = CreateCompilationWithMscorlib46(text, options: TestOptions.UnsafeReleaseExe);
+
+            compVerifier.VerifyDiagnostics(
+                // (6,25): error CS9365: The given expression cannot be used in a fixed statement
+                //         fixed (int* p = new Fixable(1))
+                Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "new Fixable(1)").WithLocation(6, 25),
+                // (6,25): error CS0176: Member 'Fixable.DangerousGetPinnableReference()' cannot be accessed with an instance reference; qualify it with a type name instead
+                //         fixed (int* p = new Fixable(1))
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "new Fixable(1)").WithArguments("Fixable.DangerousGetPinnableReference()").WithLocation(6, 25)
+                );
+        }
+
+        [Fact]
+        public void CustomFixedStructVariousErr03()
+        {
+            var text = @"
+unsafe class C
+{
+    public static void Main()
+    {
+        fixed (int* p = new Fixable(1))
+        {
+            System.Console.Write(p[1]);
+        }
+    }
+}
+
+public struct Fixable
+{
+    public Fixable(int arg){}
+
+    public ref int DangerousGetPinnableReference => ref (new int[]{1,2,3})[0];
+}
+
+";
+
+            var compVerifier = CreateCompilationWithMscorlib46(text, options: TestOptions.UnsafeReleaseExe);
+
+            compVerifier.VerifyDiagnostics(
+                // (6,25): error CS1955: Non-invocable member 'Fixable.DangerousGetPinnableReference' cannot be used like a method.
+                //         fixed (int* p = new Fixable(1))
+                Diagnostic(ErrorCode.ERR_NonInvocableMemberCalled, "new Fixable(1)").WithArguments("Fixable.DangerousGetPinnableReference").WithLocation(6, 25),
+                // (6,25): error CS9365: The given expression cannot be used in a fixed statement
+                //         fixed (int* p = new Fixable(1))
+                Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "new Fixable(1)").WithLocation(6, 25)
+                );
+        }
+
+        [Fact]
+        public void CustomFixedDelegateErr()
+        {
+            var text = @"
+unsafe class C
+{
+    public static void Main()
+    {
+        fixed (int* p = new Fixable())
+        {
+            System.Console.Write(p[1]);
+        }
+    }
+}
+
+public delegate ref int ReturnsRef();
+
+public struct Fixable
+{
+    public Fixable(int arg){}
+
+    public ReturnsRef DangerousGetPinnableReference => null;
+}
+
+";
+
+            var compVerifier = CreateCompilationWithMscorlib46(text, options: TestOptions.UnsafeReleaseExe);
+
+            compVerifier.VerifyDiagnostics(
+                // (6,25): error CS9365: The given expression cannot be used in a fixed statement
+                //         fixed (int* p = new Fixable())
+                Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "new Fixable()").WithLocation(6, 25)
+                );
+        }
 
         #endregion Custom fixed statement tests
 
