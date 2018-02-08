@@ -12224,36 +12224,6 @@ class A<T, S>
         }
 
         [Fact]
-        public void CS0698ERR_GenericDerivingFromAttribute01()
-        {
-            var text =
-@"class C<T> : System.Attribute  // CS0698
-{
-}
-";
-            CreateStandardCompilation(text).VerifyDiagnostics(
-                // (1,14): error CS0698: A generic type cannot derive from 'System.Attribute' because it is an attribute class
-                Diagnostic(ErrorCode.ERR_GenericDerivingFromAttribute, "System.Attribute").WithArguments("System.Attribute").WithLocation(1, 14));
-        }
-
-        [Fact]
-        public void CS0698ERR_GenericDerivingFromAttribute02()
-        {
-            var text =
-@"class A : System.Attribute { }
-class B<T> : A { }
-class C<T>
-{
-    class B : A { }
-}";
-            CreateStandardCompilation(text).VerifyDiagnostics(
-                // (2,14): error CS0698: A generic type cannot derive from 'A' because it is an attribute class
-                Diagnostic(ErrorCode.ERR_GenericDerivingFromAttribute, "A").WithArguments("A").WithLocation(2, 14),
-                // (5,15): error CS0698: A generic type cannot derive from 'A' because it is an attribute class
-                Diagnostic(ErrorCode.ERR_GenericDerivingFromAttribute, "A").WithArguments("A").WithLocation(5, 15));
-        }
-
-        [Fact]
         public void CS0699ERR_TyVarNotFoundInConstraint()
         {
             var source =

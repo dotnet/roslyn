@@ -866,16 +866,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics);
             }
 
-            if (options.IsAttributeTypeLookup())
-            {
-                // Generic type cannot be an attribute type.
-                // Parser error has already been reported, just wrap the result type with error type symbol.
-                Debug.Assert(unconstructedType.IsErrorType());
-                Debug.Assert(resultType.IsErrorType());
-                resultType = new ExtendedErrorTypeSymbol(GetContainingNamespaceOrType(resultType), resultType,
-                    LookupResultKind.NotAnAttributeType, errorInfo: null);
-            }
-
             return resultType;
         }
 

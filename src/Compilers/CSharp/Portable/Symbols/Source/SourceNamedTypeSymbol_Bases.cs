@@ -89,16 +89,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            // you need to know all bases before you can ask this question... (asking this causes a cycle)
-            if (this.IsGenericType && !localBase.IsErrorType() && this.DeclaringCompilation.IsAttributeType(localBase))
-            {
-                var baseLocation = FindBaseRefSyntax(localBase);
-                Debug.Assert(baseLocation != null);
-
-                // A generic type cannot derive from '{0}' because it is an attribute class
-                diagnostics.Add(ErrorCode.ERR_GenericDerivingFromAttribute, baseLocation, localBase);
-            }
-
             // Check constraints on the first declaration with explicit bases.
             var singleDeclaration = this.FirstDeclarationWithExplicitBases();
             if (singleDeclaration != null)

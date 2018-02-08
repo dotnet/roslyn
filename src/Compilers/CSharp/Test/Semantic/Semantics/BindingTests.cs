@@ -2134,23 +2134,6 @@ namespace System.ServiceModel
                 );
         }
 
-        [WorkItem(543820, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543820")]
-        [Fact]
-        public void GenericAttributeClassWithMultipleParts()
-        {
-            var source =
-@"class C<T> { }
-class C<T> : System.Attribute { }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
-                // (2,7): error CS0101: The namespace '<global namespace>' already contains a definition for 'C'
-                // class C<T> : System.Attribute { }
-                Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "C").WithArguments("C", "<global namespace>"),
-                // (2,14): error CS0698: A generic type cannot derive from 'System.Attribute' because it is an attribute class
-                // class C<T> : System.Attribute { }
-                Diagnostic(ErrorCode.ERR_GenericDerivingFromAttribute, "System.Attribute").WithArguments("System.Attribute")
-                );
-        }
-
         [WorkItem(543822, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543822")]
         [Fact]
         public void InterfaceWithPartialMethodExplicitImplementation()

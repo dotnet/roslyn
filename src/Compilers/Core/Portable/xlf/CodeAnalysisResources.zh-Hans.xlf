@@ -830,7 +830,7 @@
       </trans-unit>
       <trans-unit id="CompilerDiagnosticIdReported">
         <source>Reported diagnostic has an ID '{0}', which only a compiler should be reporting.</source>
-        <target state="new">Reported diagnostic has an ID '{0}', which only a compiler should be reporting.</target>
+        <target state="translated">报告的诊断具有 ID“{0}”，而仅只报告一个编译器。</target>
         <note />
       </trans-unit>
     </body>
