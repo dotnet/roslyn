@@ -4144,6 +4144,105 @@ unsafe class C
         }
 
         [Fact]
+        public void CustomFixedStructNullable()
+        {
+            var text = @"
+unsafe class C
+{
+    public static void Main()
+    {
+        Fixable? f = new Fixable();
+
+        fixed (int* p = f)
+        {
+            System.Console.WriteLine(p[1]);
+        }
+    }
+}
+
+public struct Fixable
+{
+    public ref int DangerousGetPinnableReference()
+    {
+        return ref (new int[]{1,2,3})[0];
+    }
+}
+
+public static class FixableExt
+{
+    public static ref int DangerousGetPinnableReference(this Fixable? f)
+    {
+        return ref f.Value.DangerousGetPinnableReference();
+    }
+}
+
+";
+
+            var compVerifier = CompileAndVerify(text, additionalRefs: new[] { ExtensionAssemblyRef },options: TestOptions.UnsafeReleaseExe, expectedOutput: @"2", verify: Verification.Fails);
+
+            compVerifier.VerifyIL("C.Main", @"
+{
+  // Code size       34 (0x22)
+  .maxstack  2
+  .locals init (Fixable V_0,
+                pinned int& V_1)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""Fixable""
+  IL_0008:  ldloc.0
+  IL_0009:  newobj     ""Fixable?..ctor(Fixable)""
+  IL_000e:  call       ""ref int FixableExt.DangerousGetPinnableReference(Fixable?)""
+  IL_0013:  stloc.1
+  IL_0014:  ldloc.1
+  IL_0015:  conv.u
+  IL_0016:  ldc.i4.4
+  IL_0017:  add
+  IL_0018:  ldind.i4
+  IL_0019:  call       ""void System.Console.WriteLine(int)""
+  IL_001e:  ldc.i4.0
+  IL_001f:  conv.u
+  IL_0020:  stloc.1
+  IL_0021:  ret
+}
+");
+        }
+
+        [Fact]
+        public void CustomFixedStructNullableErr()
+        {
+            var text = @"
+unsafe class C
+{
+    public static void Main()
+    {
+        Fixable? f = new Fixable();
+
+        fixed (int* p = f)
+        {
+            System.Console.WriteLine(p[1]);
+        }
+    }
+}
+
+public struct Fixable
+{
+    public ref int DangerousGetPinnableReference()
+    {
+        return ref (new int[]{1,2,3})[0];
+    }
+}
+
+";
+
+            var compVerifier = CreateCompilationWithMscorlib46(text, options: TestOptions.UnsafeReleaseExe);
+
+            compVerifier.VerifyDiagnostics(
+                // (8,25): error CS9365: The given expression cannot be used in a fixed statement
+                //         fixed (int* p = f)
+                Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "f").WithLocation(8, 25)
+                );
+        }
+
+        [Fact]
         public void SimpleCaseOfCustomFixedGeneric()
         {
             var text = @"

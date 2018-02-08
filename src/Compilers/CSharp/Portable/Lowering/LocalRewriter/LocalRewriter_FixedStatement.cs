@@ -325,13 +325,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 kind: SynthesizedLocalKind.FixedReference);
 
             //TODO: VS
-            //       binding for nullable
             //       error on ref extensions vs. not writeable receiver
 
             BoundExpression callReceiver;
             int currentConditionalAccessID = 0;
 
-            bool needNullCheck = !initializerType.IsValueType || initializerType.IsNullableType();
+            bool needNullCheck = !initializerType.IsValueType;
 
             if (needNullCheck)
             {
@@ -381,9 +380,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 pinAndGetPtr = new BoundLoweredConditionalAccess(
                     initializerSyntax,
                     initializerExpr,
-                    initializerType.IsNullableType() ?
-                             UnsafeGetNullableMethod(initializerSyntax, initializerType, SpecialMember.System_Nullable_T_get_HasValue) :
-                             null,
+                    hasValueMethodOpt: null,
                     whenNotNull: pinAndGetPtr,
                     whenNullOpt: null, // just return default(T*)
                     currentConditionalAccessID,

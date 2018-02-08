@@ -1051,8 +1051,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object)initializerType == null)
             {
-                // TODO: VS replace with better error.
-                // CONSIDER: this is a very confusing error message, but it's what Dev10 reports.
                 Error(diagnostics, ErrorCode.ERR_ExprCannotBeFixed, initializerSyntax);
                 return false;
             }
