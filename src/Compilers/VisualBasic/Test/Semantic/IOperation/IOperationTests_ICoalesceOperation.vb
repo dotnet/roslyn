@@ -47,10 +47,9 @@ ICoalesceOperation (OperationKind.Coalesce, Type: System.Int32) (Syntax: 'If(inp
             <![CDATA[
 Block[0] - Entry
     Statements (0)
-    Next Block[1]
+    Next (Regular) Block[1]
 Block[1] - Block
-    Predecessors (1)
-        [0]
+    Predecessors: [0]
     Statements (2)
         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'result')
           Value: 
@@ -60,15 +59,14 @@ Block[1] - Block
           Value: 
             IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'input')
 
-    Jump if True to Block[3]
+    Jump if True (Regular) to Block[3]
         IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'input')
           Operand: 
             IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'input')
 
-    Next Block[2]
+    Next (Regular) Block[2]
 Block[2] - Block
-    Predecessors (1)
-        [1]
+    Predecessors: [1]
     Statements (1)
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input')
           Value: 
@@ -77,20 +75,17 @@ Block[2] - Block
                 IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'input')
               Arguments(0)
 
-    Next Block[4]
+    Next (Regular) Block[4]
 Block[3] - Block
-    Predecessors (1)
-        [1]
+    Predecessors: [1]
     Statements (1)
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'alternative')
           Value: 
             IParameterReferenceOperation: alternative (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'alternative')
 
-    Next Block[4]
+    Next (Regular) Block[4]
 Block[4] - Block
-    Predecessors (2)
-        [2]
-        [3]
+    Predecessors: [2] [3]
     Statements (3)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = If ... lternative)')
           Expression: 
@@ -108,10 +103,9 @@ Block[4] - Block
           ReturnedValue: 
             null
 
-    Next Block[5]
+    Next (Regular) Block[5]
 Block[5] - Exit
-    Predecessors (1)
-        [4]
+    Predecessors: [4]
     Statements (0)
 ]]>.Value
 
@@ -156,10 +150,9 @@ ICoalesceOperation (OperationKind.Coalesce, Type: System.Int64) (Syntax: 'If(inp
             <![CDATA[
 Block[0] - Entry
     Statements (0)
-    Next Block[1]
+    Next (Regular) Block[1]
 Block[1] - Block
-    Predecessors (1)
-        [0]
+    Predecessors: [0]
     Statements (2)
         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'result')
           Value: 
@@ -169,15 +162,14 @@ Block[1] - Block
           Value: 
             IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'input')
 
-    Jump if True to Block[3]
+    Jump if True (Regular) to Block[3]
         IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'input')
           Operand: 
             IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'input')
 
-    Next Block[2]
+    Next (Regular) Block[2]
 Block[2] - Block
-    Predecessors (1)
-        [1]
+    Predecessors: [1]
     Statements (1)
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input')
           Value: 
@@ -190,20 +182,17 @@ Block[2] - Block
                     IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'input')
                   Arguments(0)
 
-    Next Block[4]
+    Next (Regular) Block[4]
 Block[3] - Block
-    Predecessors (1)
-        [1]
+    Predecessors: [1]
     Statements (1)
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'alternative')
           Value: 
             IParameterReferenceOperation: alternative (OperationKind.ParameterReference, Type: System.Int64) (Syntax: 'alternative')
 
-    Next Block[4]
+    Next (Regular) Block[4]
 Block[4] - Block
-    Predecessors (2)
-        [2]
-        [3]
+    Predecessors: [2] [3]
     Statements (3)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = If ... lternative)')
           Expression: 
@@ -221,10 +210,9 @@ Block[4] - Block
           ReturnedValue: 
             null
 
-    Next Block[5]
+    Next (Regular) Block[5]
 Block[5] - Exit
-    Predecessors (1)
-        [4]
+    Predecessors: [4]
     Statements (0)
 ]]>.Value
 
@@ -269,10 +257,9 @@ ICoalesceOperation (OperationKind.Coalesce, Type: System.Nullable(Of System.Int6
             <![CDATA[
 Block[0] - Entry
     Statements (0)
-    Next Block[1]
+    Next (Regular) Block[1]
 Block[1] - Block
-    Predecessors (1)
-        [0]
+    Predecessors: [0]
     Statements (2)
         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'result')
           Value: 
@@ -282,15 +269,14 @@ Block[1] - Block
           Value: 
             IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'input')
 
-    Jump if True to Block[3]
+    Jump if True (Regular) to Block[3]
         IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'input')
           Operand: 
             IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'input')
 
-    Next Block[2]
+    Next (Regular) Block[2]
 Block[2] - Block
-    Predecessors (1)
-        [1]
+    Predecessors: [1]
     Statements (1)
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input')
           Value: 
@@ -303,20 +289,17 @@ Block[2] - Block
                     IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'input')
                   Arguments(0)
 
-    Next Block[4]
+    Next (Regular) Block[4]
 Block[3] - Block
-    Predecessors (1)
-        [1]
+    Predecessors: [1]
     Statements (1)
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'alternative')
           Value: 
             IParameterReferenceOperation: alternative (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int64)) (Syntax: 'alternative')
 
-    Next Block[4]
+    Next (Regular) Block[4]
 Block[4] - Block
-    Predecessors (2)
-        [2]
-        [3]
+    Predecessors: [2] [3]
     Statements (3)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = If ... lternative)')
           Expression: 
@@ -334,10 +317,9 @@ Block[4] - Block
           ReturnedValue: 
             null
 
-    Next Block[5]
+    Next (Regular) Block[5]
 Block[5] - Exit
-    Predecessors (1)
-        [4]
+    Predecessors: [4]
     Statements (0)
 ]]>.Value
 
@@ -382,10 +364,9 @@ ICoalesceOperation (OperationKind.Coalesce, Type: System.Object) (Syntax: 'If(in
             <![CDATA[
 Block[0] - Entry
     Statements (0)
-    Next Block[1]
+    Next (Regular) Block[1]
 Block[1] - Block
-    Predecessors (1)
-        [0]
+    Predecessors: [0]
     Statements (2)
         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'result')
           Value: 
@@ -395,15 +376,14 @@ Block[1] - Block
           Value: 
             IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.String) (Syntax: 'input')
 
-    Jump if True to Block[3]
+    Jump if True (Regular) to Block[3]
         IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'input')
           Operand: 
             IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'input')
 
-    Next Block[2]
+    Next (Regular) Block[2]
 Block[2] - Block
-    Predecessors (1)
-        [1]
+    Predecessors: [1]
     Statements (1)
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input')
           Value: 
@@ -413,20 +393,17 @@ Block[2] - Block
               Operand: 
                 IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'input')
 
-    Next Block[4]
+    Next (Regular) Block[4]
 Block[3] - Block
-    Predecessors (1)
-        [1]
+    Predecessors: [1]
     Statements (1)
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'alternative')
           Value: 
             IParameterReferenceOperation: alternative (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'alternative')
 
-    Next Block[4]
+    Next (Regular) Block[4]
 Block[4] - Block
-    Predecessors (2)
-        [2]
-        [3]
+    Predecessors: [2] [3]
     Statements (3)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = If ... lternative)')
           Expression: 
@@ -444,10 +421,9 @@ Block[4] - Block
           ReturnedValue: 
             null
 
-    Next Block[5]
+    Next (Regular) Block[5]
 Block[5] - Exit
-    Predecessors (1)
-        [4]
+    Predecessors: [4]
     Statements (0)
 ]]>.Value
 
@@ -495,10 +471,9 @@ ICoalesceOperation (OperationKind.Coalesce, Type: System.Object) (Syntax: 'If(in
             <![CDATA[
 Block[0] - Entry
     Statements (0)
-    Next Block[1]
+    Next (Regular) Block[1]
 Block[1] - Block
-    Predecessors (1)
-        [0]
+    Predecessors: [0]
     Statements (2)
         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'result')
           Value: 
@@ -508,15 +483,14 @@ Block[1] - Block
           Value: 
             IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'input')
 
-    Jump if True to Block[3]
+    Jump if True (Regular) to Block[3]
         IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'input')
           Operand: 
             IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'input')
 
-    Next Block[2]
+    Next (Regular) Block[2]
 Block[2] - Block
-    Predecessors (1)
-        [1]
+    Predecessors: [1]
     Statements (1)
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input')
           Value: 
@@ -529,10 +503,9 @@ Block[2] - Block
                     IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'input')
                   Arguments(0)
 
-    Next Block[4]
+    Next (Regular) Block[4]
 Block[3] - Block
-    Predecessors (1)
-        [1]
+    Predecessors: [1]
     Statements (1)
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'alternative')
           Value: 
@@ -542,11 +515,9 @@ Block[3] - Block
               Operand: 
                 IParameterReferenceOperation: alternative (OperationKind.ParameterReference, Type: System.DateTime) (Syntax: 'alternative')
 
-    Next Block[4]
+    Next (Regular) Block[4]
 Block[4] - Block
-    Predecessors (2)
-        [2]
-        [3]
+    Predecessors: [2] [3]
     Statements (3)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = If ... lternative)')
           Expression: 
@@ -564,10 +535,9 @@ Block[4] - Block
           ReturnedValue: 
             null
 
-    Next Block[5]
+    Next (Regular) Block[5]
 Block[5] - Exit
-    Predecessors (1)
-        [4]
+    Predecessors: [4]
     Statements (0)
 ]]>.Value
 
@@ -612,10 +582,9 @@ ICoalesceOperation (OperationKind.Coalesce, Type: System.Object) (Syntax: 'If(in
             <![CDATA[
 Block[0] - Entry
     Statements (0)
-    Next Block[1]
+    Next (Regular) Block[1]
 Block[1] - Block
-    Predecessors (1)
-        [0]
+    Predecessors: [0]
     Statements (2)
         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'result')
           Value: 
@@ -625,15 +594,14 @@ Block[1] - Block
           Value: 
             IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'input')
 
-    Jump if True to Block[3]
+    Jump if True (Regular) to Block[3]
         IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'input')
           Operand: 
             IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'input')
 
-    Next Block[2]
+    Next (Regular) Block[2]
 Block[2] - Block
-    Predecessors (1)
-        [1]
+    Predecessors: [1]
     Statements (1)
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input')
           Value: 
@@ -646,20 +614,17 @@ Block[2] - Block
                     IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'input')
                   Arguments(0)
 
-    Next Block[4]
+    Next (Regular) Block[4]
 Block[3] - Block
-    Predecessors (1)
-        [1]
+    Predecessors: [1]
     Statements (1)
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'alternative')
           Value: 
             IParameterReferenceOperation: alternative (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'alternative')
 
-    Next Block[4]
+    Next (Regular) Block[4]
 Block[4] - Block
-    Predecessors (2)
-        [2]
-        [3]
+    Predecessors: [2] [3]
     Statements (3)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = If ... lternative)')
           Expression: 
@@ -677,10 +642,9 @@ Block[4] - Block
           ReturnedValue: 
             null
 
-    Next Block[5]
+    Next (Regular) Block[5]
 Block[5] - Exit
-    Predecessors (1)
-        [4]
+    Predecessors: [4]
     Statements (0)
 ]]>.Value
 
@@ -725,10 +689,9 @@ ICoalesceOperation (OperationKind.Coalesce, Type: System.Object) (Syntax: 'If(No
             <![CDATA[
 Block[0] - Entry
     Statements (0)
-    Next Block[1]
+    Next (Regular) Block[1]
 Block[1] - Block
-    Predecessors (1)
-        [0]
+    Predecessors: [0]
     Statements (2)
         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'result')
           Value: 
@@ -738,15 +701,14 @@ Block[1] - Block
           Value: 
             ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'Nothing')
 
-    Jump if True to Block[3]
+    Jump if True (Regular) to Block[3]
         IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, Constant: True, IsImplicit) (Syntax: 'Nothing')
           Operand: 
             IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: null, Constant: null, IsImplicit) (Syntax: 'Nothing')
 
-    Next Block[2]
+    Next (Regular) Block[2]
 Block[2] - Block
-    Predecessors (1)
-        [1]
+    Predecessors: [1]
     Statements (1)
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'Nothing')
           Value: 
@@ -756,20 +718,17 @@ Block[2] - Block
               Operand: 
                 IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: null, Constant: null, IsImplicit) (Syntax: 'Nothing')
 
-    Next Block[4]
+    Next (Regular) Block[4]
 Block[3] - Block
-    Predecessors (1)
-        [1]
+    Predecessors: [1]
     Statements (1)
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'alternative')
           Value: 
             IParameterReferenceOperation: alternative (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'alternative')
 
-    Next Block[4]
+    Next (Regular) Block[4]
 Block[4] - Block
-    Predecessors (2)
-        [2]
-        [3]
+    Predecessors: [2] [3]
     Statements (3)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = If ... lternative)')
           Expression: 
@@ -787,10 +746,9 @@ Block[4] - Block
           ReturnedValue: 
             null
 
-    Next Block[5]
+    Next (Regular) Block[5]
 Block[5] - Exit
-    Predecessors (1)
-        [4]
+    Predecessors: [4]
     Statements (0)
 ]]>.Value
 
@@ -835,10 +793,9 @@ ICoalesceOperation (OperationKind.Coalesce, Type: System.Int32) (Syntax: 'If(Not
             <![CDATA[
 Block[0] - Entry
     Statements (0)
-    Next Block[1]
+    Next (Regular) Block[1]
 Block[1] - Block
-    Predecessors (1)
-        [0]
+    Predecessors: [0]
     Statements (2)
         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'result')
           Value: 
@@ -848,15 +805,14 @@ Block[1] - Block
           Value: 
             ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'Nothing')
 
-    Jump if True to Block[3]
+    Jump if True (Regular) to Block[3]
         IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, Constant: True, IsImplicit) (Syntax: 'Nothing')
           Operand: 
             IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: null, Constant: null, IsImplicit) (Syntax: 'Nothing')
 
-    Next Block[2]
+    Next (Regular) Block[2]
 Block[2] - Block
-    Predecessors (1)
-        [1]
+    Predecessors: [1]
     Statements (1)
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'Nothing')
           Value: 
@@ -866,20 +822,17 @@ Block[2] - Block
               Operand: 
                 IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: null, Constant: null, IsImplicit) (Syntax: 'Nothing')
 
-    Next Block[4]
+    Next (Regular) Block[4]
 Block[3] - Block
-    Predecessors (1)
-        [1]
+    Predecessors: [1]
     Statements (1)
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'alternative')
           Value: 
             IParameterReferenceOperation: alternative (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'alternative')
 
-    Next Block[4]
+    Next (Regular) Block[4]
 Block[4] - Block
-    Predecessors (2)
-        [2]
-        [3]
+    Predecessors: [2] [3]
     Statements (3)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = If ... lternative)')
           Expression: 
@@ -897,10 +850,9 @@ Block[4] - Block
           ReturnedValue: 
             null
 
-    Next Block[5]
+    Next (Regular) Block[5]
 Block[5] - Exit
-    Predecessors (1)
-        [4]
+    Predecessors: [4]
     Statements (0)
 ]]>.Value
 
@@ -945,10 +897,9 @@ ICoalesceOperation (OperationKind.Coalesce, Type: System.Nullable(Of System.Int3
             <![CDATA[
 Block[0] - Entry
     Statements (0)
-    Next Block[1]
+    Next (Regular) Block[1]
 Block[1] - Block
-    Predecessors (1)
-        [0]
+    Predecessors: [0]
     Statements (2)
         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'result')
           Value: 
@@ -958,15 +909,14 @@ Block[1] - Block
           Value: 
             ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'Nothing')
 
-    Jump if True to Block[3]
+    Jump if True (Regular) to Block[3]
         IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, Constant: True, IsImplicit) (Syntax: 'Nothing')
           Operand: 
             IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: null, Constant: null, IsImplicit) (Syntax: 'Nothing')
 
-    Next Block[2]
+    Next (Regular) Block[2]
 Block[2] - Block
-    Predecessors (1)
-        [1]
+    Predecessors: [1]
     Statements (1)
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'Nothing')
           Value: 
@@ -976,20 +926,17 @@ Block[2] - Block
               Operand: 
                 IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: null, Constant: null, IsImplicit) (Syntax: 'Nothing')
 
-    Next Block[4]
+    Next (Regular) Block[4]
 Block[3] - Block
-    Predecessors (1)
-        [1]
+    Predecessors: [1]
     Statements (1)
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'alternative')
           Value: 
             IParameterReferenceOperation: alternative (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'alternative')
 
-    Next Block[4]
+    Next (Regular) Block[4]
 Block[4] - Block
-    Predecessors (2)
-        [2]
-        [3]
+    Predecessors: [2] [3]
     Statements (3)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = If ... lternative)')
           Expression: 
@@ -1007,10 +954,9 @@ Block[4] - Block
           ReturnedValue: 
             null
 
-    Next Block[5]
+    Next (Regular) Block[5]
 Block[5] - Exit
-    Predecessors (1)
-        [4]
+    Predecessors: [4]
     Statements (0)
 ]]>.Value
 
@@ -1058,10 +1004,9 @@ ICoalesceOperation (OperationKind.Coalesce, Type: System.Nullable(Of System.Int3
             <![CDATA[
 Block[0] - Entry
     Statements (0)
-    Next Block[1]
+    Next (Regular) Block[1]
 Block[1] - Block
-    Predecessors (1)
-        [0]
+    Predecessors: [0]
     Statements (2)
         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'result')
           Value: 
@@ -1071,24 +1016,22 @@ Block[1] - Block
           Value: 
             IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'input')
 
-    Jump if True to Block[3]
+    Jump if True (Regular) to Block[3]
         IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'input')
           Operand: 
             IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'input')
 
-    Next Block[2]
+    Next (Regular) Block[2]
 Block[2] - Block
-    Predecessors (1)
-        [1]
+    Predecessors: [1]
     Statements (1)
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input')
           Value: 
             IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'input')
 
-    Next Block[4]
+    Next (Regular) Block[4]
 Block[3] - Block
-    Predecessors (1)
-        [1]
+    Predecessors: [1]
     Statements (1)
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'alternative')
           Value: 
@@ -1098,11 +1041,9 @@ Block[3] - Block
               Operand: 
                 IParameterReferenceOperation: alternative (OperationKind.ParameterReference, Type: System.Nullable(Of System.Byte)) (Syntax: 'alternative')
 
-    Next Block[4]
+    Next (Regular) Block[4]
 Block[4] - Block
-    Predecessors (2)
-        [2]
-        [3]
+    Predecessors: [2] [3]
     Statements (3)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = If ... lternative)')
           Expression: 
@@ -1120,10 +1061,9 @@ Block[4] - Block
           ReturnedValue: 
             null
 
-    Next Block[5]
+    Next (Regular) Block[5]
 Block[5] - Exit
-    Predecessors (1)
-        [4]
+    Predecessors: [4]
     Statements (0)
 ]]>.Value
 
@@ -1168,10 +1108,9 @@ ICoalesceOperation (OperationKind.Coalesce, Type: System.Nullable(Of System.Int3
             <![CDATA[
 Block[0] - Entry
     Statements (0)
-    Next Block[1]
+    Next (Regular) Block[1]
 Block[1] - Block
-    Predecessors (1)
-        [0]
+    Predecessors: [0]
     Statements (2)
         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'result')
           Value: 
@@ -1181,34 +1120,30 @@ Block[1] - Block
           Value: 
             IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'input')
 
-    Jump if True to Block[3]
+    Jump if True (Regular) to Block[3]
         IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'input')
           Operand: 
             IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'input')
 
-    Next Block[2]
+    Next (Regular) Block[2]
 Block[2] - Block
-    Predecessors (1)
-        [1]
+    Predecessors: [1]
     Statements (1)
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input')
           Value: 
             IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'input')
 
-    Next Block[4]
+    Next (Regular) Block[4]
 Block[3] - Block
-    Predecessors (1)
-        [1]
+    Predecessors: [1]
     Statements (1)
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'alternative')
           Value: 
             IParameterReferenceOperation: alternative (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'alternative')
 
-    Next Block[4]
+    Next (Regular) Block[4]
 Block[4] - Block
-    Predecessors (2)
-        [2]
-        [3]
+    Predecessors: [2] [3]
     Statements (3)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = If ... lternative)')
           Expression: 
@@ -1226,10 +1161,9 @@ Block[4] - Block
           ReturnedValue: 
             null
 
-    Next Block[5]
+    Next (Regular) Block[5]
 Block[5] - Exit
-    Predecessors (1)
-        [4]
+    Predecessors: [4]
     Statements (0)
 ]]>.Value
 
@@ -1260,10 +1194,9 @@ End Class
             <![CDATA[
 Block[0] - Entry
     Statements (0)
-    Next Block[1]
+    Next (Regular) Block[1]
 Block[1] - Block
-    Predecessors (1)
-        [0]
+    Predecessors: [0]
     Statements (2)
         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'result')
           Value: 
@@ -1273,87 +1206,76 @@ Block[1] - Block
           Value: 
             IParameterReferenceOperation: input1 (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'input1')
 
-    Jump if True to Block[3]
+    Jump if True (Regular) to Block[3]
         IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'input1')
           Operand: 
             IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'input1')
 
-    Next Block[2]
+    Next (Regular) Block[2]
 Block[2] - Block
-    Predecessors (1)
-        [1]
+    Predecessors: [1]
     Statements (1)
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input1')
           Value: 
             IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'input1')
 
-    Next Block[4]
+    Next (Regular) Block[4]
 Block[3] - Block
-    Predecessors (1)
-        [1]
+    Predecessors: [1]
     Statements (1)
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'alternative1')
           Value: 
             IParameterReferenceOperation: alternative1 (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'alternative1')
 
-    Next Block[4]
+    Next (Regular) Block[4]
 Block[4] - Block
-    Predecessors (2)
-        [2]
-        [3]
+    Predecessors: [2] [3]
     Statements (0)
-    Jump if True to Block[6]
+    Jump if True (Regular) to Block[6]
         IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'If(input1, alternative1)')
           Operand: 
             IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'If(input1, alternative1)')
 
-    Next Block[5]
+    Next (Regular) Block[5]
 Block[5] - Block
-    Predecessors (1)
-        [4]
+    Predecessors: [4]
     Statements (1)
         IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'If(input1, alternative1)')
           Value: 
             IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'If(input1, alternative1)')
 
-    Next Block[9]
+    Next (Regular) Block[9]
 Block[6] - Block
-    Predecessors (1)
-        [4]
+    Predecessors: [4]
     Statements (1)
         IFlowCaptureOperation: 4 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input2')
           Value: 
             IParameterReferenceOperation: input2 (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'input2')
 
-    Jump if True to Block[8]
+    Jump if True (Regular) to Block[8]
         IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'input2')
           Operand: 
             IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'input2')
 
-    Next Block[7]
+    Next (Regular) Block[7]
 Block[7] - Block
-    Predecessors (1)
-        [6]
+    Predecessors: [6]
     Statements (1)
         IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input2')
           Value: 
             IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'input2')
 
-    Next Block[9]
+    Next (Regular) Block[9]
 Block[8] - Block
-    Predecessors (1)
-        [6]
+    Predecessors: [6]
     Statements (1)
         IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'alternative2')
           Value: 
             IParameterReferenceOperation: alternative2 (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'alternative2')
 
-    Next Block[9]
+    Next (Regular) Block[9]
 Block[9] - Block
-    Predecessors (3)
-        [5]
-        [7]
-        [8]
+    Predecessors: [5] [7] [8]
     Statements (3)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = If ... ernative2))')
           Expression: 
@@ -1371,10 +1293,9 @@ Block[9] - Block
           ReturnedValue: 
             null
 
-    Next Block[10]
+    Next (Regular) Block[10]
 Block[10] - Exit
-    Predecessors (1)
-        [9]
+    Predecessors: [9]
     Statements (0)
 ]]>.Value
 

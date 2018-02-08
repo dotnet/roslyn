@@ -6497,4 +6497,30 @@ namespace Microsoft.CodeAnalysis.Operations
             return visitor.VisitIsNull(this, argument);
         }
     }
+
+    internal sealed partial class CaughtExceptionOperation : Operation, ICaughtExceptionOperation
+    {
+        public CaughtExceptionOperation(SyntaxNode syntax, ITypeSymbol type) :
+            base(OperationKind.CaughtException, semanticModel: null, syntax: syntax, type: type, constantValue: default, isImplicit: true)
+        {
+        }
+
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                return Array.Empty<IOperation>();
+            }
+        }
+
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitCaughtException(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitCaughtException(this, argument);
+        }
+    }
 }

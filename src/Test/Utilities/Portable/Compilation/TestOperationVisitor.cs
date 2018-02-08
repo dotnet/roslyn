@@ -1125,5 +1125,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.True(operation.IsImplicit);
             Assert.Same(operation.Operand, operation.Children.Single());
         }
+
+        public override void VisitCaughtException(ICaughtExceptionOperation operation)
+        {
+            Assert.Equal(OperationKind.CaughtException, operation.Kind);
+            Assert.True(operation.IsImplicit);
+            Assert.Empty(operation.Children);
+        }
     }
 }

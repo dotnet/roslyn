@@ -802,6 +802,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Visit(operation.Operand, "Operand");
         }
 
+        public override void VisitCaughtException(ICaughtExceptionOperation operation)
+        {
+            LogString(nameof(ICaughtExceptionOperation));
+            LogCommonPropertiesAndNewLine(operation);
+        }
+
         public override void VisitParameterReference(IParameterReferenceOperation operation)
         {
             LogString(nameof(IParameterReferenceOperation));

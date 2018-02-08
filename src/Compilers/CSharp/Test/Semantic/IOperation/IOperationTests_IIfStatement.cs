@@ -1185,40 +1185,45 @@ class P
             string expectedGraph = @"
 Block[0] - Entry
     Statements (0)
-    Next Block[1]
-Block[1] - Block
-    Predecessors (1)
-        [0]
-    Statements (1)
-        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'condition = false')
-          Expression: 
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'condition = false')
-              Left: 
-                ILocalReferenceOperation: condition (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Boolean, IsImplicit) (Syntax: 'condition = false')
-              Right: 
-                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+    Next (Regular) Block[1]
+        Entering: {1}
 
-    Jump if False to Block[3]
-        ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+.locals {1}
+{
+    Locals: [System.Boolean condition]
+    Block[1] - Block
+        Predecessors: [0]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'condition = false')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'condition = false')
+                  Left: 
+                    ILocalReferenceOperation: condition (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Boolean, IsImplicit) (Syntax: 'condition = false')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
 
-    Next Block[2]
-Block[2] - Block
-    Predecessors (1)
-        [1]
-    Statements (1)
-        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'condition = true;')
-          Expression: 
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'condition = true')
-              Left: 
-                ILocalReferenceOperation: condition (OperationKind.LocalReference, Type: System.Boolean) (Syntax: 'condition')
-              Right: 
-                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+        Jump if False (Regular) to Block[3]
+            ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+            Leaving: {1}
 
-    Next Block[3]
+        Next (Regular) Block[2]
+    Block[2] - Block
+        Predecessors: [1]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'condition = true;')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'condition = true')
+                  Left: 
+                    ILocalReferenceOperation: condition (OperationKind.LocalReference, Type: System.Boolean) (Syntax: 'condition')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+
+        Next (Regular) Block[3]
+            Leaving: {1}
+}
+
 Block[3] - Exit
-    Predecessors (2)
-        [1]
-        [2]
+    Predecessors: [1] [2]
     Statements (0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -1254,47 +1259,51 @@ class P
             string expectedGraph = @"
 Block[0] - Entry
     Statements (0)
-    Next Block[1]
-Block[1] - Block
-    Predecessors (1)
-        [0]
-    Statements (1)
-        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'condition = false')
-          Expression: 
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'condition = false')
-              Left: 
-                ILocalReferenceOperation: condition (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Boolean, IsImplicit) (Syntax: 'condition = false')
-              Right: 
-                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+    Next (Regular) Block[1]
+        Entering: {1}
 
-    Jump if False to Block[3]
-        ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+.locals {1}
+{
+    Locals: [System.Boolean condition]
+    Block[1] - Block
+        Predecessors: [0]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'condition = false')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'condition = false')
+                  Left: 
+                    ILocalReferenceOperation: condition (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Boolean, IsImplicit) (Syntax: 'condition = false')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
 
-    Next Block[2]
-Block[2] - Block
-    Predecessors (1)
-        [1]
-    Statements (1)
-        IEmptyOperation (OperationKind.Empty, Type: null) (Syntax: ';')
+        Jump if False (Regular) to Block[3]
+            ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
 
-    Next Block[4]
-Block[3] - Block
-    Predecessors (1)
-        [1]
-    Statements (1)
-        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'condition = true;')
-          Expression: 
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'condition = true')
-              Left: 
-                ILocalReferenceOperation: condition (OperationKind.LocalReference, Type: System.Boolean) (Syntax: 'condition')
-              Right: 
-                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+        Next (Regular) Block[2]
+    Block[2] - Block
+        Predecessors: [1]
+        Statements (1)
+            IEmptyOperation (OperationKind.Empty, Type: null) (Syntax: ';')
 
-    Next Block[4]
+        Next (Regular) Block[4]
+            Leaving: {1}
+    Block[3] - Block
+        Predecessors: [1]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'condition = true;')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'condition = true')
+                  Left: 
+                    ILocalReferenceOperation: condition (OperationKind.LocalReference, Type: System.Boolean) (Syntax: 'condition')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+
+        Next (Regular) Block[4]
+            Leaving: {1}
+}
+
 Block[4] - Exit
-    Predecessors (2)
-        [2]
-        [3]
+    Predecessors: [2] [3]
     Statements (0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -1332,26 +1341,23 @@ class P
             string expectedGraph = @"
 Block[0] - Entry
     Statements (0)
-    Next Block[1]
+    Next (Regular) Block[1]
 Block[1] - Block
-    Predecessors (1)
-        [0]
+    Predecessors: [0]
     Statements (0)
-    Jump if False to Block[4]
+    Jump if False (Regular) to Block[4]
         IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'a')
 
-    Next Block[2]
+    Next (Regular) Block[2]
 Block[2] - Block
-    Predecessors (1)
-        [1]
+    Predecessors: [1]
     Statements (0)
-    Jump if False to Block[4]
+    Jump if False (Regular) to Block[4]
         IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
 
-    Next Block[3]
+    Next (Regular) Block[3]
 Block[3] - Block
-    Predecessors (1)
-        [2]
+    Predecessors: [2]
     Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a = false;')
           Expression: 
@@ -1361,11 +1367,9 @@ Block[3] - Block
               Right: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
 
-    Next Block[5]
+    Next (Regular) Block[5]
 Block[4] - Block
-    Predecessors (2)
-        [1]
-        [2]
+    Predecessors: [1] [2]
     Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = true;')
           Expression: 
@@ -1375,11 +1379,9 @@ Block[4] - Block
               Right: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
 
-    Next Block[5]
+    Next (Regular) Block[5]
 Block[5] - Exit
-    Predecessors (2)
-        [3]
-        [4]
+    Predecessors: [3] [4]
     Statements (0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;

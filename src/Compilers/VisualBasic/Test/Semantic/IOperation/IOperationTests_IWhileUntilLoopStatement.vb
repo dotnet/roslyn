@@ -1553,10 +1553,16 @@ End Class]]>.Value
             Dim expectedFlowGraph = <![CDATA[
 Block[0] - Entry
     Statements (0)
-    Next Block[2]
+    Next (Regular) Block[1]
 Block[1] - Block
-    Predecessors (1)
-        [2]
+    Predecessors: [0] [2]
+    Statements (0)
+    Jump if False (Regular) to Block[3]
+        IParameterReferenceOperation: condition (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'condition')
+
+    Next (Regular) Block[2]
+Block[2] - Block
+    Predecessors: [1]
     Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'condition = false')
           Expression: 
@@ -1566,19 +1572,9 @@ Block[1] - Block
               Right: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
 
-    Next Block[2]
-Block[2] - Block
-    Predecessors (2)
-        [0]
-        [1]
-    Statements (0)
-    Jump if True to Block[1]
-        IParameterReferenceOperation: condition (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'condition')
-
-    Next Block[3]
+    Next (Regular) Block[1]
 Block[3] - Block
-    Predecessors (1)
-        [2]
+    Predecessors: [1]
     Statements (2)
         ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
           Statement: 
@@ -1588,10 +1584,9 @@ Block[3] - Block
           ReturnedValue: 
             null
 
-    Next Block[4]
+    Next (Regular) Block[4]
 Block[4] - Exit
-    Predecessors (1)
-        [3]
+    Predecessors: [3]
     Statements (0)
 ]]>.Value
 
@@ -1620,19 +1615,16 @@ BC30238: 'Loop' cannot have a condition if matching 'Do' has one.
             Dim expectedFlowGraph = <![CDATA[
 Block[0] - Entry
     Statements (0)
-    Next Block[1]
+    Next (Regular) Block[1]
 Block[1] - Block
-    Predecessors (2)
-        [0]
-        [1]
+    Predecessors: [0] [1]
     Statements (0)
-    Jump if True to Block[1]
+    Jump if False (Regular) to Block[2]
         IParameterReferenceOperation: condition1 (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'condition1')
 
-    Next Block[2]
+    Next (Regular) Block[1]
 Block[2] - Block
-    Predecessors (1)
-        [1]
+    Predecessors: [1]
     Statements (2)
         ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
           Statement: 
@@ -1642,10 +1634,9 @@ Block[2] - Block
           ReturnedValue: 
             null
 
-    Next Block[3]
+    Next (Regular) Block[3]
 Block[3] - Exit
-    Predecessors (1)
-        [2]
+    Predecessors: [2]
     Statements (0)
 ]]>.Value
 
@@ -1673,19 +1664,16 @@ BC30238: 'Loop' cannot have a condition if matching 'Do' has one.
             Dim expectedFlowGraph = <![CDATA[
 Block[0] - Entry
     Statements (0)
-    Next Block[1]
+    Next (Regular) Block[1]
 Block[1] - Block
-    Predecessors (2)
-        [0]
-        [1]
+    Predecessors: [0] [1]
     Statements (0)
-    Jump if True to Block[1]
+    Jump if False (Regular) to Block[2]
         IParameterReferenceOperation: condition1 (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'condition1')
 
-    Next Block[2]
+    Next (Regular) Block[1]
 Block[2] - Block
-    Predecessors (1)
-        [1]
+    Predecessors: [1]
     Statements (2)
         ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
           Statement: 
@@ -1695,10 +1683,9 @@ Block[2] - Block
           ReturnedValue: 
             null
 
-    Next Block[3]
+    Next (Regular) Block[3]
 Block[3] - Exit
-    Predecessors (1)
-        [2]
+    Predecessors: [2]
     Statements (0)
 ]]>.Value
 
@@ -1723,10 +1710,16 @@ End Class]]>.Value
             Dim expectedFlowGraph = <![CDATA[
 Block[0] - Entry
     Statements (0)
-    Next Block[2]
+    Next (Regular) Block[1]
 Block[1] - Block
-    Predecessors (1)
-        [2]
+    Predecessors: [0] [2]
+    Statements (0)
+    Jump if True (Regular) to Block[3]
+        IParameterReferenceOperation: condition (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'condition')
+
+    Next (Regular) Block[2]
+Block[2] - Block
+    Predecessors: [1]
     Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'condition = false')
           Expression: 
@@ -1736,19 +1729,9 @@ Block[1] - Block
               Right: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
 
-    Next Block[2]
-Block[2] - Block
-    Predecessors (2)
-        [0]
-        [1]
-    Statements (0)
-    Jump if False to Block[1]
-        IParameterReferenceOperation: condition (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'condition')
-
-    Next Block[3]
+    Next (Regular) Block[1]
 Block[3] - Block
-    Predecessors (1)
-        [2]
+    Predecessors: [1]
     Statements (2)
         ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
           Statement: 
@@ -1758,10 +1741,9 @@ Block[3] - Block
           ReturnedValue: 
             null
 
-    Next Block[4]
+    Next (Regular) Block[4]
 Block[4] - Exit
-    Predecessors (1)
-        [3]
+    Predecessors: [3]
     Statements (0)
 ]]>.Value
 
@@ -1789,19 +1771,16 @@ BC30238: 'Loop' cannot have a condition if matching 'Do' has one.
             Dim expectedFlowGraph = <![CDATA[
 Block[0] - Entry
     Statements (0)
-    Next Block[1]
+    Next (Regular) Block[1]
 Block[1] - Block
-    Predecessors (2)
-        [0]
-        [1]
+    Predecessors: [0] [1]
     Statements (0)
-    Jump if False to Block[1]
+    Jump if True (Regular) to Block[2]
         IParameterReferenceOperation: condition1 (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'condition1')
 
-    Next Block[2]
+    Next (Regular) Block[1]
 Block[2] - Block
-    Predecessors (1)
-        [1]
+    Predecessors: [1]
     Statements (2)
         ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
           Statement: 
@@ -1811,10 +1790,9 @@ Block[2] - Block
           ReturnedValue: 
             null
 
-    Next Block[3]
+    Next (Regular) Block[3]
 Block[3] - Exit
-    Predecessors (1)
-        [2]
+    Predecessors: [2]
     Statements (0)
 ]]>.Value
 
@@ -1842,19 +1820,16 @@ BC30238: 'Loop' cannot have a condition if matching 'Do' has one.
             Dim expectedFlowGraph = <![CDATA[
 Block[0] - Entry
     Statements (0)
-    Next Block[1]
+    Next (Regular) Block[1]
 Block[1] - Block
-    Predecessors (2)
-        [0]
-        [1]
+    Predecessors: [0] [1]
     Statements (0)
-    Jump if False to Block[1]
+    Jump if True (Regular) to Block[2]
         IParameterReferenceOperation: condition1 (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'condition1')
 
-    Next Block[2]
+    Next (Regular) Block[1]
 Block[2] - Block
-    Predecessors (1)
-        [1]
+    Predecessors: [1]
     Statements (2)
         ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
           Statement: 
@@ -1864,10 +1839,9 @@ Block[2] - Block
           ReturnedValue: 
             null
 
-    Next Block[3]
+    Next (Regular) Block[3]
 Block[3] - Exit
-    Predecessors (1)
-        [2]
+    Predecessors: [2]
     Statements (0)
 ]]>.Value
 
@@ -1892,11 +1866,9 @@ End Class]]>.Value
             Dim expectedFlowGraph = <![CDATA[
 Block[0] - Entry
     Statements (0)
-    Next Block[1]
+    Next (Regular) Block[1]
 Block[1] - Block
-    Predecessors (2)
-        [0]
-        [1]
+    Predecessors: [0] [1]
     Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'condition = false')
           Expression: 
@@ -1906,13 +1878,12 @@ Block[1] - Block
               Right: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
 
-    Jump if True to Block[1]
+    Jump if True (Regular) to Block[1]
         IParameterReferenceOperation: condition (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'condition')
 
-    Next Block[2]
+    Next (Regular) Block[2]
 Block[2] - Block
-    Predecessors (1)
-        [1]
+    Predecessors: [1]
     Statements (2)
         ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
           Statement: 
@@ -1922,10 +1893,9 @@ Block[2] - Block
           ReturnedValue: 
             null
 
-    Next Block[3]
+    Next (Regular) Block[3]
 Block[3] - Exit
-    Predecessors (1)
-        [2]
+    Predecessors: [2]
     Statements (0)
 ]]>.Value
 
@@ -1950,11 +1920,9 @@ End Class]]>.Value
             Dim expectedFlowGraph = <![CDATA[
 Block[0] - Entry
     Statements (0)
-    Next Block[1]
+    Next (Regular) Block[1]
 Block[1] - Block
-    Predecessors (2)
-        [0]
-        [1]
+    Predecessors: [0] [1]
     Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'condition = false')
           Expression: 
@@ -1964,13 +1932,12 @@ Block[1] - Block
               Right: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
 
-    Jump if False to Block[1]
+    Jump if False (Regular) to Block[1]
         IParameterReferenceOperation: condition (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'condition')
 
-    Next Block[2]
+    Next (Regular) Block[2]
 Block[2] - Block
-    Predecessors (1)
-        [1]
+    Predecessors: [1]
     Statements (2)
         ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
           Statement: 
@@ -1980,10 +1947,9 @@ Block[2] - Block
           ReturnedValue: 
             null
 
-    Next Block[3]
+    Next (Regular) Block[3]
 Block[3] - Exit
-    Predecessors (1)
-        [2]
+    Predecessors: [2]
     Statements (0)
 ]]>.Value
 

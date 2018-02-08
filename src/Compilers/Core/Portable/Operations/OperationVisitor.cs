@@ -509,6 +509,11 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             DefaultVisit(operation);
         }
+
+        public virtual void VisitCaughtException(ICaughtExceptionOperation operation)
+        {
+            DefaultVisit(operation);
+        }
     }
 
     /// <summary>
@@ -1021,6 +1026,11 @@ namespace Microsoft.CodeAnalysis.Operations
         }
 
         public virtual TResult VisitIsNull(IIsNullOperation operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitCaughtException(ICaughtExceptionOperation operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }

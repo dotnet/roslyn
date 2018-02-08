@@ -1411,18 +1411,23 @@ class P
             string expectedGraph = @"
 Block[0] - Entry
     Statements (0)
-    Next Block[3]
+    Next (Regular) Block[1]
 Block[1] - Block
-    Predecessors (1)
-        [3]
+    Predecessors: [0] [2] [3]
     Statements (0)
-    Jump if False to Block[3]
+    Jump if False (Regular) to Block[4]
+        IParameterReferenceOperation: condition1 (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'condition1')
+
+    Next (Regular) Block[2]
+Block[2] - Block
+    Predecessors: [1]
+    Statements (0)
+    Jump if False (Regular) to Block[1]
         IParameterReferenceOperation: condition2 (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'condition2')
 
-    Next Block[2]
-Block[2] - Block
-    Predecessors (1)
-        [1]
+    Next (Regular) Block[3]
+Block[3] - Block
+    Predecessors: [2]
     Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'condition1 = false;')
           Expression: 
@@ -1432,20 +1437,9 @@ Block[2] - Block
               Right: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
 
-    Next Block[3]
-Block[3] - Block
-    Predecessors (3)
-        [0]
-        [1]
-        [2]
-    Statements (0)
-    Jump if True to Block[1]
-        IParameterReferenceOperation: condition1 (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'condition1')
-
-    Next Block[4]
+    Next (Regular) Block[1]
 Block[4] - Exit
-    Predecessors (1)
-        [3]
+    Predecessors: [1]
     Statements (0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -1474,11 +1468,9 @@ class P
             string expectedGraph = @"
 Block[0] - Entry
     Statements (0)
-    Next Block[1]
+    Next (Regular) Block[1]
 Block[1] - Block
-    Predecessors (2)
-        [0]
-        [1]
+    Predecessors: [0] [1]
     Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'condition = false;')
           Expression: 
@@ -1488,13 +1480,12 @@ Block[1] - Block
               Right: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
 
-    Jump if True to Block[1]
+    Jump if True (Regular) to Block[1]
         IParameterReferenceOperation: condition (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'condition')
 
-    Next Block[2]
+    Next (Regular) Block[2]
 Block[2] - Exit
-    Predecessors (1)
-        [1]
+    Predecessors: [1]
     Statements (0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -1521,19 +1512,493 @@ class P
             string expectedGraph = @"
 Block[0] - Entry
     Statements (0)
-    Next Block[1]
+    Next (Regular) Block[1]
 Block[1] - Block
-    Predecessors (2)
-        [0]
-        [1]
+    Predecessors: [0] [1]
     Statements (0)
-    Jump if True to Block[1]
+    Jump if True (Regular) to Block[1]
         IParameterReferenceOperation: condition (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'condition')
 
-    Next Block[2]
+    Next (Regular) Block[2]
 Block[2] - Exit
-    Predecessors (1)
-        [1]
+    Predecessors: [1]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void WhileFlow_02()
+        {
+            string source = @"
+#pragma warning disable CS0168
+#pragma warning disable CS0219
+class P
+{
+    void M(bool condition1)
+/*<bind>*/{
+        while (condition1)
+        {
+            int i;
+            i = 1;
+        }
+    }/*</bind>*/
+}
+";
+            string expectedGraph = @"
+Block[0] - Entry
+    Statements (0)
+    Next (Regular) Block[1]
+Block[1] - Block
+    Predecessors: [0] [2]
+    Statements (0)
+    Jump if False (Regular) to Block[3]
+        IParameterReferenceOperation: condition1 (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'condition1')
+
+    Next (Regular) Block[2]
+        Entering: {1}
+
+.locals {1}
+{
+    Locals: [System.Int32 i]
+    Block[2] - Block
+        Predecessors: [1]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i = 1;')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'i = 1')
+                  Left: 
+                    ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+
+        Next (Regular) Block[1]
+            Leaving: {1}
+}
+
+Block[3] - Exit
+    Predecessors: [1]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void WhileFlow_03()
+        {
+            string source = @"
+#pragma warning disable CS0168
+#pragma warning disable CS0219
+class P
+{
+    void M(bool condition1)
+/*<bind>*/{
+        while (condition1)
+        {
+            int i;
+        }
+    }/*</bind>*/
+}
+";
+            string expectedGraph = @"
+Block[0] - Entry
+    Statements (0)
+    Next (Regular) Block[1]
+Block[1] - Block
+    Predecessors: [0] [1]
+    Statements (0)
+    Jump if False (Regular) to Block[2]
+        IParameterReferenceOperation: condition1 (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'condition1')
+
+    Next (Regular) Block[1]
+Block[2] - Exit
+    Predecessors: [1]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void WhileFlow_04()
+        {
+            string source = @"
+#pragma warning disable CS0168
+#pragma warning disable CS0219
+class P
+{
+    void M()
+/*<bind>*/{
+        while (filter(out var j))
+        {
+            int i;
+            i = 1;
+        }
+    }/*</bind>*/
+    bool filter(out int i) => throw null;
+}
+";
+            string expectedGraph = @"
+Block[0] - Entry
+    Statements (0)
+    Next (Regular) Block[1]
+Block[1] - Block
+    Predecessors: [0] [3]
+    Statements (0)
+    Next (Regular) Block[2]
+        Entering: {1}
+
+.locals {1}
+{
+    Locals: [System.Int32 j]
+    Block[2] - Block
+        Predecessors: [1]
+        Statements (0)
+        Jump if False (Regular) to Block[4]
+            IInvocationOperation ( System.Boolean P.filter(out System.Int32 i)) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'filter(out var j)')
+              Instance Receiver: 
+                IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'filter')
+              Arguments(1):
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null) (Syntax: 'out var j')
+                    IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Int32) (Syntax: 'var j')
+                      ILocalReferenceOperation: j (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Leaving: {1}
+
+        Next (Regular) Block[3]
+            Entering: {2}
+
+    .locals {2}
+    {
+        Locals: [System.Int32 i]
+        Block[3] - Block
+            Predecessors: [2]
+            Statements (1)
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i = 1;')
+                  Expression: 
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'i = 1')
+                      Left: 
+                        ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
+                      Right: 
+                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+
+            Next (Regular) Block[1]
+                Leaving: {2} {1}
+    }
+}
+
+Block[4] - Exit
+    Predecessors: [2]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void WhileFlow_05()
+        {
+            string source = @"
+#pragma warning disable CS0168
+#pragma warning disable CS0219
+class P
+{
+    void M()
+/*<bind>*/{
+        while (filter(out var j))
+        {
+            int i;
+        }
+    }/*</bind>*/
+    bool filter(out int i) => throw null;
+}
+";
+            string expectedGraph = @"
+Block[0] - Entry
+    Statements (0)
+    Next (Regular) Block[1]
+Block[1] - Block
+    Predecessors: [0] [2]
+    Statements (0)
+    Next (Regular) Block[2]
+        Entering: {1}
+
+.locals {1}
+{
+    Locals: [System.Int32 j]
+    Block[2] - Block
+        Predecessors: [1]
+        Statements (0)
+        Jump if False (Regular) to Block[3]
+            IInvocationOperation ( System.Boolean P.filter(out System.Int32 i)) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'filter(out var j)')
+              Instance Receiver: 
+                IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'filter')
+              Arguments(1):
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null) (Syntax: 'out var j')
+                    IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Int32) (Syntax: 'var j')
+                      ILocalReferenceOperation: j (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Leaving: {1}
+
+        Next (Regular) Block[1]
+            Leaving: {1}
+}
+
+Block[3] - Exit
+    Predecessors: [2]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void DoFlow_03()
+        {
+            string source = @"
+#pragma warning disable CS0168
+#pragma warning disable CS0219
+class P
+{
+    void M(bool condition)
+/*<bind>*/{
+        do
+        {
+            int i;
+            i = 1;
+        }
+        while (condition);
+    }/*</bind>*/
+}
+";
+            string expectedGraph = @"
+Block[0] - Entry
+    Statements (0)
+    Next (Regular) Block[1]
+        Entering: {1}
+
+.locals {1}
+{
+    Locals: [System.Int32 i]
+    Block[1] - Block
+        Predecessors: [0] [2]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i = 1;')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'i = 1')
+                  Left: 
+                    ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+
+        Next (Regular) Block[2]
+            Leaving: {1}
+}
+
+Block[2] - Block
+    Predecessors: [1]
+    Statements (0)
+    Jump if True (Regular) to Block[1]
+        IParameterReferenceOperation: condition (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'condition')
+        Entering: {1}
+
+    Next (Regular) Block[3]
+Block[3] - Exit
+    Predecessors: [2]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void DoFlow_04()
+        {
+            string source = @"
+#pragma warning disable CS0168
+#pragma warning disable CS0219
+class P
+{
+    void M(bool condition)
+/*<bind>*/{
+        do
+        {
+            int i;
+        }
+        while (condition);
+    }/*</bind>*/
+}
+";
+            string expectedGraph = @"
+Block[0] - Entry
+    Statements (0)
+    Next (Regular) Block[1]
+Block[1] - Block
+    Predecessors: [0] [1]
+    Statements (0)
+    Jump if True (Regular) to Block[1]
+        IParameterReferenceOperation: condition (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'condition')
+
+    Next (Regular) Block[2]
+Block[2] - Exit
+    Predecessors: [1]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void DoFlow_05()
+        {
+            string source = @"
+#pragma warning disable CS0168
+#pragma warning disable CS0219
+class P
+{
+    void M()
+/*<bind>*/{
+        do
+        {
+            int i;
+            i = 1;
+        }
+        while (filter(out var j));
+    }/*</bind>*/
+    bool filter(out int i) => throw null;
+}
+";
+            string expectedGraph = @"
+Block[0] - Entry
+    Statements (0)
+    Next (Regular) Block[1]
+Block[1] - Block
+    Predecessors: [0] [3]
+    Statements (0)
+    Next (Regular) Block[2]
+        Entering: {1} {2}
+
+.locals {1}
+{
+    Locals: [System.Int32 j]
+    .locals {2}
+    {
+        Locals: [System.Int32 i]
+        Block[2] - Block
+            Predecessors: [1]
+            Statements (1)
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i = 1;')
+                  Expression: 
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'i = 1')
+                      Left: 
+                        ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
+                      Right: 
+                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+
+            Next (Regular) Block[3]
+                Leaving: {2}
+    }
+
+    Block[3] - Block
+        Predecessors: [2]
+        Statements (0)
+        Jump if True (Regular) to Block[1]
+            IInvocationOperation ( System.Boolean P.filter(out System.Int32 i)) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'filter(out var j)')
+              Instance Receiver: 
+                IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'filter')
+              Arguments(1):
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null) (Syntax: 'out var j')
+                    IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Int32) (Syntax: 'var j')
+                      ILocalReferenceOperation: j (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Leaving: {1}
+
+        Next (Regular) Block[4]
+            Leaving: {1}
+}
+
+Block[4] - Exit
+    Predecessors: [3]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void DoFlow_06()
+        {
+            string source = @"
+#pragma warning disable CS0168
+#pragma warning disable CS0219
+class P
+{
+    void M()
+/*<bind>*/{
+        do
+        {
+            int i;
+        }
+        while (filter(out var j));
+    }/*</bind>*/
+    bool filter(out int i) => throw null;
+}
+";
+            string expectedGraph = @"
+Block[0] - Entry
+    Statements (0)
+    Next (Regular) Block[1]
+Block[1] - Block
+    Predecessors: [0] [2]
+    Statements (0)
+    Next (Regular) Block[2]
+        Entering: {1}
+
+.locals {1}
+{
+    Locals: [System.Int32 j]
+    Block[2] - Block
+        Predecessors: [1]
+        Statements (0)
+        Jump if True (Regular) to Block[1]
+            IInvocationOperation ( System.Boolean P.filter(out System.Int32 i)) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'filter(out var j)')
+              Instance Receiver: 
+                IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'filter')
+              Arguments(1):
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null) (Syntax: 'out var j')
+                    IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Int32) (Syntax: 'var j')
+                      ILocalReferenceOperation: j (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Leaving: {1}
+
+        Next (Regular) Block[3]
+            Leaving: {1}
+}
+
+Block[3] - Exit
+    Predecessors: [2]
     Statements (0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;

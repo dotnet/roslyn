@@ -1491,7 +1491,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             var exceptionSourceOpt = (BoundLocal)boundCatchBlock.ExceptionSourceOpt;
             Lazy<IOperation> expressionDeclarationOrExpression = new Lazy<IOperation>(() => exceptionSourceOpt != null ? CreateVariableDeclarator(exceptionSourceOpt) : null);
-            ITypeSymbol exceptionType = boundCatchBlock.ExceptionTypeOpt;
+            ITypeSymbol exceptionType = boundCatchBlock.ExceptionTypeOpt ?? (ITypeSymbol)_semanticModel.Compilation.ObjectType;
             ImmutableArray<ILocalSymbol> locals = boundCatchBlock.Locals.As<ILocalSymbol>();
             Lazy<IOperation> filter = new Lazy<IOperation>(() => Create(boundCatchBlock.ExceptionFilterOpt));
             Lazy<IBlockOperation> handler = new Lazy<IBlockOperation>(() => (IBlockOperation)Create(boundCatchBlock.Body));
