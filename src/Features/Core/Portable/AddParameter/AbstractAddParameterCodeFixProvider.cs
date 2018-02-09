@@ -152,14 +152,61 @@ namespace Microsoft.CodeAnalysis.AddParameter
                 var methodToUpdate = argumentInsertPositionData.MethodToUpdate;
                 var argumentToInsert = argumentInsertPositionData.ArgumentToInsert;
                 var parameters = methodToUpdate.Parameters.Select(p => p.ToDisplayString(SimpleFormat));
-                var signature = $"{methodToUpdate.Name}({string.Join(", ", parameters)})";
-
-                var title = string.Format(FeaturesResources.Add_parameter_to_0, signature);
+                var title = GetCodeFixTitle(methodToUpdate, parameters);
+                var hasCascadingDeclarations = HasCascadingDeclarations(methodToUpdate);
 
                 context.RegisterCodeFix(
                     new MyCodeAction(title, c => FixAsync(context.Document, methodToUpdate, argumentToInsert, arguments, c)),
                     context.Diagnostics);
             }
+        }
+
+        /// <summary>
+        /// Checks if there are indications that there might be more than one declaration that needs to be fixed.
+        /// The check does not look-up if there are other declarations (this is done later in the CodeAction).
+        /// </summary>
+        /// <param name="method"></param>
+        /// <returns></returns>
+        private bool HasCascadingDeclarations(IMethodSymbol method)
+        {
+            // Virtual methods of all kinds might have overrides somewhere else that need to be fixed.
+            if (method.IsVirtual || method.IsOverride || method.IsAbstract)
+            {
+                return true;
+            }
+
+            // If interfaces are involved we will fix those too
+            // Explicit interface implementations are easy
+            if (method.ExplicitInterfaceImplementations.Length > 0)
+            {
+                return true;
+            }
+
+            // For implicit interface implementations lets check if the characteristic of the method
+            // allows it to implicit implement an interface member.
+            if (method.DeclaredAccessibility == Accessibility.Private || method.DeclaredAccessibility == Accessibility.NotApplicable)
+            {
+                return false;
+            }
+
+            if (method.IsStatic)
+            {
+                return false;
+            }
+
+            // Now check if the method does implement an interface member
+            var containingType = method.ContainingType;
+            var allMethodsInAllInterfaces = containingType.AllInterfaces.SelectMany(i => i.GetMembers(method.Name));
+            var isMethodImplementingAnInterfaceMember = allMethodsInAllInterfaces.Any(
+                methodInInterface => containingType.FindImplementationForInterfaceMember(methodInInterface) == method);
+            return isMethodImplementingAnInterfaceMember;
+        }
+
+        private static string GetCodeFixTitle(IMethodSymbol methodToUpdate, IEnumerable<string> parameters)
+        {
+            var signature = $"{methodToUpdate.Name}({string.Join(", ", parameters)})";
+            var title = string.Format(FeaturesResources.Add_parameter_to_0, signature);
+            return title;
         }
 
         private ImmutableArray<ArgumentInsertPositionData<TArgumentSyntax>> GetArgumentInsertPositionForMethodCandidates(

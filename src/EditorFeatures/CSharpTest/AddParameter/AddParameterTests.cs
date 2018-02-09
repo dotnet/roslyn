@@ -1696,5 +1696,43 @@ namespace N
 </Workspace>";
             await TestInRegularAndScriptAsync(code, fix);
         }
+
+        [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestInvocation_Cascading_OfferFixCascadingForImplicitInterface()
+        {
+            // error CS1501: No overload for method 'M1' takes 1 arguments
+            var code =
+@"
+    interface I1
+    {
+        void M1();
+    }
+    class C: I1
+    {
+        public void M1() { }
+        void MTest() 
+        {
+            [|M1|](1);
+        }
+    }
+";
+            var fix0 =
+@"
+    interface I1
+    {
+        void M1(int v);
+    }
+    class C: I1
+    {
+        public void M1(int v) { }
+        void MTest() 
+        {
+            M1(1);
+        }
+    }
+";
+            await TestInRegularAndScriptAsync(code, fix0);
+        }
     }
 }
