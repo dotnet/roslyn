@@ -21,12 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
 
         public void ExecuteCommand(TypeCharCommandArgs args, Action nextHandler, CommandExecutionContext context)
         {
-            ExecuteCommand(args, nextHandler, CancellationToken.None);
-        }
-
-        private void ExecuteCommand(TypeCharCommandArgs args, Action nextHandler, CancellationToken cancellationToken)
-        {
-            ExecuteReturnOrTypeCommand(args, nextHandler, cancellationToken);
+            ExecuteReturnOrTypeCommand(args, nextHandler, context.WaitContext.UserCancellationToken);
         }
     }
 }
