@@ -67,13 +67,13 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var parameterDefault = syntaxFacts.GetDefaultOfParameter(parameterNode);
-          
+
             // Don't offer inside the "=initializer" of a parameter
             if (parameterDefault?.Span.Contains(position) == true)
             {
                 return;
             }
-         
+
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             // we can't just call GetDeclaredSymbol on functionDeclaration because it could an anonymous function,

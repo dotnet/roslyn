@@ -22,7 +22,9 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
         {
             var bodyOpt = GetBody(functionDeclaration);
             if (bodyOpt == null)
+            {
                 return null;
+            }
 
             // body might be an expression in a lambda - in that case we wouldn't get a block operation out of that
             return functionDeclaration is AnonymousFunctionExpressionSyntax
@@ -39,13 +41,13 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
                 case LocalFunctionStatementSyntax localFunction:
                     return (SyntaxNode)localFunction.Body ?? localFunction.ExpressionBody;
                 case AnonymousFunctionExpressionSyntax anonymousFunction:
-                    return (SyntaxNode)anonymousFunction.Body;
+                    return anonymousFunction.Body;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(functionDeclaration);
             }
         }
 
-        private static SyntaxToken? GetSemicolonToken(SyntaxNode functionDeclaration)
+        private static SyntaxToken? TryGetSemicolonToken(SyntaxNode functionDeclaration)
         {
             switch (functionDeclaration)
             {
@@ -79,10 +81,12 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
 
             if (IsExpressionBody(body))
             {
-                var semicolonToken = GetSemicolonToken(functionDeclaration) ?? SyntaxFactory.Token(SyntaxKind.SemicolonToken);
+                var semicolonToken = TryGetSemicolonToken(functionDeclaration) ?? SyntaxFactory.Token(SyntaxKind.SemicolonToken);
 
                 if (!TryConvertExpressionBodyToStatement(body, semicolonToken, !method.ReturnsVoid, out var convertedStatement))
+                {
                     return;
+                }
 
                 // Add the new statement as the first/last statement of the new block 
                 // depending if we were asked to go after something or not.
