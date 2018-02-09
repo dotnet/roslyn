@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
@@ -103,12 +104,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
 
         public void ExecuteReturnOrTypeCommand(EditorCommandArgs args, Action nextHandler, CancellationToken cancellationToken)
         {
-            // This method handles only return / type char
-            if (!(args is ReturnKeyCommandArgs || args is TypeCharCommandArgs))
-            {
-                return;
-            }
-
             // run next handler first so that editor has chance to put the return into the buffer first.
             nextHandler();
 
@@ -137,24 +132,42 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                 return;
             }
 
+            IList<TextChange> textChanges;
+
             // save current caret position
-            var caretPositionMarker = new SnapshotPoint(args.SubjectBuffer.CurrentSnapshot, caretPosition.Value);
             if (args is ReturnKeyCommandArgs)
             {
-                if (!service.SupportsFormatOnReturn ||
-                    !TryFormat(textView, document, service, ' ', caretPositionMarker, formatOnReturn: true, cancellationToken: cancellationToken))
+                if (!service.SupportsFormatOnReturn)
                 {
                     return;
                 }
+
+                textChanges = service.GetFormattingChangesOnReturnAsync(document, caretPosition.Value, cancellationToken).WaitAndGetResult(cancellationToken);
             }
             else if (args is TypeCharCommandArgs typeCharArgs)
             {
-                var typedChar = typeCharArgs.TypedChar;
-                if (!service.SupportsFormattingOnTypedCharacter(document, typedChar) ||
-                    !TryFormat(textView, document, service, typedChar, caretPositionMarker, formatOnReturn: false, cancellationToken: cancellationToken))
+                if (!service.SupportsFormattingOnTypedCharacter(document, typeCharArgs.TypedChar))
                 {
                     return;
                 }
+
+                textChanges = service.GetFormattingChangesAsync(document, typeCharArgs.TypedChar, caretPosition.Value, cancellationToken).WaitAndGetResult(cancellationToken);
+            }
+            else
+            {
+                throw ExceptionUtilities.UnexpectedValue(args);
+            }
+
+            if (textChanges == null || textChanges.Count == 0)
+            {
+                return;
+            }
+
+            using (var transaction = CreateEditTransaction(textView, EditorFeaturesResources.Automatic_Formatting))
+            {
+                transaction.MergePolicy = AutomaticCodeChangeMergePolicy.Instance;
+                document.Project.Solution.Workspace.ApplyTextChanges(document.Id, textChanges, cancellationToken);
+                transaction.Complete();
             }
 
             // get new caret position after formatting
@@ -166,7 +179,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
 
             var snapshotAfterFormatting = args.SubjectBuffer.CurrentSnapshot;
 
-            var oldCaretPosition = caretPositionMarker.TranslateTo(snapshotAfterFormatting, PointTrackingMode.Negative);
+            var oldCaretPosition = caretPosition.Value.TranslateTo(snapshotAfterFormatting, PointTrackingMode.Negative);
             var newCaretPosition = newCaretPositionMarker.Value.TranslateTo(snapshotAfterFormatting, PointTrackingMode.Negative);
             if (oldCaretPosition.Position == newCaretPosition.Position)
             {
@@ -175,28 +188,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
 
             // caret has moved to wrong position, move it back to correct position
             args.TextView.TryMoveCaretToAndEnsureVisible(oldCaretPosition);
-        }
-
-        private bool TryFormat(
-            ITextView textView, Document document, IEditorFormattingService formattingService, char typedChar, int position, bool formatOnReturn, CancellationToken cancellationToken)
-        {
-            var changes = formatOnReturn
-                ? formattingService.GetFormattingChangesOnReturnAsync(document, position, cancellationToken).WaitAndGetResult(cancellationToken)
-                : formattingService.GetFormattingChangesAsync(document, typedChar, position, cancellationToken).WaitAndGetResult(cancellationToken);
-
-            if (changes == null || changes.Count == 0)
-            {
-                return false;
-            }
-
-            using (var transaction = CreateEditTransaction(textView, EditorFeaturesResources.Automatic_Formatting))
-            {
-                transaction.MergePolicy = AutomaticCodeChangeMergePolicy.Instance;
-                document.Project.Solution.Workspace.ApplyTextChanges(document.Id, changes, cancellationToken);
-                transaction.Complete();
-            }
-
-            return true;
         }
 
         private CaretPreservingEditTransaction CreateEditTransaction(ITextView view, string description)
