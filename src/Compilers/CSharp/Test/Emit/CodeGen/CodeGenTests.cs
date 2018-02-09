@@ -13292,6 +13292,162 @@ blah");
 ");
         }
 
+        [WorkItem(24348, "https://github.com/dotnet/roslyn/issues/24348")]
+        [Fact]
+        public void VarargBridgeSource()
+        {
+
+            var code = @"
+public class VarArgs
+{
+    public void Invoke(__arglist)
+    {
+        var ai = new System.ArgIterator(__arglist);
+        System.Console.WriteLine(ai.GetRemainingCount());
+    }
+}
+
+interface IVarArgs
+{
+    void Invoke(__arglist);
+}
+
+class MyVarArgs : VarArgs, IVarArgs
+{
+
+}
+
+public static class P
+{
+    public static void Main()
+    {
+        IVarArgs iv = new MyVarArgs();
+
+        iv.Invoke(__arglist(1, 2, 3, 4));
+    }
+}
+";
+
+            var compilation = CompileAndVerify(code, expectedOutput: "4");
+        }
+
+        [WorkItem(24348, "https://github.com/dotnet/roslyn/issues/24348")]
+        [Fact]
+        public void VarargBridgeMeta()
+        {
+            var reference = CreateStandardCompilation(@"
+public class VarArgs
+{
+    public void Invoke(__arglist)
+    {
+        var ai = new System.ArgIterator(__arglist);
+        System.Console.WriteLine(ai.GetRemainingCount());
+    }
+}");
+
+            var code = @"
+interface IVarArgs
+{
+    void Invoke(__arglist);
+}
+
+class MyVarArgs : VarArgs, IVarArgs
+{
+
+}
+
+public static class P
+{
+    public static void Main()
+    {
+        IVarArgs iv = new MyVarArgs();
+
+        iv.Invoke(__arglist(1, 2, 3, 4));
+    }
+}
+";
+
+            var comp = CreateStandardCompilation(code, references: new[] { reference.ToMetadataReference() });
+            comp.VerifyDiagnostics(
+                // (7,28): error CS0630: 'VarArgs.Invoke(__arglist)' cannot implement interface member 'IVarArgs.Invoke(__arglist)' in type 'MyVarArgs' because it has an __arglist parameter.
+                // class MyVarArgs : VarArgs, IVarArgs
+                Diagnostic(ErrorCode.ERR_InterfaceImplementedImplicitlyByVariadic, "IVarArgs").WithArguments("VarArgs.Invoke(__arglist)", "IVarArgs.Invoke(__arglist)", "MyVarArgs").WithLocation(7, 28)
+                );
+
+            comp = CreateStandardCompilation(code, references: new[] { reference.EmitToImageReference() });
+            comp.VerifyDiagnostics(
+                // (7,28): error CS0630: 'VarArgs.Invoke(__arglist)' cannot implement interface member 'IVarArgs.Invoke(__arglist)' in type 'MyVarArgs' because it has an __arglist parameter.
+                // class MyVarArgs : VarArgs, IVarArgs
+                Diagnostic(ErrorCode.ERR_InterfaceImplementedImplicitlyByVariadic, "IVarArgs").WithArguments("VarArgs.Invoke(__arglist)", "IVarArgs.Invoke(__arglist)", "MyVarArgs").WithLocation(7, 28)
+                );
+        }
+
+        [WorkItem(24348, "https://github.com/dotnet/roslyn/issues/24348")]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
+        public void VarargBridgeSourceModopt()
+        {
+
+            var il = @"
+.class interface public auto ansi abstract IVarArgs
+{
+	// Methods
+	.method public hidebysig newslot abstract virtual 
+		instance vararg int32 modopt(int64) Invoke () cil managed 
+	{
+	} // end of method IVarArgs::Invoke
+
+} // end of class IVarArgs
+
+
+";
+
+            var reference = CompileIL(il);
+
+            var code = @"
+
+public class VarArgs
+{
+    public int Invoke(__arglist) => throw null;
+}
+
+class MyVarArgs : VarArgs, IVarArgs
+{
+
+}
+
+class MyVarArgs2 : IVarArgs
+{
+    public int Invoke(__arglist) => throw null;
+}
+
+class MyVarArgs3 : IVarArgs
+{
+    // this is ok, modifiers are copied
+    int IVarArgs.Invoke(__arglist) => throw null;
+}
+
+public static class P
+{
+    public static void Main()
+    {
+        IVarArgs iv = new MyVarArgs3();
+
+        iv.Invoke(__arglist(1, 2, 3, 4));
+    }
+}
+";
+
+            var comp = CreateStandardCompilation(code, references: new[] { reference});
+            comp.VerifyDiagnostics(
+                // (15,16): error CS0630: 'MyVarArgs2.Invoke(__arglist)' cannot implement interface member 'IVarArgs.Invoke(__arglist)' in type 'MyVarArgs2' because it has an __arglist parameter
+                //     public int Invoke(__arglist) => throw null;
+                Diagnostic(ErrorCode.ERR_InterfaceImplementedImplicitlyByVariadic, "Invoke").WithArguments("MyVarArgs2.Invoke(__arglist)", "IVarArgs.Invoke(__arglist)", "MyVarArgs2").WithLocation(15, 16),
+                // (8,28): error CS0630: 'VarArgs.Invoke(__arglist)' cannot implement interface member 'IVarArgs.Invoke(__arglist)' in type 'MyVarArgs' because it has an __arglist parameter
+                // class MyVarArgs : VarArgs, IVarArgs
+                Diagnostic(ErrorCode.ERR_InterfaceImplementedImplicitlyByVariadic, "IVarArgs").WithArguments("VarArgs.Invoke(__arglist)", "IVarArgs.Invoke(__arglist)", "MyVarArgs").WithLocation(8, 28)
+                );
+        }
+
         [WorkItem(530067, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530067")]
         [Fact]
         public void NopAfterCall()
