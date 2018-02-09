@@ -321,6 +321,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_AttributeIgnoredWhenPublicSigning:
                 case ErrorCode.WRN_TupleLiteralNameMismatch:
                 case ErrorCode.WRN_Experimental:
+                case ErrorCode.WRN_AttributesOnBackingFieldsNotAvailable:
                     return 1;
                 default:
                     return 0;

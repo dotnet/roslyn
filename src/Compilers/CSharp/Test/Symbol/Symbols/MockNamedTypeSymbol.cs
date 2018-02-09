@@ -302,7 +302,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             get { return DefaultMarshallingCharSet; }
         }
 
-        internal override bool IsSerializable
+        public override bool IsSerializable
         {
             get { return false; }
         }

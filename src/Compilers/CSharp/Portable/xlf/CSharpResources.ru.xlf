@@ -2697,8 +2697,8 @@ If such a class is used as a base class and if the deriving class defines a dest
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingStructOffset">
-        <source>'{0}': instance field types marked with StructLayout(LayoutKind.Explicit) must have a FieldOffset attribute</source>
-        <target state="translated">'{0}": типы полей экземпляров, помеченные StructLayout(LayoutKind.Explicit), должны иметь атрибут FieldOffset.</target>
+        <source>'{0}': instance field in types marked with StructLayout(LayoutKind.Explicit) must have a FieldOffset attribute</source>
+        <target state="needs-review-translation">'{0}": типы полей экземпляров, помеченные StructLayout(LayoutKind.Explicit), должны иметь атрибут FieldOffset.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ExternMethodNoImplementation">
@@ -3469,11 +3469,6 @@ If such a class is used as a base class and if the deriving class defines a dest
       <trans-unit id="ERR_RecursivelyTypedVariable">
         <source>Type of '{0}' cannot be inferred since its initializer directly or indirectly refers to the definition.</source>
         <target state="translated">Не удается получить тип "{0}", так как инициализатор прямо или косвенно ссылается на определение.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_ExplicitLayoutAndAutoImplementedProperty">
-        <source>'{0}': Auto-implemented properties cannot be used inside a type marked with StructLayout(LayoutKind.Explicit)</source>
-        <target state="translated">'"{0}": автоматически реализованные свойства не могут быть использованы в типах, помеченных StructLayout(LayoutKind.Explicit).</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnassignedThisAutoProperty">
@@ -4391,7 +4386,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
         <note />
       </trans-unit>
       <trans-unit id="ERR_AnonDelegateCantUse">
-        <source>Cannot use ref, out, or in parameter '{0}' inside an anonymous method, lambda expression, or query expression</source>
+        <source>Cannot use ref, out, or in parameter '{0}' inside an anonymous method, lambda expression, query expression, or local function</source>
         <target state="needs-review-translation">Нельзя использовать параметр "{0}" с ключевым словом ref или out внутри анонимного метода, лямбда-выражения или выражения запроса.</target>
         <note />
       </trans-unit>
@@ -8588,6 +8583,26 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       <trans-unit id="ERR_InDynamicMethodArg">
         <source>Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.</source>
         <target state="new">Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DoNotUseFixedBufferAttrOnProperty">
+        <source>Do not use 'System.Runtime.CompilerServices.FixedBuffer' attribute on a property</source>
+        <target state="new">Do not use 'System.Runtime.CompilerServices.FixedBuffer' attribute on a property</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FeatureNotAvailableInVersion7_3">
+        <source>Feature '{0}' is not available in C# 7.3. Please use language version {1} or greater.</source>
+        <target state="new">Feature '{0}' is not available in C# 7.3. Please use language version {1} or greater.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AttributesOnBackingFieldsNotAvailable">
+        <source>Field-targeted attributes on auto-properties are not supported in language version {0}. Please use language version {1} or greater.</source>
+        <target state="new">Field-targeted attributes on auto-properties are not supported in language version {0}. Please use language version {1} or greater.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AttributesOnBackingFieldsNotAvailable_Title">
+        <source>Field-targeted attributes on auto-properties are not supported in this version of the language.</source>
+        <target state="new">Field-targeted attributes on auto-properties are not supported in this version of the language.</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureRefConditional">
