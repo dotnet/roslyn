@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 throw new NotImplementedException();
             }
 
-            internal override string VisualizeRealIL(IModuleSymbol peModule, CodeAnalysis.CodeGen.CompilationTestData.MethodData methodData, IReadOnlyDictionary<int, string> markers, Cci.IMethodBody methodBody)
+            internal override string VisualizeRealIL(IModuleSymbol peModule, CodeAnalysis.CodeGen.CompilationTestData.MethodData methodData, IReadOnlyDictionary<int, string> markers, bool localsAreZeroed)
             {
                 throw new NotImplementedException();
             }

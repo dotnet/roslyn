@@ -1346,7 +1346,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var localSlotManager = new LocalSlotManager(variableSlotAllocatorOpt);
             var optimizations = compilation.Options.OptimizationLevel;
 
-            ILBuilder builder = new ILBuilder(moduleBuilder, localSlotManager, optimizations, (method as SourceMemberMethodSymbol)?.LocalsAreZeroed ?? true);
+            ILBuilder builder = new ILBuilder(moduleBuilder, localSlotManager, optimizations, method.LocalsAreZeroed);
             DiagnosticBag diagnosticsForThisMethod = DiagnosticBag.GetInstance();
             try
             {

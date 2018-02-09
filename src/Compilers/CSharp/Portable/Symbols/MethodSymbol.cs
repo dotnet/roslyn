@@ -1222,6 +1222,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
+        /// Returns true if locals are to be initialized
+        /// </summary>
+        public virtual bool LocalsAreZeroed
+        {
+            get
+            {
+                return true;
+            }
+        }
+
+        /// <summary>
         /// If this is a method of a tuple type, return corresponding underlying method from the
         /// tuple underlying type. Otherwise, null.
         /// </summary>

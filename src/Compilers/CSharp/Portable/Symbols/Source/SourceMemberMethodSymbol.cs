@@ -361,7 +361,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public bool LocalsAreZeroed
+        public override bool LocalsAreZeroed
         {
             get
             {

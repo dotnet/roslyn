@@ -944,9 +944,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
         #region IL Validation
 
-        internal override string VisualizeRealIL(IModuleSymbol peModule, CompilationTestData.MethodData methodData, IReadOnlyDictionary<int, string> markers, Cci.IMethodBody methodBody)
+        internal override string VisualizeRealIL(IModuleSymbol peModule, CompilationTestData.MethodData methodData, IReadOnlyDictionary<int, string> markers, bool localsAreZeroed)
         {
-            return VisualizeRealIL((PEModuleSymbol)peModule, methodData, markers, methodBody);
+            return VisualizeRealIL((PEModuleSymbol)peModule, methodData, markers, localsAreZeroed);
         }
 
         /// <summary>
@@ -959,7 +959,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         /// - winmd
         /// - global methods
         /// </remarks>
-        internal unsafe static string VisualizeRealIL(PEModuleSymbol peModule, CompilationTestData.MethodData methodData, IReadOnlyDictionary<int, string> markers, Cci.IMethodBody methodBody)
+        internal unsafe static string VisualizeRealIL(PEModuleSymbol peModule, CompilationTestData.MethodData methodData, IReadOnlyDictionary<int, string> markers, bool localsAreZeroed)
         {
             var typeName = GetContainingTypeMetadataName(methodData.Method);
             // TODO (tomat): global methods (typeName == null)
@@ -1000,7 +1000,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
             var visualizer = new Visualizer(new MetadataDecoder(peModule, peMethod));
 
-            visualizer.DumpMethod(sb, maxStack, ilBytes, localDefinitions, ehHandlerRegions, markers, methodBody.LocalsAreZeroed);
+            visualizer.DumpMethod(sb, maxStack, ilBytes, localDefinitions, ehHandlerRegions, markers, localsAreZeroed);
 
             return sb.ToString();
         }
