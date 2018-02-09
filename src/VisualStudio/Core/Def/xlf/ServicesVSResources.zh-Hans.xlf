@@ -1490,12 +1490,22 @@ I agree to all of the foregoing:</source>
       </trans-unit>
       <trans-unit id="Disabling_the_extension_0_unbound_your_keyboard_bindings">
         <source>Disabling the extension '{0}' unbound your keyboard bindings.</source>
-        <target state="new">Disabling the extension '{0}' unbound your keyboard bindings.</target>
+        <target state="translated">禁用扩展“{0}”，取消绑定键盘绑定。</target>
         <note>0 is an extension name</note>
       </trans-unit>
       <trans-unit id="Code_style_header_use_editor_config">
         <source>The settings configured here only apply to your machine. To configure these settings to travel with your solution, use .editorconfig files.</source>
-        <target state="new">The settings configured here only apply to your machine. To configure these settings to travel with your solution, use .editorconfig files.</target>
+        <target state="translated">此处配置的设置仅适用于计算机。要配置这些设置以使用解决方案，请使用 .editorconfig 文件。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Snippet_Command_Handler">
+        <source>Snippet Command Handler</source>
+        <target state="new">Snippet Command Handler</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sync_Class_View_Command_Handler">
+        <source>Sync Class View Command Handler</source>
+        <target state="new">Sync Class View Command Handler</target>
         <note />
       </trans-unit>
     </body>
