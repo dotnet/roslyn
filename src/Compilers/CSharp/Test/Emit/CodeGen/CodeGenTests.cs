@@ -13415,11 +13415,22 @@ class MyVarArgs : VarArgs, IVarArgs
 
 }
 
+class MyVarArgs2 : IVarArgs
+{
+    public int Invoke(__arglist) => throw null;
+}
+
+class MyVarArgs3 : IVarArgs
+{
+    // this is ok, modifiers are copied
+    int IVarArgs.Invoke(__arglist) => throw null;
+}
+
 public static class P
 {
     public static void Main()
     {
-        IVarArgs iv = new MyVarArgs();
+        IVarArgs iv = new MyVarArgs3();
 
         iv.Invoke(__arglist(1, 2, 3, 4));
     }
@@ -13428,7 +13439,10 @@ public static class P
 
             var comp = CreateStandardCompilation(code, references: new[] { reference});
             comp.VerifyDiagnostics(
-                // (8,28): error CS0630: 'VarArgs.Invoke(__arglist)' cannot implement interface member 'IVarArgs.Invoke(__arglist)' in type 'MyVarArgs' because it has an __arglist parameter.
+                // (15,16): error CS0630: 'MyVarArgs2.Invoke(__arglist)' cannot implement interface member 'IVarArgs.Invoke(__arglist)' in type 'MyVarArgs2' because it has an __arglist parameter
+                //     public int Invoke(__arglist) => throw null;
+                Diagnostic(ErrorCode.ERR_InterfaceImplementedImplicitlyByVariadic, "Invoke").WithArguments("MyVarArgs2.Invoke(__arglist)", "IVarArgs.Invoke(__arglist)", "MyVarArgs2").WithLocation(15, 16),
+                // (8,28): error CS0630: 'VarArgs.Invoke(__arglist)' cannot implement interface member 'IVarArgs.Invoke(__arglist)' in type 'MyVarArgs' because it has an __arglist parameter
                 // class MyVarArgs : VarArgs, IVarArgs
                 Diagnostic(ErrorCode.ERR_InterfaceImplementedImplicitlyByVariadic, "IVarArgs").WithArguments("VarArgs.Invoke(__arglist)", "IVarArgs.Invoke(__arglist)", "MyVarArgs").WithLocation(8, 28)
                 );
