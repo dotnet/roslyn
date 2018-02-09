@@ -1006,7 +1006,7 @@ public static class C
     }
 }";
 
-            var comp = CompileStandardAndVerify(source, additionalRefs: new[] { SystemCoreRef }, expectedOutput: "NULL#System.Int32[]");
+            var comp = CompileStandardAndVerify(source, expectedOutput: "NULL#System.Int32[]");
             comp.VerifyIL("C.Test", @"
 {
   // Code size       37 (0x25)
@@ -1050,7 +1050,7 @@ public static class C
     }
 }";
 
-            var comp = CompileStandardAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: "NULL#System.Int32[]");
+            var comp = CompileStandardAndVerify(source, additionalRefs: new[] { CSharpRef }, expectedOutput: "NULL#System.Int32[]");
             comp.VerifyIL("C.Test", @"
 {
   // Code size      355 (0x163)
@@ -1196,7 +1196,7 @@ public static class C
     }
 }";
 
-            var comp = CompileStandardAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: "NULL#y");
+            var comp = CompileStandardAndVerify(source, additionalRefs: new[] { CSharpRef }, expectedOutput: "NULL#y");
         }
 
         [Fact]
@@ -1219,7 +1219,7 @@ public static class C
     }
 }";
 
-            var comp = CompileStandardAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: "NULL#-1");
+            var comp = CompileStandardAndVerify(source, additionalRefs: new[] { CSharpRef }, expectedOutput: "NULL#-1");
         }
 
         [Fact]
@@ -1243,7 +1243,7 @@ public static class C
     }
 }";
 
-            var comp = CompileStandardAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: "NULL#y");
+            var comp = CompileStandardAndVerify(source, additionalRefs: new[] { CSharpRef }, expectedOutput: "NULL#y");
         }
 
         [Fact]
@@ -1267,7 +1267,7 @@ public static class C
     }
 }";
 
-            var comp = CompileStandardAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: "NULL#3");
+            var comp = CompileStandardAndVerify(source, additionalRefs: new[] { CSharpRef }, expectedOutput: "NULL#3");
         }
 
         [Fact]
@@ -1291,7 +1291,7 @@ public static class C
     }
 }";
 
-            var comp = CompileStandardAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: "NULL#3");
+            var comp = CompileStandardAndVerify(source, additionalRefs: new[] { CSharpRef }, expectedOutput: "NULL#3");
         }
 
         [Fact]
@@ -1509,7 +1509,7 @@ public class C
     }
 ";
 
-            var comp = CompileStandardAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: "");
+            var comp = CompileStandardAndVerify(source, additionalRefs: new[] { CSharpRef }, expectedOutput: "");
             comp.VerifyIL("C.Main", @"
 {
   // Code size       82 (0x52)
@@ -1627,7 +1627,7 @@ public static class C1
     }
 }";
 
-            var comp = CompileStandardAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: @"3
+            var comp = CompileStandardAndVerify(source, additionalRefs: new[] { CSharpRef }, expectedOutput: @"3
 1");
             comp.VerifyIL("C.Main", @"
 {
@@ -2633,7 +2633,7 @@ class Program
     }
 }
 ";
-            var comp = CompileStandardAndVerify(source, additionalRefs: new MetadataReference[] { SystemCoreRef, CSharpRef }, expectedOutput: @"False
+            var comp = CompileStandardAndVerify(source, additionalRefs: new MetadataReference[] { CSharpRef }, expectedOutput: @"False
 True
 False
 False");
@@ -2692,7 +2692,7 @@ class Program
     }
 }
 ";
-            var comp = CompileStandardAndVerify(source, additionalRefs: new MetadataReference[] { SystemCoreRef, CSharpRef }, expectedOutput: @"False
+            var comp = CompileStandardAndVerify(source, additionalRefs: new MetadataReference[] { CSharpRef }, expectedOutput: @"False
 True
 False
 False");
@@ -3194,7 +3194,7 @@ static class Ext
 }
 
 ";
-            var comp = CompileStandardAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: @"System.Nullable`1[System.Int64]");
+            var comp = CompileStandardAndVerify(source, additionalRefs: new[] { CSharpRef }, expectedOutput: @"System.Nullable`1[System.Int64]");
             comp.VerifyIL("Test.Test0<T>(T)", @"
 {
   // Code size       21 (0x15)
@@ -3240,7 +3240,7 @@ static class Ext
 }
 
 ";
-            var comp = CompileStandardAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: @"System.Nullable`1[System.Int64]");
+            var comp = CompileStandardAndVerify(source, additionalRefs: new[] { CSharpRef }, expectedOutput: @"System.Nullable`1[System.Int64]");
             comp.VerifyIL("Test.Test0<T>(ref T)", @"
 {
   // Code size       46 (0x2e)
@@ -3294,7 +3294,7 @@ class Test
 }
 
 ";
-            var comp = CompileStandardAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: @"");
+            var comp = CompileStandardAndVerify(source, additionalRefs: new[] { CSharpRef }, expectedOutput: @"");
             comp.VerifyIL("Test.Test0<T>(T)", @"
 {
   // Code size       27 (0x1b)
@@ -3365,7 +3365,7 @@ interface I1
 
 
 ";
-            var comp = CreateCompilationWithMscorlib45(source, references: new[] { SystemCoreRef, CSharpRef });
+            var comp = CreateCompilationWithMscorlib45(source, references: new[] { CSharpRef });
             base.CompileAndVerify(comp);
         }
 
@@ -3414,7 +3414,7 @@ interface I1
     int CallAsync(int x);
 }
 ";
-            var comp = CreateCompilationWithMscorlib45(source, references: new[] { SystemCoreRef, CSharpRef }, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithMscorlib45(source, references: new[] { CSharpRef }, options: TestOptions.ReleaseExe);
             base.CompileAndVerify(comp, expectedOutput: "420");
         }
 
@@ -4093,7 +4093,7 @@ class Program
     }
 }
 ";
-            var comp = CompileStandardAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: @"   >
+            var comp = CompileStandardAndVerify(source, additionalRefs: new[] { CSharpRef }, expectedOutput: @"   >
 False
 False
 <

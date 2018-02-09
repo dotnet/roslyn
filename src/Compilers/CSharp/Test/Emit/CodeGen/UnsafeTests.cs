@@ -690,7 +690,7 @@ static class Extensions
     public static void M(this S s, int x, int y) { Console.Write(3); }
 }
 ";
-            var compVerifier = CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, additionalRefs: new[] { LinqAssemblyRef }, expectedOutput: @"123", verify: Verification.Fails);
+            var compVerifier = CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"123", verify: Verification.Fails);
 
             compVerifier.VerifyIL("S.Main", @"
 {
@@ -712,7 +712,7 @@ static class Extensions
 }
 ");
 
-            compVerifier = CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, additionalRefs: new[] { LinqAssemblyRef }, expectedOutput: @"123", verify: Verification.Fails);
+            compVerifier = CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"123", verify: Verification.Fails);
 
             compVerifier.VerifyIL("S.Main", @"
 {
@@ -766,7 +766,7 @@ static class Extensions
     public static void M(this S s, int x, int y) { Console.Write(3); }
 }
 ";
-            var compVerifier = CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, additionalRefs: new[] { LinqAssemblyRef }, expectedOutput: @"123", verify: Verification.Fails);
+            var compVerifier = CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"123", verify: Verification.Fails);
 
             compVerifier.VerifyIL("S.Test(ref S*)", @"
 {
@@ -789,7 +789,7 @@ static class Extensions
 }
 ");
 
-            compVerifier = CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, additionalRefs: new[] { LinqAssemblyRef }, expectedOutput: @"123", verify: Verification.Fails);
+            compVerifier = CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"123", verify: Verification.Fails);
 
             compVerifier.VerifyIL("S.Test(ref S*)", @"
 {
@@ -9154,7 +9154,7 @@ unsafe class Test
 }
 ";
 
-            var verifier = CompileStandardAndVerify(text, new[] { SystemCoreRef }, options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails, expectedOutput: @"
+            var verifier = CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails, expectedOutput: @"
 2
 2");
 
@@ -9206,7 +9206,7 @@ namespace N
 }
 ";
 
-            var verifier = CompileStandardAndVerify(text, new[] { SystemCoreRef }, options: TestOptions.UnsafeReleaseDll.WithConcurrentBuild(false), verify: Verification.Passes);
+            var verifier = CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseDll.WithConcurrentBuild(false), verify: Verification.Passes);
         }
 
         [Fact, WorkItem(531327, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531327")]
@@ -9230,7 +9230,7 @@ unsafe struct S1
 
 ";
 
-            var verifier = CompileStandardAndVerify(text, new[] { SystemCoreRef }, options: TestOptions.UnsafeReleaseDll.WithConcurrentBuild(false), verify: Verification.Fails);
+            var verifier = CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseDll.WithConcurrentBuild(false), verify: Verification.Fails);
         }
 
         [Fact, WorkItem(748530, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/748530")]

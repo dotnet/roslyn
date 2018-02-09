@@ -63,7 +63,6 @@ public class Test
             // Diagnostic(ErrorCode.WRN_UseSwitchInsteadOfAttribute).WithArguments(@"/keyfile", "AssemblyKeyFile"),
             // Diagnostic(ErrorCode.WRN_UseSwitchInsteadOfAttribute).WithArguments(@"/keycontainer", "AssemblyKeyName")
             var c = CreateStandardCompilation(source,
-                references: new[] { SystemRef },
                 options: TestOptions.ReleaseDll.WithStrongNameProvider(new DesktopStrongNameProvider()));
 
             c.VerifyDiagnostics(
@@ -1735,15 +1734,15 @@ public class C : B
 }
 ";
 
-            var comp1 = CreateStandardCompilation(source1, options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultDesktopProvider), assemblyName: "asm1");
+            var comp1 = CreateCompilationWithMscorlib45(source1, options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultDesktopProvider), assemblyName: "asm1");
             comp1.VerifyDiagnostics();
             var ref1 = new CSharpCompilationReference(comp1);
 
-            var comp2 = CreateStandardCompilation(source2, new[] { ref1 }, options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultDesktopProvider), assemblyName: "asm2");
+            var comp2 = CreateCompilationWithMscorlib45(source2, new[] { ref1 }, options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultDesktopProvider), assemblyName: "asm2");
             comp2.VerifyDiagnostics();
             var ref2 = new CSharpCompilationReference(comp2);
 
-            var comp3 = CreateStandardCompilation(source3, new[] { SystemCoreRef, ref1, ref2 }, options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultDesktopProvider), assemblyName: "asm3");
+            var comp3 = CreateCompilationWithMscorlib45(source3, new[] { SystemCoreRef, ref1, ref2 }, options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultDesktopProvider), assemblyName: "asm3");
             comp3.VerifyDiagnostics();
 
             // Note: calls B.M, not A.M, since asm1 is not accessible.
@@ -1852,19 +1851,19 @@ public class D : C
 }
 ";
 
-            var comp1 = CreateStandardCompilation(source1, options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultDesktopProvider), assemblyName: "asm1");
+            var comp1 = CreateCompilationWithMscorlib45(source1, options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultDesktopProvider), assemblyName: "asm1");
             comp1.VerifyDiagnostics();
             var ref1 = new CSharpCompilationReference(comp1);
 
-            var comp2 = CreateStandardCompilation(source2, new[] { ref1 }, options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultDesktopProvider), assemblyName: "asm2");
+            var comp2 = CreateCompilationWithMscorlib45(source2, new[] { ref1 }, options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultDesktopProvider), assemblyName: "asm2");
             comp2.VerifyDiagnostics();
             var ref2 = new CSharpCompilationReference(comp2);
 
-            var comp3 = CreateStandardCompilation(source3, new[] { ref1, ref2 }, options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultDesktopProvider), assemblyName: "asm3");
+            var comp3 = CreateCompilationWithMscorlib45(source3, new[] { ref1, ref2 }, options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultDesktopProvider), assemblyName: "asm3");
             comp3.VerifyDiagnostics();
             var ref3 = new CSharpCompilationReference(comp3);
 
-            var comp4 = CreateStandardCompilation(source4, new[] { SystemCoreRef, ref1, ref2, ref3 }, options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultDesktopProvider), assemblyName: "asm4");
+            var comp4 = CreateCompilationWithMscorlib45(source4, new[] { SystemCoreRef, ref1, ref2, ref3 }, options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultDesktopProvider), assemblyName: "asm4");
             comp4.VerifyDiagnostics();
 
             // Note: calls C.M, not A.M, since asm2 is not accessible (stops search).
@@ -2014,7 +2013,6 @@ public class C : B
 ";
 
             var comp1 = CreateStandardCompilation(source1,
-                new[] { SystemCoreRef },
                 options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultDesktopProvider),
                 assemblyName: "asm1");
 
@@ -2024,7 +2022,7 @@ public class C : B
             var ref2 = CompileIL(source2, prependDefaultHeader: false);
 
             var comp3 = CreateStandardCompilation(source3,
-                new[] { SystemCoreRef, ref1, ref2 },
+                new[] { ref1, ref2 },
                 options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultDesktopProvider),
                 assemblyName: "asm3");
 

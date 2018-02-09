@@ -1539,7 +1539,7 @@ public class myFor
     }
 }
 ";
-            CompileStandardAndVerify(text, additionalRefs: new MetadataReference[] { CSharpRef, SystemCoreRef }, expectedOutput: @"Initialize
+            CompileStandardAndVerify(text, additionalRefs: new MetadataReference[] { CSharpRef }, expectedOutput: @"Initialize
 Done
 Next
 Done
@@ -1614,7 +1614,7 @@ class C
     }
 }
 ";
-            var comp = CompileStandardAndVerify(text, additionalRefs: new[] { LinqAssemblyRef }, expectedOutput: @"1
+            var comp = CompileStandardAndVerify(text, expectedOutput: @"1
 2
 3");
         }
@@ -1650,7 +1650,7 @@ class C
     }
 }
 ";
-            var comp = CompileStandardAndVerify(text, additionalRefs: new[] { LinqAssemblyRef }, expectedOutput: @"1
+            var comp = CompileStandardAndVerify(text, expectedOutput: @"1
 2
 3");
         }
@@ -1674,7 +1674,7 @@ class C
     }
 }
 ";
-            CompileStandardAndVerify(text, additionalRefs: new[] { SystemCoreRef }, expectedOutput: @"1
+            CompileStandardAndVerify(text, expectedOutput: @"1
 4
 9
 16");
@@ -1699,7 +1699,7 @@ class C
 }
 ";
 
-            var comp = CompileStandardAndVerify(text, additionalRefs: new[] { SystemCoreRef }, expectedOutput: @"1
+            var comp = CompileStandardAndVerify(text, expectedOutput: @"1
 4
 9
 16");
