@@ -5,11 +5,17 @@ namespace Roslyn.Utilities
     /// <summary>
     /// Explicitly indicates result is void
     /// </summary>
-    internal class VoidResult
+    internal sealed class VoidResult
     {
         /// <summary>
         /// Use this in case default(VoidResult) is not desirable
         /// </summary>
         public static readonly VoidResult Instance = new VoidResult();
+
+        // prevent someone from newing this type
+        private VoidResult()
+        {
+
+        }
     }
 }
