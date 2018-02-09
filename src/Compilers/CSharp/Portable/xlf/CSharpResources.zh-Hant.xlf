@@ -8595,6 +8595,11 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <target state="translated">參考條件運算式</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InterfaceImplementedImplicitlyByVariadic">
+        <source>'{0}' cannot implement interface member '{1}' in type '{2}' because it has an __arglist parameter</source>
+        <target state="new">'{0}' cannot implement interface member '{1}' in type '{2}' because it has an __arglist parameter</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>
