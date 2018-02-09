@@ -11,21 +11,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class CodeGenExprLambdaTests : CSharpTestBase
     {
-        //TODO: 4.6 should be the default for most testcases
-        //      for now I do not want to do such a large change at once
-        //      when 4.6 is the default, this override and ExpressionAssemblyRef below will not be needed.
-        protected override Compilation GetCompilationForEmit(
-            IEnumerable<string> source,
-            IEnumerable<MetadataReference> additionalRefs,
-            CompilationOptions options,
-            ParseOptions parseOptions)
-        {
-            return CreateCompilationWithMscorlib46(
-                Parse(source, options: (CSharpParseOptions)parseOptions),
-                references: additionalRefs,
-                options: (CSharpCompilationOptions)options,
-                assemblyName: GetUniqueName());
-        }
+        protected CompilationVerifier CompileAndVerifyUtil(
+            string source,
+            MetadataReference[] references = null,
+            string expectedOutput = null,
+            CSharpCompilationOptions options = null,
+            CSharpParseOptions parseOptions = null,
+            Verification verify = Verification.Passes) => CompileAndVerifyUtil(new[] { source }, references, expectedOutput, options, parseOptions, verify);
+
+        protected CompilationVerifier CompileAndVerifyUtil(
+            string[] source,
+            MetadataReference[] references = null,
+            string expectedOutput = null,
+            CSharpCompilationOptions options = null,
+            CSharpParseOptions parseOptions = null,
+            Verification verify = Verification.Passes) => CompileAndVerify(source, references, targetFramework: TargetFramework.Net46, expectedOutput: expectedOutput, options: options, parseOptions: parseOptions, verify: verify);
 
         /// <summary>
         /// Reference to an assembly that defines Expression Trees.
@@ -445,9 +445,9 @@ class Program : TestBase
         Console.Write('k');
     }
 }";
-            CompileStandardAndVerify(
-                sources: new string[] { program, ExpressionTestLibrary },
-                additionalRefs: new[] { ExpressionAssemblyRef },
+            CompileAndVerifyUtil(
+                source: new string[] { program, ExpressionTestLibrary },
+                references: new[] { ExpressionAssemblyRef },
                 expectedOutput: @"k")
                 .VerifyDiagnostics();
         }
@@ -478,9 +478,9 @@ class Program : TestBase
         Console.Write('k');
     }
 }";
-            CompileStandardAndVerify(
-                sources: new string[] { program, ExpressionTestLibrary },
-                additionalRefs: new[] { ExpressionAssemblyRef },
+            CompileAndVerifyUtil(
+                source: new string[] { program, ExpressionTestLibrary },
+                references: new[] { ExpressionAssemblyRef },
                 expectedOutput: @"k")
                 .VerifyDiagnostics();
         }
@@ -519,9 +519,9 @@ namespace ConsoleApplication2
 }
 ";
 
-            CompileStandardAndVerify(
-                sources: new string[] { program, ExpressionTestLibrary },
-                additionalRefs: new[] { ExpressionAssemblyRef },
+            CompileAndVerifyUtil(
+                source: new string[] { program, ExpressionTestLibrary },
+                references: new[] { ExpressionAssemblyRef },
                 expectedOutput: @"k")
                 .VerifyDiagnostics();
         }
@@ -590,7 +590,7 @@ class Program : TestBase
         Console.Write('k');
     }
 }";
-            var compilation = CompileStandardAndVerify(
+            var compilation = CompileAndVerifyUtil(
                 new string[] { source, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: @"k");
@@ -613,7 +613,7 @@ class Program : TestBase
         Console.Write('k');
     }
 }";
-            var compilation = CompileStandardAndVerify(
+            var compilation = CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: @"k");
@@ -640,7 +640,7 @@ class Program : TestBase
         Console.Write('k');
     }
 }";
-            var compilation = CompileStandardAndVerify(
+            var compilation = CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: @"k");
@@ -666,7 +666,7 @@ class Program : TestBase
         Console.Write('k');
     }
 }";
-            var compilation = CompileStandardAndVerify(
+            var compilation = CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: @"k");
@@ -689,7 +689,7 @@ class Program : TestBase
         Console.Write('k');
     }
 }";
-            var compilation = CompileStandardAndVerify(
+            var compilation = CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: @"k");
@@ -736,7 +736,7 @@ class Program : TestBase
         Console.Write('k');
     }
 }";
-            var compilation = CompileStandardAndVerify(
+            var compilation = CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: @"k");
@@ -759,7 +759,7 @@ class Program : TestBase
         Console.Write('k');
     }
 }";
-            var compilation = CompileStandardAndVerify(
+            var compilation = CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: "k");
@@ -868,7 +868,7 @@ class Program : TestBase
         Console.Write('k');
     }
 }";
-            var compilation = CompileStandardAndVerify(
+            var compilation = CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: "k");
@@ -924,7 +924,7 @@ class Program : TestBase
         Console.Write('k');
     }
 }";
-            var compilation = CompileStandardAndVerify(
+            var compilation = CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: "k");
@@ -977,7 +977,7 @@ class Program : TestBase
         Console.Write('k');
     }
 }";
-            var compilation = CompileStandardAndVerify(
+            var compilation = CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: "k");
@@ -1030,7 +1030,7 @@ class Program : TestBase
         Console.Write('k');
     }
 }";
-            var compilation = CompileStandardAndVerify(
+            var compilation = CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: "k");
@@ -1083,7 +1083,7 @@ class Program : TestBase
         Console.Write('k');
     }
 }";
-            var compilation = CompileStandardAndVerify(
+            var compilation = CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: "k");
@@ -1136,7 +1136,7 @@ class Program : TestBase
         Console.Write('k');
     }
 }";
-            var compilation = CompileStandardAndVerify(
+            var compilation = CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: "k");
@@ -1189,7 +1189,7 @@ class Program : TestBase
         Console.Write('k');
     }
 }";
-            var compilation = CompileStandardAndVerify(
+            var compilation = CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: "k");
@@ -1236,7 +1236,7 @@ class Program : TestBase
         Console.Write('k');
     }
 }";
-            var compilation = CompileStandardAndVerify(
+            var compilation = CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: "k");
@@ -1286,7 +1286,7 @@ class Program : TestBase
         Console.Write('k');
     }
 }";
-            var compilation = CompileStandardAndVerify(
+            var compilation = CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: "k");
@@ -1349,7 +1349,7 @@ class Program : TestBase
         Check<T>(() => default(T), expected);
     }
 }";
-            var compilation = CompileStandardAndVerify(
+            var compilation = CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: "123k");
@@ -1372,7 +1372,7 @@ class P
         Console.WriteLine(expr);
     }
 }";
-            var compilation = CompileStandardAndVerify(
+            var compilation = CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef },
                 expectedOutput:
@@ -1474,7 +1474,7 @@ class Program : TestBase
         Console.Write('k');
     }
 }";
-            var compilation = CompileStandardAndVerify(
+            var compilation = CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: "k");
@@ -1526,7 +1526,7 @@ class Program : TestBase
         Console.Write('k');
     }
 }";
-            var compilation = CompileStandardAndVerify(
+            var compilation = CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: "k");
@@ -1595,7 +1595,7 @@ MemberInit(NewExpression: New([Void .ctor()]() Type:Node) Bindings:[MemberMember
 MemberInit(NewExpression: New([Void .ctor()]() Type:Node) Bindings:[MemberListBinding(Member=System.Collections.Generic.List`1[Node] C ElementInit(Void Add(Node) Parameter(x Type:Node)) ElementInit(Void Add(Node) Parameter(x Type:Node)))] Type:Node)
 MemberInit(NewExpression: New([Void .ctor()]() Type:Node) Bindings:[MemberListBinding(Member=System.Collections.Generic.List`1[Node] D ElementInit(Void Add(Node) Parameter(x Type:Node)) ElementInit(Void Add(Node) Parameter(x Type:Node)))] Type:Node)
 MemberInit(NewExpression: New([Void .ctor()]() Type:Node) Bindings:[MemberAssignment(Member=System.String S Expression=Add(Constant(hello Type:System.String) Call(Parameter(x Type:Node).[System.String ToString()]() Type:System.String) Method:[System.String Concat(System.String, System.String)] Type:System.String))] Type:Node)";
-            var compilation = CompileStandardAndVerify(
+            var compilation = CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: expectedOutput);
@@ -1625,7 +1625,7 @@ partial class Program
         Console.Write('k');
     }
 }";
-            var compilation = CompileStandardAndVerify(
+            var compilation = CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: "k");
@@ -1651,7 +1651,7 @@ class A
         Console.WriteLine(e.ToString());
     }
 }";
-            var compilation = CompileStandardAndVerify(
+            var compilation = CompileAndVerifyUtil(
                 new[] { source },
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: "s => s.SelectMany(x => s, (x, y) => new <>f__AnonymousType0`2(x = x, y = y)).OrderByDescending(<>h__TransparentIdentifier0 => <>h__TransparentIdentifier0.x).Select(<>h__TransparentIdentifier0 => <>h__TransparentIdentifier0.x)");
@@ -1690,7 +1690,7 @@ partial class Program : TestBase
         Console.Write('k');
     }
 }";
-            var compilation = CompileStandardAndVerify(
+            var compilation = CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: "k");
@@ -1754,7 +1754,7 @@ partial class Program : TestBase
         return (s == null) ? ""null"" : ""S"";
     }
 }";
-            var compilation = CompileStandardAndVerify(
+            var compilation = CompileAndVerifyUtil(
                 new[] { text, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: @"null
@@ -1782,7 +1782,7 @@ class Test
         Console.WriteLine(result);
     }
 }";
-            CompileStandardAndVerify(text, new[] { ExpressionAssemblyRef }, expectedOutput: "Green");
+            CompileAndVerifyUtil(text, new[] { ExpressionAssemblyRef }, expectedOutput: "Green");
         }
 
         [WorkItem(544207, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544207")]
@@ -1804,7 +1804,7 @@ class Test
     }
 }
 ";
-            CompileStandardAndVerify(text, new[] { ExpressionAssemblyRef }, expectedOutput: "Hello World!");
+            CompileAndVerifyUtil(text, new[] { ExpressionAssemblyRef }, expectedOutput: "Hello World!");
         }
 
         [WorkItem(544226, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544226")]
@@ -1825,7 +1825,7 @@ class Test
         Console.WriteLine(testExpr);
     }
 }";
-            CompileStandardAndVerify(text, new[] { ExpressionAssemblyRef }, expectedOutput: "(x, y) => Convert((x + y))");
+            CompileAndVerifyUtil(text, new[] { ExpressionAssemblyRef }, expectedOutput: "(x, y) => Convert((x + y))");
         }
 
         [WorkItem(544187, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544187")]
@@ -1855,7 +1855,7 @@ class Test
         Console.WriteLine(""{0}, {1}, {2}"", result1, result2, result3);
     }
 }";
-            CompileStandardAndVerify(text, new[] { ExpressionAssemblyRef }, expectedOutput: "Red, Green, Green");
+            CompileAndVerifyUtil(text, new[] { ExpressionAssemblyRef }, expectedOutput: "Red, Green, Green");
         }
 
         [WorkItem(544171, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544171")]
@@ -1879,7 +1879,7 @@ class Test
         Expression<Func<ITest<int>, int>> e = (var1) => var1.Key;
     }
 }";
-            CompileStandardAndVerify(text, new[] { ExpressionAssemblyRef }, expectedOutput: "");
+            CompileAndVerifyUtil(text, new[] { ExpressionAssemblyRef }, expectedOutput: "");
         }
 
         [WorkItem(544171, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544171")]
@@ -1903,7 +1903,7 @@ class Test
         Expression<Func<ITest<int>, int>> e = (var1) => var1.Key;
     }
 }";
-            CompileStandardAndVerify(text, new[] { ExpressionAssemblyRef }, expectedOutput: "");
+            CompileAndVerifyUtil(text, new[] { ExpressionAssemblyRef }, expectedOutput: "");
         }
 
         [WorkItem(544185, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544185")]
@@ -1939,7 +1939,7 @@ class Test
 
 ";
 
-            CompileStandardAndVerify(
+            CompileAndVerifyUtil(
                 new[] { text, TreeWalkerLib },
                 new[] { ExpressionAssemblyRef }, expectedOutput: TrimExpectedOutput(expectedOutput));
         }
@@ -1988,7 +1988,7 @@ class Test
 
 ";
 
-            CompileStandardAndVerify(
+            CompileAndVerifyUtil(
                 new[] { text, TreeWalkerLib },
                 new[] { ExpressionAssemblyRef }, expectedOutput: TrimExpectedOutput(expectedOutput));
         }
@@ -2015,7 +2015,7 @@ class Test
         Expression<Func<SampClass1>> testExpr = () => new decimal?(5) ?? new SampClass1();
     }
 }";
-            CompileStandardAndVerify(
+            CompileAndVerifyUtil(
                 new[] { text, TreeWalkerLib },
                 new[] { ExpressionAssemblyRef }, expectedOutput: "");
         }
@@ -2048,7 +2048,7 @@ class A
         Console.WriteLine(testExpr);
     }
 }";
-            CompileStandardAndVerify(
+            CompileAndVerifyUtil(
                 new[] { text, TreeWalkerLib },
                 new[] { ExpressionAssemblyRef }, expectedOutput: "(x, y) => (x ?? Convert(y))");
         }
@@ -2093,7 +2093,7 @@ public class Program
         Console.WriteLine(e105.Dump());
     }
 }";
-            CompileStandardAndVerify(
+            CompileAndVerifyUtil(
                 new[] { text, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef }, expectedOutput:
 @"Coalesce(Parameter(c1 Type:System.Nullable`1[CT2]) Parameter(c2 Type:CT0) Conversion:Lambda((Parameter(p Type:CT2)) => Convert(Convert(Parameter(p Type:CT2) Lifted LiftedToNull Type:System.Nullable`1[CT2]) Method:[CT0 op_Implicit(System.Nullable`1[CT2])] Type:CT0) ReturnType:CT0 Type:System.Func`2[CT2,CT0]) Type:CT0)
@@ -2127,7 +2127,7 @@ public class Test
         Console.WriteLine(testExpr.Dump());
     }
 }";
-            CompileStandardAndVerify(
+            CompileAndVerifyUtil(
                 new[] { text, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef }, expectedOutput:
 @"1
@@ -2171,7 +2171,7 @@ ConvertChecked(Parameter(x Type:System.Nullable`1[System.Int64]) Lifted LiftedTo
 ConvertChecked(Parameter(x Type:System.Int64) Lifted LiftedToNull Type:System.Nullable`1[System.Int32])
 ConvertChecked(Parameter(x Type:System.Nullable`1[System.Int64]) Lifted Type:System.Int32)
 ConvertChecked(ConvertChecked(Parameter(x Type:System.Int32) Type:System.Int64) Lifted LiftedToNull Type:System.Nullable`1[System.Int64])";
-            CompileStandardAndVerify(
+            CompileAndVerifyUtil(
                 new[] { text, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef }, expectedOutput: expectedOutput);
         }
@@ -2204,7 +2204,7 @@ Lambda:
 			Value->0
 ";
 
-            CompileStandardAndVerify(
+            CompileAndVerifyUtil(
                 new[] { text, TreeWalkerLib },
                 new[] { ExpressionAssemblyRef }, expectedOutput: TrimExpectedOutput(expectedOutput));
         }
@@ -2227,7 +2227,7 @@ public class Test
 }";
             string expectedOutput = @"(str, i) => str[ConvertChecked(i)]";
 
-            CompileStandardAndVerify(
+            CompileAndVerifyUtil(
                 new[] { text, TreeWalkerLib },
                 new[] { ExpressionAssemblyRef }, expectedOutput: TrimExpectedOutput(expectedOutput));
         }
@@ -2312,7 +2312,7 @@ unsafe public class Test
 }";
             string expectedOutput = @"x => G(x)";
 
-            CompileStandardAndVerify(text, new[] { ExpressionAssemblyRef }, options: TestOptions.UnsafeReleaseExe, expectedOutput: TrimExpectedOutput(expectedOutput), verify: Verification.Fails);
+            CompileAndVerifyUtil(text, new[] { ExpressionAssemblyRef }, options: TestOptions.UnsafeReleaseExe, expectedOutput: TrimExpectedOutput(expectedOutput), verify: Verification.Fails);
         }
 
         [WorkItem(544246, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544246")]
@@ -2339,7 +2339,7 @@ public class Test
             string expectedOutput = @"() => ModAdd2(new [] {})";
 
             // the IL, however can and should use Array.Empty when calling into ET APIs.
-            CompileStandardAndVerify(
+            CompileAndVerifyUtil(
                 text,
                 new[] { ExpressionAssemblyRef }, expectedOutput: expectedOutput).
                     VerifyIL("Test.Main",
@@ -2425,7 +2425,7 @@ public class Test
     }
 }";
             string expectedOutput = @"() => ModAdd2(new [] {0, 1})";
-            CompileStandardAndVerify(text, new[] { ExpressionAssemblyRef }, expectedOutput: TrimExpectedOutput(expectedOutput));
+            CompileAndVerifyUtil(text, new[] { ExpressionAssemblyRef }, expectedOutput: TrimExpectedOutput(expectedOutput));
         }
 
         [Fact]
@@ -2505,7 +2505,7 @@ Lambda:
                 Type->Test
                 Name->x
 ";
-            CompileStandardAndVerify(
+            CompileAndVerifyUtil(
                 new[] { text, TreeWalkerLib },
                 new[] { ExpressionAssemblyRef }, expectedOutput: TrimExpectedOutput(expectedOutput));
         }
@@ -2527,7 +2527,7 @@ public class Test
         Console.WriteLine(testExpr.Compile()());
     }
 }";
-            CompileStandardAndVerify(text, new[] { ExpressionAssemblyRef }, expectedOutput: "45");
+            CompileAndVerifyUtil(text, new[] { ExpressionAssemblyRef }, expectedOutput: "45");
         }
 
         [Fact]
@@ -2545,7 +2545,7 @@ public class Test
         Console.WriteLine(testExpr.Dump());
     }
 }";
-            CompileStandardAndVerify(
+            CompileAndVerifyUtil(
                 new[] { text, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: "New([Void .ctor(System.String, System.Decimal, Int32)](Constant(Bill Type:System.String), Constant(6950.85 Type:System.Decimal), Constant(45 Type:System.Int32)){System.String Name System.Decimal Salary Int32 Age} Type:<>f__AnonymousType0`3[System.String,System.Decimal,System.Int32])");
@@ -2569,7 +2569,7 @@ public class Test
         Console.WriteLine(testExpr.Compile()(new StructType()));
     }
 }";
-            CompileStandardAndVerify(text, new[] { ExpressionAssemblyRef }, expectedOutput: "False");
+            CompileAndVerifyUtil(text, new[] { ExpressionAssemblyRef }, expectedOutput: "False");
         }
 
         [WorkItem(544254, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544254")]
@@ -2601,7 +2601,7 @@ public class Test
         Console.WriteLine(testExpr.Compile()(new JoinRec(), new JoinRec()));
     }
 }";
-            CompileStandardAndVerify(text, new[] { ExpressionAssemblyRef }, expectedOutput: "True");
+            CompileAndVerifyUtil(text, new[] { ExpressionAssemblyRef }, expectedOutput: "True");
         }
 
         [WorkItem(544255, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544255")]
@@ -2646,7 +2646,7 @@ public class Test
         Console.WriteLine(R.Test2());
     }
 }";
-            CompileStandardAndVerify(text, new[] { ExpressionAssemblyRef }, expectedOutput: "0");
+            CompileAndVerifyUtil(text, new[] { ExpressionAssemblyRef }, expectedOutput: "0");
         }
 
         [WorkItem(544269, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544269")]
@@ -2699,7 +2699,7 @@ Lambda:
 						Name->y
 ";
 
-            CompileStandardAndVerify(
+            CompileAndVerifyUtil(
                 new[] { text, TreeWalkerLib },
                 new[] { ExpressionAssemblyRef }, expectedOutput: TrimExpectedOutput(expectedOutput));
         }
@@ -2738,7 +2738,7 @@ public class M
     }
 }
 ";
-            CompileStandardAndVerify(
+            CompileAndVerifyUtil(
                 new[] { text, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef }, expectedOutput: "");
         }
@@ -2777,7 +2777,7 @@ public class M
     }
 }
 ";
-            CompileStandardAndVerify(
+            CompileAndVerifyUtil(
                 new[] { text, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef }, expectedOutput: "");
         }
@@ -2799,7 +2799,7 @@ class Test : TestBase
             ""ConvertChecked(AddChecked(ConvertChecked(Parameter(x Type:Test+color) Type:System.Int32) Parameter(y Type:System.Int32) Type:System.Int32) Type:Test+color)"");
     }
 }";
-            CompileStandardAndVerify(
+            CompileAndVerifyUtil(
                 new[] { text, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef }, expectedOutput: "");
         }
@@ -2820,7 +2820,7 @@ public class Test
         Console.WriteLine(testExpr);
     }
 }";
-            CompileStandardAndVerify(text, new[] { ExpressionAssemblyRef }, expectedOutput: "() => 4");
+            CompileAndVerifyUtil(text, new[] { ExpressionAssemblyRef }, expectedOutput: "() => 4");
         }
 
         [WorkItem(544285, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544285")]
@@ -2854,7 +2854,7 @@ Lambda:
 			Name->x
 ";
 
-            CompileStandardAndVerify(
+            CompileAndVerifyUtil(
                 new[] { text, TreeWalkerLib },
                 new[] { ExpressionAssemblyRef }, expectedOutput: TrimExpectedOutput(expectedOutput));
         }
@@ -2896,7 +2896,7 @@ Lambda:
 					Name->num1
 ";
 
-            CompileStandardAndVerify(
+            CompileAndVerifyUtil(
                 new[] { text, TreeWalkerLib },
                 new[] { ExpressionAssemblyRef }, expectedOutput: TrimExpectedOutput(expectedOutput));
         }
@@ -2938,7 +2938,7 @@ Lambda:
 					Name->num1
 ";
 
-            CompileStandardAndVerify(
+            CompileAndVerifyUtil(
                 new[] { text, TreeWalkerLib },
                 new[] { ExpressionAssemblyRef }, expectedOutput: TrimExpectedOutput(expectedOutput));
         }
@@ -2961,7 +2961,7 @@ class A
     }
 }";
             string expectedOutput = @"True";
-            CompileStandardAndVerify(text, new[] { ExpressionAssemblyRef }, expectedOutput: expectedOutput);
+            CompileAndVerifyUtil(text, new[] { ExpressionAssemblyRef }, expectedOutput: expectedOutput);
         }
 
         [WorkItem(544306, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544306")]
@@ -2998,7 +2998,7 @@ Lambda:
 					Value->
 ";
 
-            CompileStandardAndVerify(
+            CompileAndVerifyUtil(
                 new[] { text, TreeWalkerLib },
                 new[] { ExpressionAssemblyRef }, expectedOutput: TrimExpectedOutput(expectedOutput));
         }
@@ -3020,7 +3020,7 @@ class Program
     }
 }";
             string expectedOutput = @"False";
-            CompileStandardAndVerify(text, new[] { ExpressionAssemblyRef }, expectedOutput: expectedOutput);
+            CompileAndVerifyUtil(text, new[] { ExpressionAssemblyRef }, expectedOutput: expectedOutput);
         }
 
         [WorkItem(544396, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544396")]
@@ -3049,8 +3049,8 @@ unsafe class Test
     }
 }";
 
-            var c = CompileStandardAndVerify(text,
-                additionalRefs: new[] { SystemCoreRef },
+            var c = CompileAndVerifyUtil(text,
+                references: new[] { ExpressionAssemblyRef },
                 options: TestOptions.UnsafeReleaseDll,
                 verify: Verification.Fails);
 
@@ -3099,7 +3099,7 @@ Lambda:
 							Type->System.Nullable`1[System.Int16]
 							Name->x
 ";
-            CompileStandardAndVerify(
+            CompileAndVerifyUtil(
                 new[] { text, TreeWalkerLib },
                 new[] { ExpressionAssemblyRef }, expectedOutput: TrimExpectedOutput(expectedOutput));
         }
@@ -3135,7 +3135,7 @@ namespace ConsoleApplication2
     }
 }";
             string expectedOutput = @"";
-            CompileStandardAndVerify(text, new[] { ExpressionAssemblyRef }, expectedOutput: TrimExpectedOutput(expectedOutput));
+            CompileAndVerifyUtil(text, new[] { ExpressionAssemblyRef }, expectedOutput: TrimExpectedOutput(expectedOutput));
         }
 
         [WorkItem(544401, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544401")]
@@ -3180,7 +3180,7 @@ public class Test
 }";
             string expectedOutput = @"x => IIF(x, new [] {""Test""}, Convert(new [] {""Test""}))";
 
-            CompileStandardAndVerify(
+            CompileAndVerifyUtil(
                 new[] { text, TreeWalkerLib },
                 new[] { ExpressionAssemblyRef }, expectedOutput: TrimExpectedOutput(expectedOutput));
         }
@@ -3210,7 +3210,7 @@ public class Test
 }";
             string expectedOutput = @"() => value(Test+<>c__DisplayClass0_0).v.Increment()";
 
-            CompileStandardAndVerify(
+            CompileAndVerifyUtil(
                 new[] { text, TreeWalkerLib },
                 new[] { ExpressionAssemblyRef }, expectedOutput: TrimExpectedOutput(expectedOutput));
         }
@@ -3275,7 +3275,7 @@ Lambda:
 											Name->x
 ";
 
-            CompileStandardAndVerify(
+            CompileAndVerifyUtil(
                 new[] { text, TreeWalkerLib },
                 new[] { ExpressionAssemblyRef }, expectedOutput: TrimExpectedOutput(expectedOutput));
         }
@@ -3351,7 +3351,7 @@ Lambda:
 ";
 
             //CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics();
-            CompileStandardAndVerify(
+            CompileAndVerifyUtil(
                 new[] { text, TreeWalkerLib },
                 new[] { ExpressionAssemblyRef }, expectedOutput: TrimExpectedOutput(expectedOutput));
         }
@@ -3420,9 +3420,9 @@ class Program
 }";
             string expectedOutput = @"Convert(Call(null.[System.Delegate CreateDelegate(System.Type, System.Object, System.Reflection.MethodInfo)](Constant(Del Type:System.Type), Parameter(tc1 Type:TestClass1), Constant(Int32 Func1(System.String) Type:System.Reflection.MethodInfo)) Type:System.Delegate) Type:Del)";
 
-            var comp = CreateStandardCompilation(
+            var comp = CreateCompilation(
                 new[] { source, ExpressionTestLibrary },
-                new[] { SystemCoreRef },
+                new[] { MscorlibRef, SystemCoreRef },
                 TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, expectedOutput: expectedOutput);
@@ -3467,7 +3467,7 @@ class Program
     }
 }";
             string expectedOutput = @"Convert(Parameter(expr1 Type:System.Nullable`1[BinaryNumeral]) Lifted LiftedToNull Method:[RomanNumeral op_Implicit(BinaryNumeral)] Type:System.Nullable`1[RomanNumeral])";
-            CompileStandardAndVerify(
+            CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: expectedOutput);
@@ -3492,7 +3492,7 @@ class Program
     }
 }";
             string expectedOutput = @"LeftShift(Parameter(x Type:System.Nullable`1[System.Int64]) Convert(Convert(Parameter(y Type:System.Int16) Type:System.Int32) Lifted LiftedToNull Type:System.Nullable`1[System.Int32]) Lifted LiftedToNull Type:System.Nullable`1[System.Int64])";
-            CompileStandardAndVerify(
+            CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: expectedOutput);
@@ -3550,7 +3550,7 @@ class Program : TestBase
 }
 }";
             string expectedOutput = "";
-            CompileStandardAndVerify(
+            CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: expectedOutput);
@@ -3575,7 +3575,7 @@ public class Parent
 }";
             string expectedOutput =
 @"MemberInit(NewExpression: New([Void .ctor()]() Type:System.Collections.Generic.List`1[System.Int32]) Bindings:[] Type:System.Collections.Generic.List`1[System.Int32])";
-            CompileStandardAndVerify(
+            CompileAndVerifyUtil(
                 new[] { text, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef }, expectedOutput: TrimExpectedOutput(expectedOutput));
         }
@@ -3613,7 +3613,7 @@ Lambda:
 				Arguments->
 				Bindings->
 ";
-            CompileStandardAndVerify(
+            CompileAndVerifyUtil(
                 new[] { text, TreeWalkerLib },
                 new[] { ExpressionAssemblyRef }, expectedOutput: TrimExpectedOutput(expectedOutput));
         }
@@ -3796,7 +3796,7 @@ class Test
     }
 }";
             string expectedOutput = @"3";
-            CompileStandardAndVerify(
+            CompileAndVerifyUtil(
                 new[] { source },
                 new[] { ExpressionAssemblyRef }, expectedOutput: TrimExpectedOutput(expectedOutput));
         }
@@ -3821,7 +3821,7 @@ class MyClass
     }
 }";
             string expectedOutput = @"6";
-            CompileStandardAndVerify(
+            CompileAndVerifyUtil(
                 new[] { source },
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: TrimExpectedOutput(expectedOutput));
@@ -3849,7 +3849,7 @@ public class Test
             string expectedOutput =
 @"Convert(Convert(Parameter(x Type:EnumType) Type:System.Int32) Method:[System.Decimal op_Implicit(Int32)] Type:System.Decimal)
 1";
-            CompileStandardAndVerify(
+            CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: expectedOutput);
@@ -3888,7 +3888,7 @@ Convert(Convert(Convert(Parameter(x Type:E) Type:System.Int32) Method:[System.De
 Convert(Convert(Convert(Parameter(x Type:System.Nullable`1[E]) Lifted LiftedToNull Type:System.Nullable`1[System.Int32]) Lifted Method:[System.Decimal op_Implicit(Int32)] Type:System.Decimal) Lifted LiftedToNull Type:System.Nullable`1[System.Decimal])
 ".Trim();
 
-            var verifier = CompileStandardAndVerify(
+            var verifier = CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: expectedOutput);
@@ -4040,7 +4040,7 @@ Convert(Convert(Convert(Parameter(x Type:E) Type:System.Int32) Method:[System.De
 Convert(Convert(Parameter(x Type:System.Nullable`1[E]) Lifted LiftedToNull Type:System.Nullable`1[System.Int32]) Lifted LiftedToNull Method:[System.Decimal op_Implicit(Int32)] Type:System.Nullable`1[System.Decimal])
 ".Trim();
 
-            var verifier = CompileStandardAndVerify(
+            var verifier = CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: expectedOutput);
@@ -4140,7 +4140,7 @@ class MyClass
 }";
             string expectedOutput = @"Conditional(Call(null.[Boolean op_True(MyTest)](Parameter(t Type:MyTest)) Type:System.Boolean) ? Constant(2 Type:System.Int32) : Constant(3 Type:System.Int32) Type:System.Int32)
 2";
-            CompileStandardAndVerify(
+            CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: expectedOutput);
@@ -4208,7 +4208,7 @@ public class B : IEnumerable
     }
 }";
             string expectedOutput = @"() => new B() {Int32 Add(Int64[])(new [] {5, 8, 10, 15})}";
-            CompileStandardAndVerify(
+            CompileAndVerifyUtil(
                 new[] { source },
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: TrimExpectedOutput(expectedOutput));
@@ -4285,7 +4285,7 @@ class Program
 }";
             string expectedOutput = @"1";
 
-            CompileStandardAndVerify(
+            CompileAndVerifyUtil(
                 new[] { source },
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: expectedOutput);
@@ -4311,7 +4311,7 @@ public class Test
 }";
             string expectedOutput = @"100";
 
-            CompileStandardAndVerify(
+            CompileAndVerifyUtil(
                 new[] { source },
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: expectedOutput);
@@ -4350,7 +4350,7 @@ public class Derived
 two
 three";
 
-            CompileStandardAndVerify(
+            CompileAndVerifyUtil(
                 new[] { source },
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: expectedOutput);
@@ -4381,7 +4381,7 @@ public struct C
 ";
             string expectedOutput = @"Convert(Parameter(x Type:System.Nullable`1[System.Int32]) Lifted LiftedToNull Method:[C op_Implicit(Int32)] Type:System.Nullable`1[C])";
 
-            CompileStandardAndVerify(
+            CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: expectedOutput);
@@ -4422,7 +4422,7 @@ class Test
 TestClass1
 10";
 
-            CompileStandardAndVerify(
+            CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: expectedOutput);
@@ -4466,7 +4466,7 @@ class Test
 
             string expectedOutput = @"pass";
 
-            CompileStandardAndVerify(
+            CompileAndVerifyUtil(
                 new[] { source },
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: expectedOutput);
@@ -4508,7 +4508,7 @@ class Test
 
             string expectedOutput = @"pass";
 
-            CompileStandardAndVerify(
+            CompileAndVerifyUtil(
                 new[] { source },
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: expectedOutput);
@@ -4542,7 +4542,7 @@ class Test
 TypeAs(Constant(null Type:System.Object) Type:Test)
 TypeAs(Parameter(t Type:Test) Type:System.Object)";
 
-            CompileStandardAndVerify(
+            CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: expectedOutput);
@@ -4564,7 +4564,7 @@ class Test
     }
 }";
             string expectedOutput = "TypeIs(Constant(null Type:System.Object) TypeOperand:Test Type:System.Boolean)";
-            CompileStandardAndVerify(
+            CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: expectedOutput);
@@ -4607,7 +4607,7 @@ class Test
 
 }";
             string expectedOutput = "Equal(MemberAccess(Convert(MemberAccess(Constant(Test+<>c__DisplayClass3_0`1[Test+C1] Type:Test+<>c__DisplayClass3_0`1[Test+C1]).x Type:Test+C1) Type:Test+IDeletedID).DeletedID Type:System.Int32) Constant(1 Type:System.Int32) Type:System.Boolean)";
-            CompileStandardAndVerify(
+            CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: expectedOutput);
@@ -4650,7 +4650,7 @@ class Test
 
 }";
             string expectedOutput = "Equal(MemberAccess(MemberAccess(Constant(Test+<>c__DisplayClass3_0`1[Test+C1] Type:Test+<>c__DisplayClass3_0`1[Test+C1]).x Type:Test+C1).DeletedID Type:System.Int32) Constant(1 Type:System.Int32) Type:System.Boolean)";
-            CompileStandardAndVerify(
+            CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: expectedOutput);
@@ -4693,7 +4693,7 @@ class Test
 
 }";
             string expectedOutput = "Equal(MemberAccess(MemberAccess(Constant(Test+<>c__DisplayClass3_0`1[Test+C1] Type:Test+<>c__DisplayClass3_0`1[Test+C1]).x Type:Test+C1).DeletedID Type:System.Int32) Constant(1 Type:System.Int32) Type:System.Boolean)";
-            CompileStandardAndVerify(
+            CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: expectedOutput);
@@ -4738,7 +4738,7 @@ class Test
 
 }";
             string expectedOutput = "Equal(MemberAccess(MemberAccess(Constant(Test+<>c__DisplayClass3_0`2[Test+C1,Test+C1] Type:Test+<>c__DisplayClass3_0`2[Test+C1,Test+C1]).x Type:Test+C1).DeletedID Type:System.Int32) Constant(1 Type:System.Int32) Type:System.Boolean)";
-            CompileStandardAndVerify(
+            CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: expectedOutput);
@@ -4783,7 +4783,7 @@ class Test
 
 }";
             string expectedOutput = "Equal(MemberAccess(Convert(MemberAccess(Constant(Test+<>c__DisplayClass3_0`2[Test+C1,Test+C1] Type:Test+<>c__DisplayClass3_0`2[Test+C1,Test+C1]).x Type:Test+C1) Type:Test+IDeletedID).DeletedID Type:System.Int32) Constant(1 Type:System.Int32) Type:System.Boolean)";
-            CompileStandardAndVerify(
+            CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: expectedOutput);
@@ -4827,7 +4827,7 @@ class Test
 
 }";
             string expectedOutput = "Equal(MemberAccess(Convert(MemberAccess(Constant(Test+<>c__DisplayClass3_0`1[Test+C1] Type:Test+<>c__DisplayClass3_0`1[Test+C1]).x Type:Test+C1) Type:Test+IDeletedID).DeletedID Type:System.Int32) Constant(1 Type:System.Int32) Type:System.Boolean)";
-            CompileStandardAndVerify(
+            CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: expectedOutput);
@@ -4869,7 +4869,7 @@ namespace ConsoleApplication1
 
 }";
             string expectedOutput = "Equal(Convert(MemberAccess(Parameter(x Type:ConsoleApplication1.MyType).YesNo Type:System.Nullable`1[ConsoleApplication1.YesNo]) Lifted LiftedToNull Type:System.Nullable`1[System.Int32]) Convert(Constant(Yes Type:ConsoleApplication1.YesNo) Lifted LiftedToNull Type:System.Nullable`1[System.Int32]) Lifted Type:System.Boolean)";
-            CompileStandardAndVerify(
+            CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: expectedOutput);
@@ -4911,7 +4911,7 @@ namespace ConsoleApplication1
 
 }";
             string expectedOutput = "Equal(Convert(MemberAccess(Parameter(x Type:ConsoleApplication1.MyType).YesNo Type:System.Nullable`1[ConsoleApplication1.YesNo]) Lifted LiftedToNull Type:System.Nullable`1[System.Int32]) Convert(MemberAccess(Parameter(x Type:ConsoleApplication1.MyType).YesNo Type:System.Nullable`1[ConsoleApplication1.YesNo]) Lifted LiftedToNull Type:System.Nullable`1[System.Int32]) Lifted Type:System.Boolean)";
-            CompileStandardAndVerify(
+            CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: expectedOutput);
@@ -4953,7 +4953,7 @@ namespace ConsoleApplication1
 
 }";
             string expectedOutput = "Equal(Convert(MemberAccess(Parameter(x Type:ConsoleApplication1.MyType).YesNo Type:ConsoleApplication1.YesNo) Type:System.Int32) Convert(MemberAccess(Parameter(x Type:ConsoleApplication1.MyType).YesNo Type:ConsoleApplication1.YesNo) Type:System.Int32) Type:System.Boolean)";
-            CompileStandardAndVerify(
+            CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: expectedOutput);
@@ -4995,7 +4995,7 @@ namespace ConsoleApplication1
 
 }";
             string expectedOutput = "Equal(Convert(MemberAccess(Parameter(x Type:ConsoleApplication1.MyType).YesNo Type:System.Nullable`1[ConsoleApplication1.YesNo]) Lifted LiftedToNull Type:System.Nullable`1[System.Int32]) Convert(Constant(No Type:ConsoleApplication1.YesNo) Lifted LiftedToNull Type:System.Nullable`1[System.Int32]) Lifted Type:System.Boolean)";
-            CompileStandardAndVerify(
+            CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: expectedOutput);
@@ -5037,7 +5037,7 @@ namespace ConsoleApplication1
 
 }";
             string expectedOutput = "Equal(Convert(MemberAccess(Parameter(x Type:ConsoleApplication1.MyType).YesNo Type:System.Nullable`1[ConsoleApplication1.YesNo]) Lifted LiftedToNull Type:System.Nullable`1[System.Int32]) Convert(Convert(Constant(null Type:System.Object) Lifted LiftedToNull Type:System.Nullable`1[ConsoleApplication1.YesNo]) Lifted LiftedToNull Type:System.Nullable`1[System.Int32]) Lifted Type:System.Boolean)";
-            CompileStandardAndVerify(
+            CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: expectedOutput);
@@ -5079,7 +5079,7 @@ namespace ConsoleApplication1
 
 }";
             string expectedOutput = "Equal(Convert(MemberAccess(Parameter(x Type:ConsoleApplication1.MyType).YesNo Type:System.Nullable`1[ConsoleApplication1.YesNo]) Lifted LiftedToNull Type:System.Nullable`1[System.Int32]) Convert(Convert(Constant(null Type:System.Object) Lifted LiftedToNull Type:System.Nullable`1[ConsoleApplication1.YesNo]) Lifted LiftedToNull Type:System.Nullable`1[System.Int32]) Lifted Type:System.Boolean)";
-            CompileStandardAndVerify(
+            CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: expectedOutput,
@@ -5113,7 +5113,7 @@ class Test
 Convert(Not(Convert(Parameter(x Type:System.Nullable`1[Test+Color]) Lifted LiftedToNull Type:System.Nullable`1[System.Int32]) Lifted LiftedToNull Type:System.Nullable`1[System.Int32]) Lifted LiftedToNull Type:System.Nullable`1[Test+Color])
 Convert(Not(Convert(Parameter(x Type:Test+Color) Type:System.Int32) Type:System.Int32) Type:Test+Color)";
 
-            CompileStandardAndVerify(
+            CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: expectedOutput);
@@ -5152,7 +5152,7 @@ class Program
     }
 }";
             var expectedOutput = @"a => a.Cells.get_Cell(2)";
-            CompileStandardAndVerify(
+            CompileAndVerifyUtil(
                 new[] { source2 },
                 new[] { ExpressionAssemblyRef, reference1 },
                 expectedOutput: expectedOutput);
@@ -5185,7 +5185,7 @@ class C
 @"x => ConvertChecked(x)
 x => ConvertChecked(x)
 x => ConvertChecked(x)";
-            CompileStandardAndVerify(
+            CompileAndVerifyUtil(
                 new[] { text },
                 new[] { ExpressionAssemblyRef }, expectedOutput: expected);
         }
@@ -5208,7 +5208,7 @@ class Test
         Console.WriteLine(testExpr);
     }
 }";
-            CompileStandardAndVerify(text, new[] { ExpressionAssemblyRef }, expectedOutput: "() => (null As String)");
+            CompileAndVerifyUtil(text, new[] { ExpressionAssemblyRef }, expectedOutput: "() => (null As String)");
         }
 
         [WorkItem(797996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797996")]
@@ -5431,7 +5431,7 @@ class Test
 
             string expectedOutput = @"m => m";
 
-            CompileStandardAndVerify(
+            CompileAndVerifyUtil(
                 new[] { source },
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: expectedOutput);
@@ -5469,7 +5469,7 @@ public class Goo
 
             const string expectedOutput = @"4242";
 
-            CompileStandardAndVerify(
+            CompileAndVerifyUtil(
                 new[] { source },
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: expectedOutput);
@@ -5507,7 +5507,7 @@ public class Goo
 
             const string expectedOutput = @"4242";
 
-            CompileStandardAndVerify(
+            CompileAndVerifyUtil(
                 new[] { source },
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: expectedOutput);
@@ -5539,7 +5539,7 @@ class A
 
             const string expectedOutput = @"42";
 
-            CompileStandardAndVerify(
+            CompileAndVerifyUtil(
                 new[] { source },
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: expectedOutput);
@@ -5575,7 +5575,7 @@ namespace VS2013Compatibility
 }";
 
             const string expectedOutput = @"FalseSystem.Int32System.Int64System.Int32";
-            CompileStandardAndVerify(
+            CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: expectedOutput);
@@ -5610,7 +5610,7 @@ class C : TestBase
 }";
 
             const string expectedOutput = @"4242";
-            CompileStandardAndVerify(
+            CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: expectedOutput);
@@ -5639,7 +5639,7 @@ class C : TestBase
 }";
 
             const string expectedOutput = @"SS";
-            CompileStandardAndVerify(
+            CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: expectedOutput);
@@ -5671,7 +5671,7 @@ class C : TestBase
 }";
 
             const string expectedOutput = @"TrueTrue";
-            CompileStandardAndVerify(
+            CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: expectedOutput);
@@ -5703,7 +5703,7 @@ class C : TestBase
 }";
 
             const string expectedOutput = @"FortyTwoFortyTwo";
-            CompileStandardAndVerify(
+            CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: expectedOutput);
@@ -5730,7 +5730,7 @@ class C : TestBase
 }";
 
             const string expectedOutput = @"00";
-            CompileStandardAndVerify(
+            CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: expectedOutput);
@@ -5771,7 +5771,7 @@ class C : TestBase
 }";
 
             const string expectedOutput = @"4242";
-            CompileStandardAndVerify(
+            CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: expectedOutput);
@@ -5806,7 +5806,7 @@ class C : TestBase
 }";
 
             const string expectedOutput = @"SS";
-            CompileStandardAndVerify(
+            CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: expectedOutput);
@@ -5848,7 +5848,7 @@ class C : TestBase
 }";
 
             const string expectedOutput = @"DONE";
-            CompileStandardAndVerify(
+            CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: expectedOutput);
@@ -5873,7 +5873,7 @@ class C : TestBase
 }
 ";
 
-            CompileStandardAndVerify(
+            CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: "DONE");
@@ -5900,7 +5900,7 @@ class C : TestBase
     public class Expression<T> { }
     public class ParameterExpression : Expression { }
 }";
-            var compilation1 = CreateStandardCompilation(source1);
+            var compilation1 = CreateCompilationWithMscorlib45(source1);
             compilation1.VerifyDiagnostics();
             var reference1 = compilation1.EmitToImageReference();
 
@@ -5911,7 +5911,7 @@ class C
 {
     static Expression<D> E = () => 1;
 }";
-            var compilation2 = CreateStandardCompilation(source2, references: new[] { reference1 });
+            var compilation2 = CreateCompilationWithMscorlib45(source2, references: new[] { reference1 });
             compilation2.VerifyDiagnostics();
 
             using (var stream = new MemoryStream())
@@ -5939,9 +5939,9 @@ public class Program
     }
 }
 ";
-            CompileStandardAndVerify(
-                sources: new string[] { program },
-                additionalRefs: new[] { SystemCoreRef },
+            CompileAndVerifyUtil(
+                source: new string[] { program },
+                references: new[] { ExpressionAssemblyRef },
                 expectedOutput: @"Main")
                 .VerifyDiagnostics();
         }
@@ -5977,7 +5977,7 @@ class C //: TestBase
 }";
 
             const string expectedOutput = @"() => (1 == Convert(value(C+Program+<>c__DisplayClass0_0).v))";
-            CompileStandardAndVerify(
+            CompileAndVerifyUtil(
                 new[] {
                     source,
                 //    ExpressionTestLibrary
@@ -6017,7 +6017,7 @@ class C //: TestBase
 }";
 
             const string expectedOutput = @"() => (42 == Convert(value(C+Program+<>c__DisplayClass0_0).v))";
-            CompileStandardAndVerify(
+            CompileAndVerifyUtil(
                 new[] {
                     source,
                 //    ExpressionTestLibrary
@@ -6061,7 +6061,7 @@ class C //: TestBase
 }";
 
             const string expectedOutput = @"() => goo(1)";
-            CompileStandardAndVerify(
+            CompileAndVerifyUtil(
                 new[] {
                     source,
                 //    ExpressionTestLibrary
@@ -6115,7 +6115,7 @@ namespace ConsoleApplication6
             const string expectedOutput = @"42
 value(ConsoleApplication6.Program)";
 
-            CompileStandardAndVerify(
+            CompileAndVerifyUtil(
                 new[] {
                     source,
                 },
@@ -6174,7 +6174,7 @@ namespace ConsoleApplication6
             const string expectedOutput = @"42
 value(ConsoleApplication6.Program)";
 
-            CompileStandardAndVerify(
+            CompileAndVerifyUtil(
                 new[] {
                     source,
                 },
@@ -6214,7 +6214,7 @@ class C : TestBase
 }";
 
             const string expectedOutput = @"123";
-            CompileStandardAndVerify(
+            CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef },
                 expectedOutput: expectedOutput);

@@ -36,7 +36,6 @@ namespace Test
 
             CompileStandardAndVerify(
                 source,
-                additionalRefs: new[] { LinqAssemblyRef },
                 expectedOutput: "True");
         }
 
@@ -64,7 +63,6 @@ namespace Test
 
             CompileStandardAndVerify(
               source,
-              additionalRefs: new[] { LinqAssemblyRef },
               expectedOutput: "True");
         }
 
@@ -92,7 +90,6 @@ namespace Test
 
             CompileStandardAndVerify(
                 source,
-                additionalRefs: new[] { LinqAssemblyRef },
                 expectedOutput: "True");
         }
 
@@ -123,7 +120,7 @@ namespace Test
 }
 ";
 
-            var comp = CreateStandardCompilation(source, references: new[] { LinqAssemblyRef });
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
     // (15,54): warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
     //             var a = new [] {E.START, 0, 0U, 0u, 0L, 0l, 0UL, 0Ul, 0uL, 0ul, 0LU, 0Lu, 0lU, 0lu};
@@ -191,7 +188,6 @@ namespace Test
 
             CompileStandardAndVerify(
                 source,
-                additionalRefs: new[] { LinqAssemblyRef },
                 expectedOutput: "True");
         }
 
@@ -223,7 +219,6 @@ namespace Test
 
             CompileStandardAndVerify(
                 source,
-                additionalRefs: new[] { LinqAssemblyRef },
                 expectedOutput: "True");
         }
 
@@ -254,7 +249,6 @@ namespace Test
 ";
             var compilation = CompileStandardAndVerify(
                 testSrc,
-                additionalRefs: new[] { LinqAssemblyRef },
                 expectedOutput: "True");
         }
 
@@ -333,7 +327,6 @@ namespace Test
 
             CompileStandardAndVerify(
                 source,
-                additionalRefs: new[] { LinqAssemblyRef },
                 expectedOutput: "True");
         }
 
@@ -361,7 +354,6 @@ namespace Test
 
             CompileStandardAndVerify(
                 source,
-                additionalRefs: new[] { LinqAssemblyRef },
                 expectedOutput: "True");
         }
 
@@ -405,7 +397,6 @@ namespace Test
 
             CompileStandardAndVerify(
                 source,
-                additionalRefs: new[] { LinqAssemblyRef },
                 expectedOutput: "True");
         }
 
@@ -442,7 +433,6 @@ namespace Test
 ";
             var compilation = CompileStandardAndVerify(
                 testSrc,
-                additionalRefs: new[] { LinqAssemblyRef },
                 expectedOutput: "True");
         }
 
@@ -593,7 +583,6 @@ namespace Test
 
             CompileStandardAndVerify(
                 source,
-                additionalRefs: new[] { LinqAssemblyRef },
                 expectedOutput: "True");
         }
 
@@ -627,7 +616,6 @@ namespace Test
 
             CompileStandardAndVerify(
                 source,
-                additionalRefs: new[] { LinqAssemblyRef },
                 expectedOutput: "True");
         }
 
@@ -655,7 +643,6 @@ namespace Test
 
             CompileStandardAndVerify(
                 source,
-                additionalRefs: new[] { LinqAssemblyRef },
                 expectedOutput: "True");
         }
 
@@ -683,7 +670,6 @@ namespace Test
 
             CompileStandardAndVerify(
                 source,
-                additionalRefs: new[] { LinqAssemblyRef },
                 expectedOutput: "True");
         }
 
@@ -725,7 +711,6 @@ namespace Test
 
             CompileStandardAndVerify(
                 source,
-                additionalRefs: new[] { LinqAssemblyRef },
                 expectedOutput: "True");
         }
 
@@ -762,7 +747,6 @@ namespace Test
 
             CompileStandardAndVerify(
                 source,
-                additionalRefs: new[] { LinqAssemblyRef },
                 expectedOutput: "True");
         }
 
@@ -854,7 +838,6 @@ namespace Test
 
             CompileStandardAndVerify(
                 source,
-                additionalRefs: new[] { LinqAssemblyRef },
                 expectedOutput: "True");
         }
 
@@ -888,7 +871,6 @@ public class Program
 
             CompileStandardAndVerify(
                 source,
-                additionalRefs: new[] { LinqAssemblyRef },
                 expectedOutput: "True");
         }
 
@@ -928,7 +910,6 @@ public class Program
 
             CompileStandardAndVerify(
                 source,
-                additionalRefs: new[] { LinqAssemblyRef },
                 expectedOutput: "TrueTrueTrueTrueTrueTrueTrueTrueTrue");
         }
 

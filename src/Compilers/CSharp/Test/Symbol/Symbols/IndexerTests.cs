@@ -2776,7 +2776,7 @@ class C
         a[1] += 1; // Dev11 uses get_P default for both
     }
 }";
-            var compilation2 = CompileStandardAndVerify(source2, additionalRefs: new[] { reference1 }, expectedOutput:
+            var compilation2 = CompileStandardAndVerify(source2, references: new[] { reference1 }, expectedOutput:
 @"get_P: 3
 set_P: 3
 get_P: 3

@@ -213,7 +213,7 @@ class Test
         [Fact]
         public void EmbeddedAttributeInReferencedModuleShouldTriggerAnErrorIfCompilerNeedsToGenerateOne()
         {
-            var module = CreateStandardCompilation(options: TestOptions.ReleaseModule, assemblyName: "testModule", text: @"
+            var module = CreateStandardCompilation(options: TestOptions.ReleaseModule, assemblyName: "testModule", source: @"
 namespace Microsoft.CodeAnalysis
 {
     public class EmbeddedAttribute : System.Attribute { }
@@ -262,7 +262,7 @@ class Test
         [Fact]
         public void CompilerShouldIgnorePublicEmbeddedAttributesInReferencedAssemblies()
         {
-            var reference = CreateStandardCompilation(assemblyName: "testRef", text: @"
+            var reference = CreateStandardCompilation(assemblyName: "testRef", source: @"
 namespace Microsoft.CodeAnalysis
 {
     public class EmbeddedAttribute : System.Attribute { }
@@ -282,7 +282,7 @@ class Test
     }
 }";
 
-            CompileStandardAndVerify(code, verify: Verification.Passes, additionalRefs: new[] { reference }, symbolValidator: module =>
+            CompileStandardAndVerify(code, verify: Verification.Passes, references: new[] { reference }, symbolValidator: module =>
             {
                 var attributeName = AttributeDescription.CodeAnalysisEmbeddedAttribute.FullName;
 

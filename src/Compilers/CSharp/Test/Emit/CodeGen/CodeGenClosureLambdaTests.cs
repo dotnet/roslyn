@@ -4103,7 +4103,6 @@ public class Program
 
             CompileStandardAndVerify(
                 source,
-                new[] { LinqAssemblyRef },
                 expectedOutput:
 @"1
 1
@@ -4219,7 +4218,6 @@ class Program
             // ref emit would just have different metadata tokens
             // we are not interested in testing that
             CompileStandardAndVerify(source,
-                additionalRefs: new[] { LinqAssemblyRef },
                 expectedOutput: @"
 Void .ctor(System.Object, IntPtr)
 Int32 Invoke()
@@ -5197,7 +5195,7 @@ class C
     }
 }";
 
-            CompileStandardAndVerify(source, new[] { SystemCoreRef });
+            CompileStandardAndVerify(source);
         }
 
         [Fact]
@@ -5217,7 +5215,7 @@ class C
     }
 }";
 
-            CompileStandardAndVerify(source, new[] { SystemCoreRef });
+            CompileStandardAndVerify(source);
         }
 
         [Fact]
@@ -5250,7 +5248,7 @@ class C
     }
 }";
 
-            CompileStandardAndVerify(source, new[] { SystemCoreRef });
+            CompileStandardAndVerify(source);
         }
 
         [Fact, WorkItem(2549, "https://github.com/dotnet/roslyn/issues/2549")]
@@ -5269,7 +5267,7 @@ public class BadBaby
         return from child in Children select from T ch in Children select false;
     }
 }";
-            CompileStandardAndVerify(source, new[] { SystemCoreRef });
+            CompileStandardAndVerify(source);
         }
 
         [WorkItem(9131, "https://github.com/dotnet/roslyn/issues/9131")]

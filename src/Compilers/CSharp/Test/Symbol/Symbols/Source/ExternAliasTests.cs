@@ -395,7 +395,7 @@ class A : Bar::NS.Goo {}
             var ref2 = comp2.EmitToImageReference(aliases: ImmutableArray.Create("X"));
 
             const int numFiles = 20;
-            var comp3 = CreateStandardCompilation(Enumerable.Range(1, numFiles).Select(x => "extern alias X;"), new[] { ref1, ref2 }, assemblyName: "A3.dll");
+            var comp3 = CreateStandardCompilation(Enumerable.Range(1, numFiles).Select(x => "extern alias X;").ToArray(), new[] { ref1, ref2 }, assemblyName: "A3.dll");
 
             var targets = comp3.SyntaxTrees.AsParallel().Select(tree =>
             {
@@ -421,7 +421,7 @@ class A : Bar::NS.Goo {}
         public void SameExternAliasInMultipleTreesInvalid()
         {
             const int numFiles = 20;
-            var comp3 = CreateStandardCompilation(Enumerable.Range(1, numFiles).Select(x => "extern alias X;"), assemblyName: "A3.dll");
+            var comp3 = CreateStandardCompilation(Enumerable.Range(1, numFiles).Select(x => "extern alias X;").ToArray(), assemblyName: "A3.dll");
 
             var targets = comp3.SyntaxTrees.AsParallel().Select(tree =>
             {

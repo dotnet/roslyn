@@ -1105,7 +1105,7 @@ public class Test
 }";
 
             var options = new CSharpCompilationOptions(outputKind, optimizationLevel: optimizationLevel);
-            CompileStandardAndVerify(source, additionalRefs: new[] { reference }, options: options, verify: outputKind.IsNetModule() ? Verification.Skipped : Verification.Passes, symbolValidator: module =>
+            CompileStandardAndVerify(source, references: new[] { reference }, options: options, verify: outputKind.IsNetModule() ? Verification.Skipped : Verification.Passes, symbolValidator: module =>
             {
                 var attributes = module.ContainingAssembly.GetAttributes();
 
@@ -1146,7 +1146,7 @@ public class Test
 }";
 
             var options = new CSharpCompilationOptions(outputKind, optimizationLevel: optimizationLevel);
-            CompileStandardAndVerify(source, additionalRefs: new[] { reference }, options: options, verify: outputKind.IsNetModule() ? Verification.Skipped : Verification.Passes, symbolValidator: module =>
+            CompileStandardAndVerify(source, references: new[] { reference }, options: options, verify: outputKind.IsNetModule() ? Verification.Skipped : Verification.Passes, symbolValidator: module =>
             {
                 var attributes = module.ContainingAssembly.GetAttributes();
 
@@ -1199,7 +1199,7 @@ unsafe class C
                 {
                     // Modules security attributes are copied to assemblies they're included in
                     var moduleReference = ModuleMetadata.CreateFromImage(compilation.EmitToArray()).GetReference();
-                    CompileStandardAndVerify("", additionalRefs: new[] { moduleReference }, symbolValidator: validateSecurity, verify: Verification.Skipped);
+                    CompileStandardAndVerify("", references: new[] { moduleReference }, symbolValidator: validateSecurity, verify: Verification.Skipped);
                 }
                 else
                 {

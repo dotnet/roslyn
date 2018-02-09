@@ -1331,8 +1331,8 @@ class C
         Console.WriteLine(x);
     }
 }";
-            CompileStandardAndVerify(src,
-                additionalRefs: new[] { MscorlibRef_v46 },
+            CompileAndVerify(src,
+                targetFramework: TargetFramework.Net46,
                 expectedOutput: @"1
 0");
         }
@@ -1370,8 +1370,8 @@ class C
         Console.WriteLine(x);
     }
 }";
-            CompileStandardAndVerify(src,
-                additionalRefs: new[] { MscorlibRef_v46 },
+            CompileAndVerify(src,
+                targetFramework: TargetFramework.Net46,
                 expectedOutput: @"1
 0");
         }
@@ -5027,8 +5027,7 @@ class Program
         c.M(""D"");
     }
 }";
-            CompileStandardAndVerify(src, expectedOutput: "CDBACDBACDBACDBACDBA",
-                additionalRefs: new[] { SystemRuntimeFacadeRef, ValueTupleRef });
+            CompileStandardAndVerify(src, expectedOutput: "CDBACDBACDBACDBACDBA");
         }
 
         [Fact]

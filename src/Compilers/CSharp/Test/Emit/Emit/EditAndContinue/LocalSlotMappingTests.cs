@@ -1507,7 +1507,7 @@ class C
             var compilation0 = CreateStandardCompilation(
                 source,
                 options: TestOptions.DebugDll,
-                references: new[] { SystemCoreRef, CSharpRef, ValueTupleRef, SystemRuntimeFacadeRef });
+                references: new[] { CSharpRef });
             var compilation1 = compilation0.WithSource(source);
 
             var testData0 = new CompilationTestData();
@@ -3675,7 +3675,7 @@ class C
     static int F() { (int, (int, int)) x = (1, (2, 3)); return x.Item1 + x.Item2.Item1 + x.Item2.Item2; }
 }";
 
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll, references: s_valueTupleRefs);
+            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source);
 
             var testData0 = new CompilationTestData();
@@ -3730,7 +3730,7 @@ class C
     static int F() { (int x, (int y, int z)) = (1, (2, 3)); return x + y + z; }
 }";
 
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll, references: s_valueTupleRefs);
+            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source);
 
             var testData0 = new CompilationTestData();
@@ -3782,7 +3782,7 @@ class C
     static int F(object o) { if (o is int i) { return i; } return 0; }
 }";
 
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll, references: s_valueTupleRefs);
+            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source);
 
             var testData0 = new CompilationTestData();
@@ -3842,7 +3842,7 @@ class C
     static int F(object o) { if ((o is bool) || (o is 0)) { return 0; } return 1; }
 }";
 
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll, references: s_valueTupleRefs);
+            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source);
 
             var testData0 = new CompilationTestData();
@@ -3906,7 +3906,7 @@ class C
     }
 }";
 
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll, references: s_valueTupleRefs);
+            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source);
 
             var testData0 = new CompilationTestData();
@@ -4005,7 +4005,7 @@ class C
             var source1 = MarkedSource(sourceText);
             var source2 = MarkedSource(sourceText);
 
-            var compilation0 = CreateStandardCompilation(source0.Tree, options: ComSafeDebugDll.WithAllowUnsafe(true), references: s_valueTupleRefs);
+            var compilation0 = CreateStandardCompilation(source0.Tree, options: ComSafeDebugDll.WithAllowUnsafe(true));
             var compilation1 = compilation0.WithSource(source1.Tree);
             var compilation2 = compilation1.WithSource(source2.Tree);
 

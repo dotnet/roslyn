@@ -153,7 +153,7 @@ public class C
         c.M(a: 1, 2);
     }
 }";
-            var verifier = CompileStandardAndVerify(source, expectedOutput: "1 2.", parseOptions: TestOptions.Regular7_2, additionalRefs: new[] { SystemCoreRef });
+            var verifier = CompileStandardAndVerify(source, expectedOutput: "1 2.", parseOptions: TestOptions.Regular7_2, references: new[] { SystemCoreRef });
             verifier.VerifyDiagnostics();
 
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, references: new[] { SystemCoreRef });
@@ -328,10 +328,10 @@ class D
 }";
             var lib = CreateStandardCompilation(lib_cs, parseOptions: TestOptions.Regular7);
 
-            var verifier1 = CompileStandardAndVerify(source, expectedOutput: "1 2.", parseOptions: TestOptions.Regular7_2, additionalRefs: new[] { lib.ToMetadataReference() });
+            var verifier1 = CompileStandardAndVerify(source, expectedOutput: "1 2.", parseOptions: TestOptions.Regular7_2, references: new[] { lib.ToMetadataReference() });
             verifier1.VerifyDiagnostics();
 
-            var verifier2 = CompileStandardAndVerify(source, expectedOutput: "1 2.", parseOptions: TestOptions.Regular7_2, additionalRefs: new[] { lib.EmitToImageReference() });
+            var verifier2 = CompileStandardAndVerify(source, expectedOutput: "1 2.", parseOptions: TestOptions.Regular7_2, references: new[] { lib.EmitToImageReference() });
             verifier2.VerifyDiagnostics();
         }
 

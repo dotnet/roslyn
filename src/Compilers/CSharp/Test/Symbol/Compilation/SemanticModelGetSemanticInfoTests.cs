@@ -889,7 +889,7 @@ class C
         /*<bind>*/a.Where/*</bind>*/(
     }
 }";
-            var compilation = CreateStandardCompilation(text: sourceCode);
+            var compilation = CreateStandardCompilation(source: sourceCode);
             var semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(compilation);
             Utils.CheckSymbols(semanticInfo.MethodGroup,
                 "IEnumerable<double> IEnumerable<double>.Where<double>(Func<double, bool> predicate)",
@@ -1105,7 +1105,7 @@ static class E
 {
     internal static void F(this object x, object y) { }
 }";
-            var compilation = CreateStandardCompilation(text: sourceCode);
+            var compilation = CreateStandardCompilation(source: sourceCode);
             var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
@@ -1139,7 +1139,7 @@ static class E
 {
     internal static void F(this object x, object y) { }
 }";
-            compilation = CreateStandardCompilation(text: sourceCode);
+            compilation = CreateStandardCompilation(source: sourceCode);
             type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             tree = compilation.SyntaxTrees[0];
             model = compilation.GetSemanticModel(tree);
@@ -1169,7 +1169,7 @@ static class E
 {
     internal static void F(this object x) { }
 }";
-            compilation = CreateStandardCompilation(text: sourceCode);
+            compilation = CreateStandardCompilation(source: sourceCode);
             type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             tree = compilation.SyntaxTrees[0];
             model = compilation.GetSemanticModel(tree);
@@ -1199,7 +1199,7 @@ static class E
 {
     internal static void F(this object x) { }
 }";
-            compilation = CreateStandardCompilation(text: sourceCode);
+            compilation = CreateStandardCompilation(source: sourceCode);
             type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
             tree = compilation.SyntaxTrees[0];
             model = compilation.GetSemanticModel(tree);
@@ -1225,7 +1225,7 @@ static class E
 {
     internal static void F<T>(this object x) { }
 }";
-            compilation = CreateStandardCompilation(text: sourceCode);
+            compilation = CreateStandardCompilation(source: sourceCode);
             type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             tree = compilation.SyntaxTrees[0];
             model = compilation.GetSemanticModel(tree);
@@ -1252,7 +1252,7 @@ static class E
 {
     internal static void F(this object x) { }
 }";
-            compilation = CreateStandardCompilation(text: sourceCode);
+            compilation = CreateStandardCompilation(source: sourceCode);
             type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             tree = compilation.SyntaxTrees[0];
             model = compilation.GetSemanticModel(tree);
@@ -1280,7 +1280,7 @@ static class E
     internal static void F(this object x, object y) { }
     internal static void F<T>(this T t) { }
 }";
-            compilation = CreateStandardCompilation(text: sourceCode);
+            compilation = CreateStandardCompilation(source: sourceCode);
             type = compilation.GetSpecialType(SpecialType.System_String);
             tree = compilation.SyntaxTrees[0];
             model = compilation.GetSemanticModel(tree);
@@ -1307,7 +1307,7 @@ static class E
     internal static void F(this object x, object y) { }
     private static void F<T>(this T t) { }
 }";
-            compilation = CreateStandardCompilation(text: sourceCode);
+            compilation = CreateStandardCompilation(source: sourceCode);
             type = compilation.GetSpecialType(SpecialType.System_String);
             tree = compilation.SyntaxTrees[0];
             model = compilation.GetSemanticModel(tree);
@@ -1348,7 +1348,7 @@ static class E
 {
     internal static void F(this object x, object y, object z) { }
 }";
-            compilation = CreateStandardCompilation(text: sourceCode);
+            compilation = CreateStandardCompilation(source: sourceCode);
             type = compilation.GlobalNamespace.GetMember<NamespaceSymbol>("N2").GetMember<NamedTypeSymbol>("C");
             tree = compilation.SyntaxTrees[0];
             model = compilation.GetSemanticModel(tree);
@@ -1386,7 +1386,7 @@ static class E
 {
     internal static void F(this object x, object y, object z) { }
 }";
-            compilation = CreateStandardCompilation(text: sourceCode);
+            compilation = CreateStandardCompilation(source: sourceCode);
             type = compilation.GlobalNamespace.GetMember<NamespaceSymbol>("N").GetMember<NamedTypeSymbol>("C");
             tree = compilation.SyntaxTrees[0];
             model = compilation.GetSemanticModel(tree);

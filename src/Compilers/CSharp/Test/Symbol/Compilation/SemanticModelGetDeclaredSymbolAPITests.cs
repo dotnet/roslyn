@@ -1936,7 +1936,7 @@ static class E
         public void TestLookupSymbolsArrayExtensionMethods()
         {
             var compilation = CreateStandardCompilation(
-                text:
+                source:
 @"using System.Linq;
 class C
 {

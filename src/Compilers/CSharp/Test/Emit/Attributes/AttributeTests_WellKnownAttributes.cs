@@ -413,7 +413,7 @@ class C
             #endregion
 
             // Verify attributes from source and then load metadata to see attributes are written correctly.
-            CompileStandardAndVerify(text, additionalRefs: new[] { SystemRef }, sourceSymbolValidator: attributeValidator);
+            CompileStandardAndVerify(text, references: new[] { SystemRef }, sourceSymbolValidator: attributeValidator);
         }
 
         [Fact]
@@ -687,7 +687,7 @@ public class D
 ";
 
             var ilReference = CompileIL(ilsource);
-            CompileStandardAndVerify(cssource, expectedOutput: "0", additionalRefs: new[] { ilReference });
+            CompileStandardAndVerify(cssource, expectedOutput: "0", references: new[] { ilReference });
             // The native compiler would produce a working exe, but that exe would fail at runtime
         }
 
@@ -738,7 +738,7 @@ public class CCC
 
             CompileStandardAndVerify(
                 text,
-                additionalRefs: new[] { SystemRef },
+                references: new[] { SystemRef },
                 expectedOutput: @"
 (Byte)0, (Byte)128, (UInt32)4294967295, (UInt32)4294967295, (UInt32)4294967295, True
 (Byte)0, (Byte)0, (UInt32)4294967295, (UInt32)4294967295, (UInt32)4294967295, True
@@ -803,7 +803,7 @@ public class C
                 Assert.Equal(0, ps[0].GetAttributes().Length);
             };
 
-            CompileStandardAndVerify(source, additionalRefs: new[] { SystemRef }, symbolValidator: verifier);
+            CompileStandardAndVerify(source, references: new[] { SystemRef }, symbolValidator: verifier);
         }
 
         [Fact]
@@ -1179,7 +1179,7 @@ public interface ISomeInterface
 }
 ";
             // Dev10 reports CS1909, we don't
-            CompileStandardAndVerify(text, additionalRefs: new[] { SystemRef });
+            CompileStandardAndVerify(text, references: new[] { SystemRef });
         }
 
         [Fact, WorkItem(544934, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544934")]
@@ -1199,7 +1199,7 @@ class C
         Goo();
     }
 }";
-            CompileStandardAndVerify(source, additionalRefs: new[] { SystemRef }, expectedOutput: @"5");
+            CompileStandardAndVerify(source, references: new[] { SystemRef }, expectedOutput: @"5");
         }
 
         [Fact]
@@ -1321,7 +1321,7 @@ partial class C
                 partialValidator(sourceMethod);
             };
 
-            CompileStandardAndVerify(source, additionalRefs: new[] { SystemRef }, sourceSymbolValidator: sourceValidator);
+            CompileStandardAndVerify(source, references: new[] { SystemRef }, sourceSymbolValidator: sourceValidator);
         }
 
         [WorkItem(544303, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544303")]
@@ -1539,7 +1539,7 @@ class C
     }
 }
 ";
-            CompileStandardAndVerify(source, additionalRefs: new[] { MscorlibRef, SystemRef }, options: TestOptions.ReleaseExe, expectedOutput: "");
+            CompileStandardAndVerify(source, references: new[] { MscorlibRef, SystemRef }, options: TestOptions.ReleaseExe, expectedOutput: "");
         }
 
         [Fact, WorkItem(546624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546624")]
@@ -1841,7 +1841,7 @@ class Test
     }
 }
 ";
-            CompileStandardAndVerify(source, additionalRefs: new[] { SystemRef }, expectedOutput: @"100200300400");
+            CompileStandardAndVerify(source, references: new[] { SystemRef }, expectedOutput: @"100200300400");
         }
 
         [WorkItem(544516, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544516")]
@@ -3685,9 +3685,9 @@ public class MainClass
             // Verify attributes from source and then load metadata to see attributes are written correctly.
 
             // Using metadata reference to test RetargetingNamedTypeSymbol CoClass type
-            CompileStandardAndVerify(source2, additionalRefs: new[] { compDll.ToMetadataReference() }, expectedOutput: expectedOutput);
+            CompileStandardAndVerify(source2, references: new[] { compDll.ToMetadataReference() }, expectedOutput: expectedOutput);
             // Using assembly file reference to test PENamedTypeSymbol symbol CoClass type
-            CompileStandardAndVerify(source2, additionalRefs: new[] { compDll.EmitToImageReference() }, expectedOutput: expectedOutput);
+            CompileStandardAndVerify(source2, references: new[] { compDll.EmitToImageReference() }, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -3793,9 +3793,9 @@ public class MainClass
             // Verify attributes from source and then load metadata to see attributes are written correctly.
 
             // Using metadata reference to test RetargetingNamedTypeSymbol CoClass type
-            CompileStandardAndVerify(source2, additionalRefs: new[] { compDll.ToMetadataReference() }, expectedOutput: expectedOutput);
+            CompileStandardAndVerify(source2, references: new[] { compDll.ToMetadataReference() }, expectedOutput: expectedOutput);
             // Using assembly file reference to test PENamedTypeSymbol symbol CoClass type
-            CompileStandardAndVerify(source2, additionalRefs: new[] { compDll.EmitToImageReference() }, expectedOutput: expectedOutput);
+            CompileStandardAndVerify(source2, references: new[] { compDll.EmitToImageReference() }, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -5005,7 +5005,7 @@ public class Test
 ";
             #endregion
 
-            CompileStandardAndVerify(source, additionalRefs: new[] { SystemRef }, expectedOutput: @"System.Reflection.Missing")
+            CompileStandardAndVerify(source, references: new[] { SystemRef }, expectedOutput: @"System.Reflection.Missing")
                 .VerifyIL("Test.Main", @"{
   // Code size       16 (0x10)
   .maxstack  2
@@ -5645,7 +5645,7 @@ public static class TestExtension
     public static void ObsoleteExtensionMethod1(this Test t) { }
 }
 ";
-            CreateStandardCompilation(source, new[] { ExtensionAssemblyRef }).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(source, new[] { ExtensionAssemblyRef }).VerifyDiagnostics(
                 // (65,10): error CS1667: Attribute 'Obsolete' is not valid on property or event accessors. It is only valid on 'class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate' declarations.
                 //         [Obsolete] get { return 10; }
                 Diagnostic(ErrorCode.ERR_AttributeNotOnAccessor, "Obsolete").WithArguments("System.ObsoleteAttribute", "class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate"),

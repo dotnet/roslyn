@@ -533,7 +533,7 @@ class C
 {
     public (int a, bool b) x;
 }";
-            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll, references: s_valueTupleRefs);
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var matcher = new CSharpSymbolMatcher(
@@ -563,7 +563,7 @@ class C
 {
     public (int a, int c) x;
 }";
-            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll, references: s_valueTupleRefs);
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var matcher = new CSharpSymbolMatcher(
@@ -593,7 +593,7 @@ class C
 {
     public (int a, bool b) X() { return null };
 }";
-            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll, references: s_valueTupleRefs);
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var matcher = new CSharpSymbolMatcher(
@@ -623,7 +623,7 @@ class C
 {
     public (int a, int c) X() { return null };
 }";
-            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll, references: s_valueTupleRefs);
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var matcher = new CSharpSymbolMatcher(
@@ -653,7 +653,7 @@ class C
 {
     public (int a, bool b) X { get { return null; } };
 }";
-            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll, references: s_valueTupleRefs);
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var matcher = new CSharpSymbolMatcher(
@@ -683,7 +683,7 @@ class C
 {
     public (int a, int c) X { get { return null; } };
 }";
-            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll, references: s_valueTupleRefs);
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var matcher = new CSharpSymbolMatcher(
@@ -713,7 +713,7 @@ public struct Vector
 {
     public (int x, int y, int z) Coordinates;
 }";
-            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll, references: s_valueTupleRefs);
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var matcher = new CSharpSymbolMatcher(
@@ -743,7 +743,7 @@ public struct Vector
 {
     public (int x, int z) Coordinates;
 }";
-            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll, references: s_valueTupleRefs);
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var matcher = new CSharpSymbolMatcher(
@@ -773,7 +773,7 @@ public class C
 {
     public delegate (int, bool) F();
 }";
-            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll, references: s_valueTupleRefs);
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var matcher = new CSharpSymbolMatcher(
@@ -803,7 +803,7 @@ public class C
 {
     public delegate (int x, int y) F();
 }";
-            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll, references: s_valueTupleRefs);
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var matcher = new CSharpSymbolMatcher(

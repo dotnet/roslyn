@@ -228,7 +228,7 @@ static class P
     }
 }";
 
-            CompileStandardAndVerify(source3, additionalRefs: new[] { SystemCoreRef }, expectedOutput: @"BB");
+            CompileStandardAndVerify(source3, references: new[] { SystemCoreRef }, expectedOutput: @"BB");
         }
 
         [Fact]
@@ -2284,7 +2284,7 @@ class Test
         Console.WriteLine(M().First());
     }
 }";
-            CompileStandardAndVerify(source, additionalRefs: new[] { LinqAssemblyRef }, expectedOutput: @"12");
+            CompileStandardAndVerify(source, references: new[] { LinqAssemblyRef }, expectedOutput: @"12");
         }
 
         [Fact]
@@ -3152,7 +3152,7 @@ class X
     }
 }
 ";
-            CompileStandardAndVerify(source, additionalRefs: new[] { SystemCoreRef });
+            CompileStandardAndVerify(source, references: new[] { SystemCoreRef });
         }
 
         [Fact]
@@ -10509,7 +10509,7 @@ class Program
         instance.M(3);
     }
 }",
-                additionalRefs: new[] { SystemCoreRef },
+                references: new[] { SystemCoreRef },
                 expectedOutput:
 @"val: 1
 in: 2
@@ -10538,7 +10538,7 @@ class Program
         Console.WriteLine(instance[3]);
     }
 }",
-                additionalRefs: new[] { SystemCoreRef },
+                references: new[] { SystemCoreRef },
                 expectedOutput:
 @"val: 1
 in: 2
@@ -10806,7 +10806,7 @@ class Program
 }
 ";
 
-            CompileStandardAndVerify(code, additionalRefs: new[] { SystemRuntimeFacadeRef, ValueTupleRef }, expectedOutput: @"
+            CompileStandardAndVerify(code, references: new[] { SystemRuntimeFacadeRef, ValueTupleRef }, expectedOutput: @"
 System.String
 System.Int32
 System.Object

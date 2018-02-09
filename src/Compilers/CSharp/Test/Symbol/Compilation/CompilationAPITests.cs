@@ -751,14 +751,14 @@ class D
             var netModule1 = CreateStandardCompilation(
                 options: TestOptions.ReleaseModule,
                 assemblyName: "a1",
-                sources: new string[] { "public class C1 {}" });
+                source: new string[] { "public class C1 {}" });
             netModule1.VerifyEmitDiagnostics();
 
             var netModule2 = CreateStandardCompilation(
                 options: TestOptions.ReleaseModule,
                 assemblyName: "a2",
                 references: new MetadataReference[] { netModule1.EmitToImageReference() },
-                sources: new string[] {
+                source: new string[] {
                     @"
 public class C2 { 
 public static void M() {
@@ -772,7 +772,7 @@ public static void M() {
                 options: TestOptions.ReleaseExe,
                 assemblyName: "a",
                 references: new MetadataReference[] { netModule2.EmitToImageReference() },
-                sources: new string[] {
+                source: new string[] {
                 @"
 public class C3 { 
 public static void Main(string[] args) {
@@ -787,7 +787,7 @@ var a = new C2();
                 options: TestOptions.ReleaseExe,
                 assemblyName: "a",
                 references: new MetadataReference[] { netModule1.EmitToImageReference(), netModule2.EmitToImageReference() },
-                sources: new string[] {
+                source: new string[] {
                 @"
 public class C3 { 
 public static void Main(string[] args) {
@@ -806,14 +806,14 @@ var a = new C2();
             var netModule1 = CreateStandardCompilation(
                 options: TestOptions.ReleaseModule,
                 assemblyName: "a1",
-                sources: new string[] { "public class C1 {}" });
+                source: new string[] { "public class C1 {}" });
             netModule1.VerifyEmitDiagnostics();
 
             var netModule2 = CreateStandardCompilation(
                 options: TestOptions.ReleaseModule,
                 assemblyName: "a2",
                 references: new MetadataReference[] { netModule1.EmitToImageReference() },
-                sources: new string[] {
+                source: new string[] {
                     @"
 public class C2 { 
 public static void M() {
@@ -827,7 +827,7 @@ public static void M() {
                 options: TestOptions.ReleaseModule,
                 assemblyName: "a3",
                 references: new MetadataReference[] { netModule1.EmitToImageReference() },
-                sources: new string[] {
+                source: new string[] {
                     @"
 public class C2a { 
 public static void M() {
@@ -841,7 +841,7 @@ public static void M() {
                 options: TestOptions.ReleaseExe,
                 assemblyName: "a",
                 references: new MetadataReference[] { netModule2.EmitToImageReference(), netModule3.EmitToImageReference() },
-                sources: new string[] {
+                source: new string[] {
                 @"
 public class C3 { 
 public static void Main(string[] args) {
@@ -861,7 +861,7 @@ var a = new C2();
             var netModule1 = CreateStandardCompilation(
                 options: TestOptions.ReleaseModule,
                 assemblyName: "a1",
-                sources: new string[] {
+                source: new string[] {
                     @"
 using System;
 using System.Runtime.InteropServices;
@@ -877,7 +877,7 @@ public class C2 {
                 options: TestOptions.ReleaseExe,
                 assemblyName: "a",
                 references: new MetadataReference[] { netModule1.EmitToImageReference() },
-                sources: new string[] {
+                source: new string[] {
                 @"
 public class C3 { 
 public static void Main(string[] args) {
@@ -895,14 +895,14 @@ var a = new C2();
             var netModule1 = CreateStandardCompilation(
                 options: TestOptions.ReleaseModule,
                 assemblyName: "a1",
-                sources: new string[] { "public class C1 {}" });
+                source: new string[] { "public class C1 {}" });
             netModule1.VerifyEmitDiagnostics();
 
             var netModule2 = CreateStandardCompilation(
                 options: TestOptions.ReleaseModule,
                 assemblyName: "a1",
                 references: new MetadataReference[] { netModule1.EmitToImageReference() },
-                sources: new string[] {
+                source: new string[] {
                     @"
 public class C2 { 
 public static void M() {
@@ -916,7 +916,7 @@ public static void M() {
                 options: TestOptions.ReleaseExe,
                 assemblyName: "a",
                 references: new MetadataReference[] { netModule1.EmitToImageReference(), netModule2.EmitToImageReference() },
-                sources: new string[] {
+                source: new string[] {
                 @"
 public class C3 { 
 public static void Main(string[] args) {
@@ -1696,7 +1696,7 @@ public class TestClass
 
             // Ask for model diagnostics first.
             {
-                var compilation = CreateStandardCompilation(sources: new string[] { source1, source2 });
+                var compilation = CreateStandardCompilation(source: new string[] { source1, source2 });
 
                 var tree2 = compilation.SyntaxTrees[1]; //tree for empty file
                 var model2 = compilation.GetSemanticModel(tree2);
@@ -1710,7 +1710,7 @@ public class TestClass
 
             // Ask for compilation diagnostics first.
             {
-                var compilation = CreateStandardCompilation(sources: new string[] { source1, source2 });
+                var compilation = CreateStandardCompilation(source: new string[] { source1, source2 });
 
                 var tree2 = compilation.SyntaxTrees[1]; //tree for empty file
                 var model2 = compilation.GetSemanticModel(tree2);

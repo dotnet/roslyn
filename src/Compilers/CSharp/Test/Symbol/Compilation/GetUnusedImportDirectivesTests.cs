@@ -51,7 +51,7 @@ namespace ClassLibrary1
     }
 } 
 ";
-            var classLib1 = CreateStandardCompilation(text: class1Source, assemblyName: "ClassLibrary1");
+            var classLib1 = CreateStandardCompilation(source: class1Source, assemblyName: "ClassLibrary1");
 
             string class2Source = @"using System;
 using ClassLibrary1;
@@ -66,7 +66,7 @@ namespace ClassLibrary2
         }
     }
 }";
-            var classLib2 = CreateStandardCompilation(text: class2Source, assemblyName: "ClassLibrary2", references: new[] { classLib1.ToMetadataReference() });
+            var classLib2 = CreateStandardCompilation(source: class2Source, assemblyName: "ClassLibrary2", references: new[] { classLib1.ToMetadataReference() });
 
             string consoleApplicationSource = @"using ClassLibrary2;
 using ClassLibrary1;
@@ -217,7 +217,7 @@ using System.Reflection;
             var ivtCompilation = CreateStandardCompilation(
                 assemblyName: "IVT",
                 options: TestOptions.ReleaseDll.WithStrongNameProvider(new DesktopStrongNameProvider()),
-                trees: new[]
+                source: new[]
                 {
                     Parse(@"
 using System.Runtime.CompilerServices;
@@ -239,7 +239,7 @@ namespace NamespaceContainingInternalsOnly
                 assemblyName: "Lib",
                 options: TestOptions.ReleaseDll.WithStrongNameProvider(new DesktopStrongNameProvider()),
                 references: new[] { ivtCompilation.ToMetadataReference() },
-                trees: new[]
+                source: new[]
                 {
                     Parse(@"
 using NamespaceContainingInternalsOnly;

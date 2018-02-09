@@ -194,7 +194,7 @@ enum Enum
     EnumValue
 }
 ";
-            return CreateStandardCompilation(sources: new string[] { source });
+            return CreateStandardCompilation(source: new string[] { source });
         }
 
         private static void Test(CSharpCompilation compilation, Func<string, bool> predicate, bool includeNamespace, bool includeType, bool includeMember, int count)

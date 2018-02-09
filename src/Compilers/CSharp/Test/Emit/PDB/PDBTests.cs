@@ -247,7 +247,7 @@ public class C
 }
 ";
 
-            var debug = CreateStandardCompilation(source, new[] { CSharpRef, SystemCoreRef }, options: TestOptions.DebugWinMD);
+            var debug = CreateStandardCompilation(source, new[] { CSharpRef }, options: TestOptions.DebugWinMD);
             debug.VerifyPdb(@"
 <symbols>
     <files>
@@ -286,7 +286,7 @@ public class C
   </methods>
 </symbols>", format: DebugInformationFormat.Pdb, options: PdbValidationOptions.SkipConversionValidation);
 
-            var release = CreateStandardCompilation(source, new[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseWinMD);
+            var release = CreateStandardCompilation(source, new[] { CSharpRef }, options: TestOptions.ReleaseWinMD);
             release.VerifyPdb(@"
 <symbols>
   <files>
@@ -331,7 +331,7 @@ public class C
     }
 }";
 
-            var debug = CreateStandardCompilation(source, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugWinMD);
+            var debug = CreateStandardCompilation(source, options: TestOptions.DebugWinMD);
             debug.VerifyPdb(
 @"<symbols>
   <files>
@@ -356,7 +356,7 @@ public class C
   </methods>
 </symbols>", format: DebugInformationFormat.Pdb, options: PdbValidationOptions.SkipConversionValidation);
 
-            var release = CreateStandardCompilation(source, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseWinMD);
+            var release = CreateStandardCompilation(source, options: TestOptions.ReleaseWinMD);
             release.VerifyPdb(
 @"<symbols>
   <files>
@@ -1962,7 +1962,7 @@ class Program
     }
 }
 ";
-            var v = CompileStandardAndVerify(source, options: TestOptions.DebugDll, additionalRefs: new[]{ MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef });
+            var v = CompileStandardAndVerify(source, options: TestOptions.DebugDll);
 
             v.VerifyIL("Program.<Test>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
@@ -2100,7 +2100,7 @@ class C
     }
 }
 ";
-            var v = CompileStandardAndVerify(source, options: TestOptions.DebugDll, additionalRefs: new[]{ MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef });
+            var v = CompileStandardAndVerify(source, options: TestOptions.DebugDll);
 
             v.VerifyIL("C.M", @"
 {
@@ -2158,7 +2158,7 @@ class Program
     }
 }
 ";
-            var v = CompileStandardAndVerify(source, options: TestOptions.DebugDll, additionalRefs: new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef });
+            var v = CompileStandardAndVerify(source, options: TestOptions.DebugDll);
 
             v.VerifyIL("Program.<Test>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
@@ -2240,7 +2240,7 @@ class Program
     }
 }
 ";
-            var v = CompileStandardAndVerify(source, options: TestOptions.DebugDll, additionalRefs: new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef });
+            var v = CompileStandardAndVerify(source, options: TestOptions.DebugDll);
 
             v.VerifyIL("Program.Test()", @"
 {
@@ -2290,7 +2290,7 @@ class Program
     }
 }
 ";
-            var v = CompileStandardAndVerify(source, options: TestOptions.DebugDll, additionalRefs: new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef });
+            var v = CompileStandardAndVerify(source, options: TestOptions.DebugDll);
 
             v.VerifyIL("Program.<Test>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
@@ -2433,7 +2433,7 @@ class Program
     }
 }
 ";
-            var v = CompileStandardAndVerify(source, options: TestOptions.DebugDll, additionalRefs: new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef });
+            var v = CompileStandardAndVerify(source, options: TestOptions.DebugDll);
 
             v.VerifyIL("Program.Test", @"
 {
@@ -2832,7 +2832,7 @@ public class C
     }
 }
 ";
-            var c = CreateStandardCompilation(source, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugDll);
+            var c = CreateStandardCompilation(source, options: TestOptions.DebugDll);
             var v = CompileAndVerify(c);
 
             v.VerifyIL("C.Main", @"
@@ -7243,7 +7243,7 @@ public class C
     }
 }
 ";
-            var c = CreateStandardCompilation(source, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugDll);
+            var c = CreateStandardCompilation(source, options: TestOptions.DebugDll);
             var v = CompileAndVerify(c);
 
             v.VerifyIL("C.Main", @"
@@ -7865,7 +7865,7 @@ class Program
     }
 }
 ";
-            var v = CompileStandardAndVerify(source, options: TestOptions.DebugDll, additionalRefs: new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef });
+            var v = CompileStandardAndVerify(source, options: TestOptions.DebugDll);
 
             v.VerifyIL("Program.<Test>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
@@ -7944,7 +7944,7 @@ class Program
     }
 }
 ";
-            var v = CompileStandardAndVerify(source, options: TestOptions.DebugDll, additionalRefs: new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef });
+            var v = CompileStandardAndVerify(source, options: TestOptions.DebugDll);
 
             v.VerifyIL("Program.<Test>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
@@ -8025,7 +8025,7 @@ class Program
     }
 }
 ";
-            var v = CompileStandardAndVerify(source, options: TestOptions.DebugDll, additionalRefs: new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef });
+            var v = CompileStandardAndVerify(source, options: TestOptions.DebugDll);
 
             v.VerifyIL("Program.<Test>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
@@ -8117,7 +8117,7 @@ class Program
     public static int M(out int x) { x = 0; return 0; }
 }
 ";
-            var v = CompileStandardAndVerify(source, options: TestOptions.DebugDll, additionalRefs: new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef });
+            var v = CompileStandardAndVerify(source, options: TestOptions.DebugDll);
 
             v.VerifyIL("Program.<Test>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {

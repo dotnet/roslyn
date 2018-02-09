@@ -665,7 +665,7 @@ class C
                      <N:3>select d.Key</N:3>;
     }
 }");
-            var compilation0 = CreateStandardCompilation(source0.Tree, new[] { SystemCoreRef }, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            var compilation0 = CreateStandardCompilation(source0.Tree, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
             var compilation1 = compilation0.WithSource(source1.Tree);
 
             var v0 = CompileAndVerify(compilation0);
@@ -746,7 +746,7 @@ class C
 		                   <N:4>select a</N:4></N:10>;
     }
 }");
-            var compilation0 = CreateStandardCompilation(source0.Tree, new[] { SystemCoreRef }, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            var compilation0 = CreateStandardCompilation(source0.Tree, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
             var compilation1 = compilation0.WithSource(source1.Tree);
 
             var v0 = CompileAndVerify(compilation0);
@@ -829,7 +829,7 @@ class C
 		             <N:4>select <N:5>a + b</N:5></N:4>;
     }
 }");
-            var compilation0 = CreateStandardCompilation(source0.Tree, new[] { SystemCoreRef }, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            var compilation0 = CreateStandardCompilation(source0.Tree, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
             var compilation1 = compilation0.WithSource(source1.Tree);
 
             var v0 = CompileAndVerify(compilation0);
@@ -911,7 +911,7 @@ class C
                      <N:9>select <N:10>Z(<N:11>() => <N:12>a - b</N:12></N:11>)</N:10></N:9>;
     }
 }");
-            var compilation0 = CreateStandardCompilation(source0.Tree, new[] { SystemCoreRef }, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            var compilation0 = CreateStandardCompilation(source0.Tree, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
             var compilation1 = compilation0.WithSource(source1.Tree);
 
             var v0 = CompileAndVerify(compilation0);
@@ -998,7 +998,7 @@ class C
                      <N:5>select <N:6>Z(<N:7>() => <N:8>g.Last()</N:8></N:7>)</N:6></N:5>;
     }
 }");
-            var compilation0 = CreateStandardCompilation(source0.Tree, new[] { SystemCoreRef }, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            var compilation0 = CreateStandardCompilation(source0.Tree, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
             var compilation1 = compilation0.WithSource(source1.Tree);
 
             var v0 = CompileAndVerify(compilation0);
@@ -1076,7 +1076,7 @@ class C
                      <N:5>select <N:6>Z(<N:7>() => <N:8>g.Last()</N:8></N:7>)</N:6></N:5></N:4>;
     }
 }");
-            var compilation0 = CreateStandardCompilation(source0.Tree, new[] { SystemCoreRef }, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            var compilation0 = CreateStandardCompilation(source0.Tree, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
             var compilation1 = compilation0.WithSource(source1.Tree);
 
             var v0 = CompileAndVerify(compilation0);
@@ -1863,7 +1863,7 @@ class C
     }
 }");
 
-            var compilation0 = CreateStandardCompilation(source0.Tree, new[] { SystemCoreRef }, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            var compilation0 = CreateStandardCompilation(source0.Tree, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
             var compilation1 = compilation0.WithSource(source1.Tree);
             var compilation2 = compilation1.WithSource(source2.Tree);
             var v0 = CompileAndVerify(compilation0);
@@ -2776,7 +2776,7 @@ class C
     int[] array = null;
 }
 ");
-            var compilation0 = CreateStandardCompilation(source0.Tree, new[] { SystemCoreRef }, options: ComSafeDebugDll);
+            var compilation0 = CreateStandardCompilation(source0.Tree, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1.Tree);
             var v0 = CompileAndVerify(compilation0);
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
@@ -2904,7 +2904,7 @@ class C
     int[] array = null;
 }
 ");
-            var compilation0 = CreateStandardCompilation(source0.Tree, new[] { SystemCoreRef }, options: ComSafeDebugDll);
+            var compilation0 = CreateStandardCompilation(source0.Tree, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1.Tree);
             var v0 = CompileAndVerify(compilation0);
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
@@ -3020,7 +3020,7 @@ class C
     int[] array = null;
 }
 ");
-            var compilation0 = CreateStandardCompilation(source0.Tree, new[] { SystemCoreRef }, options: ComSafeDebugDll);
+            var compilation0 = CreateStandardCompilation(source0.Tree, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1.Tree);
             var v0 = CompileAndVerify(compilation0);
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
@@ -3145,7 +3145,7 @@ class C
     int[] array = null;
 }
 ");
-            var compilation0 = CreateStandardCompilation(source0.Tree, new[] { SystemCoreRef }, options: ComSafeDebugDll);
+            var compilation0 = CreateStandardCompilation(source0.Tree, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1.Tree);
             var v0 = CompileAndVerify(compilation0);
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
@@ -3468,7 +3468,7 @@ class C
             var source1 = MarkedSource(template.Replace("<<CALL>>", "d.F(out x, new { y })"));
             var source2 = MarkedSource(template.Replace("<<CALL>>", "d.F(new { y }, out x)"));
 
-            var compilation0 = CreateStandardCompilation(source0.Tree, options: ComSafeDebugDll, references: new[] { SystemCoreRef, CSharpRef });
+            var compilation0 = CreateCompilationWithMscorlib40(new[] { source0.Tree }, references: new[] { SystemCoreRef, CSharpRef }, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1.Tree);
             var compilation2 = compilation1.WithSource(source2.Tree);
 

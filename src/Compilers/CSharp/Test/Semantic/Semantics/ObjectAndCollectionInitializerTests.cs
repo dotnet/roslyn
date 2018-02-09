@@ -247,7 +247,7 @@ IObjectCreationOperation (Constructor: MemberInitializerTest..ctor()) (Operation
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
 
             // TODO: This should produce no diagnostics.
-            CreateStandardCompilation(source, references: new MetadataReference[] { SystemCoreRef, CSharpRef }).VerifyDiagnostics();
+            CreateStandardCompilation(source, references: new MetadataReference[] { CSharpRef }).VerifyDiagnostics();
         }
 
         [Fact]
@@ -431,7 +431,7 @@ IObjectCreationOperation (Constructor: Test..ctor()) (OperationKind.ObjectCreati
 
             // TODO: This should produce no diagnostics.
             // The 'info' message is ONLY used for IDE (NOT show up in console)
-            CompileStandardAndVerify(source, additionalRefs: new MetadataReference[] { SystemCoreRef, CSharpRef }).
+            CompileStandardAndVerify(source, references: new MetadataReference[] { CSharpRef }).
                 VerifyDiagnostics(
                 // (4,1): info CS8019: Unnecessary using directive.
                 // using System.Collections;
@@ -3787,7 +3787,7 @@ public class Cc{
     }
 }
 ";
-            CompileStandardAndVerify(source, new[] { CSharpRef, SystemCoreRef }, expectedOutput: "Initialized");
+            CompileStandardAndVerify(source, new[] { CSharpRef }, expectedOutput: "Initialized");
         }
 
         [WorkItem(12983, "https://github.com/dotnet/roslyn/issues/12983")]

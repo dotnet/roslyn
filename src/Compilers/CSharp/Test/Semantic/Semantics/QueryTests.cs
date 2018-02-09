@@ -1902,7 +1902,7 @@ class Program
     }
 }";
 
-            CompileStandardAndVerify(csSource, additionalRefs: new[] { LinqAssemblyRef }, expectedOutput: "3 3 4 4");
+            CompileStandardAndVerify(csSource, references: new[] { LinqAssemblyRef }, expectedOutput: "3 3 4 4");
         }
 
         [WorkItem(541782, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541782")]
@@ -1929,7 +1929,7 @@ class Program
         System.Console.Write(serializer.Trim());
     }
 }";
-            CompileStandardAndVerify(csSource, additionalRefs: new[] { LinqAssemblyRef }, expectedOutput: "3 4");
+            CompileStandardAndVerify(csSource, references: new[] { LinqAssemblyRef }, expectedOutput: "3 4");
         }
 
 
@@ -1959,7 +1959,7 @@ class Program
     }
 }";
 
-            CompileStandardAndVerify(csSource, additionalRefs: new[] { LinqAssemblyRef }, expectedOutput: "1 2 3");
+            CompileStandardAndVerify(csSource, references: new[] { LinqAssemblyRef }, expectedOutput: "1 2 3");
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -2093,7 +2093,7 @@ class Program
     }
 }";
 
-            CompileStandardAndVerify(csSource, additionalRefs: new[] { LinqAssemblyRef }, expectedOutput: "3 4");
+            CompileStandardAndVerify(csSource, references: new[] { LinqAssemblyRef }, expectedOutput: "3 4");
         }
 
         [WorkItem(541942, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541942")]
@@ -2124,7 +2124,7 @@ class P
     }
 }";
 
-            CompileStandardAndVerify(csSource, additionalRefs: new[] { LinqAssemblyRef }, expectedOutput: "45");
+            CompileStandardAndVerify(csSource, references: new[] { LinqAssemblyRef }, expectedOutput: "45");
         }
 
         [Fact]

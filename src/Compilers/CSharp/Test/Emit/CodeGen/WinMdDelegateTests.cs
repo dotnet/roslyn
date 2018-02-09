@@ -269,7 +269,7 @@ class Test
 
             var comp = CompileStandardAndVerify(
                 allDelegates,
-                additionalRefs: new[] {
+                references: new[] {
                     winRtDelegateLibrary,
                     nonWinRtDelegateLibrary
                 },

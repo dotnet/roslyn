@@ -265,7 +265,7 @@ using System;
 
             // Different source files, different compilation
             var comp1 = CreateStandardCompilation(source1);
-            CompileStandardAndVerify(source2, additionalRefs: new[] { comp1.ToMetadataReference() }, sourceSymbolValidator: CommonSourceValidatorForCondAttrType, symbolValidator: CommonMetadataValidatorForCondAttrType, expectedOutput: "");
+            CompileStandardAndVerify(source2, references: new[] { comp1.ToMetadataReference() }, sourceSymbolValidator: CommonSourceValidatorForCondAttrType, symbolValidator: CommonMetadataValidatorForCondAttrType, expectedOutput: "");
         }
 
         #endregion
@@ -476,7 +476,7 @@ using System;
 
             // Different source files, different compilation
             var comp1 = CreateStandardCompilation(source1, assemblyName: Guid.NewGuid().ToString());
-            CompileStandardAndVerify(source2, additionalRefs: new[] { comp1.ToMetadataReference() }, expectedOutput: s_commonExpectedOutput_ConditionalMethodsTest);
+            CompileStandardAndVerify(source2, references: new[] { comp1.ToMetadataReference() }, expectedOutput: s_commonExpectedOutput_ConditionalMethodsTest);
         }
 
         #endregion

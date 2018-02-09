@@ -504,7 +504,7 @@ class C
     }
 }
 ";
-            var compilation = CreateStandardCompilationWithCustomILSource(source, il, options: TestOptions.ReleaseDll);
+            var compilation = CreateCompilationWithCustomILSource(source, il, TargetFramework.Net45, options: TestOptions.ReleaseDll);
             var result = CompileAndVerify(compilation);
 
             result.VerifyIL("C.A", @"
@@ -578,7 +578,7 @@ class C
     }
 }
 ";
-            var compilation = CreateStandardCompilationWithCustomILSource(source, il, options: TestOptions.DebugDll);
+            var compilation = CreateCompilationWithCustomILSource(source, il, TargetFramework.Net45, options: TestOptions.DebugDll);
             var result = CompileAndVerify(compilation);
 
             result.VerifyIL("C.A",
@@ -823,7 +823,7 @@ class Clazz
     }
 }
 ";
-            var compilation = CreateStandardCompilationWithCustomILSource(source, il, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithCustomILSource(source, il, TargetFramework.Net45, options: TestOptions.ReleaseExe);
             var result = CompileAndVerify(compilation, expectedOutput: "Struct1 Struct2 ");
 
             result.VerifyIL("Clazz.Main", @"
@@ -6892,7 +6892,7 @@ public class D
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"
+            var compilation = CompileAndVerify(source, expectedOutput: @"
 Byte
 Char
 DBNull
@@ -10454,9 +10454,9 @@ public class Test
         }
     }
 }";
-            CompileStandardAndVerify(
+            CompileAndVerify(
                 source,
-                additionalRefs: new[] { SystemCoreRef },
+                references: new[] { SystemCoreRef },
                 expectedOutput: @"Success");
         }
 
@@ -14067,7 +14067,7 @@ public class Test
 }
 ";
 
-            CompileStandardAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: @"0");
+            CompileAndVerify(source, references: new[] { SystemCoreRef, CSharpRef }, expectedOutput: @"0");
         }
 
 
@@ -14967,7 +14967,7 @@ class Program
 }";
 
             var testReference = AssemblyMetadata.CreateFromImage(TestResources.Repros.BadDefaultParameterValue).GetReference();
-            var compilation = CompileStandardAndVerify(source, additionalRefs: new[] { testReference });
+            var compilation = CompileStandardAndVerify(source, references: new[] { testReference });
             compilation.VerifyIL("Program.Main", @"
 {
   // Code size       12 (0xc)
@@ -15391,7 +15391,7 @@ class M
 }
 ";
 
-            var compilation = CompileStandardAndVerify(source, new[] { SystemCoreRef, CSharpRef }, expectedOutput: "2");
+            var compilation = CompileAndVerify(source, new[] { SystemCoreRef, CSharpRef }, expectedOutput: "2");
 
             // the main point of this test is to have it PEVerify/run correctly, although checking IL too can't hurt.
             compilation.VerifyIL("M..ctor",
@@ -15460,7 +15460,7 @@ class M
 }
 ";
 
-            var compilation = CompileStandardAndVerify(source, new[] { SystemCoreRef, CSharpRef }, expectedOutput: "2");
+            var compilation = CompileAndVerify(source, new[] { SystemCoreRef, CSharpRef }, expectedOutput: "2");
 
             compilation.VerifyIL("M..ctor",
 @"{
@@ -15573,7 +15573,7 @@ class M
 }
 ";
 
-            var compilation = CompileStandardAndVerify(source, new[] { SystemCoreRef, CSharpRef }, expectedOutput: "long.ex caught");
+            var compilation = CompileAndVerify(source, new[] { SystemCoreRef, CSharpRef }, expectedOutput: "long.ex caught");
         }
 
         [WorkItem(10463, "https://github.com/dotnet/roslyn/issues/10463")]
@@ -16019,7 +16019,7 @@ class Program
     }
 }
 ";
-            CompileStandardAndVerify(source, additionalRefs: new[] { SystemRef, SystemCoreRef },
+            CompileAndVerify(source, references: new[] { SystemRef, SystemCoreRef },
                 expectedOutput: "0");
         }
 

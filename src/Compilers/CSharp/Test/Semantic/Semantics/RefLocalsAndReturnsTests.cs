@@ -1357,7 +1357,7 @@ class C
 ";
             CompileStandardAndVerify(text,
                 expectedOutput: "frog",
-                additionalRefs: new[] { SystemCoreRef, CSharpRef }).VerifyDiagnostics();
+                references: new[] { SystemCoreRef, CSharpRef }).VerifyDiagnostics();
         }
 
         [Fact]

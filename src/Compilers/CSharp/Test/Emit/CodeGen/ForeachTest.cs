@@ -116,7 +116,7 @@ public class Test
             string expectedOutput = @"97
 98
 99";
-            CompileStandardAndVerify(text, additionalRefs: new[] { LinqAssemblyRef }, expectedOutput: expectedOutput);
+            CompileStandardAndVerify(text, expectedOutput: expectedOutput);
         }
 
         // Empty foreach statement
@@ -1169,7 +1169,7 @@ Z";
 ";
             string expectedOutput = @"abc
 xyz";
-            CompileStandardAndVerify(text, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: expectedOutput);
+            CompileStandardAndVerify(text, new[] { CSharpRef }, expectedOutput: expectedOutput);
         }
 
         [Fact]

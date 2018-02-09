@@ -95,7 +95,7 @@ Class.Method2(4)
 
             CompileStandardAndVerify(
                 source: text,
-                additionalRefs: new MetadataReference[] { ilAssemblyReference },
+                references: new MetadataReference[] { ilAssemblyReference },
                 expectedOutput: expectedOutput);
         }
 
@@ -154,7 +154,7 @@ Class.Method2(6)
 
             CompileStandardAndVerify(
                 source: text,
-                additionalRefs: new MetadataReference[] { ilAssemblyReference },
+                references: new MetadataReference[] { ilAssemblyReference },
                 expectedOutput: expectedOutput);
         }
 
@@ -206,7 +206,7 @@ CppBase1::NonVirtualMethod(4)
 
             CompileStandardAndVerify(
                 source: text,
-                additionalRefs: new MetadataReference[] { ilAssemblyReference },
+                references: new MetadataReference[] { ilAssemblyReference },
                 expectedOutput: expectedOutput);
         }
 
@@ -277,7 +277,7 @@ CppBase1::NonVirtualMethod(6)
 
             CompileStandardAndVerify(
                 source: text,
-                additionalRefs: new MetadataReference[] { ilAssemblyReference },
+                references: new MetadataReference[] { ilAssemblyReference },
                 expectedOutput: expectedOutput);
         }
 
@@ -370,7 +370,7 @@ CppBase2::Method2(12)
 
             CompileStandardAndVerify(
                 source: text,
-                additionalRefs: new MetadataReference[] { ilAssemblyReference },
+                references: new MetadataReference[] { ilAssemblyReference },
                 expectedOutput: expectedOutput);
         }
 
@@ -452,7 +452,7 @@ Class2.Method(23,24)
 
             CompileStandardAndVerify(
                 source: text,
-                additionalRefs: new MetadataReference[] { ilAssemblyReference },
+                references: new MetadataReference[] { ilAssemblyReference },
                 expectedOutput: expectedOutput);
         }
 
@@ -504,7 +504,7 @@ Derived2.Method(Int64[], Int16[], Single[])
 
             CompileStandardAndVerify(
                 source: text,
-                additionalRefs: new MetadataReference[] { ilAssemblyReference },
+                references: new MetadataReference[] { ilAssemblyReference },
                 expectedOutput: expectedOutput);
         }
 
@@ -547,7 +547,7 @@ System.Int32[]
 
             CompileStandardAndVerify(
                 source: text,
-                additionalRefs: new MetadataReference[] { ilAssemblyReference },
+                references: new MetadataReference[] { ilAssemblyReference },
                 expectedOutput: expectedOutput);
         }
 
@@ -592,7 +592,7 @@ class Test
     }
 }
 ";
-            var comp = CreateStandardCompilationWithCustomILSource(source, il, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithCustomILSource(source, il, TargetFramework.Net40, options: TestOptions.ReleaseExe);
 
             var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             var method = type.GetMember<MethodSymbol>("Incr");
@@ -648,7 +648,7 @@ class Test
     }
 }
 ";
-            var comp = CreateStandardCompilationWithCustomILSource(source, il, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithCustomILSource(source, il, TargetFramework.Net40, options: TestOptions.ReleaseExe);
 
             var baseType = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             var baseMethod = baseType.GetMember<MethodSymbol>("M");

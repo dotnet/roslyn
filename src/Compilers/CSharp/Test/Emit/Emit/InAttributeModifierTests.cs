@@ -71,8 +71,8 @@ public class Test
     }
 }";
 
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5");
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5");
+            CompileStandardAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "5");
+            CompileStandardAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "5");
         }
 
         [Fact]
@@ -95,8 +95,8 @@ public class Test
     }
 }";
 
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5");
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5");
+            CompileStandardAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "5");
+            CompileStandardAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "5");
         }
 
         [Fact]
@@ -122,8 +122,8 @@ public class Test
     }
 }";
 
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5");
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5");
+            CompileStandardAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "5");
+            CompileStandardAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "5");
         }
 
         [Fact]
@@ -146,8 +146,8 @@ public class Test
     }
 }";
 
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5");
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5");
+            CompileStandardAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "5");
+            CompileStandardAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "5");
         }
 
         [Fact]
@@ -172,8 +172,8 @@ public class Test
     }
 }";
 
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5");
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5");
+            CompileStandardAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "5");
+            CompileStandardAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "5");
         }
 
         [Fact]
@@ -199,8 +199,8 @@ public class Test
     }
 }";
 
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5");
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5");
+            CompileStandardAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "5");
+            CompileStandardAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "5");
         }
         
         [Fact]
@@ -249,7 +249,7 @@ public class Test
     }
 }";
 
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: "5");
+            CompileStandardAndVerify(code, references: new[] { reference }, expectedOutput: "5");
         }
 
         [Fact]
@@ -302,7 +302,7 @@ public class Test
     }
 }";
 
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: "5");
+            CompileStandardAndVerify(code, references: new[] { reference }, expectedOutput: "5");
         }
 
         [Fact]
@@ -358,7 +358,7 @@ public class Test
     }
 }";
 
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: "5");
+            CompileStandardAndVerify(code, references: new[] { reference }, expectedOutput: "5");
         }
 
         [Fact]
@@ -411,7 +411,7 @@ public class Test
     }
 }";
 
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: "5");
+            CompileStandardAndVerify(code, references: new[] { reference }, expectedOutput: "5");
         }
 
         [Fact]
@@ -471,7 +471,7 @@ public class Test
     }
 }";
 
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: "5");
+            CompileStandardAndVerify(code, references: new[] { reference }, expectedOutput: "5");
         }
 
         [Fact]
@@ -525,7 +525,7 @@ public class Test
     }
 }";
 
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: "5");
+            CompileStandardAndVerify(code, references: new[] { reference }, expectedOutput: "5");
         }
 
         [Fact]
@@ -578,7 +578,7 @@ public class Test
     }
 }";
 
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: "5");
+            CompileStandardAndVerify(code, references: new[] { reference }, expectedOutput: "5");
         }
 
         [Fact]
@@ -2517,8 +2517,8 @@ public class Program
                 AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             };
 
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileStandardAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileStandardAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
         }
 
         [Fact]
@@ -2564,8 +2564,8 @@ public class Program
                 AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             };
 
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileStandardAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileStandardAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
         }
 
         [Fact]
@@ -2619,8 +2619,8 @@ public class Program
                 AssertSingleInAttributeRequiredModifier(explicitParameter.RefCustomModifiers);
             };
 
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileStandardAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileStandardAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
         }
 
         [Fact]
@@ -2667,8 +2667,8 @@ public class Program
                 AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             };
 
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileStandardAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileStandardAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
         }
 
         [Fact]
@@ -2714,8 +2714,8 @@ public class Program
                 AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             };
 
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileStandardAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileStandardAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
         }
 
         [Fact]
@@ -2759,8 +2759,8 @@ public class Program
                 AssertSingleInAttributeRequiredModifier(method.RefCustomModifiers);
             };
 
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileStandardAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileStandardAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
         }
 
         [Fact]
@@ -2804,8 +2804,8 @@ public class Program
                 AssertSingleInAttributeRequiredModifier(method.RefCustomModifiers);
             };
 
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileStandardAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileStandardAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
         }
 
         [Fact]
@@ -2849,8 +2849,8 @@ public class Program
                 AssertSingleInAttributeRequiredModifier(implicitMethod.RefCustomModifiers);
             };
 
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileStandardAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileStandardAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
         }
 
         [Fact]
@@ -2894,8 +2894,8 @@ public class Program
                 AssertSingleInAttributeRequiredModifier(implicitMethod.RefCustomModifiers);
             };
 
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileStandardAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileStandardAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
         }
 
         [Fact]
@@ -2939,8 +2939,8 @@ public class Program
                 AssertSingleInAttributeRequiredModifier(implicitMethod.RefCustomModifiers);
             };
 
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileStandardAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileStandardAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
         }
 
         [Fact]
@@ -2984,8 +2984,8 @@ public class Program
                 AssertSingleInAttributeRequiredModifier(property.RefCustomModifiers);
             };
 
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileStandardAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileStandardAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
         }
 
         [Fact]
@@ -3030,8 +3030,8 @@ public class Program
                 AssertSingleInAttributeRequiredModifier(property.RefCustomModifiers);
             };
 
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileStandardAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileStandardAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
         }
 
         [Fact]
@@ -3076,8 +3076,8 @@ public class Program
                 AssertSingleInAttributeRequiredModifier(implicitproperty.RefCustomModifiers);
             };
 
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileStandardAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileStandardAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
         }
 
         [Fact]
@@ -3122,8 +3122,8 @@ public class Program
                 AssertSingleInAttributeRequiredModifier(property.RefCustomModifiers);
             };
 
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileStandardAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileStandardAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
         }
 
         [Fact]
@@ -3168,8 +3168,8 @@ public class Program
                 AssertSingleInAttributeRequiredModifier(property.RefCustomModifiers);
             };
 
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileStandardAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileStandardAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
         }
 
         [Fact]
@@ -3216,8 +3216,8 @@ public class Program
                 AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             };
 
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileStandardAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileStandardAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
         }
 
         [Fact]
@@ -3264,8 +3264,8 @@ public class Program
                 AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             };
 
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileStandardAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileStandardAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
         }
 
         [Fact]
@@ -3319,8 +3319,8 @@ public class Program
                 AssertSingleInAttributeRequiredModifier(explicitParameter.RefCustomModifiers);
             };
 
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileStandardAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileStandardAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
         }
 
         [Fact]
@@ -3367,8 +3367,8 @@ public class Program
                 AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             };
 
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileStandardAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileStandardAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
         }
 
         [Fact]
@@ -3415,8 +3415,8 @@ public class Program
                 AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             };
 
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileStandardAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileStandardAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
         }
 
         [Fact]
@@ -3461,8 +3461,8 @@ public class Program
                 AssertSingleInAttributeRequiredModifier(indexer.RefCustomModifiers);
             };
 
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileStandardAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileStandardAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
         }
 
         [Fact]
@@ -3507,8 +3507,8 @@ public class Program
                 AssertSingleInAttributeRequiredModifier(indexer.RefCustomModifiers);
             };
 
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileStandardAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileStandardAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
         }
 
         [Fact]
@@ -3553,8 +3553,8 @@ public class Program
                 AssertSingleInAttributeRequiredModifier(indexer.RefCustomModifiers);
             };
 
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileStandardAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileStandardAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
         }
 
         [Fact]
@@ -3599,8 +3599,8 @@ public class Program
                 AssertSingleInAttributeRequiredModifier(indexer.RefCustomModifiers);
             };
 
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileStandardAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileStandardAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
         }
 
         [Fact]
@@ -3645,8 +3645,8 @@ public class Program
                 AssertSingleInAttributeRequiredModifier(indexer.RefCustomModifiers);
             };
 
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileStandardAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileStandardAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
         }
 
         [Fact]
@@ -3678,8 +3678,8 @@ public class Test
     private static int value = 5;
 }";
 
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5");
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5");
+            CompileStandardAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "5");
+            CompileStandardAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "5");
         }
 
         [Fact]
@@ -3711,8 +3711,8 @@ public class Test
     }
 }";
 
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5");
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5");
+            CompileStandardAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "5");
+            CompileStandardAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "5");
         }
         
         [Fact]
@@ -3754,8 +3754,8 @@ public class Test
     private static int value = 5;
 }";
 
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5");
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5");
+            CompileStandardAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "5");
+            CompileStandardAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "5");
         }
 
         [Fact]
@@ -3796,8 +3796,8 @@ public class Test
     }
 }";
 
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5");
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5");
+            CompileStandardAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "5");
+            CompileStandardAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "5");
         }
 
         [Fact]
@@ -3917,7 +3917,7 @@ public class Test
     }
 }";
 
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: "5");
+            CompileStandardAndVerify(code, references: new[] { reference }, expectedOutput: "5");
         }
 
         [Fact]
@@ -3978,7 +3978,7 @@ public class Test
     }
 }";
 
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: "5");
+            CompileStandardAndVerify(code, references: new[] { reference }, expectedOutput: "5");
         }
         
         [Fact]
@@ -4054,7 +4054,7 @@ public class Test
     }
 }";
 
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: "5");
+            CompileStandardAndVerify(code, references: new[] { reference }, expectedOutput: "5");
         }
 
         [Fact]
@@ -4139,7 +4139,7 @@ public class Test
     }
 }";
 
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: "5");
+            CompileStandardAndVerify(code, references: new[] { reference }, expectedOutput: "5");
         }
 
         [Fact]
@@ -4185,8 +4185,8 @@ public class Program
                 Assert.Equal("testRef", childModifier.ContainingAssembly.Name);
             };
 
-            CompileStandardAndVerify(source: userCode, expectedOutput: "5", additionalRefs: new[] { testRef.ToMetadataReference() }, options: TestOptions.ReleaseExe, symbolValidator: validator);
-            CompileStandardAndVerify(source: userCode, expectedOutput: "5", additionalRefs: new[] { testRef.EmitToImageReference() }, options: TestOptions.ReleaseExe, symbolValidator: validator);
+            CompileStandardAndVerify(source: userCode, expectedOutput: "5", references: new[] { testRef.ToMetadataReference() }, options: TestOptions.ReleaseExe, symbolValidator: validator);
+            CompileStandardAndVerify(source: userCode, expectedOutput: "5", references: new[] { testRef.EmitToImageReference() }, options: TestOptions.ReleaseExe, symbolValidator: validator);
         }
 
         [Fact]
@@ -4232,8 +4232,8 @@ public class Program
                 Assert.Equal("testRef", childModifier.ContainingAssembly.Name);
             };
 
-            CompileStandardAndVerify(source: userCode, expectedOutput: "5", additionalRefs: new[] { testRef.ToMetadataReference() }, options: TestOptions.ReleaseExe, symbolValidator: validator);
-            CompileStandardAndVerify(source: userCode, expectedOutput: "5", additionalRefs: new[] { testRef.EmitToImageReference() }, options: TestOptions.ReleaseExe, symbolValidator: validator);
+            CompileStandardAndVerify(source: userCode, expectedOutput: "5", references: new[] { testRef.ToMetadataReference() }, options: TestOptions.ReleaseExe, symbolValidator: validator);
+            CompileStandardAndVerify(source: userCode, expectedOutput: "5", references: new[] { testRef.EmitToImageReference() }, options: TestOptions.ReleaseExe, symbolValidator: validator);
         }
 
         [Fact]
@@ -4281,8 +4281,8 @@ public class Program
                 Assert.Equal("testRef", explicitModifier.ContainingAssembly.Name);
             };
 
-            CompileStandardAndVerify(source: userCode, expectedOutput: "5", additionalRefs: new[] { testRef.ToMetadataReference() }, options: TestOptions.ReleaseExe, symbolValidator: validator);
-            CompileStandardAndVerify(source: userCode, expectedOutput: "5", additionalRefs: new[] { testRef.EmitToImageReference() }, options: TestOptions.ReleaseExe, symbolValidator: validator);
+            CompileStandardAndVerify(source: userCode, expectedOutput: "5", references: new[] { testRef.ToMetadataReference() }, options: TestOptions.ReleaseExe, symbolValidator: validator);
+            CompileStandardAndVerify(source: userCode, expectedOutput: "5", references: new[] { testRef.EmitToImageReference() }, options: TestOptions.ReleaseExe, symbolValidator: validator);
         }
 
         [Fact]
@@ -4333,8 +4333,8 @@ public class Program
                 Assert.Equal("testRef", explicitModifier.ContainingAssembly.Name);
             };
 
-            CompileStandardAndVerify(source: userCode, expectedOutput: "5", additionalRefs: new[] { testRef.ToMetadataReference() }, options: TestOptions.ReleaseExe, symbolValidator: validator);
-            CompileStandardAndVerify(source: userCode, expectedOutput: "5", additionalRefs: new[] { testRef.EmitToImageReference() }, options: TestOptions.ReleaseExe, symbolValidator: validator);
+            CompileStandardAndVerify(source: userCode, expectedOutput: "5", references: new[] { testRef.ToMetadataReference() }, options: TestOptions.ReleaseExe, symbolValidator: validator);
+            CompileStandardAndVerify(source: userCode, expectedOutput: "5", references: new[] { testRef.EmitToImageReference() }, options: TestOptions.ReleaseExe, symbolValidator: validator);
         }
 
         [Fact]
@@ -4386,8 +4386,8 @@ public class Program
                 Assert.Equal("testRef", explicitModifier.ContainingAssembly.Name);
             };
 
-            CompileStandardAndVerify(source: userCode, expectedOutput: "5", additionalRefs: new[] { testRef.ToMetadataReference() }, options: TestOptions.ReleaseExe, symbolValidator: validator);
-            CompileStandardAndVerify(source: userCode, expectedOutput: "5", additionalRefs: new[] { testRef.EmitToImageReference() }, options: TestOptions.ReleaseExe, symbolValidator: validator);
+            CompileStandardAndVerify(source: userCode, expectedOutput: "5", references: new[] { testRef.ToMetadataReference() }, options: TestOptions.ReleaseExe, symbolValidator: validator);
+            CompileStandardAndVerify(source: userCode, expectedOutput: "5", references: new[] { testRef.EmitToImageReference() }, options: TestOptions.ReleaseExe, symbolValidator: validator);
         }
 
         [Fact]

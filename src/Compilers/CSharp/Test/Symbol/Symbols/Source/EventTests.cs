@@ -409,7 +409,7 @@ public class C
     public void RaiseEvent() => E1(this); 
     public void Print() => System.Console.WriteLine(""Print method ran.""); 
 }";
-            var libComp = CreateStandardCompilation(text: libText).VerifyDiagnostics();
+            var libComp = CreateStandardCompilation(source: libText).VerifyDiagnostics();
             var libAssemblyRef = libComp.EmitToImageReference();
 
             var source = @"
@@ -440,7 +440,7 @@ class LambdaConsumer
                 Assert.Equal("dynamic", parameterSymbol.Type.ToTestDisplayString());
             };
 
-            CompileStandardAndVerify(source: source, additionalRefs: new[] { CSharpRef, libAssemblyRef },
+            CompileStandardAndVerify(source: source, references: new[] { CSharpRef, libAssemblyRef },
                                                     expectedOutput: "Print method ran.", sourceSymbolValidator: validator);
         }
 
@@ -454,7 +454,7 @@ public class C {
     public void RaiseEvent() => _e1(this); 
     public void Print() => System.Console.WriteLine(""Print method ran.""); 
 }";
-            var libComp = CreateStandardCompilation(text: libText);
+            var libComp = CreateStandardCompilation(source: libText);
             libComp.VerifyDiagnostics();
             var libAssemblyRef = libComp.EmitToImageReference();
 
@@ -486,7 +486,7 @@ class D
                 Assert.Equal("dynamic", parameterSymbol.Type.ToTestDisplayString());
             };
 
-            var compilationVerifier = CompileStandardAndVerify(source: source, additionalRefs: new[] { CSharpRef, libAssemblyRef }, 
+            var compilationVerifier = CompileStandardAndVerify(source: source, references: new[] { CSharpRef, libAssemblyRef }, 
                                                     expectedOutput: "Print method ran.");
         }
 
@@ -514,7 +514,7 @@ class D
 }";
             var expectedOutput = "Print method ran.";
             var compilationVerifier = CompileStandardAndVerify(source: source,
-                additionalRefs: new[] { CSharpRef, libCompRef },
+                references: new[] { CSharpRef, libCompRef },
                 expectedOutput: expectedOutput);
         }
 
@@ -528,7 +528,7 @@ public class C
     public virtual event System.Action<dynamic> E2 { add { System.Console.WriteLine(""Not called""); } remove {} }
     public virtual event System.Action<object> E3 { add { System.Console.WriteLine(""Not called""); } remove {} }
 }";
-            var libComp = CreateStandardCompilation(text: libText);
+            var libComp = CreateStandardCompilation(source: libText);
             var libAssemblyRef = libComp.EmitToImageReference();
             var source = @"
 class B : C
@@ -571,7 +571,7 @@ Printed: Alice
 Printed: Bob
 Printed: Charlie
 ";
-            var compilationVerifier = CompileStandardAndVerify(source: source, additionalRefs: new[] { CSharpRef, libAssemblyRef },
+            var compilationVerifier = CompileStandardAndVerify(source: source, references: new[] { CSharpRef, libAssemblyRef },
                                                     expectedOutput: expectedOutput);
         }
 
@@ -584,7 +584,7 @@ public class CL1
     public virtual event System.Action<dynamic> E1 { add {} remove {} }
     public virtual event System.Action<dynamic> E2 { add {} remove {} }
 }";
-            var libComp = CreateStandardCompilation(text: libText);
+            var libComp = CreateStandardCompilation(source: libText);
             var libAssemblyRef = libComp.EmitToImageReference();
 
             var source = @"
@@ -604,7 +604,7 @@ public class CL2 : CL1
                 Assert.Equal("System.Action<System.Object>", e2.Type.ToTestDisplayString());
             };
 
-            CompileStandardAndVerify(source: source, additionalRefs: new[] { libAssemblyRef }, symbolValidator: validator);
+            CompileStandardAndVerify(source: source, references: new[] { libAssemblyRef }, symbolValidator: validator);
         }
 
         [Fact, WorkItem(7845, "https://github.com/dotnet/roslyn/issues/7845")]
@@ -616,7 +616,7 @@ public class CL1
     public virtual event System.Action<dynamic> E1;
     public virtual event System.Action<dynamic> E2;
 }";
-            var libComp = CreateStandardCompilation(text: libText);
+            var libComp = CreateStandardCompilation(source: libText);
             var libAssemblyRef = libComp.EmitToImageReference();
 
             var source = @"
@@ -636,7 +636,7 @@ public class CL2 : CL1
                 Assert.Equal("System.Action<System.Object>", e2.Type.ToTestDisplayString());
             };
 
-            CompileStandardAndVerify(source: source, additionalRefs: new[] { libAssemblyRef }, symbolValidator: validator);
+            CompileStandardAndVerify(source: source, references: new[] { libAssemblyRef }, symbolValidator: validator);
         }
 
         [Fact, WorkItem(7845, "https://github.com/dotnet/roslyn/issues/7845")]

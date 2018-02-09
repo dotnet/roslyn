@@ -949,7 +949,7 @@ class C
 }
 ";
 
-            var comp = CompileStandardAndVerify(source, expectedOutput: "M M 43", additionalRefs: s_valueTupleRefs);
+            var comp = CompileStandardAndVerify(source, expectedOutput: "M M 43", references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
                 );
         }
@@ -1684,7 +1684,7 @@ class C
     }
 }
 ";
-            var comp = CompileStandardAndVerify(source, expectedOutput: "(1, hello) (1, hello) (1, hello)", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CompileStandardAndVerify(source, expectedOutput: "(1, hello) (1, hello) (1, hello)", references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics();
         }
 
@@ -1755,7 +1755,7 @@ class C
     }
 }
 ";
-            var comp = CompileStandardAndVerify(source, expectedOutput: "((1, hello), 3)", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CompileStandardAndVerify(source, expectedOutput: "((1, hello), 3)", references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics();
         }
 
@@ -1830,7 +1830,7 @@ class C
     }
 }
 ";
-            var comp = CompileStandardAndVerify(source, expectedOutput: "(1, 1, 1, 1, 1, 1, 1, 1, 9)", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CompileStandardAndVerify(source, expectedOutput: "(1, 1, 1, 1, 1, 1, 1, 1, 9)", references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics();
 
             var tree = comp.Compilation.SyntaxTrees.First();
@@ -3779,7 +3779,7 @@ class C
                 Assert.Equal("(int, int)", model.GetTypeInfo(literal2).Type.ToDisplayString());
             };
 
-            var verifier = CompileStandardAndVerify(source, additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
+            var verifier = CompileStandardAndVerify(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
             verifier.VerifyDiagnostics();
         }
 

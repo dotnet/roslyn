@@ -9697,7 +9697,7 @@ public unsafe class C
         }
     }
 ";
-            var compilation = CreateStandardCompilationWithCustomILSource(csharpSource, ilSource, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithCustomILSource(csharpSource, ilSource, targetFramework: TargetFramework.Net40, options: TestOptions.ReleaseExe);
 
             compilation.VerifyDiagnostics();
 

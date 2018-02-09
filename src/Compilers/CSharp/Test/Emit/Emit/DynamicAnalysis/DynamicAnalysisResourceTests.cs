@@ -472,7 +472,7 @@ public class C
     }
 }
 ";
-            var c = CreateStandardCompilation(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"), references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var c = CreateStandardCompilation(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
             var peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
 
             var peReader = new PEReader(peImage);
@@ -543,7 +543,7 @@ public class C
     }
 }
 ";
-            var c = CreateStandardCompilation(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"), references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var c = CreateStandardCompilation(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
             var peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
 
             var peReader = new PEReader(peImage);

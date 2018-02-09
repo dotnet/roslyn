@@ -607,7 +607,7 @@ class Program
 }
 ";
 
-            var comp = CompileStandardAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular, verify: Verification.Fails);
+            var comp = CompileStandardAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails);
 
             comp.VerifyIL("Program.M", @"
 {
@@ -650,7 +650,7 @@ class Program
 }
 ";
 
-            var comp = CompileStandardAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular, verify: Verification.Fails);
+            var comp = CompileStandardAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails);
 
             comp.VerifyIL("Program.<M>g__M1|0_0(in int, in (int Alice, int Bob))", @"
 {
@@ -720,7 +720,7 @@ class Program
 
 ";
 
-            var comp = CompileStandardAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput:@"42");
+            var comp = CompileStandardAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput:@"42");
 
             comp.VerifyIL("Program.Main", @"
 {
@@ -753,7 +753,7 @@ class Program
 
 ";
 
-            var comp = CompileStandardAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"42");
+            var comp = CompileStandardAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"42");
 
             comp.VerifyIL("Program.Main", @"
 {
@@ -1942,8 +1942,8 @@ class Program
     }
 }";
 
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "9");
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "9");
+            CompileStandardAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "9");
+            CompileStandardAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "9");
         }
 
         [Fact]
@@ -1973,8 +1973,8 @@ class Program
     }
 }";
 
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "9");
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "9");
+            CompileStandardAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "9");
+            CompileStandardAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "9");
         }
 
         [Fact]
@@ -2004,8 +2004,8 @@ class Program
     }
 }";
 
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "9");
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "9");
+            CompileStandardAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "9");
+            CompileStandardAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "9");
         }
 
         [Fact]
@@ -2034,8 +2034,8 @@ class Program
     }
 }";
 
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "False");
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "False");
+            CompileStandardAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "False");
+            CompileStandardAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "False");
         }
 
         [Fact]
@@ -2064,8 +2064,8 @@ class Program
     }
 }";
 
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "3");
-            CompileStandardAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "3");
+            CompileStandardAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "3");
+            CompileStandardAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "3");
         }
 
         [Fact]

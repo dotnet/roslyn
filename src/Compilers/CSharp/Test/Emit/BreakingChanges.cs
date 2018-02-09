@@ -1027,7 +1027,7 @@ Console.WriteLine(testExpr2);
 ";
 
             // Native Compiler: x => Convert(Convert(op_Explicit(x)))
-            CompileStandardAndVerify(text, additionalRefs: new[] { LinqAssemblyRef }, expectedOutput:
+            CompileStandardAndVerify(text, references: new[] { LinqAssemblyRef }, expectedOutput:
 @"x => Convert(Convert(Convert(x)))
 x => Convert(Convert(Convert(x)))
 ");
@@ -1053,7 +1053,7 @@ static void Main()
 ";
 
             // Native compiler: x => (Convert(x) != Convert(null))
-            CompileStandardAndVerify(source, additionalRefs: new[] { LinqAssemblyRef }, expectedOutput:
+            CompileStandardAndVerify(source, references: new[] { LinqAssemblyRef }, expectedOutput:
 @"x => (Convert(x) != null)
 True
 ");
@@ -1345,7 +1345,7 @@ static int Main()
 }
 ";
             // Native compiler throw
-            CompileStandardAndVerify(source, additionalRefs: new[] { SystemCoreRef }, expectedOutput: "3");
+            CompileStandardAndVerify(source, references: new[] { SystemCoreRef }, expectedOutput: "3");
         }
 
         [Fact, WorkItem(530696, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530696")]

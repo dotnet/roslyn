@@ -1398,12 +1398,12 @@ comp => comp.VerifyDiagnostics(
         private static void VerifyRefAssemblyClient(string lib_cs, string source, Action<CSharpCompilation> validator, EmitOptions emitOptions)
         {
             string name = GetUniqueName();
-            var libComp = CreateStandardCompilation(lib_cs, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef },
+            var libComp = CreateStandardCompilation(lib_cs,
                 options: TestOptions.DebugDll.WithDeterministic(true), assemblyName: name);
             libComp.VerifyDiagnostics();
             var libImage = libComp.EmitToImageReference(emitOptions);
 
-            var comp = CreateStandardCompilation(source, references: new[] { libImage, ValueTupleRef, SystemRuntimeFacadeRef },
+            var comp = CreateStandardCompilation(source, references: new[] { libImage },
                 options: TestOptions.DebugDll.WithAllowUnsafe(true));
             validator(comp);
         }
@@ -2169,7 +2169,7 @@ public class Class1 : CppCli.CppBase2, CppCli.CppInterface1
 ";
 
             var libComp = CreateStandardCompilation(
-                text: libText,
+                source: libText,
                 references: new MetadataReference[] { ilAssemblyReference },
                 options: TestOptions.ReleaseDll,
                 assemblyName: libAssemblyName);
@@ -2227,7 +2227,7 @@ class Class2
 ";
 
             var exeComp = CreateStandardCompilation(
-                text: exeText,
+                source: exeText,
                 references: new MetadataReference[] { ilAssemblyReference, libAssemblyReference },
                 assemblyName: exeAssemblyName);
 
@@ -4091,7 +4091,7 @@ public class Test
             string source2 = @"public class B: A {}";
             var comp = CreateStandardCompilation(source1, options: TestOptions.ReleaseModule);
             var metadataRef = ModuleMetadata.CreateFromStream(comp.EmitToStream()).GetReference();
-            CompileStandardAndVerify(source2, additionalRefs: new[] { metadataRef }, options: TestOptions.ReleaseModule, verify: Verification.Fails);
+            CompileStandardAndVerify(source2, references: new[] { metadataRef }, options: TestOptions.ReleaseModule, verify: Verification.Fails);
         }
 
         [Fact]

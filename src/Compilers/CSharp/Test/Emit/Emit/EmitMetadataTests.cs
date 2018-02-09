@@ -2679,7 +2679,7 @@ class User
             CompileStandardAndVerify(
                 source: code,
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
-                additionalRefs: new[] { comAssembly.EmitToImageReference(embedInteropTypes: true) },
+                references: new[] { comAssembly.EmitToImageReference(embedInteropTypes: true) },
                 symbolValidator: module =>
                 {
                     var parameters = module.GlobalNamespace.GetTypeMember("T").GetMethod("M").GetParameters();
@@ -2835,7 +2835,7 @@ public class Child : Parent, IParent
 
             CompileStandardAndVerify(
                 source: source,
-                additionalRefs: new[] { reference.EmitToImageReference() },
+                references: new[] { reference.EmitToImageReference() },
                 options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All),
                 symbolValidator: module =>
                 {
@@ -2887,7 +2887,7 @@ public class Child : Parent, IParent
 
             CompileStandardAndVerify(
                 source: source,
-                additionalRefs: new[] { reference.EmitToImageReference() },
+                references: new[] { reference.EmitToImageReference() },
                 options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All),
                 symbolValidator: module =>
                 {

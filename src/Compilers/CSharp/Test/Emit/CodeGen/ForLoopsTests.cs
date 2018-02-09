@@ -1539,7 +1539,7 @@ public class myFor
     }
 }
 ";
-            CompileStandardAndVerify(text, additionalRefs: new MetadataReference[] { CSharpRef }, expectedOutput: @"Initialize
+            CompileStandardAndVerify(text, references: new MetadataReference[] { CSharpRef }, expectedOutput: @"Initialize
 Done
 Next
 Done

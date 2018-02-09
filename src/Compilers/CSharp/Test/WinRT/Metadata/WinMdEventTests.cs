@@ -2352,7 +2352,7 @@ public partial class A : I
 }";
             var verifier = CompileStandardAndVerify(
                 new[] { src, DynamicCommonSrc },
-                additionalRefs: new[] {
+                references: new[] {
                     MscorlibRef_v4_0_30316_17626,
                     SystemCoreRef_v4_0_30319_17929,
                     _eventLibRef,

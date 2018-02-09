@@ -18666,7 +18666,7 @@ public class Cls
     }
 }";
             // the C# dynamic binder does not support ref or out indexers, so we don't run this
-            CompileStandardAndVerify(text, additionalRefs: new[] { SystemCoreRef, CSharpRef }).VerifyIL("Cls.Main()",
+            CompileStandardAndVerify(text, references: new[] { SystemCoreRef, CSharpRef }).VerifyIL("Cls.Main()",
 @"{
   // Code size       87 (0x57)
   .maxstack  7
@@ -18720,7 +18720,7 @@ public class Cls
     }
 }";
             // the C# dynamic binder does not support ref or out indexers, so we don't run this
-            CompileStandardAndVerify(text, additionalRefs: new[] { SystemCoreRef, CSharpRef }).VerifyIL("Cls.Main()",
+            CompileStandardAndVerify(text, references: new[] { SystemCoreRef, CSharpRef }).VerifyIL("Cls.Main()",
 @"
 {
   // Code size       87 (0x57)
@@ -18980,7 +18980,7 @@ class B
                 VerifyModelForOutVar(model, x4Decl, x4Ref);
                 Assert.Equal("System.Int32", compilation.GetSemanticModel(tree).GetTypeInfo(x4Ref[0]).Type.ToTestDisplayString());
 
-                CompileStandardAndVerify(source2, additionalRefs: new[] { reference1 }, expectedOutput:
+                CompileStandardAndVerify(source2, references: new[] { reference1 }, expectedOutput:
     @"2 1
 3
 5 4

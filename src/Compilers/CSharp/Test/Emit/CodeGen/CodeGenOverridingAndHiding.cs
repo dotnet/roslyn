@@ -3450,7 +3450,7 @@ public class Program
 }
 ";
             var verifier = CompileStandardAndVerify(text,
-                additionalRefs: new[] { TestReferences.SymbolsTests.CustomModifiers.ModoptTests },
+                references: new[] { TestReferences.SymbolsTests.CustomModifiers.ModoptTests },
                 expectedOutput: "51");
         }
 
@@ -3477,7 +3477,7 @@ public class Test
 }
 ";
             var verifier = CompileStandardAndVerify(text,
-                additionalRefs: new[] { TestReferences.SymbolsTests.CustomModifiers.ModoptTests },
+                references: new[] { TestReferences.SymbolsTests.CustomModifiers.ModoptTests },
                 expectedOutput: @"88
 88
 ",
@@ -3594,7 +3594,7 @@ class Test
             //Assert.Equal(109, errs.First().Code);
 
             var verifier = CompileStandardAndVerify(text,
-                additionalRefs: new[] { TestReferences.SymbolsTests.CustomModifiers.ModoptTests },
+                references: new[] { TestReferences.SymbolsTests.CustomModifiers.ModoptTests },
                 expectedOutput: "1122",
                 expectedSignatures: new[]
                 {
@@ -3878,7 +3878,7 @@ class Program
             var references = new MetadataReference[] { TestReferences.SymbolsTests.Methods.ILMethods };
             var verifier = CompileStandardAndVerify(
                 source,
-                additionalRefs: references,
+                references: references,
                 sourceSymbolValidator: validator,
                 expectedOutput: @"BaseVirtual
 DerivedNonVirtual
@@ -4016,7 +4016,7 @@ public class Test
     }
 }";
             var compref = CreateStandardCompilation(source, assemblyName: "XNoDefaultForParams_Dev10781558_Library");
-            var comp = CompileStandardAndVerify(source2, additionalRefs: new[] { new CSharpCompilationReference(compref) }, expectedOutput: "M");
+            var comp = CompileStandardAndVerify(source2, references: new[] { new CSharpCompilationReference(compref) }, expectedOutput: "M");
         }
 
         [Fact]

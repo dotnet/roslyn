@@ -2969,7 +2969,7 @@ static class Program
             var libCompilation = CreateCompilationWithMscorlibAndSystemCore(lib, assemblyName: Guid.NewGuid().ToString());
             var libReference = new CSharpCompilationReference(libCompilation);
 
-            CompileStandardAndVerify(consumer, additionalRefs: new[] { libReference });
+            CompileStandardAndVerify(consumer, references: new[] { libReference });
         }
 
         [Fact, WorkItem(545800, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545800")]

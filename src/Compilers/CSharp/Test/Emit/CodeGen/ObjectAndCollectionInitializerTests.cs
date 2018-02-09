@@ -1253,7 +1253,7 @@ class A
 -
 3";
 
-            var compVerifier = CompileStandardAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: expectedOutput);
+            var compVerifier = CompileStandardAndVerify(source, references: new[] { SystemCoreRef, CSharpRef }, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -1347,7 +1347,7 @@ struct A
 2
 3";
 
-            var compVerifier = CompileStandardAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: expectedOutput);
+            var compVerifier = CompileStandardAndVerify(source, references: new[] { SystemCoreRef, CSharpRef }, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("A.Main()", @"
 {
   // Code size      194 (0xc2)
@@ -1485,7 +1485,7 @@ get
 get
 3";
 
-            var compVerifier = CompileStandardAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: expectedOutput);
+            var compVerifier = CompileStandardAndVerify(source, references: new[] { SystemCoreRef, CSharpRef }, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("A.Main()", @"
 {
   // Code size      222 (0xde)
@@ -1815,7 +1815,7 @@ class Program
 ";
             string expectedOutput = @"422";
 
-            var compVerifier = CompileStandardAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: expectedOutput);
+            var compVerifier = CompileStandardAndVerify(source, references: new[] { SystemCoreRef, CSharpRef }, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -1871,7 +1871,7 @@ class Program
 ";
             string expectedOutput = @"422";
 
-            var compVerifier = CompileStandardAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: expectedOutput);
+            var compVerifier = CompileStandardAndVerify(source, references: new[] { SystemCoreRef, CSharpRef }, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -1927,7 +1927,7 @@ class Program
 ";
             string expectedOutput = @"422";
 
-            var compVerifier = CompileStandardAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: expectedOutput);
+            var compVerifier = CompileStandardAndVerify(source, references: new[] { SystemCoreRef, CSharpRef }, expectedOutput: expectedOutput);
         }
 
         [Fact, WorkItem(1073330, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073330")]

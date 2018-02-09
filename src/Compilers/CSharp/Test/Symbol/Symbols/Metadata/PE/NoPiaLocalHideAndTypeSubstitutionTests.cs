@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         {
             // Verify type equivalence between PIA type in external assembly and local assembly
 
-            var localConsumer = CreateStandardCompilation(assemblyName: "Dummy", sources: null,
+            var localConsumer = CreateStandardCompilation(assemblyName: "Dummy", source: (string)null,
                          references: new MetadataReference[] {
                                                                 TestReferences.SymbolsTests.NoPia.Pia1,
                                                                 TestReferences.SymbolsTests.NoPia.LocalTypes1
@@ -417,14 +417,14 @@ public class InterfaceImpl
     }
 }";
 
-            var localType1 = CreateStandardCompilation(assemblyName: "Dummy1", text: localTypeSource1, references: null);
+            var localType1 = CreateStandardCompilation(assemblyName: "Dummy1", source: localTypeSource1, references: null);
 
-            var localType2 = CreateStandardCompilation(assemblyName: "Dummy2", text: localTypeSource2,
+            var localType2 = CreateStandardCompilation(assemblyName: "Dummy2", source: localTypeSource2,
             references: new List<MetadataReference>() { new CSharpCompilationReference(localType1, embedInteropTypes: true) });
 
             Assert.True(localType2.Assembly.GetNoPiaResolutionAssemblies().First(arg => arg.Name == "Dummy1").IsLinked);
 
-            var localConsumer = CreateStandardCompilation(text: "", assemblyName: "Dummy3",
+            var localConsumer = CreateStandardCompilation(source: "", assemblyName: "Dummy3",
                      references: new List<MetadataReference>() {
                                                                       new CSharpCompilationReference(localType2),
                                                                       new CSharpCompilationReference(localType1)
@@ -462,9 +462,9 @@ public interface I1
 {
 }";
 
-            var localType = CreateStandardCompilation(assemblyName: "Dummy1", text: localTypeSource, references: null);
+            var localType = CreateStandardCompilation(assemblyName: "Dummy1", source: localTypeSource, references: null);
 
-            var localConsumer = CreateStandardCompilation(assemblyName: "Dummy2", text: "",
+            var localConsumer = CreateStandardCompilation(assemblyName: "Dummy2", source: "",
                     references: new List<MetadataReference>()  {
                                                                       TestReferences.SymbolsTests.NoPia.Pia1,
                                                                       new CSharpCompilationReference(localType)

@@ -296,7 +296,7 @@ class Bad : Bad
     static void Main() { }
     static (int, int) F() { return (2, 3); }
 }";
-            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugExe, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugExe);
             var compilation1 = compilation0.WithSource(source1);
 
             var bytes0 = compilation0.EmitToArray();
@@ -2056,7 +2056,7 @@ class B
         [Fact]
         public void NamespacesAndOverloads()
         {
-            var compilation0 = CreateStandardCompilation(options: TestOptions.DebugDll, text:
+            var compilation0 = CreateStandardCompilation(options: TestOptions.DebugDll, source:
 @"class C { }
 namespace N
 {
@@ -2243,7 +2243,7 @@ class C
     }
 }";
             var options = TestOptions.UnsafeDebugDll;
-            var compilation0 = CreateStandardCompilation(source, options: options, references: new[] { SystemCoreRef, CSharpRef });
+            var compilation0 = CreateStandardCompilation(source, options: options, references: new[] { CSharpRef });
             var bytes0 = compilation0.EmitToArray();
             var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), EmptyLocalsProvider);
 
@@ -5987,7 +5987,7 @@ class C
         x.Add(1);
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, new[] { CSharpRef, SystemCoreRef }, options: TestOptions.DebugDll);
+            var compilation0 = CreateStandardCompilation(source, new[] { CSharpRef }, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source);
 
             var testData0 = new CompilationTestData();
@@ -6053,7 +6053,7 @@ class B
     static object G = ((dynamic)F).F();
     object x = ((dynamic)F) + 1;
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll, references: new[] { SystemCoreRef, CSharpRef });
+            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll, references: new[] { CSharpRef });
             var compilation1 = compilation0.WithSource(source);
 
             var testData0 = new CompilationTestData();
@@ -6582,7 +6582,7 @@ public struct S
 }";
             var compilationPIA = CreateStandardCompilation(sourcePIA, options: TestOptions.DebugDll);
             var referencePIA = compilationPIA.EmitToImageReference(embedInteropTypes: true);
-            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll, references: new MetadataReference[] { referencePIA, SystemCoreRef, CSharpRef });
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll, references: new MetadataReference[] { referencePIA, CSharpRef });
             var compilation1A = compilation0.WithSource(source1A);
             var compilation1B = compilation0.WithSource(source1B);
 
@@ -6668,7 +6668,7 @@ public interface IB
 }";
             var compilationPIA = CreateStandardCompilation(sourcePIA, options: TestOptions.DebugDll);
             var referencePIA = compilationPIA.EmitToImageReference(embedInteropTypes: true);
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll, references: new MetadataReference[] { referencePIA, SystemCoreRef, CSharpRef });
+            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll, references: new MetadataReference[] { referencePIA, CSharpRef });
             var compilation1 = compilation0.WithSource(source);
 
             var bytes0 = compilation0.EmitToArray();
@@ -7403,7 +7403,7 @@ class C
         <N:0>Console.WriteLine(2);</N:0>
     }
 }");
-            var compilation0 = CreateStandardCompilation(source0.Tree, new[] { SystemCoreRef }, options: TestOptions.DebugDll, assemblyName: "PdbReadingErrorsAssembly");
+            var compilation0 = CreateStandardCompilation(source0.Tree, options: TestOptions.DebugDll, assemblyName: "PdbReadingErrorsAssembly");
             var compilation1 = compilation0.WithSource(source1.Tree);
 
             var v0 = CompileAndVerify(compilation0);
@@ -7450,7 +7450,7 @@ class C
         <N:0>Console.WriteLine(2);</N:0>
     }
 }");
-            var compilation0 = CreateStandardCompilation(source0.Tree, new[] { SystemCoreRef }, options: TestOptions.DebugDll, assemblyName: "PdbReadingErrorsAssembly");
+            var compilation0 = CreateStandardCompilation(source0.Tree, options: TestOptions.DebugDll, assemblyName: "PdbReadingErrorsAssembly");
             var compilation1 = compilation0.WithSource(source1.Tree);
 
             var v0 = CompileAndVerify(compilation0);
@@ -7913,7 +7913,7 @@ class C
     static int F() { (int, int) <N:0>x</N:0> = (1, 3); return x.Item1 + x.Item2; }
 }");
 
-            var compilation0 = CreateStandardCompilation(source0.Tree, options: ComSafeDebugDll, references: s_valueTupleRefs);
+            var compilation0 = CreateStandardCompilation(source0.Tree, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1.Tree);
             var compilation2 = compilation1.WithSource(source2.Tree);
 
@@ -8042,7 +8042,7 @@ class C
     static int F() { (int <N:0>x</N:0>, int <N:1>y</N:1>, int <N:2>z</N:2>) = (1, 2, 3); return x + y + z; }
 }");
 
-            var compilation0 = CreateStandardCompilation(source0.Tree, options: ComSafeDebugDll, references: s_valueTupleRefs);
+            var compilation0 = CreateStandardCompilation(source0.Tree, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1.Tree);
             var compilation2 = compilation1.WithSource(source2.Tree);
 
@@ -8190,7 +8190,7 @@ class C
     }
 }");
 
-            var compilation0 = CreateStandardCompilation(source0.Tree, options: ComSafeDebugDll, references: s_valueTupleRefs);
+            var compilation0 = CreateStandardCompilation(source0.Tree, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1.Tree);
             var compilation2 = compilation1.WithSource(source2.Tree);
 

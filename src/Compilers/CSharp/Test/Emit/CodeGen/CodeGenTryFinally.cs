@@ -351,7 +351,7 @@ class Program
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, additionalRefs: new MetadataReference[] { SystemRef }, expectedOutput: "hellobyebye");
+            var compilation = CompileStandardAndVerify(source, expectedOutput: "hellobyebye");
             compilation.VerifyIL("Program.Main",
 @"
 {

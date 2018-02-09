@@ -115,7 +115,7 @@ class Test
 }
 ";
 
-            CompileStandardAndVerify(codeB, verify: Verification.Fails, additionalRefs: new[] { referenceA }, symbolValidator: module =>
+            CompileStandardAndVerify(codeB, verify: Verification.Fails, references: new[] { referenceA }, symbolValidator: module =>
             {
                 var method = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod("M");
                 Assert.Equal(RefKind.RefReadOnly, method.RefKind);
@@ -198,7 +198,7 @@ struct Test
 }
 ";
 
-            CompileStandardAndVerify(codeB, additionalRefs: new[] { referenceA }, symbolValidator: module =>
+            CompileStandardAndVerify(codeB, references: new[] { referenceA }, symbolValidator: module =>
             {
                 var method = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod("op_Addition");
                 Assert.Equal(2, method.ParameterCount);
@@ -271,7 +271,7 @@ class Test
 }
 ";
 
-            CompileStandardAndVerify(codeB, additionalRefs: new[] { referenceA }, symbolValidator: module =>
+            CompileStandardAndVerify(codeB, references: new[] { referenceA }, symbolValidator: module =>
             {
                 var parameter = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod(".ctor").Parameters.Single();
 
@@ -365,7 +365,7 @@ class Test
 }
 ";
 
-            CompileStandardAndVerify(codeB, additionalRefs: new[] { referenceA }, symbolValidator: module =>
+            CompileStandardAndVerify(codeB, references: new[] { referenceA }, symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Test");
 
@@ -469,7 +469,7 @@ class Test
 }
 ";
 
-            CompileStandardAndVerify(codeB, verify: Verification.Fails, additionalRefs: new[] { referenceA }, symbolValidator: module =>
+            CompileStandardAndVerify(codeB, verify: Verification.Fails, references: new[] { referenceA }, symbolValidator: module =>
             {
                 var indexer = module.ContainingAssembly.GetTypeByMetadataName("Test").GetProperty("this[]");
                 Assert.Equal(RefKind.RefReadOnly, indexer.RefKind);
@@ -556,7 +556,7 @@ namespace System.Runtime.CompilerServices
 public delegate ref readonly int D(in int x);
 ";
 
-            CompileStandardAndVerify(codeB, additionalRefs: new[] { referenceA }, symbolValidator: module =>
+            CompileStandardAndVerify(codeB, references: new[] { referenceA }, symbolValidator: module =>
             {
                 var method = module.ContainingAssembly.GetTypeByMetadataName("D").DelegateInvokeMethod;
                 Assert.Equal(RefKind.RefReadOnly, method.RefKind);
@@ -681,7 +681,7 @@ public class Test
 }
 ";
             var options = TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All);
-            CompileStandardAndVerify(codeB, verify: Verification.Fails, additionalRefs: new[] { referenceA }, options: options, symbolValidator: module =>
+            CompileStandardAndVerify(codeB, verify: Verification.Fails, references: new[] { referenceA }, options: options, symbolValidator: module =>
             {
                 var method = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod("<M>g__Inner|0_0");
                 Assert.Equal(RefKind.RefReadOnly, method.RefKind);
@@ -814,7 +814,7 @@ class Test
 ";
 
             var options = TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All);
-            CompileStandardAndVerify(codeB, verify: Verification.Fails, options: options, additionalRefs: new[] { referenceA }, symbolValidator: module =>
+            CompileStandardAndVerify(codeB, verify: Verification.Fails, options: options, references: new[] { referenceA }, symbolValidator: module =>
             {
                 var method = module.GlobalNamespace.GetMember<MethodSymbol>("Test.<>c.<M1>b__0_0");
                 Assert.Equal(RefKind.RefReadOnly, method.RefKind);
@@ -1154,7 +1154,7 @@ public class Test
     public void M(in int x) { }
 }";
 
-            CompileStandardAndVerify(code, verify: Verification.Fails, additionalRefs: new[] { reference }, options: TestOptions.ReleaseModule, symbolValidator: module =>
+            CompileStandardAndVerify(code, verify: Verification.Fails, references: new[] { reference }, options: TestOptions.ReleaseModule, symbolValidator: module =>
             {
                 AssertNoIsReadOnlyAttributeExists(module.ContainingAssembly);
 
@@ -1188,7 +1188,7 @@ public class Test2
 	public static ref readonly int M(in int p) => ref Test1.M(p);
 }";
 
-            CompileStandardAndVerify(code2, options: options.WithModuleName("Assembly2"), additionalRefs: new[] { comp1.Compilation.ToMetadataReference() }, symbolValidator: module =>
+            CompileStandardAndVerify(code2, options: options.WithModuleName("Assembly2"), references: new[] { comp1.Compilation.ToMetadataReference() }, symbolValidator: module =>
             {
                 AssertGeneratedEmbeddedAttribute(module.ContainingAssembly, AttributeDescription.CodeAnalysisEmbeddedAttribute.FullName);
                 AssertGeneratedEmbeddedAttribute(module.ContainingAssembly, AttributeDescription.IsReadOnlyAttribute.FullName);
@@ -1768,7 +1768,7 @@ public class Child : System.Runtime.CompilerServices.IsReadOnlyAttribute
     public override ref readonly int this[in int x] => ref value;
 }";
 
-            CompileStandardAndVerify(code, verify: Verification.Passes, additionalRefs: new[] { reference }, symbolValidator: module =>
+            CompileStandardAndVerify(code, verify: Verification.Passes, references: new[] { reference }, symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
 
@@ -1860,7 +1860,7 @@ namespace System.Runtime.CompilerServices
     }
 }";
 
-            CompileStandardAndVerify(code, verify: Verification.Passes, additionalRefs: new[] { reference }, symbolValidator: module =>
+            CompileStandardAndVerify(code, verify: Verification.Passes, references: new[] { reference }, symbolValidator: module =>
             {
                 var typeName = WellKnownTypes.GetMetadataName(WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute);
                 var type = module.ContainingAssembly.GetTypeByMetadataName(typeName);
@@ -2018,7 +2018,7 @@ namespace System.Runtime.CompilerServices
     }
 }";
 
-            CompileStandardAndVerify(code, verify: Verification.Passes, additionalRefs: new[] { reference }, symbolValidator: module =>
+            CompileStandardAndVerify(code, verify: Verification.Passes, references: new[] { reference }, symbolValidator: module =>
             {
                 var typeName = WellKnownTypes.GetMetadataName(WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute);
                 var type = module.ContainingAssembly.GetTypeByMetadataName(typeName);
@@ -2101,7 +2101,7 @@ public class TestImpl : ITest
     ref readonly int ITest.this[in int x] => ref value;
 }";
 
-            CompileStandardAndVerify(code, verify: Verification.Passes, additionalRefs: new[] { reference }, symbolValidator: module =>
+            CompileStandardAndVerify(code, verify: Verification.Passes, references: new[] { reference }, symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("TestImpl");
 

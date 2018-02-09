@@ -8410,7 +8410,7 @@ namespace ConsoleApplication30
 
             var comp2 = CompileStandardAndVerify(s2,
                 options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails, 
-                additionalRefs: new MetadataReference[] { MetadataReference.CreateFromImage(comp1.EmitToArray()) },
+                references: new MetadataReference[] { MetadataReference.CreateFromImage(comp1.EmitToArray()) },
                 expectedOutput: "TrueFalse").Compilation;
 
 
@@ -8462,7 +8462,7 @@ namespace ConsoleApplication30
             // this doesn't warn but causes flakiness when executed.
             var comp3 = CompileStandardAndVerify(s3,
                 options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails,
-                additionalRefs: new MetadataReference[] { MetadataReference.CreateFromImage(comp1.EmitToArray()) }).Compilation;
+                references: new MetadataReference[] { MetadataReference.CreateFromImage(comp1.EmitToArray()) }).Compilation;
         }
 
         [Fact]

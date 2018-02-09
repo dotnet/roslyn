@@ -1372,7 +1372,7 @@ class C
         }
     }
 }
-", new[] { SystemCoreRef }).VerifyIL("C.<>c.<F>b__0_0(int)", @"
+").VerifyIL("C.<>c.<F>b__0_0(int)", @"
 {
   // Code size        4 (0x4)
   .maxstack  2
@@ -1397,7 +1397,7 @@ class C
         var a = checked(from x in new[] { 1 } select x * 2);  // mul_ovf
     }
 }
-", new[] { SystemCoreRef }).VerifyIL("C.<>c.<F>b__0_0(int)", @"
+").VerifyIL("C.<>c.<F>b__0_0(int)", @"
 {
   // Code size        4 (0x4)
   .maxstack  2

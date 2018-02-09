@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void CultureAttributeMismatch()
         {
-            var neutral = CreateStandardCompilation(
+            var neutral = CreateCompilationWithMscorlib40(
 @"
 public class neutral
 {}
@@ -324,7 +324,7 @@ public class neutral
 
             var neutralRef = new CSharpCompilationReference(neutral);
 
-            var de = CreateStandardCompilation(
+            var de = CreateCompilationWithMscorlib40(
 @"
 [assembly: System.Reflection.AssemblyCultureAttribute(""de"")]
 
@@ -334,7 +334,7 @@ public class de
 
             var deRef = new CSharpCompilationReference(de);
 
-            var en_us = CreateStandardCompilation(
+            var en_us = CreateCompilationWithMscorlib40(
 @"
 [assembly: System.Reflection.AssemblyCultureAttribute(""en-us"")]
 
@@ -347,7 +347,7 @@ public class en_us
             CSharpCompilation compilation;
             string assemblyNameBase = Guid.NewGuid().ToString();
 
-            compilation = CreateStandardCompilation(
+            compilation = CreateCompilationWithMscorlib40(
 @"
 [assembly: System.Reflection.AssemblyCultureAttribute(""en-US"")]
 
@@ -366,7 +366,7 @@ public class en_US
             compilation = compilation.WithOptions(TestOptions.ReleaseModule);
             compilation.VerifyEmitDiagnostics();
 
-            compilation = CreateStandardCompilation("", new MetadataReference[] { compilation.EmitToImageReference() }, TestOptions.ReleaseDll, assemblyName: assemblyNameBase + "20");
+            compilation = CreateCompilationWithMscorlib40("", new MetadataReference[] { compilation.EmitToImageReference() }, TestOptions.ReleaseDll, assemblyName: assemblyNameBase + "20");
 
             CompileAndVerify(compilation, verify: Verification.Skipped).VerifyDiagnostics(
     // warning CS8009: Referenced assembly 'de, Version=0.0.0.0, Culture=de, PublicKeyToken=null' has different culture setting of 'de'.
@@ -395,10 +395,10 @@ public class Test
             compilation = compilation.WithOptions(TestOptions.ReleaseModule);
             compilation.VerifyEmitDiagnostics();
 
-            compilation = CreateStandardCompilation("", new MetadataReference[] { compilation.EmitToImageReference() }, TestOptions.ReleaseDll, assemblyName: assemblyNameBase + "25");
+            compilation = CreateCompilationWithMscorlib40("", new MetadataReference[] { compilation.EmitToImageReference() }, TestOptions.ReleaseDll, assemblyName: assemblyNameBase + "25");
             compilation.VerifyEmitDiagnostics();
 
-            compilation = CreateStandardCompilation(
+            compilation = CreateCompilationWithMscorlib40(
 @"
 [assembly: System.Reflection.AssemblyCultureAttribute(""en-US"")]
 
@@ -414,7 +414,7 @@ public class en_US
             compilation = compilation.WithOptions(TestOptions.ReleaseModule);
             compilation.VerifyEmitDiagnostics();
 
-            compilation = CreateStandardCompilation("", new MetadataReference[] { compilation.EmitToImageReference() }, TestOptions.ReleaseDll, assemblyName: assemblyNameBase + "40");
+            compilation = CreateCompilationWithMscorlib40("", new MetadataReference[] { compilation.EmitToImageReference() }, TestOptions.ReleaseDll, assemblyName: assemblyNameBase + "40");
 
             CompileAndVerify(compilation,
                 sourceSymbolValidator: m =>
@@ -432,7 +432,7 @@ public class en_US
                 },
                 verify: Verification.Skipped).VerifyDiagnostics();
 
-            compilation = CreateStandardCompilation(
+            compilation = CreateCompilationWithMscorlib40(
 @"
 public class neutral
 {
@@ -449,7 +449,7 @@ public class neutral
             compilation = compilation.WithOptions(TestOptions.ReleaseModule);
             compilation.VerifyEmitDiagnostics();
 
-            compilation = CreateStandardCompilation("", new MetadataReference[] { compilation.EmitToImageReference() }, TestOptions.ReleaseDll, assemblyName: assemblyNameBase + "60");
+            compilation = CreateCompilationWithMscorlib40("", new MetadataReference[] { compilation.EmitToImageReference() }, TestOptions.ReleaseDll, assemblyName: assemblyNameBase + "60");
 
             CompileAndVerify(compilation, verify: Verification.Skipped).VerifyDiagnostics(
     // warning CS8009: Referenced assembly 'de, Version=0.0.0.0, Culture=de, PublicKeyToken=null' has different culture setting of 'de'.

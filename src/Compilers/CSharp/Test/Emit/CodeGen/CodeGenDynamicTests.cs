@@ -271,7 +271,7 @@ class C
         [Fact]
         public void Missing_Func()
         {
-            var systemCoreRef = CreateStandardCompilation(SystemCoreSource, assemblyName: GetUniqueName()).EmitToImageReference();
+            var systemCoreRef = CreateCompilationWithMscorlib40(SystemCoreSource, assemblyName: GetUniqueName()).EmitToImageReference();
             var csrtRef = MakeCSharpRuntime(systemCore: systemCoreRef);
 
             string source = @"
@@ -284,13 +284,13 @@ class C
 }
 ";
             // the delegate is generated, no error is reported
-            CompileStandardAndVerify(source, new[] { systemCoreRef, csrtRef });
+            CreateCompilationWithMscorlib40(source, new[] { systemCoreRef, csrtRef });
         }
 
         [Fact]
         public void InvalidFunc_Arity()
         {
-            var systemCoreRef = CreateStandardCompilation(SystemCoreSource, assemblyName: GetUniqueName()).EmitToImageReference();
+            var systemCoreRef = CreateCompilationWithMscorlib40(SystemCoreSource, assemblyName: GetUniqueName()).EmitToImageReference();
             var csrtRef = MakeCSharpRuntime(systemCore: systemCoreRef);
             var funcRef = MetadataReference.CreateFromImage(TestResources.MetadataTests.Invalid.InvalidFuncDelegateName.AsImmutableOrNull());
 
@@ -304,14 +304,14 @@ class C
 }
 ";
             // the delegate is generated, no error is reported
-            var c = CompileStandardAndVerify(source, new[] { systemCoreRef, csrtRef, funcRef });
+            var c = CompileAndVerify(source, new[] { systemCoreRef, csrtRef, funcRef });
             Assert.Equal(1, ((CSharpCompilation)c.Compilation).GlobalNamespace.GetMember<NamespaceSymbol>("System").GetMember<NamedTypeSymbol>("Func`13").Arity);
         }
 
         [Fact, WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")]
         public void InvalidFunc_Constraints()
         {
-            var systemCoreRef = CreateStandardCompilation(SystemCoreSource, assemblyName: GetUniqueName()).EmitToImageReference();
+            var systemCoreRef = CreateCompilationWithMscorlib40(SystemCoreSource, assemblyName: GetUniqueName()).EmitToImageReference();
             var csrtRef = MakeCSharpRuntime(systemCore: systemCoreRef);
 
             string source = @"
@@ -331,7 +331,7 @@ class C
 ";
             // Desired: the delegate is generated, no error is reported.
             // Actual: use the malformed Func`13 time and failed to PEVerify.  Not presently worthwhile to fix.
-            CompileStandardAndVerify(source, new[] { systemCoreRef, csrtRef }, verify: Verification.Fails).VerifyIL("C.F", @"
+            CompileAndVerify(source, new[] { systemCoreRef, csrtRef }, verify: Verification.Fails).VerifyIL("C.F", @"
 {
   // Code size      189 (0xbd)
   .maxstack  13
@@ -450,7 +450,7 @@ namespace System.Runtime.CompilerServices
     public abstract class CallSiteBinder { }
 }";
 
-            var systemCoreRef = CreateStandardCompilation(systemCoreSource, assemblyName: GetUniqueName()).EmitToImageReference();
+            var systemCoreRef = CreateCompilationWithMscorlib40(systemCoreSource, assemblyName: GetUniqueName()).EmitToImageReference();
             var csrtRef = MakeCSharpRuntime(systemCore: systemCoreRef);
 
             string source = @"
@@ -462,7 +462,7 @@ class C
     }
 }
 ";
-            CreateStandardCompilation(source, new[] { systemCoreRef, csrtRef }).VerifyEmitDiagnostics(
+            CreateCompilationWithMscorlib40(source, new[] { systemCoreRef, csrtRef }).VerifyEmitDiagnostics(
                 // (6,16): error CS0518: Predefined type 'System.Runtime.CompilerServices.CallSite' is not defined or imported
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "d").WithArguments("System.Runtime.CompilerServices.CallSite"),
                 // error CS1969: One or more types required to compile a dynamic expression cannot be found. Are you missing a reference?
@@ -479,7 +479,7 @@ namespace System.Runtime.CompilerServices
     public class CallSiteBinder {}
 }";
 
-            var systemCoreRef = CreateStandardCompilation(systemCoreSource, assemblyName: GetUniqueName()).EmitToImageReference();
+            var systemCoreRef = CreateCompilationWithMscorlib40(systemCoreSource, assemblyName: GetUniqueName()).EmitToImageReference();
             var csrtRef = MakeCSharpRuntime(systemCore: systemCoreRef);
 
             string source = @"
@@ -491,7 +491,7 @@ class C
     }
 }
 ";
-            CreateStandardCompilation(source, new[] { systemCoreRef, csrtRef }).VerifyEmitDiagnostics(
+            CreateCompilationWithMscorlib40(source, new[] { systemCoreRef, csrtRef }).VerifyEmitDiagnostics(
     // (6,16): error CS0518: Predefined type 'System.Runtime.CompilerServices.CallSite`1' is not defined or imported
     //         return d * d;
     Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "d").WithArguments("System.Runtime.CompilerServices.CallSite`1").WithLocation(6, 16),
@@ -578,7 +578,7 @@ public class C
         d.m(1,2,3);
     }
 }";
-            var verifier = CompileStandardAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: peModule =>
+            var verifier = CompileStandardAndVerify(source, references: new[] { SystemCoreRef, CSharpRef }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: peModule =>
             {
                 var c = peModule.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
                 var containers = c.GetMembers().OfType<NamedTypeSymbol>().ToArray();
@@ -634,7 +634,7 @@ public class C
         var x = new System.Action(() => d.m());
     }
 }";
-            var verifier = CompileStandardAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: peModule =>
+            var verifier = CompileStandardAndVerify(source, references: new[] { SystemCoreRef, CSharpRef }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: peModule =>
             {
                 var c = peModule.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
                 Assert.Equal(2, c.GetMembers().OfType<NamedTypeSymbol>().Count());
@@ -669,7 +669,7 @@ public class C
         yield return d;        
     }
 }";
-            var verifier = CompileStandardAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: peModule =>
+            var verifier = CompileStandardAndVerify(source, references: new[] { SystemCoreRef, CSharpRef }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: peModule =>
             {
                 var c = peModule.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
                 var iteratorClass = c.GetMember<NamedTypeSymbol>("<M1>d__0");
@@ -795,7 +795,7 @@ public class C
         return d(a, b);
     }
 }";
-            var verifier = CompileStandardAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: peModule =>
+            var verifier = CompileStandardAndVerify(source, references: new[] { SystemCoreRef, CSharpRef }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: peModule =>
             {
                 var container = peModule.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<NamedTypeSymbol>("<>o__0");
                 Assert.Equal(0, container.GetMembers().Single().GetAttributes().Length);
@@ -815,7 +815,7 @@ public class C
         return d(ref d);
     }
 }";
-            var verifier = CompileStandardAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: peModule =>
+            var verifier = CompileStandardAndVerify(source, references: new[] { SystemCoreRef, CSharpRef }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: peModule =>
             {
                 var d = peModule.GlobalNamespace.GetMember<NamedTypeSymbol>("<>F{00000004}");
 
@@ -1534,7 +1534,7 @@ public class C
             CompileStandardAndVerify(src,
                 expectedOutput: "2024",
                 parseOptions: _localFunctionParseOptions,
-                additionalRefs: new[] { SystemCoreRef, CSharpRef }).VerifyDiagnostics();
+                references: new[] { SystemCoreRef, CSharpRef }).VerifyDiagnostics();
             CompileAndVerifyIL(src, "C.Main",
                 parseOptions: _localFunctionParseOptions,
                 expectedOptimizedIL: @"
@@ -2268,7 +2268,7 @@ public class C
     }
 }";
             // TODO: Why does RefEmit use fat header with maxstack = 2?
-            var verifier = CompileStandardAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, symbolValidator: module =>
+            var verifier = CompileStandardAndVerify(source, references: new[] { SystemCoreRef, CSharpRef }, symbolValidator: module =>
             {
                 var pe = (PEModuleSymbol)module;
 
@@ -5011,7 +5011,7 @@ class C
 1:t
 1:t";
 
-            CompileStandardAndVerify(source: source, expectedOutput: output, additionalRefs: new[] { SystemCoreRef, CSharpRef });
+            CompileStandardAndVerify(source: source, expectedOutput: output, references: new[] { SystemCoreRef, CSharpRef });
         }
 
 
@@ -5114,7 +5114,7 @@ class C
 00011111-
 01111111";
 
-            CompileStandardAndVerify(source: source, expectedOutput: output, additionalRefs: new[] { SystemCoreRef, CSharpRef });
+            CompileStandardAndVerify(source: source, expectedOutput: output, references: new[] { SystemCoreRef, CSharpRef });
         }
 
         [Fact]
@@ -5144,7 +5144,7 @@ public class C
     }
 }
 ";
-            CompileStandardAndVerify(source, expectedOutput: "", additionalRefs: new[] { SystemCoreRef, CSharpRef });
+            CompileStandardAndVerify(source, expectedOutput: "", references: new[] { SystemCoreRef, CSharpRef });
         }
 
         [Fact]
@@ -8044,7 +8044,7 @@ partial class C
     }
 }
 ";
-            CompileStandardAndVerify(source, additionalRefs: new[] { CSharpRef, SystemCoreRef }, expectedOutput: "2");
+            CompileStandardAndVerify(source, references: new[] { CSharpRef, SystemCoreRef }, expectedOutput: "2");
         }
 
         [Fact]
@@ -8708,7 +8708,7 @@ public class C
     public void m(ref object a, out object b) { b = null; }
 }
 ";
-            CompileStandardAndVerify(source, expectedOutput: "", additionalRefs: new[] { SystemCoreRef, CSharpRef });
+            CompileStandardAndVerify(source, expectedOutput: "", references: new[] { SystemCoreRef, CSharpRef });
         }
 
         /// <summary>
@@ -13993,7 +13993,7 @@ class C
     }
 }
 ";
-            var comp = CompileStandardAndVerify(source, expectedOutput: "hello!", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef, SystemCoreRef });
+            var comp = CompileAndVerify(source, expectedOutput: "hello!", references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef, SystemCoreRef });
             comp.VerifyDiagnostics();
             // No runtime failure (System.ArrayTypeMismatchException: Attempted to access an element as a type incompatible with the array.)
             // because of the special handling for dynamic in LocalRewriter.TransformCompoundAssignmentLHS

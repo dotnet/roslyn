@@ -16684,7 +16684,7 @@ namespace SA
             // class CSFields { class FFF {}}
             var ref1 = TestReferences.SymbolsTests.Fields.CSFields.dll;
 
-            var comp = CreateStandardCompilation(new List<string> { text }, new List<MetadataReference> { ref1 });
+            var comp = CreateStandardCompilation(new[] { text }, new List<MetadataReference> { ref1 });
             comp.VerifyDiagnostics(
                 // (11,16): warning CS0435: The namespace 'CSFields' in '' conflicts with the imported type 'CSFields' in 'CSFields, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the namespace defined in ''.
                 //         void M(CSFields.FFF p) { }
@@ -16722,7 +16722,7 @@ namespace SA
             var ref1 = TestReferences.SymbolsTests.V1.MTTestLib1.dll;
 
             // Roslyn gives CS1542 or CS0104
-            var comp = CreateStandardCompilation(new List<string> { text }, new List<MetadataReference> { ref1 });
+            var comp = CreateStandardCompilation(new[] { text }, new List<MetadataReference> { ref1 });
             comp.VerifyDiagnostics(
                 // (8,16): warning CS0436: The type 'Class1' in '' conflicts with the imported type 'Class1' in 'MTTestLib1, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in ''.
                 //         void M(Class1 p) { }
@@ -16966,7 +16966,7 @@ namespace SA
             var ref1 = TestReferences.MetadataTests.NetModule01.AppCS;
 
             // Roslyn CS1542
-            var comp = CreateStandardCompilation(new List<string> { text }, new List<MetadataReference> { ref1 });
+            var comp = CreateStandardCompilation(new[] { text }, new List<MetadataReference> { ref1 });
             comp.VerifyDiagnostics(
                 // (11,16): warning CS0437: The type 'AppCS' in '' conflicts with the imported namespace 'AppCS' in 'AppCS, Version=1.2.3.4, Culture=neutral, PublicKeyToken=null'. Using the type defined in ''.
                 //         void M(AppCS.App p) { }
@@ -19593,7 +19593,7 @@ namespace UserSpace
 
             CompileStandardAndVerify(
                 source: code,
-                additionalRefs: new MetadataReference[] { ilReference },
+                references: new MetadataReference[] { ilReference },
                 expectedOutput: "TEST VALUE");
         }
 
@@ -19815,7 +19815,7 @@ namespace A
 
             CompileStandardAndVerify(
                 source: codeA,
-                additionalRefs: new MetadataReference[] { referenceB, referenceC },
+                references: new MetadataReference[] { referenceB, referenceC },
                 expectedOutput: "obj is null");
 
             var codeC2 = @"
@@ -19849,7 +19849,7 @@ namespace C
 
             CompileStandardAndVerify(
                 source: codeA,
-                additionalRefs: new MetadataReference[] { referenceB, referenceC2, referenceD },
+                references: new MetadataReference[] { referenceB, referenceC2, referenceD },
                 expectedOutput: "obj is null");
         }
 
@@ -19943,7 +19943,7 @@ namespace UserSpace
 }";
 
             var userCompilation = CreateStandardCompilation(
-                text: csSource,
+                source: csSource,
                 references: new MetadataReference[] { forwarderCompilation.ToMetadataReference() },
                 assemblyName: "UserAssembly");
 
@@ -20008,7 +20008,7 @@ namespace UserSpace
 }";
 
             var userCompilation = CreateStandardCompilation(
-                text: csSource,
+                source: csSource,
                 references: new MetadataReference[] { forwarderCompilation.ToMetadataReference() },
                 assemblyName: "UserAssembly");
 

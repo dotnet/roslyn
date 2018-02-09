@@ -8987,7 +8987,7 @@ class Program
     }
 }
 ";
-            CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (18,13): error CS8120: The switch case has already been handled by a previous case.
                 //             case Generic<dynamic>.Color.Red: // error: duplicate case
                 Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case Generic<dynamic>.Color.Red:").WithLocation(18, 13),
@@ -9041,8 +9041,7 @@ class Program
 }
 ";
             var compilation = CreateStandardCompilation(source,
-                    options: TestOptions.DebugDll.WithOutputKind(OutputKind.ConsoleApplication),
-                    references: new[] { ValueTupleRef, SystemRuntimeFacadeRef })
+                    options: TestOptions.DebugDll.WithOutputKind(OutputKind.ConsoleApplication))
                 .VerifyDiagnostics();
             var compVerifier = CompileAndVerify(compilation,
                 expectedOutput: @"False
@@ -9148,8 +9147,7 @@ class C
     }
 }";
             var compilation = CreateStandardCompilation(source,
-                    options: TestOptions.ReleaseDll.WithOutputKind(OutputKind.ConsoleApplication),
-                    references: new[] { ValueTupleRef, SystemRuntimeFacadeRef })
+                    options: TestOptions.ReleaseDll.WithOutputKind(OutputKind.ConsoleApplication))
                 .VerifyDiagnostics();
             var compVerifier = CompileAndVerify(compilation,
                 expectedOutput: @"True");
@@ -9509,8 +9507,7 @@ class Program
 }
 ";
             var compilation = CreateStandardCompilation(source,
-                    options: TestOptions.DebugDll.WithOutputKind(OutputKind.ConsoleApplication),
-                    references: new[] { ValueTupleRef, SystemRuntimeFacadeRef })
+                    options: TestOptions.DebugDll.WithOutputKind(OutputKind.ConsoleApplication))
                 .VerifyDiagnostics();
             var compVerifier = CompileAndVerify(compilation, expectedOutput: "abc");
             compVerifier.VerifyIL("Program.M2",

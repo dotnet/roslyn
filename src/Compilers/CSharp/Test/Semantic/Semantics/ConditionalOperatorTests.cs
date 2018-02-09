@@ -669,7 +669,7 @@ class Program
 }
 ";
 
-            var verifier = CompileStandardAndVerify(new string[] { source }, additionalRefs: new[] { SystemCoreRef }, expectedOutput: "1");
+            var verifier = CompileStandardAndVerify(new string[] { source }, references: new[] { SystemCoreRef }, expectedOutput: "1");
             verifier.VerifyIL("Program.Main", expectedIL);
         }
 
@@ -731,7 +731,7 @@ class Program
 }
 ";
 
-            var verifier = CompileStandardAndVerify(new string[] { source }, additionalRefs: new[] { SystemCoreRef }, expectedOutput: "1");
+            var verifier = CompileStandardAndVerify(new string[] { source }, references: new[] { SystemCoreRef }, expectedOutput: "1");
             verifier.VerifyIL("Program.Main", expectedIL);
         }
 
@@ -796,7 +796,7 @@ class Program
 }
 ";
 
-            var verifier = CompileStandardAndVerify(new string[] { source }, additionalRefs: new[] { SystemCoreRef }, expectedOutput: "1");
+            var verifier = CompileStandardAndVerify(new string[] { source }, references: new[] { SystemCoreRef }, expectedOutput: "1");
             verifier.VerifyIL("Program.Main", expectedIL);
         }
 
@@ -873,7 +873,7 @@ class Program
 }
 ";
 
-            var verifier = CompileStandardAndVerify(new string[] { source }, additionalRefs: new[] { SystemCoreRef }, expectedOutput: "1");
+            var verifier = CompileStandardAndVerify(new string[] { source }, references: new[] { SystemCoreRef }, expectedOutput: "1");
             verifier.VerifyIL("Program.Main", expectedIL);
         }
 
@@ -951,7 +951,7 @@ class Program
 }
 ";
 
-            var verifier = CompileStandardAndVerify(new string[] { source }, additionalRefs: new[] { SystemCoreRef }, expectedOutput: "1");
+            var verifier = CompileStandardAndVerify(new string[] { source }, references: new[] { SystemCoreRef }, expectedOutput: "1");
             verifier.VerifyIL("Program.Main", expectedIL);
         }
 

@@ -6716,7 +6716,7 @@ class X: Attribute
 {
 }
 ";
-            CompileStandardAndVerify(source5, additionalRefs: new[] { comp1, comp2 });
+            CompileStandardAndVerify(source5, references: new[] { comp1, comp2 });
 
             // Multiple from PE, multiple from Source
             var source6 = @"
@@ -8002,7 +8002,7 @@ public static class LanguageNames
     public const xyz CSharp = ""C#"";
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll);
+            var compilation1 = CreateCompilationWithMscorlib40(source1, options: TestOptions.DebugDll);
             compilation1.VerifyDiagnostics(
     // (10,18): error CS0246: The type or namespace name 'xyz' could not be found (are you missing a using directive or an assembly reference?)
     //     public const xyz CSharp = "C#";
@@ -8016,7 +8016,7 @@ internal sealed class CSharpCompilerDiagnosticAnalyzer
 {}
 ";
 
-            var compilation2 = CreateStandardCompilation(source2, new[] { new CSharpCompilationReference(compilation1) }, options: TestOptions.DebugDll, assemblyName: "Test.dll");
+            var compilation2 = CreateCompilationWithMscorlib40(source2, new[] { new CSharpCompilationReference(compilation1) }, options: TestOptions.DebugDll, assemblyName: "Test.dll");
             Assert.Same(compilation1.Assembly, compilation2.SourceModule.ReferencedAssemblySymbols[1]);
             compilation2.VerifyDiagnostics();
 

@@ -994,7 +994,7 @@ public class C
     }
 }";
             var comp = CompileStandardAndVerify(source,
-                additionalRefs: new[] { CSharpRef, SystemCoreRef_v4_0_30319_17929 },
+                references: new[] { CSharpRef },
                 expectedOutput: string.Empty);
             comp.VerifyIL("C.Get",
 @"{
@@ -2150,7 +2150,7 @@ class P
                 // using System.Linq;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Linq;").WithLocation(3, 1)
                 );
-            CompileStandardAndVerify(source, additionalRefs: new[] { LinqAssemblyRef },
+            CompileStandardAndVerify(source, references: new[] { LinqAssemblyRef },
                 expectedOutput: "0");
         }
 
@@ -2172,7 +2172,7 @@ class P
         return (errCount > 0) ? 1 : 0;
     }
 }";
-            CompileStandardAndVerify(source, additionalRefs: new[] { LinqAssemblyRef },
+            CompileStandardAndVerify(source, references: new[] { LinqAssemblyRef },
                 expectedOutput: "0");
         }
 
@@ -4412,7 +4412,7 @@ using System.Security;
     }
 ";
 
-            var comp = CompileStandardAndVerify(new string[] { source }, additionalRefs: new[] { SystemCoreRef }, expectedOutput: @"");
+            var comp = CompileStandardAndVerify(new string[] { source }, references: new[] { SystemCoreRef }, expectedOutput: @"");
             //            var comp = CompileAndVerify(source);
             comp.VerifyDiagnostics();
             comp.VerifyIL("Program.Main", @"

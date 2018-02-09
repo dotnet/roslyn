@@ -330,7 +330,7 @@ class Test : StaticModClass
         r";
 
             var tree = SyntaxFactory.ParseSyntaxTree(String.Empty);
-            var comp = CreateStandardCompilation(syntaxTree: tree, references: new[] { modRef });
+            var comp = CreateStandardCompilation(source: tree, references: new[] { modRef });
 
             var currComp = comp;
 

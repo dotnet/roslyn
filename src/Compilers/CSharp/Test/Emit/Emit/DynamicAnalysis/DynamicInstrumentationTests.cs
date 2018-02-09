@@ -2650,7 +2650,7 @@ class D
     void M() {}
 }
 ";
-            var c = CreateStandardCompilation(source + InstrumentationHelperSource, options: TestOptions.ReleaseDll);
+            var c = CreateCompilationWithMscorlib40(source + InstrumentationHelperSource, options: TestOptions.ReleaseDll);
             c.VerifyDiagnostics();
 
             var verifier = CompileAndVerify(c, emitOptions: EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
@@ -2687,7 +2687,7 @@ class D
     void M() {}
 }
 ";
-            var c = CreateStandardCompilation(source + InstrumentationHelperSource, options: TestOptions.ReleaseDll);
+            var c = CreateCompilationWithMscorlib40(source + InstrumentationHelperSource, options: TestOptions.ReleaseDll);
             c.VerifyDiagnostics();
 
             var verifier = CompileAndVerify(c, emitOptions: EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
@@ -3213,7 +3213,7 @@ True
 
         private CompilationVerifier CompileAndVerify(string source, string expectedOutput = null, CSharpCompilationOptions options = null, Verification verify = Verification.Passes)
         {
-            return base.CompileStandardAndVerify(source, expectedOutput: expectedOutput, additionalRefs: s_refs, options: (options ?? TestOptions.ReleaseExe).WithDeterministic(true), emitOptions: EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)), verify: verify);
+            return base.CompileStandardAndVerify(source, expectedOutput: expectedOutput, options: (options ?? TestOptions.ReleaseExe).WithDeterministic(true), emitOptions: EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)), verify: verify);
         }
 
         private CompilationVerifier CompileAndVerify((string Path, string Content)[] sources, string expectedOutput = null, CSharpCompilationOptions options = null)
@@ -3225,11 +3225,10 @@ True
                 trees.Add(Parse(source.Content, filename: source.Path));
             }
 
-            var compilation = CreateStandardCompilation(trees, s_refs, (options ?? TestOptions.ReleaseExe).WithDeterministic(true));
+            var compilation = CreateStandardCompilation(trees, options: (options ?? TestOptions.ReleaseExe).WithDeterministic(true));
             trees.Free();
             return base.CompileAndVerify(compilation, expectedOutput: expectedOutput, emitOptions: EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
         }
 
-        private static readonly MetadataReference[] s_refs = new[] { MscorlibRef_v4_0_30316_17626, SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, ValueTupleRef, SystemRuntimeFacadeRef };
     }
 }
