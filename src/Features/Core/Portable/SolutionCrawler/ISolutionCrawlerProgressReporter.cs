@@ -20,7 +20,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         /// 
         /// bool indicates whether progress is started or stopped
         /// 
-        /// These events are serialized to preserve event ordering using <see cref="EventMap"/> and <see cref="SimpleTaskQueue"/>
+        /// Notifications for this event are serialized to preserve order. 
+        /// However, individual event notifications may occur on any thread.
         /// </summary>
         event EventHandler<bool> ProgressChanged;
     }

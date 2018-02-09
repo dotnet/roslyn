@@ -14,7 +14,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
     [Export(typeof(DiagnosticProgressReporter))]
     internal sealed class DiagnosticProgressReporter
     {
-        private static readonly TimeSpan s_minimumInterval = TimeSpan.FromMilliseconds(15);
+        private static readonly TimeSpan s_minimumInterval = TimeSpan.FromMilliseconds(200);
 
         private readonly IVsTaskStatusCenterService _taskCenterService;
         private readonly IDiagnosticService _diagnosticService;
@@ -23,7 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
         // these fields are never accessed concurrently
         private TaskCompletionSource<VoidResult> _currentTask;
         private object _lastReportedDocumentOrProject;
-        private DateTime _lastTimeReported;
+        private DateTimeOffset _lastTimeReported;
 
         // this is only field that is shared between 2 events streams (IDiagnosticService and ISolutionCrawlerProgressReporter)
         // and can be called concurrently.
@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             IDiagnosticService diagnosticService,
             VisualStudioWorkspace workspace)
         {
-            _lastTimeReported = DateTime.UtcNow;
+            _lastTimeReported = DateTimeOffset.UtcNow;
 
             _taskCenterService = (IVsTaskStatusCenterService)serviceProvider.GetService(typeof(SVsTaskStatusCenterService));
             _diagnosticService = diagnosticService;
@@ -75,7 +75,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                 return;
             }
 
-            var current = DateTime.UtcNow;
+            var current = DateTimeOffset.UtcNow;
             if (current - _lastTimeReported < s_minimumInterval)
             {
                 // make sure we are not flooding UI. 
