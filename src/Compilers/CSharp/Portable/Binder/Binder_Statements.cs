@@ -1087,7 +1087,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     }
 
-                    // check for "DangerousGetPinnableReference"
+                    // check for a special ref-returning method
                     var additionalDiagnostics = DiagnosticBag.GetInstance();
                     try
                     {
@@ -1150,10 +1150,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
+            const string methodName = "DangerousGetPinnableReference";
+
             DiagnosticBag bindingDiagnostics = DiagnosticBag.GetInstance();
             try
             {
-                var boundAccess = BindInstanceMemberAccess(initializer.Syntax, initializer.Syntax, initializer, "DangerousGetPinnableReference", rightArity:0, typeArgumentsSyntax: default, typeArguments: default, invoked:true, bindingDiagnostics);
+                var boundAccess = BindInstanceMemberAccess(initializer.Syntax, initializer.Syntax, initializer, methodName, rightArity:0, typeArgumentsSyntax: default, typeArguments: default, invoked:true, bindingDiagnostics);
 
                 if (boundAccess.Kind != BoundKind.MethodGroup)
                 {
@@ -1162,7 +1164,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var analyzedArguments = AnalyzedArguments.GetInstance();
-                BoundExpression getPinnableReferenceCall = BindMethodGroupInvocation(initializer.Syntax, initializer.Syntax, "DangerousGetPinnableReference", (BoundMethodGroup)boundAccess, analyzedArguments, bindingDiagnostics, queryClause: null, allowUnexpandedForm: false);
+                BoundExpression getPinnableReferenceCall = BindMethodGroupInvocation(initializer.Syntax, initializer.Syntax, methodName, (BoundMethodGroup)boundAccess, analyzedArguments, bindingDiagnostics, queryClause: null, allowUnexpandedForm: false);
                 analyzedArguments.Free();
 
                 if (getPinnableReferenceCall.Kind != BoundKind.Call)
