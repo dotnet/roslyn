@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.AddParameter;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -14,6 +16,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddParameter
     {
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new CSharpAddParameterCodeFixProvider());
+
+        protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
+            => FlattenActions(actions);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
         public async Task TestMissingWithImplicitConstructor()
@@ -787,8 +792,7 @@ class C1
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
         public async Task TestInvocationOverride()
         {
-            await TestInRegularAndScriptAsync(
-@"
+            var code = @"
 class Base
 {
     protected virtual void M1() { }
@@ -800,8 +804,21 @@ class C1 : Base
     {
         [|M1|](1);
     }
-}",
-@"
+}";
+            var fix_DeclarationOnly = @"
+class Base
+{
+    protected virtual void M1() { }
+}
+class C1 : Base
+{
+    protected override void M1(int v) { }
+    void M2()
+    {
+        M1(1);
+    }
+}";
+            var fix_All = @"
 class Base
 {
     protected virtual void M1(int v) { }
@@ -813,15 +830,16 @@ class C1 : Base
     {
         M1(1);
     }
-}");
+}";
+            await TestInRegularAndScriptAsync(code, fix_DeclarationOnly, index: 0);
+            await TestInRegularAndScriptAsync(code, fix_All, index: 1);
         }
 
         [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
         public async Task TestInvocationExplicitInterface()
         {
-            await TestInRegularAndScriptAsync(
-@"
+            var code = @"
 interface I1
 {
     void M1();
@@ -833,8 +851,21 @@ class C1 : I1
     {
         ((I1)this).[|M1|](1);
     }
-}",
-@"
+}";
+            var fix_DeclarationOnly = @"
+interface I1
+{
+    void M1(int v);
+}
+class C1 : I1
+{
+    void I1.M1() { }
+    void M2()
+    {
+        ((I1)this).M1(1);
+    }
+}";
+            var fix_All = @"
 interface I1
 {
     void M1(int v);
@@ -846,14 +877,16 @@ class C1 : I1
     {
         ((I1)this).M1(1);
     }
-}");
+}";
+            await TestInRegularAndScriptAsync(code, fix_DeclarationOnly, index: 0);
+            await TestInRegularAndScriptAsync(code, fix_All, index: 1);
         }
 
         [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
         public async Task TestInvocationImplicitInterface()
         {
-            await TestInRegularAndScriptAsync(
+            var code =
 @"
 interface I1
 {
@@ -866,8 +899,21 @@ class C1 : I1
     {
         [|M1|](1);
     }
-}",
-@"
+}";
+            var fix_DeclarationOnly = @"
+interface I1
+{
+    void M1();
+}
+class C1 : I1
+{
+    public void M1(int v) { }
+    void M2()
+    {
+        M1(1);
+    }
+}";
+            var fix_All = @"
 interface I1
 {
     void M1(int v);
@@ -879,7 +925,9 @@ class C1 : I1
     {
         M1(1);
     }
-}");
+}";
+            await TestInRegularAndScriptAsync(code, fix_DeclarationOnly, index: 0);
+            await TestInRegularAndScriptAsync(code, fix_All, index: 1);
         }
 
         [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
@@ -1387,7 +1435,25 @@ class C1 : I1
         }
     }
 ";
-            var fix0 =
+            var fix_DeclarationOnly =
+@"
+    class BaseClass
+    {
+        protected virtual void M1(int v) { }
+    }
+    class Derived1: BaseClass
+    {
+        protected override void M1() { }
+    }
+    class Test: BaseClass
+    {
+        void M2() 
+        {
+            M1(1);
+        }
+    }
+";
+            var fix_All =
 @"
     class BaseClass
     {
@@ -1405,7 +1471,8 @@ class C1 : I1
         }
     }
 ";
-            await TestInRegularAndScriptAsync(code, fix0);
+            await TestInRegularAndScriptAsync(code, fix_DeclarationOnly, index: 0);
+            await TestInRegularAndScriptAsync(code, fix_All, index: 1);
         }
 
         [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
@@ -1471,6 +1538,46 @@ namespace N1
             await TestInRegularAndScriptAsync(code, fix0);
         }
 
+        [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestInvocation_Cascading_PartialMethodsInSameDocument()
+        {
+            var code =
+@"
+namespace N1
+{
+    partial class C1
+    {
+        partial void PartialM();
+    }
+    partial class C1
+    {
+        partial void PartialM() { }
+        void M1()
+        {
+            [|PartialM|](1);
+        }
+    }
+}";
+            var fix0 =
+@"
+namespace N1
+{
+    partial class C1
+    {
+        partial void PartialM(int v);
+    }
+    partial class C1
+    {
+        partial void PartialM(int v) { }
+        void M1()
+        {
+            PartialM(1);
+        }
+    }
+}";
+            await TestInRegularAndScriptAsync(code, fix0);
+        }
 
         [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
@@ -1580,7 +1687,8 @@ namespace N
         </Document>
     </Project>
 </Workspace>";
-            await TestInRegularAndScriptAsync(code, fix);
+            await TestInRegularAndScriptAsync(code, fix, index: 0);
+            await TestInRegularAndScriptAsync(code, fix, index: 1);
         }
 
         [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
@@ -1641,7 +1749,7 @@ namespace N
         </Document>
     </Project>
 </Workspace>";
-            var fix =
+            var fix_All =
 @"
 <Workspace>
     <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""A1"">
@@ -1694,7 +1802,7 @@ namespace N
         </Document>
     </Project>
 </Workspace>";
-            await TestInRegularAndScriptAsync(code, fix);
+            await TestInRegularAndScriptAsync(code, fix_All, index: 1);
         }
 
         [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
@@ -1717,7 +1825,22 @@ namespace N
         }
     }
 ";
-            var fix0 =
+            var fix_DeclarationOnly =
+@"
+    interface I1
+    {
+        void M1();
+    }
+    class C: I1
+    {
+        public void M1(int v) { }
+        void MTest() 
+        {
+            M1(1);
+        }
+    }
+";
+            var fix_All =
 @"
     interface I1
     {
@@ -1732,7 +1855,8 @@ namespace N
         }
     }
 ";
-            await TestInRegularAndScriptAsync(code, fix0);
+            await TestInRegularAndScriptAsync(code, fix_DeclarationOnly, index: 0);
+            await TestInRegularAndScriptAsync(code, fix_All, index: 1);
         }
     }
 }

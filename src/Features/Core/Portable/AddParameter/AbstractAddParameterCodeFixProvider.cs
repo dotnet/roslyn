@@ -155,18 +155,30 @@ namespace Microsoft.CodeAnalysis.AddParameter
                 var title = GetCodeFixTitle(methodToUpdate, parameters);
                 var hasCascadingDeclarations = HasCascadingDeclarations(methodToUpdate);
 
-                context.RegisterCodeFix(
-                    new MyCodeAction(title, c => FixAsync(context.Document, methodToUpdate, argumentToInsert, arguments, c)),
-                    context.Diagnostics);
+                if (hasCascadingDeclarations)
+                {
+                    // TODO Localization of titles
+                    context.RegisterCodeFix(new GroupingCodeAction(title,
+                        new MyCodeAction("Only declaration",
+                            c => FixAsync(context.Document, methodToUpdate, argumentToInsert, arguments, fixAllReferences: false, c)),
+                        new MyCodeAction("Declaration, overrides and implementations",
+                            c => FixAsync(context.Document, methodToUpdate, argumentToInsert, arguments, fixAllReferences: true, c))),
+                        context.Diagnostics);
+                }
+                else
+                {
+                    context.RegisterCodeFix(
+                        new MyCodeAction(title,
+                            c => FixAsync(context.Document, methodToUpdate, argumentToInsert, arguments, fixAllReferences: false, c)),
+                        context.Diagnostics);
+                }
             }
         }
 
         /// <summary>
-        /// Checks if there are indications that there might be more than one declaration that needs to be fixed.
+        /// Checks if there are indications that there might be more than one declarations that need to be fixed.
         /// The check does not look-up if there are other declarations (this is done later in the CodeAction).
         /// </summary>
-        /// <param name="method"></param>
-        /// <returns></returns>
         private bool HasCascadingDeclarations(IMethodSymbol method)
         {
             // Virtual methods of all kinds might have overrides somewhere else that need to be fixed.
@@ -195,11 +207,12 @@ namespace Microsoft.CodeAnalysis.AddParameter
             }
 
             // Now check if the method does implement an interface member
-            var containingType = method.ContainingType;
-            var allMethodsInAllInterfaces = containingType.AllInterfaces.SelectMany(i => i.GetMembers(method.Name));
-            var isMethodImplementingAnInterfaceMember = allMethodsInAllInterfaces.Any(
-                methodInInterface => containingType.FindImplementationForInterfaceMember(methodInInterface) == method);
-            return isMethodImplementingAnInterfaceMember;
+            if (method.ExplicitOrImplicitInterfaceImplementations().Length > 0)
+            {
+                return true;
+            }
+
+            return false;
         }
 
         private static string GetCodeFixTitle(IMethodSymbol methodToUpdate, IEnumerable<string> parameters)
@@ -260,21 +273,22 @@ namespace Microsoft.CodeAnalysis.AddParameter
             IMethodSymbol method,
             TArgumentSyntax argument,
             SeparatedSyntaxList<TArgumentSyntax> argumentList,
+            bool fixAllReferences,
             CancellationToken cancellationToken)
         {
             var solution = invocationDocument.Project.Solution;
             var argumentType = await GetArgumentTypeAsync(invocationDocument, argument, cancellationToken).ConfigureAwait(false);
             // the argumentNameSuggestion is the base for the parameter name. For each method declaration the name is made unique to avoid name collisions.
             (var argumentNameSuggestion, var isNamedArgument) = await GetNameSuggestionForArgumentAsync(invocationDocument, argument, cancellationToken).ConfigureAwait(false);
-            var referencedSymbols = await FindMethodDeclarationReferences(invocationDocument, method, cancellationToken).ConfigureAwait(false);
-            // get all definitions (virtual, override, interface definition and interface implementations)
-            var definitions = referencedSymbols.Select(reference => reference.Definition).OfType<IMethodSymbol>();
-            // group definitions defined in source by document
-            var declarationLocations = definitions.SelectMany(definition
-                => definition.Locations.Select(location => new { Definition = definition, Location = location }));
+            var referencedSymbols = fixAllReferences
+                ? await FindMethodDeclarationReferences(invocationDocument, method, cancellationToken).ConfigureAwait(false)
+                : method.GetAllMethodSymbolsOfPartialParts();
+            // prepare lookup of declarations by document
+            var declarationLocations = referencedSymbols.SelectMany(definition
+                => definition.Locations.Select(location => new { Declaration = definition, Location = location })).ToImmutableArray();
+            // TODO: Insert hint in the fix with a warning if anySymbolsReferenceNotInSource is true
+            var anySymbolReferencesNotInSource = declarationLocations.Any(declarationLocation => !declarationLocation.Location.IsInSource);
             var locationsInSource = declarationLocations.Where(declarationLocation => declarationLocation.Location.IsInSource);
-            // TODO: Insert code comment with a warning if anySymbolsReferenceNotInSource is true
-            var anySymbolsReferenceNotInSource = declarationLocations.Any(declarationLocation => !declarationLocation.Location.IsInSource);
             var locationsByDocument = locationsInSource.ToLookup(declarationLocation
                 => solution.GetDocument(declarationLocation.Location.SourceTree));
             foreach (var documentLookup in locationsByDocument)
@@ -284,15 +298,10 @@ namespace Microsoft.CodeAnalysis.AddParameter
                 var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 var editor = new SyntaxEditor(syntaxRoot, solution.Workspace);
                 var generator = editor.Generator;
-                var methodDeclarations = documentLookup.Select(declarationLocation => new
+                foreach (var methodDeclaration in documentLookup)
                 {
-                    Node = syntaxRoot.FindNode(declarationLocation.Location.SourceSpan),
-                    Symbol = declarationLocation.Definition
-                }).ToImmutableArray();
-                foreach (var methodDeclaration in methodDeclarations)
-                {
-                    var methodNode = methodDeclaration.Node;
-                    var methodSymbol = methodDeclaration.Symbol;
+                    var methodNode = syntaxRoot.FindNode(methodDeclaration.Location.SourceSpan);
+                    var methodSymbol = methodDeclaration.Declaration;
                     var parameterSymbol = CreateParameterSymbol(
                         methodSymbol, argumentType, argumentNameSuggestion);
 
@@ -330,7 +339,8 @@ namespace Microsoft.CodeAnalysis.AddParameter
             return argumentType;
         }
 
-        private static async Task<ImmutableArray<ReferencedSymbol>> FindMethodDeclarationReferences(Document invocationDocument, IMethodSymbol method, CancellationToken cancellationToken)
+        private static async Task<ImmutableArray<IMethodSymbol>> FindMethodDeclarationReferences(
+            Document invocationDocument, IMethodSymbol method, CancellationToken cancellationToken)
         {
             var progress = new StreamingProgressCollector(StreamingFindReferencesProgress.Instance);
 
@@ -340,10 +350,12 @@ namespace Microsoft.CodeAnalysis.AddParameter
                 documents: null,
                 progress: progress,
                 cancellationToken: cancellationToken).ConfigureAwait(false);
-            return progress.GetReferencedSymbols();
+            var referencedSymbols = progress.GetReferencedSymbols();
+            return referencedSymbols.Select(referencedSymbol => referencedSymbol.Definition).OfType<IMethodSymbol>().ToImmutableArray();
         }
 
-        private async Task<(string argumentNameSuggestion, bool isNamed)> GetNameSuggestionForArgumentAsync(Document invocationDocument, TArgumentSyntax argument, CancellationToken cancellationToken)
+        private async Task<(string argumentNameSuggestion, bool isNamed)> GetNameSuggestionForArgumentAsync(
+            Document invocationDocument, TArgumentSyntax argument, CancellationToken cancellationToken)
         {
             var syntaxFacts = invocationDocument.GetLanguageService<ISyntaxFactsService>();
 
@@ -666,10 +678,16 @@ namespace Microsoft.CodeAnalysis.AddParameter
 
         private class MyCodeAction : CodeAction.SolutionChangeAction
         {
-            public MyCodeAction(
-                string title,
-                Func<CancellationToken, Task<Solution>> createChangedSolution)
+            public MyCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution)
                 : base(title, createChangedSolution)
+            {
+            }
+        }
+
+        private class GroupingCodeAction : CodeAction.CodeActionWithNestedActions
+        {
+            public GroupingCodeAction(string title, MyCodeAction directDeclarationOnly, MyCodeAction allDeclarations)
+                : base(title, ImmutableArray.Create<CodeAction>(directDeclarationOnly, allDeclarations), isInlinable: true)
             {
             }
         }

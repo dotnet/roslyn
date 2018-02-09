@@ -101,6 +101,15 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
         }
 
+        public static ImmutableArray<T> ExplicitOrImplicitInterfaceImplementations<T>(this T symbol) where T : ISymbol
+        {
+            var containingType = symbol.ContainingType;
+            var allMembersInAllInterfaces = containingType.AllInterfaces.SelectMany(i => i.GetMembers(symbol.Name));
+            var membersImplementingAnInterfaceMember = allMembersInAllInterfaces.Where(
+                memberInInterface => symbol.Equals(containingType.FindImplementationForInterfaceMember(memberInInterface)));
+            return membersImplementingAnInterfaceMember.Cast<T>().ToImmutableArrayOrEmpty();
+        }
+
         public static bool IsOverridable(this ISymbol symbol)
         {
             // Members can only have overrides if they are virtual, abstract or override and is not
