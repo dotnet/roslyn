@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
 
             var textView = args.TextView;
             var subjectBuffer = args.SubjectBuffer;
-            if (!subjectBuffer.CanApplyChangeDocumentToWorkspace())
+            if (!CanExecuteCommand(subjectBuffer))
             {
                 return;
             }
