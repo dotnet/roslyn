@@ -536,9 +536,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             var peReader = new PEReader(peStream);
             var entries = peReader.ReadDebugDirectory();
-
-            Assert.True(entries.Length == 1 + (portablePdbStreamOpt != null ? 1 : 0) + (isDeterministic ? 1 : 0) + (hasEmbeddedPdb ? 1 : 0));
-
             int entryIndex = 0;
 
             var codeViewEntry = entries[entryIndex++];
@@ -577,7 +574,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 }
             }
 
-            if (portablePdbStreamOpt != null || hasEmbeddedPdb)
+            if ((portablePdbStreamOpt != null || hasEmbeddedPdb) && hashAlgorithm.Name != null)
             {
                 var entry = entries[entryIndex++];
 
@@ -607,6 +604,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     ValidatePortablePdbId(provider.GetMetadataReader(), codeViewEntry.Stamp, codeViewData.Guid);
                 }
             }
+
+            Assert.Equal(entries.Length, entryIndex);
         }
 
         private unsafe static void ValidatePortablePdbId(MetadataReader pdbReader, uint stampInDebugDirectory, Guid guidInDebugDirectory)
