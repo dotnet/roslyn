@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -123,9 +122,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             {
                 // TODO: Add proper extension method check - I'm sure there is some syntax based check somewhere burried in roslyn but I couldn't find it.
                 bool isExtensionMethod =
-                    (methodDeclaration.Parent as TypeDeclarationSyntax)?.Modifiers.Any(m => m.IsKind(SyntaxKind.StaticKeyword)) == true &&
-                    methodDeclaration.Modifiers.Any(m => m.IsKind(SyntaxKind.StaticKeyword)) &&
-                    methodDeclaration.ParameterList.Parameters.FirstOrDefault()?.Modifiers.Any(m => m.IsKind(SyntaxKind.ThisKeyword)) == true;
+                    (methodDeclaration.Parent as TypeDeclarationSyntax)?.Modifiers.Any(SyntaxKind.StaticKeyword) == true &&
+                    methodDeclaration.Modifiers.Any(SyntaxKind.StaticKeyword) &&
+                    methodDeclaration.ParameterList.Parameters.FirstOrDefault()?.Modifiers.Any(SyntaxKind.ThisKeyword) == true;
 
                 return isExtensionMethod ? ClassificationTypeNames.ExtensionMethodName : ClassificationTypeNames.MethodName;
             }
@@ -143,15 +142,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 switch (varDecl.Parent)
                 {
                     case FieldDeclarationSyntax fieldDeclaration:
-                        return fieldDeclaration.Modifiers.Any(m => m.IsKind(SyntaxKind.ConstKeyword)) ? ClassificationTypeNames.ConstantName : ClassificationTypeNames.FieldName;
+                        return fieldDeclaration.Modifiers.Any(SyntaxKind.ConstKeyword) ? ClassificationTypeNames.ConstantName : ClassificationTypeNames.FieldName;
                     case LocalDeclarationStatementSyntax localDeclarationStatement:
                         return localDeclarationStatement.IsConst ? ClassificationTypeNames.ConstantName : ClassificationTypeNames.LocalName;
-                    case FixedStatementSyntax fixedStatementSyntax:
-                        return ClassificationTypeNames.LocalName;
                     case EventDeclarationSyntax eventDeclarationSyntax:
                         return ClassificationTypeNames.EventName;
                 }
-                return ClassificationTypeNames.Identifier;
+                return ClassificationTypeNames.LocalName;
             }
             else if (token.Parent is ParameterSyntax parameterSyntax && parameterSyntax.Identifier == token)
             {
