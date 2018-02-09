@@ -2718,9 +2718,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindImplicitStackAllocArrayCreationExpression(ImplicitStackAllocArrayCreationExpressionSyntax node, DiagnosticBag diagnostics)
         {
-            bool inLegalPosition = ReportBadStackAllocPosition(node, diagnostics);
-            bool hasErrors = !inLegalPosition;
-
             InitializerExpressionSyntax initializer = node.Initializer;
             ImmutableArray<BoundExpression> boundInitializerExpressions = BindArrayInitializerExpressions(initializer, diagnostics, dimension: 1, rank: 1);
 
@@ -2742,11 +2739,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return BindStackAllocWithInitializer(
                 node,
                 initializer,
-                type: inLegalPosition ? GetStackAllocType(node, bestType, diagnostics) : null, 
+                type: GetStackAllocType(node, bestType, diagnostics, out bool hasErrors),
                 elementType: bestType,
                 sizeOpt: null,
                 diagnostics,
-                hasErrors,
+                hasErrors: hasErrors,
                 boundInitializerExpressions);
         }
 
@@ -3068,9 +3065,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression BindStackAllocArrayCreationExpression(
             StackAllocArrayCreationExpressionSyntax node, DiagnosticBag diagnostics)
         {
-            bool inLegalPosition = ReportBadStackAllocPosition(node, diagnostics);
-            bool hasErrors = !inLegalPosition;
-
             TypeSyntax typeSyntax = node.Type;
 
             if (typeSyntax.Kind() != SyntaxKind.ArrayType)
@@ -3089,6 +3083,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSyntax elementTypeSyntax = arrayTypeSyntax.ElementType;
             TypeSymbol elementType = BindType(elementTypeSyntax, diagnostics);
 
+            TypeSymbol type = GetStackAllocType(node, elementType, diagnostics, out bool hasErrors);
             if (!elementType.IsErrorType() && elementType.IsManagedType)
             {
                 Error(diagnostics, ErrorCode.ERR_ManagedAddr, elementTypeSyntax, elementType);
@@ -3125,8 +3120,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     builder.ToImmutableAndFree(),
                     new PointerTypeSymbol(elementType));
             }
-
-            TypeSymbol type = inLegalPosition ? GetStackAllocType(node, elementType, diagnostics) : null;
 
             ExpressionSyntax countSyntax = rankSpecifiers[0].Sizes[0];
             BoundExpression count = null;
@@ -3178,9 +3171,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return inLegalPosition;
         }
 
-        private TypeSymbol GetStackAllocType(SyntaxNode node, TypeSymbol elementType, DiagnosticBag diagnostics)
+        private TypeSymbol GetStackAllocType(SyntaxNode node, TypeSymbol elementType, DiagnosticBag diagnostics, out bool hasErrors)
         {
-            if (!node.IsVariableDeclarationInitialization())
+            var inLegalPosition = ReportBadStackAllocPosition(node, diagnostics);
+            hasErrors = !inLegalPosition;
+            if (inLegalPosition && !node.IsVariableDeclarationInitialization())
             {
                 CheckFeatureAvailability(node, MessageID.IDS_FeatureRefStructs, diagnostics);
                 GetWellKnownTypeMember(Compilation, WellKnownMember.System_Span_T__ctor, diagnostics, syntax: node);
