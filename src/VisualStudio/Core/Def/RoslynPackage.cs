@@ -26,6 +26,7 @@ using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Task = System.Threading.Tasks.Task;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics;
 
 namespace Microsoft.VisualStudio.LanguageServices.Setup
 {
@@ -94,6 +95,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
         {
             // we need to load it as early as possible since we can have errors from
             // package from each language very early
+            this.ComponentModel.GetService<DiagnosticProgressReporter>();
             this.ComponentModel.GetService<VisualStudioDiagnosticListTable>();
             this.ComponentModel.GetService<VisualStudioTodoListTable>();
             this.ComponentModel.GetService<VisualStudioDiagnosticListTableCommandHandler>().Initialize(this);
@@ -108,7 +110,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             this.ComponentModel.GetService<MiscellaneousFilesWorkspace>();
 
             LoadAnalyzerNodeComponents();
-            
+
             Task.Run(() => LoadComponentsBackgroundAsync());
         }
 
