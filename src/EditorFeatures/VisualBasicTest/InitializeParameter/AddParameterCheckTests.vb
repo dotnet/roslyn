@@ -302,7 +302,6 @@ Imports System
 class C
     public sub new()
         dim f = sub (s as string)
-
                     If s Is Nothing Then
                         Throw New ArgumentNullException(NameOf(s))
                     End If
@@ -330,7 +329,6 @@ Imports System
 class C
     public sub new()
         dim f = function (s as string)
-
                     If s Is Nothing Then
                         Throw New ArgumentNullException(NameOf(s))
                     End If
@@ -358,7 +356,6 @@ Imports System
 class C
     public sub new()
         dim f = sub (x)
-
                     If x Is Nothing Then
                         Throw New ArgumentNullException(NameOf(x))
                     End If
@@ -386,7 +383,6 @@ Imports System
 class C
     public sub new()
         dim f = function (x)
-
                     If x Is Nothing Then
                         Throw New ArgumentNullException(NameOf(x))
                     End If

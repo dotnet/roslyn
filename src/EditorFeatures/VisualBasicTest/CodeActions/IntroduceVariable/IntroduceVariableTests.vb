@@ -1282,7 +1282,6 @@ End Module",
 Module Program
     Sub Main
         Dim a = Sub(x As Integer)
-
                     If True Then
                         Dim {|Rename:value|} As Integer = x + 1
                         Console.WriteLine(value)
@@ -1308,7 +1307,6 @@ End Module",
 Module Program
     Sub Main
         Dim a = Sub(x As Integer)
-
                     If True Then
                         Console.WriteLine()
                     Else
