@@ -173,6 +173,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 _diagnosticIdToTextSnapshot.TryGetValue(id, out var diagnosticSnapshot);
                 diagnosticSnapshot = diagnosticSnapshot ?? editorSnapshot;
 
+                // This may happen if the file is closed/open.  We can't map these spans forward.
+                // Note: when this happens, the diagnostic service will reanalyze the file.  So
+                // up to date diagnostic spans will appear shortly after this.
+                if (diagnosticSnapshot.TextBuffer != editorSnapshot.TextBuffer)
+                {
+                    diagnosticSnapshot = editorSnapshot;
+                }
+
                 var sourceText = diagnosticSnapshot.AsText();
 
                 foreach (var diagnosticData in diagnostics)
