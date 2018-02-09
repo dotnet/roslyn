@@ -364,7 +364,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             SolutionCrawlerLogger.LogProcessDocument(this.Processor._logAggregator, documentId.Id, processedEverything);
 
                             // remove one that is finished running
-                            _workItemQueue.RemoveCancellationSource(workItem.DocumentId);
+                            _workItemQueue.MarkWorkItemDoneFor(workItem.DocumentId);
                         }
                     }
 
