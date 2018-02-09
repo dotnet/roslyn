@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Operations
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -12,8 +13,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
                    TypeOf node Is LambdaExpressionSyntax
         End Function
 
-        Public Shared Function GetBody(functionDeclaration As SyntaxNode) As SyntaxNode
-            Return functionDeclaration
+        Public Shared Function GetBlockOperation(functionDeclaration As SyntaxNode, semanticModel As SemanticModel, cancellationToken As CancellationToken) As IBlockOperation
+            Dim operation = semanticModel.GetOperation(functionDeclaration, cancellationToken)
+            Return If(TypeOf operation Is IAnonymousFunctionOperation,
+                DirectCast(operation, IAnonymousFunctionOperation).Body,
+                DirectCast(operation, IBlockOperation))
         End Function
 
         Private Shared Function GetStatements(functionDeclaration As SyntaxNode) As SyntaxList(Of StatementSyntax)

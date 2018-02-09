@@ -246,6 +246,23 @@ end class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        Public Async Function TestMissingWithExistingNullCheckInLambda() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"
+Imports System
+
+class C
+    public sub new()
+        dim f = sub ([||]s as string)
+                    If s Is Nothing Then
+                        Throw New ArgumentNullException()
+                    End If
+                end sub
+    end sub
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
         Public Async Function TestInMethod() As Task
             Await TestInRegularAndScript1Async(
 "

@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
     {
         protected abstract bool IsFunctionDeclaration(SyntaxNode node);
 
-        protected abstract SyntaxNode GetBody(SyntaxNode functionDeclaration);
+        protected abstract IBlockOperation GetBlockOperation(SyntaxNode functionDeclaration, SemanticModel semanticModel, CancellationToken cancellationToken);
         protected abstract bool IsImplicitConversion(Compilation compilation, ITypeSymbol source, ITypeSymbol destination);
         protected abstract SyntaxNode GetTypeBlock(SyntaxNode node);
 
@@ -92,16 +92,12 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             {
                 return;
             }
-          
-            // Only offered on method-like things that have a body (i.e. non-interface/non-abstract).
-            var bodyOpt = GetBody(functionDeclaration);
 
             // We support initializing parameters, even when the containing member doesn't have a
             // body. This is useful for when the user is typing a new constructor and hasn't written
             // the body yet.
-            var blockStatementOpt = bodyOpt != null
-                ? semanticModel.GetOperation(bodyOpt, cancellationToken) as IBlockOperation : null;
-
+            var blockStatementOpt = GetBlockOperation(functionDeclaration, semanticModel, cancellationToken);
+          
             // Ok.  Looks like a reasonable parameter to analyze.  Defer to subclass to 
             // actually determine if there are any viable refactorings here.
             context.RegisterRefactorings(await GetRefactoringsAsync(
