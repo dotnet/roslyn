@@ -1,28 +1,32 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.TaskStatusCenter;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 {
     [Export(typeof(DiagnosticProgressReporter))]
-    internal class DiagnosticProgressReporter
+    internal sealed class DiagnosticProgressReporter
     {
+        private static readonly TimeSpan s_minimumInterval = TimeSpan.FromMilliseconds(15);
+
         private readonly IVsTaskStatusCenterService _taskCenterService;
         private readonly IDiagnosticService _diagnosticService;
         private readonly TaskHandlerOptions _options;
 
-        // this fields are never accessed concurrently
-        private TaskCompletionSource<bool> _currentTask;
-        private string _lastMessage;
+        // these fields are never accessed concurrently
+        private TaskCompletionSource<VoidResult> _currentTask;
+        private object _lastReportedDocumentOrProject;
+        private DateTime _lastTimeReported;
 
         // this is only field that is shared between 2 events streams (IDiagnosticService and ISolutionCrawlerProgressReporter)
         // and can be called concurrently.
-        // volatile to make sure value is shared properly between threads
         private volatile ITaskHandler _taskHandler;
 
         [ImportingConstructor]
@@ -31,7 +35,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             IDiagnosticService diagnosticService,
             VisualStudioWorkspace workspace)
         {
-            // no event unsubscription since it will remain alive until VS shutdown
+            _lastTimeReported = DateTime.UtcNow;
+
             _taskCenterService = (IVsTaskStatusCenterService)serviceProvider.GetService(typeof(SVsTaskStatusCenterService));
             _diagnosticService = diagnosticService;
 
@@ -40,6 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
             Started(reporter.InProgress);
 
+            // no event unsubscription since it will remain alive until VS shutdown
             reporter.ProgressChanged += OnSolutionCrawlerProgressChanged;
             _diagnosticService.DiagnosticsUpdated += OnDiagnosticsUpdated;
 
@@ -59,6 +65,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             {
                 return;
             }
+
+            // we ignore report for same document/project as last time
+            // even if they are from different analyzers
+            // since, for the progress report, they all show up same
+            var documentOrProject = (object)e.DocumentId ?? e.ProjectId;
+            if (_lastReportedDocumentOrProject == documentOrProject)
+            {
+                return;
+            }
+
+            var current = DateTime.UtcNow;
+            if (current - _lastTimeReported < s_minimumInterval)
+            {
+                // make sure we are not flooding UI. 
+                // this is just presentation, fine to not updating UI especially since
+                // at the end, this notification will go away automatically
+                return;
+            }
+
+            // only update when we actually change message
+            _lastReportedDocumentOrProject = documentOrProject;
+            _lastTimeReported = current;
 
             var document = solution.GetDocument(e.DocumentId);
             if (document != null)
@@ -87,11 +115,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             if (running)
             {
                 // if there is any pending one. make sure it is finished.
-                _currentTask?.TrySetResult(true);
+                _currentTask?.TrySetResult(default);
 
                 var taskHandler = _taskCenterService.PreRegister(_options, data: default);
 
-                _currentTask = new TaskCompletionSource<bool>();
+                _currentTask = new TaskCompletionSource<VoidResult>();
                 taskHandler.RegisterTask(_currentTask.Task);
 
                 var data = new TaskProgressData
@@ -110,7 +138,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             else
             {
                 // stop progress
-                _currentTask?.TrySetResult(false);
+                _currentTask?.TrySetResult(default);
                 _currentTask = null;
 
                 _taskHandler = null;
@@ -119,11 +147,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
         private void ChangeProgress(string message)
         {
-            if (message == _lastMessage)
-            {
-                return;
-            }
-
             var data = new TaskProgressData
             {
                 ProgressText = message,
@@ -131,7 +154,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                 PercentComplete = null,
             };
 
-            _lastMessage = message;
             _taskHandler?.Progress.Report(data);
         }
     }

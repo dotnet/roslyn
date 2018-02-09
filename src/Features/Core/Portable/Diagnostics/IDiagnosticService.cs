@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.Common;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -11,6 +12,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         /// <summary>
         /// Event to get notified as new diagnostics are discovered by IDiagnosticUpdateSource
+        /// 
+        /// These events are serialized to preserve event ordering using <see cref="EventMap"/> and <see cref="SimpleTaskQueue"/>
         /// </summary>
         event EventHandler<DiagnosticsUpdatedArgs> DiagnosticsUpdated;
 
