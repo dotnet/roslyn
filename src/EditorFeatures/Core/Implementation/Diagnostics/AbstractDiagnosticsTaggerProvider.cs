@@ -170,16 +170,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 // and apply them directly to the snapshot we have.  Either no new changes will
                 // have happened, and these spans will be accurate, or a change will happen
                 // and we'll hear about and it update the spans shortly to the right position.
-                _diagnosticIdToTextSnapshot.TryGetValue(id, out var diagnosticSnapshot);
-                diagnosticSnapshot = diagnosticSnapshot ?? editorSnapshot;
-
-                // This may happen if the file is closed/open.  We can't map these spans forward.
+                //
+                // Also, only use the diagnoticSnapshot if its text buffer matches our.  The text
+                // buffer might be different if the file was closed/reopened.
                 // Note: when this happens, the diagnostic service will reanalyze the file.  So
                 // up to date diagnostic spans will appear shortly after this.
-                if (diagnosticSnapshot.TextBuffer != editorSnapshot.TextBuffer)
-                {
-                    diagnosticSnapshot = editorSnapshot;
-                }
+                _diagnosticIdToTextSnapshot.TryGetValue(id, out var diagnosticSnapshot);
+                diagnosticSnapshot = diagnosticSnapshot?.TextBuffer == editorSnapshot.TextBuffer
+                    ? diagnosticSnapshot
+                    : editorSnapshot;
 
                 var sourceText = diagnosticSnapshot.AsText();
 
