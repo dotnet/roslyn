@@ -13,9 +13,6 @@ namespace Roslyn.Utilities
         public static readonly VoidResult Instance = new VoidResult();
 
         // prevent someone from newing this type
-        private VoidResult()
-        {
-
-        }
+        private VoidResult() { }
     }
 }
