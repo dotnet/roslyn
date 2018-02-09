@@ -10600,7 +10600,8 @@ tryAgain:
             var commas = _pool.Allocate();
             try
             {
-                while (true)
+                int lastTokenPosition = -1;
+                while (IsMakingProgress(ref lastTokenPosition))
                 {
                     if (this.IsPossibleExpression())
                     {
@@ -10834,7 +10835,7 @@ tryAgain:
 
                         // additional parameters
                         int tokenProgress = -1;
-                        while(IsMakingProgress(ref tokenProgress))
+                        while (IsMakingProgress(ref tokenProgress))
                         {
                             if (this.CurrentToken.Kind == SyntaxKind.CloseParenToken)
                             {
