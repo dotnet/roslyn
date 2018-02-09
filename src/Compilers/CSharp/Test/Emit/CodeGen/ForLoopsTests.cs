@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         System.Console.Write(""{0}"", x);
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: "81");
+            var compilation = CompileStandardAndVerify(source, expectedOutput: "81");
 
             compilation.VerifyIL("C.Main",
 @"{
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         System.Console.Write(""{0}, {1}"", i, j);
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: "1, 1");
+            var compilation = CompileStandardAndVerify(source, expectedOutput: "1, 1");
 
             compilation.VerifyIL("C.Main",
 @"{
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         System.Console.Write(""{0}, {1}"", i, j);
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: "1, 0");
+            var compilation = CompileStandardAndVerify(source, expectedOutput: "1, 0");
 
             compilation.VerifyIL("C.Main",
 @"{
@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         System.Console.Write(""{0}, {1}"", i, j);
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: "0, 0");
+            var compilation = CompileStandardAndVerify(source, expectedOutput: "0, 0");
 
             compilation.VerifyIL("C.Main",
 @"{
@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         System.Console.Write(""{0}, {1}"", i, j);
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: "5, 3, 4, 4");
+            var compilation = CompileStandardAndVerify(source, expectedOutput: "5, 3, 4, 4");
 
             compilation.VerifyIL("C.Main",
 @"{
@@ -311,7 +311,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         System.Console.Write(""{0}"", i);
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: "6");
+            var compilation = CompileStandardAndVerify(source, expectedOutput: "6");
 
             compilation.VerifyIL("C.Main",
 @"{
@@ -356,7 +356,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         System.Console.Write(""{0}"", i);
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: "6");
+            var compilation = CompileStandardAndVerify(source, expectedOutput: "6");
 
             compilation.VerifyIL("C.Main",
 @"{
@@ -431,7 +431,7 @@ class C
   IL_000d:  ret       
 }
 ";
-            CompileAndVerify(text).
+            CompileStandardAndVerify(text).
                 VerifyIL("C.Main", expectedIL);
         }
 
@@ -468,7 +468,7 @@ class C
   IL_0011:  ret       
 }
 ";
-            CompileAndVerify(text).
+            CompileStandardAndVerify(text).
                  VerifyIL("C.Main", expectedIL);
         }
 
@@ -505,7 +505,7 @@ class C
   IL_0015:  ret       
 }
 ";
-            CompileAndVerify(text).
+            CompileStandardAndVerify(text).
                  VerifyIL("C.Main", expectedIL);
         }
 
@@ -522,7 +522,7 @@ class C
     }
 }
 ";
-            CompileAndVerify(text).VerifyIL("C.Main", @"{
+            CompileStandardAndVerify(text).VerifyIL("C.Main", @"{
   // Code size       15 (0xf)
   .maxstack  2
   .locals init (int V_0) //i
@@ -588,7 +588,7 @@ class C
   IL_001a:  ret       
 }
 ";
-            CompileAndVerify(text).
+            CompileStandardAndVerify(text).
                  VerifyIL("C.Main", expectedIL);
         }
 
@@ -642,7 +642,7 @@ class C
   IL_001c:  ret       
 }
 ";
-            CompileAndVerify(text).
+            CompileStandardAndVerify(text).
                  VerifyIL("C.Main", expectedIL);
         }
 
@@ -695,7 +695,7 @@ class C
   IL_001a:  ret       
 }
 ";
-            CompileAndVerify(text).
+            CompileStandardAndVerify(text).
                  VerifyIL("C.Main", expectedIL);
         }
 
@@ -719,7 +719,7 @@ class C
     }
 }
 ";
-            var c = CompileAndVerify(source, options: TestOptions.ReleaseDll);
+            var c = CompileStandardAndVerify(source, options: TestOptions.ReleaseDll);
 
             c.VerifyIL("C.Main", @"
 {
@@ -817,7 +817,7 @@ class C
   IL_0028:  ret       
 }
 ";
-            CompileAndVerify(text, expectedOutput: "1234").
+            CompileStandardAndVerify(text, expectedOutput: "1234").
                  VerifyIL("C.Main", expectedIL);
         }
 
@@ -875,7 +875,7 @@ class C
   IL_001d:  ret       
 }
 ";
-            CompileAndVerify(text).
+            CompileStandardAndVerify(text).
                  VerifyIL("C.Main", expectedIL);
         }
 
@@ -900,7 +900,7 @@ class C
     }
 }
 ";
-            var c = CompileAndVerify(source, options: TestOptions.ReleaseDll);
+            var c = CompileStandardAndVerify(source, options: TestOptions.ReleaseDll);
             c.VerifyIL("C.Main", @"
 {
   // Code size       24 (0x18)
@@ -954,7 +954,7 @@ class C
     }
 }
 ";
-            var c = CompileAndVerify(source, options: TestOptions.ReleaseDll);
+            var c = CompileStandardAndVerify(source, options: TestOptions.ReleaseDll);
 
             c.VerifyIL("C.Main", @"
 {
@@ -1033,7 +1033,7 @@ class C
   IL_001c:  ret       
 }
 ";
-            CompileAndVerify(text).
+            CompileStandardAndVerify(text).
                  VerifyIL("C.Main", expectedIL);
         }
 
@@ -1078,7 +1078,7 @@ class C
   IL_0012:  ret       
 }
 ";
-            CompileAndVerify(text).
+            CompileStandardAndVerify(text).
                  VerifyIL("C.Main", expectedIL);
         }
 
@@ -1116,7 +1116,7 @@ class C
   IL_000c:  ret
 }
 ";
-            CompileAndVerify(text).
+            CompileStandardAndVerify(text).
                  VerifyIL("C.Main", expectedIL);
         }
 
@@ -1172,7 +1172,7 @@ class C
   IL_001b:  ret       
 }
 ";
-            CompileAndVerify(text).
+            CompileStandardAndVerify(text).
                  VerifyIL("C.Main", expectedIL);
         }
 
@@ -1214,7 +1214,7 @@ class C
   IL_0010:  ret       
 }
 ";
-            CompileAndVerify(text).
+            CompileStandardAndVerify(text).
                  VerifyIL("C.Main", expectedIL);
         }
 
@@ -1240,7 +1240,7 @@ class C
   IL_0000:  ret       
 }
 ";
-            CompileAndVerify(text).
+            CompileStandardAndVerify(text).
                 VerifyIL("C.Main", expectedIL).
                 VerifyDiagnostics(Diagnostic(ErrorCode.WRN_UnreachableCode, "System"));
         }
@@ -1258,7 +1258,7 @@ class C
     }
 }
 ";
-            var c = CompileAndVerify(source, options: TestOptions.ReleaseDll);
+            var c = CompileStandardAndVerify(source, options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics(Diagnostic(ErrorCode.WRN_UnreachableCode, "System"));
             c.VerifyIL("C.Main", @"
@@ -1302,7 +1302,7 @@ class C
 }
 ";
             // Roslyn no unreachable warning CS0429 (for expr)
-            CompileAndVerify(text).
+            CompileStandardAndVerify(text).
                 VerifyIL("C.Main", expectedIL);
         }
 
@@ -1353,7 +1353,7 @@ class C
   IL_0011:  ret
 }
 ";
-            CompileAndVerify(text).
+            CompileStandardAndVerify(text).
                 VerifyIL("C.Main", expectedIL).
                 VerifyDiagnostics(
                     Diagnostic(ErrorCode.WRN_UnreachableCode, "goto"),
@@ -1407,7 +1407,7 @@ class C
   IL_001c:  ret       
 }
 ";
-            CompileAndVerify(text).
+            CompileStandardAndVerify(text).
                 VerifyIL("C.Main", expectedIL).
                 VerifyDiagnostics(Diagnostic(ErrorCode.WRN_UnreachableCode, "j"));
         }
@@ -1443,7 +1443,7 @@ class C
   IL_0007:  ret
 }
 ";
-            CompileAndVerify(text).
+            CompileStandardAndVerify(text).
                 VerifyIL("C.Main", expectedIL).
                 VerifyDiagnostics(Diagnostic(ErrorCode.WRN_UnreachableCode, "i"));
         }
@@ -1495,7 +1495,7 @@ public class Goo
   IL_0031:  ret
 }
 ";
-            CompileAndVerify(text).
+            CompileStandardAndVerify(text).
                  VerifyIL("C.Main", expectedIL);
         }
 
@@ -1539,7 +1539,7 @@ public class myFor
     }
 }
 ";
-            CompileAndVerify(text, additionalRefs: new MetadataReference[] { CSharpRef, SystemCoreRef }, expectedOutput: @"Initialize
+            CompileStandardAndVerify(text, additionalRefs: new MetadataReference[] { CSharpRef, SystemCoreRef }, expectedOutput: @"Initialize
 Done
 Next
 Done
@@ -1584,7 +1584,7 @@ class C
   IL_000c:  ret       
 }
 ";
-            CompileAndVerify(text).
+            CompileStandardAndVerify(text).
                  VerifyIL("C.Main", expectedIL);
         }
 
@@ -1614,7 +1614,7 @@ class C
     }
 }
 ";
-            var comp = CompileAndVerify(text, additionalRefs: new[] { LinqAssemblyRef }, expectedOutput: @"1
+            var comp = CompileStandardAndVerify(text, additionalRefs: new[] { LinqAssemblyRef }, expectedOutput: @"1
 2
 3");
         }
@@ -1650,7 +1650,7 @@ class C
     }
 }
 ";
-            var comp = CompileAndVerify(text, additionalRefs: new[] { LinqAssemblyRef }, expectedOutput: @"1
+            var comp = CompileStandardAndVerify(text, additionalRefs: new[] { LinqAssemblyRef }, expectedOutput: @"1
 2
 3");
         }
@@ -1674,7 +1674,7 @@ class C
     }
 }
 ";
-            CompileAndVerify(text, additionalRefs: new[] { SystemCoreRef }, expectedOutput: @"1
+            CompileStandardAndVerify(text, additionalRefs: new[] { SystemCoreRef }, expectedOutput: @"1
 4
 9
 16");
@@ -1699,7 +1699,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(text, additionalRefs: new[] { SystemCoreRef }, expectedOutput: @"1
+            var comp = CompileStandardAndVerify(text, additionalRefs: new[] { SystemCoreRef }, expectedOutput: @"1
 4
 9
 16");
@@ -1742,7 +1742,7 @@ public class C1
   IL_0012:  ret
 }
 ";
-            CompileAndVerify(text).
+            CompileStandardAndVerify(text).
                  VerifyIL("C.Main", expectedIL);
         }
 
@@ -1784,7 +1784,7 @@ class Program
   IL_0012:  ret
 }
 ";
-            CompileAndVerify(text).
+            CompileStandardAndVerify(text).
                 VerifyIL("Program.Main", expectedIL);
         }
 
@@ -1806,7 +1806,7 @@ class Program
     }
 }
 ";
-            var comp = CompileAndVerify(text, expectedOutput: @"1
+            var comp = CompileStandardAndVerify(text, expectedOutput: @"1
 2
 3
 4");
@@ -1829,7 +1829,7 @@ class Program
     }
 }
 ";
-            var comp = CompileAndVerify(text, expectedOutput: @"1
+            var comp = CompileStandardAndVerify(text, expectedOutput: @"1
 2
 3
 4");
@@ -1856,7 +1856,7 @@ class Program
     }
 }
 ";
-            var comp = CompileAndVerify(text, expectedOutput: @"-1
+            var comp = CompileStandardAndVerify(text, expectedOutput: @"-1
 -2
 -3
 -4
@@ -1888,7 +1888,7 @@ class Program
   IL_0005:  call       ""void System.Console.WriteLine(string)""
   IL_000a:  br.s       IL_0000
 }";
-            CompileAndVerify(text).
+            CompileStandardAndVerify(text).
                 VerifyIL("Program.Main", expectedIL);
         }
 
@@ -1909,7 +1909,7 @@ class Program
 }
 ";
 
-            var c = CompileAndVerify(text, options: TestOptions.DebugExe);
+            var c = CompileStandardAndVerify(text, options: TestOptions.DebugExe);
 
             c.VerifyIL("Program.Main", @"
 {

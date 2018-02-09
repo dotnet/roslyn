@@ -61,7 +61,7 @@ class EntryPoint
 }
 
 ";
-            CompileAndVerify(source, expectedOutput: "121314");
+            CompileStandardAndVerify(source, expectedOutput: "121314");
         }
 
         [WorkItem(544936, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544936")]
@@ -1309,7 +1309,7 @@ class M
 
             var reference = CompileIL(il, prependDefaultHeader: true);
 
-            var verifier = CompileAndVerify(csharp, new[] { reference }, options: TestOptions.ReleaseExe, expectedOutput: @"
+            var verifier = CompileStandardAndVerify(csharp, new[] { reference }, options: TestOptions.ReleaseExe, expectedOutput: @"
 ***** Start mod opt tests ****
   *** Generic Non-ref
 C# EG.F(T): CG::F(T)

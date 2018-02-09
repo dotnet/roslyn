@@ -860,7 +860,7 @@ class C<T1, T2, T3, T4, T5, T6>
         F6(e);
     }
 }";
-            var compilation = CompileAndVerify(source);
+            var compilation = CompileStandardAndVerify(source);
             compilation.VerifyIL("C<T1, T2, T3, T4, T5, T6>.M(T1, T2, T3, T5, T6)",
 @"{
   // Code size       62 (0x3e)
@@ -914,7 +914,7 @@ class C<T1, T2, T3, T4, T5>
         F5((T5)d);
     }
 }";
-            var compilation = CompileAndVerify(source);
+            var compilation = CompileStandardAndVerify(source);
             compilation.VerifyIL("C<T1, T2, T3, T4, T5>.M(object, I, T3, T4)",
 @"{
   // Code size       55 (0x37)

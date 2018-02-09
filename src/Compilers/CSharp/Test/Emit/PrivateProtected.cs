@@ -584,7 +584,7 @@ class Program
     private protected int F;
 }
 ";
-            var verifier = CompileAndVerify(
+            var verifier = CompileStandardAndVerify(
                 text,
                 parseOptions: TestOptions.Regular7_2,
                 expectedSignatures: new[]

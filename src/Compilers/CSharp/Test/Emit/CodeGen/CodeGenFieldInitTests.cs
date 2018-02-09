@@ -61,7 +61,7 @@ partial class Partial
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: @"
+            CompileStandardAndVerify(source, expectedOutput: @"
 Start Partial()
 Partial.a
 Partial.b
@@ -131,7 +131,7 @@ class Derived2 : Derived
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: @"
+            CompileStandardAndVerify(source, expectedOutput: @"
 Derived2.c
 Derived.b
 Base.a
@@ -179,7 +179,7 @@ partial class Partial
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: @"
+            CompileStandardAndVerify(source, expectedOutput: @"
 Partial.a
 Partial.b
 Partial.c
@@ -228,7 +228,7 @@ class Derived2 : Derived
     static Derived2() { System.Console.WriteLine(""Derived2()""); }
 }
 ";
-            CompileAndVerify(source, expectedOutput: @"
+            CompileStandardAndVerify(source, expectedOutput: @"
 Base.a
 Base()
 Base.a = 1
@@ -280,7 +280,7 @@ class Derived2 : Derived
     static Derived2() { System.Console.WriteLine(""Derived2()""); }
 }
 ";
-            CompileAndVerify(source, expectedOutput: @"
+            CompileStandardAndVerify(source, expectedOutput: @"
 Derived.b
 Derived()
 Base.a
@@ -332,7 +332,7 @@ class Derived2 : Derived
     static Derived2() { System.Console.WriteLine(""Derived2()""); }
 }
 ";
-            CompileAndVerify(source, expectedOutput: @"
+            CompileStandardAndVerify(source, expectedOutput: @"
 Derived2.c
 Derived2()
 Derived.b
@@ -400,7 +400,7 @@ class Derived : Base
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: @"
+            CompileStandardAndVerify(source, expectedOutput: @"
 Derived.b
 static Derived()
 Derived.y
@@ -625,7 +625,7 @@ class A
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: @"
+            CompileStandardAndVerify(source, expectedOutput: @"
 A.a
 A(int)
 A()

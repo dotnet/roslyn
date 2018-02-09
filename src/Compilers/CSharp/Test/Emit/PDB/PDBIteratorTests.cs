@@ -172,7 +172,7 @@ class Program
     }
 }
 ";
-            var c = CompileAndVerify(text, options: TestOptions.ReleaseDll, symbolValidator: module =>
+            var c = CompileStandardAndVerify(text, options: TestOptions.ReleaseDll, symbolValidator: module =>
             {
                 Assert.Equal(new[]
                 {
@@ -243,7 +243,7 @@ class Program
 }
 ";
 
-            var c = CompileAndVerify(text, options: TestOptions.DebugDll, symbolValidator: module =>
+            var c = CompileStandardAndVerify(text, options: TestOptions.DebugDll, symbolValidator: module =>
             {
                 Assert.Equal(new[]
                 {
@@ -702,7 +702,7 @@ class C
 }
 ";
 
-            var v = CompileAndVerify(text, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            var v = CompileStandardAndVerify(text, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 Assert.Equal(new[]
                 {
@@ -773,7 +773,7 @@ class C
 ";
             // Note that conditional branch discriminator is not hoisted.
 
-            var v = CompileAndVerify(text, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            var v = CompileStandardAndVerify(text, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 Assert.Equal(new[]
                 {
@@ -880,7 +880,7 @@ class C
         lock (this) { }
     }
 }";
-            CompileAndVerify(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            CompileStandardAndVerify(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 AssertEx.Equal(new[]
                 {
@@ -898,7 +898,7 @@ class C
                 }, module.GetFieldNames("C.<M>d__0"));
             });
 
-            var v = CompileAndVerify(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            var v = CompileStandardAndVerify(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 AssertEx.Equal(new[]
                 {
@@ -984,7 +984,7 @@ class C
     }
 }
 ";
-            var v = CompileAndVerify(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            var v = CompileStandardAndVerify(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 Assert.Equal(new[]
                 {
@@ -1058,7 +1058,7 @@ class C
             // class being pushed on evaluation stack, so that EE could find the locals.
             // Thus the locals are not available in EE.
 
-            var v = CompileAndVerify(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            var v = CompileStandardAndVerify(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 Assert.Equal(new[]
                 {
@@ -1182,7 +1182,7 @@ class C
             // We need to hoist display class variable to allow adding a new lambda after yield return 
             // that shares closure with the existing lambda.
 
-            var v = CompileAndVerify(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            var v = CompileStandardAndVerify(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 Assert.Equal(new[]
                 {
@@ -1326,7 +1326,7 @@ class C
     }
 }
 ";
-            var v = CompileAndVerify(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            var v = CompileStandardAndVerify(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 Assert.Equal(new[]
                 {
@@ -1410,7 +1410,7 @@ class C
     }
 }
 ";
-            var v = CompileAndVerify(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            var v = CompileStandardAndVerify(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 Assert.Equal(new[]
                 {
@@ -1472,7 +1472,7 @@ class C
     }
 }
 ";
-            var v = CompileAndVerify(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            var v = CompileStandardAndVerify(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 Assert.Equal(new[]
                 {

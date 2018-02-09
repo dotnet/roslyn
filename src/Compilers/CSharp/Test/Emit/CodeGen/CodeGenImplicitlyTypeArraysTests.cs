@@ -34,7 +34,7 @@ namespace Test
 }
 ";
 
-            CompileAndVerify(
+            CompileStandardAndVerify(
                 source,
                 additionalRefs: new[] { LinqAssemblyRef },
                 expectedOutput: "True");
@@ -62,7 +62,7 @@ namespace Test
 }
 ";
 
-            CompileAndVerify(
+            CompileStandardAndVerify(
               source,
               additionalRefs: new[] { LinqAssemblyRef },
               expectedOutput: "True");
@@ -90,7 +90,7 @@ namespace Test
 }
 ";
 
-            CompileAndVerify(
+            CompileStandardAndVerify(
                 source,
                 additionalRefs: new[] { LinqAssemblyRef },
                 expectedOutput: "True");
@@ -189,7 +189,7 @@ namespace Test
 }
 ";
 
-            CompileAndVerify(
+            CompileStandardAndVerify(
                 source,
                 additionalRefs: new[] { LinqAssemblyRef },
                 expectedOutput: "True");
@@ -221,7 +221,7 @@ namespace Test
 }
 ";
 
-            CompileAndVerify(
+            CompileStandardAndVerify(
                 source,
                 additionalRefs: new[] { LinqAssemblyRef },
                 expectedOutput: "True");
@@ -252,7 +252,7 @@ namespace Test
     }
 }
 ";
-            var compilation = CompileAndVerify(
+            var compilation = CompileStandardAndVerify(
                 testSrc,
                 additionalRefs: new[] { LinqAssemblyRef },
                 expectedOutput: "True");
@@ -287,7 +287,7 @@ namespace Test
             // the IReadOnlyList<T> and IReadOnlyCollection<T> interfaces. Use the one in v4_0_30316_17626.
 
             var mscorlib17626 = MetadataReference.CreateFromImage(TestResources.NetFX.v4_0_30316_17626.mscorlib);
-            CompileAndVerify(testSrc, new MetadataReference[] { mscorlib17626 }, expectedOutput: "1");
+            CompileStandardAndVerify(testSrc, new MetadataReference[] { mscorlib17626 }, expectedOutput: "1");
         }
 
         [Fact]
@@ -331,7 +331,7 @@ namespace Test
 }
 ";
 
-            CompileAndVerify(
+            CompileStandardAndVerify(
                 source,
                 additionalRefs: new[] { LinqAssemblyRef },
                 expectedOutput: "True");
@@ -359,7 +359,7 @@ namespace Test
 }
 ";
 
-            CompileAndVerify(
+            CompileStandardAndVerify(
                 source,
                 additionalRefs: new[] { LinqAssemblyRef },
                 expectedOutput: "True");
@@ -403,7 +403,7 @@ namespace Test
 }
 ";
 
-            CompileAndVerify(
+            CompileStandardAndVerify(
                 source,
                 additionalRefs: new[] { LinqAssemblyRef },
                 expectedOutput: "True");
@@ -440,7 +440,7 @@ namespace Test
     }
 }
 ";
-            var compilation = CompileAndVerify(
+            var compilation = CompileStandardAndVerify(
                 testSrc,
                 additionalRefs: new[] { LinqAssemblyRef },
                 expectedOutput: "True");
@@ -591,7 +591,7 @@ namespace Test
 }
 ";
 
-            CompileAndVerify(
+            CompileStandardAndVerify(
                 source,
                 additionalRefs: new[] { LinqAssemblyRef },
                 expectedOutput: "True");
@@ -625,7 +625,7 @@ namespace Test
 }
 ";
 
-            CompileAndVerify(
+            CompileStandardAndVerify(
                 source,
                 additionalRefs: new[] { LinqAssemblyRef },
                 expectedOutput: "True");
@@ -653,7 +653,7 @@ namespace Test
 }
 ";
 
-            CompileAndVerify(
+            CompileStandardAndVerify(
                 source,
                 additionalRefs: new[] { LinqAssemblyRef },
                 expectedOutput: "True");
@@ -681,7 +681,7 @@ namespace Test
 }
 ";
 
-            CompileAndVerify(
+            CompileStandardAndVerify(
                 source,
                 additionalRefs: new[] { LinqAssemblyRef },
                 expectedOutput: "True");
@@ -723,7 +723,7 @@ namespace Test
 }
 ";
 
-            CompileAndVerify(
+            CompileStandardAndVerify(
                 source,
                 additionalRefs: new[] { LinqAssemblyRef },
                 expectedOutput: "True");
@@ -760,7 +760,7 @@ namespace Test
 }
 ";
 
-            CompileAndVerify(
+            CompileStandardAndVerify(
                 source,
                 additionalRefs: new[] { LinqAssemblyRef },
                 expectedOutput: "True");
@@ -794,7 +794,7 @@ namespace Test
     }
 }";
 
-            CompileAndVerify(testSrc, expectedOutput: "1");
+            CompileStandardAndVerify(testSrc, expectedOutput: "1");
         }
 
         [Fact]
@@ -824,7 +824,7 @@ namespace Test
     }
 }
 ";
-            CompileAndVerify(testSrc, expectedOutput: "1");
+            CompileStandardAndVerify(testSrc, expectedOutput: "1");
         }
 
         [Fact]
@@ -852,7 +852,7 @@ namespace Test
 }
 ";
 
-            CompileAndVerify(
+            CompileStandardAndVerify(
                 source,
                 additionalRefs: new[] { LinqAssemblyRef },
                 expectedOutput: "True");
@@ -886,7 +886,7 @@ public class Program
 }
 ";
 
-            CompileAndVerify(
+            CompileStandardAndVerify(
                 source,
                 additionalRefs: new[] { LinqAssemblyRef },
                 expectedOutput: "True");
@@ -926,7 +926,7 @@ public class Program
 }
 ";
 
-            CompileAndVerify(
+            CompileStandardAndVerify(
                 source,
                 additionalRefs: new[] { LinqAssemblyRef },
                 expectedOutput: "TrueTrueTrueTrueTrueTrueTrueTrueTrue");

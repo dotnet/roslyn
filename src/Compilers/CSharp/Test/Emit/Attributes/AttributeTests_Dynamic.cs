@@ -1043,7 +1043,7 @@ class C
     }
 }
 ";
-            CompileAndVerify(source, additionalRefs: new[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            CompileStandardAndVerify(source, additionalRefs: new[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 var c = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
                 var iterator = c.GetMember<NamedTypeSymbol>("<Goo>d__0");
@@ -1087,7 +1087,7 @@ class C
 }";
 
             // Make sure we emit without errors when dynamic attributes are not present. 
-            CompileAndVerify(source, expectedSignatures: new[]
+            CompileStandardAndVerify(source, expectedSignatures: new[]
             {
                 Signature(
                     "C+<>c",
@@ -1112,7 +1112,7 @@ class C
     }
 }";
 
-            CompileAndVerify(source, additionalRefs: new[] { CSharpRef, SystemCoreRef }, expectedSignatures: new[]
+            CompileStandardAndVerify(source, additionalRefs: new[] { CSharpRef, SystemCoreRef }, expectedSignatures: new[]
             {
                 Signature(
                     "C+<>c",
@@ -1195,7 +1195,7 @@ class C
 {
     static dynamic[] P { get; set; }
 }";
-            CompileAndVerify(source, additionalRefs: new[] { CSharpRef, SystemCoreRef }, expectedSignatures: new[]
+            CompileStandardAndVerify(source, additionalRefs: new[] { CSharpRef, SystemCoreRef }, expectedSignatures: new[]
             {
                 Signature(
                     "C",
@@ -1229,7 +1229,7 @@ class C
         F(new object[0]);
     }
 }";
-            CompileAndVerify(source, additionalRefs: new[] { CSharpRef, SystemCoreRef }, expectedSignatures: new[]
+            CompileStandardAndVerify(source, additionalRefs: new[] { CSharpRef, SystemCoreRef }, expectedSignatures: new[]
             {
                 Signature(
                     "C+<>c__DisplayClass0_0",

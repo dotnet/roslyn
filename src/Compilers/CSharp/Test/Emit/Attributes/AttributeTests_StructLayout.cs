@@ -34,7 +34,7 @@ using System.Runtime.InteropServices;
 ";
             const TypeAttributes typeDefMask = TypeAttributes.StringFormatMask | TypeAttributes.LayoutMask;
 
-            CompileAndVerify(source, assemblyValidator: (assembly) =>
+            CompileStandardAndVerify(source, assemblyValidator: (assembly) =>
             {
                 var metadataReader = assembly.GetMetadataReader();
 
@@ -210,11 +210,11 @@ class Structs
                 }
             };
 
-            CompileAndVerify(verifiable, assemblyValidator: validator);
-            CompileAndVerify(unverifiable, assemblyValidator: validator, verify: Verification.Fails);
+            CompileStandardAndVerify(verifiable, assemblyValidator: validator);
+            CompileStandardAndVerify(unverifiable, assemblyValidator: validator, verify: Verification.Fails);
 
             // CLR limitation on type size, not a RefEmit bug:
-            CompileAndVerify(unloadable, assemblyValidator: validator, verify: Verification.Fails);
+            CompileStandardAndVerify(unloadable, assemblyValidator: validator, verify: Verification.Fails);
         }
 
         [Fact]
@@ -332,7 +332,7 @@ public class C : B
 }
 ";
             // type C can't be loaded
-            CompileAndVerify(source, verify: Verification.Fails);
+            CompileStandardAndVerify(source, verify: Verification.Fails);
         }
 
         [Fact]
@@ -352,7 +352,7 @@ public class A
     event Action b;
 }
 ";
-            CompileAndVerify(source, assemblyValidator: (assembly) =>
+            CompileStandardAndVerify(source, assemblyValidator: (assembly) =>
             {
                 var reader = assembly.GetMetadataReader();
                 Assert.Equal(2, reader.GetTableRowCount(TableIndex.FieldLayout));
@@ -615,7 +615,7 @@ partial struct C
 
         private void VerifyStructLayout(string source, bool hasInstanceFields)
         {
-            CompileAndVerify(source, assemblyValidator: (assembly) =>
+            CompileStandardAndVerify(source, assemblyValidator: (assembly) =>
             {
                 var reader = assembly.GetMetadataReader();
                 var type = reader.TypeDefinitions

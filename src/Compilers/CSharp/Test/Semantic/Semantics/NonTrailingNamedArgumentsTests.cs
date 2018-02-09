@@ -32,7 +32,7 @@ class C
         M(3, a: 4);
     }
 }";
-            var verifier = CompileAndVerify(source, expectedOutput: "First 1 2. Second 3 4.", parseOptions: TestOptions.Regular7_2);
+            var verifier = CompileStandardAndVerify(source, expectedOutput: "First 1 2. Second 3 4.", parseOptions: TestOptions.Regular7_2);
             verifier.VerifyDiagnostics();
 
             var tree = verifier.Compilation.SyntaxTrees.First();
@@ -78,7 +78,7 @@ class C
         new C(a: 1, 2);
     }
 }";
-            var verifier = CompileAndVerify(source, expectedOutput: "1 2.", parseOptions: TestOptions.Regular7_2);
+            var verifier = CompileStandardAndVerify(source, expectedOutput: "1 2.", parseOptions: TestOptions.Regular7_2);
             verifier.VerifyDiagnostics();
 
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1);
@@ -106,7 +106,7 @@ class C
         new C();
     }
 }";
-            var verifier = CompileAndVerify(source, expectedOutput: "1 2.", parseOptions: TestOptions.Regular7_2);
+            var verifier = CompileStandardAndVerify(source, expectedOutput: "1 2.", parseOptions: TestOptions.Regular7_2);
             verifier.VerifyDiagnostics();
         }
 
@@ -130,7 +130,7 @@ class Derived : C
         new Derived();
     }
 }";
-            var verifier = CompileAndVerify(source, expectedOutput: "1 2.", parseOptions: TestOptions.Regular7_2);
+            var verifier = CompileStandardAndVerify(source, expectedOutput: "1 2.", parseOptions: TestOptions.Regular7_2);
             verifier.VerifyDiagnostics();
         }
 
@@ -153,7 +153,7 @@ public class C
         c.M(a: 1, 2);
     }
 }";
-            var verifier = CompileAndVerify(source, expectedOutput: "1 2.", parseOptions: TestOptions.Regular7_2, additionalRefs: new[] { SystemCoreRef });
+            var verifier = CompileStandardAndVerify(source, expectedOutput: "1 2.", parseOptions: TestOptions.Regular7_2, additionalRefs: new[] { SystemCoreRef });
             verifier.VerifyDiagnostics();
 
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, references: new[] { SystemCoreRef });
@@ -186,7 +186,7 @@ class C
         c.e(a: 1, 2);
     }
 }";
-            var verifier = CompileAndVerify(source, expectedOutput: "1 2. 1 2.", parseOptions: TestOptions.Regular7_2);
+            var verifier = CompileStandardAndVerify(source, expectedOutput: "1 2. 1 2.", parseOptions: TestOptions.Regular7_2);
             verifier.VerifyDiagnostics();
 
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1);
@@ -217,7 +217,7 @@ class C
         }
     }
 }";
-            var verifier = CompileAndVerify(source, expectedOutput: "1 2.", parseOptions: TestOptions.Regular7_2);
+            var verifier = CompileStandardAndVerify(source, expectedOutput: "1 2.", parseOptions: TestOptions.Regular7_2);
             verifier.VerifyDiagnostics();
 
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1);
@@ -253,7 +253,7 @@ class C
         c[a: 3, 4] = 5;
     }
 }";
-            var verifier = CompileAndVerify(source, expectedOutput: "Get 1 2. Set 3 4 5.", parseOptions: TestOptions.Regular7_2);
+            var verifier = CompileStandardAndVerify(source, expectedOutput: "Get 1 2. Set 3 4 5.", parseOptions: TestOptions.Regular7_2);
             verifier.VerifyDiagnostics();
 
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1);
@@ -328,10 +328,10 @@ class D
 }";
             var lib = CreateStandardCompilation(lib_cs, parseOptions: TestOptions.Regular7);
 
-            var verifier1 = CompileAndVerify(source, expectedOutput: "1 2.", parseOptions: TestOptions.Regular7_2, additionalRefs: new[] { lib.ToMetadataReference() });
+            var verifier1 = CompileStandardAndVerify(source, expectedOutput: "1 2.", parseOptions: TestOptions.Regular7_2, additionalRefs: new[] { lib.ToMetadataReference() });
             verifier1.VerifyDiagnostics();
 
-            var verifier2 = CompileAndVerify(source, expectedOutput: "1 2.", parseOptions: TestOptions.Regular7_2, additionalRefs: new[] { lib.EmitToImageReference() });
+            var verifier2 = CompileStandardAndVerify(source, expectedOutput: "1 2.", parseOptions: TestOptions.Regular7_2, additionalRefs: new[] { lib.EmitToImageReference() });
             verifier2.VerifyDiagnostics();
         }
 
@@ -380,7 +380,7 @@ class C
         C.M(a: 1, ""hi"");
     }
 }";
-            var verifier = CompileAndVerify(source, expectedOutput: "1 hi.", parseOptions: TestOptions.Regular7_2);
+            var verifier = CompileStandardAndVerify(source, expectedOutput: "1 hi.", parseOptions: TestOptions.Regular7_2);
             verifier.VerifyDiagnostics();
 
             var tree = verifier.Compilation.SyntaxTrees.First();
@@ -499,7 +499,7 @@ class C
         M(x: 3, new[] { ""4"", ""5"" });
     }
 }";
-            var comp = CompileAndVerify(source, expectedOutput: "1 2. 2 3. 3 4,5.");
+            var comp = CompileStandardAndVerify(source, expectedOutput: "1 2. 2 3. 3 4,5.");
             comp.VerifyDiagnostics();
         }
 
@@ -731,7 +731,7 @@ class C
         M(c: valueC, valueB);
     }
 }";
-            var verifier = CompileAndVerify(source, expectedOutput: "Second 3 2.");
+            var verifier = CompileStandardAndVerify(source, expectedOutput: "Second 3 2.");
             verifier.VerifyDiagnostics();
 
             var tree = verifier.Compilation.SyntaxTrees.First();
@@ -763,7 +763,7 @@ class C
         M(c: valueC, valueB);
     }
 }";
-            var verifier = CompileAndVerify(source, expectedOutput: "Second 3 2.");
+            var verifier = CompileStandardAndVerify(source, expectedOutput: "Second 3 2.");
             verifier.VerifyDiagnostics();
 
             var tree = verifier.Compilation.SyntaxTrees.First();
@@ -790,7 +790,7 @@ class C
         M(a: 1, 2);
     }
 }";
-            var comp = CompileAndVerify(source, expectedOutput: "42");
+            var comp = CompileStandardAndVerify(source, expectedOutput: "42");
             comp.VerifyDiagnostics();
         }
 
@@ -907,7 +907,7 @@ class C
         M(1, b: 2, 3, 4);
     }
 }";
-            var verifier = CompileAndVerify(source, expectedOutput: "1 2 3 4 Length:2");
+            var verifier = CompileStandardAndVerify(source, expectedOutput: "1 2 3 4 Length:2");
             verifier.VerifyDiagnostics();
         }
 
@@ -1095,7 +1095,7 @@ class C
         return result;
     }
 }";
-            var comp = CompileAndVerify(source, expectedOutput: "1 2 34. 1 2 56.");
+            var comp = CompileStandardAndVerify(source, expectedOutput: "1 2 34. 1 2 56.");
             comp.VerifyDiagnostics();
         }
 

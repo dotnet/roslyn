@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Source
         [ClrOnlyFact]
         public void PartialMethods()
         {
-            var comp = CompileAndVerify(@"
+            var comp = CompileStandardAndVerify(@"
 public partial class C
 {
     static partial void goo() => System.Console.WriteLine(""test"");

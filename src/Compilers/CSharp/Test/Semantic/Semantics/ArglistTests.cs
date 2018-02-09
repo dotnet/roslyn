@@ -176,7 +176,7 @@ public struct C
   IL_0013:  ret
 }";
 
-            var verifier = CompileAndVerify(source: text, expectedOutput: "System.Int32");
+            var verifier = CompileStandardAndVerify(source: text, expectedOutput: "System.Int32");
             verifier.VerifyIL("C.Main", expectedIL);
         }
 
@@ -344,7 +344,7 @@ public struct C
   IL_0008:  ret
 }";
 
-            var verifier = CompileAndVerify(source: text, expectedOutput: "System.String");
+            var verifier = CompileStandardAndVerify(source: text, expectedOutput: "System.String");
             verifier.VerifyIL("C.M", expectedIL);
         }
 
@@ -395,7 +395,7 @@ public class C
   IL_0008:  ret
 }";
 
-            var verifier = CompileAndVerify(source: text, expectedOutput: "");
+            var verifier = CompileStandardAndVerify(source: text, expectedOutput: "");
             verifier.VerifyIL("C.M(__arglist)", expectedIL);
         }
 
@@ -466,7 +466,7 @@ public class C
 }
 ";
             string expectedOutput = @"123True4567";
-            var verifier = CompileAndVerify(source: text, expectedOutput: expectedOutput);
+            var verifier = CompileStandardAndVerify(source: text, expectedOutput: expectedOutput);
             verifier.VerifyIL("C.Main", expectedIL);
         }
 
@@ -659,7 +659,7 @@ public struct C
   IL_000c:  ret
 }";
 
-            var verifier = CompileAndVerify(source: text, expectedOutput: "1123");
+            var verifier = CompileStandardAndVerify(source: text, expectedOutput: "1123");
             verifier.VerifyIL("C.Get", expectedGetIL);
             verifier.VerifyIL("C.Set", expectedSetIL);
             verifier.VerifyIL("C.Ref", expectedRefIL);
@@ -776,7 +776,7 @@ using System;
   IL_00c9:  ret
 }";
 
-            var verifier = CompileAndVerify(source: text, expectedOutput: @"42
+            var verifier = CompileStandardAndVerify(source: text, expectedOutput: @"42
 333
 42
 333
@@ -889,7 +889,7 @@ public struct C
     }
 }";
 
-            var verifier = CompileAndVerify(source: text, expectedOutput: "4242");
+            var verifier = CompileStandardAndVerify(source: text, expectedOutput: "4242");
             verifier.VerifyIL("C.Main", @"
 {
   // Code size       72 (0x48)

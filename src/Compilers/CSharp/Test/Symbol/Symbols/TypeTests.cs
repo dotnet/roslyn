@@ -1435,7 +1435,7 @@ class Program
     }
 }
 ";
-            CompileAndVerify(source, new[] { r });
+            CompileStandardAndVerify(source, new[] { r });
         }
 
         [Fact, WorkItem(530171, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530171")]

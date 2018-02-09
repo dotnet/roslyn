@@ -101,7 +101,7 @@ public class Derived<T> : Outer<(int e1, (int e2, int e3) e4)>.Inner<
         [Fact]
         public void TestCompile()
         {
-            CompileAndVerify(s_tuplesTestSource,
+            CompileStandardAndVerify(s_tuplesTestSource,
                 options: TestOptions.ReleaseDll,
                 additionalRefs: s_attributeRefs);
         }
@@ -227,7 +227,7 @@ class C
         {
             ModuleSymbol sourceModule = null;
             ModuleSymbol peModule = null;
-            CompileAndVerify(s_tuplesTestSource,
+            CompileStandardAndVerify(s_tuplesTestSource,
                 options: TestOptions.UnsafeReleaseDll,
                 additionalRefs: s_attributeRefs, 
                 verify: Verification.Passes,
@@ -931,7 +931,7 @@ public interface I3<T>
                 }
             }
 
-            CompileAndVerify(src,
+            CompileStandardAndVerify(src,
                 additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
                 assemblyValidator: validator,
                 symbolValidator: symbolValidator);
@@ -1030,7 +1030,7 @@ public interface I3 : I1<(int c, int d)> {}";
                 }
             }
 
-            CompileAndVerify(src,
+            CompileStandardAndVerify(src,
                 additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
                 assemblyValidator: validator,
                 symbolValidator: symbolValidator);

@@ -38,7 +38,7 @@ class C
     } 
 }
 ";
-            var verifier = CompileAndVerify(source);
+            var verifier = CompileStandardAndVerify(source);
 
             verifier.VerifyIL("C.Add", @"
 {
@@ -112,7 +112,7 @@ class C
     } 
 }
 ";
-            var verifier = CompileAndVerify(source);
+            var verifier = CompileStandardAndVerify(source);
 
             verifier.VerifyIL("C.Add", @"
 {
@@ -210,7 +210,7 @@ class C
     }
 }
 ";
-            var verifier = CompileAndVerify(source);
+            var verifier = CompileStandardAndVerify(source);
 
             verifier.VerifyIL("C.Add1", @"
 {
@@ -383,7 +383,7 @@ unsafe struct C
     }
 }
 ";
-            var verifier = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
+            var verifier = CompileStandardAndVerify(source, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
 
             // NOTE: unsigned addition
             verifier.VerifyIL("C.Add_Int1", @"
@@ -603,7 +603,7 @@ class C
     }
 }
 ";
-            var verifier = CompileAndVerify(source);
+            var verifier = CompileStandardAndVerify(source);
 
             verifier.VerifyIL("C.Local", @"
 {
@@ -672,7 +672,7 @@ class C
     }
 }
 ";
-            var verifier = CompileAndVerify(source);
+            var verifier = CompileStandardAndVerify(source);
 
             verifier.VerifyIL("C.PostInc", @"
 {
@@ -758,7 +758,7 @@ class C
     } 
 }
 ";
-            var verifier = CompileAndVerify(source);
+            var verifier = CompileStandardAndVerify(source);
 
             verifier.VerifyIL("C.Add", @"
 {
@@ -839,7 +839,7 @@ class C
     }
 }";
 
-            var verifier = CompileAndVerify(source);
+            var verifier = CompileStandardAndVerify(source);
 
             verifier.VerifyIL("C.Add", @"
 {
@@ -896,7 +896,7 @@ class C
         checked { return s++; }
     }
 }";
-            var verifier = CompileAndVerify(source);
+            var verifier = CompileStandardAndVerify(source);
 
             verifier.VerifyIL("C.PostIncUserDefined", @"
 {
@@ -983,7 +983,7 @@ class C
     }
 }
 ";
-            var verifier = CompileAndVerify(source);
+            var verifier = CompileStandardAndVerify(source);
 
             verifier.VerifyIL("C.ArraySize", @"
 {
@@ -1037,7 +1037,7 @@ class C
     }
 }
 ";
-            var verifier = CompileAndVerify(source);
+            var verifier = CompileStandardAndVerify(source);
 
             verifier.VerifyIL("C.ForEachString", @"
 {
@@ -1193,7 +1193,7 @@ class C
     } 
 }
 ";
-            var verifier = CompileAndVerify(source);
+            var verifier = CompileStandardAndVerify(source);
 
             verifier.VerifyIL("C.Add", @"
 {
@@ -1289,7 +1289,7 @@ class C
     }
 }
 ";
-            var verifier = CompileAndVerify(source);
+            var verifier = CompileStandardAndVerify(source);
 
             verifier.VerifyIL("C.SByte_UInt", @"
 {
@@ -1330,7 +1330,7 @@ class C
         [Fact]
         public void Lambda_Statement()
         {
-            var verifier = CompileAndVerify(@"
+            var verifier = CompileStandardAndVerify(@"
 class C
 {
     static void F()
@@ -1359,7 +1359,7 @@ class C
         [Fact]
         public void Lambda_QueryStmt()
         {
-            var verifier = CompileAndVerify(@"
+            var verifier = CompileStandardAndVerify(@"
 using System.Linq;
 
 class C
@@ -1387,7 +1387,7 @@ class C
         [Fact]
         public void Lambda_QueryExpr()
         {
-            var verifier = CompileAndVerify(@"
+            var verifier = CompileStandardAndVerify(@"
 using System.Linq;
 
 class C
@@ -1412,7 +1412,7 @@ class C
         [Fact]
         public void Lambda_AddOvfAssignment()
         {
-            var verifier = CompileAndVerify(@"
+            var verifier = CompileStandardAndVerify(@"
 class C
 {
     static void F()
@@ -1439,7 +1439,7 @@ class C
         [Fact]
         public void Lambda_Add()
         {
-            var verifier = CompileAndVerify(@"
+            var verifier = CompileStandardAndVerify(@"
 class C
 {
     static void F()
@@ -1465,7 +1465,7 @@ class C
         [Fact]
         public void Lambda_Cast()
         {
-            var verifier = CompileAndVerify(@"
+            var verifier = CompileStandardAndVerify(@"
 class C
 {    
     static void F()
@@ -1491,7 +1491,7 @@ class C
         [Fact]
         public void Lambda_AddOvfCompoundAssignment()
         {
-            var verifier = CompileAndVerify(@"
+            var verifier = CompileStandardAndVerify(@"
 class C
 {
     static void F()
@@ -1518,7 +1518,7 @@ class C
         [Fact]
         public void Lambda_AddOvfArgument()
         {
-            var verifier = CompileAndVerify(@"
+            var verifier = CompileStandardAndVerify(@"
 class C
 {
     static System.Func<int, int> Id(System.Func<int, int> x) { return x; }
@@ -1546,7 +1546,7 @@ class C
         [Fact]
         public void Lambda_AddOvfArgument2()
         {
-            var verifier = CompileAndVerify(@"
+            var verifier = CompileStandardAndVerify(@"
 class C
 {
     static System.Func<int, int> Id(System.Func<int, int> x) { return x; }
@@ -1574,7 +1574,7 @@ class C
         [Fact]
         public void Lambda_AddArgument3()
         {
-            var verifier = CompileAndVerify(@"
+            var verifier = CompileStandardAndVerify(@"
 class C
 {   
     static System.Func<int, int> Id(System.Func<int, int> x) { return x; }
@@ -1602,7 +1602,7 @@ class C
         [Fact]
         public void Lambda_AddOvfArgument4()
         {
-            var verifier = CompileAndVerify(@"
+            var verifier = CompileStandardAndVerify(@"
 class C
 {
     static System.Func<int, int> Id(System.Func<int, int> x) { return x; }
@@ -1631,7 +1631,7 @@ class C
         [Fact]
         public void Lambda_AddOvfArgument5()
         {
-            var verifier = CompileAndVerify(@"
+            var verifier = CompileStandardAndVerify(@"
 class C
 {
     static System.Func<int, int> Id(System.Func<int, int> x) { return x; }
@@ -1659,7 +1659,7 @@ class C
         [Fact]
         public void Lambda_AddArgument6()
         {
-            var verifier = CompileAndVerify(@"
+            var verifier = CompileStandardAndVerify(@"
 class C
 {   
     static System.Func<int, int> Id(System.Func<int, int> x) { return x; }
@@ -1687,7 +1687,7 @@ class C
         [Fact]
         public void Lambda_AddArgument7()
         {
-            var verifier = CompileAndVerify(@"
+            var verifier = CompileStandardAndVerify(@"
 class C
 {
     static System.Func<int, int> Id(System.Func<int, int> x) { return x; }
@@ -1715,7 +1715,7 @@ class C
         [Fact]
         public void Lambda_AddOvfArgument8()
         {
-            var verifier = CompileAndVerify(@"
+            var verifier = CompileStandardAndVerify(@"
 class C
 {    
     static System.Func<int, int> Id(System.Func<int, int> x) { return x; }
@@ -1743,7 +1743,7 @@ class C
         [Fact]
         public void Lambda_LambdaVsDelegate1()
         {
-            var verifier = CompileAndVerify(@"
+            var verifier = CompileStandardAndVerify(@"
 class C
 {    
     static void F()
@@ -1767,7 +1767,7 @@ class C
         [Fact]
         public void Lambda_LambdaVsDelegate2()
         {
-            var verifier = CompileAndVerify(@"
+            var verifier = CompileStandardAndVerify(@"
 class C
 {
     static void F()
@@ -1790,7 +1790,7 @@ class C
         [Fact]
         public void Lambda_LambdaVsDelegate3()
         {
-            var verifier = CompileAndVerify(@"
+            var verifier = CompileStandardAndVerify(@"
 class C
 {
     static void F()
@@ -1813,7 +1813,7 @@ class C
         [Fact]
         public void Lambda_NewDelegate1()
         {
-            var verifier = CompileAndVerify(@"
+            var verifier = CompileStandardAndVerify(@"
 class C
 {
     static System.Func<int, int> Id(System.Func<int, int> x) { return x; }
@@ -1838,7 +1838,7 @@ class C
         [Fact]
         public void Lambda_NewDelegate2()
         {
-            var verifier = CompileAndVerify(@"
+            var verifier = CompileStandardAndVerify(@"
 class C
 {
     static System.Func<int, int> Id(System.Func<int, int> x) { return x; }
@@ -1872,7 +1872,7 @@ class C
     }
 }
 ";
-            CompileAndVerify(source, options: TestOptions.ReleaseDll.WithOverflowChecks(true)).VerifyIL("C.ULong_UInt", @"
+            CompileStandardAndVerify(source, options: TestOptions.ReleaseDll.WithOverflowChecks(true)).VerifyIL("C.ULong_UInt", @"
 {
   // Code size        3 (0x3)
   .maxstack  1
@@ -1881,7 +1881,7 @@ class C
   IL_0002:  ret
 }
 ");
-            CompileAndVerify(source, options: TestOptions.ReleaseDll.WithOverflowChecks(false)).VerifyIL("C.ULong_UInt", @"
+            CompileStandardAndVerify(source, options: TestOptions.ReleaseDll.WithOverflowChecks(false)).VerifyIL("C.ULong_UInt", @"
 {
   // Code size        3 (0x3)
   .maxstack  1
@@ -1904,7 +1904,7 @@ class C
     }
 }
 ";
-            CompileAndVerify(source, options: TestOptions.ReleaseDll.WithOverflowChecks(true)).VerifyIL("C.ULong_UInt", @"
+            CompileStandardAndVerify(source, options: TestOptions.ReleaseDll.WithOverflowChecks(true)).VerifyIL("C.ULong_UInt", @"
 {
   // Code size        3 (0x3)
   .maxstack  1
@@ -1932,7 +1932,7 @@ class C
     }
 }
 ";
-            CompileAndVerify(source, options: TestOptions.ReleaseDll.WithOverflowChecks(true)).VerifyIL("C.ULong_UInt", @"
+            CompileStandardAndVerify(source, options: TestOptions.ReleaseDll.WithOverflowChecks(true)).VerifyIL("C.ULong_UInt", @"
 {
   // Code size        9 (0x9)
   .maxstack  3
@@ -1959,7 +1959,7 @@ class Test
     const int b = unchecked((int)0x80000000);
 }
 ";
-            CompileAndVerify(source);
+            CompileStandardAndVerify(source);
         }
 
         [Fact]
@@ -2018,7 +2018,7 @@ class Program
     }
 }
 ";
-            var verifier = CompileAndVerify(source);
+            var verifier = CompileStandardAndVerify(source);
 
             verifier.VerifyIL("Program.Main", @"
 {
@@ -2065,7 +2065,7 @@ class Program
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "0");
+            CompileStandardAndVerify(source, expectedOutput: "0");
         }
 
         [Fact]
@@ -2084,7 +2084,7 @@ public class MyClass
 }
 ";
 
-            CompileAndVerify(
+            CompileStandardAndVerify(
                 source,
                 expectedOutput: "32000");
         }
@@ -2189,7 +2189,7 @@ class Test
 }
 ";
 
-            CompileAndVerify(
+            CompileStandardAndVerify(
                 source,
                 expectedOutput: "PASS");
         }
@@ -2221,7 +2221,7 @@ class Program
 }
 ";
 
-            CompileAndVerify(
+            CompileStandardAndVerify(
                 source,
                 expectedOutput: "PASS");
         }
@@ -2267,7 +2267,7 @@ class Program
 }
 ";
 
-            CompileAndVerify(
+            CompileStandardAndVerify(
                 source,
                 expectedOutput: "OV-0");
         }
@@ -2298,7 +2298,7 @@ public class MyClass
     }
 }
 ";
-            CompileAndVerify(
+            CompileStandardAndVerify(
                 source,
                 expectedOutput: "32000OV");
         }
@@ -2332,7 +2332,7 @@ class Derived2 : Base1
     }
 }
 ";
-            var verifier = CompileAndVerify(source);
+            var verifier = CompileStandardAndVerify(source);
 
             verifier.VerifyIL("Derived2.inc", @"
 {

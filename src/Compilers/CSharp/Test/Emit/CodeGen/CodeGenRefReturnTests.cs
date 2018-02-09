@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             CSharpCompilationOptions options = null,
             Verification verify = Verification.Passes)
         {
-            return CompileAndVerify(
+            return CompileStandardAndVerify(
                 source,
                 expectedOutput: expectedOutput,
                 options: options,
@@ -1553,7 +1553,7 @@ class Program
 }
 ";
 
-            CompileAndVerify(text, parseOptions: TestOptions.Regular).VerifyIL("Program.M()", @"
+            CompileStandardAndVerify(text, parseOptions: TestOptions.Regular).VerifyIL("Program.M()", @"
 {
   // Code size        6 (0x6)
   .maxstack  1
@@ -1601,7 +1601,7 @@ class Program
 }
 ";
 
-            CompileAndVerify(text, parseOptions: TestOptions.Regular, expectedOutput: "42", verify: Verification.Fails).VerifyIL("Program.M()", @"
+            CompileStandardAndVerify(text, parseOptions: TestOptions.Regular, expectedOutput: "42", verify: Verification.Fails).VerifyIL("Program.M()", @"
 {
   // Code size       26 (0x1a)
   .maxstack  5
@@ -1674,7 +1674,7 @@ class Program
 }
 ";
 
-            CompileAndVerify(text, parseOptions: TestOptions.Regular, expectedOutput: "42", verify: Verification.Fails).VerifyIL("Program.M()", @"
+            CompileStandardAndVerify(text, parseOptions: TestOptions.Regular, expectedOutput: "42", verify: Verification.Fails).VerifyIL("Program.M()", @"
 {
   // Code size       36 (0x24)
   .maxstack  5
@@ -2548,7 +2548,7 @@ class E : Exception
     public E(int value) { this.Value = value; }
 }
 ";
-            var v = CompileAndVerify(text, expectedOutput: "12345");
+            var v = CompileStandardAndVerify(text, expectedOutput: "12345");
         }
 
         [Fact]
@@ -2668,7 +2668,7 @@ class Program
     }
 }";
 
-            var v = CompileAndVerify(source, expectedOutput: "2");
+            var v = CompileStandardAndVerify(source, expectedOutput: "2");
         }
 
         [Fact]
@@ -2746,7 +2746,7 @@ class Program
     }
 }";
 
-            var v = CompileAndVerify(source, expectedOutput: "23");
+            var v = CompileStandardAndVerify(source, expectedOutput: "23");
         }
 
         [Fact]
@@ -3390,7 +3390,7 @@ class Program
 }
 ";
 
-            CompileAndVerify(source, parseOptions: TestOptions.Regular, expectedOutput: "Base", verify: Verification.Passes);
+            CompileStandardAndVerify(source, parseOptions: TestOptions.Regular, expectedOutput: "Base", verify: Verification.Passes);
         }
 
         [Fact]
@@ -3481,7 +3481,7 @@ class Program
 
 ";
 
-            CompileAndVerify(source, parseOptions: TestOptions.Regular, expectedOutput: "Program+RefFunc1`2[Derived2,Derived1]", verify: Verification.Passes);
+            CompileStandardAndVerify(source, parseOptions: TestOptions.Regular, expectedOutput: "Program+RefFunc1`2[Derived2,Derived1]", verify: Verification.Passes);
         }
 
         [Fact]
@@ -3521,7 +3521,7 @@ class Program
 
 ";
 
-            CompileAndVerify(source, parseOptions: TestOptions.Regular, expectedOutput: @"System.Func`2[Derived1,Base]
+            CompileStandardAndVerify(source, parseOptions: TestOptions.Regular, expectedOutput: @"System.Func`2[Derived1,Base]
 Program+RefFunc1`2[Derived1,Base]", verify: Verification.Passes);
         }
 

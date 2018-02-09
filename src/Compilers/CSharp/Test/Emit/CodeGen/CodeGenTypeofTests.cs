@@ -23,7 +23,7 @@ class C
         System.Console.WriteLine(typeof(C));
     }
 }";
-            var comp = CompileAndVerify(source, expectedOutput: "C");
+            var comp = CompileStandardAndVerify(source, expectedOutput: "C");
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main", @"{
   // Code size       16 (0x10)
@@ -70,7 +70,7 @@ class Program
         System.Console.WriteLine(typeof(void));
     }
 }";
-            var comp = CompileAndVerify(source, expectedOutput: @"
+            var comp = CompileStandardAndVerify(source, expectedOutput: @"
 Source.Class
 Source.Struct
 Source.Enum
@@ -143,7 +143,7 @@ class Program
         System.Console.WriteLine(typeof(Class2<Class1<int>, Class1<long>>));
     }
 }";
-            var comp = CompileAndVerify(source, expectedOutput: @"
+            var comp = CompileStandardAndVerify(source, expectedOutput: @"
 Class1`1[System.Int32]
 Class1`1[Class1`1[System.Int32]]
 Class2`2[System.Int32,System.Int64]
@@ -200,7 +200,7 @@ class Program
         Class<Class<int>>.Print<Class<long>>();
     }
 }";
-            var comp = CompileAndVerify(source, expectedOutput: @"
+            var comp = CompileStandardAndVerify(source, expectedOutput: @"
 System.Int32
 Class`1[System.Int32]
 Class`1[System.Int32]
@@ -252,7 +252,7 @@ class Program
         System.Console.WriteLine(typeof(Class2<,>));
     }
 }";
-            var comp = CompileAndVerify(source, expectedOutput: @"
+            var comp = CompileStandardAndVerify(source, expectedOutput: @"
 Class1`1[T]
 Class2`2[T,U]");
 
@@ -325,7 +325,7 @@ I2`2[T,System.Int32]
 H`2+E[T,U]
 H`2[T,System.Int32]";
 
-            var comp = CompileAndVerify(source, expectedOutput: expected);
+            var comp = CompileStandardAndVerify(source, expectedOutput: expected);
 
             comp.VerifyDiagnostics();
         }
@@ -384,7 +384,7 @@ C`1+E`1[U,V]
 C`1+E`1[U,V]
 True";
 
-            var comp = CompileAndVerify(source, expectedOutput: expected);
+            var comp = CompileStandardAndVerify(source, expectedOutput: expected);
 
             comp.VerifyDiagnostics();
         }
@@ -429,7 +429,7 @@ class C
     }
 }";
 
-            var comp = CompileAndVerify(source, expectedOutput: "");
+            var comp = CompileStandardAndVerify(source, expectedOutput: "");
         }
 
         [Fact]
@@ -455,7 +455,7 @@ class Program
         Print<long>();
     }
 }";
-            var comp = CompileAndVerify(source, expectedOutput: @"
+            var comp = CompileStandardAndVerify(source, expectedOutput: @"
 System.Int32[]
 System.Int32[,]
 System.Int32[][]
@@ -525,7 +525,7 @@ class Program
         Outer<long>.Print();
     }
 }";
-            var comp = CompileAndVerify(source, expectedOutput: @"
+            var comp = CompileStandardAndVerify(source, expectedOutput: @"
 Outer`1+Inner`1[T,U]
 Outer`1+Inner`1[System.Int64,System.Int64]
 Outer`1+Inner`1[System.Int64,System.Int32]
@@ -611,7 +611,7 @@ class Program
     }
 }";
 
-            var comp = CompileAndVerify(source, expectedOutput: @"
+            var comp = CompileStandardAndVerify(source, expectedOutput: @"
 1
 System.Int32
 System.Char
@@ -653,7 +653,7 @@ public class mem178
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: @"TestClass`1+TestEnum[System.String]");
+            CompileStandardAndVerify(source, expectedOutput: @"TestClass`1+TestEnum[System.String]");
         }
 
         [WorkItem(541618, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541618")]
@@ -676,7 +676,7 @@ public class Program
 }
 ";
             // NOTE: this is the Dev10 output.  Change to false if we decide to take a breaking change.
-            CompileAndVerify(source, expectedOutput: @"True");
+            CompileStandardAndVerify(source, expectedOutput: @"True");
         }
     }
 }

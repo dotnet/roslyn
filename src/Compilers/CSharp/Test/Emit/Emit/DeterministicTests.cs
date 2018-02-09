@@ -341,11 +341,11 @@ Partial.c = 3";
             // we run more than once to increase the chance of observing a problem due to nondeterminism
             for (int i = 0; i < 2; i++)
             {
-                var cv = CompileAndVerify(sources: new string[] { x1, x2, x3 }, expectedOutput: expectedOutput1);
+                var cv = CompileStandardAndVerify(sources: new string[] { x1, x2, x3 }, expectedOutput: expectedOutput1);
                 var trees = cv.Compilation.SyntaxTrees.ToArray();
                 var comp2 = cv.Compilation.RemoveAllSyntaxTrees().AddSyntaxTrees(trees[1], trees[0], trees[2]);
                 CompileAndVerify(comp2, expectedOutput: expectedOutput2);
-                CompileAndVerify(sources: new string[] { x2, x1, x3 }, expectedOutput: expectedOutput2);
+                CompileStandardAndVerify(sources: new string[] { x2, x1, x3 }, expectedOutput: expectedOutput2);
             }
         }
 

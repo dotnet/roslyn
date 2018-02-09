@@ -60,7 +60,7 @@ public struct EventDescriptor
                 }
             };
 
-            CompileAndVerify(source, symbolValidator: attributeValidator(false), sourceSymbolValidator: attributeValidator(true));
+            CompileStandardAndVerify(source, symbolValidator: attributeValidator(false), sourceSymbolValidator: attributeValidator(true));
         }
 
         [Fact, WorkItem(544956, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544956")]
@@ -73,7 +73,7 @@ class Goo
     [System.Security.SuppressUnmanagedCodeSecurityAttribute]
     public static void Main() {}
 }";
-            CompileAndVerify(source);
+            CompileStandardAndVerify(source);
         }
 
         [WorkItem(544929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544929")]
@@ -272,7 +272,7 @@ class MyCodeAccessSecurityAttribute : CodeAccessSecurityAttribute
     public static void Main() {}
 }
 ";
-            CompileAndVerify(source);
+            CompileStandardAndVerify(source);
         }
 
         [WorkItem(544918, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544918")]
@@ -417,7 +417,7 @@ class Test
     public static void Main() {}
 }
 ";
-            CompileAndVerify(source);
+            CompileStandardAndVerify(source);
         }
 
         [WorkItem(544918, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544918")]

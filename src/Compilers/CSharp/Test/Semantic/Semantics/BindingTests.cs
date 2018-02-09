@@ -1914,7 +1914,7 @@ partial class C
     partial void F(int j) { }
 }
 ";
-            CompileAndVerify(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            CompileStandardAndVerify(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 var method = module.GlobalNamespace.GetMember<TypeSymbol>("C").GetMember<MethodSymbol>("F");
                 Assert.Equal("i", method.Parameters[0].Name);
@@ -1936,7 +1936,7 @@ partial class C
     partial void F(int i);
 }
 ";
-            CompileAndVerify(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            CompileStandardAndVerify(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 var method = module.GlobalNamespace.GetMember<TypeSymbol>("C").GetMember<MethodSymbol>("F");
                 Assert.Equal("i", method.Parameters[0].Name);
@@ -2029,7 +2029,7 @@ class Program
 
         private void NestedInterfaceImplementationWithOuterGenericType()
         {
-            CompileAndVerify(@"
+            CompileStandardAndVerify(@"
 namespace System.ServiceModel
 {
     class Pipeline<T>
@@ -2260,7 +2260,7 @@ class C<T> : System.Attribute { }";
         [Fact]
         public void TestSealedOverriddenMembers()
         {
-            CompileAndVerify(
+            CompileStandardAndVerify(
 @"using System;
 
 internal abstract class Base
@@ -2526,7 +2526,7 @@ class C
     }
 }";
 
-            CompileAndVerify(source, expectedOutput: "42");
+            CompileStandardAndVerify(source, expectedOutput: "42");
         }
 
         [Fact, WorkItem(1078961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1078961")]
@@ -2638,7 +2638,7 @@ class C
     }
 }";
 
-            CompileAndVerify(source, expectedOutput: "True");
+            CompileStandardAndVerify(source, expectedOutput: "True");
         }
 
         [Fact, WorkItem(3096, "https://github.com/dotnet/roslyn/issues/3096")]

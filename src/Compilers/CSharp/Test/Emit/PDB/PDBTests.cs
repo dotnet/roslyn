@@ -1137,7 +1137,7 @@ class Program
 }
 ";
 
-            var v = CompileAndVerify(source, options: TestOptions.DebugDll);
+            var v = CompileStandardAndVerify(source, options: TestOptions.DebugDll);
 
             // In order to place a breakpoint on the closing brace we need to save the return expression value to 
             // a local and then load it again (since sequence point needs an empty stack). This variable has to be marked as long-lived.
@@ -1192,7 +1192,7 @@ class C
 }
 ";
 
-            var v = CompileAndVerify(source, options: TestOptions.DebugDll);
+            var v = CompileStandardAndVerify(source, options: TestOptions.DebugDll);
 
             // In order to place a breakpoint on the closing brace we need to save the return expression value to 
             // a local and then load it again (since sequence point needs an empty stack). This variable has to be marked as long-lived.
@@ -1247,7 +1247,7 @@ class Program
 }
 ";
 
-            var v = CompileAndVerify(source, options: TestOptions.DebugDll);
+            var v = CompileStandardAndVerify(source, options: TestOptions.DebugDll);
 
             v.VerifyIL("Program.Main", @"
 {
@@ -1269,7 +1269,7 @@ class Program
 }
 ";
 
-            var v = CompileAndVerify(source, options: TestOptions.DebugDll);
+            var v = CompileStandardAndVerify(source, options: TestOptions.DebugDll);
 
             v.VerifyIL("Program.Main", @"
 {
@@ -1302,7 +1302,7 @@ class Program
     }
 }
 ";
-            var v = CompileAndVerify(source, options: TestOptions.DebugDll);
+            var v = CompileStandardAndVerify(source, options: TestOptions.DebugDll);
 
             v.VerifyIL("Program.Main", @"
 {
@@ -1866,7 +1866,7 @@ public class C
     }
 }
 ";
-            var v = CompileAndVerify(source, options: TestOptions.DebugDll);
+            var v = CompileStandardAndVerify(source, options: TestOptions.DebugDll);
 
             // Sequence points:
             // 1) Open brace at start of method
@@ -1962,7 +1962,7 @@ class Program
     }
 }
 ";
-            var v = CompileAndVerify(source, options: TestOptions.DebugDll, additionalRefs: new[]{ MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef });
+            var v = CompileStandardAndVerify(source, options: TestOptions.DebugDll, additionalRefs: new[]{ MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef });
 
             v.VerifyIL("Program.<Test>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
@@ -2100,7 +2100,7 @@ class C
     }
 }
 ";
-            var v = CompileAndVerify(source, options: TestOptions.DebugDll, additionalRefs: new[]{ MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef });
+            var v = CompileStandardAndVerify(source, options: TestOptions.DebugDll, additionalRefs: new[]{ MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef });
 
             v.VerifyIL("C.M", @"
 {
@@ -2158,7 +2158,7 @@ class Program
     }
 }
 ";
-            var v = CompileAndVerify(source, options: TestOptions.DebugDll, additionalRefs: new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef });
+            var v = CompileStandardAndVerify(source, options: TestOptions.DebugDll, additionalRefs: new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef });
 
             v.VerifyIL("Program.<Test>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
@@ -2240,7 +2240,7 @@ class Program
     }
 }
 ";
-            var v = CompileAndVerify(source, options: TestOptions.DebugDll, additionalRefs: new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef });
+            var v = CompileStandardAndVerify(source, options: TestOptions.DebugDll, additionalRefs: new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef });
 
             v.VerifyIL("Program.Test()", @"
 {
@@ -2290,7 +2290,7 @@ class Program
     }
 }
 ";
-            var v = CompileAndVerify(source, options: TestOptions.DebugDll, additionalRefs: new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef });
+            var v = CompileStandardAndVerify(source, options: TestOptions.DebugDll, additionalRefs: new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef });
 
             v.VerifyIL("Program.<Test>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
@@ -2433,7 +2433,7 @@ class Program
     }
 }
 ";
-            var v = CompileAndVerify(source, options: TestOptions.DebugDll, additionalRefs: new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef });
+            var v = CompileStandardAndVerify(source, options: TestOptions.DebugDll, additionalRefs: new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef });
 
             v.VerifyIL("Program.Test", @"
 {
@@ -2545,7 +2545,7 @@ class C
     }
 }
 ";
-            var v = CompileAndVerify(source, options: TestOptions.DebugDll.WithModuleName("MODULE"));
+            var v = CompileStandardAndVerify(source, options: TestOptions.DebugDll.WithModuleName("MODULE"));
 
             // Stepping:
             //   After "continue", step to "in".
@@ -2673,7 +2673,7 @@ public class C
 }
 ";
 
-            var v = CompileAndVerify(source, options: TestOptions.DebugDll);
+            var v = CompileStandardAndVerify(source, options: TestOptions.DebugDll);
 
             // Sequence points:
             // 1) Open brace at start of method
@@ -7865,7 +7865,7 @@ class Program
     }
 }
 ";
-            var v = CompileAndVerify(source, options: TestOptions.DebugDll, additionalRefs: new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef });
+            var v = CompileStandardAndVerify(source, options: TestOptions.DebugDll, additionalRefs: new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef });
 
             v.VerifyIL("Program.<Test>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
@@ -7944,7 +7944,7 @@ class Program
     }
 }
 ";
-            var v = CompileAndVerify(source, options: TestOptions.DebugDll, additionalRefs: new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef });
+            var v = CompileStandardAndVerify(source, options: TestOptions.DebugDll, additionalRefs: new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef });
 
             v.VerifyIL("Program.<Test>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
@@ -8025,7 +8025,7 @@ class Program
     }
 }
 ";
-            var v = CompileAndVerify(source, options: TestOptions.DebugDll, additionalRefs: new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef });
+            var v = CompileStandardAndVerify(source, options: TestOptions.DebugDll, additionalRefs: new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef });
 
             v.VerifyIL("Program.<Test>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
@@ -8117,7 +8117,7 @@ class Program
     public static int M(out int x) { x = 0; return 0; }
 }
 ";
-            var v = CompileAndVerify(source, options: TestOptions.DebugDll, additionalRefs: new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef });
+            var v = CompileStandardAndVerify(source, options: TestOptions.DebugDll, additionalRefs: new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef });
 
             v.VerifyIL("Program.<Test>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {

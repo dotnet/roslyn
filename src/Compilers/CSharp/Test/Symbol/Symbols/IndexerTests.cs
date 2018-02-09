@@ -57,7 +57,7 @@ struct S
                 CheckIndexer(type.Indexers.Single(), true, false, SpecialType.System_Object, SpecialType.System_String);
             };
 
-            CompileAndVerify(
+            CompileStandardAndVerify(
                 source: source,
                 sourceSymbolValidator: validator,
                 symbolValidator: validator,
@@ -116,7 +116,7 @@ class C : IB, IC
         set { }
     }
 }";
-            var compilation = CompileAndVerify(source);
+            var compilation = CompileStandardAndVerify(source);
             compilation.VerifyDiagnostics();
 
             var globalNamespace = (NamespaceSymbol)compilation.Compilation.GlobalNamespace;
@@ -1169,7 +1169,7 @@ class C : I
                 Assert.False(classIndexer.CanBeReferencedByName);
             };
 
-            CompileAndVerify(source, sourceSymbolValidator: validator(true), symbolValidator: validator(false));
+            CompileStandardAndVerify(source, sourceSymbolValidator: validator(true), symbolValidator: validator(false));
         }
 
         [Fact]
@@ -1231,7 +1231,7 @@ public class C : I
                 Assert.False(classCIndexer.IsIndexer()); //not the default member of C
             };
 
-            CompileAndVerify(text, sourceSymbolValidator: sourceValidator, symbolValidator: metadataValidator);
+            CompileStandardAndVerify(text, sourceSymbolValidator: sourceValidator, symbolValidator: metadataValidator);
         }
 
         [Fact]
@@ -2508,7 +2508,7 @@ class C
         _2[null] = _2[null];
     }
 }";
-            CompileAndVerify(source);
+            CompileStandardAndVerify(source);
         }
 
         private static void CheckOverloadResolutionResults(SyntaxTree tree, SemanticModel model, params string[] expected)
@@ -2776,7 +2776,7 @@ class C
         a[1] += 1; // Dev11 uses get_P default for both
     }
 }";
-            var compilation2 = CompileAndVerify(source2, additionalRefs: new[] { reference1 }, expectedOutput:
+            var compilation2 = CompileStandardAndVerify(source2, additionalRefs: new[] { reference1 }, expectedOutput:
 @"get_P: 3
 set_P: 3
 get_P: 3

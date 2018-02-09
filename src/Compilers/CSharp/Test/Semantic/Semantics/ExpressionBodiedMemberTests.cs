@@ -345,7 +345,7 @@ public static class TestExtension
 }
 ";
 
-            CompileAndVerify(source, expectedOutput: "GetAction 1");
+            CompileStandardAndVerify(source, expectedOutput: "GetAction 1");
         }
 
         [Fact, WorkItem(13691, "https://github.com/dotnet/roslyn/issues/13691")]
@@ -365,7 +365,7 @@ public class Program
     ~Program() => Console.Write(string.Empty);
 }
 ";
-            CompileAndVerify(source, expectedOutput: "12");
+            CompileStandardAndVerify(source, expectedOutput: "12");
         }
 
         [Fact, WorkItem(13691, "https://github.com/dotnet/roslyn/issues/13691")]
@@ -382,7 +382,7 @@ public class Program
     Program() : base() => Console.Write(1);
 }
 ";
-            CompileAndVerify(source, expectedOutput: "1");
+            CompileStandardAndVerify(source, expectedOutput: "1");
         }
 
         [Fact, WorkItem(13691, "https://github.com/dotnet/roslyn/issues/13691")]
@@ -403,7 +403,7 @@ public class Program : Base
     Program() : base(1) => Console.Write(2);
 }
 ";
-            CompileAndVerify(source, expectedOutput: "12");
+            CompileStandardAndVerify(source, expectedOutput: "12");
         }
 
         [Fact, WorkItem(1069421, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1069421")]

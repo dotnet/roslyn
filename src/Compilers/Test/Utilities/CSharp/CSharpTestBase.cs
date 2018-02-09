@@ -63,6 +63,75 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             }
         }
 
+        internal CompilationVerifier CompileStandardAndVerify(
+            string source,
+            IEnumerable<MetadataReference> additionalRefs = null,
+            IEnumerable<ModuleData> dependencies = null,
+            Action<ModuleSymbol> sourceSymbolValidator = null,
+            Action<PEAssembly> assemblyValidator = null,
+            Action<ModuleSymbol> symbolValidator = null,
+            SignatureDescription[] expectedSignatures = null,
+            string expectedOutput = null,
+            CSharpCompilationOptions options = null,
+            CSharpParseOptions parseOptions = null,
+            EmitOptions emitOptions = null,
+            Verification verify = Verification.Passes)
+        {
+            if (options == null)
+            {
+                options = TestOptions.ReleaseDll.WithOutputKind((expectedOutput != null) ? OutputKind.ConsoleApplication : OutputKind.DynamicallyLinkedLibrary);
+            }
+
+            var compilation = CreateStandardCompilation(source, additionalRefs, options, parseOptions);
+            return base.CompileAndVerify(
+                compilation: compilation,
+                dependencies: dependencies,
+                sourceSymbolValidator: Translate2(sourceSymbolValidator),
+                assemblyValidator: assemblyValidator,
+                symbolValidator: Translate2(symbolValidator),
+                expectedSignatures: expectedSignatures,
+                expectedOutput: expectedOutput,
+                emitOptions: emitOptions,
+                verify: verify);
+        }
+
+        internal CompilationVerifier CompileStandardAndVerify(
+            string[] sources,
+            MetadataReference[] additionalRefs = null,
+            IEnumerable<ModuleData> dependencies = null,
+            Action<ModuleSymbol> sourceSymbolValidator = null,
+            Action<PEAssembly> validator = null,
+            Action<ModuleSymbol> symbolValidator = null,
+            SignatureDescription[] expectedSignatures = null,
+            string expectedOutput = null,
+            int? expectedReturnCode = null,
+            string[] args = null,
+            CSharpCompilationOptions options = null,
+            CSharpParseOptions parseOptions = null,
+            EmitOptions emitOptions = null,
+            Verification verify = Verification.Passes)
+        {
+            if (options == null)
+            {
+                options = TestOptions.ReleaseDll.WithOutputKind((expectedOutput != null) ? OutputKind.ConsoleApplication : OutputKind.DynamicallyLinkedLibrary);
+            }
+
+            var compilation = CreateStandardCompilation(sources, additionalRefs, options, parseOptions);
+            return base.CompileAndVerify(
+                compilation,
+                null,
+                dependencies,
+                Translate2(sourceSymbolValidator),
+                validator,
+                Translate2(symbolValidator),
+                expectedSignatures,
+                expectedOutput,
+                expectedReturnCode,
+                args,
+                emitOptions,
+                verify);
+        }
+
         internal CompilationVerifier CompileAndVerify(
             string source,
             IEnumerable<MetadataReference> additionalRefs = null,
@@ -72,8 +141,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             Action<ModuleSymbol> symbolValidator = null,
             SignatureDescription[] expectedSignatures = null,
             string expectedOutput = null,
-            CompilationOptions options = null,
-            ParseOptions parseOptions = null,
+            CSharpCompilationOptions options = null,
+            CSharpParseOptions parseOptions = null,
             EmitOptions emitOptions = null,
             Verification verify = Verification.Passes)
         {
@@ -103,8 +172,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             string expectedOutput = null,
             int? expectedReturnCode = null,
             string[] args = null,
-            CompilationOptions options = null,
-            ParseOptions parseOptions = null,
+            CSharpCompilationOptions options = null,
+            CSharpParseOptions parseOptions = null,
             EmitOptions emitOptions = null,
             Verification verify = Verification.Passes)
         {
@@ -424,12 +493,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         // Careful! Make sure everything in s_desktopRefsToRemove is constructed with
         // the same object identity, since MetadataReference uses reference equality.
         // this may mean adding Interlocked calls in the construction of the reference.
-        private static readonly ImmutableArray<MetadataReference> s_desktopRefsToRemove = ImmutableArray.Create(SystemRef, SystemCoreRef, ValueTupleRef, SystemRuntimeFacadeRef);
+        private static readonly ImmutableArray<MetadataReference> s_standardDesktopReferences = ImmutableArray.Create(MscorlibRef_v46, SystemRef, SystemCoreRef, ValueTupleRef, SystemRuntimeFacadeRef);
 
         private static readonly ImmutableArray<MetadataReference> s_stdRefs = CoreClrShim.IsRunningOnCoreClr
             ? ImmutableArray.Create<MetadataReference>(NetStandard20.NetStandard, NetStandard20.MscorlibRef, NetStandard20.SystemRuntimeRef, NetStandard20.SystemDynamicRuntimeRef)
-            : ImmutableArray.Create(MscorlibRef).AddRange(s_desktopRefsToRemove);
-
+            : s_standardDesktopReferences;
 
         public static CSharpCompilation CreateStandardCompilation(
             IEnumerable<SyntaxTree> trees,
@@ -441,7 +509,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             {
                 foreach (var reference in references)
                 {
-                    if (s_desktopRefsToRemove.Contains(reference))
+                    if (s_standardDesktopReferences.Contains(reference))
                     {
                         throw new Exception($"Do not pass standard reference {reference.Display} to {nameof(CreateStandardCompilation)}");
                     }
@@ -636,8 +704,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             CompilationOptions options,
             ParseOptions parseOptions)
         {
-            return CreateStandardCompilation(
-                source,
+            return CreateCompilationWithMscorlib46(
+                source.ToArray(),
                 references: additionalRefs,
                 options: (CSharpCompilationOptions)options,
                 parseOptions: (CSharpParseOptions)parseOptions,

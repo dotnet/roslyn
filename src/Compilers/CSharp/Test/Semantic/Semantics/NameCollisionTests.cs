@@ -171,7 +171,7 @@ namespace Namespace
 class name2
 {
 }";
-            CompileAndVerify(source).VerifyDiagnostics();
+            CompileStandardAndVerify(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -197,7 +197,7 @@ namespace Namespace
 class name2
 {
 }";
-            CompileAndVerify(source).VerifyDiagnostics();
+            CompileStandardAndVerify(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -307,7 +307,7 @@ class name2
         }
     }
 }";
-            CompileAndVerify(source).VerifyDiagnostics();
+            CompileStandardAndVerify(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -503,7 +503,7 @@ partial class Derived
 {
     internal long name1 = 5;
 }";
-            CompileAndVerify(source).VerifyDiagnostics();
+            CompileStandardAndVerify(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -660,7 +660,7 @@ class Base
 {
     public string name = null;
 }";
-            CompileAndVerify(source).VerifyDiagnostics();
+            CompileStandardAndVerify(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -686,7 +686,7 @@ class Base
 {
     public string name = null;
 }";
-            CompileAndVerify(source, new[] { LinqAssemblyRef }).VerifyDiagnostics();
+            CompileStandardAndVerify(source, new[] { LinqAssemblyRef }).VerifyDiagnostics();
         }
 
         [Fact]
@@ -714,7 +714,7 @@ class Base
 {
     public string name = null;
 }";
-            CompileAndVerify(source, new[] { LinqAssemblyRef }).VerifyDiagnostics();
+            CompileStandardAndVerify(source, new[] { LinqAssemblyRef }).VerifyDiagnostics();
         }
 
         [Fact]
@@ -947,7 +947,7 @@ partial class Class
         return null;
     }
 }";
-            CompileAndVerify(source).VerifyDiagnostics();
+            CompileStandardAndVerify(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1455,7 +1455,7 @@ class Base
 {
     protected static long name2 = 5;
 }";
-            CompileAndVerify(source).VerifyDiagnostics();
+            CompileStandardAndVerify(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1543,7 +1543,7 @@ public class C<T>
         C<string>.G(C);
     }
 }";
-            CompileAndVerify(source).VerifyDiagnostics();
+            CompileStandardAndVerify(source).VerifyDiagnostics();
         }
 
         [WorkItem(10556, "DevDiv_Projects/Roslyn")]
@@ -1597,7 +1597,7 @@ partial class Class
         return null;
     }
 }";
-            CompileAndVerify(source, new[] { LinqAssemblyRef }).VerifyDiagnostics();
+            CompileStandardAndVerify(source, new[] { LinqAssemblyRef }).VerifyDiagnostics();
         }
 
         [WorkItem(543045, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543045")]
@@ -1700,7 +1700,7 @@ public class C
         G<int>(G);
     }
 }";
-            CompileAndVerify(source).VerifyDiagnostics();
+            CompileStandardAndVerify(source).VerifyDiagnostics();
         }
 
         [WorkItem(542039, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542039")]

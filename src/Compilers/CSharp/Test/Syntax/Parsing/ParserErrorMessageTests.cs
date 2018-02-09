@@ -5740,7 +5740,7 @@ public static class Program
                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "in").WithArguments("ref extension methods", "7.2").WithLocation(4, 30)
             );
 
-            CompileAndVerify(code, additionalRefs: new[] { SystemCoreRef }, expectedOutput: "5");
+            CompileStandardAndVerify(code, additionalRefs: new[] { SystemCoreRef }, expectedOutput: "5");
         }
 
         [Fact]
@@ -5769,7 +5769,7 @@ public static class Program
                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "ref").WithArguments("ref extension methods", "7.2").WithLocation(4, 30)
             );
 
-            CompileAndVerify(code, additionalRefs: new[] { SystemCoreRef }, expectedOutput: "5");
+            CompileStandardAndVerify(code, additionalRefs: new[] { SystemCoreRef }, expectedOutput: "5");
         }
 
         #endregion

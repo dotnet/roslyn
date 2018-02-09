@@ -106,7 +106,7 @@ public class B
     }
 }
 ";
-            var compilation2 = CompileAndVerify(
+            var compilation2 = CompileStandardAndVerify(
                 source2,
                 new[] { new CSharpCompilationReference(compilation1) },
                 verify: Verification.Fails);
@@ -138,7 +138,7 @@ public class B
     }
 }
 ";
-            var compilation2 = CompileAndVerify(
+            var compilation2 = CompileStandardAndVerify(
                 source2,
                 new[] { new CSharpCompilationReference(compilation1) },
                 verify: Verification.Fails);
@@ -175,7 +175,7 @@ public class B
 }
 ";
 
-            var compilation2 = CompileAndVerify(
+            var compilation2 = CompileStandardAndVerify(
                 source2,
                 new[] { new CSharpCompilationReference(compilation1) },
                 verify: Verification.Fails);

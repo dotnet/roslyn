@@ -29,7 +29,7 @@ public class Test
     }
 }
 ";
-            var verifier = CompileAndVerify(text);
+            var verifier = CompileStandardAndVerify(text);
             verifier.VerifyIL("Test.M", @"
 {
   // Code size       55 (0x37)
@@ -84,7 +84,7 @@ public class Test
     }
 }
 ";
-            var verifier = CompileAndVerify(text);
+            var verifier = CompileStandardAndVerify(text);
             verifier.VerifyIL("Test.M", @"
 {
   // Code size       59 (0x3b)
@@ -138,7 +138,7 @@ public class Test
     }
 }
 ";
-            var verifier = CompileAndVerify(text);
+            var verifier = CompileStandardAndVerify(text);
             verifier.VerifyIL("Test.M", @"
 {
   // Code size       55 (0x37)
@@ -194,7 +194,7 @@ public class Test
     }
 }
 ";
-            var verifier = CompileAndVerify(text);
+            var verifier = CompileStandardAndVerify(text);
             verifier.VerifyIL("Test.M", @"
 {
   // Code size       60 (0x3c)
@@ -251,7 +251,7 @@ public class Test
     }
 }
 ";
-            var verifier = CompileAndVerify(text);
+            var verifier = CompileStandardAndVerify(text);
             verifier.VerifyIL("Test.M", @"
 {
   // Code size       59 (0x3b)
@@ -305,7 +305,7 @@ public class Test
     }
 }
 ";
-            var verifier = CompileAndVerify(text);
+            var verifier = CompileStandardAndVerify(text);
             verifier.VerifyIL("Test.M", @"
 {
   // Code size       55 (0x37)
@@ -359,7 +359,7 @@ public class Test
     }
 }
 ";
-            var verifier = CompileAndVerify(text);
+            var verifier = CompileStandardAndVerify(text);
             verifier.VerifyIL("Test.M", @"
 {
   // Code size       59 (0x3b)
@@ -413,7 +413,7 @@ public class Test
     }
 }
 ";
-            var verifier = CompileAndVerify(text);
+            var verifier = CompileStandardAndVerify(text);
             verifier.VerifyIL("Test.M<T>", @"
 {
   // Code size       60 (0x3c)
@@ -539,7 +539,7 @@ partial class Test
 }
 ";
 
-            CompileAndVerify(text).VerifyIL("Test.Main", @"
+            CompileStandardAndVerify(text).VerifyIL("Test.Main", @"
 {
   // Code size       36 (0x24)
   .maxstack  2
@@ -573,7 +573,7 @@ partial class Test
         [Fact]
         public void InitInLock()
         {
-            CompileAndVerify(@"
+            CompileStandardAndVerify(@"
 class Test
 {
     public static void Main()
@@ -598,7 +598,7 @@ class Res
         [Fact]
         public void ImplicitArraysInLockStatement()
         {
-            CompileAndVerify(@"
+            CompileStandardAndVerify(@"
 class Test
 {
     public static void Main()
@@ -718,7 +718,7 @@ class Test
     }
 }
 ";
-            CompileAndVerify(text).VerifyIL("Test.Main", @"
+            CompileStandardAndVerify(text).VerifyIL("Test.Main", @"
 {
   // Code size       29 (0x1d)
   .maxstack  2
@@ -763,7 +763,7 @@ class Test
     }
 }
 ";
-            CompileAndVerify(text).VerifyIL("Test.Main", @"
+            CompileStandardAndVerify(text).VerifyIL("Test.Main", @"
 {
   // Code size       31 (0x1f)
   .maxstack  2
@@ -809,7 +809,7 @@ class Test
     }
 }
 ";
-            CompileAndVerify(text).VerifyIL("Test.Main", @"
+            CompileStandardAndVerify(text).VerifyIL("Test.Main", @"
 {
   // Code size       40 (0x28)
   .maxstack  2
@@ -855,7 +855,7 @@ class Test
     }
 }
 ";
-            CompileAndVerify(text).VerifyIL("Test.Main", @"
+            CompileStandardAndVerify(text).VerifyIL("Test.Main", @"
 {
   // Code size       34 (0x22)
   .maxstack  2
@@ -901,7 +901,7 @@ class Test
     }
 }
 ";
-            CompileAndVerify(text).VerifyIL("Test.Main", @"
+            CompileStandardAndVerify(text).VerifyIL("Test.Main", @"
 {
   // Code size       34 (0x22)
   .maxstack  2
@@ -949,7 +949,7 @@ public class Test
 struct S
 { }
 ";
-            CompileAndVerify(text).VerifyIL("Test.Main", @"
+            CompileStandardAndVerify(text).VerifyIL("Test.Main", @"
 {
   // Code size       39 (0x27)
   .maxstack  2
@@ -995,7 +995,7 @@ class Test
     }
 }
 ";
-            CompileAndVerify(text).VerifyIL("Test.Main", @"
+            CompileStandardAndVerify(text).VerifyIL("Test.Main", @"
 {
   // Code size       29 (0x1d)
   .maxstack  2
@@ -1043,7 +1043,7 @@ class Test
     }
 }
 ";
-            CompileAndVerify(text).VerifyIL("Test.Main", @"
+            CompileStandardAndVerify(text).VerifyIL("Test.Main", @"
 {
   // Code size       60 (0x3c)
   .maxstack  2
@@ -1112,7 +1112,7 @@ class Test
     }
 }
 ";
-            CompileAndVerify(text).VerifyIL("Test.goo", @"
+            CompileStandardAndVerify(text).VerifyIL("Test.goo", @"
 {
   // Code size       57 (0x39)
   .maxstack  2
@@ -1186,7 +1186,7 @@ class Test
     }
 }
 ";
-            CompileAndVerify(text).VerifyIL("Test.Values", @"
+            CompileStandardAndVerify(text).VerifyIL("Test.Values", @"
 {
   // Code size       15 (0xf)
   .maxstack  3
@@ -1218,7 +1218,7 @@ class Test
     }
 }
 ";
-            CompileAndVerify(text);
+            CompileStandardAndVerify(text);
         }
 
         // The definite assignment state of v at the beginning of expr is the same as the state of v at the beginning of stmt
@@ -1239,7 +1239,7 @@ class Test
     }
 }
 ";
-            CompileAndVerify(text).VerifyIL("Test.Main", @"
+            CompileStandardAndVerify(text).VerifyIL("Test.Main", @"
 {
   // Code size       49 (0x31)
   .maxstack  2
@@ -1298,7 +1298,7 @@ class Test
     }
 }
 ";
-            CompileAndVerify(text).VerifyIL("Test.Main", @"
+            CompileStandardAndVerify(text).VerifyIL("Test.Main", @"
 {
   // Code size       37 (0x25)
   .maxstack  2
@@ -1811,7 +1811,7 @@ public class Program
     }
 }
 ";
-            CompileAndVerify(text, expectedOutput: @"Writer wrote 0
+            CompileStandardAndVerify(text, expectedOutput: @"Writer wrote 0
 Reader read 0
 Writer wrote 1
 Reader read 1
@@ -1874,7 +1874,7 @@ class D
     }
 }
 ";
-            CompileAndVerify(text, expectedOutput: @"1000000");
+            CompileStandardAndVerify(text, expectedOutput: @"1000000");
         }
 
         #endregion Execution

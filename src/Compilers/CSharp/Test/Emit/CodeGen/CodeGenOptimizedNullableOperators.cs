@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 
             foreach (string source in sources)
             {
-                var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
+                var comp = CompileStandardAndVerify(source, expectedOutput: expectedOutput);
                 comp.VerifyDiagnostics();
                 comp.VerifyIL("Program.Main", expectedIL);
             }
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 
             foreach (string source in sources)
             {
-                var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
+                var comp = CompileStandardAndVerify(source, expectedOutput: expectedOutput);
                 comp.VerifyDiagnostics();
                 comp.VerifyIL("Program.Main", expectedIL);
             }
@@ -137,7 +137,7 @@ class Program
   IL_0009:  ret
 }";
 
-            var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
+            var comp = CompileStandardAndVerify(source, expectedOutput: expectedOutput);
             comp.VerifyDiagnostics();
             comp.VerifyIL("Program.M", expectedIL);
         }
@@ -170,7 +170,7 @@ class Program
   IL_0007:  ret
 }";
 
-            var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
+            var comp = CompileStandardAndVerify(source, expectedOutput: expectedOutput);
             comp.VerifyDiagnostics();
             comp.VerifyIL("Program.M", expectedIL);
         }
@@ -206,7 +206,7 @@ class Program
   IL_0009:  ret
 }";
 
-            var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
+            var comp = CompileStandardAndVerify(source, expectedOutput: expectedOutput);
             comp.VerifyDiagnostics();
             comp.VerifyIL("Program.M", expectedIL);
         }
@@ -275,7 +275,7 @@ class Program
   IL_000b:  ret
 }";
 
-            var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
+            var comp = CompileStandardAndVerify(source, expectedOutput: expectedOutput);
             comp.VerifyDiagnostics();
             comp.VerifyIL("Program.M1", expectedIL1);
             comp.VerifyIL("Program.M2", expectedIL2);
@@ -309,7 +309,7 @@ class Program
   IL_0009:  ret
 }";
 
-            var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
+            var comp = CompileStandardAndVerify(source, expectedOutput: expectedOutput);
             comp.VerifyDiagnostics(
 // (6,16): warning CS0458: The result of the expression is always 'null' of type 'int?'
 //         return ~(new int?());
@@ -352,7 +352,7 @@ class Program
   IL_0001:  ret
 }";
 
-            var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
+            var comp = CompileStandardAndVerify(source, expectedOutput: expectedOutput);
             comp.VerifyDiagnostics(
     // (6,17): warning CS0458: The result of the expression is always 'null' of type 'int?'
     //         return ~-(new short?());
@@ -388,7 +388,7 @@ class Program
   IL_000b:  ret
 }";
 
-            var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
+            var comp = CompileStandardAndVerify(source, expectedOutput: expectedOutput);
             comp.VerifyDiagnostics();
             comp.VerifyIL("Program.M", expectedIL);
         }
@@ -430,7 +430,7 @@ class Program
   IL_0010:  ret
 }";
 
-            var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
+            var comp = CompileStandardAndVerify(source, expectedOutput: expectedOutput);
             comp.VerifyDiagnostics();
             comp.VerifyIL("Program.M", expectedIL);
         }
@@ -559,7 +559,7 @@ class Program
   IL_0044:  newobj     ""S?..ctor(S)""
   IL_0049:  ret
 }";
-            var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
+            var comp = CompileStandardAndVerify(source, expectedOutput: expectedOutput);
             comp.VerifyDiagnostics();
             comp.VerifyIL("Program.M1", expectedIL1);
             comp.VerifyIL("Program.M2", expectedIL2);
@@ -732,7 +732,7 @@ class Program
   IL_002f:  ret
 }";
 
-            var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
+            var comp = CompileStandardAndVerify(source, expectedOutput: expectedOutput);
             comp.VerifyDiagnostics();
             comp.VerifyIL("Program.M1", expectedIL1);
             comp.VerifyIL("Program.M2", expectedIL2);
@@ -818,7 +818,7 @@ class Program
   IL_0001:  ret
 }";
 
-            var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
+            var comp = CompileStandardAndVerify(source, expectedOutput: expectedOutput);
             comp.VerifyDiagnostics(
 // (25,16): warning CS0464: Comparing with null of type 'decimal?' always produces 'false'
 //         return ((int?)null) < new decimal?();
@@ -863,7 +863,7 @@ class Program
   IL_0007:  ret
 }";
 
-            var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
+            var comp = CompileStandardAndVerify(source, expectedOutput: expectedOutput);
             comp.VerifyIL("Program.M", expectedIL);
         }
 
@@ -980,7 +980,7 @@ class Program
   IL_000f:  ret
 }";
 
-            var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
+            var comp = CompileStandardAndVerify(source, expectedOutput: expectedOutput);
             comp.VerifyDiagnostics();
             comp.VerifyIL("Program.M1", expectedIL1);
             comp.VerifyIL("Program.M2", expectedIL2);
@@ -1093,7 +1093,7 @@ class Program
 }";
             string expectedIL6 = expectedIL4;
 
-            CompileAndVerify(source, expectedOutput: expectedOutput).VerifyDiagnostics(
+            CompileStandardAndVerify(source, expectedOutput: expectedOutput).VerifyDiagnostics(
                 // (21,16): warning CS0472: The result of the expression is always 'false' since a value of type 'int' is never equal to 'null' of type 'short?'
                 //         return new int?(N1()) == new short?();
                 Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "new int?(N1()) == new short?()").WithArguments("false", "int", "short?").WithLocation(21, 16),
@@ -1107,7 +1107,7 @@ class Program
                 //         return ((S?)null) < new S?(N4());
                 Diagnostic(ErrorCode.WRN_CmpAlwaysFalse, "((S?)null) < new S?(N4())").WithArguments("S?").WithLocation(41, 16)
                 );
-            var comp = CompileAndVerify(source, expectedOutput: expectedOutput, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithStrictFeature());
+            var comp = CompileStandardAndVerify(source, expectedOutput: expectedOutput, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithStrictFeature());
             comp.VerifyDiagnostics(
                 // (21,16): warning CS0472: The result of the expression is always 'false' since a value of type 'int' is never equal to 'null' of type 'short?'
                 //         return new int?(N1()) == new short?();
@@ -1280,7 +1280,7 @@ class Program
   IL_0007:  ret
 }";
 
-            var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
+            var comp = CompileStandardAndVerify(source, expectedOutput: expectedOutput);
             comp.VerifyDiagnostics(
 // (29,16): warning CS0464: Comparing with null of type 'int?' always produces 'false'
 //         return ((int?)null) < N3();
@@ -1484,7 +1484,7 @@ class Program
   IL_0024:  ret
 }";
 
-            var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
+            var comp = CompileStandardAndVerify(source, expectedOutput: expectedOutput);
             comp.VerifyDiagnostics();
             comp.VerifyIL("Program.M1", expectedIL1);
             comp.VerifyIL("Program.M2", expectedIL2);
@@ -1611,7 +1611,7 @@ class Program
   IL_002a:  newobj     ""int?..ctor(int)""
   IL_002f:  ret
 }";
-            var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
+            var comp = CompileStandardAndVerify(source, expectedOutput: expectedOutput);
             comp.VerifyDiagnostics();
             comp.VerifyIL("Program.M1", expectedIL1);
             comp.VerifyIL("Program.M2", expectedIL2);
@@ -1647,7 +1647,7 @@ class Program
   IL_0009:  ret
 }";
 
-            var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
+            var comp = CompileStandardAndVerify(source, expectedOutput: expectedOutput);
             comp.VerifyDiagnostics();
             comp.VerifyIL("Program.M1", expectedIL);
             comp.VerifyIL("Program.M2", expectedIL);
@@ -1694,7 +1694,7 @@ class Program
   IL_0016:  ret
 }";
 
-            var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
+            var comp = CompileStandardAndVerify(source, expectedOutput: expectedOutput);
             comp.VerifyDiagnostics();
             comp.VerifyIL("Program.M1", expectedIL);
         }
@@ -1823,7 +1823,7 @@ class Program
 ";
             string expectedIL8 = expectedIL7;
 
-            var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
+            var comp = CompileStandardAndVerify(source, expectedOutput: expectedOutput);
             comp.VerifyDiagnostics();
             comp.VerifyIL("Program.M1", expectedIL1);
             comp.VerifyIL("Program.M2", expectedIL2);
@@ -1925,7 +1925,7 @@ class Program
   IL_0015:  ret
 }";
 
-            var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
+            var comp = CompileStandardAndVerify(source, expectedOutput: expectedOutput);
             comp.VerifyDiagnostics();
             comp.VerifyIL("Program.M1", expectedIL1);
             comp.VerifyIL("Program.M2", expectedIL2);
@@ -1973,7 +1973,7 @@ class Program
   IL_0009:  ret
 }";
 
-            var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
+            var comp = CompileStandardAndVerify(source, expectedOutput: expectedOutput);
             comp.VerifyDiagnostics(
 // (6,16): warning CS0458: The result of the expression is always 'null' of type 'long?'
 //         return new int?() + new long?();
@@ -2048,7 +2048,7 @@ class Program
   IL_004c:  ret
 }";
 
-            var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
+            var comp = CompileStandardAndVerify(source, expectedOutput: expectedOutput);
             comp.VerifyDiagnostics();
             comp.VerifyIL("Program.M1", expectedIL);
         }
@@ -2100,7 +2100,7 @@ class Program
   IL_000f:  ret
 }";
 
-            var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
+            var comp = CompileStandardAndVerify(source, expectedOutput: expectedOutput);
             comp.VerifyDiagnostics(
 // (9,16): warning CS0458: The result of the expression is always 'null' of type 'int?'
 //         return new int?() + N();
@@ -2189,7 +2189,7 @@ class Program
   IL_0027:  ret
 }";
 
-            var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
+            var comp = CompileStandardAndVerify(source, expectedOutput: expectedOutput);
             comp.VerifyDiagnostics();
             comp.VerifyIL("Program.M1", expectedIL1);
             comp.VerifyIL("Program.M2", expectedIL2);
@@ -2220,7 +2220,7 @@ class Program
 ";
 
 
-            var comp = CompileAndVerify(source, expectedOutput: @"
+            var comp = CompileStandardAndVerify(source, expectedOutput: @"
 42
 42
 -42
@@ -2377,7 +2377,7 @@ class Program
 ";
 
 
-            var comp = CompileAndVerify(source, expectedOutput: @"
+            var comp = CompileStandardAndVerify(source, expectedOutput: @"
 42
 42
 -42

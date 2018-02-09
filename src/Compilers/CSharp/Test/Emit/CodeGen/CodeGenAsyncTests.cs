@@ -1957,7 +1957,7 @@ class Driver
         t.Run(6);
     }
 }";
-            CompileAndVerify(source, new[] { CSharpRef, SystemCoreRef });
+            CompileStandardAndVerify(source, new[] { CSharpRef, SystemCoreRef });
         }
 
         [Fact]

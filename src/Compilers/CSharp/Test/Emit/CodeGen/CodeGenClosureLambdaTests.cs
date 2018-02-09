@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         [Fact]
         public void EnvironmentChainContainsUnusedEnvironment()
         {
-            CompileAndVerify(@"
+            CompileStandardAndVerify(@"
 using System;
 class C
 {
@@ -55,7 +55,7 @@ class C
         }
     }
 }";
-            CompileAndVerify(comp);
+            CompileStandardAndVerify(comp);
         }
 
         [Fact]
@@ -73,7 +73,7 @@ class C
         d2();
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"12");
+            var compilation = CompileStandardAndVerify(source, expectedOutput: @"12");
 
             compilation.VerifyIL("C.Main",
 @"
@@ -130,7 +130,7 @@ class C
         }
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"12
+            var compilation = CompileStandardAndVerify(source, expectedOutput: @"12
 12");
 
             compilation.VerifyIL("C.M",
@@ -178,7 +178,7 @@ class C
         d1();
     }
 }";
-            CompileAndVerify(source, expectedOutput: "1");
+            CompileStandardAndVerify(source, expectedOutput: "1");
         }
 
         [Fact]
@@ -198,7 +198,7 @@ class Program
         Console.WriteLine(d(2));
     }
 } ";
-            var compilation = CompileAndVerify(source, expectedOutput: @"12");
+            var compilation = CompileStandardAndVerify(source, expectedOutput: @"12");
         }
 
         [Fact]
@@ -225,7 +225,7 @@ class C
         d1();
     }
 }";
-            CompileAndVerify(source, expectedOutput: "12");
+            CompileStandardAndVerify(source, expectedOutput: "12");
         }
 
         [Fact]
@@ -255,7 +255,7 @@ class C
         d1();
     }
 }";
-            CompileAndVerify(source, expectedOutput: "12");
+            CompileStandardAndVerify(source, expectedOutput: "12");
         }
 
         [Fact]
@@ -285,7 +285,7 @@ class C
         d1();
     }
 }";
-            CompileAndVerify(source, expectedOutput: "12");
+            CompileStandardAndVerify(source, expectedOutput: "12");
         }
 
         [Fact]
@@ -315,7 +315,7 @@ class C
         d1();
     }
 }";
-            CompileAndVerify(source, expectedOutput: "12");
+            CompileStandardAndVerify(source, expectedOutput: "12");
         }
 
         [Fact]
@@ -349,7 +349,7 @@ class C
         }
     }
 }";
-            CompileAndVerify(source, expectedOutput: @"
+            CompileStandardAndVerify(source, expectedOutput: @"
 12
 13
 ");
@@ -379,7 +379,7 @@ class C
     }
 }";
 
-            CompileAndVerify(source, expectedOutput: @"
+            CompileStandardAndVerify(source, expectedOutput: @"
 11
 12
 ");
@@ -410,7 +410,7 @@ class C
         d2();
     }
 }";
-            CompileAndVerify(source, expectedOutput: @"
+            CompileStandardAndVerify(source, expectedOutput: @"
 5
 10
 ");
@@ -437,7 +437,7 @@ class C
         d1();
     }
 }";
-            CompileAndVerify(source, expectedOutput: @"12");
+            CompileStandardAndVerify(source, expectedOutput: @"12");
         }
 
         [Fact]
@@ -467,7 +467,7 @@ class C
         d1();
     }
 }";
-            CompileAndVerify(source, expectedOutput: @"
+            CompileStandardAndVerify(source, expectedOutput: @"
 11
 12
 ");
@@ -497,7 +497,7 @@ class C
     }
 }";
 
-            CompileAndVerify(source, expectedOutput: @"
+            CompileStandardAndVerify(source, expectedOutput: @"
 12
 13
 ");
@@ -533,7 +533,7 @@ class C
     }
 }";
 
-            CompileAndVerify(source, expectedOutput: @"
+            CompileStandardAndVerify(source, expectedOutput: @"
 11
 12
 13
@@ -563,7 +563,7 @@ class C
         d1();
     }
 }";
-            CompileAndVerify(source, expectedOutput: @"
+            CompileStandardAndVerify(source, expectedOutput: @"
 12
 13
 ");
@@ -599,7 +599,7 @@ class C
     }
 }";
 
-            CompileAndVerify(source, expectedOutput: @"
+            CompileStandardAndVerify(source, expectedOutput: @"
 11
 12
 13
@@ -663,7 +663,7 @@ public static void Main(string[] args)
     }
 }";
 
-            CompileAndVerify(source, expectedOutput: @"
+            CompileStandardAndVerify(source, expectedOutput: @"
 12
 13
 14
@@ -695,7 +695,7 @@ class Program
         }
     }
 }";
-            CompileAndVerify(source, expectedOutput: "pass");
+            CompileStandardAndVerify(source, expectedOutput: "pass");
         }
 
         [Fact]
@@ -719,7 +719,7 @@ class Program
         }
     }
 }";
-            CompileAndVerify(source, expectedOutput: "xxxpass");
+            CompileStandardAndVerify(source, expectedOutput: "xxxpass");
         }
 
         [WorkItem(541258, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541258")]
@@ -743,7 +743,7 @@ class Program
         a();
     }
 }";
-            var verifier = CompileAndVerify(source, expectedOutput: "pass");
+            var verifier = CompileStandardAndVerify(source, expectedOutput: "pass");
 
             verifier.VerifyIL("Program.Main", @"
 {
@@ -808,7 +808,7 @@ class Program
     }
 }";
 
-            var verifier = CompileAndVerify(source, expectedOutput: "pass");
+            var verifier = CompileStandardAndVerify(source, expectedOutput: "pass");
 
             verifier.VerifyIL("Program.Main", @"
 {
@@ -888,7 +888,7 @@ class Program
     }
 }";
 
-            var verifier = CompileAndVerify(source, expectedOutput: "pass");
+            var verifier = CompileStandardAndVerify(source, expectedOutput: "pass");
         }
 
         [Fact]
@@ -910,7 +910,7 @@ class Program
         }
     }
 }";
-            var verifier = CompileAndVerify(source, expectedOutput: "pass");
+            var verifier = CompileStandardAndVerify(source, expectedOutput: "pass");
             verifier.VerifyIL("Program.Main", @"
 {
   // Code size       73 (0x49)
@@ -985,7 +985,7 @@ class Program
         })();
     }
 }";
-            var verifier = CompileAndVerify(source, expectedOutput: "pass");
+            var verifier = CompileStandardAndVerify(source, expectedOutput: "pass");
             verifier.VerifyIL("Program.<>c__1<T>.<F>b__1_0", @"
 {
   // Code size       67 (0x43)
@@ -1057,7 +1057,7 @@ class Program
         })();
     }
 }";
-            var verifier = CompileAndVerify(source, expectedOutput: "pass_xy");
+            var verifier = CompileStandardAndVerify(source, expectedOutput: "pass_xy");
             verifier.VerifyIL("Program.<>c__DisplayClass1_0<T>.<F>b__0", @"
 {
   // Code size      131 (0x83)
@@ -1168,7 +1168,7 @@ class Program
         })();
     }
 }";
-            var verifier = CompileAndVerify(source, expectedOutput: "pass_xy");
+            var verifier = CompileStandardAndVerify(source, expectedOutput: "pass_xy");
         }
 
         [Fact]
@@ -1198,7 +1198,7 @@ class C
 }";
             // Dev10 prints B, but we have intentionally changed the scope
             // of the loop variable.
-            CompileAndVerify(source, expectedOutput: "A");
+            CompileStandardAndVerify(source, expectedOutput: "A");
         }
 
         [Fact]
@@ -1223,7 +1223,7 @@ class C
         d0();
     }
 }";
-            CompileAndVerify(source, expectedOutput: "goo");
+            CompileStandardAndVerify(source, expectedOutput: "goo");
         }
 
         [Fact]
@@ -1252,7 +1252,7 @@ class C : B
         new C().Main();
     }
 }";
-            CompileAndVerify(source, expectedOutput: "base");
+            CompileStandardAndVerify(source, expectedOutput: "base");
         }
 
         [Fact]
@@ -1287,7 +1287,7 @@ class C : B
         new C().Main();
     }
 }";
-            CompileAndVerify(source, expectedOutput: "base");
+            CompileStandardAndVerify(source, expectedOutput: "base");
         }
 
         [Fact]
@@ -1323,7 +1323,7 @@ class C : B
         new C().Main(3);
     }
 }";
-            CompileAndVerify(source, expectedOutput: "base");
+            CompileStandardAndVerify(source, expectedOutput: "base");
         }
 
         [Fact]
@@ -1355,7 +1355,7 @@ class C : B
         new C().Main(3);
     }
 }";
-            CompileAndVerify(source, expectedOutput: "base");
+            CompileStandardAndVerify(source, expectedOutput: "base");
         }
 
         [Fact]
@@ -1410,7 +1410,7 @@ static class M1
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "this: D::F\r\nbase: B1::F");
+            CompileStandardAndVerify(source, expectedOutput: "this: D::F\r\nbase: B1::F");
         }
 
         [Fact]
@@ -1469,7 +1469,7 @@ static class M1
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "this: D::F\r\nbase: B1::F");
+            CompileStandardAndVerify(source, expectedOutput: "this: D::F\r\nbase: B1::F");
         }
 
         [Fact]
@@ -1519,7 +1519,7 @@ static class M1
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "B1::F").
+            CompileStandardAndVerify(source, expectedOutput: "B1::F").
                 VerifyIL("M1.B2.<TestBase>b__1_0",
 @"{
   // Code size        7 (0x7)
@@ -1582,7 +1582,7 @@ static class M1
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "B1a::F").
+            CompileStandardAndVerify(source, expectedOutput: "B1a::F").
                 VerifyIL("M1.B2.<TestBase>b__1_0",
 @"{
   // Code size        7 (0x7)
@@ -1643,7 +1643,7 @@ static class M1
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "D::F\r\nB1::F");
+            CompileStandardAndVerify(source, expectedOutput: "D::F\r\nB1::F");
         }
 
         [Fact]
@@ -1696,7 +1696,7 @@ static class M1
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "D::F\r\nB1::F");
+            CompileStandardAndVerify(source, expectedOutput: "D::F\r\nB1::F");
         }
 
         [Fact]
@@ -1751,7 +1751,7 @@ static class M1
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "D::F\r\nB1::F");
+            CompileStandardAndVerify(source, expectedOutput: "D::F\r\nB1::F");
         }
 
         [Fact]
@@ -1800,7 +1800,7 @@ static class M1
         (new D()).Test();
     }
 }";
-            CompileAndVerify(source, expectedOutput: "B1::F.Get;F::F.Set;D::F.Get;B1::F.Set;");
+            CompileStandardAndVerify(source, expectedOutput: "B1::F.Get;F::F.Set;D::F.Get;B1::F.Set;");
         }
 
         [Fact]
@@ -1846,7 +1846,7 @@ static class M1
         (new D()).Test();
     }
 }";
-            CompileAndVerify(source, expectedOutput: "D::F;B1::F;");
+            CompileStandardAndVerify(source, expectedOutput: "D::F;B1::F;");
         }
 
         [Fact]
@@ -1894,7 +1894,7 @@ static class M1
         (new D()).Test();
     }
 }";
-            CompileAndVerify(source, expectedOutput: "B1::F;D::F;");
+            CompileStandardAndVerify(source, expectedOutput: "B1::F;D::F;");
         }
 
         [Fact]
@@ -1941,7 +1941,7 @@ static class M1
         (new D<int>()).Test();
     }
 }";
-            CompileAndVerify(source, expectedOutput: "B1::F;D::F;");
+            CompileStandardAndVerify(source, expectedOutput: "B1::F;D::F;");
         }
 
         [Fact]
@@ -1991,7 +1991,7 @@ static class M1
         (new D<int>()).Test();
     }
 }";
-            CompileAndVerify(source, expectedOutput: "B1::F;D::F;");
+            CompileStandardAndVerify(source, expectedOutput: "B1::F;D::F;");
         }
 
         [Fact]
@@ -2049,7 +2049,7 @@ static class M1
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "D::F2;B1::F1;D::F2;B1::F2;");
+            CompileStandardAndVerify(source, expectedOutput: "D::F2;B1::F1;D::F2;B1::F2;");
         }
 
         [Fact]
@@ -2106,7 +2106,7 @@ static class M1
         (new D<C>()).Test();
     }
 }";
-            CompileAndVerify(source, expectedOutput: "B1::F;D::F;");
+            CompileStandardAndVerify(source, expectedOutput: "B1::F;D::F;");
         }
 
         [Fact]
@@ -2147,7 +2147,7 @@ static class M1
         (new B2()).Test();
     }
 }";
-            CompileAndVerify(source,
+            CompileStandardAndVerify(source,
                 expectedOutput: @"B1:F"
             ).
             VerifyIL("M1.B2.<>n__0<U>",
@@ -2205,7 +2205,7 @@ static class M1
         (new B2()).Test();
     }
 }";
-            CompileAndVerify(source,
+            CompileStandardAndVerify(source,
                 expectedOutput: @"B1::F;"
             ).
             VerifyIL("M1.B2.<>c__DisplayClass1_0.<Test>b__0",
@@ -2297,7 +2297,7 @@ static class M1
         Console.WriteLine(arg0constraints[1]);
     }
 }";
-            CompileAndVerify(source,
+            CompileStandardAndVerify(source,
                 expectedOutput: @"
 True
 True
@@ -2345,7 +2345,7 @@ class Program
     }
 }
 ";
-            CompileAndVerify(source,
+            CompileStandardAndVerify(source,
                 expectedOutput: "System.Int32 System.String"
             ).
             VerifyIL("Base<T>.Derived.<>n__0<U>",
@@ -2385,7 +2385,7 @@ class Derived : Base
     }
 }
 ";
-            CompileAndVerify(source,
+            CompileStandardAndVerify(source,
                 expectedOutput: "Base::F;Derived::F;"
             ).
             VerifyIL("Derived.<>c__DisplayClass1_0.<Test>b__0",
@@ -2432,7 +2432,7 @@ class Derived : Base
     }
 }
 ";
-            CompileAndVerify(source,
+            CompileStandardAndVerify(source,
                 expectedOutput: "Base::F;"
             ).
             VerifyIL("Derived.<>c__DisplayClass1_0.<Test>b__0",
@@ -2475,7 +2475,7 @@ class Derived : Base
     }
 }
 ";
-            CompileAndVerify(source,
+            CompileStandardAndVerify(source,
                 expectedOutput: "Base::F;"
             ).
             VerifyIL("Derived.<>c__DisplayClass1_0.<Test>b__0",
@@ -2518,7 +2518,7 @@ class C
         d();
     }
 }";
-            CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, expectedOutput: "F", verify: Verification.Passes);
+            CompileStandardAndVerify(source, options: TestOptions.UnsafeReleaseExe, expectedOutput: "F", verify: Verification.Passes);
         }
 
         [Fact]
@@ -2537,7 +2537,7 @@ class LWP
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "123");
+            CompileStandardAndVerify(source, expectedOutput: "123");
         }
 
         [Fact]
@@ -2558,7 +2558,7 @@ class LWP
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "123");
+            CompileStandardAndVerify(source, expectedOutput: "123");
         }
 
         [Fact]
@@ -2581,7 +2581,7 @@ class LWP
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "123");
+            CompileStandardAndVerify(source, expectedOutput: "123");
         }
 
         [Fact]
@@ -2606,7 +2606,7 @@ class LWP
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "123");
+            CompileStandardAndVerify(source, expectedOutput: "123");
         }
 
         [Fact]
@@ -2626,7 +2626,7 @@ class CLP
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "123");
+            CompileStandardAndVerify(source, expectedOutput: "123");
         }
 
         [Fact]
@@ -2650,7 +2650,7 @@ class CLP
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "123");
+            CompileStandardAndVerify(source, expectedOutput: "123");
         }
 
         [Fact]
@@ -2671,7 +2671,7 @@ class CLP
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "4123");
+            CompileStandardAndVerify(source, expectedOutput: "4123");
         }
 
         [Fact]
@@ -2696,7 +2696,7 @@ class CLP
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "4123");
+            CompileStandardAndVerify(source, expectedOutput: "4123");
         }
 
         [Fact]
@@ -2726,7 +2726,7 @@ class C
     }
 }";
 
-            CompileAndVerify(source, expectedOutput: @"
+            CompileStandardAndVerify(source, expectedOutput: @"
 12
 goo
 ");
@@ -2759,7 +2759,7 @@ class C
     }
 }";
 
-            CompileAndVerify(source, expectedOutput: @"
+            CompileStandardAndVerify(source, expectedOutput: @"
 12
 goo
 ");
@@ -2789,7 +2789,7 @@ class GenericClosure
 ";
             var expectedOutput = @"Hello
 1234";
-            CompileAndVerify(source, expectedOutput: expectedOutput);
+            CompileStandardAndVerify(source, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -2816,7 +2816,7 @@ class GenericClosure
 ";
             var expectedOutput = @"
 0";
-            CompileAndVerify(source, expectedOutput: expectedOutput);
+            CompileStandardAndVerify(source, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -2841,7 +2841,7 @@ class CLP
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "123123");
+            CompileStandardAndVerify(source, expectedOutput: "123123");
         }
 
         [Fact]
@@ -2866,7 +2866,7 @@ class CLP
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "123123");
+            CompileStandardAndVerify(source, expectedOutput: "123123");
         }
 
         [Fact]
@@ -2892,7 +2892,7 @@ class CLP
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "41234123");
+            CompileStandardAndVerify(source, expectedOutput: "41234123");
         }
 
         [Fact]
@@ -2918,7 +2918,7 @@ class CLP
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "41234123");
+            CompileStandardAndVerify(source, expectedOutput: "41234123");
         }
 
         [Fact]
@@ -2944,7 +2944,7 @@ class CLP
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "000hhh");
+            CompileStandardAndVerify(source, expectedOutput: "000hhh");
         }
 
         [Fact]
@@ -2974,7 +2974,7 @@ class CLP
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "000hhh");
+            CompileStandardAndVerify(source, expectedOutput: "000hhh");
         }
 
         [Fact]
@@ -3008,7 +3008,7 @@ class CLP
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "000hhh");
+            CompileStandardAndVerify(source, expectedOutput: "000hhh");
         }
 
         [Fact]
@@ -3042,7 +3042,7 @@ class CLP
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "000hhh");
+            CompileStandardAndVerify(source, expectedOutput: "000hhh");
         }
 
         [Fact]
@@ -3076,7 +3076,7 @@ class CLP
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "12he");
+            CompileStandardAndVerify(source, expectedOutput: "12he");
         }
 
         [Fact]
@@ -3095,7 +3095,7 @@ class Program
         Console.Write(string.Concat(myDelegate(3), ""he""));
     }
 }";
-            CompileAndVerify(source, expectedOutput: "15he");
+            CompileStandardAndVerify(source, expectedOutput: "15he");
         }
 
         [Fact]
@@ -3118,7 +3118,7 @@ class Program
         new Program().M();
     }
 }";
-            CompileAndVerify(source, expectedOutput: "15he");
+            CompileStandardAndVerify(source, expectedOutput: "15he");
         }
 
         [Fact]
@@ -3143,7 +3143,7 @@ class Program
         d0();
     }
 }";
-            CompileAndVerify(source, expectedOutput: "01234");
+            CompileStandardAndVerify(source, expectedOutput: "01234");
         }
 
         // see Roslyn bug 5956
@@ -3179,7 +3179,7 @@ class Program
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "7");
+            CompileStandardAndVerify(source, expectedOutput: "7");
         }
 
         [Fact]
@@ -3197,7 +3197,7 @@ class Program
     }
 }"
 ;
-            CompileAndVerify(source, expectedOutput: "42");
+            CompileStandardAndVerify(source, expectedOutput: "42");
         }
 
         [Fact]
@@ -3223,7 +3223,7 @@ class Program
     }
 }"
 ;
-            CompileAndVerify(source, expectedOutput: "Hi42");
+            CompileStandardAndVerify(source, expectedOutput: "Hi42");
         }
 
         [Fact]
@@ -3245,7 +3245,7 @@ class Program
         a();
     }
 }";
-            CompileAndVerify(source, expectedOutput: "12");
+            CompileStandardAndVerify(source, expectedOutput: "12");
         }
 
         [Fact]
@@ -3271,7 +3271,7 @@ class Program
         new Program().G();
     }
 }";
-            CompileAndVerify(source, expectedOutput: "12");
+            CompileStandardAndVerify(source, expectedOutput: "12");
         }
 
         [WorkItem(539346, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539346")]
@@ -3391,7 +3391,7 @@ class Goo<T>
         return () => Goo<U>.t;
     }
 }";
-            CompileAndVerify(source, expectedOutput: "");
+            CompileStandardAndVerify(source, expectedOutput: "");
         }
 
         [Fact]
@@ -3429,7 +3429,7 @@ class Program
         }
     }
 }";
-            CompileAndVerify(source, expectedOutput: "13").
+            CompileStandardAndVerify(source, expectedOutput: "13").
             VerifyIL("Program.c1.<>c__DisplayClass1_1.<Test>b__2",
 @"{
   // Code size       31 (0x1f)
@@ -3486,7 +3486,7 @@ using System;
         }
     }
 ";
-            CompileAndVerify(source, expectedOutput: "10").
+            CompileStandardAndVerify(source, expectedOutput: "10").
             VerifyIL("Program.c1.Test",
 @"{
   // Code size      134 (0x86)
@@ -3584,7 +3584,7 @@ using System;
         }
     }
 ";
-            CompileAndVerify(source, expectedOutput: "6").
+            CompileStandardAndVerify(source, expectedOutput: "6").
             VerifyIL("Program.c1.Test",
 @"{
   // Code size      133 (0x85)
@@ -3687,7 +3687,7 @@ public static class Program
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "True").
+            CompileStandardAndVerify(source, expectedOutput: "True").
             VerifyIL("Program.c1.Test",
 @"
 {
@@ -3775,7 +3775,7 @@ class Program
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "6").
+            CompileStandardAndVerify(source, expectedOutput: "6").
             VerifyIL("Program.c1.Test",
 @"{
   // Code size       96 (0x60)
@@ -3838,7 +3838,7 @@ class C
         int l = new Func<int, int>(x => 3)(1);
     }
 }";
-            CompileAndVerify(source);
+            CompileStandardAndVerify(source);
         }
 
         [Fact]
@@ -3857,7 +3857,7 @@ class C
         int l = ((Func<int, int>)(x => ((Func<int>)(() => x + 4))() + x))(1);
     }
 }";
-            CompileAndVerify(source);
+            CompileStandardAndVerify(source);
         }
 
         [Fact]
@@ -3876,7 +3876,7 @@ class C
         int l = ((Func<int, int>)(x => ((Func<int>)(() => x + 4))() + x))(1);
     }
 }";
-            CompileAndVerify(source);
+            CompileStandardAndVerify(source);
         }
 
         [Fact]
@@ -3907,7 +3907,7 @@ public class C
 		var f = new Func<TG1, TG2>(a => default(TG2));
 	}
 }";
-            CompileAndVerify(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: m =>
+            CompileStandardAndVerify(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: m =>
             {
                 var c = m.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
                 AssertEx.Equal(new[]
@@ -3978,7 +3978,7 @@ public class C
 		var f = new Func<TG>(() => default(TG));
 	}
 }";
-            CompileAndVerify(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: m =>
+            CompileStandardAndVerify(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: m =>
             {
                 var c = m.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
                 AssertEx.Equal(new[]
@@ -4019,7 +4019,7 @@ public class C
 
     private void F() {}
 }";
-            CompileAndVerify(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: m =>
+            CompileStandardAndVerify(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: m =>
             {
                 var c = m.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
                 AssertEx.SetEqual(new[]
@@ -4056,7 +4056,7 @@ class Program
     }
 }";
 
-            CompileAndVerify(source, expectedOutput: @"3");
+            CompileStandardAndVerify(source, expectedOutput: @"3");
         }
 
         /// <remarks>
@@ -4101,7 +4101,7 @@ public class Program
 }
 ";
 
-            CompileAndVerify(
+            CompileStandardAndVerify(
                 source,
                 new[] { LinqAssemblyRef },
                 expectedOutput:
@@ -4190,7 +4190,7 @@ class Program
 }
 ";
 
-            CompileAndVerify(source, expectedOutput: "7");
+            CompileStandardAndVerify(source, expectedOutput: "7");
         }
 
         [WorkItem(1019237, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1019237")]
@@ -4218,7 +4218,7 @@ class Program
 ";
             // ref emit would just have different metadata tokens
             // we are not interested in testing that
-            CompileAndVerify(source,
+            CompileStandardAndVerify(source,
                 additionalRefs: new[] { LinqAssemblyRef },
                 expectedOutput: @"
 Void .ctor(System.Object, IntPtr)
@@ -4271,7 +4271,7 @@ class Test
 }
 ";
 
-            CompileAndVerify(source, expectedOutput: "111");
+            CompileStandardAndVerify(source, expectedOutput: "111");
         }
 
         [WorkItem(540129, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540129")]
@@ -4308,7 +4308,7 @@ public class Test
 }
 ";
 
-            CompileAndVerify(source, expectedOutput: "PASS");
+            CompileStandardAndVerify(source, expectedOutput: "PASS");
         }
 
         [WorkItem(540147, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540147")]
@@ -4345,7 +4345,7 @@ class A
     }
 }
 ";
-            var verifier = CompileAndVerify(
+            var verifier = CompileStandardAndVerify(
                 source,
                 expectedOutput: "12");
         }
@@ -4368,7 +4368,7 @@ class Program
     }
 }
 ";
-            var compilation = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: @"True
+            var compilation = CompileStandardAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: @"True
 False");
         }
 
@@ -4390,7 +4390,7 @@ class Program
     }
 }
 ";
-            var compilation = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: @"True
+            var compilation = CompileStandardAndVerify(source, options: TestOptions.DebugExe, expectedOutput: @"True
 False");
         }
 
@@ -4417,7 +4417,7 @@ class Program
     }
 }
 ";
-            var verifier = CompileAndVerify(
+            var verifier = CompileStandardAndVerify(
                 source,
                 expectedOutput: "");
         }
@@ -4441,7 +4441,7 @@ class Test
     }
 }";
             // Dev11 emits "public", we emit "internal" visibility for <Goo>b__1:
-            CompileAndVerify(source, expectedSignatures: new[]
+            CompileStandardAndVerify(source, expectedSignatures: new[]
             {
                 Signature("Test+<>c__DisplayClass2_0", "<Goo>b__0",
                           ".method assembly hidebysig instance System.String <Goo>b__0(System.String a) cil managed"),
@@ -4475,7 +4475,7 @@ class Program
         new Program(1);
     }
 }";
-            var verifier = CompileAndVerify(
+            var verifier = CompileStandardAndVerify(
                 source,
                 expectedOutput: "11102");
         }
@@ -4501,7 +4501,7 @@ class Test
 }
 ";
             //IMPORTANT!!! we should not be caching static lambda in static initializer.
-            CompileAndVerify(source, expectedOutput: "(1,-1)").VerifyIL("Test..cctor", @"
+            CompileStandardAndVerify(source, expectedOutput: "(1,-1)").VerifyIL("Test..cctor", @"
 {
   // Code size       28 (0x1c)
   .maxstack  2
@@ -4550,7 +4550,7 @@ class Test
     }
 }
 ";
-            var verifier = CompileAndVerify(
+            var verifier = CompileStandardAndVerify(
                 source,
                 expectedOutput: "True");
         }
@@ -4577,7 +4577,7 @@ class C
     }
 }
 ";
-            var verifier = CompileAndVerify(
+            var verifier = CompileStandardAndVerify(
                 source,
                 expectedOutput: "0");
         }
@@ -4619,7 +4619,7 @@ class Test
     }
 }
 ";
-            var compilation = CompileAndVerify(source, expectedOutput: "0");
+            var compilation = CompileStandardAndVerify(source, expectedOutput: "0");
         }
 
         [WorkItem(545430, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545430")]
@@ -5003,7 +5003,7 @@ class VsCatalogProvider
         });
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: "success");
+            var compilation = CompileStandardAndVerify(source, expectedOutput: "success");
         }
 
         [WorkItem(546748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546748")]
@@ -5030,7 +5030,7 @@ class Program
         };
     }
 }";
-            CompileAndVerify(source);
+            CompileStandardAndVerify(source);
         }
 
         [WorkItem(546748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546748")]
@@ -5060,7 +5060,7 @@ class Program
         };
     }
 }";
-            var compilation = CompileAndVerify(source);
+            var compilation = CompileStandardAndVerify(source);
         }
 
         [WorkItem(530911, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530911")]
@@ -5091,7 +5091,7 @@ class Program
     }
 }
 ";
-            var compilation = CompileAndVerify(source);
+            var compilation = CompileStandardAndVerify(source);
         }
 
         [WorkItem(691006, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/691006")]
@@ -5175,7 +5175,7 @@ namespace ConsoleApplication16
 }
 
 ";
-            CompileAndVerify(source);
+            CompileStandardAndVerify(source);
         }
 
         #endregion
@@ -5197,7 +5197,7 @@ class C
     }
 }";
 
-            CompileAndVerify(source, new[] { SystemCoreRef });
+            CompileStandardAndVerify(source, new[] { SystemCoreRef });
         }
 
         [Fact]
@@ -5217,7 +5217,7 @@ class C
     }
 }";
 
-            CompileAndVerify(source, new[] { SystemCoreRef });
+            CompileStandardAndVerify(source, new[] { SystemCoreRef });
         }
 
         [Fact]
@@ -5250,7 +5250,7 @@ class C
     }
 }";
 
-            CompileAndVerify(source, new[] { SystemCoreRef });
+            CompileStandardAndVerify(source, new[] { SystemCoreRef });
         }
 
         [Fact, WorkItem(2549, "https://github.com/dotnet/roslyn/issues/2549")]
@@ -5269,7 +5269,7 @@ public class BadBaby
         return from child in Children select from T ch in Children select false;
     }
 }";
-            CompileAndVerify(source, new[] { SystemCoreRef });
+            CompileStandardAndVerify(source, new[] { SystemCoreRef });
         }
 
         [WorkItem(9131, "https://github.com/dotnet/roslyn/issues/9131")]
@@ -5296,7 +5296,7 @@ class C
         }
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"True");
+            var compilation = CompileStandardAndVerify(source, expectedOutput: @"True");
             compilation.VerifyIL("C.Main",
 @"{
   // Code size       92 (0x5c)

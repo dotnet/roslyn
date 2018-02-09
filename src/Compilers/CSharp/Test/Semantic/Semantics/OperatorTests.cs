@@ -124,7 +124,7 @@ class Test
         Console.Write(rn);
     }
 }";
-            CompileAndVerify(source: source, expectedOutput: "TwoZero");
+            CompileStandardAndVerify(source: source, expectedOutput: "TwoZero");
         }
 
         private const string StructWithUserDefinedBooleanOperators = @"
@@ -332,7 +332,7 @@ class C
 1:t
 1:t";
 
-            CompileAndVerify(source: source, expectedOutput: output);
+            CompileStandardAndVerify(source: source, expectedOutput: output);
         }
 
         [Fact]
@@ -432,7 +432,7 @@ class C
 00011111-
 01111111";
 
-            CompileAndVerify(source: source, expectedOutput: output);
+            CompileStandardAndVerify(source: source, expectedOutput: output);
         }
 
         [Fact]
@@ -508,7 +508,7 @@ class C
 }";
             string output = @"bcfgjklln";
 
-            CompileAndVerify(source: source, expectedOutput: output);
+            CompileStandardAndVerify(source: source, expectedOutput: output);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -636,7 +636,7 @@ class C
 }";
             string output = "(+(~(!(-a))))aa(a+1)b(b+1)(b+1)cc(c-1)d(d-1)(d-1)";
 
-            CompileAndVerify(source: source, expectedOutput: output);
+            CompileStandardAndVerify(source: source, expectedOutput: output);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -1169,7 +1169,7 @@ class C
 }";
             string output = @"(((((a>>10)+(b<<20))-(((c*d)/e)%f))&g)|(h^((i==j)!=((((k<l)>m)<=o)>=p))))";
 
-            CompileAndVerify(source: source, expectedOutput: output);
+            CompileStandardAndVerify(source: source, expectedOutput: output);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -1994,7 +1994,7 @@ class C
 }";
             string output = @"((((((((((a+b)-c)*d)/e)%f)<<10)>>20)&g)|h)^i)";
 
-            CompileAndVerify(source: source, expectedOutput: output);
+            CompileStandardAndVerify(source: source, expectedOutput: output);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -4743,7 +4743,7 @@ static class Program
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "A");
+            CompileStandardAndVerify(source, expectedOutput: "A");
         }
 
         [WorkItem(545631, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545631")]
@@ -4869,7 +4869,7 @@ class Program
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: string.Empty);
+            CompileStandardAndVerify(source, expectedOutput: string.Empty);
         }
 
         [WorkItem(542090, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542090")]
@@ -4889,7 +4889,7 @@ class Program
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "");
+            CompileStandardAndVerify(source, expectedOutput: "");
         }
 
         [Fact]
@@ -4910,7 +4910,7 @@ namespace N2
         }
     }
 }";
-            var comp = CompileAndVerify(source);
+            var comp = CompileStandardAndVerify(source);
             comp.VerifyDiagnostics();
         }
 
@@ -4991,7 +4991,7 @@ class Program
     }
 }
 ";
-            var comp = CompileAndVerify(source);
+            var comp = CompileStandardAndVerify(source);
             comp.VerifyDiagnostics();
         }
 
@@ -5015,7 +5015,7 @@ class Program
     static void M(F f) {}
 }
 ";
-            var comp = CompileAndVerify(source);
+            var comp = CompileStandardAndVerify(source);
             comp.VerifyDiagnostics();
         }
 
@@ -5034,7 +5034,7 @@ class Program
     }
 } 
 ";
-            var comp = CompileAndVerify(source);
+            var comp = CompileStandardAndVerify(source);
             comp.VerifyDiagnostics();
         }
 
@@ -5053,7 +5053,7 @@ class Test
     }
 }
 ";
-            var comp = CompileAndVerify(source);
+            var comp = CompileStandardAndVerify(source);
             comp.VerifyDiagnostics();
         }
 
@@ -5444,7 +5444,7 @@ class Program
 }
 ";
 
-            CompileAndVerify(source, expectedOutput: "").VerifyDiagnostics();
+            CompileStandardAndVerify(source, expectedOutput: "").VerifyDiagnostics();
         }
 
         [WorkItem(546655, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546655")]
@@ -5476,7 +5476,7 @@ class Test
     }
 }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: @"False
+            var comp = CompileStandardAndVerify(source, expectedOutput: @"False
 False");
             comp.VerifyDiagnostics();
         }
@@ -5660,7 +5660,7 @@ class A
         return new B();
     }
 }";
-            CompileAndVerify(text);
+            CompileStandardAndVerify(text);
         }
 
         [WorkItem(543503, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543503")]
@@ -5679,7 +5679,7 @@ class C<T>
 
     string s = new C<T>() as string;
 }";
-            CompileAndVerify(text);
+            CompileStandardAndVerify(text);
         }
 
         [WorkItem(543503, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543503")]
@@ -5698,7 +5698,7 @@ class C<T>
  
     bool b = new C<T>() is string;
 }";
-            CompileAndVerify(text);
+            CompileStandardAndVerify(text);
         }
 
         [WorkItem(543483, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543483")]
@@ -5760,7 +5760,7 @@ struct S
 }
 
 ";
-            CompileAndVerify(source1, expectedOutput: "1");
+            CompileStandardAndVerify(source1, expectedOutput: "1");
             CreateStandardCompilation(source2).VerifyDiagnostics(
 // (16,9): error CS0034: Operator '==' is ambiguous on operands of type 'S?' and '<null>'
 //     if (s == null) s = default(S);
@@ -5846,7 +5846,7 @@ class D
 ";
             string expectedOutput = @"True
 False";
-            CompileAndVerify(source, expectedOutput: expectedOutput);
+            CompileStandardAndVerify(source, expectedOutput: expectedOutput);
         }
 
         [WorkItem(543431, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543431")]
@@ -5970,7 +5970,7 @@ class D
 ";
             string expectedOutput = @"True
 False";
-            CompileAndVerify(source, expectedOutput: expectedOutput);
+            CompileStandardAndVerify(source, expectedOutput: expectedOutput);
         }
 
         [WorkItem(543754, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543754")]
@@ -5991,7 +5991,7 @@ public class Test
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "");
+            CompileStandardAndVerify(source, expectedOutput: "");
         }
 
         [WorkItem(543910, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543910")]
@@ -6045,7 +6045,7 @@ struct S
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "1");
+            CompileStandardAndVerify(source, expectedOutput: "1");
         }
 
         [WorkItem(544490, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544490")]
@@ -6064,7 +6064,7 @@ class C
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "");
+            CompileStandardAndVerify(source, expectedOutput: "");
         }
 
         [Fact]
@@ -6371,7 +6371,7 @@ class Program
 }
 ";
 
-            CompileAndVerify(source: source, expectedOutput: "ft");
+            CompileStandardAndVerify(source: source, expectedOutput: "ft");
         }
 
         [Fact]
@@ -6411,7 +6411,7 @@ public struct Value
     }
 }";
             string output = @"3";
-            CompileAndVerify(source: source, expectedOutput: output);
+            CompileStandardAndVerify(source: source, expectedOutput: output);
         }
 
         [WorkItem(631414, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/631414")]
@@ -8233,7 +8233,7 @@ class P
         }
     }
 }";
-            var verifier = CompileAndVerify(source);
+            var verifier = CompileStandardAndVerify(source);
             verifier.Compilation.VerifyDiagnostics();
             verifier.VerifyIL("P.M",
 @"
@@ -8352,7 +8352,7 @@ class Program
  
 enum E : short { }
 ";
-            CompileAndVerify(source: source);
+            CompileStandardAndVerify(source: source);
         }
 
         [Fact, WorkItem(1036392, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036392")]
@@ -8384,7 +8384,7 @@ class Test
         return 0;
     }
 }";
-            CompileAndVerify(source: source, expectedOutput: "implicit operator E");
+            CompileStandardAndVerify(source: source, expectedOutput: "implicit operator E");
         }
 
         [Fact, WorkItem(1036392, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036392")]
@@ -8416,7 +8416,7 @@ class Test
         return 0;
     }
 }";
-            CompileAndVerify(source: source, expectedOutput: "implicit operator E");
+            CompileStandardAndVerify(source: source, expectedOutput: "implicit operator E");
         }
 
         [Fact, WorkItem(1036392, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036392")]
@@ -8439,7 +8439,7 @@ class Program
 }
 
 enum E : short { }";
-            CompileAndVerify(source: source, expectedOutput: "System.Int16");
+            CompileStandardAndVerify(source: source, expectedOutput: "System.Int16");
         }
 
         [Fact, WorkItem(1036392, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036392")]
@@ -8471,7 +8471,7 @@ struct Test
         return 0;
     }
 }";
-            CompileAndVerify(source: source, expectedOutput: "implicit operator E");
+            CompileStandardAndVerify(source: source, expectedOutput: "implicit operator E");
         }
 
         [Fact, WorkItem(1036392, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036392")]
@@ -8504,7 +8504,7 @@ struct Test
         return 0;
     }
 }";
-            CompileAndVerify(source: source, expectedOutput: "implicit operator E");
+            CompileStandardAndVerify(source: source, expectedOutput: "implicit operator E");
         }
 
         [Fact, WorkItem(1036392, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036392")]
@@ -8527,7 +8527,7 @@ class Program
 }
 
 enum E : short { }";
-            CompileAndVerify(source: source, expectedOutput: "System.Nullable`1[System.Int16]");
+            CompileStandardAndVerify(source: source, expectedOutput: "System.Nullable`1[System.Int16]");
         }
 
         [Fact, WorkItem(1036392, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036392")]
@@ -8549,7 +8549,7 @@ class Program
         System.Console.WriteLine(typeof(T));
     }
 }";
-            CompileAndVerify(source: source, expectedOutput: "System.Nullable`1[System.Base64FormattingOptions]");
+            CompileStandardAndVerify(source: source, expectedOutput: "System.Nullable`1[System.Base64FormattingOptions]");
         }
 
         [Fact, WorkItem(1036392, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036392")]
@@ -8571,7 +8571,7 @@ class Program
         System.Console.WriteLine(typeof(T));
     }
 }";
-            CompileAndVerify(source: source, expectedOutput: "System.Nullable`1[System.Int32]");
+            CompileStandardAndVerify(source: source, expectedOutput: "System.Nullable`1[System.Int32]");
         }
 
         [Fact, WorkItem(1036392, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036392")]
@@ -8606,7 +8606,7 @@ class Program
         M((long)0 - m2);
     }
 }";
-            CompileAndVerify(source: source, expectedOutput:
+            CompileStandardAndVerify(source: source, expectedOutput:
 @"System.Int16
 System.Int16
 System.Int16
@@ -8831,7 +8831,7 @@ class Program
         Print(0 - x);
     }
 }";
-            CompileAndVerify(source: source, expectedOutput:
+            CompileStandardAndVerify(source: source, expectedOutput:
 @"TestEnum
 TestEnum
 TestEnum
@@ -9378,7 +9378,7 @@ class Program
         Print(0 - x);
     }
 }";
-            CompileAndVerify(source: source, expectedOutput:
+            CompileStandardAndVerify(source: source, expectedOutput:
 @"TestEnum
 TestEnum
 TestEnum
@@ -9871,7 +9871,7 @@ class Program
         Print(0 - x);
     }
 }";
-            CompileAndVerify(source: source, expectedOutput:
+            CompileStandardAndVerify(source: source, expectedOutput:
 @"TestEnum
 TestEnum
 TestEnum
@@ -10030,7 +10030,7 @@ class Program
         Print(null - x);
     }
 }";
-            CompileAndVerify(source: source, expectedOutput:
+            CompileStandardAndVerify(source: source, expectedOutput:
 @"System.Nullable`1[System.Int16]
 System.Nullable`1[System.Int16]
 System.Nullable`1[System.Int32]
@@ -10091,7 +10091,7 @@ class Program
         Print(null - x);
     }
 }";
-            CompileAndVerify(source: source, expectedOutput:
+            CompileStandardAndVerify(source: source, expectedOutput:
 @"System.Nullable`1[System.Int16]
 System.Nullable`1[System.Int16]
 System.Nullable`1[System.Int32]
@@ -10185,7 +10185,7 @@ class C3 : C1<int?>
     }
 }
 ";
-            var verifier = CompileAndVerify(source: source, expectedOutput:
+            var verifier = CompileStandardAndVerify(source: source, expectedOutput:
 @"False
 True
 True
@@ -10306,7 +10306,7 @@ class Program
     }
 }
 ";
-            CompileAndVerify(source: source, expectedOutput:
+            CompileStandardAndVerify(source: source, expectedOutput:
 @"False
 False
 ");
@@ -10346,7 +10346,7 @@ class C2
         Test.Print(((C1)null) as S);
     }
 }";
-            var verifier = CompileAndVerify(source: source, expectedOutput:
+            var verifier = CompileStandardAndVerify(source: source, expectedOutput:
 @"False
 False
 ");
@@ -10386,7 +10386,7 @@ namespace roslynChanges
         }
     }
 }";
-            CompileAndVerify(source: source, expectedOutput:
+            CompileStandardAndVerify(source: source, expectedOutput:
 @"System.Int64
 System.Int32
 ");
@@ -10436,7 +10436,7 @@ namespace NullableMathRepro
         }
     }
 }";
-            CompileAndVerify(source: source, expectedOutput:
+            CompileStandardAndVerify(source: source, expectedOutput:
 @"'x' is 5
 operator IntHolder(int i)
 operator int (IntHolder ih)
@@ -10492,7 +10492,7 @@ namespace RoslynNullableStringRepro
     public static string operator +(NonNullableString lhs, NonNullableString rhs) => lhs.value + rhs.value;
   }
 }";
-            CompileAndVerify(source: source, expectedOutput: "abcdef" + Environment.NewLine + "abcdef" + Environment.NewLine + "abcdef");
+            CompileStandardAndVerify(source: source, expectedOutput: "abcdef" + Environment.NewLine + "abcdef" + Environment.NewLine + "abcdef");
         }
 
         [Fact, WorkItem(8190, "https://github.com/dotnet/roslyn/issues/8190")]
@@ -10543,7 +10543,7 @@ namespace RoslynNullableIntRepro
     public static int? operator +(NonNullableInt lhs, NonNullableInt rhs) { return lhs.value + rhs.value; }
   }
 }";
-            CompileAndVerify(source: source, expectedOutput: "3" + Environment.NewLine + "3" + Environment.NewLine);
+            CompileStandardAndVerify(source: source, expectedOutput: "3" + Environment.NewLine + "3" + Environment.NewLine);
         }
         [Fact, WorkItem(4027, "https://github.com/dotnet/roslyn/issues/4027")]
         public void NotSignExtendedOperand()
@@ -10605,7 +10605,7 @@ public enum FlagsEnum
     Bar = 2,
 }
 ";
-            var verifier = CompileAndVerify(source, expectedOutput: "Goo, Bar");
+            var verifier = CompileStandardAndVerify(source, expectedOutput: "Goo, Bar");
             verifier.VerifyDiagnostics();
         }
 

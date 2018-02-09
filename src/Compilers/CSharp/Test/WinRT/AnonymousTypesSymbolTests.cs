@@ -38,7 +38,7 @@ class Query
     }
 }
 ";
-            var verifier = CompileAndVerify(
+            var verifier = CompileStandardAndVerify(
                 source,
                 symbolValidator: module => TestAnonymousTypeSymbols(
                                                module,
@@ -87,7 +87,7 @@ namespace Test
     }
 }
 ";
-            CompileAndVerify(source);
+            CompileStandardAndVerify(source);
         }
 
         [ClrOnlyFact]
@@ -109,7 +109,7 @@ class Program
         return (Func<object>) (() => new { x2 });
     }
 }";
-            CompileAndVerify(
+            CompileStandardAndVerify(
                 source,
                 expectedOutput: "{ x2 = 0 }"
             );
@@ -135,7 +135,7 @@ class Program
         return x3;
     }
 }";
-            CompileAndVerify(
+            CompileStandardAndVerify(
                 source,
                 expectedOutput: "{ x2 = 0 }"
             );
@@ -162,7 +162,7 @@ class Program
         return new { x2 };
     }
 }";
-            CompileAndVerify(
+            CompileStandardAndVerify(
                 source,
                 expectedOutput:
 @"{ x2 = 0 }
@@ -195,7 +195,7 @@ class Program
         yield return new { YYY = default(T), z = new { field = x2 } };
     }
 }";
-            CompileAndVerify(
+            CompileStandardAndVerify(
                 source,
                 expectedOutput: "{ x2 = 0 }{ YYY = 0, z = { field = 0 } }"
             );
@@ -220,7 +220,7 @@ class Program
         return (Func<object>) (() => new { });
     }
 }";
-            CompileAndVerify(
+            CompileStandardAndVerify(
                 source,
                 expectedOutput: "{ }"
             );
@@ -293,7 +293,7 @@ class Query
     }
 }
 ";
-            CompileAndVerify(
+            CompileStandardAndVerify(
                 source,
                 symbolValidator: module => TestAnonymousTypeSymbols(
                                                module,
@@ -652,7 +652,7 @@ class Query
     }
 }
 ";
-            CompileAndVerify(
+            CompileStandardAndVerify(
                 source,
                 symbolValidator: module => TestAnonymousTypeSymbols(
                                                module,
@@ -718,7 +718,7 @@ class Query
     }
 }
 ";
-            CompileAndVerify(
+            CompileStandardAndVerify(
                 source,
                 expectedOutput: "<>f__AnonymousType0`1[<>f__AnonymousType1]-<>f__AnonymousType1");
         }
@@ -741,7 +741,7 @@ class Query
     }
 }
 ";
-            CompileAndVerify(
+            CompileStandardAndVerify(
                 source,
                 expectedOutput: "{ ToString = Field }-Field");
         }
@@ -776,7 +776,7 @@ class Query
     }
 }
 ";
-            CompileAndVerify(
+            CompileStandardAndVerify(
                 source,
                 symbolValidator: module => TestAnonymousTypeSymbols(
                                                module,
@@ -1216,7 +1216,7 @@ class Derived: Base
     }
 }
 ";
-            CompileAndVerify(
+            CompileStandardAndVerify(
                 source,
                 expectedOutput: "{ field = 123 }");
         }
@@ -1240,7 +1240,7 @@ class Class1
     }
 }
 ";
-            CompileAndVerify(
+            CompileStandardAndVerify(
                 source,
                 expectedOutput: "{ PropertyA = pa-value }");
         }
@@ -1261,7 +1261,7 @@ class Query
     }
 }
 ";
-            CompileAndVerify(
+            CompileStandardAndVerify(
                 source,
                 expectedOutput: "a=1; b=text");
         }
@@ -1284,7 +1284,7 @@ class Query
     }
 }
 ";
-            CompileAndVerify(
+            CompileStandardAndVerify(
                 source,
                 additionalRefs: new[] { TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll });
         }
@@ -1306,7 +1306,7 @@ class Query
     }
 }
 ";
-                CompileAndVerify(
+                CompileStandardAndVerify(
                     source,
                     expectedOutput: "{ a = 1, b = text, c = 123.456 }");
 
@@ -1363,7 +1363,7 @@ class Query
         Console.WriteLine(string.Format(""{0}.Equals({1}) = {2}"", a.ToString(), b.ToString(), a.Equals(b).ToString()));
     }
 }";
-            CompileAndVerify(
+            CompileStandardAndVerify(
                 source,
                 expectedOutput: @"
 { a = (1, 2), b = (1, 2) }.Equals({ a = (1, 2), b = (1, 2) }) = True
@@ -1421,7 +1421,7 @@ class Query
     }
 }
 ";
-            CompileAndVerify(
+            CompileStandardAndVerify(
                 source,
                 expectedOutput: @"
 { }.GetHashCode() == (0, 0).GetHashCode() = True
@@ -1521,7 +1521,7 @@ class Test
     }
 }
 ";
-            CompileAndVerify(source);
+            CompileStandardAndVerify(source);
         }
 
         [ClrOnlyFact]
@@ -1543,7 +1543,7 @@ class Test
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "1221");
+            CompileStandardAndVerify(source, expectedOutput: "1221");
         }
 
         [WorkItem(543693, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543693")]
@@ -1580,7 +1580,7 @@ class P
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "Success");
+            CompileStandardAndVerify(source, expectedOutput: "Success");
         }
 
         [WorkItem(543693, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543693")]
@@ -1619,7 +1619,7 @@ class P
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "Success");
+            CompileStandardAndVerify(source, expectedOutput: "Success");
         }
 
         [WorkItem(543177, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543177")]
@@ -1643,7 +1643,7 @@ class Program
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "True");
+            CompileStandardAndVerify(source, expectedOutput: "True");
         }
 
         [Fact(), WorkItem(544323, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544323")]
@@ -1908,7 +1908,7 @@ class C
 }
 ";
 
-            CompileAndVerify(
+            CompileStandardAndVerify(
                 source,
                 symbolValidator: module =>
                     TestAnonymousTypeSymbols(
@@ -1943,7 +1943,7 @@ class C
 }";
 
 
-            CompileAndVerify(source).VerifyIL("C.Main", expectedIL);
+            CompileStandardAndVerify(source).VerifyIL("C.Main", expectedIL);
 
             var compilation = GetCompilationForEmit(new[] { source }, additionalRefs: null, options: null, parseOptions: null);
             compilation.CreateAnonymousTypeSymbol(

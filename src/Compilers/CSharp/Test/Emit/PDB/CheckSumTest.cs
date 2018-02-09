@@ -95,7 +95,7 @@ class C
 }
 ";
 
-            CompileAndVerify(text, options: TestOptions.DebugExe).
+            CompileStandardAndVerify(text, options: TestOptions.DebugExe).
                 VerifyDiagnostics(
                 // (20,1): warning CS1697: Different checksum values given for 'bogus1.cs'
                 // #pragma checksum "bogus1.cs" "{406EA660-64CF-4C82-B6F0-42D48172A798}" "ab007f1d23d9"
@@ -130,7 +130,7 @@ class C
 }
 ";
 
-            CompileAndVerify(text).
+            CompileStandardAndVerify(text).
                 VerifyDiagnostics(
                 // (11,71): warning CS1695: Invalid #pragma checksum syntax; should be #pragma checksum "filename" "{XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX}" "XXXX..."
                 // #pragma checksum "bogus1.cs" "{406EA660-64CF-4C82-B6F0-42D48172A799}" "ab007f1d23d"
@@ -181,7 +181,7 @@ class C1
 }
 ";
 
-            CompileAndVerify(new string[] { text1, text2 }).
+            CompileStandardAndVerify(new string[] { text1, text2 }).
                 VerifyDiagnostics(
                 // (11,1): warning CS1697: Different checksum values given for 'bogus.cs'
                 // #pragma checksum "bogus.cs" "{406EA660-64CF-4C82-B6F0-42D48172A799}" "ab007f1d23"

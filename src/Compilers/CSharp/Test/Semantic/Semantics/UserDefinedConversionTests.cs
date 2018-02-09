@@ -771,7 +771,7 @@ class F : E
 
             string output = "TxFyDz";
 
-            CompileAndVerify(source: source, expectedOutput: output);
+            CompileStandardAndVerify(source: source, expectedOutput: output);
         }
 
         [Fact]
@@ -1150,7 +1150,7 @@ unsafe class P
             // lifted operators, nullable conversions and unsafe code so only generate code for
             // the straightforward intptr/number conversions:
 
-            var verifier = CompileAndVerify(source: source1 + source3 + source5, options: TestOptions.UnsafeReleaseExe, expectedOutput: "");
+            var verifier = CompileStandardAndVerify(source: source1 + source3 + source5, options: TestOptions.UnsafeReleaseExe, expectedOutput: "");
         }
 
         [Fact, WorkItem(543427, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543427")]
@@ -1238,7 +1238,7 @@ class A
 }
 ";
 
-            CompileAndVerify(source1, expectedOutput: "A5A5A6A7A7A7A6A5A5");
+            CompileStandardAndVerify(source1, expectedOutput: "A5A5A6A7A7A7A6A5A5");
 
             var comp = CreateStandardCompilation(source2);
             comp.VerifyDiagnostics(
@@ -1278,7 +1278,7 @@ class D<T> : C<T>
 }";
 
 
-            var verifier = CompileAndVerify(source, expectedOutput: "23");
+            var verifier = CompileStandardAndVerify(source, expectedOutput: "23");
         }
 
         [Fact, WorkItem(543436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543436")]
@@ -1304,7 +1304,7 @@ class C
     }
 }";
 
-            var verifier = CompileAndVerify(source, expectedOutput: "a");
+            var verifier = CompileStandardAndVerify(source, expectedOutput: "a");
         }
 
         [Fact, WorkItem(543439, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543439")]
@@ -1337,7 +1337,7 @@ struct C
         System.Console.WriteLine(c.str);
     }
 }";
-            var verifier = CompileAndVerify(source, expectedOutput: "b");
+            var verifier = CompileStandardAndVerify(source, expectedOutput: "b");
         }
 
         [Fact, WorkItem(543440, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543440")]
@@ -1363,7 +1363,7 @@ class C
         return c;
     }
 }";
-            var verifier = CompileAndVerify(source, expectedOutput: "1");
+            var verifier = CompileStandardAndVerify(source, expectedOutput: "1");
         }
 
         [Fact, WorkItem(543441, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543441")]
@@ -1433,7 +1433,7 @@ class C
     }
 }";
 
-            var verifier = CompileAndVerify(source, expectedOutput: "a");
+            var verifier = CompileStandardAndVerify(source, expectedOutput: "a");
         }
 
         [Fact, WorkItem(543595, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543595")]
@@ -1465,7 +1465,7 @@ class Program
             var comp = CreateStandardCompilation(source1);
             comp.VerifyDiagnostics();
 
-            var verifier = CompileAndVerify(source: source1, expectedOutput: "");
+            var verifier = CompileStandardAndVerify(source: source1, expectedOutput: "");
         }
 
         [Fact, WorkItem(543598, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543598")]
@@ -1485,7 +1485,7 @@ class Test
         cl =  1;
     }
 }";
-            CompileAndVerify(source).VerifyDiagnostics();
+            CompileStandardAndVerify(source).VerifyDiagnostics();
         }
 
         [Fact, WorkItem(543789, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543789")]
@@ -1520,7 +1520,7 @@ class A : B
         return null;
     }
 }";
-            CompileAndVerify(source, expectedOutput: "Hello");
+            CompileStandardAndVerify(source, expectedOutput: "Hello");
         }
 
         [Fact, WorkItem(682456, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/682456")]

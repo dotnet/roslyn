@@ -39,7 +39,7 @@ public class D
 }
 ";
 
-            var compilation = CompileAndVerify(source, expectedOutput: "0427");
+            var compilation = CompileStandardAndVerify(source, expectedOutput: "0427");
 
             compilation.VerifyIL("D.Main",
 @"
@@ -96,7 +96,7 @@ public class D
     }
 }
 ";
-            var compilation = CompileAndVerify(source, expectedOutput: "042");
+            var compilation = CompileStandardAndVerify(source, expectedOutput: "042");
 
             compilation.VerifyIL("D.Main",
 @"{
@@ -144,7 +144,7 @@ public class D
     }
 }
 ";
-            var compilation = CompileAndVerify(source, expectedOutput: "0708589934592");
+            var compilation = CompileStandardAndVerify(source, expectedOutput: "0708589934592");
 
             // expect just two locals (temp is reused)
             compilation.VerifyIL("D.Main",
@@ -196,7 +196,7 @@ class Program
         Console.Write(goo().x);
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"0");
+            var compilation = CompileStandardAndVerify(source, expectedOutput: @"0");
 
             compilation.VerifyIL("Program.Main",
 @"{
@@ -255,7 +255,7 @@ class Program
     }
 }
 ";
-            var compilation = CompileAndVerify(source, expectedOutput: @"");
+            var compilation = CompileStandardAndVerify(source, expectedOutput: @"");
 
             compilation.VerifyIL("S1.Equals(object)",
 @"
@@ -330,7 +330,7 @@ class Program
         Console.Write((new S1()).GetType());
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"Program+S1");
+            var compilation = CompileStandardAndVerify(source, expectedOutput: @"Program+S1");
 
             compilation.VerifyIL("Program.Main",
 @"{
@@ -376,7 +376,7 @@ class Program
         ((I)s).M();
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"S::M
+            var compilation = CompileStandardAndVerify(source, expectedOutput: @"S::M
 S::M");
 
             compilation.VerifyIL("Program.Main",
@@ -444,7 +444,7 @@ namespace NS
     }
 }
 ";
-            var compilation = CompileAndVerify(source, expectedOutput: @"
+            var compilation = CompileStandardAndVerify(source, expectedOutput: @"
 Abc
 255
 q");
@@ -518,7 +518,7 @@ struct Struct
   IL_0009:  ret
 }
 ";
-            CompileAndVerify(text, options: TestOptions.DebugExe).VerifyIL("Struct.Main()", expectedIL);
+            CompileStandardAndVerify(text, options: TestOptions.DebugExe).VerifyIL("Struct.Main()", expectedIL);
         }
 
         [WorkItem(541845, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541845")]
@@ -565,7 +565,7 @@ class A
   IL_0023:  call       ""void System.Console.WriteLine(string)""
   IL_0028:  ret
 }";
-            CompileAndVerify(text, expectedOutput: "SundayAA").VerifyIL("A.Main()", expectedIL);
+            CompileStandardAndVerify(text, expectedOutput: "SundayAA").VerifyIL("A.Main()", expectedIL);
         }
 
         [WorkItem(541599, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541599")]
@@ -584,7 +584,7 @@ public struct S
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: @"123");
+            CompileStandardAndVerify(source, expectedOutput: @"123");
         }
 
         [Fact, WorkItem(543088, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543088")]
@@ -609,7 +609,7 @@ struct GetProperty
 }
 ";
 
-            CompileAndVerify(text, expectedOutput: "123");
+            CompileStandardAndVerify(text, expectedOutput: "123");
         }
 
         [Fact]
@@ -654,7 +654,7 @@ public class D
 }
 ";
 
-            var compilation = CompileAndVerify(source, expectedOutput: "");
+            var compilation = CompileStandardAndVerify(source, expectedOutput: "");
 
             compilation.VerifyIL("D.TestInit",
 @"
@@ -735,7 +735,7 @@ public class D
 }
 ";
 
-            var compilation = CompileAndVerify(source, expectedOutput: "");
+            var compilation = CompileStandardAndVerify(source, expectedOutput: "");
 
             compilation.VerifyIL("D.TestInit",
 @"
@@ -835,7 +835,7 @@ public class D
 }
 ";
 
-            var compilation = CompileAndVerify(source, expectedOutput: "");
+            var compilation = CompileStandardAndVerify(source, expectedOutput: "");
 
             compilation.VerifyIL("D.TestInit",
 @"
@@ -948,7 +948,7 @@ public class D
 }
 ";
 
-            var compilation = CompileAndVerify(source, expectedOutput: "");
+            var compilation = CompileStandardAndVerify(source, expectedOutput: "");
 
             compilation.VerifyIL("D.TestInit",
 @"
@@ -1086,7 +1086,7 @@ public class D
 }
 ";
 
-            var compilation = CompileAndVerify(source, expectedOutput: "1111");
+            var compilation = CompileStandardAndVerify(source, expectedOutput: "1111");
 
             compilation.VerifyIL("D.Main",
 @"
@@ -1185,7 +1185,7 @@ public class D
 }
 ";
 
-            var compilation = CompileAndVerify(source, expectedOutput: "1111");
+            var compilation = CompileStandardAndVerify(source, expectedOutput: "1111");
 
             compilation.VerifyIL("D.Main",
 @"
@@ -1277,7 +1277,7 @@ public class D
 }
 ";
 
-            var compilation = CompileAndVerify(source, expectedOutput: "11");
+            var compilation = CompileStandardAndVerify(source, expectedOutput: "11");
 
             compilation.VerifyIL("D.Main",
 @"
@@ -1364,7 +1364,7 @@ public class D
 }
 ";
 
-            var compilation = CompileAndVerify(source, expectedOutput: "");
+            var compilation = CompileStandardAndVerify(source, expectedOutput: "");
 
             compilation.VerifyIL("D.TestInit",
 @"
@@ -1472,7 +1472,7 @@ public class D
 }
 ";
 
-            var compilation = CompileAndVerify(source, expectedOutput: "");
+            var compilation = CompileStandardAndVerify(source, expectedOutput: "");
 
             compilation.VerifyIL("D.TestInit",
 @"
@@ -1546,7 +1546,7 @@ public class D
     }
 ";
 
-            var compilation = CompileAndVerify(source, expectedOutput: "S1", verify: Verification.Skipped);
+            var compilation = CompileStandardAndVerify(source, expectedOutput: "S1", verify: Verification.Skipped);
 
             compilation.VerifyIL("Program.Main",
 @"
@@ -1561,7 +1561,7 @@ public class D
   IL_001a:  ret
 }
 ");
-            compilation = CompileAndVerify(source, expectedOutput: "S1", parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
+            compilation = CompileStandardAndVerify(source, expectedOutput: "S1", parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
 
             compilation.VerifyIL("Program.Main",
 @"
@@ -1598,7 +1598,7 @@ class C
     }
 }
 ";
-            var compilation = CompileAndVerify(source);
+            var compilation = CompileStandardAndVerify(source);
 
             compilation.VerifyIL("C.Main",
 @"{
@@ -1627,7 +1627,7 @@ class C
     }
 }
 ";
-            var compilation = CompileAndVerify(source, expectedOutput: "B");
+            var compilation = CompileStandardAndVerify(source, expectedOutput: "B");
 
             compilation.VerifyIL("C.Main",
 @"{
@@ -1696,7 +1696,7 @@ class C
     }
 
 ";
-            var compilation = CompileAndVerify(source, expectedOutput: @"ca761232-ed42-11ce-bacd-00aa0057b223
+            var compilation = CompileStandardAndVerify(source, expectedOutput: @"ca761232-ed42-11ce-bacd-00aa0057b223
 00000000-0000-0000-0000-000000000000
 00000000-0000-0000-0000-000000000000
 ca761232-ed42-11ce-bacd-00aa0057b223
@@ -1795,7 +1795,7 @@ struct S
 
 ";
 
-            var compilation = CompileAndVerify(source, expectedOutput: "False");
+            var compilation = CompileStandardAndVerify(source, expectedOutput: "False");
 
             compilation.VerifyIL("S.Main",
 @"
@@ -1851,7 +1851,7 @@ struct S
 
 ";
 
-            var compilation = CompileAndVerify(source, expectedOutput: "False");
+            var compilation = CompileStandardAndVerify(source, expectedOutput: "False");
 
             compilation.VerifyIL("S.Main",
 @"
@@ -1919,7 +1919,7 @@ struct S
 
 ";
 
-            var compilation = CompileAndVerify(source, expectedOutput: "False");
+            var compilation = CompileStandardAndVerify(source, expectedOutput: "False");
 
             compilation.VerifyIL("S.Main",
 @"
@@ -1973,7 +1973,7 @@ struct S
 
 ";
 
-            var compilation = CompileAndVerify(source, expectedOutput: "False");
+            var compilation = CompileStandardAndVerify(source, expectedOutput: "False");
 
             compilation.VerifyIL("S.Main",
 @"
@@ -2066,7 +2066,7 @@ readonly struct S
 
 ";
 
-            var compilation = CompileAndVerify(source, verify: Verification.Fails, expectedOutput: "True");
+            var compilation = CompileStandardAndVerify(source, verify: Verification.Fails, expectedOutput: "True");
 
             compilation.VerifyIL("S.Main",
 @"
@@ -2187,7 +2187,7 @@ readonly struct S
 
 ";
 
-            var compilation = CompileAndVerify(source, verify: Verification.Fails, expectedOutput: @"353
+            var compilation = CompileStandardAndVerify(source, verify: Verification.Fails, expectedOutput: @"353
 353");
 
             compilation.VerifyIL("S.TestRO",
@@ -2261,7 +2261,7 @@ public class Test
 
 ";
 
-            var compilation = CompileAndVerify(source);
+            var compilation = CompileStandardAndVerify(source);
 
             compilation.VerifyIL("NullableTest.EqualEqual",
 @"
@@ -2350,7 +2350,7 @@ public class Test
 
 ";
 
-            var compilation = CompileAndVerify(source, expectedOutput: "0");
+            var compilation = CompileStandardAndVerify(source, expectedOutput: "0");
 
             compilation.VerifyIL("Program.Main",
 @"

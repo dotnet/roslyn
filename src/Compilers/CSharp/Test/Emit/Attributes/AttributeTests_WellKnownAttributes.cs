@@ -413,7 +413,7 @@ class C
             #endregion
 
             // Verify attributes from source and then load metadata to see attributes are written correctly.
-            CompileAndVerify(text, additionalRefs: new[] { SystemRef }, sourceSymbolValidator: attributeValidator);
+            CompileStandardAndVerify(text, additionalRefs: new[] { SystemRef }, sourceSymbolValidator: attributeValidator);
         }
 
         [Fact]
@@ -460,7 +460,7 @@ public class Bar
                     Assert.Equal(ConstantValue.Null, constantValue);
                 };
 
-            var comp = CompileAndVerify(source, symbolValidator: verifier);
+            var comp = CompileStandardAndVerify(source, symbolValidator: verifier);
             comp.VerifyDiagnostics();
         }
 
@@ -603,7 +603,7 @@ public class C
             // .custom instance void[mscorlib] System.Runtime.CompilerServices.DateTimeConstantAttribute::.ctor(int64) = ( 01 00 FF FF FF FF FF FF FF FF 00 00 )
 
             // using the native compiler, this code outputs 0
-            var comp = CompileAndVerify(source, expectedOutput: "0");
+            var comp = CompileStandardAndVerify(source, expectedOutput: "0");
             comp.VerifyDiagnostics();
         }
 
@@ -634,7 +634,7 @@ public class C
             // .custom instance void[mscorlib] System.Runtime.CompilerServices.DateTimeConstantAttribute::.ctor(int64) = ( 01 00 2A 00 00 00 00 00 00 00 00 00 )
 
             // Using the native compiler, the code executes to output 0
-            var comp = CompileAndVerify(source, expectedOutput: "0");
+            var comp = CompileStandardAndVerify(source, expectedOutput: "0");
             comp.VerifyDiagnostics();
         }
 
@@ -687,7 +687,7 @@ public class D
 ";
 
             var ilReference = CompileIL(ilsource);
-            CompileAndVerify(cssource, expectedOutput: "0", additionalRefs: new[] { ilReference });
+            CompileStandardAndVerify(cssource, expectedOutput: "0", additionalRefs: new[] { ilReference });
             // The native compiler would produce a working exe, but that exe would fail at runtime
         }
 
@@ -736,7 +736,7 @@ public class CCC
 
             #endregion
 
-            CompileAndVerify(
+            CompileStandardAndVerify(
                 text,
                 additionalRefs: new[] { SystemRef },
                 expectedOutput: @"
@@ -803,7 +803,7 @@ public class C
                 Assert.Equal(0, ps[0].GetAttributes().Length);
             };
 
-            CompileAndVerify(source, additionalRefs: new[] { SystemRef }, symbolValidator: verifier);
+            CompileStandardAndVerify(source, additionalRefs: new[] { SystemRef }, symbolValidator: verifier);
         }
 
         [Fact]
@@ -1013,7 +1013,7 @@ public class C
         set {  }
 }
 }";
-            CompileAndVerify(source, new[] { SystemRef }, assemblyValidator: (assembly) =>
+            CompileStandardAndVerify(source, new[] { SystemRef }, assemblyValidator: (assembly) =>
             {
                 var metadataReader = assembly.GetMetadataReader();
 
@@ -1068,7 +1068,7 @@ public delegate void D([Optional, DefaultParameterValue(1)]ref int a, int b = 2,
 ";
             // Dev11: doesn't allow DPV(null) on int[], we do.
 
-            CompileAndVerify(source, new[] { SystemRef }, assemblyValidator: (assembly) =>
+            CompileStandardAndVerify(source, new[] { SystemRef }, assemblyValidator: (assembly) =>
             {
                 var metadataReader = assembly.GetMetadataReader();
 
@@ -1158,7 +1158,7 @@ public class A : Attribute
     }
 }";
 
-            CompileAndVerify(text);
+            CompileStandardAndVerify(text);
         }
 
         [Fact]
@@ -1179,7 +1179,7 @@ public interface ISomeInterface
 }
 ";
             // Dev10 reports CS1909, we don't
-            CompileAndVerify(text, additionalRefs: new[] { SystemRef });
+            CompileStandardAndVerify(text, additionalRefs: new[] { SystemRef });
         }
 
         [Fact, WorkItem(544934, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544934")]
@@ -1199,7 +1199,7 @@ class C
         Goo();
     }
 }";
-            CompileAndVerify(source, additionalRefs: new[] { SystemRef }, expectedOutput: @"5");
+            CompileStandardAndVerify(source, additionalRefs: new[] { SystemRef }, expectedOutput: @"5");
         }
 
         [Fact]
@@ -1321,7 +1321,7 @@ partial class C
                 partialValidator(sourceMethod);
             };
 
-            CompileAndVerify(source, additionalRefs: new[] { SystemRef }, sourceSymbolValidator: sourceValidator);
+            CompileStandardAndVerify(source, additionalRefs: new[] { SystemRef }, sourceSymbolValidator: sourceValidator);
         }
 
         [WorkItem(544303, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544303")]
@@ -1339,7 +1339,7 @@ public class Goo: Attribute
     public static void Main() {}
 }";
 
-            CompileAndVerify(source, expectedOutput: "");
+            CompileStandardAndVerify(source, expectedOutput: "");
         }
 
         [Fact]
@@ -1539,7 +1539,7 @@ class C
     }
 }
 ";
-            CompileAndVerify(source, additionalRefs: new[] { MscorlibRef, SystemRef }, options: TestOptions.ReleaseExe, expectedOutput: "");
+            CompileStandardAndVerify(source, additionalRefs: new[] { MscorlibRef, SystemRef }, options: TestOptions.ReleaseExe, expectedOutput: "");
         }
 
         [Fact, WorkItem(546624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546624")]
@@ -1841,7 +1841,7 @@ class Test
     }
 }
 ";
-            CompileAndVerify(source, additionalRefs: new[] { SystemRef }, expectedOutput: @"100200300400");
+            CompileStandardAndVerify(source, additionalRefs: new[] { SystemRef }, expectedOutput: @"100200300400");
         }
 
         [WorkItem(544516, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544516")]
@@ -1875,7 +1875,7 @@ public class MyClass
     }
 }";
 
-            CompileAndVerify(source, expectedOutput: @"Has DecimalConstantAttribute
+            CompileStandardAndVerify(source, expectedOutput: @"Has DecimalConstantAttribute
 No DecimalConstantAttribute");
         }
 
@@ -1897,7 +1897,7 @@ public class C
     }
 }
 ";
-            var comp = CompileAndVerify(source, expectedSignatures: new[]
+            var comp = CompileStandardAndVerify(source, expectedSignatures: new[]
             {
                 Signature("C", "get_Item",
                     ".method public hidebysig specialname instance System.Decimal get_Item(" +
@@ -1923,7 +1923,7 @@ using System.Runtime.CompilerServices;
 
 public delegate void D([Optional, DecimalConstantAttribute(hi: 3, sign: 2, mid: 4, low: 5, scale: 1)]ref decimal a, decimal b = 2m);
 ";
-            var comp = CompileAndVerify(source, expectedSignatures: new[]
+            var comp = CompileStandardAndVerify(source, expectedSignatures: new[]
             {
                 Signature("D", "BeginInvoke",
                     ".method public hidebysig newslot virtual instance System.IAsyncResult BeginInvoke(" +
@@ -1966,7 +1966,7 @@ class C
     public static void M5(int m, out int n, ref int o) { throw null; }
 }
 ";
-            CompileAndVerify(source, assemblyValidator: (assembly) =>
+            CompileStandardAndVerify(source, assemblyValidator: (assembly) =>
             {
                 var metadataReader = assembly.GetMetadataReader();
 
@@ -2147,7 +2147,7 @@ using System.Runtime.InteropServices;
 
 public delegate int F([Out]int a, [In]int b, [In, Out]ref int c, [In]ref int d, ref int e, [Out]out int f, out int g);
 ";
-            CompileAndVerify(source, assemblyValidator: (assembly) =>
+            CompileStandardAndVerify(source, assemblyValidator: (assembly) =>
             {
                 var metadataReader = assembly.GetMetadataReader();
 
@@ -2202,7 +2202,7 @@ public class C
     public int this[[Out]int a, [In]int b, [In, Out]int c, int d] {  get { return 0; }  set { } }
 }
 ";
-            CompileAndVerify(source, assemblyValidator: (assembly) =>
+            CompileStandardAndVerify(source, assemblyValidator: (assembly) =>
             {
                 var metadataReader = assembly.GetMetadataReader();
 
@@ -2259,7 +2259,7 @@ class C
     }
 }
 ";
-            CompileAndVerify(source, assemblyValidator: (assembly) =>
+            CompileStandardAndVerify(source, assemblyValidator: (assembly) =>
             {
                 var metadataReader = assembly.GetMetadataReader();
 
@@ -2468,7 +2468,7 @@ class Program
     static extern void SurrogatePairMax();
 }
 ";
-            CompileAndVerify(source, assemblyValidator: (assembly) =>
+            CompileStandardAndVerify(source, assemblyValidator: (assembly) =>
             {
                 var metadataReader = assembly.GetMetadataReader();
 
@@ -2523,7 +2523,7 @@ public class C
     public static extern void M();
 }
 ";
-            CompileAndVerify(source, assemblyValidator: (assembly) =>
+            CompileStandardAndVerify(source, assemblyValidator: (assembly) =>
             {
                 var metadataReader = assembly.GetMetadataReader();
 
@@ -2614,7 +2614,7 @@ public class C
                 Assert.Null(n.GetDllImportData());
             };
 
-            CompileAndVerify(source, sourceSymbolValidator: validator(true), symbolValidator: validator(false));
+            CompileStandardAndVerify(source, sourceSymbolValidator: validator(true), symbolValidator: validator(false));
         }
 
         [Fact]
@@ -2639,7 +2639,7 @@ public class C
     public extern static event System.Action G;
 }
 ";
-            CompileAndVerify(source, assemblyValidator: (assembly) =>
+            CompileStandardAndVerify(source, assemblyValidator: (assembly) =>
             {
                 var metadataReader = assembly.GetMetadataReader();
 
@@ -2759,7 +2759,7 @@ public class C
             sb.AppendLine("}");
             var code = sb.ToString();
 
-            CompileAndVerify(code, assemblyValidator: (assembly) =>
+            CompileStandardAndVerify(code, assemblyValidator: (assembly) =>
             {
                 var metadataReader = assembly.GetMetadataReader();
                 Assert.Equal(cases.Length, metadataReader.GetTableRowCount(TableIndex.ImplMap));
@@ -2938,7 +2938,7 @@ abstract class C
                 }
             };
 
-            CompileAndVerify(source, assemblyValidator: validator);
+            CompileStandardAndVerify(source, assemblyValidator: validator);
         }
 
         [Fact]
@@ -3113,7 +3113,7 @@ abstract class C
     public extern static void f21();
 }
 ";
-            CompileAndVerify(source, assemblyValidator: (assembly) =>
+            CompileStandardAndVerify(source, assemblyValidator: (assembly) =>
             {
                 var peReader = assembly.GetMetadataReader();
                 foreach (var methodHandle in peReader.MethodDefinitions)
@@ -3188,7 +3188,7 @@ class C
     [MethodImpl(MethodImplOptions.PreserveSig)]
     public static void f1() { }
 }";
-            CompileAndVerify(source);
+            CompileStandardAndVerify(source);
         }
 
         [Fact]
@@ -3259,7 +3259,7 @@ abstract class C
 }
 ";
             // Ref.Emit doesn't implement custom attributes yet
-            CompileAndVerify(source, assemblyValidator: (assembly) =>
+            CompileStandardAndVerify(source, assemblyValidator: (assembly) =>
             {
                 var metadataReader = assembly.GetMetadataReader();
 
@@ -3291,7 +3291,7 @@ abstract class C
 }
 ";
             // Ref.Emit doesn't implement custom attributes yet
-            CompileAndVerify(source, assemblyValidator: (assembly) =>
+            CompileStandardAndVerify(source, assemblyValidator: (assembly) =>
             {
                 var metadataReader = assembly.GetMetadataReader();
 
@@ -3383,7 +3383,7 @@ interface I { }
 delegate void D();
 ";
             // Ref.Emit doesn't implement custom attributes yet
-            CompileAndVerify(source, assemblyValidator: (assembly) =>
+            CompileStandardAndVerify(source, assemblyValidator: (assembly) =>
             {
                 var metadataReader = assembly.GetMetadataReader();
 
@@ -3539,7 +3539,7 @@ public class MainClass
 
             // the resulting code does not need to verify
             // This is consistent with Dev10 behavior
-            CompileAndVerify(source, options: TestOptions.ReleaseDll, verify: Verification.Fails, sourceSymbolValidator: sourceValidator, symbolValidator: metadataValidator);
+            CompileStandardAndVerify(source, options: TestOptions.ReleaseDll, verify: Verification.Fails, sourceSymbolValidator: sourceValidator, symbolValidator: metadataValidator);
         }
 
         [Fact, WorkItem(544507, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544507")]
@@ -3625,7 +3625,7 @@ public class MainClass
 0";
 
             // Verify attributes from source and then load metadata to see attributes are written correctly.
-            CompileAndVerify(source, sourceSymbolValidator: attributeValidator(true), symbolValidator: attributeValidator(false), expectedOutput: expectedOutput);
+            CompileStandardAndVerify(source, sourceSymbolValidator: attributeValidator(true), symbolValidator: attributeValidator(false), expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -3685,9 +3685,9 @@ public class MainClass
             // Verify attributes from source and then load metadata to see attributes are written correctly.
 
             // Using metadata reference to test RetargetingNamedTypeSymbol CoClass type
-            CompileAndVerify(source2, additionalRefs: new[] { compDll.ToMetadataReference() }, expectedOutput: expectedOutput);
+            CompileStandardAndVerify(source2, additionalRefs: new[] { compDll.ToMetadataReference() }, expectedOutput: expectedOutput);
             // Using assembly file reference to test PENamedTypeSymbol symbol CoClass type
-            CompileAndVerify(source2, additionalRefs: new[] { compDll.EmitToImageReference() }, expectedOutput: expectedOutput);
+            CompileStandardAndVerify(source2, additionalRefs: new[] { compDll.EmitToImageReference() }, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -3754,7 +3754,7 @@ public class MainClass
             string expectedOutput = @"string";
 
             // Verify attributes from source and then load metadata to see attributes are written correctly.
-            CompileAndVerify(source, sourceSymbolValidator: attributeValidator(true), symbolValidator: attributeValidator(false), expectedOutput: expectedOutput);
+            CompileStandardAndVerify(source, sourceSymbolValidator: attributeValidator(true), symbolValidator: attributeValidator(false), expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -3793,9 +3793,9 @@ public class MainClass
             // Verify attributes from source and then load metadata to see attributes are written correctly.
 
             // Using metadata reference to test RetargetingNamedTypeSymbol CoClass type
-            CompileAndVerify(source2, additionalRefs: new[] { compDll.ToMetadataReference() }, expectedOutput: expectedOutput);
+            CompileStandardAndVerify(source2, additionalRefs: new[] { compDll.ToMetadataReference() }, expectedOutput: expectedOutput);
             // Using assembly file reference to test PENamedTypeSymbol symbol CoClass type
-            CompileAndVerify(source2, additionalRefs: new[] { compDll.EmitToImageReference() }, expectedOutput: expectedOutput);
+            CompileStandardAndVerify(source2, additionalRefs: new[] { compDll.EmitToImageReference() }, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -4180,7 +4180,7 @@ public class MainClass
         return 0;
     }
 }";
-            CompileAndVerify(source);
+            CompileStandardAndVerify(source);
         }
 
         [Fact]
@@ -4541,7 +4541,7 @@ enum En
 [SpecialName]
 struct S { }
 ";
-            CompileAndVerify(source, assemblyValidator: (assembly) =>
+            CompileStandardAndVerify(source, assemblyValidator: (assembly) =>
             {
                 var metadataReader = assembly.GetMetadataReader();
 
@@ -4650,7 +4650,7 @@ enum E
 [Serializable]
 delegate void D();
 ";
-            CompileAndVerify(source, assemblyValidator: (assembly) =>
+            CompileStandardAndVerify(source, assemblyValidator: (assembly) =>
             {
                 var metadataReader = assembly.GetMetadataReader();
 
@@ -4855,7 +4855,7 @@ namespace System
             };
 
             // Verify attributes from source and then load metadata to see attributes are written correctly.
-            CompileAndVerify(source, sourceSymbolValidator: attributeValidator, symbolValidator: attributeValidator);
+            CompileStandardAndVerify(source, sourceSymbolValidator: attributeValidator, symbolValidator: attributeValidator);
         }
 
         [WorkItem(546102, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546102")]
@@ -4885,7 +4885,7 @@ namespace System
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
 class A: Attribute {}
 ";
-            CompileAndVerify(source);
+            CompileStandardAndVerify(source);
         }
 
         [WorkItem(546056, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546056")]
@@ -5005,7 +5005,7 @@ public class Test
 ";
             #endregion
 
-            CompileAndVerify(source, additionalRefs: new[] { SystemRef }, expectedOutput: @"System.Reflection.Missing")
+            CompileStandardAndVerify(source, additionalRefs: new[] { SystemRef }, expectedOutput: @"System.Reflection.Missing")
                 .VerifyIL("Test.Main", @"{
   // Code size       16 (0x10)
   .maxstack  2
@@ -5338,7 +5338,7 @@ class A
             // Dev10 Runtime Exception:
             // Unhandled Exception: System.TypeLoadException: Windows Runtime types can only be declared in Windows Runtime assemblies.
 
-            var verifier = CompileAndVerify(source, sourceSymbolValidator: sourceValidator, symbolValidator: metadataValidator, verify: Verification.Fails);
+            var verifier = CompileStandardAndVerify(source, sourceSymbolValidator: sourceValidator, symbolValidator: metadataValidator, verify: Verification.Fails);
         }
 
         #endregion
@@ -5395,7 +5395,7 @@ class A
                 Assert.True(method.RequiresSecurityObject, "Metadata flag RequiresSecurityObject is not set");
             };
 
-            CompileAndVerify(source, sourceSymbolValidator: sourceValidator, symbolValidator: metadataValidator, expectedOutput: "");
+            CompileStandardAndVerify(source, sourceSymbolValidator: sourceValidator, symbolValidator: metadataValidator, expectedOutput: "");
         }
 
         #endregion
@@ -6088,7 +6088,7 @@ class Base: System.Attribute
     public class Nested: Goo {}
 }
 ";
-            CompileAndVerify(source);
+            CompileStandardAndVerify(source);
 
             source = @"
 using System;

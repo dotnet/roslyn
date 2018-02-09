@@ -409,7 +409,7 @@ public class C4 : C3
                 Assert.Equal(new[] { "key", "val" }, typeArg.TupleElementNames);
             });
 
-            CompileAndVerify(@"
+            CompileStandardAndVerify(@"
 using System;
 
 class D
@@ -591,7 +591,7 @@ public struct TestEnumerable : IEnumerable<(int key, int val)>
                 Assert.Equal(new[] { "key", "val" }, typeArg.TupleElementNames);
             });
 
-            CompileAndVerify(@"
+            CompileStandardAndVerify(@"
 using System;
 
 class D
@@ -904,7 +904,7 @@ class C
 }
 " + trivial2uple + tupleattributes_cs;
 
-            var comp = CompileAndVerify(source, expectedOutput: "{1, 2}");
+            var comp = CompileStandardAndVerify(source, expectedOutput: "{1, 2}");
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main", @"
 {
@@ -1089,7 +1089,7 @@ class C
 }
 " + trivial2uple + tupleattributes_cs;
 
-            var comp = CompileAndVerify(source, expectedOutput: "2");
+            var comp = CompileStandardAndVerify(source, expectedOutput: "2");
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main", @"
 {
@@ -1122,7 +1122,7 @@ class C
 }
 " + trivial2uple + tupleattributes_cs;
 
-            var comp = CompileAndVerify(source, expectedOutput: "{, }");
+            var comp = CompileStandardAndVerify(source, expectedOutput: "{, }");
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main", @"
 {
@@ -1155,7 +1155,7 @@ class C
 }
 " + trivial2uple + tupleattributes_cs;
 
-            var comp = CompileAndVerify(source, expectedOutput: "{1, {2, {3, 4}}}");
+            var comp = CompileStandardAndVerify(source, expectedOutput: "{1, {2, {3, 4}}}");
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main", @"
 {
@@ -1199,7 +1199,7 @@ class C
 }
 " + trivial2uple + tupleattributes_cs;
 
-            var comp = CompileAndVerify(source, expectedOutput: @"2
+            var comp = CompileStandardAndVerify(source, expectedOutput: @"2
 42");
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main", @"
@@ -1245,7 +1245,7 @@ class C
 }
 " + trivial2uple + tupleattributes_cs;
 
-            var comp = CompileAndVerify(source, expectedOutput: @"2
+            var comp = CompileStandardAndVerify(source, expectedOutput: @"2
 42");
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main", @"
@@ -1291,7 +1291,7 @@ class C
 }
 " + trivial2uple + tupleattributes_cs;
 
-            var comp = CompileAndVerify(source, expectedOutput: @"2
+            var comp = CompileStandardAndVerify(source, expectedOutput: @"2
 42");
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main", @"
@@ -1337,7 +1337,7 @@ class C
 }
 " + trivial2uple + tupleattributes_cs;
 
-            var comp = CompileAndVerify(source, expectedOutput: @"2
+            var comp = CompileStandardAndVerify(source, expectedOutput: @"2
 42");
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main", @"
@@ -1391,7 +1391,7 @@ class C
 
 " + trivial3uple;
 
-            var comp = CompileAndVerify(source, expectedOutput: @"{1, hello, 2}");
+            var comp = CompileStandardAndVerify(source, expectedOutput: @"{1, hello, 2}");
         }
 
         [Fact]
@@ -1511,7 +1511,7 @@ class C
     }
 }
 " + trivial2uple + tupleattributes_cs;
-            var comp = CompileAndVerify(source, expectedOutput: @"1
+            var comp = CompileStandardAndVerify(source, expectedOutput: @"1
 hello");
         }
 
@@ -1529,7 +1529,7 @@ class C
 }
 " + trivial2uple + trivial3uple + tupleattributes_cs;
 
-            var comp = CompileAndVerify(source, expectedOutput: @"1 hello hello 3");
+            var comp = CompileStandardAndVerify(source, expectedOutput: @"1 hello hello 3");
         }
 
         [Fact]
@@ -1589,7 +1589,7 @@ class C
 }
 " + trivial2uple + trivial3uple + tupleattributes_cs;
 
-            var comp = CompileAndVerify(source, expectedOutput: @"1 hello 3");
+            var comp = CompileStandardAndVerify(source, expectedOutput: @"1 hello 3");
         }
 
         [Fact]
@@ -1621,7 +1621,7 @@ class C
 }
 " + trivial2uple + tupleattributes_cs;
 
-            var comp = CompileAndVerify(source, expectedOutput: @"4");
+            var comp = CompileStandardAndVerify(source, expectedOutput: @"4");
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main", @"
 {
@@ -1678,7 +1678,7 @@ class C
 }
 " + trivial2uple + tupleattributes_cs;
 
-            var comp = CompileAndVerify(source, expectedOutput: @"42");
+            var comp = CompileStandardAndVerify(source, expectedOutput: @"42");
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.<>c__DisplayClass1_0<T>.<Test>b__0()", @"
 {
@@ -1716,7 +1716,7 @@ class C
 }
 " + trivial2uple + tupleattributes_cs;
 
-            var comp = CompileAndVerify(source, expectedOutput: @"{42, 42}");
+            var comp = CompileStandardAndVerify(source, expectedOutput: @"{42, 42}");
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.<>c__DisplayClass1_0<T>.<Test>b__0()", @"
 {
@@ -1781,7 +1781,7 @@ namespace System
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: @"42");
+            var comp = CompileStandardAndVerify(source, expectedOutput: @"42");
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.<>c__DisplayClass1_0<T>.<Test>b__0()", @"
 {
@@ -1847,7 +1847,7 @@ namespace System
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: @"42");
+            var comp = CompileStandardAndVerify(source, expectedOutput: @"42");
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.<>c__DisplayClass1_0<T>.<Test>b__0()", @"
 {
@@ -1915,7 +1915,7 @@ namespace System
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: @"42");
+            var comp = CompileStandardAndVerify(source, expectedOutput: @"42");
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.<>c__DisplayClass1_0<T>.<Test>b__0()", @"
 {
@@ -2044,7 +2044,7 @@ namespace System
 }
 " + tupleattributes_cs;
 
-            var comp = CompileAndVerify(source, expectedOutput:
+            var comp = CompileStandardAndVerify(source, expectedOutput:
 @"System.Action`1[System.Int32]
 1
 True
@@ -2086,7 +2086,7 @@ class C
     }
 }
 " + trivial2uple + tupleattributes_cs;
-            var verifier = CompileAndVerify(source, additionalRefs: new[] { MscorlibRef_v46 }, expectedOutput: @"42", options: TestOptions.ReleaseExe);
+            var verifier = CompileStandardAndVerify(source, additionalRefs: new[] { MscorlibRef_v46 }, expectedOutput: @"42", options: TestOptions.ReleaseExe);
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.<Test>d__1<T>.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
@@ -2200,7 +2200,7 @@ class C
     }
 }
 " + trivial2uple + tupleattributes_cs;
-            var verifier = CompileAndVerify(source, additionalRefs: new[] { MscorlibRef_v46 }, expectedOutput: @"{42, 42}", options: TestOptions.ReleaseExe);
+            var verifier = CompileStandardAndVerify(source, additionalRefs: new[] { MscorlibRef_v46 }, expectedOutput: @"{42, 42}", options: TestOptions.ReleaseExe);
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.<Test>d__1<T>.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
@@ -2341,7 +2341,7 @@ namespace System
     }
 }
 ";
-            var verifier = CompileAndVerify(source, additionalRefs: new[] { MscorlibRef_v46 }, expectedOutput: @"42", options: TestOptions.ReleaseExe);
+            var verifier = CompileStandardAndVerify(source, additionalRefs: new[] { MscorlibRef_v46 }, expectedOutput: @"42", options: TestOptions.ReleaseExe);
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.<Test>d__1<T>.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
@@ -2483,7 +2483,7 @@ namespace System
     }
 }
 ";
-            var verifier = CompileAndVerify(source, additionalRefs: new[] { MscorlibRef_v46 }, expectedOutput: @"42", options: TestOptions.ReleaseExe);
+            var verifier = CompileStandardAndVerify(source, additionalRefs: new[] { MscorlibRef_v46 }, expectedOutput: @"42", options: TestOptions.ReleaseExe);
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.<Test>d__1<T>.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
@@ -2625,7 +2625,7 @@ namespace System
     }
 }
 ";
-            var verifier = CompileAndVerify(source, additionalRefs: new[] { MscorlibRef_v46 }, expectedOutput: @"42", options: TestOptions.ReleaseExe);
+            var verifier = CompileStandardAndVerify(source, additionalRefs: new[] { MscorlibRef_v46 }, expectedOutput: @"42", options: TestOptions.ReleaseExe);
             verifier.VerifyDiagnostics();
         }
 
@@ -2742,7 +2742,7 @@ namespace System
 }
 " + tupleattributes_cs;
 
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                 additionalRefs: new[] { MscorlibRef_v46 }, expectedOutput:
 @"System.Action`1[System.Int32]
 1
@@ -2786,7 +2786,7 @@ class C
 }
 " + trivial2uple + trivial3uple + trivialRemainingTuples + tupleattributes_cs;
 
-            CompileAndVerify(source, expectedOutput: @"42", additionalRefs: new[] { MscorlibRef_v46 }, options: TestOptions.ReleaseExe);
+            CompileStandardAndVerify(source, expectedOutput: @"42", additionalRefs: new[] { MscorlibRef_v46 }, options: TestOptions.ReleaseExe);
         }
 
         [Fact]
@@ -2944,7 +2944,7 @@ class C
 }
 " + trivial2uple + tupleattributes_cs;
 
-            var comp = CompileAndVerify(source, expectedOutput: @"0
+            var comp = CompileStandardAndVerify(source, expectedOutput: @"0
 null");
         }
 
@@ -3058,7 +3058,7 @@ class C
 }
 ";
 
-            var verifier = CompileAndVerify(source, expectedOutput: @"1 2 3 4 5", additionalRefs: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef });
+            var verifier = CompileStandardAndVerify(source, expectedOutput: @"1 2 3 4 5", additionalRefs: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef });
             verifier.VerifyDiagnostics();
         }
 
@@ -3091,7 +3091,7 @@ class C
                     model.GetDeclaredSymbol(x).ToTestDisplayString());
             };
 
-            var verifier = CompileAndVerify(source, expectedOutput: @"1 2 3 4 5 6 7 Alice 2 3 4 5", additionalRefs: new[] { MscorlibRef }, sourceSymbolValidator: validator);
+            var verifier = CompileStandardAndVerify(source, expectedOutput: @"1 2 3 4 5 6 7 Alice 2 3 4 5", additionalRefs: new[] { MscorlibRef }, sourceSymbolValidator: validator);
             verifier.VerifyDiagnostics();
         }
 
@@ -3124,7 +3124,7 @@ class C
                     model.GetDeclaredSymbol(x).ToTestDisplayString());
             };
 
-            var verifier = CompileAndVerify(source, expectedOutput: @"1 2 3 4 5 6 7 Alice 2 3 4 5", additionalRefs: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
+            var verifier = CompileStandardAndVerify(source, expectedOutput: @"1 2 3 4 5 6 7 Alice 2 3 4 5", additionalRefs: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
             verifier.VerifyDiagnostics();
         }
 
@@ -3299,7 +3299,7 @@ class C
     }
 }
 ";
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                 additionalRefs: s_valueTupleRefs,
                 expectedOutput: @"0 False");
         }
@@ -3334,7 +3334,7 @@ class C
                      model.GetTypeInfo(node).Type.ToTestDisplayString());
             };
 
-            var verifier = CompileAndVerify(source, expectedOutput: @"1 2 3 4 5 6 7 Alice 2 3 4 5 6 7 Bob 2 3", additionalRefs: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
+            var verifier = CompileStandardAndVerify(source, expectedOutput: @"1 2 3 4 5 6 7 Alice 2 3 4 5 6 7 Bob 2 3", additionalRefs: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
             verifier.VerifyDiagnostics();
         }
 
@@ -3352,7 +3352,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                 additionalRefs: s_valueTupleRefs,
                 expectedOutput: @"42 Alice");
         }
@@ -3372,7 +3372,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                 additionalRefs: s_valueTupleRefs,
                 expectedOutput: @"42 Alice");
         }
@@ -3393,7 +3393,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                 additionalRefs: s_valueTupleRefs,
                 expectedOutput: @"42 Alice");
         }
@@ -3415,7 +3415,7 @@ static class C
 }
 ";
 
-            CompileAndVerify(source,
+            CompileStandardAndVerify(source,
                 additionalRefs: new[] { SystemCoreRef, ValueTupleRef, SystemRuntimeFacadeRef },
                 expectedOutput: @"42 Alice");
         }
@@ -3454,7 +3454,7 @@ class C
     }
 }
 ";
-            CompileAndVerify(source,
+            CompileStandardAndVerify(source,
                 additionalRefs: s_valueTupleRefs.Concat(new[] { SystemCoreRef }),
                 expectedOutput: @"0 ");
         }
@@ -3476,7 +3476,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                 additionalRefs: s_valueTupleRefs,
                 expectedOutput: @"42 Alice");
         }
@@ -3511,7 +3511,7 @@ class C
                      model.GetTypeInfo(node).Type.ToTestDisplayString());
             };
 
-            var verifier = CompileAndVerify(source, expectedOutput: @"1 2 3 4 5 6 7 Alice 2 3 4 5 6 7 Bob 2 3", additionalRefs: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
+            var verifier = CompileStandardAndVerify(source, expectedOutput: @"1 2 3 4 5 6 7 Alice 2 3 4 5 6 7 Bob 2 3", additionalRefs: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
             verifier.VerifyDiagnostics();
         }
 
@@ -3555,7 +3555,7 @@ class C
                 Assert.Equal("(System.Int32 x, System.Int32 b)", model.GetTypeInfo(zTuple).Type.ToTestDisplayString());
             };
 
-            var verifier = CompileAndVerify(source, additionalRefs: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
+            var verifier = CompileStandardAndVerify(source, additionalRefs: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
             verifier.VerifyDiagnostics();
         }
 
@@ -3791,7 +3791,7 @@ class C
                 Assert.Equal("(System.String, System.Int32 value)", model.GetTypeInfo(tTuple).Type.ToTestDisplayString());
             };
 
-            var verifier = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
+            var verifier = CompileStandardAndVerify(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
                 additionalRefs: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
             verifier.VerifyDiagnostics();
         }
@@ -3876,7 +3876,7 @@ class C
                 Assert.Equal("System.Collections.Generic.IEnumerable<(System.Int32 f1, System.Int32 f2)> result", resultSymbol.ToTestDisplayString());
             };
 
-            var verifier = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
+            var verifier = CompileStandardAndVerify(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
                 additionalRefs: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef, LinqAssemblyRef }, sourceSymbolValidator: validator);
             verifier.VerifyDiagnostics();
         }
@@ -3897,7 +3897,7 @@ class C
 }
 ";
 
-            var verifier = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
+            var verifier = CompileStandardAndVerify(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
                 additionalRefs: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef, LinqAssemblyRef },
                 expectedOutput:"1");
             verifier.VerifyDiagnostics();
@@ -3932,7 +3932,7 @@ static class Extension
                 Diagnostic(ErrorCode.ERR_TupleInferredNamesNotAvailable, "M").WithArguments("M", "7.1")
                );
 
-            var verifier7_1 = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
+            var verifier7_1 = CompileStandardAndVerify(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
                 additionalRefs: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef },
                 expectedOutput: "lambda");
             verifier7_1.VerifyDiagnostics();
@@ -3979,7 +3979,7 @@ class C
 }
 ";
 
-            var verifier = CompileAndVerify(source, expectedOutput: @"1 4 7 Alice 7 Bob 3", additionalRefs: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef });
+            var verifier = CompileStandardAndVerify(source, expectedOutput: @"1 4 7 Alice 7 Bob 3", additionalRefs: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef });
             verifier.VerifyDiagnostics();
         }
 
@@ -4009,7 +4009,7 @@ class C
                 Assert.Equal("(System.String, System.Int32)", model.GetTypeInfo(node).Type.ToTestDisplayString());
             };
 
-            var verifier = CompileAndVerify(source, expectedOutput: @"Alice 1", additionalRefs: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
+            var verifier = CompileStandardAndVerify(source, expectedOutput: @"Alice 1", additionalRefs: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
             verifier.VerifyDiagnostics();
         }
 
@@ -4031,7 +4031,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                 additionalRefs: s_valueTupleRefs,
                 expectedOutput: @"(1, hello)");
         }
@@ -4081,7 +4081,7 @@ class C3
             var comp2 = CreateStandardCompilation(source2,
                 references: s_valueTupleRefs);
             comp2.VerifyDiagnostics();
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                 expectedOutput: @"1 1 2 2 3 3 4 4",
                 additionalRefs: new[] {
                     new CSharpCompilationReference(comp1),
@@ -4287,7 +4287,7 @@ class C3
             comp1.VerifyDiagnostics();
             var comp2 = CreateStandardCompilation(source2);
             comp2.VerifyDiagnostics();
-            var comp = CompileAndVerify(source, expectedOutput: @"1 1 2 2 3 3 4 4 5 5 6 6 True", additionalRefs: new[] { new CSharpCompilationReference(comp1), new CSharpCompilationReference(comp2) });
+            var comp = CompileStandardAndVerify(source, expectedOutput: @"1 1 2 2 3 3 4 4 5 5 6 6 True", additionalRefs: new[] { new CSharpCompilationReference(comp1), new CSharpCompilationReference(comp2) });
         }
 
         [Fact]
@@ -4532,7 +4532,7 @@ class C : I
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: @"5 3", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CompileStandardAndVerify(source, expectedOutput: @"5 3", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics();
         }
 
@@ -4561,7 +4561,7 @@ class C : I
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: @"1 7 8", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CompileStandardAndVerify(source, expectedOutput: @"1 7 8", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics();
         }
 
@@ -4590,7 +4590,7 @@ class C : I
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: @"5 3", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CompileStandardAndVerify(source, expectedOutput: @"5 3", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics();
         }
 
@@ -4664,7 +4664,7 @@ class C : I
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: @"5 3", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CompileStandardAndVerify(source, expectedOutput: @"5 3", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics();
         }
 
@@ -4699,7 +4699,7 @@ class C : I<CB, CA>
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: @"CB CA CC", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CompileStandardAndVerify(source, expectedOutput: @"CB CA CC", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics();
         }
 
@@ -5029,7 +5029,7 @@ class D : C
 }
 ";
 
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                 additionalRefs: s_valueTupleRefs,
                 expectedOutput: @"new base");
             comp.VerifyDiagnostics();
@@ -5087,7 +5087,7 @@ class C : I
 }
 ";
 
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                 additionalRefs: s_valueTupleRefs,
                 expectedOutput: @"1 2");
             comp.VerifyDiagnostics();
@@ -5114,7 +5114,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                 additionalRefs: s_valueTupleRefs,
                 parseOptions: TestOptions.Regular, expectedOutput:
 @"1 2
@@ -5142,7 +5142,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                 additionalRefs: s_valueTupleRefs,
                 expectedOutput: @"1 2");
             comp.VerifyDiagnostics();
@@ -5168,7 +5168,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                 additionalRefs: s_valueTupleRefs,
                 expectedOutput: @"1 Alice");
             comp.VerifyDiagnostics();
@@ -5192,7 +5192,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                 additionalRefs: s_valueTupleRefs,
                 expectedOutput: @"True 1 Alice");
             comp.VerifyDiagnostics();
@@ -5391,7 +5391,7 @@ class C
 (6, 6)
 (7, 7)
 ";
-            var comp = CompileAndVerify(source, additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef, CSharpRef }, expectedOutput: expectedOutput);
+            var comp = CompileStandardAndVerify(source, additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef, CSharpRef }, expectedOutput: expectedOutput);
             comp.VerifyDiagnostics();
         }
 
@@ -5451,7 +5451,7 @@ class C
     }
 }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: "Item1: 2  Rest: (2, 2)", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef, CSharpRef });
+            var comp = CompileStandardAndVerify(source, expectedOutput: "Item1: 2  Rest: (2, 2)", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef, CSharpRef });
             comp.VerifyDiagnostics();
         }
 
@@ -5473,7 +5473,7 @@ class C
     }
 }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: "a:1, h:8, i:9, Item9:9, Rest:(8, 9)", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef, CSharpRef });
+            var comp = CompileStandardAndVerify(source, expectedOutput: "a:1, h:8, i:9, Item9:9, Rest:(8, 9)", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef, CSharpRef });
             comp.VerifyDiagnostics();
         }
 
@@ -5497,7 +5497,7 @@ class C
     }
 }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: "done", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef, CSharpRef });
+            var comp = CompileStandardAndVerify(source, expectedOutput: "done", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef, CSharpRef });
             comp.VerifyDiagnostics();
         }
 
@@ -5532,7 +5532,7 @@ int overload with value (2, 2) and type byte
 dynamic overload with value (3, 3) and type dynamic
 dynamic overload with value (4, 4) and type string";
 
-            var comp = CompileAndVerify(source, expectedOutput: expectedOutput, additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef, CSharpRef });
+            var comp = CompileStandardAndVerify(source, expectedOutput: expectedOutput, additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef, CSharpRef });
             comp.VerifyDiagnostics();
         }
 
@@ -5583,7 +5583,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "12345678901234567890123456789012345", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CompileStandardAndVerify(source, expectedOutput: "12345678901234567890123456789012345", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
         }
 
         [Fact]
@@ -6415,7 +6415,7 @@ class C
 }
 " + trivial2uple + tupleattributes_cs;
 
-            var comp = CompileAndVerify(source, expectedOutput: @"
+            var comp = CompileStandardAndVerify(source, expectedOutput: @"
 {1, hello}");
 
             comp.VerifyIL("C.Main()",
@@ -7112,7 +7112,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                 additionalRefs: s_valueTupleRefs,
                 parseOptions: TestOptions.Regular, expectedOutput: @"
 byte
@@ -7190,7 +7190,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                 additionalRefs: s_valueTupleRefs,
                 parseOptions: TestOptions.Regular, expectedOutput: @"
 second
@@ -7230,7 +7230,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                 additionalRefs: s_valueTupleRefs,
                 parseOptions: TestOptions.Regular, expectedOutput: @"
 third
@@ -7264,7 +7264,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                 additionalRefs: s_valueTupleRefs,
                 parseOptions: TestOptions.Regular, expectedOutput: @"
 System.Nullable`1[System.ValueTuple`2[System.Int32,System.Double]]
@@ -7304,7 +7304,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, expectedOutput: @"
+            var comp = CompileStandardAndVerify(source, additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, expectedOutput: @"
 second
 first
 third
@@ -7338,7 +7338,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                 additionalRefs: s_valueTupleRefs,
                 parseOptions: TestOptions.Regular, expectedOutput: @"
 System.Nullable`1[System.ValueTuple`2[System.Int32,System.String]]
@@ -7371,7 +7371,7 @@ class C
     }
 }
 ";
-            var comp = CompileAndVerify(source, additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, expectedOutput:
+            var comp = CompileStandardAndVerify(source, additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, expectedOutput:
 @"1
 8
 (1, , 1, 2, 3, 4, 5, 6, 7, 8)
@@ -7413,7 +7413,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, expectedOutput: @"
+            var comp = CompileStandardAndVerify(source, additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, expectedOutput: @"
 first
 first
 fourth
@@ -8617,7 +8617,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                 additionalRefs: s_valueTupleRefs,
                 parseOptions: TestOptions.Regular, expectedOutput: @"
 second
@@ -8657,7 +8657,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                 additionalRefs: s_valueTupleRefs,
                 parseOptions: TestOptions.Regular, expectedOutput: @"
 third
@@ -8695,7 +8695,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                 additionalRefs: s_valueTupleRefs,
                 parseOptions: TestOptions.Regular, expectedOutput: @"
 third
@@ -8733,7 +8733,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                 additionalRefs: s_valueTupleRefs,
                 expectedOutput: @"
 third
@@ -8768,7 +8768,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                 additionalRefs: s_valueTupleRefs,
                 parseOptions: TestOptions.Regular, expectedOutput: @"
 first
@@ -8807,7 +8807,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                 additionalRefs: s_valueTupleRefs,
                 parseOptions: TestOptions.Regular, expectedOutput: @"
 first
@@ -8844,7 +8844,7 @@ class Program
 }
 " + trivial2uple + tupleattributes_cs;
 
-            var comp = CompileAndVerify(source, expectedOutput: @"
+            var comp = CompileStandardAndVerify(source, expectedOutput: @"
 2
 ");
         }
@@ -8879,7 +8879,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                 additionalRefs: s_valueTupleRefs,
                 parseOptions: TestOptions.Regular, expectedOutput: @"
 1
@@ -8924,7 +8924,7 @@ class C
 }
 " + trivial2uple + tupleattributes_cs;
 
-            var comp = CompileAndVerify(source, expectedOutput: @"
+            var comp = CompileStandardAndVerify(source, expectedOutput: @"
 test1
 {1, 2}
 test2_1
@@ -8975,7 +8975,7 @@ class C
 }
 " + trivial2uple + tupleattributes_cs;
 
-            var comp = CompileAndVerify(source, expectedOutput: @"
+            var comp = CompileStandardAndVerify(source, expectedOutput: @"
 test1
 {1, 2}
 test2_1
@@ -9008,7 +9008,7 @@ class C
 }
 " + trivial2uple + tupleattributes_cs;
 
-            var comp = CompileAndVerify(source, expectedOutput: @"
+            var comp = CompileStandardAndVerify(source, expectedOutput: @"
 System.ValueType
 ");
         }
@@ -9390,7 +9390,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                 additionalRefs: s_valueTupleRefs,
                 parseOptions: TestOptions.Regular, expectedOutput: @"
 System.Object
@@ -9428,7 +9428,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                 additionalRefs: s_valueTupleRefs,
                 parseOptions: TestOptions.Regular, expectedOutput: @"
 System.Object
@@ -9530,7 +9530,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                 additionalRefs: s_valueTupleRefs,
                 parseOptions: TestOptions.Regular, expectedOutput: @"
 System.String
@@ -9564,7 +9564,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                 additionalRefs: s_valueTupleRefs,
                 parseOptions: TestOptions.Regular, expectedOutput: @"
 System.Int32
@@ -10029,7 +10029,7 @@ class C : I
 }
 ";
 
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                 additionalRefs: s_valueTupleRefs,
                 parseOptions: TestOptions.Regular, expectedOutput: @"(1, hello)
 ");
@@ -10063,7 +10063,7 @@ class C : I
 }
 ";
 
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                 additionalRefs: s_valueTupleRefs,
                 parseOptions: TestOptions.Regular, expectedOutput: @"(1, hello)
 1");
@@ -10094,7 +10094,7 @@ class C : I<(int, string), (int Alice, string Bob)>
 }
 ";
 
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                 additionalRefs: s_valueTupleRefs,
                 parseOptions: TestOptions.Regular, expectedOutput: @"((1, Australia), (2, Brazil))");
         }
@@ -10125,7 +10125,7 @@ class C : I<(int, string, int, string, int, string, int, string), (int A, string
 }
 ";
 
-            var comp = CompileAndVerify(source, additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+            var comp = CompileStandardAndVerify(source, additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
                                         expectedOutput: @"((1, Australia, 2, Brazil, 3, Columbia, 4, Ecuador), (5, France, 6, Germany, 7, Honduras, 8, India))");
         }
 
@@ -10246,7 +10246,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                 additionalRefs: s_valueTupleRefs,
                 parseOptions: TestOptions.Regular, expectedOutput: @"1
 11
@@ -10674,7 +10674,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                 additionalRefs: s_valueTupleRefs,
                 parseOptions: TestOptions.Regular, expectedOutput: @"31
 32
@@ -10814,7 +10814,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                 additionalRefs: s_valueTupleRefs,
                 parseOptions: TestOptions.Regular, expectedOutput: @"41
 42
@@ -11093,7 +11093,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                 additionalRefs: s_valueTupleRefs,
                 parseOptions: TestOptions.Regular, expectedOutput: @"501
 502
@@ -11630,7 +11630,7 @@ class C
 }
 " + trivial2uple + tupleattributes_cs;
 
-            var comp = CompileAndVerify(source, expectedOutput: @"1
+            var comp = CompileStandardAndVerify(source, expectedOutput: @"1
 11
 2
 22
@@ -12680,7 +12680,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                                         additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
                                         expectedOutput:
 @"ValueTuple
@@ -12927,7 +12927,7 @@ static class Test4
 }
 ";
 
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                                         additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef },
                                         options: TestOptions.ReleaseExe.WithAllowUnsafe(true),
                                         expectedOutput:
@@ -13814,7 +13814,7 @@ namespace System
 }
 ";
 
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                 parseOptions: TestOptions.Regular,
                 options: TestOptions.ReleaseExe,
                 expectedOutput:
@@ -13878,7 +13878,7 @@ namespace System
 }
 ";
 
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                 parseOptions: TestOptions.Regular,
                 options: TestOptions.ReleaseExe,
                 expectedOutput:
@@ -14433,7 +14433,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                                         additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
                                         options: TestOptions.ReleaseExe,
                                         expectedOutput:
@@ -14506,7 +14506,7 @@ namespace System
 }
 ";
 
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                 additionalRefs: s_valueTupleRefs,
                 expectedOutput:
 @"33
@@ -14749,7 +14749,7 @@ namespace System
 }
 " + tupleattributes_cs;
 
-            var comp = CompileAndVerify(source, expectedOutput:
+            var comp = CompileStandardAndVerify(source, expectedOutput:
 @"System.Action`1[System.Int32]
 1
 True
@@ -15387,7 +15387,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                 additionalRefs: s_valueTupleRefs,
                 expectedOutput: "(1, 2)");
             comp.VerifyDiagnostics();
@@ -15407,7 +15407,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                 additionalRefs: s_valueTupleRefs,
                 expectedOutput: "2");
             comp.VerifyDiagnostics(
@@ -15434,7 +15434,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "(1, Alice, 2, Brenda, 3, Chloe, 4, Dylan)", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CompileStandardAndVerify(source, expectedOutput: "(1, Alice, 2, Brenda, 3, Chloe, 4, Dylan)", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics();
         }
 
@@ -15456,7 +15456,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "1 1 (8) 8 8", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CompileStandardAndVerify(source, expectedOutput: "1 1 (8) 8 8", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics();
         }
 
@@ -16193,7 +16193,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "(1, 2)", additionalRefs: new[] { tupleComp.ToMetadataReference() });
+            var comp = CompileStandardAndVerify(source, expectedOutput: "(1, 2)", additionalRefs: new[] { tupleComp.ToMetadataReference() });
             comp.VerifyDiagnostics();
         }
 
@@ -16238,7 +16238,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, expectedOutput: @"
+            var comp = CompileStandardAndVerify(source, additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, expectedOutput: @"
 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12)
 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12))
 (2, 2)
@@ -16287,7 +16287,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, expectedOutput: @"
+            var comp = CompileStandardAndVerify(source, additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, expectedOutput: @"
 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12)
 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12))
 (2, 2)
@@ -16327,7 +16327,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                 additionalRefs: s_valueTupleRefs,
                 parseOptions: TestOptions.Regular, expectedOutput: @"
 (2, 2)
@@ -16417,7 +16417,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                 additionalRefs: s_valueTupleRefs,
                 parseOptions: TestOptions.Regular, expectedOutput: @"
 (2, 2)
@@ -16507,7 +16507,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                 additionalRefs: s_valueTupleRefs,
                 parseOptions: TestOptions.Regular, expectedOutput: @"
 (2, 2)
@@ -16548,7 +16548,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                 additionalRefs: s_valueTupleRefs,
                 parseOptions: TestOptions.Regular, expectedOutput: @"
 (2, 2)
@@ -16609,7 +16609,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                 additionalRefs: s_valueTupleRefs,
                 parseOptions: TestOptions.Regular, expectedOutput: @"
 (1, 2)
@@ -16739,7 +16739,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                 additionalRefs: s_valueTupleRefs,
                 parseOptions: TestOptions.Regular, expectedOutput: @"
 (1, (2, (3, (4, (5, 6)))))
@@ -16798,7 +16798,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                 additionalRefs: s_valueTupleRefs,
                 parseOptions: TestOptions.Regular, expectedOutput: @"
 (1, (2, (3, (4, (5, 6)))))
@@ -17011,7 +17011,7 @@ using System;
 
 " + trivial2uple + tupleattributes_cs;
 
-            var comp = CompileAndVerify(source, expectedOutput: @"
+            var comp = CompileStandardAndVerify(source, expectedOutput: @"
 {Program+C2, Program+C2}
 ");
         }
@@ -17043,7 +17043,7 @@ using System;
 
 " + trivial2uple + tupleattributes_cs;
 
-            var comp = CompileAndVerify(source, expectedOutput: @"
+            var comp = CompileStandardAndVerify(source, expectedOutput: @"
 {Program+C2, Program+C2}
 ");
         }
@@ -17067,7 +17067,7 @@ class C
 }
 " + trivial2uple + tupleattributes_cs;
 
-            var comp = CompileAndVerify(source, expectedOutput: @"
+            var comp = CompileStandardAndVerify(source, expectedOutput: @"
 {1, 2}
 {3, 4}");
 
@@ -17137,7 +17137,7 @@ class C
 }
 " + trivial2uple + tupleattributes_cs;
 
-            var comp = CompileAndVerify(source, expectedOutput: @"
+            var comp = CompileStandardAndVerify(source, expectedOutput: @"
 {2, 3}
 {, 5}");
 
@@ -17207,7 +17207,7 @@ class C
 }
 " + trivial2uple + tupleattributes_cs;
 
-            var comp = CompileAndVerify(source, parseOptions: TestOptions.Regular, expectedOutput: @"
+            var comp = CompileStandardAndVerify(source, parseOptions: TestOptions.Regular, expectedOutput: @"
 {2, 3}
 {, 5}");
 
@@ -17322,7 +17322,7 @@ class D<T> : C<T>
 }
 " + trivial2uple + tupleattributes_cs;
 
-            var comp = CompileAndVerify(source, expectedOutput: @"
+            var comp = CompileStandardAndVerify(source, expectedOutput: @"
 explicit
 original
 
@@ -17430,7 +17430,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                 additionalRefs: s_valueTupleRefs,
                 parseOptions: TestOptions.Regular, expectedOutput: @"
 first
@@ -17464,7 +17464,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                 additionalRefs: s_valueTupleRefs,
                 parseOptions: TestOptions.Regular, expectedOutput: @"
 second
@@ -17503,7 +17503,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                 additionalRefs: s_valueTupleRefs,
                 parseOptions: TestOptions.Regular, expectedOutput: @"
 first
@@ -19681,7 +19681,7 @@ class C
     }
 ";
 
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                 additionalRefs: s_valueTupleRefs,
                 parseOptions: TestOptions.Regular, expectedOutput: @"
 (q, w)
@@ -19709,7 +19709,7 @@ class C
     }
 ";
 
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                 additionalRefs: s_valueTupleRefs,
                 parseOptions: TestOptions.Regular, expectedOutput: @"(w, w)");
         }
@@ -19734,7 +19734,7 @@ class C
     }
 ";
 
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                 additionalRefs: s_valueTupleRefs,
                 parseOptions: TestOptions.Regular, expectedOutput: @"
 (q, (w, e))
@@ -19777,7 +19777,7 @@ class C
     }
 ";
 
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                 additionalRefs: s_valueTupleRefs,
                 parseOptions: TestOptions.Regular, expectedOutput: @"
 (q, q, q, q, q, q, q, q, q, q)
@@ -19820,7 +19820,7 @@ class C
     }
 ";
 
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                 additionalRefs: s_valueTupleRefs,
                 parseOptions: TestOptions.Regular, expectedOutput: @"
 (q, q, q, q, q, q, q, q, q, q)
@@ -19863,7 +19863,7 @@ class C
     }
 ";
 
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                 additionalRefs: s_valueTupleRefs,
                 parseOptions: TestOptions.Regular, expectedOutput: @"
 (q, q, q, q, q, q, q, q, q, q)
@@ -19906,7 +19906,7 @@ class C
     }
 ";
 
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                 additionalRefs: s_valueTupleRefs,
                 parseOptions: TestOptions.Regular, expectedOutput: @"
 (q, q, q)
@@ -19942,7 +19942,7 @@ class C
     }
 ";
 
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                 additionalRefs: s_valueTupleRefs,
                 parseOptions: TestOptions.Regular, expectedOutput: @"
 (q, q, q)
@@ -19988,7 +19988,7 @@ class C
     }
 ";
 
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                 additionalRefs: s_valueTupleRefs,
                 parseOptions: TestOptions.Regular, expectedOutput: @"
 (q, q, q, q, q, q, q, , , )
@@ -20027,7 +20027,7 @@ class C
     }
 ";
 
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                 additionalRefs: s_valueTupleRefs,
                 parseOptions: TestOptions.Regular, expectedOutput: @"w");
         }
@@ -20383,7 +20383,7 @@ class C
     }
 " + trivial2uple + tupleattributes_cs;
 
-            var verifier = CompileAndVerify(source, additionalRefs: new[] { MscorlibRef_v46 }, expectedOutput: @"5", options: TestOptions.ReleaseExe);
+            var verifier = CompileStandardAndVerify(source, additionalRefs: new[] { MscorlibRef_v46 }, expectedOutput: @"5", options: TestOptions.ReleaseExe);
 
             // NOTE: !!! There should be NO IL local for  " (long a, int b) v1 " , it should be captured instead
             // NOTE: !!! There should be an IL local for  " (byte x, int y) v2 " , it should not be captured 
@@ -21044,7 +21044,7 @@ class C
     }
 }
 ";
-            CompileAndVerify(source,
+            CompileStandardAndVerify(source,
                 additionalRefs: s_valueTupleRefs,
                 options: TestOptions.DebugExe,
                 expectedOutput: @"9",
@@ -21498,7 +21498,7 @@ class C
         ref (int, int) y = ref x;
     }
 }";
-            var comp = CompileAndVerify(source);
+            var comp = CompileStandardAndVerify(source);
             comp.EmitAndVerify();
         }
 
@@ -21536,7 +21536,7 @@ class C
         }
     }";
 
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                 additionalRefs: s_valueTupleRefs,
                 parseOptions: TestOptions.Regular, expectedOutput: @"(42, 0)
 (42, 42)
@@ -21648,7 +21648,7 @@ namespace ConsoleApplication5
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "42qq", additionalRefs: new[] { libComp.ToMetadataReference() }.Concat(s_valueTupleRefs), options: TestOptions.DebugExe, verify: Verification.Fails);
+            var comp = CompileStandardAndVerify(source, expectedOutput: "42qq", additionalRefs: new[] { libComp.ToMetadataReference() }.Concat(s_valueTupleRefs), options: TestOptions.DebugExe, verify: Verification.Fails);
 
             var m = (MethodSymbol)(comp.Compilation.GetTypeByMetadataName("ConsoleApplication5.C2").GetMembers("Goo").First());
             Assert.Equal("ref (System.Int32, System.Object) ConsoleApplication5.C2.Goo(System.Int32 arg)", m.ToTestDisplayString());
@@ -21704,7 +21704,7 @@ namespace ConsoleApplication5
 
             var libCompRef = AssemblyMetadata.CreateFromImage(libComp.EmitToArray()).GetReference();
 
-            var comp = CompileAndVerify(source, expectedOutput: "42qq", additionalRefs: new[] { libCompRef }.Concat(s_valueTupleRefs), options: TestOptions.DebugExe, verify: Verification.Fails);
+            var comp = CompileStandardAndVerify(source, expectedOutput: "42qq", additionalRefs: new[] { libCompRef }.Concat(s_valueTupleRefs), options: TestOptions.DebugExe, verify: Verification.Fails);
 
             var m = (MethodSymbol)(comp.Compilation.GetTypeByMetadataName("ConsoleApplication5.C2").GetMembers("Goo").First());
             Assert.Equal("ref (System.Int32, System.Object) ConsoleApplication5.C2.Goo(System.Int32 arg)", m.ToTestDisplayString());
@@ -21747,7 +21747,7 @@ class AA
     }
 }";
 
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                 additionalRefs: s_valueTupleRefs,
                 parseOptions: TestOptions.Regular, expectedOutput:
 @"(1, 2)
@@ -21788,7 +21788,7 @@ struct AA
     }
 }";
 
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                 additionalRefs: s_valueTupleRefs,
                 parseOptions: TestOptions.Regular, expectedOutput:
 @"(1, 2)
@@ -21833,7 +21833,7 @@ struct AA
     }
 }";
 
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                 additionalRefs: s_valueTupleRefs,
                 parseOptions: TestOptions.Regular, expectedOutput:
 @"(3, 4)
@@ -21869,7 +21869,7 @@ class AA
     }
 }";
 
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                 additionalRefs: s_valueTupleRefs,
                 parseOptions: TestOptions.Regular, expectedOutput: @"(1, 2)");
         }
@@ -21901,7 +21901,7 @@ class AA
     }
 }";
 
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                 additionalRefs: s_valueTupleRefs,
                 parseOptions: TestOptions.Regular, expectedOutput:
 @"(1, 2)");
@@ -21948,7 +21948,7 @@ struct BB<T>
 }
 ";
 
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                 additionalRefs: s_valueTupleRefs,
                 parseOptions: TestOptions.Regular, expectedOutput:
 @"implicit operator AA
@@ -22110,7 +22110,7 @@ namespace ConsoleApplication5
 
             var libCompRef = AssemblyMetadata.CreateFromImage(libComp.EmitToArray()).GetReference();
 
-            var comp = CompileAndVerify(source, expectedOutput: "42qq", additionalRefs: new[] { libCompRef }.Concat(s_valueTupleRefs), options: TestOptions.DebugExe, verify: Verification.Passes);
+            var comp = CompileStandardAndVerify(source, expectedOutput: "42qq", additionalRefs: new[] { libCompRef }.Concat(s_valueTupleRefs), options: TestOptions.DebugExe, verify: Verification.Passes);
 
             var m = (PropertySymbol)(comp.Compilation.GetTypeByMetadataName("ConsoleApplication5.C2").GetMembers("Goo").First());
             Assert.Equal("ref (System.Int32, System.Object) ConsoleApplication5.C2.Goo { get; }", m.ToTestDisplayString());
@@ -22175,7 +22175,7 @@ public class C
 }
 ";
 
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                 additionalRefs: s_valueTupleRefs,
                 parseOptions: TestOptions.Regular, expectedOutput: @"(1, 2)");
         }
@@ -23211,7 +23211,7 @@ static class C
 }
 ";
 
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                 additionalRefs: s_valueTupleRefs.Concat(new[] { LinqAssemblyRef }),
                 parseOptions: TestOptions.Regular, expectedOutput: @"
 (1, 3)
@@ -23246,7 +23246,7 @@ static class C
 }
 ";
 
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                 additionalRefs: s_valueTupleRefs.Concat(new[] { LinqAssemblyRef }),
                 parseOptions: TestOptions.Regular, expectedOutput: @"
 (qq, (1, (2, 3)))
@@ -23706,7 +23706,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                 additionalRefs: s_valueTupleRefs, options: TestOptions.DebugExe, expectedOutput:
 @"(1, 1)");
 
@@ -23735,7 +23735,7 @@ class C
 }
 ");
 
-            comp = CompileAndVerify(source,
+            comp = CompileStandardAndVerify(source,
     additionalRefs: s_valueTupleRefs, options: TestOptions.ReleaseExe, expectedOutput:
 @"(1, 1)");
 
@@ -24031,7 +24031,7 @@ public class C
 }
 
 public class A<T> {}";
-            var comp = CompileAndVerify(source, additionalRefs: s_valueTupleRefs, expectedOutput: "24");
+            var comp = CompileStandardAndVerify(source, additionalRefs: s_valueTupleRefs, expectedOutput: "24");
         }
 
         [Fact]
@@ -24050,7 +24050,7 @@ public class C
     public static void M2<T>((T, int) a) { Console.Write(3); }
     public static void M2<T>(((T, int), int) a) { Console.Write(4); }
 }";
-            var comp = CompileAndVerify(source, additionalRefs: s_valueTupleRefs, expectedOutput: "4");
+            var comp = CompileStandardAndVerify(source, additionalRefs: s_valueTupleRefs, expectedOutput: "4");
         }
 
         [Fact]
@@ -24074,7 +24074,7 @@ public class C
     public static void M2<T1, T2, T3, T4, T5, T6, T7, TRest>(ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest> a) where TRest : struct { Console.Write(3); }
 }
 ";
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                 additionalRefs: s_valueTupleRefs,
                 expectedOutput: @"12");
         }
@@ -24100,7 +24100,7 @@ public class C
     public static void M2<T1, T2, T3, T4, T5, T6, T7, TRest>(ref ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest> a) where TRest : struct { Console.Write(3); }
 }
 ";
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                 additionalRefs: s_valueTupleRefs,
                 expectedOutput: @"12");
         }
@@ -24127,7 +24127,7 @@ public class C
 
 public interface I<in T>{}
 ";
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                 additionalRefs: s_valueTupleRefs,
                 expectedOutput: @"12");
         }
@@ -24154,7 +24154,7 @@ public class C
 
 public interface I<out T>{}
 ";
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                 additionalRefs: s_valueTupleRefs,
                 expectedOutput: @"12");
         }
@@ -24178,7 +24178,7 @@ public class C
     public static void M2<T1, T2, T3, T4, T5, T6, T7, TRest>(ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest> a) where TRest : struct { Console.Write(3); }
 }
 ";
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                 additionalRefs: s_valueTupleRefs,
                 expectedOutput: @"12");
         }
@@ -24200,7 +24200,7 @@ public class C
     public static void M2<T1, T2, T3, T4, T5, T6, T7, TRest>(ValueTuple<Func<T1>, Func<T2>, Func<T3>, Func<T4>, Func<T5>, Func<T6>, Func<T7>, TRest> a) where TRest : struct { Console.Write(3); }
 }
 ";
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                 additionalRefs: s_valueTupleRefs,
                 expectedOutput: @"2");
         }
@@ -24248,7 +24248,7 @@ public class C
     public static void M2<T1, T2, T3, T4, T5, T6, T7, TRest>(ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest> a) where TRest : struct { Console.Write(3); }
 }
 ";
-            var comp = CompileAndVerify(source,
+            var comp = CompileStandardAndVerify(source,
                 additionalRefs: s_valueTupleRefs,
                 expectedOutput: @"12");
         }
@@ -24271,7 +24271,7 @@ public class C
     public static void M1<T, U, V>((T, int, int, int, int, int, int, int, int, U, (V, int)) a)
         { Console.Write(4); }
 }";
-            var comp = CompileAndVerify(source, additionalRefs: s_valueTupleRefs, expectedOutput: "3");
+            var comp = CompileStandardAndVerify(source, additionalRefs: s_valueTupleRefs, expectedOutput: "3");
         }
 
         [Fact]

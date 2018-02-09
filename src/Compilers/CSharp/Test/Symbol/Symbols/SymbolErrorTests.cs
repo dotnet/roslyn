@@ -19591,7 +19591,7 @@ namespace UserSpace
     }
 }";
 
-            CompileAndVerify(
+            CompileStandardAndVerify(
                 source: code,
                 additionalRefs: new MetadataReference[] { ilReference },
                 expectedOutput: "TEST VALUE");
@@ -19813,7 +19813,7 @@ namespace A
     }
 }";
 
-            CompileAndVerify(
+            CompileStandardAndVerify(
                 source: codeA,
                 additionalRefs: new MetadataReference[] { referenceB, referenceC },
                 expectedOutput: "obj is null");
@@ -19847,7 +19847,7 @@ namespace C
 }";
             var referenceD = CreateStandardCompilation(codeD, assemblyName: "D").EmitToImageReference();
 
-            CompileAndVerify(
+            CompileStandardAndVerify(
                 source: codeA,
                 additionalRefs: new MetadataReference[] { referenceB, referenceC2, referenceD },
                 expectedOutput: "obj is null");

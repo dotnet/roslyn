@@ -146,8 +146,8 @@ class C
   }
 }";
 
-            var verifier = CompileAndVerify(source: source2, expectedOutput: "0");
-            verifier = CompileAndVerify(source: source2, expectedOutput: "0");
+            var verifier = CompileStandardAndVerify(source: source2, expectedOutput: "0");
+            verifier = CompileStandardAndVerify(source: source2, expectedOutput: "0");
 
             // And in fact, this should work if there is an implicit conversion from the result of the addition
             // to the type:
@@ -170,8 +170,8 @@ class C
   }
 }";
 
-            verifier = CompileAndVerify(source: source3, expectedOutput: "1", verify: Verification.Fails);
-            verifier = CompileAndVerify(source: source3, expectedOutput: "1", parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
+            verifier = CompileStandardAndVerify(source: source3, expectedOutput: "1", verify: Verification.Fails);
+            verifier = CompileStandardAndVerify(source: source3, expectedOutput: "1", parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
         }
 
         [Fact, WorkItem(543954, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543954")]
@@ -229,8 +229,8 @@ class C
 ";
             foreach (string type in new[] { "int", "ushort", "byte", "long", "float", "decimal" })
             {
-                CompileAndVerify(source: source4.Replace("TYPE", type), expectedOutput: "0", verify: Verification.Fails);
-                CompileAndVerify(source: source4.Replace("TYPE", type), expectedOutput: "0", parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
+                CompileStandardAndVerify(source: source4.Replace("TYPE", type), expectedOutput: "0", verify: Verification.Fails);
+                CompileStandardAndVerify(source: source4.Replace("TYPE", type), expectedOutput: "0", parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
             }
         }
 
@@ -287,7 +287,7 @@ class C
             foreach (string type in new[] { "uint", "short", "sbyte", "ulong", "double", "decimal" })
             {
                 string expected = "0";
-                var verifier = CompileAndVerify(source: source.Replace("TYPE", type), expectedOutput: expected);
+                var verifier = CompileStandardAndVerify(source: source.Replace("TYPE", type), expectedOutput: expected);
             }
         }
 
@@ -347,7 +347,7 @@ class C
 
 }
 ";
-            var verifier = CompileAndVerify(source: source, expectedOutput: "1");
+            var verifier = CompileStandardAndVerify(source: source, expectedOutput: "1");
         }
 
         [Fact]
@@ -501,7 +501,7 @@ class C
 +TFTF1TTF2TFTF3TTF4TFTF5TFTF6TFTF
 ~TTF1TTF2TTF3TTF4TTF";
 
-            var verifier = CompileAndVerify(source: source, expectedOutput: expected);
+            var verifier = CompileStandardAndVerify(source: source, expectedOutput: expected);
         }
 
         [Fact]
@@ -567,7 +567,7 @@ TF!x
 TF+x
 TF-x";
 
-            var verifier = CompileAndVerify(source: source, expectedOutput: expected);
+            var verifier = CompileStandardAndVerify(source: source, expectedOutput: expected);
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/7803")]
@@ -714,7 +714,7 @@ class C
             foreach (string t in types)
             {
                 string s = source.Replace("TYPE", t).Replace("OP", oper).Replace("ZERO", zeros[t]).Replace("ONE", ones[t]);
-                var verifier = CompileAndVerify(source: s, expectedOutput: expected);
+                var verifier = CompileStandardAndVerify(source: s, expectedOutput: expected);
             }
         }
 
@@ -1277,7 +1277,7 @@ class C
             source.Append(main);
             source.Append("} }");
 
-            var verifier = CompileAndVerify(source: source.ToString(), expectedOutput: "");
+            var verifier = CompileStandardAndVerify(source: source.ToString(), expectedOutput: "");
         }
 
         [Fact]
@@ -1373,7 +1373,7 @@ class C
             source += "}}";
 
 
-            var verifier = CompileAndVerify(source: source, expectedOutput: "");
+            var verifier = CompileStandardAndVerify(source: source, expectedOutput: "");
         }
 
         [Fact]
@@ -1572,7 +1572,7 @@ class C
     }
 }";
 
-            var verifier = CompileAndVerify(source: source, expectedOutput: "");
+            var verifier = CompileStandardAndVerify(source: source, expectedOutput: "");
         }
 
         [Fact]
@@ -1617,7 +1617,7 @@ class C
     static void F(int x, bool b) { if (b) throw new Exception(x.ToString()); }
 }";
 
-            var verifier = CompileAndVerify(source: source, expectedOutput: "123");
+            var verifier = CompileStandardAndVerify(source: source, expectedOutput: "123");
         }
 
         #region "Regression"
@@ -1635,7 +1635,7 @@ class Program
         Console.WriteLine(0);
     }
 }";
-            var verifier = CompileAndVerify(source: source2, expectedOutput: "0");
+            var verifier = CompileStandardAndVerify(source: source2, expectedOutput: "0");
         }
 
         [Fact, WorkItem(544001, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544001")]
@@ -1661,7 +1661,7 @@ struct S : IDisposable
 }
 ";
 
-            CompileAndVerify(source: source, expectedOutput: @"S123");
+            CompileStandardAndVerify(source: source, expectedOutput: @"S123");
         }
 
         [Fact, WorkItem(544002, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544002")]
@@ -1701,7 +1701,7 @@ struct S
 }
 ";
 
-            CompileAndVerify(source: source, expectedOutput: @"10203040-10-20-30-40");
+            CompileStandardAndVerify(source: source, expectedOutput: @"10203040-10-20-30-40");
         }
 
         [Fact, WorkItem(544005, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544005")]
@@ -1733,7 +1733,7 @@ class Test
 ";
             string expected = @"0: 1:1.11 2:2 3: 4:4 5:0 6:6 7: 8:";
 
-            var verifier = CompileAndVerify(source, expectedOutput: expected);
+            var verifier = CompileStandardAndVerify(source, expectedOutput: expected);
         }
 
         [Fact, WorkItem(544006, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544006")]
@@ -1837,7 +1837,7 @@ public class NullableTest
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "tfffttt");
+            CompileStandardAndVerify(source, expectedOutput: "tfffttt");
         }
 
         [Fact, WorkItem(544583, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544583")]
@@ -1998,7 +1998,7 @@ tttftfffnntnfnn
 ttttfnnnn";
 
 
-            CompileAndVerify(source, expectedOutput: expected);
+            CompileStandardAndVerify(source, expectedOutput: expected);
         }
 
         [Fact, WorkItem(529530, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529530"), WorkItem(1036392, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036392")]
@@ -2016,7 +2016,7 @@ class Program
     }
 }";
 
-            CompileAndVerify(source, expectedOutput: "False").VerifyDiagnostics(
+            CompileStandardAndVerify(source, expectedOutput: "False").VerifyDiagnostics(
     // (9,28): warning CS0458: The result of the expression is always 'null' of type 'int?'
     //         Console.WriteLine((xn0 - null).HasValue);
     Diagnostic(ErrorCode.WRN_AlwaysNull, "xn0 - null").WithArguments("int?").WithLocation(9, 28)
@@ -2038,7 +2038,7 @@ public struct S
     }
 }";
 
-            CompileAndVerify(source, expectedOutput: "False");
+            CompileStandardAndVerify(source, expectedOutput: "False");
         }
 
         [Fact, WorkItem(545166, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545166")]

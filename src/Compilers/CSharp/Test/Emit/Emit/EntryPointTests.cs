@@ -369,7 +369,7 @@ public class A
 	}
   }
 }";
-            CompileAndVerify(source, options: TestOptions.ReleaseExe.WithMainTypeName("A.B.C"), expectedOutput: "1");
+            CompileStandardAndVerify(source, options: TestOptions.ReleaseExe.WithMainTypeName("A.B.C"), expectedOutput: "1");
         }
 
         [Fact]
@@ -393,7 +393,7 @@ public class A
     }
   }
 }";
-            CompileAndVerify(source, options: TestOptions.ReleaseExe.WithMainTypeName("A.B.C"), expectedOutput: "1");
+            CompileStandardAndVerify(source, options: TestOptions.ReleaseExe.WithMainTypeName("A.B.C"), expectedOutput: "1");
         }
 
         [Fact]

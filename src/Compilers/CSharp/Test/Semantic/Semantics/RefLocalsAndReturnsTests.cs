@@ -1355,7 +1355,7 @@ class C
     }
 }
 ";
-            CompileAndVerify(text,
+            CompileStandardAndVerify(text,
                 expectedOutput: "frog",
                 additionalRefs: new[] { SystemCoreRef, CSharpRef }).VerifyDiagnostics();
         }

@@ -22,7 +22,7 @@ class C
         x = 0;
     }
 }";
-            CompileAndVerify(source, expectedSignatures: new[]
+            CompileStandardAndVerify(source, expectedSignatures: new[]
             {
                 Signature("C", "M", ".method private hidebysig instance System.Void M([out] System.Int32& x) cil managed")
             });
@@ -38,7 +38,7 @@ class C
     {
     }
 }";
-            CompileAndVerify(source, expectedSignatures: new[]
+            CompileStandardAndVerify(source, expectedSignatures: new[]
             {
                 Signature("C", "M", ".method private hidebysig instance System.Void M(System.Int32& x) cil managed")
             });
@@ -63,7 +63,7 @@ class C
         y = 2;
     }
 }";
-            CompileAndVerify(source, expectedOutput: "2");
+            CompileStandardAndVerify(source, expectedOutput: "2");
         }
 
         [Fact]
@@ -101,7 +101,7 @@ public class Test
         return array;
     }
 }";
-            CompileAndVerify(source, expectedOutput: @"
+            CompileStandardAndVerify(source, expectedOutput: @"
 Array A
 Index B
 Array C
@@ -173,7 +173,7 @@ struct MutableStruct
         System.Console.WriteLine(flagged ? ""Flagged"" : ""Unflagged"");
     }
 }";
-            CompileAndVerify(source, expectedOutput: @"
+            CompileStandardAndVerify(source, expectedOutput: @"
 Unflagged
 Unflagged
 Unflagged
@@ -227,7 +227,7 @@ class C
         x++;
     }
 }";
-            CompileAndVerify(source, expectedOutput: @"
+            CompileStandardAndVerify(source, expectedOutput: @"
 0
 1
 0
@@ -276,7 +276,7 @@ class C
         x = 1;
     }
 }";
-            CompileAndVerify(source, expectedOutput: @"
+            CompileStandardAndVerify(source, expectedOutput: @"
 0
 1
 0
@@ -291,7 +291,7 @@ class C
         [Fact()]
         public void TestConstructorWithOutParameter()
         {
-            CompileAndVerify(@"
+            CompileStandardAndVerify(@"
 class Class1
 {
 	Class1(out bool outParam)

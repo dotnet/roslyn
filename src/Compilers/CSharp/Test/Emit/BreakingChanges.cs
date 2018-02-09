@@ -331,7 +331,7 @@ class Program
 }
 ";
             // Dev10 print '0'
-            CompileAndVerify(source, expectedOutput: "1");
+            CompileStandardAndVerify(source, expectedOutput: "1");
         }
 
         [WorkItem(529000, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529000")]
@@ -374,7 +374,7 @@ class Test01
 }
 ";
 
-            CompileAndVerify(source, expectedOutput: "0000");
+            CompileStandardAndVerify(source, expectedOutput: "0000");
         }
 
         [WorkItem(529001, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529001")]
@@ -529,7 +529,7 @@ class Program
 }
 ";
 
-            CompileAndVerify(source, expectedOutput: "OV 9");
+            CompileStandardAndVerify(source, expectedOutput: "OV 9");
         }
 
         [WorkItem(529262, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529262")]
@@ -557,7 +557,7 @@ partial class C
     }
 }";
             // Dev12 would emit "2, 1 | T1, T2 | x, y".
-            CompileAndVerify(source, expectedOutput: "2, 1 | T, U | x, y");
+            CompileStandardAndVerify(source, expectedOutput: "2, 1 | T, U | x, y");
         }
 
         [Fact, WorkItem(529279, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529279")]
@@ -656,7 +656,7 @@ class Program
 }
 ";
             // Native compiler picks explicit conversion - print 3
-            CompileAndVerify(source, expectedOutput: "2");
+            CompileStandardAndVerify(source, expectedOutput: "2");
         }
 
         [Fact, WorkItem(529362, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529362")]
@@ -690,7 +690,7 @@ class Program
 }
 ";
             // Native compiler picks explicit conversion
-            CompileAndVerify(source, expectedOutput: "Implicit");
+            CompileStandardAndVerify(source, expectedOutput: "Implicit");
         }
 
         [Fact, WorkItem(529363, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529363")]
@@ -1027,7 +1027,7 @@ Console.WriteLine(testExpr2);
 ";
 
             // Native Compiler: x => Convert(Convert(op_Explicit(x)))
-            CompileAndVerify(text, additionalRefs: new[] { LinqAssemblyRef }, expectedOutput:
+            CompileStandardAndVerify(text, additionalRefs: new[] { LinqAssemblyRef }, expectedOutput:
 @"x => Convert(Convert(Convert(x)))
 x => Convert(Convert(Convert(x)))
 ");
@@ -1053,7 +1053,7 @@ static void Main()
 ";
 
             // Native compiler: x => (Convert(x) != Convert(null))
-            CompileAndVerify(source, additionalRefs: new[] { LinqAssemblyRef }, expectedOutput:
+            CompileStandardAndVerify(source, additionalRefs: new[] { LinqAssemblyRef }, expectedOutput:
 @"x => (Convert(x) != null)
 True
 ");
@@ -1149,7 +1149,7 @@ class Program
 }
 ";
             // Native print "++ ++ EX 2"
-            var verifier = CompileAndVerify(source, expectedOutput: " ++ EX 1");
+            var verifier = CompileStandardAndVerify(source, expectedOutput: " ++ EX 1");
 
             // must not load "<>4__this"
             verifier.VerifyIL("Program.test.<Goo>d__1.System.Collections.IEnumerator.MoveNext()", @"
@@ -1266,7 +1266,7 @@ return x;
 }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "1"); // Native print 0
+            CompileStandardAndVerify(source, expectedOutput: "1"); // Native print 0
         }
 
         [Fact, WorkItem(530614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530614")]
@@ -1345,7 +1345,7 @@ static int Main()
 }
 ";
             // Native compiler throw
-            CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef }, expectedOutput: "3");
+            CompileStandardAndVerify(source, additionalRefs: new[] { SystemCoreRef }, expectedOutput: "3");
         }
 
         [Fact, WorkItem(530696, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530696")]
@@ -1397,7 +1397,7 @@ static int Main()
             // without warnings in Dev11 but we will report warnings. I think it's a corner enough scenario and the native
             // behavior is quirky enough to warrant a break.
             // </quote>
-            CompileAndVerify(@"
+            CompileStandardAndVerify(@"
 using System;
 [Obsolete]
 public class ObsoleteType
@@ -1458,7 +1458,7 @@ public class Program
         [Fact, WorkItem(531014, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531014")]
         public void TestVariableAndTypeNameClashes()
         {
-            CompileAndVerify(@"
+            CompileStandardAndVerify(@"
 using System;
 public class Class1
 {
@@ -1523,7 +1523,7 @@ class Derived : Base<int, int>
 ";
             // BREAK: Dev11 reports WRN_MultipleRuntimeOverrideMatches, but there
             // is no runtime ambiguity because the return types differ.
-            CompileAndVerify(source, expectedOutput: "Derived.Out");
+            CompileStandardAndVerify(source, expectedOutput: "Derived.Out");
         }
 
         [WorkItem(695311, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/695311")]
@@ -1712,7 +1712,7 @@ public class Derived : Base
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "Base.op_FalseBase.op_True");
+            CompileStandardAndVerify(source, expectedOutput: "Base.op_FalseBase.op_True");
         }
     }
 }

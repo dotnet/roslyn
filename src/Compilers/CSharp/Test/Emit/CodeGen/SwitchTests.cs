@@ -35,7 +35,7 @@ public class Test
         return(ret);
     }
 }";
-            var compVerifier = CompileAndVerify(text, expectedOutput: "0");
+            var compVerifier = CompileStandardAndVerify(text, expectedOutput: "0");
             compVerifier.VerifyIL("Test.Main", @"
                 {
                     // Code size       12 (0xc)
@@ -78,7 +78,7 @@ public class Test
     }
 }
 ";
-            var compVerifier = CompileAndVerify(text, expectedOutput: "0");
+            var compVerifier = CompileStandardAndVerify(text, expectedOutput: "0");
             compVerifier.VerifyIL("Test.Main",
 @"
 {
@@ -125,7 +125,7 @@ public class Test
         return(ret);
     }
 }";
-            var compVerifier = CompileAndVerify(text, expectedOutput: "0");
+            var compVerifier = CompileStandardAndVerify(text, expectedOutput: "0");
             compVerifier.VerifyIL("Test.Main", @"
                 {
                     // Code size       12 (0xc)
@@ -167,7 +167,7 @@ public class Test
   }
 }
 ";
-            var compVerifier = CompileAndVerify(text, expectedOutput: "0");
+            var compVerifier = CompileStandardAndVerify(text, expectedOutput: "0");
             compVerifier.VerifyIL("Test.Main", @"
                 {
                     // Code size       12 (0xc)
@@ -207,7 +207,7 @@ public class Test
         return(ret);
     }
 }";
-            var compVerifier = CompileAndVerify(text, expectedOutput: "0");
+            var compVerifier = CompileStandardAndVerify(text, expectedOutput: "0");
             compVerifier.VerifyIL("Test.Main", @"
                 {
                     // Code size       18 (0x12)
@@ -259,7 +259,7 @@ public class Test
 
     const int kValue = 23;
 }";
-            var compVerifier = CompileAndVerify(text, expectedOutput: "0");
+            var compVerifier = CompileStandardAndVerify(text, expectedOutput: "0");
             compVerifier.VerifyIL("Test.Main", @"
                 {
                     // Code size       24 (0x18)
@@ -335,7 +335,7 @@ public class Test
     return 0;
   }
 }";
-            var compVerifier = CompileAndVerify(text, expectedOutput: "0");
+            var compVerifier = CompileStandardAndVerify(text, expectedOutput: "0");
             compVerifier.VerifyIL("Test.M", @"
 {
   // Code size       26 (0x1a)
@@ -399,7 +399,7 @@ public class Test
     return 0;
   }
 }";
-            var compVerifier = CompileAndVerify(text, expectedOutput: "1");
+            var compVerifier = CompileStandardAndVerify(text, expectedOutput: "1");
             compVerifier.VerifyIL("Test.M", @"
 {
   // Code size       13 (0xd)
@@ -453,7 +453,7 @@ public class Test
     return 0;
   }
 }";
-            var compVerifier = CompileAndVerify(text, expectedOutput: "1", options: TestOptions.DebugExe);
+            var compVerifier = CompileStandardAndVerify(text, expectedOutput: "1", options: TestOptions.DebugExe);
             compVerifier.VerifyIL("Test.M", @"
 {
   // Code size       28 (0x1c)
@@ -515,7 +515,7 @@ public class Test
     return 0;
   }
 }";
-            var compVerifier = CompileAndVerify(text, expectedOutput: "1");
+            var compVerifier = CompileStandardAndVerify(text, expectedOutput: "1");
             compVerifier.VerifyIL("Test.M", @"
 {
   // Code size       10 (0xa)
@@ -565,7 +565,7 @@ public class Test
     return 0;
   }
 }";
-            var compVerifier = CompileAndVerify(text, expectedOutput: "1");
+            var compVerifier = CompileStandardAndVerify(text, expectedOutput: "1");
             compVerifier.VerifyIL("Test.M", @"
 {
   // Code size       11 (0xb)
@@ -613,7 +613,7 @@ public class Test
         return 0;
     }
 }";
-            var compVerifier = CompileAndVerify(text, expectedOutput: "1");
+            var compVerifier = CompileStandardAndVerify(text, expectedOutput: "1");
             compVerifier.VerifyIL("Test.M", @"
 {
   // Code size       24 (0x18)
@@ -665,7 +665,7 @@ public class Test
         return 0;
     }
 }";
-            var compVerifier = CompileAndVerify(text, expectedOutput: "1");
+            var compVerifier = CompileStandardAndVerify(text, expectedOutput: "1");
             compVerifier.VerifyIL("Test.M", @"
 {
   // Code size       16 (0x10)
@@ -730,7 +730,7 @@ public class Test
     return 0;
   }
 }";
-            var compVerifier = CompileAndVerify(text, expectedOutput: "4");
+            var compVerifier = CompileStandardAndVerify(text, expectedOutput: "4");
             compVerifier.VerifyIL("Test.M", @"
 {
   // Code size       30 (0x1e)
@@ -822,7 +822,7 @@ public class Test
     return 0;
   }
 }";
-            var compVerifier = CompileAndVerify(text, expectedOutput: "4");
+            var compVerifier = CompileStandardAndVerify(text, expectedOutput: "4");
             compVerifier.VerifyIL("Test.M", @"
 {
   // Code size      206 (0xce)
@@ -930,7 +930,7 @@ public class Test
     }
   }
 }";
-            var compVerifier = CompileAndVerify(text, expectedOutput: "1");
+            var compVerifier = CompileStandardAndVerify(text, expectedOutput: "1");
             compVerifier.VerifyIL("Test.M", @"
 	{
 	  // Code size       29 (0x1d)
@@ -987,7 +987,7 @@ public class Test
         return 0;
     }
 }";
-            var compVerifier = CompileAndVerify(text, expectedOutput: "1");
+            var compVerifier = CompileStandardAndVerify(text, expectedOutput: "1");
             compVerifier.VerifyIL("Test.M", @"
 {
   // Code size       14 (0xe)
@@ -1036,7 +1036,7 @@ public class Test
         return 0;
     }
 }";
-            var compVerifier = CompileAndVerify(text, expectedOutput: "1");
+            var compVerifier = CompileStandardAndVerify(text, expectedOutput: "1");
             compVerifier.VerifyIL("Test.M", @"
 {
   // Code size       15 (0xf)
@@ -1101,7 +1101,7 @@ public class Test
         return(ret);
     }
 }";
-            var compVerifier = CompileAndVerify(text, expectedOutput: "0");
+            var compVerifier = CompileStandardAndVerify(text, expectedOutput: "0");
             compVerifier.VerifyIL("Test.DoByte",
 @"
 {
@@ -1189,7 +1189,7 @@ public class Test
     }
 }
 ";
-            var compVerifier = CompileAndVerify(text, expectedOutput: "194");
+            var compVerifier = CompileStandardAndVerify(text, expectedOutput: "194");
             compVerifier.VerifyIL("Test.DoLong",
 @"
 {
@@ -1279,7 +1279,7 @@ public class Test
     }
 }
 ";
-            var compVerifier = CompileAndVerify(text, expectedOutput: "maxminonedefault");
+            var compVerifier = CompileStandardAndVerify(text, expectedOutput: "maxminonedefault");
             compVerifier.VerifyIL("Test.DoLong",
 @"
 {
@@ -1350,7 +1350,7 @@ public class Test
     }
 }
 ";
-            var compVerifier = CompileAndVerify(text, expectedOutput: "42");
+            var compVerifier = CompileStandardAndVerify(text, expectedOutput: "42");
             compVerifier.VerifyIL("Test.DoULong",
 @"
 {
@@ -1448,7 +1448,7 @@ public class Test
         return(ret);
     }
 }";
-            var compVerifier = CompileAndVerify(text, expectedOutput: "0");
+            var compVerifier = CompileStandardAndVerify(text, expectedOutput: "0");
             compVerifier.VerifyIL("Test.DoEnum",
 @"
 {
@@ -1553,7 +1553,7 @@ public class Test
     }
 }";
 
-            var compVerifier = CompileAndVerify(text, expectedOutput: "0");
+            var compVerifier = CompileStandardAndVerify(text, expectedOutput: "0");
             compVerifier.VerifyIL("Test.DoEnum", @"
 {
   // Code size      111 (0x6f)
@@ -1648,7 +1648,7 @@ class Test
         return(ret);
     }
 }";
-            var compVerifier = CompileAndVerify(text, expectedOutput: "0");
+            var compVerifier = CompileStandardAndVerify(text, expectedOutput: "0");
             compVerifier.VerifyIL("Test.Main",
 @"
 {
@@ -1694,7 +1694,7 @@ class Test
         }        
     }
 }";
-            var compVerifier = CompileAndVerify(text, expectedOutput: "0");
+            var compVerifier = CompileStandardAndVerify(text, expectedOutput: "0");
             compVerifier.VerifyIL("Test.Main", @"
 {
   // Code size       31 (0x1f)
@@ -1743,7 +1743,7 @@ public class Test
         return(ret);
     }
 }";
-            var compVerifier = CompileAndVerify(text, expectedOutput: "0");
+            var compVerifier = CompileStandardAndVerify(text, expectedOutput: "0");
             compVerifier.VerifyIL("Test.Main",
 @"
 {
@@ -1811,7 +1811,7 @@ public class Test
   }
 }
 ";
-            var compVerifier = CompileAndVerify(text, expectedOutput: "0");
+            var compVerifier = CompileStandardAndVerify(text, expectedOutput: "0");
             compVerifier.VerifyIL("Test.M", @"
                 {
                       // Code size       10 (0xa)
@@ -1857,7 +1857,7 @@ public class Test
     }
   }
 }";
-            var compVerifier = CompileAndVerify(text, expectedOutput: "0");
+            var compVerifier = CompileStandardAndVerify(text, expectedOutput: "0");
             compVerifier.VerifyIL("Test.M", @"
                 {
                         // Code size       10 (0xa)
@@ -1914,7 +1914,7 @@ class Class1
         return i;
     }
 }";
-            var compVerifier = CompileAndVerify(text, expectedOutput: "0");
+            var compVerifier = CompileStandardAndVerify(text, expectedOutput: "0");
             compVerifier.VerifyIL("Class1.Main", @"
 {
   // Code size       30 (0x1e)
@@ -2029,7 +2029,7 @@ case 0: 2
 case 9999: 1
 Default: 0
 0";
-            var compVerifier = CompileAndVerify(text, expectedOutput: expectedOutput);
+            var compVerifier = CompileStandardAndVerify(text, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("Test.M",
 @"
 {
@@ -2167,7 +2167,7 @@ public class Test
     return 0;
   }
 }";
-            var compVerifier = CompileAndVerify(text, expectedOutput: "0");
+            var compVerifier = CompileStandardAndVerify(text, expectedOutput: "0");
             compVerifier.VerifyIL("Test.M", @"
 {
   // Code size      107 (0x6b)
@@ -2255,7 +2255,7 @@ public class Test
     return 0;
   }
 }";
-            var compVerifier = CompileAndVerify(text, expectedOutput: "0");
+            var compVerifier = CompileStandardAndVerify(text, expectedOutput: "0");
             compVerifier.VerifyIL("Test.M", @"
 {
   // Code size      101 (0x65)
@@ -2328,7 +2328,7 @@ class Program
     }
 }
 ";
-            CompileAndVerify(text, expectedOutput: "");
+            CompileStandardAndVerify(text, expectedOutput: "");
         }
 
         [WorkItem(543967, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543967")]
@@ -2368,7 +2368,7 @@ class Program
     }
 }
 ";
-            var verifier = CompileAndVerify(text, expectedOutput: "null 1");
+            var verifier = CompileStandardAndVerify(text, expectedOutput: "null 1");
             verifier.VerifyIL("Program.Main", @"
 {
   // Code size       66 (0x42)
@@ -2494,7 +2494,7 @@ class Program
     }
 }
 ";
-            var verifier = CompileAndVerify(text, expectedOutput: "null default 100 default ");
+            var verifier = CompileStandardAndVerify(text, expectedOutput: "null default 100 default ");
             verifier.VerifyIL("Program.Goo", @"
 {
   // Code size      373 (0x175)
@@ -2652,7 +2652,7 @@ class Program
         System.Console.WriteLine(F(1));
     }
 }";
-            var compVerifier = CompileAndVerify(text, expectedOutput: "True");
+            var compVerifier = CompileStandardAndVerify(text, expectedOutput: "True");
             compVerifier.VerifyIL("C.F(long?)",
 @"
 {
@@ -2761,7 +2761,7 @@ class Program
         System.Console.WriteLine(F(1));
     }
 }";
-            var compVerifier = CompileAndVerify(text, expectedOutput: "True");
+            var compVerifier = CompileStandardAndVerify(text, expectedOutput: "True");
             compVerifier.VerifyIL("C.F(long?)",
 @"
 {
@@ -2824,7 +2824,7 @@ public class Test
   }
 }
 ";
-            var compVerifier = CompileAndVerify(text, expectedOutput: "0");
+            var compVerifier = CompileStandardAndVerify(text, expectedOutput: "0");
 
             compVerifier.VerifyDiagnostics(
             // (25,5): warning CS0162: Unreachable code detected
@@ -2885,7 +2885,7 @@ public class Test
     }
 }
 ";
-            var compVerifier = CompileAndVerify(text, expectedOutput: "0");
+            var compVerifier = CompileStandardAndVerify(text, expectedOutput: "0");
 
             compVerifier.VerifyIL("Test.Main", @"
                 {
@@ -2983,7 +2983,7 @@ class Test
         Console.WriteLine(success);
     }
 }";
-            var compVerifier = CompileAndVerify(text, options: TestOptions.ReleaseExe.WithModuleName("MODULE"), expectedOutput: "True");
+            var compVerifier = CompileStandardAndVerify(text, options: TestOptions.ReleaseExe.WithModuleName("MODULE"), expectedOutput: "True");
 
             compVerifier.VerifyIL("Test.M", @"
 {
@@ -3333,7 +3333,7 @@ class Test
         Console.Write(status);
     }
 }";
-            var compVerifier = CompileAndVerify(text, options: TestOptions.ReleaseExe.WithModuleName("MODULE"), expectedOutput: "PASS");
+            var compVerifier = CompileStandardAndVerify(text, options: TestOptions.ReleaseExe.WithModuleName("MODULE"), expectedOutput: "PASS");
 
             compVerifier.VerifyIL("Test.Switcheroo", @"
 {
@@ -3714,7 +3714,7 @@ class Goo
   }
 }         
 ";
-            var compVerifier = CompileAndVerify(text, expectedOutput: "1");
+            var compVerifier = CompileStandardAndVerify(text, expectedOutput: "1");
 
             // Verify string hash synthesized method for hash table switch
             VerifySynthesizedStringHashMethod(compVerifier, expected: true);
@@ -3805,7 +3805,7 @@ public class Test
     }
 }
 ";
-            var verifier = CompileAndVerify(source, expectedOutput: @"0");
+            var verifier = CompileStandardAndVerify(source, expectedOutput: @"0");
         }
 
         [WorkItem(543660, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543660")]
@@ -3846,7 +3846,7 @@ class Conv
     }		
 }
 ";
-            CompileAndVerify(text, expectedOutput: "Pass");
+            CompileStandardAndVerify(text, expectedOutput: "Pass");
         }
 
         [WorkItem(543660, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543660")]
@@ -3896,7 +3896,7 @@ class Conv
     }		
 }
 ";
-            CompileAndVerify(text, expectedOutput: "Pass");
+            CompileStandardAndVerify(text, expectedOutput: "Pass");
         }
 
         [Fact()]
@@ -3938,7 +3938,7 @@ struct Conv
     }		
 }
 ";
-            CompileAndVerify(text, expectedOutput: "Pass");
+            CompileStandardAndVerify(text, expectedOutput: "Pass");
         }
 
         [Fact()]
@@ -3980,7 +3980,7 @@ struct Conv
     }		
 }
 ";
-            CompileAndVerify(text, expectedOutput: "Pass");
+            CompileStandardAndVerify(text, expectedOutput: "Pass");
         }
 
         [WorkItem(543673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543673")]
@@ -4017,7 +4017,7 @@ struct A
     }
 }
 ";
-            CompileAndVerify(text, expectedOutput: "0");
+            CompileStandardAndVerify(text, expectedOutput: "0");
         }
 
         [WorkItem(543673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543673")]
@@ -4054,7 +4054,7 @@ struct A
     }
 }
 ";
-            CompileAndVerify(text, expectedOutput: "1");
+            CompileStandardAndVerify(text, expectedOutput: "1");
         }
 
         [WorkItem(543673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543673")]
@@ -4097,7 +4097,7 @@ struct A
     }
 }
 ";
-            CompileAndVerify(text, expectedOutput: "1");
+            CompileStandardAndVerify(text, expectedOutput: "1");
         }
 
         [WorkItem(543673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543673")]
@@ -4140,7 +4140,7 @@ struct A
     }
 }
 ";
-            CompileAndVerify(text, expectedOutput: "1");
+            CompileStandardAndVerify(text, expectedOutput: "1");
         }
 
         #endregion
@@ -5757,7 +5757,7 @@ namespace ConsoleApplication24
 }
 
 ";
-            var compVerifier = CompileAndVerify(text);
+            var compVerifier = CompileStandardAndVerify(text);
             compVerifier.VerifyIL("ConsoleApplication24.Program.IsWarning", @"
 {
   // Code size     1889 (0x761)
@@ -6359,7 +6359,7 @@ class SwitchTest
 }
 ";
 
-            var compVerifier = CompileAndVerify(text, expectedOutput: "0");
+            var compVerifier = CompileStandardAndVerify(text, expectedOutput: "0");
             compVerifier.VerifyIL("SwitchTest.Main", @"
 {
   // Code size       28 (0x1c)
@@ -6445,7 +6445,7 @@ class SwitchTest
 }
 ";
 
-            var compVerifier = CompileAndVerify(text, expectedOutput: "0");
+            var compVerifier = CompileStandardAndVerify(text, expectedOutput: "0");
             compVerifier.VerifyIL("SwitchTest.Main",
 @"
 {
@@ -6549,7 +6549,7 @@ class SwitchTest
 }
 ";
 
-            var compVerifier = CompileAndVerify(text, expectedOutput: "0");
+            var compVerifier = CompileStandardAndVerify(text, expectedOutput: "0");
 
             compVerifier.VerifyDiagnostics(
             // (27,17): warning CS0162: Unreachable code detected
@@ -6609,7 +6609,7 @@ class A
 }
 ";
 
-            var compVerifier = CompileAndVerify(text);
+            var compVerifier = CompileStandardAndVerify(text);
 
             compVerifier.VerifyDiagnostics(
             // (10,17): warning CS0469: The 'goto case' value is not implicitly convertible to type 'System.DayOfWeek'
@@ -6654,7 +6654,7 @@ public class Test
         return(ret);
     }
 }";
-            var compVerifier = CompileAndVerify(text, expectedOutput: "0");
+            var compVerifier = CompileStandardAndVerify(text, expectedOutput: "0");
 
             compVerifier.VerifyDiagnostics(
             // (14,8): warning CS0162: Unreachable code detected
@@ -6702,7 +6702,7 @@ public class Test
         return(ret);
     }
 }";
-            var compVerifier = CompileAndVerify(text, expectedOutput: "0");
+            var compVerifier = CompileStandardAndVerify(text, expectedOutput: "0");
 
             compVerifier.VerifyDiagnostics(
             // (11,8): warning CS0162: Unreachable code detected
@@ -6751,7 +6751,7 @@ public class Test
   }
 }
 ";
-            var compVerifier = CompileAndVerify(text, expectedOutput: "0");
+            var compVerifier = CompileStandardAndVerify(text, expectedOutput: "0");
 
             compVerifier.VerifyDiagnostics(
             // (19,5): warning CS0162: Unreachable code detected
@@ -6790,7 +6790,7 @@ public class Test
   }
 }
 ";
-            var compVerifier = CompileAndVerify(text, expectedOutput: "0");
+            var compVerifier = CompileStandardAndVerify(text, expectedOutput: "0");
 
             compVerifier.VerifyDiagnostics(
             // (11,9): warning CS0162: Unreachable code detected
@@ -6830,7 +6830,7 @@ public class Test
     }
 }";
 
-            var compVerifier = CompileAndVerify(text, expectedOutput: "0");
+            var compVerifier = CompileStandardAndVerify(text, expectedOutput: "0");
 
             compVerifier.VerifyDiagnostics(
             // (6,17): warning CS1522: Empty switch block
@@ -7287,7 +7287,7 @@ class Program {
 }
 
 ";
-            var compVerifier = CompileAndVerify(text, expectedOutput: "");
+            var compVerifier = CompileStandardAndVerify(text, expectedOutput: "");
             compVerifier.VerifyIL("Program.boo",
 @"
 {
@@ -7337,7 +7337,7 @@ class Program {
 }
 
 ";
-            var compVerifier = CompileAndVerify(text, expectedOutput: "");
+            var compVerifier = CompileStandardAndVerify(text, expectedOutput: "");
             compVerifier.VerifyIL("Program.boo",
 @"
 {
@@ -7385,7 +7385,7 @@ class Program {
 }
 
 ";
-            var compVerifier = CompileAndVerify(text, expectedOutput: "");
+            var compVerifier = CompileStandardAndVerify(text, expectedOutput: "");
             compVerifier.VerifyIL("Program.boo",
 @"
 {
@@ -7440,7 +7440,7 @@ class Program {
 }
 
 ";
-            var compVerifier = CompileAndVerify(text, expectedOutput: "");
+            var compVerifier = CompileStandardAndVerify(text, expectedOutput: "");
             compVerifier.VerifyIL("Program.boo",
 @"
 {
@@ -7503,7 +7503,7 @@ namespace ConsoleApplication1
 }
 
 ";
-            var compVerifier = CompileAndVerify(text, expectedOutput: "In DEFAULT case");
+            var compVerifier = CompileStandardAndVerify(text, expectedOutput: "In DEFAULT case");
             compVerifier.VerifyIL("ConsoleApplication1.Program.SwtchTest",
 @"
 {
@@ -7588,7 +7588,7 @@ namespace ConsoleApplication1
 }
 
 ";
-            var compVerifier = CompileAndVerify(text, expectedOutput: "In DEFAULT case");
+            var compVerifier = CompileStandardAndVerify(text, expectedOutput: "In DEFAULT case");
             compVerifier.VerifyIL("ConsoleApplication1.Program.SwtchTest",
 @"
 {
@@ -7633,7 +7633,7 @@ public class Program
         }
     }
 }";
-            var compVerifier = CompileAndVerify(source,
+            var compVerifier = CompileStandardAndVerify(source,
                 options: TestOptions.ReleaseDll.WithOutputKind(OutputKind.ConsoleApplication),
                 expectedOutput: "RemoveEmptyEntries");
             compVerifier.VerifyIL("Program.Main",
@@ -7649,7 +7649,7 @@ public class Program
   IL_000d:  ret
 }"
             );
-            compVerifier = CompileAndVerify(source,
+            compVerifier = CompileStandardAndVerify(source,
                 options: TestOptions.DebugDll.WithOutputKind(OutputKind.ConsoleApplication),
                 expectedOutput: "RemoveEmptyEntries");
             compVerifier.VerifyIL("Program.Main",
@@ -7703,7 +7703,7 @@ public class Program
         }
     }
 }";
-            var compVerifier = CompileAndVerify(source,
+            var compVerifier = CompileStandardAndVerify(source,
                 options: TestOptions.ReleaseDll.WithOutputKind(OutputKind.ConsoleApplication),
                 expectedOutput: "null1");
             compVerifier.VerifyIL("Program.M",
@@ -7728,7 +7728,7 @@ public class Program
   IL_0024:  ret
 }"
             );
-            compVerifier = CompileAndVerify(source,
+            compVerifier = CompileStandardAndVerify(source,
                 options: TestOptions.DebugDll.WithOutputKind(OutputKind.ConsoleApplication),
                 expectedOutput: "null1");
             compVerifier.VerifyIL("Program.M",
@@ -7789,7 +7789,7 @@ public class Program
         }
     }
 }";
-            var compVerifier = CompileAndVerify(source,
+            var compVerifier = CompileStandardAndVerify(source,
                 options: TestOptions.ReleaseDll.WithOutputKind(OutputKind.ConsoleApplication),
                 expectedOutput: "1");
             compVerifier.VerifyIL("Program.M",
@@ -7805,7 +7805,7 @@ public class Program
   IL_000d:  ret
 }"
             );
-            compVerifier = CompileAndVerify(source,
+            compVerifier = CompileStandardAndVerify(source,
                 options: TestOptions.DebugDll.WithOutputKind(OutputKind.ConsoleApplication),
                 expectedOutput: "1");
             compVerifier.VerifyIL("Program.M",
@@ -7859,7 +7859,7 @@ public class Program
         }
     }
 }";
-            var compVerifier = CompileAndVerify(source,
+            var compVerifier = CompileStandardAndVerify(source,
                 options: TestOptions.ReleaseDll.WithOutputKind(OutputKind.ConsoleApplication),
                 expectedOutput: "1");
             compVerifier.VerifyIL("Program.M",
@@ -7882,7 +7882,7 @@ public class Program
   IL_001e:  ret
 }"
             );
-            compVerifier = CompileAndVerify(source,
+            compVerifier = CompileStandardAndVerify(source,
                 options: TestOptions.DebugDll.WithOutputKind(OutputKind.ConsoleApplication),
                 expectedOutput: "1");
             compVerifier.VerifyIL("Program.M",
@@ -7943,7 +7943,7 @@ public class Program
         }
     }
 }";
-            var compVerifier = CompileAndVerify(source,
+            var compVerifier = CompileStandardAndVerify(source,
                 options: TestOptions.ReleaseDll.WithOutputKind(OutputKind.ConsoleApplication),
                 expectedOutput: "1");
             compVerifier.VerifyIL("Program.M",
@@ -7970,7 +7970,7 @@ public class Program
   IL_001c:  ret
 }"
             );
-            compVerifier = CompileAndVerify(source,
+            compVerifier = CompileStandardAndVerify(source,
                 options: TestOptions.DebugDll.WithOutputKind(OutputKind.ConsoleApplication),
                 expectedOutput: "1");
             compVerifier.VerifyIL("Program.M",
@@ -8037,7 +8037,7 @@ public class Program
         }
     }
 }";
-            var compVerifier = CompileAndVerify(source,
+            var compVerifier = CompileStandardAndVerify(source,
                 options: TestOptions.ReleaseDll.WithOutputKind(OutputKind.ConsoleApplication),
                 expectedOutput: "1");
             compVerifier.VerifyIL("Program.M<T>",
@@ -8065,7 +8065,7 @@ public class Program
   IL_0021:  ret
 }"
             );
-            compVerifier = CompileAndVerify(source,
+            compVerifier = CompileStandardAndVerify(source,
                 options: TestOptions.DebugDll.WithOutputKind(OutputKind.ConsoleApplication),
                 expectedOutput: "1");
             compVerifier.VerifyIL("Program.M<T>",
@@ -8133,7 +8133,7 @@ public class Program
         }
     }
 }";
-            var compVerifier = CompileAndVerify(source,
+            var compVerifier = CompileStandardAndVerify(source,
                 options: TestOptions.ReleaseDll.WithOutputKind(OutputKind.ConsoleApplication),
                 expectedOutput: "1");
             compVerifier.VerifyIL("Program.M<T>",
@@ -8161,7 +8161,7 @@ public class Program
   IL_0021:  ret
 }"
             );
-            compVerifier = CompileAndVerify(source,
+            compVerifier = CompileStandardAndVerify(source,
                 options: TestOptions.DebugDll.WithOutputKind(OutputKind.ConsoleApplication),
                 expectedOutput: "1");
             compVerifier.VerifyIL("Program.M<T>",
@@ -8229,7 +8229,7 @@ public class Program
         }
     }
 }";
-            var compVerifier = CompileAndVerify(source,
+            var compVerifier = CompileStandardAndVerify(source,
                 options: TestOptions.ReleaseDll.WithOutputKind(OutputKind.ConsoleApplication),
                 expectedOutput: "1");
             compVerifier.VerifyIL("Program.M<T, U>",
@@ -8260,7 +8260,7 @@ public class Program
   IL_0030:  ret
 }"
             );
-            compVerifier = CompileAndVerify(source,
+            compVerifier = CompileStandardAndVerify(source,
                 options: TestOptions.DebugDll.WithOutputKind(OutputKind.ConsoleApplication),
                 expectedOutput: "1");
             compVerifier.VerifyIL("Program.M<T, U>",
@@ -8321,7 +8321,7 @@ public class Program
         }
     }
 }";
-            var compVerifier = CompileAndVerify(source,
+            var compVerifier = CompileStandardAndVerify(source,
                 options: TestOptions.ReleaseDll.WithOutputKind(OutputKind.ConsoleApplication),
                 expectedOutput: "RemoveEmptyEntries");
             compVerifier.VerifyIL("Program.Main",
@@ -8337,7 +8337,7 @@ public class Program
   IL_000d:  ret
 }"
             );
-            compVerifier = CompileAndVerify(source,
+            compVerifier = CompileStandardAndVerify(source,
                 options: TestOptions.DebugDll.WithOutputKind(OutputKind.ConsoleApplication),
                 expectedOutput: "RemoveEmptyEntries");
             compVerifier.VerifyIL("Program.Main",
@@ -8402,7 +8402,7 @@ class Program
                 //             case T t:
                 Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("System.ValueType", "T", "7.0", "7.1").WithLocation(19, 18)
                 );
-            var compVerifier = CompileAndVerify(source,
+            var compVerifier = CompileStandardAndVerify(source,
                 options: TestOptions.ReleaseDll.WithOutputKind(OutputKind.ConsoleApplication),
                 parseOptions: TestOptions.Regular7_1,
                 expectedOutput: "2300");
@@ -8458,7 +8458,7 @@ class Program
   IL_0021:  ret
 }"
             );
-            compVerifier = CompileAndVerify(source,
+            compVerifier = CompileStandardAndVerify(source,
                 options: TestOptions.DebugDll.WithOutputKind(OutputKind.ConsoleApplication),
                 parseOptions: TestOptions.Regular7_1,
                 expectedOutput: "2300");
@@ -8574,7 +8574,7 @@ class Program
                 //             case int t:
                 Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "int").WithArguments("T", "int", "7.0", "7.1").WithLocation(19, 18)
                 );
-            var compVerifier = CompileAndVerify(source,
+            var compVerifier = CompileStandardAndVerify(source,
                 options: TestOptions.ReleaseDll.WithOutputKind(OutputKind.ConsoleApplication),
                 parseOptions: TestOptions.Regular7_1,
                 expectedOutput: "2300");
@@ -8629,7 +8629,7 @@ class Program
   IL_0028:  ret
 }"
             );
-            compVerifier = CompileAndVerify(source,
+            compVerifier = CompileStandardAndVerify(source,
                 options: TestOptions.DebugDll.WithOutputKind(OutputKind.ConsoleApplication),
                 parseOptions: TestOptions.Regular7_1,
                 expectedOutput: "2300");
@@ -8737,7 +8737,7 @@ class Program
     }
 }
 ";
-            var compVerifier = CompileAndVerify(source,
+            var compVerifier = CompileStandardAndVerify(source,
                 options: TestOptions.DebugDll.WithOutputKind(OutputKind.ConsoleApplication),
                 expectedOutput: "2300");
         }
@@ -8788,7 +8788,7 @@ class X : B { }
                 //             case T t:
                 Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("A", "T", "7.0", "7.1").WithLocation(20, 18)
                 );
-            var compVerifier = CompileAndVerify(source,
+            var compVerifier = CompileStandardAndVerify(source,
                 options: TestOptions.DebugDll.WithOutputKind(OutputKind.ConsoleApplication),
                 parseOptions: TestOptions.Regular7_1,
                 expectedOutput: "XXBB");
@@ -8843,7 +8843,7 @@ class X : B { }
                 //             case T t:
                 Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("A", "T", "7.0", "7.1").WithLocation(20, 18)
                 );
-            var compVerifier = CompileAndVerify(source,
+            var compVerifier = CompileStandardAndVerify(source,
                 options: TestOptions.DebugDll.WithOutputKind(OutputKind.ConsoleApplication),
                 parseOptions: TestOptions.Regular7_1,
                 expectedOutput: "XXBB");
@@ -9198,7 +9198,7 @@ public class Program
         }
     }
 }";
-            var compVerifier = CompileAndVerify(source,
+            var compVerifier = CompileStandardAndVerify(source,
                 options: TestOptions.ReleaseDll.WithOutputKind(OutputKind.ConsoleApplication),
                 expectedOutput: "");
             compVerifier.VerifyIL("Program.M",
@@ -9276,7 +9276,7 @@ public class Program
   IL_0097:  ret
 }"
             );
-            compVerifier = CompileAndVerify(source,
+            compVerifier = CompileStandardAndVerify(source,
                 options: TestOptions.DebugDll.WithOutputKind(OutputKind.ConsoleApplication),
                 expectedOutput: "");
             compVerifier.VerifyIL("Program.M",

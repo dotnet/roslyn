@@ -35,7 +35,7 @@ Jenny don't change your number 867-5309.
 Jenny don't change your number 867-5309    .
 Jenny don't change your number     867-5309.
 8675309";
-            CompileAndVerify(source, expectedOutput: expectedOutput);
+            CompileStandardAndVerify(source, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -52,7 +52,7 @@ class Program {
 }";
             string expectedOutput =
 @"8675309";
-            CompileAndVerify(source, expectedOutput: expectedOutput);
+            CompileStandardAndVerify(source, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -69,7 +69,7 @@ class Program {
 }";
             string expectedOutput =
 @"86753098675309";
-            CompileAndVerify(source, expectedOutput: expectedOutput);
+            CompileStandardAndVerify(source, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -86,7 +86,7 @@ class Program {
 }";
             string expectedOutput =
 @"Jenny don't change your number 867-5309 867-5309.";
-            CompileAndVerify(source, expectedOutput: expectedOutput);
+            CompileStandardAndVerify(source, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -205,7 +205,7 @@ class Program
     }
 ";
             string expectedOutput = @"jenny (408) 867-5309";
-            CompileAndVerify(source, expectedOutput: expectedOutput);
+            CompileStandardAndVerify(source, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -223,7 +223,7 @@ class Program
     }
 }";
             string expectedOutput = @"Hello, world.";
-            CompileAndVerify(source, expectedOutput: expectedOutput);
+            CompileStandardAndVerify(source, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -246,7 +246,7 @@ class Program
 }";
             string expectedOutput = @"Hello,
 world.";
-            CompileAndVerify(source, expectedOutput: expectedOutput);
+            CompileStandardAndVerify(source, expectedOutput: expectedOutput);
         }
 
         [Fact, WorkItem(306, "https://github.com/dotnet/roslyn/issues/306"), WorkItem(308, "https://github.com/dotnet/roslyn/issues/308")]
@@ -270,7 +270,7 @@ class Program
 }";
             string expectedOutput = @"<>
 <System.String[]>";
-            var verifier = CompileAndVerify(source, new[] { SystemCoreRef, CSharpRef }, expectedOutput: expectedOutput).VerifyDiagnostics();
+            var verifier = CompileStandardAndVerify(source, new[] { SystemCoreRef, CSharpRef }, expectedOutput: expectedOutput).VerifyDiagnostics();
         }
 
         [Fact]
@@ -537,7 +537,7 @@ class Program
     }
 }";
             string expectedOutput = @"{ x }This is a test";
-            CompileAndVerify(source, expectedOutput: expectedOutput);
+            CompileStandardAndVerify(source, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -582,7 +582,7 @@ class Program
         }
     }";
             string expectedOutput = @"1";
-            CompileAndVerify(source, expectedOutput: expectedOutput);
+            CompileStandardAndVerify(source, expectedOutput: expectedOutput);
         }
 
         // Since the platform type System.FormattableString is not yet in our platforms (at the
@@ -735,7 +735,7 @@ class Program {
         Console.Write(f is System.FormattableString);
     }
 }";
-            CompileAndVerify(source + formattableString, expectedOutput: "True");
+            CompileStandardAndVerify(source + formattableString, expectedOutput: "True");
         }
 
         [Fact]
@@ -770,7 +770,7 @@ class Program {
         ((C)c).M($"""");
     }
 }";
-            CompileAndVerify(source + formattableString, expectedOutput: "12311211");
+            CompileStandardAndVerify(source + formattableString, expectedOutput: "12311211");
         }
 
         [Fact]
@@ -809,7 +809,7 @@ class Program {
         Console.WriteLine($""{ await hello }, { await world }!"");
     }
 }";
-            CompileAndVerify(
+            CompileStandardAndVerify(
                 source, additionalRefs: new[] { MscorlibRef_v4_0_30316_17626, SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929 }, expectedOutput: "Hello, world!");
         }
 
@@ -824,7 +824,7 @@ class Program {
         Console.WriteLine($""X = { 123 , -(3+4) }."");
     }
 }";
-            CompileAndVerify(source + formattableString, expectedOutput: "X = 123    .");
+            CompileStandardAndVerify(source + formattableString, expectedOutput: "X = 123    .");
         }
 
         [Fact]
@@ -1106,7 +1106,7 @@ class Program {
         Console.WriteLine($""-{arr2}-"");
     }
 }";
-            CompileAndVerify(source + formattableString, expectedOutput:
+            CompileStandardAndVerify(source + formattableString, expectedOutput:
 @"--
 -System.String[]-
 -System.String[]-");

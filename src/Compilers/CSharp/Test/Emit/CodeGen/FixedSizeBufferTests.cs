@@ -39,7 +39,7 @@ class Program
         S t = s;
     }
 }";
-            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "12", verify: Verification.Fails)
+            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "12", verify: Verification.Fails)
                 .VerifyIL("Program.Main",
 @"{
   // Code size       58 (0x3a)
@@ -102,7 +102,7 @@ class Program
         }
     }
 }";
-            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "12", verify: Verification.Fails)
+            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "12", verify: Verification.Fails)
                 .VerifyIL("Program.Main",
 @"
 {
@@ -167,9 +167,9 @@ class Program
         S t = s;
     }
 }";
-            var comp1 = CompileAndVerify(s1, options: TestOptions.UnsafeReleaseDll, verify: Verification.Passes).Compilation;
+            var comp1 = CompileStandardAndVerify(s1, options: TestOptions.UnsafeReleaseDll, verify: Verification.Passes).Compilation;
 
-            var comp2 = CompileAndVerify(s2,
+            var comp2 = CompileStandardAndVerify(s2,
                 options: TestOptions.UnsafeReleaseExe,
                 additionalRefs: new MetadataReference[] { MetadataReference.CreateFromStream(comp1.EmitToStream()) },
                 expectedOutput: "12", verify: Verification.Fails).Compilation;
@@ -205,7 +205,7 @@ class Program
         }
     }
 }";
-            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "12", verify: Verification.Fails)
+            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "12", verify: Verification.Fails)
                 .VerifyIL("Program.Main",
 @"{
   // Code size       36 (0x24)
@@ -357,7 +357,7 @@ class Program
     }
 }
 ";
-            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "133", verify: Verification.Fails)
+            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "133", verify: Verification.Fails)
                 .VerifyIL("Program.Test",
 @"{
   // Code size       20 (0x14)
@@ -578,7 +578,7 @@ public unsafe struct Test
     " + (layout == LayoutKind.Explicit ? "[FieldOffset(0)]" : "") + @"public fixed UInt32 Field[ 16 ];
 }
 ";
-                    CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Passes, 
+                    CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Passes, 
                         symbolValidator: (m) =>
                         {
                             var test = m.GlobalNamespace.GetTypeMember("Test");
@@ -610,7 +610,7 @@ public unsafe struct Test
     " + (layout == LayoutKind.Explicit ? "[FieldOffset(0)]" : "") + @"public fixed UInt32 Field[ 16 ];
 }
 ";
-                CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Passes,
+                CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Passes,
                     symbolValidator: (m) =>
                     {
                         var test = m.GlobalNamespace.GetTypeMember("Test");

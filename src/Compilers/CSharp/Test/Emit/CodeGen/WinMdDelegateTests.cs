@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                 var validator = getValidator(expected);
 
                 // We should see the same members from both source and metadata
-                var verifier = CompileAndVerify(
+                var verifier = CompileStandardAndVerify(
                     libSrc,
                     sourceSymbolValidator: validator,
                     symbolValidator: validator,
@@ -267,7 +267,7 @@ class Test
                 }
             };
 
-            var comp = CompileAndVerify(
+            var comp = CompileStandardAndVerify(
                 allDelegates,
                 additionalRefs: new[] {
                     winRtDelegateLibrary,

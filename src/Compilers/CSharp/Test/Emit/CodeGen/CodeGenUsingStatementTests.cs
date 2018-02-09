@@ -67,7 +67,7 @@ public class Test
     }
 }
 ";
-            var verifier = CompileAndVerify(text, expectedOutput: @"Before
+            var verifier = CompileStandardAndVerify(text, expectedOutput: @"Before
 In
 After");
             verifier.VerifyIL("Test.Main", @"
@@ -104,7 +104,7 @@ public class Test
     }
 }
 ";
-            var verifier = CompileAndVerify(text, expectedOutput: @"Before
+            var verifier = CompileStandardAndVerify(text, expectedOutput: @"Before
 In
 After");
             verifier.VerifyIL("Test.Main", @"
@@ -140,7 +140,7 @@ public class Test
     }
 }
 " + DisposableClass;
-            var verifier = CompileAndVerify(text, expectedOutput: @"Before
+            var verifier = CompileStandardAndVerify(text, expectedOutput: @"Before
 Creating A
 In
 Disposing A
@@ -194,7 +194,7 @@ public class Test
     }
 }
 " + DisposableStruct;
-            var verifier = CompileAndVerify(text, expectedOutput: @"Before
+            var verifier = CompileStandardAndVerify(text, expectedOutput: @"Before
 Creating A
 In
 Disposing A
@@ -270,7 +270,7 @@ In
 Disposing B
 After";
 
-            var verifier = CompileAndVerify(text, expectedOutput: expected);
+            var verifier = CompileStandardAndVerify(text, expectedOutput: expected);
             verifier.VerifyIL("Test.M<T>", @"
 {
   // Code size       57 (0x39)
@@ -326,7 +326,7 @@ public class Test
     }
 }
 " + DisposableStruct;
-            var verifier = CompileAndVerify(text, expectedOutput: @"Creating A
+            var verifier = CompileStandardAndVerify(text, expectedOutput: @"Creating A
 Before
 In
 Disposing A
@@ -378,7 +378,7 @@ public class Test
     }
 }
 ";
-            var verifier = CompileAndVerify(text, expectedOutput: @"Before
+            var verifier = CompileStandardAndVerify(text, expectedOutput: @"Before
 In
 After");
             verifier.VerifyIL("Test.Main", @"
@@ -415,7 +415,7 @@ public class Test
     }
 }
 ";
-            var verifier = CompileAndVerify(text, expectedOutput: @"Before
+            var verifier = CompileStandardAndVerify(text, expectedOutput: @"Before
 In
 After");
             verifier.VerifyIL("Test.Main", @"
@@ -451,7 +451,7 @@ public class Test
     }
 }
 " + DisposableClass;
-            var verifier = CompileAndVerify(text, expectedOutput: @"Before
+            var verifier = CompileStandardAndVerify(text, expectedOutput: @"Before
 Creating A
 In
 Disposing A
@@ -505,7 +505,7 @@ public class Test
     }
 }
 " + DisposableStruct;
-            var verifier = CompileAndVerify(text, expectedOutput: @"Before
+            var verifier = CompileStandardAndVerify(text, expectedOutput: @"Before
 Creating A
 In
 Disposing A
@@ -581,7 +581,7 @@ In
 Disposing B
 After";
 
-            var verifier = CompileAndVerify(text, expectedOutput: expected);
+            var verifier = CompileStandardAndVerify(text, expectedOutput: expected);
             verifier.VerifyIL("Test.M<T>", @"
 {
   // Code size       57 (0x39)
@@ -637,7 +637,7 @@ public class Test
     }
 }
 " + DisposableStruct;
-            var verifier = CompileAndVerify(text, expectedOutput: @"Creating A
+            var verifier = CompileStandardAndVerify(text, expectedOutput: @"Creating A
 Before
 In
 Disposing A
@@ -689,7 +689,7 @@ public class Test
     }
 }
 " + DisposableClass;
-            var verifier = CompileAndVerify(text, expectedOutput: @"Before
+            var verifier = CompileStandardAndVerify(text, expectedOutput: @"Before
 Creating A
 Creating B
 Creating C
@@ -777,7 +777,7 @@ public class Test
     }
 }
 " + DisposableStruct;
-            var verifier = CompileAndVerify(text, expectedOutput: @"Before
+            var verifier = CompileStandardAndVerify(text, expectedOutput: @"Before
 Creating A
 Creating B
 Creating C
@@ -863,7 +863,7 @@ public class Test
 }
 " + DisposableClass + DisposableStruct;
 
-            var verifier = CompileAndVerify(text, expectedOutput: @"Before
+            var verifier = CompileStandardAndVerify(text, expectedOutput: @"Before
 Creating A
 Creating C
 In
@@ -935,7 +935,7 @@ public class Test
 }
 " + DisposableClass + DisposableStruct;
 
-            var verifier = CompileAndVerify(text, expectedOutput: @"Before
+            var verifier = CompileStandardAndVerify(text, expectedOutput: @"Before
 In
 After");
             verifier.VerifyIL("Test.Main", @"
@@ -976,7 +976,7 @@ class Test
         public void Dispose() { System.Console.Write(""1""); }
     }
 }";
-            CompileAndVerify(text, expectedOutput: "12");
+            CompileStandardAndVerify(text, expectedOutput: "12");
         }
         #endregion
 
@@ -1003,7 +1003,7 @@ class Program
     }
 }
 ";
-            CompileAndVerify(source).VerifyIL("Program.Main", @"
+            CompileStandardAndVerify(source).VerifyIL("Program.Main", @"
 {
   // Code size       25 (0x19)
   .maxstack  1
@@ -1052,7 +1052,7 @@ class Program
     }
 }
 ";
-            CompileAndVerify(source).VerifyIL("Program.Main", @"
+            CompileStandardAndVerify(source).VerifyIL("Program.Main", @"
 {
   // Code size       27 (0x1b)
   .maxstack  1
@@ -1104,7 +1104,7 @@ class Program
     }
 }
 ";
-            CompileAndVerify(source).VerifyIL("Program.Main", @"
+            CompileStandardAndVerify(source).VerifyIL("Program.Main", @"
 {
   // Code size       27 (0x1b)
   .maxstack  1
@@ -1288,7 +1288,7 @@ class Program
     }
 }
 ";
-            CompileAndVerify(source).VerifyIL("Program.goo", @"
+            CompileStandardAndVerify(source).VerifyIL("Program.goo", @"
 {
   // Code size       19 (0x13)
   .maxstack  1
@@ -1332,7 +1332,7 @@ class Program
     }
 }
 ";
-            CompileAndVerify(source).VerifyIL("Program.Main", @"
+            CompileStandardAndVerify(source).VerifyIL("Program.Main", @"
 {
   // Code size       27 (0x1b)
   .maxstack  1
@@ -1378,7 +1378,7 @@ class Program
     }
 }
 ";
-            CompileAndVerify(source).VerifyIL("Program.goo", @"
+            CompileStandardAndVerify(source).VerifyIL("Program.goo", @"
 {
   // Code size       19 (0x13)
   .maxstack  1
@@ -1422,7 +1422,7 @@ class Program
     }
 }
 ";
-            CompileAndVerify(source).VerifyIL("Program.Main", @"
+            CompileStandardAndVerify(source).VerifyIL("Program.Main", @"
 {
   // Code size       27 (0x1b)
   .maxstack  1
@@ -1469,7 +1469,7 @@ class Res : IDisposable
     { }
 }
 ";
-            CompileAndVerify(source).VerifyIL("Program.Main", @"
+            CompileStandardAndVerify(source).VerifyIL("Program.Main", @"
 {
   // Code size       29 (0x1d)
   .maxstack  1
@@ -1520,7 +1520,7 @@ class MyManagedClass : IDisposable
     { System.Console.WriteLine(""Func""); }
 }
 ";
-            CompileAndVerify(source).VerifyIL("Program.Main", @"
+            CompileStandardAndVerify(source).VerifyIL("Program.Main", @"
 {
   // Code size       35 (0x23)
   .maxstack  1
@@ -1572,7 +1572,7 @@ class MyManagedClass : IDisposable
     { System.Console.WriteLine(""Func""); }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "InUsing").VerifyIL("Program.Main", @"
+            CompileStandardAndVerify(source, expectedOutput: "InUsing").VerifyIL("Program.Main", @"
 {
   // Code size       29 (0x1d)
   .maxstack  1
@@ -1621,7 +1621,7 @@ class MyManagedClass : IDisposable
     { System.Console.WriteLine(""Func""); }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "").VerifyIL("Program.Main", @"
+            CompileStandardAndVerify(source, expectedOutput: "").VerifyIL("Program.Main", @"
 {
   // Code size       29 (0x1d)
   .maxstack  1
@@ -1671,7 +1671,7 @@ struct MyManagedClass : IDisposable
     { System.Console.WriteLine(""Func""); }
 }
 ";
-            CompileAndVerify(source, expectedOutput: @"InUsing
+            CompileStandardAndVerify(source, expectedOutput: @"InUsing
 Dispose").VerifyIL("Program.Main", @"
 {
   // Code size       33 (0x21)
@@ -1720,7 +1720,7 @@ struct MyManagedClass : IDisposable
     { System.Console.WriteLine(""Func""); }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "Dispose").VerifyIL("Program.Main", @"
+            CompileStandardAndVerify(source, expectedOutput: "Dispose").VerifyIL("Program.Main", @"
 {
   // Code size       34 (0x22)
   .maxstack  1
@@ -1786,7 +1786,7 @@ struct MyManagedClass : IDisposable
             //
             // Roslyn does the latter.
 
-            var comp = CompileAndVerify(source, expectedOutput: @"InUsing");
+            var comp = CompileStandardAndVerify(source, expectedOutput: @"InUsing");
             comp.VerifyIL("Program.Main", @"
 {
   // Code size       50 (0x32)
@@ -1842,7 +1842,7 @@ struct MyManagedClass : IDisposable
     { System.Console.WriteLine(""Func""); }
 }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: "");
+            var comp = CompileStandardAndVerify(source, expectedOutput: "");
 
             // Note that changing the value of the expression does not cause the
             // Dispose to be called; we dispose the original value, not the new value.
@@ -1910,7 +1910,7 @@ struct MyManagedClass : IDisposable
             string expected = @"Func
 Dispose";
 
-            var comp = CompileAndVerify(source, expectedOutput: expected);
+            var comp = CompileStandardAndVerify(source, expectedOutput: expected);
 
             // Note that changing the value of the expression does not cause the
             // Dispose to be called; we dispose the original value, not the new value.
@@ -1981,7 +1981,7 @@ struct MyManagedClass1 : IDisposable
     public void Throw() { throw new Exception(); }
 }
 ";
-            CompileAndVerify(source, expectedOutput: @"1:Dispose
+            CompileStandardAndVerify(source, expectedOutput: @"1:Dispose
 1:Dispose").VerifyIL("Program.Main", @"
 {
   // Code size       50 (0x32)
@@ -2049,7 +2049,7 @@ class MyManagedClass : IDisposable
     { throw (new Exception(""Res1"")); }
 }
 ";
-            CompileAndVerify(source).VerifyIL("Program.Main", @"
+            CompileStandardAndVerify(source).VerifyIL("Program.Main", @"
 {
   // Code size       29 (0x1d)
   .maxstack  1
@@ -2099,7 +2099,7 @@ struct MyManagedClass : IDisposable
     { throw (new Exception(""Res1"")); }
 }
 ";
-            CompileAndVerify(source).VerifyIL("Program.Main", @"
+            CompileStandardAndVerify(source).VerifyIL("Program.Main", @"
 {
   // Code size       33 (0x21)
   .maxstack  1
@@ -2154,7 +2154,7 @@ struct  MyManagedClass : IDisposable
     { throw new Exception(); }
 }
 ";
-            CompileAndVerify(source).VerifyIL("Program.Main", @"
+            CompileStandardAndVerify(source).VerifyIL("Program.Main", @"
 {
   // Code size       70 (0x46)
   .maxstack  1
@@ -2222,7 +2222,7 @@ struct  MyManagedClass : IDisposable
     { throw new Exception(); }
 }
 ";
-            CompileAndVerify(source).VerifyIL("Program.Main", @"
+            CompileStandardAndVerify(source).VerifyIL("Program.Main", @"
 {
   // Code size       54 (0x36)
   .maxstack  1
@@ -2346,7 +2346,7 @@ struct MyManagedClass1 : IDisposable
     public void Throw() { throw new Exception(); }
 }
 ";
-            CompileAndVerify(source).VerifyIL("Program.Main", @"
+            CompileStandardAndVerify(source).VerifyIL("Program.Main", @"
 {
   // Code size       53 (0x35)
   .maxstack  2
@@ -2578,7 +2578,7 @@ class Program
         }
     }
 }";
-            var comp = CompileAndVerify(source, expectedOutput: @"");
+            var comp = CompileStandardAndVerify(source, expectedOutput: @"");
         }
 
         // Anonymous Delegate in using block
@@ -2638,7 +2638,7 @@ public class MyManagedClass1 : IDisposable
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: @"Try
+            CompileStandardAndVerify(source, expectedOutput: @"Try
 Catch
 Dispose()").VerifyIL("Program.Main", @"
 {
@@ -2706,7 +2706,7 @@ public class MyManagedClass1 : IDisposable
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: @"Try
+            CompileStandardAndVerify(source, expectedOutput: @"Try
 Dispose()
 Catch").VerifyIL("Program.Main", @"
 {
@@ -2774,7 +2774,7 @@ struct A : System.IDisposable
     }  
 }";
 
-            CompileAndVerify(source, expectedOutput: "5");
+            CompileStandardAndVerify(source, expectedOutput: "5");
         }
 
         [Fact, WorkItem(1077204, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077204")]
@@ -2807,7 +2807,7 @@ struct A : System.IDisposable
     }
 }";
 
-            CompileAndVerify(source, expectedOutput: "0");
+            CompileStandardAndVerify(source, expectedOutput: "0");
         }
 
         [Fact, WorkItem(1077204, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077204")]
@@ -2845,7 +2845,7 @@ struct A : System.IDisposable
     }
 }";
 
-            CompileAndVerify(source, expectedOutput: "0");
+            CompileStandardAndVerify(source, expectedOutput: "0");
         }
     }
 }

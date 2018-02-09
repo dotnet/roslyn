@@ -279,7 +279,7 @@ class C
     }
 }
 ";
-            CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb("C.M", @"
+            CompileStandardAndVerify(text, options: TestOptions.DebugDll).VerifyPdb("C.M", @"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
@@ -329,7 +329,7 @@ class C
     }
 }
 ";
-            var c = CompileAndVerify(text, options: TestOptions.DebugDll);
+            var c = CompileStandardAndVerify(text, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
 <symbols>
   <files>
@@ -401,7 +401,7 @@ class C
             // all of the changes look reasonable.  The main thing for this test is that 
             // Dev10 creates fields for the locals in the iterator class.  Roslyn doesn't
             // do that - the <constant> in the <scope> is sufficient.
-            var v = CompileAndVerify(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            var v = CompileStandardAndVerify(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 Assert.Equal(new[]
                 {
@@ -478,7 +478,7 @@ class C
 ";
             using (new CultureContext(new CultureInfo("en-US", useUserOverride: false)))
             {
-                CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb("C.M", @"
+                CompileStandardAndVerify(text, options: TestOptions.DebugDll).VerifyPdb("C.M", @"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
@@ -601,7 +601,7 @@ this is a string constant that is too long to fit into the PDB"";
     }
 }
 ";
-            var c = CompileAndVerify(text, options: TestOptions.DebugDll);
+            var c = CompileStandardAndVerify(text, options: TestOptions.DebugDll);
 
             c.VerifyPdb("C.M", @"
 <symbols>
@@ -657,7 +657,7 @@ class C
     }
 }
 ";
-            var c = CompileAndVerify(text, options: TestOptions.DebugDll);
+            var c = CompileStandardAndVerify(text, options: TestOptions.DebugDll);
 
             c.VerifyPdb("C.M", @"
 <symbols>
@@ -716,7 +716,7 @@ class C
     }
 }
 ";
-            var c = CompileAndVerify(text, options: TestOptions.DebugDll);
+            var c = CompileStandardAndVerify(text, options: TestOptions.DebugDll);
 
             c.VerifyPdb("C.M", @"
 <symbols>
@@ -771,7 +771,7 @@ class C
 ";
             using (new CultureContext(new CultureInfo("en-US", useUserOverride: false)))
             {
-                CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb("C.M", @"
+                CompileStandardAndVerify(text, options: TestOptions.DebugDll).VerifyPdb("C.M", @"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />

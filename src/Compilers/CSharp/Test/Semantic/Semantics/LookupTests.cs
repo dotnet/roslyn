@@ -1369,7 +1369,7 @@ class Program
                 Assert.Empty(globalNS.GetMembers("B"));
             };
 
-            CompileAndVerify(source, sourceSymbolValidator: validator, symbolValidator: validator);
+            CompileStandardAndVerify(source, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]

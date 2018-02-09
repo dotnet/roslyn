@@ -772,7 +772,7 @@ class Test
 ";
             string expectedOutput = @"255";
 
-            CompileAndVerify(new[] { source }, expectedOutput: expectedOutput);
+            CompileStandardAndVerify(new[] { source }, expectedOutput: expectedOutput);
         }
 
         [WorkItem(545156, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545156")]
@@ -835,7 +835,7 @@ public class Derived
         Derived d = new Derived();
     }
 }";
-            CompileAndVerify(source, expectedOutput: "Local = 2, Field = 1");
+            CompileStandardAndVerify(source, expectedOutput: "Local = 2, Field = 1");
         }
 
         [WorkItem(642222, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/642222")]

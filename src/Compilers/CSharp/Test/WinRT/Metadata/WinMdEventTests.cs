@@ -2350,7 +2350,7 @@ public partial class A : I
         return d.d1 == null;
     }
 }";
-            var verifier = CompileAndVerify(
+            var verifier = CompileStandardAndVerify(
                 new[] { src, DynamicCommonSrc },
                 additionalRefs: new[] {
                     MscorlibRef_v4_0_30316_17626,

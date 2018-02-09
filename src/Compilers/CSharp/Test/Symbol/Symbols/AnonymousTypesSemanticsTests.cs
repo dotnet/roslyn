@@ -1471,7 +1471,7 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
         [ClrOnlyFact]
         public void TestAnonymousTypeInsideGroupBy_Queryable()
         {
-            CompileAndVerify(
+            CompileStandardAndVerify(
  @"using System.Linq;
 
 public class Product
@@ -1580,7 +1580,7 @@ class Program
         [ClrOnlyFact]
         public void TestAnonymousTypeInsideGroupBy_Enumerable()
         {
-            CompileAndVerify(
+            CompileStandardAndVerify(
  @"using System.Linq;
 using System.Collections.Generic;
 
@@ -1609,7 +1609,7 @@ public class Program
         [ClrOnlyFact]
         public void TestAnonymousTypeInsideGroupBy_Enumerable2()
         {
-            CompileAndVerify(
+            CompileStandardAndVerify(
  @"using System.Linq;
 using System.Collections.Generic;
 

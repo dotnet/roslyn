@@ -70,7 +70,7 @@ class Program
     }
 }";
             string expected = "100200";
-            CompileAndVerify(source, expectedOutput: expected);
+            CompileStandardAndVerify(source, expectedOutput: expected);
         }
 
         [Fact]
@@ -588,7 +588,7 @@ System.Nullable`1[ELong]: one
 System.Nullable`1[ELong]: <null>
 System.Nullable`1[ELong]: <null>";
 
-            CompileAndVerify(source, expectedOutput: expected);
+            CompileStandardAndVerify(source, expectedOutput: expected);
         }
 
         [Fact]
@@ -637,7 +637,7 @@ class C
         }
     }
 }";
-            CompileAndVerify(source, expectedOutput: "123012704256");
+            CompileStandardAndVerify(source, expectedOutput: "123012704256");
         }
 
         [Fact]
@@ -690,7 +690,7 @@ D.this[str: 'goo', i: 1].set
 D.this[str: 'bar', i: 13].set
 D.this[str: 'baz', i: 2].set
 D.this[str: 'bah', i: 3].set";
-            CompileAndVerify(source, expectedOutput: expected);
+            CompileStandardAndVerify(source, expectedOutput: expected);
         }
 
         [Fact]
@@ -712,7 +712,7 @@ partial class C
     }
 }";
             string expected = "123";
-            CompileAndVerify(source, expectedOutput: expected);
+            CompileStandardAndVerify(source, expectedOutput: expected);
         }
 
         [Fact]
@@ -765,7 +765,7 @@ unsafe class C
             // default(IntPtr) as "load zero, convert to type", rather than making a stack slot and calling
             // init on it.
 
-            var c = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
+            var c = CompileStandardAndVerify(source, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
 
             c.VerifyIL("C.Main", @"{
   // Code size       13 (0xd)
@@ -983,7 +983,7 @@ public class Test
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "0");
+            CompileStandardAndVerify(source, expectedOutput: "0");
         }
 
         [WorkItem(543871, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543871")]
@@ -1023,7 +1023,7 @@ public interface IOptionalRef
     MyEnum MethodRef([In, Out, Optional, DefaultParameterValue(MyEnum.three)] ref MyEnum v);
 }
 ";
-            CompileAndVerify(source, new[] { SystemRef }).VerifyDiagnostics();
+            CompileStandardAndVerify(source, new[] { SystemRef }).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1337,12 +1337,12 @@ System.Runtime.InteropServices.UnknownWrapper
 17
 18";
             // definitions in source:
-            var verifier = CompileAndVerify(new[] { sourceDefinitions, sourceCalls }, new[] { SystemRef }, expectedOutput: expected);
+            var verifier = CompileStandardAndVerify(new[] { sourceDefinitions, sourceCalls }, new[] { SystemRef }, expectedOutput: expected);
 
             // definitions in metadata:
             using (var assembly = AssemblyMetadata.CreateFromImage(verifier.EmittedAssemblyData))
             {
-                CompileAndVerify(new[] { sourceCalls }, new[] { SystemRef, assembly.GetReference() }, expectedOutput: expected);
+                CompileStandardAndVerify(new[] { sourceCalls }, new[] { SystemRef, assembly.GetReference() }, expectedOutput: expected);
             }
         }
 
@@ -1745,7 +1745,7 @@ class Com : ICom
     }
 }
 ";
-            var verifier = CompileAndVerify(source, expectedOutput: @"
+            var verifier = CompileStandardAndVerify(source, expectedOutput: @"
 100
 System.Reflection.Missing
 10
@@ -1819,7 +1819,7 @@ class B
         i = new[] { 0 };
     }
 }";
-            var verifier = CompileAndVerify(source, expectedOutput:
+            var verifier = CompileStandardAndVerify(source, expectedOutput:
 @"F()
 0
 F()
@@ -1896,7 +1896,7 @@ class B
         Console.WriteLine(""{0}, {1}"", i1[0], i2[0]);
     }
 }";
-            var verifier = CompileAndVerify(source, expectedOutput:
+            var verifier = CompileStandardAndVerify(source, expectedOutput:
 @"F2()
 F1()
 2, 3
@@ -1965,7 +1965,7 @@ public class D : B
     }
 }
 ";
-            var verifier = CompileAndVerify(source, expectedOutput: "2");
+            var verifier = CompileStandardAndVerify(source, expectedOutput: "2");
             verifier.VerifyIL("D.M()",
 @"{
   // Code size       11 (0xb)
@@ -2055,7 +2055,7 @@ public class C
                 Assert.Equal(isFromSource ? 2 : 0, parameters[7].GetAttributes().Length);
             };
 
-            CompileAndVerify(source, new[] { SystemRef }, sourceSymbolValidator: validator(true), symbolValidator: validator(false));
+            CompileStandardAndVerify(source, new[] { SystemRef }, sourceSymbolValidator: validator(true), symbolValidator: validator(false));
         }
 
         [Fact]
@@ -2106,7 +2106,7 @@ public struct S
             };
 
             // TODO: RefEmit doesn't emit the default value of M1's parameter.
-            CompileAndVerify(source, new[] { SystemRef }, sourceSymbolValidator: validator(true), symbolValidator: validator(false));
+            CompileStandardAndVerify(source, new[] { SystemRef }, sourceSymbolValidator: validator(true), symbolValidator: validator(false));
         }
 
         [Fact]
@@ -2188,7 +2188,7 @@ public class C
                 Assert.Equal(isFromSource ? 2 : 0, parameters[7].GetAttributes().Length);
             };
 
-            CompileAndVerify(source, new[] { SystemRef }, sourceSymbolValidator: validator(true), symbolValidator: validator(false));
+            CompileStandardAndVerify(source, new[] { SystemRef }, sourceSymbolValidator: validator(true), symbolValidator: validator(false));
         }
 
         [Fact]
@@ -2271,7 +2271,7 @@ public class C
                 Assert.Equal(isFromSource ? 2 : 0, parameters[7].GetAttributes().Length); // Optional+DecimalConstantAttribute / DecimalConstantAttribute
             };
 
-            CompileAndVerify(source, new[] { SystemRef }, sourceSymbolValidator: validator(true), symbolValidator: validator(false));
+            CompileStandardAndVerify(source, new[] { SystemRef }, sourceSymbolValidator: validator(true), symbolValidator: validator(false));
         }
 
         [Fact]
@@ -2348,7 +2348,7 @@ public class C
             };
 
             // TODO: Guess - RefEmit doesn't like DateTime constants.
-            CompileAndVerify(source, new[] { SystemRef }, sourceSymbolValidator: validator(true), symbolValidator: validator(false));
+            CompileStandardAndVerify(source, new[] { SystemRef }, sourceSymbolValidator: validator(true), symbolValidator: validator(false));
         }
     }
 }

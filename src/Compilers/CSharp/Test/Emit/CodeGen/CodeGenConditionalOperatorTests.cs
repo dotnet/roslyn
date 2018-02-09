@@ -35,7 +35,7 @@ class C : I
         System.Console.Write(Tester(false)().GetType());
     }
 }";
-            var verify = CompileAndVerify(src,
+            var verify = CompileStandardAndVerify(src,
                 options: TestOptions.DebugExe,
                 expectedOutput: "C");
             verify.VerifyIL("C.Tester", @"
@@ -72,7 +72,7 @@ class C : I
 }
 ");
 
-            verify = CompileAndVerify(src,
+            verify = CompileStandardAndVerify(src,
                 expectedOutput: "C");
             verify.VerifyIL("C.Tester", @"
 {
@@ -159,7 +159,7 @@ class C : I
         System.Console.Write(Tester(1)().GetType());
     }
 }";
-            var verify = CompileAndVerify(src,
+            var verify = CompileStandardAndVerify(src,
                 options: TestOptions.DebugExe,
                 expectedOutput: "A");
             verify.VerifyIL("C.Tester", @"
@@ -209,7 +209,7 @@ class C : I
   IL_006e:  ret
 }
 ");
-            verify = CompileAndVerify(src,
+            verify = CompileStandardAndVerify(src,
                 expectedOutput: "A");
             verify.VerifyIL("C.Tester", @"
 {
@@ -285,7 +285,7 @@ class C : I
         System.Console.Write(Tester(-1)().GetType());
     }
 }";
-            var verify = CompileAndVerify(src,
+            var verify = CompileStandardAndVerify(src,
                 options: TestOptions.DebugExe,
                 expectedOutput: "B");
             verify.VerifyIL("C.Tester", @"
@@ -335,7 +335,7 @@ class C : I
   IL_006e:  ret
 }
 ");
-            verify = CompileAndVerify(src,
+            verify = CompileStandardAndVerify(src,
                 expectedOutput: "B");
             verify.VerifyIL("C.Tester", @"
 {
@@ -414,7 +414,7 @@ class C : I
         System.Console.Write(Tester(-2)().GetType());
     }
 }";
-            var verify = CompileAndVerify(src,
+            var verify = CompileStandardAndVerify(src,
                 options: TestOptions.DebugExe,
                 expectedOutput: "D");
             verify.VerifyIL("C.Tester", @"
@@ -477,7 +477,7 @@ class C : I
   IL_0093:  ret
 }
 ");
-            verify = CompileAndVerify(src,
+            verify = CompileStandardAndVerify(src,
                 expectedOutput: "D");
             verify.VerifyIL("C.Tester", @"
 {
@@ -563,7 +563,7 @@ public class C : I
         System.Console.Write(Tester(1, 0).GetType());
     }
 }";
-            var verify = CompileAndVerify(src,
+            var verify = CompileStandardAndVerify(src,
                 options: TestOptions.DebugExe,
                 expectedOutput: "C");
             verify.VerifyIL("C.Tester", @"
@@ -594,7 +594,7 @@ public class C : I
   IL_0024:  ret
 }");
             // Optimized
-            verify = CompileAndVerify(src,
+            verify = CompileStandardAndVerify(src,
                 expectedOutput: "C");
             verify.VerifyIL("C.Tester", @"
 {
@@ -647,7 +647,7 @@ public class C : I
         System.Console.Write(Tester(0).GetType());
     }
 }";
-            var verify = CompileAndVerify(src,
+            var verify = CompileStandardAndVerify(src,
                 options: TestOptions.DebugExe,
                 expectedOutput: "B");
             verify.VerifyIL("C.Tester", @"
@@ -680,7 +680,7 @@ public class C : I
   IL_0026:  ret
 }");
             // Optimized
-            verify = CompileAndVerify(src,
+            verify = CompileStandardAndVerify(src,
                 expectedOutput: "B");
             verify.VerifyIL("C.Tester", @"
 {
@@ -737,7 +737,7 @@ public class C : I
         System.Console.Write(Tester(1).GetType());
     }
 }";
-            var verify = CompileAndVerify(src,
+            var verify = CompileStandardAndVerify(src,
                 options: TestOptions.DebugExe,
                 expectedOutput: "A");
             verify.VerifyIL("C.Tester", @"
@@ -776,7 +776,7 @@ public class C : I
   IL_0032:  ret
 }");
             // Optimized
-            verify = CompileAndVerify(src,
+            verify = CompileStandardAndVerify(src,
                 expectedOutput: "A");
             verify.VerifyIL("C.Tester", @"
 {
@@ -843,7 +843,7 @@ public class C : I
         System.Console.Write(Tester(0).GetType());
     }
 }";
-            var verify = CompileAndVerify(src,
+            var verify = CompileStandardAndVerify(src,
                 options: TestOptions.DebugExe,
                 expectedOutput: "D");
             verify.VerifyIL("C.Tester", @"
@@ -883,7 +883,7 @@ public class C : I
   IL_0033:  ret
 }");
             // Optimized
-            verify = CompileAndVerify(src,
+            verify = CompileStandardAndVerify(src,
                 expectedOutput: "D");
             verify.VerifyIL("C.Tester", @"
 {
@@ -930,7 +930,7 @@ class C
         System.Console.WriteLine(b ? 1 : 2);
     }
 }";
-            var comp = CompileAndVerify(source, expectedOutput: "1");
+            var comp = CompileStandardAndVerify(source, expectedOutput: "1");
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main", @"{
   // Code size       13 (0xd)
@@ -959,7 +959,7 @@ class C
         System.Console.WriteLine(false ? x : y);
     }
 }";
-            var comp = CompileAndVerify(source, expectedOutput: @"
+            var comp = CompileStandardAndVerify(source, expectedOutput: @"
 1
 2");
             comp.VerifyDiagnostics();
@@ -992,7 +992,7 @@ class C
         System.Console.WriteLine(s2);
     }
 }";
-            var comp = CompileAndVerify(source);
+            var comp = CompileStandardAndVerify(source);
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main", @"
 {
@@ -1032,7 +1032,7 @@ class C
     }
 }";
             // NOTE: this is slightly different from the Dev10 IL, which caches the lambdas in static fields
-            var comp = CompileAndVerify(source);
+            var comp = CompileStandardAndVerify(source);
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main", @"
 {
@@ -1098,7 +1098,7 @@ class C
         return 0;
     }
 }";
-            var comp = CompileAndVerify(source);
+            var comp = CompileStandardAndVerify(source);
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main", @"
 {
@@ -1144,7 +1144,7 @@ class C
     }
 }";
             // NOTE: second call is to Write(uint)
-            var comp = CompileAndVerify(source, expectedOutput: "00");
+            var comp = CompileStandardAndVerify(source, expectedOutput: "00");
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main", @"
 {
@@ -1197,7 +1197,7 @@ public class Test
     }
 }";
             // NOTE: second call is to Write(uint)
-            var comp = CompileAndVerify(source, expectedOutput: @"
+            var comp = CompileStandardAndVerify(source, expectedOutput: @"
 first attempt: System.Type[]
 second attempt: System.Type[]");
             comp.VerifyDiagnostics();
@@ -1257,7 +1257,7 @@ public class Test
 }";
             // Note the explicit casts, even though the conversions are
             // implicit reference conversions.
-            var comp = CompileAndVerify(source);
+            var comp = CompileStandardAndVerify(source);
             comp.VerifyDiagnostics();
             comp.VerifyIL("Test.Main", @"
 {
@@ -1303,7 +1303,7 @@ public class Test
 }";
             // Note the explicit casts, even though the conversions are
             // implicit reference conversions.
-            var comp = CompileAndVerify(source);
+            var comp = CompileStandardAndVerify(source);
             comp.VerifyDiagnostics();
             comp.VerifyIL("Test.Main", @"
 {
@@ -1345,7 +1345,7 @@ class Test1 : Base
     public Base m1() { return ((++cnt) & Driver.mask) != 0 ? same : next; } //version1 (explicit impl in original repro)
     public Base m2() { return ((++cnt) & Driver.mask) != 0 ? this : next; } //version2 
 }";
-            var comp = CompileAndVerify(source);
+            var comp = CompileStandardAndVerify(source);
             comp.VerifyDiagnostics();
             comp.VerifyIL("Test1.m1", @"
 {
@@ -1423,7 +1423,7 @@ class MainClass
             // implicit reference conversions.
             // CONSIDER: dev10 writes to/reads from a temp to simulate
             // a static cast (instead of using castclass).
-            var comp = CompileAndVerify(source);
+            var comp = CompileStandardAndVerify(source);
             comp.VerifyDiagnostics();
             comp.VerifyIL("MainClass.g", @"
 {
@@ -1468,7 +1468,7 @@ class Program
             string expectedOutput = @"aaa
 bbb
 ccc";
-            CompileAndVerify(source, additionalRefs: new[] { LinqAssemblyRef }, expectedOutput: expectedOutput);
+            CompileStandardAndVerify(source, additionalRefs: new[] { LinqAssemblyRef }, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -1504,7 +1504,7 @@ class Goo
 1
 4
 4";
-            CompileAndVerify(source, expectedOutput: expectedOutput);
+            CompileStandardAndVerify(source, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -1537,7 +1537,7 @@ class Goo
 ";
             string expectedOutput = @"10
 -10";
-            CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef }, expectedOutput: expectedOutput);
+            CompileStandardAndVerify(source, additionalRefs: new[] { SystemCoreRef }, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -1557,7 +1557,7 @@ class Program
 }
 ";
             string expectedOutput = @"100";
-            CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef }, expectedOutput: expectedOutput);
+            CompileStandardAndVerify(source, additionalRefs: new[] { SystemCoreRef }, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -1588,7 +1588,7 @@ public struct TestStruct
 }
 ";
             string expectedOutput = @"10";
-            CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef }, expectedOutput: expectedOutput);
+            CompileStandardAndVerify(source, additionalRefs: new[] { SystemCoreRef }, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -1611,7 +1611,7 @@ class Program
   IL_0001:  call       ""void System.Console.WriteLine(int)""
   IL_0006:  ret       
 }";
-            CompileAndVerify(source, expectedOutput: expectedOutput).VerifyIL("Program.Main", expectedIL);
+            CompileStandardAndVerify(source, expectedOutput: expectedOutput).VerifyIL("Program.Main", expectedIL);
         }
 
         [WorkItem(528275, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528275")]
@@ -1645,7 +1645,7 @@ class Program
 
             // Dev11 compiler reports WRN_UnreachableExpr, but reachability is defined for statements not for expressions.
             // We don't report the warning.
-            CompileAndVerify(source, additionalRefs: metadataRef, expectedOutput: expectedOutput).VerifyIL("Program.Main", expectedIL).VerifyDiagnostics();
+            CompileStandardAndVerify(source, additionalRefs: metadataRef, expectedOutput: expectedOutput).VerifyIL("Program.Main", expectedIL).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1693,7 +1693,7 @@ class Program
   IL_0036:  call       ""void System.Console.WriteLine(decimal)""
   IL_003b:  ret
 }";
-            CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef }).VerifyIL("Program.Main", expectedIL);
+            CompileStandardAndVerify(source, additionalRefs: new[] { SystemCoreRef }).VerifyIL("Program.Main", expectedIL);
         }
 
         [Fact, WorkItem(530071, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530071")]
@@ -1718,7 +1718,7 @@ class Program
 3";
             // Dev11 compiler reports WRN_UnreachableExpr, but reachability is defined for statements not for expressions.
             // We don't report the warning.
-            CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef }, expectedOutput: expectedOutput).
+            CompileStandardAndVerify(source, additionalRefs: new[] { SystemCoreRef }, expectedOutput: expectedOutput).
                 VerifyDiagnostics();
         }
 
@@ -1742,7 +1742,7 @@ class Program
   IL_0000:  ldc.i4.2
   IL_0001:  ret
 }";
-            CompileAndVerify(source).VerifyIL("Program.Main", expectedIL);
+            CompileStandardAndVerify(source).VerifyIL("Program.Main", expectedIL);
         }
 
         [Fact]
@@ -1769,7 +1769,7 @@ class Program
   IL_0009:  ldc.i4.1
   IL_000a:  ret
 }";
-            CompileAndVerify(source).VerifyIL("Program.Main", expectedIL);
+            CompileStandardAndVerify(source).VerifyIL("Program.Main", expectedIL);
         }
 
         [Fact]
@@ -1800,7 +1800,7 @@ class Program
   IL_000b:  call       ""void System.Console.WriteLine(object)""
   IL_0010:  ret
 }";
-            CompileAndVerify(source, expectedOutput: expectedOutput).VerifyIL("Program.Main", expectedIL);
+            CompileStandardAndVerify(source, expectedOutput: expectedOutput).VerifyIL("Program.Main", expectedIL);
         }
 
         [Fact]
@@ -1845,7 +1845,7 @@ class Program
   IL_0024:  ret
 }
 ";
-            CompileAndVerify(source, expectedOutput: expectedOutput).VerifyIL("Program.Main", expectedIL);
+            CompileStandardAndVerify(source, expectedOutput: expectedOutput).VerifyIL("Program.Main", expectedIL);
         }
 
         [Fact]
@@ -1863,7 +1863,7 @@ class Program
 }
 ";
             string expectedOutput = @"2";
-            CompileAndVerify(source, expectedOutput: expectedOutput);
+            CompileStandardAndVerify(source, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -1895,7 +1895,7 @@ class Program
   IL_000f:  call       ""void System.Console.WriteLine(string)""
   IL_0014:  ret       
 }";
-            CompileAndVerify(source, expectedOutput: expectedOutput).VerifyIL("Program.fun", expectedIL);
+            CompileStandardAndVerify(source, expectedOutput: expectedOutput).VerifyIL("Program.fun", expectedIL);
         }
 
         [Fact]
@@ -1940,7 +1940,7 @@ class Program
   IL_0012:  call       ""void System.Console.WriteLine(bool)""
   IL_0017:  ret
 }";
-            CompileAndVerify(source, expectedOutput: expectedOutput).VerifyIL("Program.fun", expectedIL);
+            CompileStandardAndVerify(source, expectedOutput: expectedOutput).VerifyIL("Program.fun", expectedIL);
         }
 
         [Fact]
@@ -1984,7 +1984,7 @@ class Program
   IL_001a:  call       ""void System.Console.WriteLine(bool)""
   IL_001f:  ret       
 }";
-            CompileAndVerify(source, expectedOutput: expectedOutput).VerifyIL("Program.fun", expectedIL);
+            CompileStandardAndVerify(source, expectedOutput: expectedOutput).VerifyIL("Program.fun", expectedIL);
         }
 
         [Fact]
@@ -2037,7 +2037,7 @@ public static class Program
   IL_0020:  call       ""void System.Console.Write(string)""
   IL_0025:  ret
 }";
-            CompileAndVerify(source, expectedOutput: expectedOutput).VerifyIL("Program.Main", expectedIL);
+            CompileStandardAndVerify(source, expectedOutput: expectedOutput).VerifyIL("Program.Main", expectedIL);
         }
 
         [Fact]
@@ -2111,7 +2111,7 @@ public static class Program
   IL_004b:  call       ""void System.Console.Write(string)""
   IL_0050:  ret
 }";
-            CompileAndVerify(source, expectedOutput: expectedOutput).VerifyIL("Program.Main", expectedIL);
+            CompileStandardAndVerify(source, expectedOutput: expectedOutput).VerifyIL("Program.Main", expectedIL);
         }
 
         [Fact(), WorkItem(543609, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543609")]
@@ -2164,7 +2164,7 @@ class Class1
   IL_0017:  stloc.1
   IL_0018:  ret
 }";
-            CompileAndVerify(source, expectedOutput: expectedOutput).VerifyIL("Class1.Main", expectedIL);
+            CompileStandardAndVerify(source, expectedOutput: expectedOutput).VerifyIL("Class1.Main", expectedIL);
         }
 
         [Fact(), WorkItem(638289, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638289")]
@@ -2194,7 +2194,7 @@ public class C : I
         System.Console.Write(Tester(null).GetType());
     }
 }";
-            var verify = CompileAndVerify(src,
+            var verify = CompileStandardAndVerify(src,
                 options: TestOptions.DebugExe,
                 expectedOutput: "C");
             verify.VerifyIL("C.Tester", @"
@@ -2225,7 +2225,7 @@ public class C : I
   IL_001f:  ret
 }");
             // Optimized
-            verify = CompileAndVerify(src,
+            verify = CompileStandardAndVerify(src,
                 expectedOutput: "C");
             verify.VerifyIL("C.Tester",
 @"
@@ -2296,7 +2296,7 @@ class Class1
   IL_000a:  ret
 }
 ";
-            CompileAndVerify(source, expectedOutput: expectedOutput).VerifyIL("Class1.Main", expectedIL);
+            CompileStandardAndVerify(source, expectedOutput: expectedOutput).VerifyIL("Class1.Main", expectedIL);
         }
 
         [Fact, WorkItem(12439, "https://github.com/dotnet/roslyn/issues/12439")]
@@ -2323,7 +2323,7 @@ static class LiveList
     }
 }";
 
-            CompileAndVerify(source);
+            CompileStandardAndVerify(source);
         }
 
         [Fact, WorkItem(12439, "https://github.com/dotnet/roslyn/issues/12439")]
@@ -2350,7 +2350,7 @@ static class LiveList
     }
 }";
 
-            CompileAndVerify(source);
+            CompileStandardAndVerify(source);
         }
 
         [Fact, WorkItem(17756, "https://github.com/dotnet/roslyn/issues/17756")]
@@ -2398,7 +2398,7 @@ static class LiveList
 1
 1
 1";
-            CompileAndVerify(source, expectedOutput: expectedOutput);
+            CompileStandardAndVerify(source, expectedOutput: expectedOutput);
         }
 
         [Fact, WorkItem(17756, "https://github.com/dotnet/roslyn/issues/17756")]
@@ -2432,7 +2432,7 @@ class Program
 ";
             string expectedOutput = @"1
 1";
-            CompileAndVerify(source, expectedOutput: expectedOutput, options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails);
+            CompileStandardAndVerify(source, expectedOutput: expectedOutput, options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails);
         }
 
         [Fact, WorkItem(17756, "https://github.com/dotnet/roslyn/issues/17756")]
@@ -2469,13 +2469,13 @@ class Program
 ";
             string expectedOutput = @"1
 1";
-            CompileAndVerify(source, expectedOutput: expectedOutput);
+            CompileStandardAndVerify(source, expectedOutput: expectedOutput);
         }
 
         [Fact]
         public void RefReadonlyConditional()
         {
-            var comp = CompileAndVerify(@"
+            var comp = CompileStandardAndVerify(@"
 using System;
 
 struct S
@@ -2706,7 +2706,7 @@ class Program
             string expectedOutput = @"2
 2
 2";
-            var verify = CompileAndVerify(source, expectedOutput: expectedOutput);
+            var verify = CompileStandardAndVerify(source, expectedOutput: expectedOutput);
 
             verify.VerifyIL("Program.Main",
 @"

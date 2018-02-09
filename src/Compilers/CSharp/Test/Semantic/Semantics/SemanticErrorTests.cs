@@ -7210,7 +7210,7 @@ initializing for System.String
 String
 ";
             // Although we accept this nasty code, it will not verify.
-            CompileAndVerify(text, expectedOutput: expectedOutput, verify: Verification.Fails);
+            CompileStandardAndVerify(text, expectedOutput: expectedOutput, verify: Verification.Fails);
         }
 
         [Fact]
@@ -19603,7 +19603,7 @@ class MyClass
    }
 }
 ";
-            var verifier = CompileAndVerify(source: text, expectedOutput: @"ffffffffffffffffffffffffffffffffffffffffffffffff
+            var verifier = CompileStandardAndVerify(source: text, expectedOutput: @"ffffffffffffffffffffffffffffffffffffffffffffffff
 ffffffffffffffffffffffffffffffffffffffffffffffff
 ffff");
 
@@ -20148,8 +20148,8 @@ ftftftft";
                 Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "(E?)null != 0").WithArguments("true", "MyClass.E", "MyClass.E?").WithLocation(96, 11)
             };
             var compatibleExpected = fullExpected.Where(d => !d.Code.Equals((int)ErrorCode.WRN_NubExprIsConstBool2)).ToArray();
-            this.CompileAndVerify(source: text, expectedOutput: expected).VerifyDiagnostics(compatibleExpected);
-            this.CompileAndVerify(source: text, expectedOutput: expected, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithStrictFeature()).VerifyDiagnostics(fullExpected);
+            this.CompileStandardAndVerify(source: text, expectedOutput: expected).VerifyDiagnostics(compatibleExpected);
+            this.CompileStandardAndVerify(source: text, expectedOutput: expected, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithStrictFeature()).VerifyDiagnostics(fullExpected);
         }
 
         [Fact]
@@ -21733,7 +21733,7 @@ class C
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "True", additionalRefs: new[] { SystemCoreRef }).VerifyDiagnostics(
+            CompileStandardAndVerify(source, expectedOutput: "True", additionalRefs: new[] { SystemCoreRef }).VerifyDiagnostics(
                 // Do not report the following warning:
                 // (5,34): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'string' is null
                 //         System.Console.WriteLine(default(string).IsNull());

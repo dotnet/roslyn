@@ -1119,7 +1119,7 @@ public class goo
 public class A : Attribute { }
 ";
 
-            CompileAndVerify(source, expectedOutput: "Attribute Count=1").VerifyDiagnostics(
+            CompileStandardAndVerify(source, expectedOutput: "Attribute Count=1").VerifyDiagnostics(
                 // (12,6): warning CS0658: 'goo' is not a recognized attribute location. Valid attribute locations for this declaration are 'method, return'. All attributes in this block will be ignored.
                 Diagnostic(ErrorCode.WRN_InvalidAttributeLocation, "goo").WithArguments("goo", "method, return"));
         }

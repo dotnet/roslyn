@@ -23,7 +23,7 @@ class C
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: string.Empty).
+            CompileStandardAndVerify(source, expectedOutput: string.Empty).
                 VerifyIL("C..ctor", @"
 {
   // Code size        7 (0x7)
@@ -51,7 +51,7 @@ class C
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: string.Empty).
+            CompileStandardAndVerify(source, expectedOutput: string.Empty).
                 VerifyIL("C..ctor", @"
 {
   // Code size        7 (0x7)
@@ -79,7 +79,7 @@ class C
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: string.Empty).
+            CompileStandardAndVerify(source, expectedOutput: string.Empty).
                 VerifyIL("C..ctor", @"
 {
   // Code size        7 (0x7)
@@ -111,7 +111,7 @@ class C
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: string.Empty).
+            CompileStandardAndVerify(source, expectedOutput: string.Empty).
                 VerifyIL("C..ctor", @"
 {
   // Code size        8 (0x8)
@@ -151,7 +151,7 @@ class C : B
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: string.Empty).
+            CompileStandardAndVerify(source, expectedOutput: string.Empty).
                 VerifyIL("C..ctor", @"
 {
   // Code size        8 (0x8)
@@ -188,7 +188,7 @@ class C
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: string.Empty).
+            CompileStandardAndVerify(source, expectedOutput: string.Empty).
                 VerifyIL("C..ctor", @"
 {
   // Code size        8 (0x8)
@@ -260,7 +260,7 @@ class E
 }
 ";
             //interested in execution order and number of field initializations
-            CompileAndVerify(source, expectedOutput: @"
+            CompileStandardAndVerify(source, expectedOutput: @"
 C.f
 B.f
 B()
@@ -297,7 +297,7 @@ class C
 }
 ";
             var expectedOutput = @"True";
-            CompileAndVerify(text, expectedOutput: expectedOutput);
+            CompileStandardAndVerify(text, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -320,7 +320,7 @@ class C
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "42").
+            CompileStandardAndVerify(source, expectedOutput: "42").
                 VerifyIL("C..ctor", @"
 {
   // Code size       15 (0xf)
@@ -357,7 +357,7 @@ public struct S
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "42").
+            CompileStandardAndVerify(source, expectedOutput: "42").
                 VerifyIL("S..ctor", @"
 {
   // Code size       21 (0x15)
@@ -398,7 +398,7 @@ struct C
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "42").
+            CompileStandardAndVerify(source, expectedOutput: "42").
                 VerifyIL("C..ctor(int)", @"
 {
   // Code size       40 (0x28)
@@ -446,7 +446,7 @@ struct C
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "42").
+            CompileStandardAndVerify(source, expectedOutput: "42").
                 VerifyIL("C..cctor()", @"
 {
   // Code size       35 (0x23)
@@ -481,7 +481,7 @@ struct C
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: @"123
+            CompileStandardAndVerify(source, expectedOutput: @"123
 123").
                 VerifyIL("C..cctor()", @"
 {
@@ -513,7 +513,7 @@ struct C
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: @"123
+            CompileStandardAndVerify(source, expectedOutput: @"123
 123").
                 VerifyIL("C..cctor()", @"
 {
@@ -563,7 +563,7 @@ public static class Module1
         }
     }
 ";
-            CompileAndVerify(source, expectedOutput: "3").
+            CompileStandardAndVerify(source, expectedOutput: "3").
                 VerifyIL("ClassWithStaticField..cctor", @"
 {
   // Code size       74 (0x4a)

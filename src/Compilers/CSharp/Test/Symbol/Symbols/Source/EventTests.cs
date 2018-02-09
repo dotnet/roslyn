@@ -295,7 +295,7 @@ public class E
 }
 ";
 
-            var compVerifier = CompileAndVerify(text, expectedOutput: "T1H1H2T2H2T3T4H1H2T5H2T6");
+            var compVerifier = CompileStandardAndVerify(text, expectedOutput: "T1H1H2T2H2T3T4H1H2T5H2T6");
             compVerifier.VerifyDiagnostics(DiagnosticDescription.None);
             var semanticModel = compVerifier.Compilation.GetSemanticModel(compVerifier.Compilation.SyntaxTrees.Single());
 
@@ -440,7 +440,7 @@ class LambdaConsumer
                 Assert.Equal("dynamic", parameterSymbol.Type.ToTestDisplayString());
             };
 
-            CompileAndVerify(source: source, additionalRefs: new[] { CSharpRef, libAssemblyRef },
+            CompileStandardAndVerify(source: source, additionalRefs: new[] { CSharpRef, libAssemblyRef },
                                                     expectedOutput: "Print method ran.", sourceSymbolValidator: validator);
         }
 
@@ -486,7 +486,7 @@ class D
                 Assert.Equal("dynamic", parameterSymbol.Type.ToTestDisplayString());
             };
 
-            var compilationVerifier = CompileAndVerify(source: source, additionalRefs: new[] { CSharpRef, libAssemblyRef }, 
+            var compilationVerifier = CompileStandardAndVerify(source: source, additionalRefs: new[] { CSharpRef, libAssemblyRef }, 
                                                     expectedOutput: "Print method ran.");
         }
 
@@ -513,7 +513,7 @@ class D
     }
 }";
             var expectedOutput = "Print method ran.";
-            var compilationVerifier = CompileAndVerify(source: source,
+            var compilationVerifier = CompileStandardAndVerify(source: source,
                 additionalRefs: new[] { CSharpRef, libCompRef },
                 expectedOutput: expectedOutput);
         }
@@ -571,7 +571,7 @@ Printed: Alice
 Printed: Bob
 Printed: Charlie
 ";
-            var compilationVerifier = CompileAndVerify(source: source, additionalRefs: new[] { CSharpRef, libAssemblyRef },
+            var compilationVerifier = CompileStandardAndVerify(source: source, additionalRefs: new[] { CSharpRef, libAssemblyRef },
                                                     expectedOutput: expectedOutput);
         }
 
@@ -604,7 +604,7 @@ public class CL2 : CL1
                 Assert.Equal("System.Action<System.Object>", e2.Type.ToTestDisplayString());
             };
 
-            CompileAndVerify(source: source, additionalRefs: new[] { libAssemblyRef }, symbolValidator: validator);
+            CompileStandardAndVerify(source: source, additionalRefs: new[] { libAssemblyRef }, symbolValidator: validator);
         }
 
         [Fact, WorkItem(7845, "https://github.com/dotnet/roslyn/issues/7845")]
@@ -636,7 +636,7 @@ public class CL2 : CL1
                 Assert.Equal("System.Action<System.Object>", e2.Type.ToTestDisplayString());
             };
 
-            CompileAndVerify(source: source, additionalRefs: new[] { libAssemblyRef }, symbolValidator: validator);
+            CompileStandardAndVerify(source: source, additionalRefs: new[] { libAssemblyRef }, symbolValidator: validator);
         }
 
         [Fact, WorkItem(7845, "https://github.com/dotnet/roslyn/issues/7845")]
@@ -800,7 +800,7 @@ class D
     }
 }
 ";
-            var compVerifier = CompileAndVerify(source, new[] { CSharpRef, CompileIL(ilSource) }, 
+            var compVerifier = CompileStandardAndVerify(source, new[] { CSharpRef, CompileIL(ilSource) }, 
                                                 expectedOutput: "Event raised");
 
             var comp = compVerifier.Compilation;

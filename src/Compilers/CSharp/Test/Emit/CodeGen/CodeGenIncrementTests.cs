@@ -125,7 +125,7 @@ class C
             string source = string.Format(NUMERIC_INCREMENT_TEMPLATE, typeof(char).FullName, "'a'", "'b'");
             string expectedOutput = string.Format(NUMERIC_OUTPUT_TEMPLATE, 'a', 'b');
 
-            CompileAndVerify(source, expectedOutput: expectedOutput);
+            CompileStandardAndVerify(source, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -203,7 +203,7 @@ A
 12
 ";
 
-            CompileAndVerify(source, expectedOutput: expectedOutput);
+            CompileStandardAndVerify(source, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -272,7 +272,7 @@ a
 8
 ";
 
-            CompileAndVerify(source, expectedOutput: expectedOutput);
+            CompileStandardAndVerify(source, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -432,7 +432,7 @@ class C
 }
 ";
 
-            var compilation = CompileAndVerify(source);
+            var compilation = CompileStandardAndVerify(source);
             compilation.VerifyIL("C.Main", @"
 {
   // Code size      754 (0x2f2)
@@ -839,7 +839,7 @@ class Test
     }
 }
 ";
-            base.CompileAndVerify(source).
+            base.CompileStandardAndVerify(source).
                 VerifyIL("Test.M",
 @"
 {
@@ -876,7 +876,7 @@ class Test
     }
 }
 ";
-            base.CompileAndVerify(source).
+            base.CompileStandardAndVerify(source).
                 VerifyIL("Test.M",
 @"
 {
@@ -924,7 +924,7 @@ class My
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "1");
+            CompileStandardAndVerify(source, expectedOutput: "1");
         }
 
         [WorkItem(540810, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540810")]
@@ -945,7 +945,7 @@ class My
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "11");
+            CompileStandardAndVerify(source, expectedOutput: "11");
         }
 
         [WorkItem(540810, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540810")]
@@ -978,7 +978,7 @@ class Class
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: @"
+            CompileStandardAndVerify(source, expectedOutput: @"
 Array
 Zero
 0
@@ -1002,7 +1002,7 @@ Zero
             string source = string.Format(CultureInfo.InvariantCulture, NUMERIC_INCREMENT_TEMPLATE, type.FullName, value, valuePlusOne);
             string expectedOutput = string.Format(CultureInfo.InvariantCulture, NUMERIC_OUTPUT_TEMPLATE, value, valuePlusOne);
 
-            CompileAndVerify(source, expectedOutput: expectedOutput);
+            CompileStandardAndVerify(source, expectedOutput: expectedOutput);
         }
 
         [WorkItem(720742, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/720742")]
@@ -1028,7 +1028,7 @@ public class Test
     }
 }
 ";
-            base.CompileAndVerify(source, expectedOutput: "12").
+            base.CompileStandardAndVerify(source, expectedOutput: "12").
                 VerifyIL("Test.Main",
 @"
 {

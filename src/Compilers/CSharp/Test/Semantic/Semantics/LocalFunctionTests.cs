@@ -2167,7 +2167,7 @@ class Program
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "2");
+            CompileStandardAndVerify(source, expectedOutput: "2");
         }
 
         [Fact]
@@ -2186,7 +2186,7 @@ class Program
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "2");
+            CompileStandardAndVerify(source, expectedOutput: "2");
         }
 
         [Fact]
@@ -2210,7 +2210,7 @@ class Program
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "3");
+            CompileStandardAndVerify(source, expectedOutput: "3");
         }
 
         [Fact]
@@ -2245,7 +2245,7 @@ class Program
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "4");
+            CompileStandardAndVerify(source, expectedOutput: "4");
         }
 
         [Fact]
@@ -2499,7 +2499,7 @@ class Program
     }
 }";
 
-                CompileAndVerify(
+                CompileStandardAndVerify(
                     source,
                     parseOptions: DefaultParseOptions,
                     expectedOutput: "dog");
@@ -2529,7 +2529,7 @@ class Program
     }
 }";
 
-                CompileAndVerify(
+                CompileStandardAndVerify(
                     source,
                     parseOptions: DefaultParseOptions,
                     expectedOutput: "dog");
@@ -2555,7 +2555,7 @@ class Program
     }
 }";
 
-                CompileAndVerify(
+                CompileStandardAndVerify(
                     source,
                     parseOptions: DefaultParseOptions,
                     expectedOutput: "dog-42");
@@ -2584,7 +2584,7 @@ class Program
     }
 }";
 
-                CompileAndVerify(
+                CompileStandardAndVerify(
                     source,
                     parseOptions: DefaultParseOptions,
                     expectedOutput: "dog");
@@ -2614,7 +2614,7 @@ class Program
     }
 }";
 
-                CompileAndVerify(
+                CompileStandardAndVerify(
                     source,
                     parseOptions: DefaultParseOptions,
                     expectedOutput: "dog");
@@ -3052,7 +3052,7 @@ class C
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "23", sourceSymbolValidator: m =>
+            CompileStandardAndVerify(source, expectedOutput: "23", sourceSymbolValidator: m =>
             {
                 var compilation = m.DeclaringCompilation;
                 // See https://github.com/dotnet/roslyn/issues/16454; this should actually produce no errors

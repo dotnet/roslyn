@@ -24,7 +24,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails);
+            var comp = CompileStandardAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails);
 
             comp.VerifyIL("Program.M(in int)", @"
 {
@@ -72,7 +72,7 @@ struct Program
 }
 ";
 
-            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: @"42
+            var comp = CompileStandardAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: @"42
 84");
 
             comp.VerifyIL("Program.Main()", @"
@@ -126,7 +126,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: @"42
+            var comp = CompileStandardAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: @"42
 11
 42
 42");
@@ -189,7 +189,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: "42");
+            var comp = CompileStandardAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: "42");
 
             comp.VerifyIL("Program.Main()", @"
 {
@@ -211,7 +211,7 @@ class Program
   IL_0001:  ret
 }");
 
-            comp = CompileAndVerify(text, verify: Verification.Fails, expectedOutput: "42", parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
+            comp = CompileStandardAndVerify(text, verify: Verification.Fails, expectedOutput: "42", parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
 
             comp.VerifyIL("Program.Main()", @"
 {
@@ -250,7 +250,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: "42");
+            var comp = CompileStandardAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: "42");
 
             comp.VerifyIL("Program.Main()", @"
 {
@@ -272,7 +272,7 @@ class Program
   IL_0001:  ret
 }");
 
-            comp = CompileAndVerify(text, verify: Verification.Fails, expectedOutput: "42", parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
+            comp = CompileStandardAndVerify(text, verify: Verification.Fails, expectedOutput: "42", parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
 
             comp.VerifyIL("Program.Main()", @"
 {
@@ -312,7 +312,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: "42");
+            var comp = CompileStandardAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: "42");
 
             comp.VerifyIL("Program.M(in int)", @"
 {
@@ -363,7 +363,7 @@ class P1 : Program
 }
 ";
 
-            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: @"hi
+            var comp = CompileStandardAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: @"hi
 42");
 
             comp.VerifyIL("P1..ctor(in string)", @"
@@ -400,7 +400,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails);
+            var comp = CompileStandardAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails);
 
             comp.VerifyIL("Program.M(in int)", @"
 {
@@ -607,7 +607,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular, verify: Verification.Fails);
+            var comp = CompileStandardAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular, verify: Verification.Fails);
 
             comp.VerifyIL("Program.M", @"
 {
@@ -650,7 +650,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular, verify: Verification.Fails);
+            var comp = CompileStandardAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular, verify: Verification.Fails);
 
             comp.VerifyIL("Program.<M>g__M1|0_0(in int, in (int Alice, int Bob))", @"
 {
@@ -720,7 +720,7 @@ class Program
 
 ";
 
-            var comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput:@"42");
+            var comp = CompileStandardAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput:@"42");
 
             comp.VerifyIL("Program.Main", @"
 {
@@ -753,7 +753,7 @@ class Program
 
 ";
 
-            var comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"42");
+            var comp = CompileStandardAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"42");
 
             comp.VerifyIL("Program.Main", @"
 {
@@ -1720,7 +1720,7 @@ public readonly struct S1
     }
 ";
 
-            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"0");
+            var comp = CompileStandardAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"0");
 
             comp.VerifyIL("D.M1<T>(in T)", @"
 {
@@ -1778,7 +1778,7 @@ public readonly struct S1
     }
 ";
 
-            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"");
+            var comp = CompileStandardAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"");
 
             comp.VerifyIL("D.M1<T>(in T)", @"
 {
@@ -1798,7 +1798,7 @@ public readonly struct S1
         [Fact]
         public void RefReadOnlyOptionalParameters()
         {
-            CompileAndVerify(@"
+            CompileStandardAndVerify(@"
 using System;
 class Program
 {
@@ -1870,7 +1870,7 @@ struct S1
 }
 ";
 
-            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"4242420");
+            var comp = CompileStandardAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"4242420");
 
             comp.VerifyIL("Program.Test1(in S1?)", @"
 {
@@ -1942,8 +1942,8 @@ class Program
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "9");
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "9");
+            CompileStandardAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "9");
+            CompileStandardAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "9");
         }
 
         [Fact]
@@ -1973,8 +1973,8 @@ class Program
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "9");
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "9");
+            CompileStandardAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "9");
+            CompileStandardAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "9");
         }
 
         [Fact]
@@ -2004,8 +2004,8 @@ class Program
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "9");
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "9");
+            CompileStandardAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "9");
+            CompileStandardAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "9");
         }
 
         [Fact]
@@ -2034,8 +2034,8 @@ class Program
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "False");
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "False");
+            CompileStandardAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "False");
+            CompileStandardAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "False");
         }
 
         [Fact]
@@ -2064,8 +2064,8 @@ class Program
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "3");
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "3");
+            CompileStandardAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "3");
+            CompileStandardAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "3");
         }
 
         [Fact]
@@ -2087,7 +2087,7 @@ class Program
     }
 }";
 
-            CompileAndVerify(code, expectedOutput: "5").VerifyIL("Program.Main", @"
+            CompileStandardAndVerify(code, expectedOutput: "5").VerifyIL("Program.Main", @"
 {
   // Code size       10 (0xa)
   .maxstack  1
@@ -2131,7 +2131,7 @@ class Program
     }
 }";
 
-            CompileAndVerify(code, expectedOutput: "10").VerifyIL("Program.Main", @"
+            CompileStandardAndVerify(code, expectedOutput: "10").VerifyIL("Program.Main", @"
 {
   // Code size       11 (0xb)
   .maxstack  1
@@ -2175,7 +2175,7 @@ class Program
     }
 }";
 
-            CompileAndVerify(code, expectedOutput: "(1, 5)").VerifyIL("Program.Main", @"
+            CompileStandardAndVerify(code, expectedOutput: "(1, 5)").VerifyIL("Program.Main", @"
 {
   // Code size       14 (0xe)
   .maxstack  2
@@ -2226,7 +2226,7 @@ class Program
     }
 }";
 
-            CompileAndVerify(code, expectedOutput: "(2, 5)").VerifyIL("Program.Main", @"
+            CompileStandardAndVerify(code, expectedOutput: "(2, 5)").VerifyIL("Program.Main", @"
 {
   // Code size       14 (0xe)
   .maxstack  2
@@ -2277,7 +2277,7 @@ class Program
     }
 }";
 
-            CompileAndVerify(code, expectedOutput: "(3, 10)").VerifyIL("Program.Main", @"
+            CompileStandardAndVerify(code, expectedOutput: "(3, 10)").VerifyIL("Program.Main", @"
 {
   // Code size       15 (0xf)
   .maxstack  2
@@ -2328,7 +2328,7 @@ class Program
     }
 }";
 
-            CompileAndVerify(code, expectedOutput: "(1, 5)").VerifyIL("Program.Main", @"
+            CompileStandardAndVerify(code, expectedOutput: "(1, 5)").VerifyIL("Program.Main", @"
 {
   // Code size       14 (0xe)
   .maxstack  2
@@ -2379,7 +2379,7 @@ class Program
     }
 }";
 
-            CompileAndVerify(code, expectedOutput: "(2, 10)").VerifyIL("Program.Main", @"
+            CompileStandardAndVerify(code, expectedOutput: "(2, 10)").VerifyIL("Program.Main", @"
 {
   // Code size       15 (0xf)
   .maxstack  2
@@ -2440,7 +2440,7 @@ class Program
     }
 }";
 
-            CompileAndVerify(code, expectedOutput: @"
+            CompileStandardAndVerify(code, expectedOutput: @"
 get p1=3 p2=2
 set p1=3 p2=2 to 10
 ").VerifyIL("Program.Main", @"
@@ -2520,7 +2520,7 @@ class Program
     }
 }";
 
-            CompileAndVerify(code, expectedOutput: @"
+            CompileStandardAndVerify(code, expectedOutput: @"
 get p1=4 p2=5
 set p1=4 p2=5 to 11
 ").VerifyIL("Program.Main", @"
@@ -2600,7 +2600,7 @@ class Program
     }
 }";
 
-            CompileAndVerify(code, expectedOutput: @"
+            CompileStandardAndVerify(code, expectedOutput: @"
 get p1=3 p2=2
 set p1=3 p2=2 to 10
 ").VerifyIL("Program.Main", @"
@@ -2680,7 +2680,7 @@ class Program
     }
 }";
 
-            CompileAndVerify(code, expectedOutput: @"
+            CompileStandardAndVerify(code, expectedOutput: @"
 get p1=4 p2=5
 set p1=4 p2=5 to 11
 ").VerifyIL("Program.Main", @"
@@ -2749,7 +2749,7 @@ class Program
 
 }";
 
-            CompileAndVerify(code, expectedOutput: "test").VerifyIL("Program.Main", @"
+            CompileStandardAndVerify(code, expectedOutput: "test").VerifyIL("Program.Main", @"
 {
   // Code size       26 (0x1a)
   .maxstack  2
@@ -2802,7 +2802,7 @@ class Program
 
 }";
 
-            CompileAndVerify(code, expectedOutput: "6").VerifyIL("Program.Main", @"
+            CompileStandardAndVerify(code, expectedOutput: "6").VerifyIL("Program.Main", @"
 {
   // Code size       30 (0x1e)
   .maxstack  3

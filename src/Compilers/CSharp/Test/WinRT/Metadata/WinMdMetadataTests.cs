@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                                 }
                              };";
 
-            CompileAndVerify(text, WinRtRefs, expectedOutput: "#FF000000");
+            CompileStandardAndVerify(text, WinRtRefs, expectedOutput: "#FF000000");
         }
 
         /// <summary>
@@ -228,7 +228,7 @@ public class MyAttribute : System.Attribute
     }
 }
 ";
-            CompileAndVerify(
+            CompileStandardAndVerify(
                 source,
                 WinRtRefs.Concat(new[] { AssemblyMetadata.CreateFromImage(TestResources.WinRt.W1).GetReference() }),
                 symbolValidator: m =>

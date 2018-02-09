@@ -33,7 +33,7 @@ public class Program
 bar
 ";
 
-            CompileAndVerify(source, expectedOutput: expectedOutput);
+            CompileStandardAndVerify(source, expectedOutput: expectedOutput);
         }
 
         // Identical to last test, but without "return" statement.  (This was failing once.)
@@ -58,7 +58,7 @@ public class Program
 bar
 ";
 
-            CompileAndVerify(source, expectedOutput: expectedOutput);
+            CompileStandardAndVerify(source, expectedOutput: expectedOutput);
         }
 
         // The goto can also be used to jump to a case or default statement in a switch
@@ -88,7 +88,7 @@ class C
     }
 }
 ";
-            CompileAndVerify(text).VerifyIL("C.Main", @"
+            CompileStandardAndVerify(text).VerifyIL("C.Main", @"
 {
   // Code size       58 (0x3a)
   .maxstack  2
@@ -140,7 +140,7 @@ class C
     }
 }
 ";
-            CompileAndVerify(text).VerifyIL("C.Main", @"
+            CompileStandardAndVerify(text).VerifyIL("C.Main", @"
 {
   // Code size       11 (0xb)
   .maxstack  2
@@ -179,7 +179,7 @@ class C
     }
 }
 ";
-            CompileAndVerify(text).VerifyIL("C.Main", @"
+            CompileStandardAndVerify(text).VerifyIL("C.Main", @"
 {
   // Code size       11 (0xb)
   .maxstack  2
@@ -215,7 +215,7 @@ class C
     }
 }
 ";
-            var c = CompileAndVerify(text);
+            var c = CompileStandardAndVerify(text);
 
             c.VerifyDiagnostics(
                 // (11,9): warning CS0162: Unreachable code detected
@@ -253,7 +253,7 @@ class C
     }
 }
 ";
-            CompileAndVerify(text).VerifyIL("C.Main", @"
+            CompileStandardAndVerify(text).VerifyIL("C.Main", @"
 {
   // Code size        2 (0x2)
   .maxstack  0
@@ -280,7 +280,7 @@ class C
     }
 }
 ";
-            CompileAndVerify(text).VerifyDiagnostics().VerifyIL("C.Main", @"
+            CompileStandardAndVerify(text).VerifyDiagnostics().VerifyIL("C.Main", @"
 {
   // Code size        2 (0x2)
   .maxstack  0
@@ -311,7 +311,7 @@ class C
     }
 }
 ";
-            var c = CompileAndVerify(text);
+            var c = CompileStandardAndVerify(text);
 
             c.VerifyDiagnostics(Diagnostic(ErrorCode.WRN_UnreachableCode, "i"));
 
@@ -352,7 +352,7 @@ class C
     }
 }
 ";
-            var c = CompileAndVerify(text);
+            var c = CompileStandardAndVerify(text);
             c.VerifyDiagnostics(Diagnostic(ErrorCode.WRN_UnreachableCode, "string"));
 
             c.VerifyIL("C.Main", @"
@@ -386,7 +386,7 @@ class C
     }
 }
 ";
-            var c = CompileAndVerify(text, expectedOutput: @"a
+            var c = CompileStandardAndVerify(text, expectedOutput: @"a
 1");
 
             c.VerifyIL("C.Main", @"
@@ -442,7 +442,7 @@ class C
     }
 }
 ";
-            CompileAndVerify(text).VerifyIL("C.Main", @"
+            CompileStandardAndVerify(text).VerifyIL("C.Main", @"
 {
   // Code size       17 (0x11)
   .maxstack  1
@@ -496,7 +496,7 @@ class C
     }
 }
 ";
-            var c = CompileAndVerify(source, options: TestOptions.ReleaseDll);
+            var c = CompileStandardAndVerify(source, options: TestOptions.ReleaseDll);
 
             c.VerifyIL("C.Main", @"
 {
@@ -527,7 +527,7 @@ class C
     }
 }
 ";
-            CompileAndVerify(text).VerifyIL("C.Main", @"
+            CompileStandardAndVerify(text).VerifyIL("C.Main", @"
 {
   // Code size       37 (0x25)
   .maxstack  2
@@ -576,7 +576,7 @@ class C
     }
 }
 ";
-            CompileAndVerify(text).VerifyIL("C.Main", @"
+            CompileStandardAndVerify(text).VerifyIL("C.Main", @"
 {
   // Code size       73 (0x49)
   .maxstack  2
@@ -626,7 +626,7 @@ class C
     { System.Console.WriteLine(""Label""); }
 }
 ";
-            CompileAndVerify(text, expectedOutput: @"
+            CompileStandardAndVerify(text, expectedOutput: @"
 Finally
 Label
 ");
@@ -656,7 +656,7 @@ class C
     }
 }
 ";
-            CompileAndVerify(text, expectedOutput: @"
+            CompileStandardAndVerify(text, expectedOutput: @"
 inner finally
 outer finally
 label
@@ -701,7 +701,7 @@ class C
 finally
 label
 ";
-            CompileAndVerify(text, expectedOutput: expectedOutput);
+            CompileStandardAndVerify(text, expectedOutput: expectedOutput);
         }
 
         [WorkItem(540719, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540719")]
@@ -723,7 +723,7 @@ class C
         x = y;
     }
 }";
-            CompileAndVerify(text);
+            CompileStandardAndVerify(text);
         }
 
         [WorkItem(540719, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540719")]
@@ -759,7 +759,7 @@ public class A
     }
 }
 ";
-            CompileAndVerify(text, expectedOutput: "Catch");
+            CompileStandardAndVerify(text, expectedOutput: "Catch");
         }
 
         [WorkItem(540719, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540719")]
@@ -795,7 +795,7 @@ public class A
     }
 }
 ";
-            CompileAndVerify(text, expectedOutput: "Catch");
+            CompileStandardAndVerify(text, expectedOutput: "Catch");
         }
 
         [Fact]

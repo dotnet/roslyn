@@ -2011,7 +2011,7 @@ namespace ForEachTest
             // Without "CONDITIONAL" defined: Succeed
             string expectedOutput = @"<Interface> Derived5.GetEnumerator()
 BaseEnumeratorImpl::MoveNext()";
-            CompileAndVerify(source, expectedOutput: expectedOutput);
+            CompileStandardAndVerify(source, expectedOutput: expectedOutput);
 
             // With "CONDITIONAL" defined: Fail
 
