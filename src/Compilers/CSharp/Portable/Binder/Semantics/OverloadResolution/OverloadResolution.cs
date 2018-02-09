@@ -2228,7 +2228,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundLambda lambda = ((UnboundLambda)node).BindForReturnTypeInference(d);
 
                 // - an inferred return type X exists for E in the context of the parameter list of D(§7.5.2.12), and an identity conversion exists from X to Y
-                var x = lambda.InferredReturnType(ref useSiteDiagnostics);
+                var x = lambda.GetInferredReturnType(ref useSiteDiagnostics);
                 if ((object)x != null && Conversions.HasIdentityConversion(x.TypeSymbol, y))
                 {
                     return true;

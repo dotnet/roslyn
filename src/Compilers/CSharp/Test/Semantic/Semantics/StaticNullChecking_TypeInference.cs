@@ -1620,6 +1620,7 @@ class C
     {
         F(() => x).ToString();
         F(() => y).ToString();
+        if (y != null) F(() => y).ToString();
     }
 }";
             var comp = CreateCompilation(
@@ -2290,6 +2291,8 @@ class C
         if (o == null) return;
         d = () => o;
         e = () => o;
+        d = (D<object?>)(() => o);
+        e = (D<object>)(() => o);
     }
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
@@ -2324,20 +2327,13 @@ class B
         var y = F(o);
         d = y.M;
         e = y.M;
+        d = (D<object?>)y.M;
+        e = (D<object>)y.M;
     }
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
-            // PROTOTYPE(NullableReferenceTypes): Should report WRN_NullabilityMismatchInReturnTypeOfTargetDelegate for `e = x.M` rather than  `d = x.M`.
-            comp.VerifyDiagnostics(
-                // (12,24): warning CS8621: Nullability of reference types in return type of 'object A<object>.M()' doesn't match the target delegate 'D<object?>'.
-                //         D<object?> d = x.M;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "x.M").WithArguments("object A<object>.M()", "D<object?>").WithLocation(12, 24),
-                //// (13,23): warning CS8621: Nullability of reference types in return type of 'object? A<object?>.M()' doesn't match the target delegate 'D<object>'.
-                ////         D<object> e = x.M;
-                //Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "x.M").WithArguments("object? A<object?>.M()", "D<object>").WithLocation(13, 23),
-                // (16,13): warning CS8621: Nullability of reference types in return type of 'object A<object>.M()' doesn't match the target delegate 'D<object?>'.
-                //         d = y.M;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "y.M").WithArguments("object A<object>.M()", "D<object?>").WithLocation(16, 13));
+            // PROTOTYPE(NullableReferenceTypes): Should report WRN_NullabilityMismatchInReturnTypeOfTargetDelegate for `e = x.M`.
+            comp.VerifyDiagnostics();
         }
     }
 }

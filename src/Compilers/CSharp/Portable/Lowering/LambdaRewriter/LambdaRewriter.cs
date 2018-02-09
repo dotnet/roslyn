@@ -773,7 +773,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ParameterSymbol replacementParameter;
             if (_parameterMap.TryGetValue(node.ParameterSymbol, out replacementParameter))
             {
-                return new BoundParameter(node.Syntax, replacementParameter, replacementParameter.Type.TypeSymbol, node.HasErrors);
+                return new BoundParameter(node.Syntax, replacementParameter, node.HasErrors);
             }
 
             return base.VisitUnhoistedParameter(node);
@@ -1513,7 +1513,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var newType = VisitType(node.Type);
                 var newBody = (BoundBlock)Visit(node.Body);
-                node = node.Update(node.Symbol, newBody, node.Diagnostics, node.Binder, newType);
+                node = node.Update(node.UnboundLambda, node.Symbol, newBody, node.Diagnostics, node.Binder, newType);
                 var result0 = wasInExpressionLambda ? node : ExpressionLambdaRewriter.RewriteLambda(node, CompilationState, TypeMap, RecursionDepth, Diagnostics);
                 _inExpressionLambda = wasInExpressionLambda;
                 return result0;

@@ -1350,7 +1350,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return HasIdentityConversionInternal(type1, type2, IncludeNullability);
         }
 
-        private static bool HasTopLevelNullabilityIdentityConversion(TypeSymbolWithAnnotations source, TypeSymbolWithAnnotations destination)
+        internal static bool HasTopLevelNullabilityIdentityConversion(TypeSymbolWithAnnotations source, TypeSymbolWithAnnotations destination)
         {
             // PROTOTYPE(NullableReferenceTypes): If two types differ only by nullability and
             // one has IsNullable unset and the other doesn't, which do we choose in inference?
