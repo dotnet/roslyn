@@ -50,10 +50,5 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
 
             return true;
         }
-
-        private CaretPreservingEditTransaction CreateEditTransaction(ITextView view, string description)
-        {
-            return new CaretPreservingEditTransaction(description, view, _undoHistoryRegistry, _editorOperationsFactoryService);
-        }
     }
 }

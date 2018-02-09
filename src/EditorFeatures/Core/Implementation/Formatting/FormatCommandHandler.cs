@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
             var formattingService = document.GetLanguageService<IEditorFormattingService>();
 
             using (Logger.LogBlock(FunctionId.CommandHandler_FormatCommand, KeyValueLogMessage.Create(LogType.UserAction, m => m["Span"] = selectionOpt?.Length ?? -1), cancellationToken))
-            using (var transaction = new CaretPreservingEditTransaction(EditorFeaturesResources.Formatting, textView, _undoHistoryRegistry, _editorOperationsFactoryService))
+            using (var transaction = CreateEditTransaction(textView, EditorFeaturesResources.Formatting))
             {
                 var changes = formattingService.GetFormattingChangesAsync(document, selectionOpt, cancellationToken).WaitAndGetResult(cancellationToken);
                 if (changes.Count == 0)
@@ -175,6 +175,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
 
             // caret has moved to wrong position, move it back to correct position
             args.TextView.TryMoveCaretToAndEnsureVisible(oldCaretPosition);
+        }
+
+        private CaretPreservingEditTransaction CreateEditTransaction(ITextView view, string description)
+        {
+            return new CaretPreservingEditTransaction(description, view, _undoHistoryRegistry, _editorOperationsFactoryService);
         }
     }
 }
