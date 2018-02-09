@@ -348,6 +348,51 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return CreateCompilation(source, metadataReferences, options);
         }
 
+        public static CSharpCompilation CreateCompilationWithMscorlib40(
+            IEnumerable<SyntaxTree> source,
+            IEnumerable<MetadataReference> references = null,
+            CSharpCompilationOptions options = null,
+            string assemblyName = "")
+        {
+            var refs = new List<MetadataReference>();
+            if (references != null)
+            {
+                refs.AddRange(references);
+            }
+            refs.Add(MscorlibRef);
+            return CreateCompilation(source, refs, options, assemblyName);
+        }
+
+        public static CSharpCompilation CreateCompilationWithMscorlib40(
+            string source,
+            IEnumerable<MetadataReference> references = null,
+            CSharpCompilationOptions options = null,
+            CSharpParseOptions parseOptions = null,
+            string sourceFileName = "",
+            string assemblyName = "")
+        {
+            return CreateCompilationWithMscorlib40(
+                new SyntaxTree[] { Parse(source, sourceFileName, parseOptions) },
+                references,
+                options,
+                assemblyName);
+        }
+
+        public static CSharpCompilation CreateCompilationWithMscorlib40(
+            string[] sources,
+            IEnumerable<MetadataReference> references = null,
+            CSharpCompilationOptions options = null,
+            CSharpParseOptions parseOptions = null,
+            string sourceFileName = "",
+            string assemblyName = "")
+        {
+            return CreateCompilationWithMscorlib40(
+                sources.Select((source) => Parse(source, sourceFileName, parseOptions)).ToArray(),
+                references,
+                options,
+                assemblyName);
+        }
+
         public static CSharpCompilation CreateCompilationWithMscorlib45(
             IEnumerable<SyntaxTree> source,
             IEnumerable<MetadataReference> references = null,
@@ -361,6 +406,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             }
             refs.Add(MscorlibRef_v4_0_30316_17626);
             return CreateCompilation(source, refs, options, assemblyName);
+        }
+
+        public static CSharpCompilation CreateCompilationWithMscorlib45(
+            string source,
+            IEnumerable<MetadataReference> references = null,
+            CSharpCompilationOptions options = null,
+            CSharpParseOptions parseOptions = null,
+            string sourceFileName = "",
+            string assemblyName = "")
+        {
+            return CreateCompilationWithMscorlib45(
+                new SyntaxTree[] { Parse(source, sourceFileName, parseOptions) },
+                references,
+                options,
+                assemblyName);
+        }
+
+        public static CSharpCompilation CreateCompilationWithMscorlib45(
+            string[] sources,
+            IEnumerable<MetadataReference> references = null,
+            CSharpCompilationOptions options = null,
+            CSharpParseOptions parseOptions = null,
+            string sourceFileName = "",
+            string assemblyName = "")
+        {
+            return CreateCompilationWithMscorlib45(
+                sources.Select((source) => Parse(source, sourceFileName, parseOptions)).ToArray(),
+                references,
+                options,
+                assemblyName);
         }
 
         public static CSharpCompilation CreateCompilationWithMscorlib46(
@@ -404,36 +479,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             string assemblyName = "")
         {
             return CreateCompilationWithMscorlib46(
-                sources.Select((source) => Parse(source, sourceFileName, parseOptions)).ToArray(),
-                references,
-                options,
-                assemblyName);
-        }
-
-        public static CSharpCompilation CreateCompilationWithMscorlib45(
-            string source,
-            IEnumerable<MetadataReference> references = null,
-            CSharpCompilationOptions options = null,
-            CSharpParseOptions parseOptions = null,
-            string sourceFileName = "",
-            string assemblyName = "")
-        {
-            return CreateCompilationWithMscorlib45(
-                new SyntaxTree[] { Parse(source, sourceFileName, parseOptions) },
-                references,
-                options,
-                assemblyName);
-        }
-
-        public static CSharpCompilation CreateCompilationWithMscorlib45(
-            string[] sources,
-            IEnumerable<MetadataReference> references = null,
-            CSharpCompilationOptions options = null,
-            CSharpParseOptions parseOptions = null,
-            string sourceFileName = "",
-            string assemblyName = "")
-        {
-            return CreateCompilationWithMscorlib45(
                 sources.Select((source) => Parse(source, sourceFileName, parseOptions)).ToArray(),
                 references,
                 options,
@@ -704,9 +749,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             CompilationOptions options,
             ParseOptions parseOptions)
         {
-            return CreateCompilationWithMscorlib46(
+            var single = new[] { MscorlibRef };
+            var references = additionalRefs != null ? single.Concat(additionalRefs) : single;
+            return CreateCompilation(
                 source.ToArray(),
-                references: additionalRefs,
+                references: references,
                 options: (CSharpCompilationOptions)options,
                 parseOptions: (CSharpParseOptions)parseOptions,
                 assemblyName: GetUniqueName());
