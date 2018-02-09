@@ -128,7 +128,9 @@ namespace Microsoft.CodeAnalysis.Scripting
 
                 if (emitDebugInformation)
                 {
-                    emitOptions = emitOptions.WithDebugInformationFormat(PdbHelpers.GetPlatformSpecificDebugInformationFormat());
+                    emitOptions = emitOptions.
+                        WithDebugInformationFormat(PdbHelpers.GetPlatformSpecificDebugInformationFormat()).
+                        WithPdbChecksumAlgorithm(default);
                 }
 
                 var emitResult = compilation.Emit(
