@@ -3,6 +3,7 @@
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
@@ -312,7 +313,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("RefTest.M(in int)").WithLocation(4, 38));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly))] // https://github.com/mono/mono/issues/6936
         public void MissingInAttributeModreq_Method_Parameters_Override()
         {
             var reference = CompileIL(@"
@@ -464,7 +465,7 @@ class Test
             CompileAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: "Child");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly))] // https://github.com/mono/mono/issues/6936
         public void MissingInAttributeModreq_Method_Parameters_Override_ModOpt()
         {
             var reference = CompileIL(@"
@@ -1256,7 +1257,7 @@ public class Test
                 Diagnostic(ErrorCode.ERR_BindToBogus, "obj[0]").WithArguments("RefTest.this[in int]").WithLocation(6, 9));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly))] // https://github.com/mono/mono/issues/6936
         public void MissingInAttributeModreq_Indexers_Parameters_Override()
         {
             var reference = CompileIL(@"
@@ -1542,7 +1543,7 @@ Child Get
 Child Set");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly))] // https://github.com/mono/mono/issues/6936
         public void MissingInAttributeModreq_Indexers_Parameters_Override_Get()
         {
             var reference = CompileIL(@"
@@ -1763,7 +1764,7 @@ class Test
             CompileAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: "Child Get");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly))] // https://github.com/mono/mono/issues/6936
         public void MissingInAttributeModreq_Indexers_Parameters_Override_Set()
         {
             var reference = CompileIL(@"
@@ -1964,7 +1965,7 @@ class Test
             CompileAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: "Child Set");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly))] // https://github.com/mono/mono/issues/6936
         public void MissingInAttributeModreq_Indexers_Parameters_Override_ModOpt()
         {
             var reference = CompileIL(@"
@@ -2250,7 +2251,7 @@ Child Get
 Child Set");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly))] // https://github.com/mono/mono/issues/6936
         public void MissingInAttributeModreq_Indexers_Parameters_Override_ModOpt_Get()
         {
             var reference = CompileIL(@"
@@ -2471,7 +2472,7 @@ class Test
             CompileAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: "Child Get");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly))] // https://github.com/mono/mono/issues/6936
         public void MissingInAttributeModreq_Indexers_Parameters_Override_ModOpt_Set()
         {
             var reference = CompileIL(@"
