@@ -1,8 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -14,6 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public readonly ImmutableArray<Conversion> ConversionsOpt;
         public readonly ImmutableArray<int> BadArgumentsOpt;
         public readonly ImmutableArray<int> ArgsToParamsOpt;
+        public readonly ArrayBuilder<TypeParameterDiagnosticInfo> ConstraintFailureDiagnosticsOpt;
 
         public readonly int BadParameter;
         public readonly MemberResolutionKind Kind;
@@ -25,17 +29,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         public readonly bool HasAnyRefOmittedArgument;
 
         private MemberAnalysisResult(MemberResolutionKind kind)
-            : this(kind, default(ImmutableArray<int>), default(ImmutableArray<int>), default(ImmutableArray<Conversion>))
+            : this(kind, constraintFailureDiagnosticsOpt: default)
         {
         }
 
         private MemberAnalysisResult(
             MemberResolutionKind kind,
-            ImmutableArray<int> badArgumentsOpt,
-            ImmutableArray<int> argsToParamsOpt,
-            ImmutableArray<Conversion> conversionsOpt,
+            ImmutableArray<int> badArgumentsOpt = default,
+            ImmutableArray<int> argsToParamsOpt = default,
+            ImmutableArray<Conversion> conversionsOpt = default,
             int missingParameter = -1,
-            bool hasAnyRefOmittedArgument = false)
+            bool hasAnyRefOmittedArgument = false,
+            ArrayBuilder<TypeParameterDiagnosticInfo> constraintFailureDiagnosticsOpt = null)
         {
             this.Kind = kind;
             this.BadArgumentsOpt = badArgumentsOpt;
@@ -43,6 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.ConversionsOpt = conversionsOpt;
             this.BadParameter = missingParameter;
             this.HasAnyRefOmittedArgument = hasAnyRefOmittedArgument;
+            this.ConstraintFailureDiagnosticsOpt = constraintFailureDiagnosticsOpt;
         }
 
         public override bool Equals(object obj)
@@ -164,45 +170,34 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return new MemberAnalysisResult(
                 MemberResolutionKind.NameUsedForPositional,
-                ImmutableArray.Create<int>(argumentPosition),
-                default(ImmutableArray<int>),
-                default(ImmutableArray<Conversion>));
+                badArgumentsOpt: ImmutableArray.Create<int>(argumentPosition));
         }
 
         public static MemberAnalysisResult BadNonTrailingNamedArgument(int argumentPosition)
         {
             return new MemberAnalysisResult(
                 MemberResolutionKind.BadNonTrailingNamedArgument,
-                ImmutableArray.Create<int>(argumentPosition),
-                default(ImmutableArray<int>),
-                default(ImmutableArray<Conversion>));
+                badArgumentsOpt: ImmutableArray.Create<int>(argumentPosition));
         }
 
         public static MemberAnalysisResult NoCorrespondingParameter(int argumentPosition)
         {
             return new MemberAnalysisResult(
                 MemberResolutionKind.NoCorrespondingParameter,
-                ImmutableArray.Create<int>(argumentPosition),
-                default(ImmutableArray<int>),
-                default(ImmutableArray<Conversion>));
+                badArgumentsOpt: ImmutableArray.Create<int>(argumentPosition));
         }
 
         public static MemberAnalysisResult NoCorrespondingNamedParameter(int argumentPosition)
         {
             return new MemberAnalysisResult(
                 MemberResolutionKind.NoCorrespondingNamedParameter,
-                ImmutableArray.Create<int>(argumentPosition),
-                default(ImmutableArray<int>),
-                default(ImmutableArray<Conversion>));
+                badArgumentsOpt: ImmutableArray.Create<int>(argumentPosition));
         }
 
         public static MemberAnalysisResult RequiredParameterMissing(int parameterPosition)
         {
             return new MemberAnalysisResult(
                 MemberResolutionKind.RequiredParameterMissing,
-                default(ImmutableArray<int>),
-                default(ImmutableArray<int>),
-                default(ImmutableArray<Conversion>),
                 missingParameter: parameterPosition);
         }
 
@@ -242,14 +237,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new MemberAnalysisResult(MemberResolutionKind.TypeInferenceExtensionInstanceArgument);
         }
 
+        public static MemberAnalysisResult StaticInstanceMismatch()
+        {
+            return new MemberAnalysisResult(MemberResolutionKind.StaticInstanceMismatch);
+        }
+
         public static MemberAnalysisResult ConstructedParameterFailedConstraintsCheck(int parameterPosition)
         {
             return new MemberAnalysisResult(
                 MemberResolutionKind.ConstructedParameterFailedConstraintCheck,
-                default(ImmutableArray<int>),
-                default(ImmutableArray<int>),
-                default(ImmutableArray<Conversion>),
                 missingParameter: parameterPosition);
+        }
+
+        public static MemberAnalysisResult WrongRefKind()
+        {
+            return new MemberAnalysisResult(MemberResolutionKind.WrongRefKind);
+        }
+
+        public static MemberAnalysisResult WrongReturnType()
+        {
+            return new MemberAnalysisResult(MemberResolutionKind.WrongReturnType);
         }
 
         public static MemberAnalysisResult LessDerived()
@@ -275,6 +282,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static MemberAnalysisResult Worst()
         {
             return new MemberAnalysisResult(MemberResolutionKind.Worst);
+        }
+
+        internal static MemberAnalysisResult ConstraintFailure(ArrayBuilder<TypeParameterDiagnosticInfo> constraintFailureDiagnostics)
+        {
+            return new MemberAnalysisResult(MemberResolutionKind.ConstraintFailure, constraintFailureDiagnosticsOpt: constraintFailureDiagnostics);
         }
     }
 }

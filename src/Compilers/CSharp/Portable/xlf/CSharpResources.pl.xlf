@@ -4141,8 +4141,8 @@ Blok catch() po bloku catch (System.Exception e) może przechwytywać wyjątki n
         <note />
       </trans-unit>
       <trans-unit id="ERR_ForEachMissingMember">
-        <source>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public definition for '{1}'</source>
-        <target state="translated">Instrukcja foreach nie może operować na zmiennych typu „{0}”, ponieważ „{0}” nie zawiera definicji publicznej elementu „{1}”</target>
+        <source>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'</source>
+        <target state="needs-review-translation">Instrukcja foreach nie może operować na zmiennych typu „{0}”, ponieważ „{0}” nie zawiera definicji publicznej elementu „{1}”</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadXMLRefParamType">

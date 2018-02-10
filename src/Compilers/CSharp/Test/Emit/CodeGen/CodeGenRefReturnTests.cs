@@ -2784,13 +2784,24 @@ class Program
     }
 }";
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateStandardCompilation(source, parseOptions: TestOptions.WithoutImprovedOverloadCandidates).VerifyDiagnostics(
                 // (24,13): error CS8189: Ref mismatch between 'A<int>.F()' and delegate 'D<int>'
                 //         B.F(o.F, 2);
                 Diagnostic(ErrorCode.ERR_DelegateRefMismatch, "o.F").WithArguments("A<int>.F()", "D<int>").WithLocation(24, 13),
                 // (26,24): error CS8189: Ref mismatch between 'A<int>.F()' and delegate 'D<int>'
                 //         B.F(new D<int>(o.F), 3);
                 Diagnostic(ErrorCode.ERR_DelegateRefMismatch, "o.F").WithArguments("A<int>.F()", "D<int>").WithLocation(26, 24)
+                );
+            // NOTE: we have a degradation in the quality of diagnostics for a delegate conversion in this failure case
+            // because we don't report *why* a delegate conversion failed.
+            // See https://github.com/dotnet/roslyn/issues/24675 for a proposal to restore the quality of this diagnostic.
+            CreateStandardCompilation(source).VerifyDiagnostics(
+                // (24,13): error CS1503: Argument 1: cannot convert from 'method group' to 'D<int>'
+                //         B.F(o.F, 2);
+                Diagnostic(ErrorCode.ERR_BadArgType, "o.F").WithArguments("1", "method group", "D<int>").WithLocation(24, 13),
+                // (26,13): error CS0123: No overload for 'F' matches delegate 'D<int>'
+                //         B.F(new D<int>(o.F), 3);
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "new D<int>(o.F)").WithArguments("F", "D<int>").WithLocation(26, 13)
                 );
         }
 
@@ -2828,13 +2839,24 @@ class Program
     }
 }";
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateStandardCompilation(source, parseOptions: TestOptions.WithoutImprovedOverloadCandidates).VerifyDiagnostics(
                 // (23,13): error CS8189: Ref mismatch between 'A<int>.F()' and delegate 'D<int>'
                 //         B.F(o.F, 2);
                 Diagnostic(ErrorCode.ERR_DelegateRefMismatch, "o.F").WithArguments("A<int>.F()", "D<int>").WithLocation(23, 13),
                 // (25,24): error CS8189: Ref mismatch between 'A<int>.F()' and delegate 'D<int>'
                 //         B.F(new D<int>(o.F), 3);
                 Diagnostic(ErrorCode.ERR_DelegateRefMismatch, "o.F").WithArguments("A<int>.F()", "D<int>").WithLocation(25, 24)
+                );
+            // NOTE: we now have a degradation in the quality of diagnostics for a delegate conversion in this failure case
+            // because we don't report *why* a delegate conversion failed.
+            // See https://github.com/dotnet/roslyn/issues/24675 for a proposal to restore the quality of this diagnostic.
+            CreateStandardCompilation(source).VerifyDiagnostics(
+                // (23,13): error CS1503: Argument 1: cannot convert from 'method group' to 'D<int>'
+                //         B.F(o.F, 2);
+                Diagnostic(ErrorCode.ERR_BadArgType, "o.F").WithArguments("1", "method group", "D<int>").WithLocation(23, 13),
+                // (25,13): error CS0123: No overload for 'F' matches delegate 'D<int>'
+                //         B.F(new D<int>(o.F), 3);
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "new D<int>(o.F)").WithArguments("F", "D<int>").WithLocation(25, 13)
                 );
         }
 
@@ -3301,7 +3323,7 @@ class Program
 
 ";
 
-            CreateCompilationWithMscorlib45AndCSruntime(source).VerifyEmitDiagnostics(
+            CreateCompilationWithMscorlib45AndCSruntime(source, parseOptions: TestOptions.WithoutImprovedOverloadCandidates).VerifyEmitDiagnostics(
                 // (10,30): error CS0407: 'string Program.M1()' has the wrong return type
                 //         RefFunc1<object> f = M1;
                 Diagnostic(ErrorCode.ERR_BadRetType, "M1").WithArguments("Program.M1()", "string"),
@@ -3309,14 +3331,23 @@ class Program
                 //         f = new RefFunc1<object>(M1);
                 Diagnostic(ErrorCode.ERR_BadRetType, "M1").WithArguments("Program.M1()", "string").WithLocation(13, 34)
             );
+            // NOTE: we have a degradation in the quality of diagnostics for a delegate conversion in this failure case
+            // because we don't report *why* a delegate conversion failed.
+            // See https://github.com/dotnet/roslyn/issues/24675 for a proposal to restore the quality of this diagnostic.
+            CreateCompilationWithMscorlib45AndCSruntime(source).VerifyEmitDiagnostics(
+                // (10,30): error CS0407: 'string Program.M1()' has the wrong return type
+                //         RefFunc1<object> f = M1;
+                Diagnostic(ErrorCode.ERR_BadRetType, "M1").WithArguments("Program.M1()", "string").WithLocation(10, 30),
+                // (13,13): error CS0123: No overload for 'M1' matches delegate 'Program.RefFunc1<object>'
+                //         f = new RefFunc1<object>(M1);
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "new RefFunc1<object>(M1)").WithArguments("M1", "Program.RefFunc1<object>").WithLocation(13, 13)
+            );
         }
 
         [Fact]
         public void RefMethodGroupConversionError_WithResolution()
         {
             var source = @"
-using System;
-
 class Base
 {
     public static Base Instance = new Base();
@@ -3347,10 +3378,12 @@ class Program
 
 ";
 
-            CreateCompilationWithMscorlib45AndCSruntime(source).VerifyEmitDiagnostics(
-                // (24,38): error CS0407: 'Derived1 Program.M1(Derived1)' has the wrong return type
+            CreateCompilationWithMscorlib45AndCSruntime(source, parseOptions: TestOptions.WithoutImprovedOverloadCandidates).VerifyEmitDiagnostics(
+                // (22,38): error CS0407: 'Derived1 Program.M1(Derived1)' has the wrong return type
                 //         RefFunc1<Derived2, Base> f = M1;
-                Diagnostic(ErrorCode.ERR_BadRetType, "M1").WithArguments("Program.M1(Derived1)", "Derived1").WithLocation(24, 38)
+                Diagnostic(ErrorCode.ERR_BadRetType, "M1").WithArguments("Program.M1(Derived1)", "Derived1").WithLocation(22, 38)
+            );
+            CreateCompilationWithMscorlib45AndCSruntime(source).VerifyEmitDiagnostics(
             );
         }
 
@@ -3433,13 +3466,15 @@ class Program
 
 ";
 
-            CreateCompilationWithMscorlib45AndCSruntime(source).VerifyEmitDiagnostics(
+            CreateCompilationWithMscorlib45AndCSruntime(source, parseOptions: TestOptions.WithoutImprovedOverloadCandidates).VerifyEmitDiagnostics(
                 // (25,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Test(Program.RefFunc1<Derived2, Base>)' and 'Program.Test(Program.RefFunc1<Derived2, Derived1>)'
                 //         Test(M1);
                 Diagnostic(ErrorCode.ERR_AmbigCall, "Test").WithArguments("Program.Test(Program.RefFunc1<Derived2, Base>)", "Program.Test(Program.RefFunc1<Derived2, Derived1>)").WithLocation(25, 9),
                 // (26,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Test(Program.RefFunc1<Derived2, Base>)' and 'Program.Test(Program.RefFunc1<Derived2, Derived1>)'
                 //         Test(M3);
                 Diagnostic(ErrorCode.ERR_AmbigCall, "Test").WithArguments("Program.Test(Program.RefFunc1<Derived2, Base>)", "Program.Test(Program.RefFunc1<Derived2, Derived1>)").WithLocation(26, 9)
+            );
+            CreateCompilationWithMscorlib45AndCSruntime(source).VerifyEmitDiagnostics(
             );
         }
 

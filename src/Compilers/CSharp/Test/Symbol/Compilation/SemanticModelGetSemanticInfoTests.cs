@@ -7960,28 +7960,47 @@ class Program
     }
 }
 ";
-            var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
+            {
+                var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode,
+                    parseOptions: TestOptions.WithoutImprovedOverloadCandidates);
 
 
-            Assert.Null(semanticInfo.Type);
-            Assert.Equal("System.Action", semanticInfo.ConvertedType.ToTestDisplayString());
-            Assert.Equal(ConversionKind.MethodGroup, semanticInfo.ImplicitConversion.Kind);
+                Assert.Null(semanticInfo.Type);
+                Assert.Equal("System.Action", semanticInfo.ConvertedType.ToTestDisplayString());
+                Assert.Equal(ConversionKind.MethodGroup, semanticInfo.ImplicitConversion.Kind);
 
-            Assert.Equal("System.Int32 Program.f()", semanticInfo.Symbol.ToTestDisplayString());
-            Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason);
-            Assert.Empty(semanticInfo.CandidateSymbols);
+                Assert.Equal("System.Int32 Program.f()", semanticInfo.Symbol.ToTestDisplayString());
+                Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason);
+                Assert.Empty(semanticInfo.CandidateSymbols);
 
-            Assert.Equal(1, semanticInfo.MethodGroup.Length);
-            Assert.Equal("System.Int32 Program.f()", semanticInfo.MethodGroup[0].ToTestDisplayString());
+                Assert.Equal(1, semanticInfo.MethodGroup.Length);
+                Assert.Equal("System.Int32 Program.f()", semanticInfo.MethodGroup[0].ToTestDisplayString());
 
-            Assert.False(semanticInfo.IsCompileTimeConstant);
+                Assert.False(semanticInfo.IsCompileTimeConstant);
+            }
+            {
+                var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
+
+
+                Assert.Null(semanticInfo.Type);
+                Assert.Equal("System.Action", semanticInfo.ConvertedType.ToTestDisplayString());
+                Assert.Equal(ConversionKind.MethodGroup, semanticInfo.ImplicitConversion.Kind);
+
+                Assert.Null(semanticInfo.Symbol);
+                Assert.Equal(CandidateReason.OverloadResolutionFailure, semanticInfo.CandidateReason);
+                Assert.Equal("System.Int32 Program.f()", semanticInfo.CandidateSymbols[0].ToTestDisplayString());
+                Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
+
+                Assert.Equal(1, semanticInfo.MethodGroup.Length);
+                Assert.Equal("System.Int32 Program.f()", semanticInfo.MethodGroup[0].ToTestDisplayString());
+
+                Assert.False(semanticInfo.IsCompileTimeConstant);
+            }
         }
 
         [Fact]
         public void DelegateSignatureMismatch4()
         {
-            // This test and the DelgateSignatureMismatch3 should have identical results, as they are semantically identical
-
             string sourceCode = @"
 using System;
 using System.Collections.Generic;
@@ -7996,20 +8015,42 @@ class Program
     }
 }
 ";
-            var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
+            {
+                var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode,
+                    parseOptions: TestOptions.WithoutImprovedOverloadCandidates);
 
-            Assert.Null(semanticInfo.Type);
-            Assert.Equal("System.Action", semanticInfo.ConvertedType.ToTestDisplayString());
-            Assert.Equal(ConversionKind.MethodGroup, semanticInfo.ImplicitConversion.Kind);
 
-            Assert.Equal("System.Int32 Program.f()", semanticInfo.Symbol.ToTestDisplayString());
-            Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason);
-            Assert.Empty(semanticInfo.CandidateSymbols);
+                Assert.Null(semanticInfo.Type);
+                Assert.Equal("System.Action", semanticInfo.ConvertedType.ToTestDisplayString());
+                Assert.Equal(ConversionKind.MethodGroup, semanticInfo.ImplicitConversion.Kind);
 
-            Assert.Equal(1, semanticInfo.MethodGroup.Length);
-            Assert.Equal("System.Int32 Program.f()", semanticInfo.MethodGroup[0].ToTestDisplayString());
+                Assert.Equal("System.Int32 Program.f()", semanticInfo.Symbol.ToTestDisplayString());
+                Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason);
+                Assert.Empty(semanticInfo.CandidateSymbols);
 
-            Assert.False(semanticInfo.IsCompileTimeConstant);
+                Assert.Equal(1, semanticInfo.MethodGroup.Length);
+                Assert.Equal("System.Int32 Program.f()", semanticInfo.MethodGroup[0].ToTestDisplayString());
+
+                Assert.False(semanticInfo.IsCompileTimeConstant);
+            }
+            {
+                var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
+
+
+                Assert.Null(semanticInfo.Type);
+                Assert.Equal("System.Action", semanticInfo.ConvertedType.ToTestDisplayString());
+                Assert.Equal(ConversionKind.NoConversion, semanticInfo.ImplicitConversion.Kind);
+
+                Assert.Null(semanticInfo.Symbol);
+                Assert.Equal(CandidateReason.OverloadResolutionFailure, semanticInfo.CandidateReason);
+                Assert.Equal("System.Int32 Program.f()", semanticInfo.CandidateSymbols[0].ToTestDisplayString());
+                Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
+
+                Assert.Equal(1, semanticInfo.MethodGroup.Length);
+                Assert.Equal("System.Int32 Program.f()", semanticInfo.MethodGroup[0].ToTestDisplayString());
+
+                Assert.False(semanticInfo.IsCompileTimeConstant);
+            }
         }
 
         [WorkItem(541802, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541802")]
@@ -13006,9 +13047,12 @@ public class MemberInitializerTest
             Assert.Equal(TypeKind.Class, semanticInfo.ConvertedType.TypeKind);
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
-            Assert.Equal("MemberInitializerTest MemberInitializerTest.Goo()", semanticInfo.Symbol.ToTestDisplayString());
-            Assert.Equal(SymbolKind.Method, semanticInfo.Symbol.Kind);
-            Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
+            Assert.Null(semanticInfo.Symbol);
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, semanticInfo.CandidateReason);
+            Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
+            var symbol = semanticInfo.CandidateSymbols[0];
+            Assert.Equal("MemberInitializerTest MemberInitializerTest.Goo()", symbol.ToTestDisplayString());
+            Assert.Equal(SymbolKind.Method, symbol.Kind);
 
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
 
@@ -13016,7 +13060,7 @@ public class MemberInitializerTest
         }
 
         [Fact]
-        public void ObjectInitializer_BadNamedAssignmentLeft_InvocationExpressionSyntax()
+        public void ObjectInitializer_BadNamedAssignmentLeft_InvocationExpressionSyntax_01()
         {
             string sourceCode = @"
 public class MemberInitializerTest
@@ -13037,9 +13081,46 @@ public class MemberInitializerTest
             Assert.Equal(TypeKind.Class, semanticInfo.ConvertedType.TypeKind);
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
-            Assert.Equal("MemberInitializerTest MemberInitializerTest.Goo()", semanticInfo.Symbol.ToTestDisplayString());
-            Assert.Equal(SymbolKind.Method, semanticInfo.Symbol.Kind);
-            Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
+            Assert.Null(semanticInfo.Symbol);
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, semanticInfo.CandidateReason);
+            Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
+            var symbol = semanticInfo.CandidateSymbols[0];
+            Assert.Equal("MemberInitializerTest MemberInitializerTest.Goo()", symbol.ToTestDisplayString());
+            Assert.Equal(SymbolKind.Method, symbol.Kind);
+
+            Assert.Equal(0, semanticInfo.MethodGroup.Length);
+
+            Assert.False(semanticInfo.IsCompileTimeConstant);
+        }
+
+        [Fact]
+        public void ObjectInitializer_BadNamedAssignmentLeft_InvocationExpressionSyntax_02()
+        {
+            string sourceCode = @"
+public class MemberInitializerTest
+{
+    public int x;
+    public static MemberInitializerTest Goo() { return new MemberInitializerTest(); }
+    public static void Main()
+    {
+        var i = new MemberInitializerTest() { x = 0, /*<bind>*/Goo()/*</bind>*/ = new MemberInitializerTest() };
+    }
+}
+";
+            var semanticInfo = GetSemanticInfoForTest<InvocationExpressionSyntax>(sourceCode);
+
+            Assert.Equal("MemberInitializerTest", semanticInfo.Type.ToTestDisplayString());
+            Assert.Equal(TypeKind.Class, semanticInfo.Type.TypeKind);
+            Assert.Equal("MemberInitializerTest", semanticInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(TypeKind.Class, semanticInfo.ConvertedType.TypeKind);
+            Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
+
+            Assert.Null(semanticInfo.Symbol);
+            Assert.Equal(CandidateReason.NotAVariable, semanticInfo.CandidateReason);
+            Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
+            var symbol = semanticInfo.CandidateSymbols[0];
+            Assert.Equal("MemberInitializerTest MemberInitializerTest.Goo()", symbol.ToTestDisplayString());
+            Assert.Equal(SymbolKind.Method, symbol.Kind);
 
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
 

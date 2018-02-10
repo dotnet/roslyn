@@ -4141,8 +4141,8 @@ Un blocco catch() dopo un blocco catch (System.Exception e) è in grado di rilev
         <note />
       </trans-unit>
       <trans-unit id="ERR_ForEachMissingMember">
-        <source>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public definition for '{1}'</source>
-        <target state="translated">L'istruzione foreach non può funzionare con variabili di tipo '{0}' perché '{0}' non contiene una definizione pubblica per '{1}'</target>
+        <source>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'</source>
+        <target state="needs-review-translation">L'istruzione foreach non può funzionare con variabili di tipo '{0}' perché '{0}' non contiene una definizione pubblica per '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadXMLRefParamType">

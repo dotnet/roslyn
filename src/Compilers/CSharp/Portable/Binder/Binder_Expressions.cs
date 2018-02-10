@@ -26,12 +26,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="isExplicit">The reference was explicitly specified in syntax.</param>
         /// <param name="inStaticContext">True if "this" is not available due to the current method/property/field initializer being static.</param>
         /// <returns>True if a reference to "this" is available.</returns>
-        private bool HasThis(bool isExplicit, out bool inStaticContext)
+        internal bool HasThis(bool isExplicit, out bool inStaticContext)
         {
-            var member = this.ContainingMemberOrLambda.ContainingNonLambdaMember();
-            if (member.IsStatic)
+            var memberOpt = this.ContainingMemberOrLambda?.ContainingNonLambdaMember();
+            if (memberOpt?.IsStatic == true)
             {
-                inStaticContext = member.Kind == SymbolKind.Field || member.Kind == SymbolKind.Method || member.Kind == SymbolKind.Property;
+                inStaticContext = memberOpt.Kind == SymbolKind.Field || memberOpt.Kind == SymbolKind.Method || memberOpt.Kind == SymbolKind.Property;
                 return false;
             }
 
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            var containingType = member.ContainingType;
+            var containingType = memberOpt?.ContainingType;
             bool inTopLevelScriptMember = (object)containingType != null && containingType.IsScriptClass;
 
             // "this" is not allowed in field initializers (that are not script variable initializers):
@@ -4860,8 +4860,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    result.ReportDiagnostics(this, errorLocation, diagnostics,
-                        errorName, null, analyzedArguments, candidateConstructors, typeContainingConstructors, null);
+                    result.ReportDiagnostics(
+                        binder: this, location: errorLocation, nodeOpt: null, diagnostics: diagnostics,
+                        name: errorName, receiver: null, invokedExpression: null, arguments: analyzedArguments,
+                        memberGroup: candidateConstructors, typeContainingConstructor: typeContainingConstructors, delegateTypeBeingInvoked: null);
                 }
             }
 
@@ -5823,7 +5825,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             AnalyzedArguments analyzedArguments,
             BoundExpression left,
             ImmutableArray<TypeSymbol> typeArguments,
-            bool isMethodGroupConversion)
+            bool isMethodGroupConversion,
+            RefKind returnRefKind = default,
+            TypeSymbol returnType = null
+)
         {
             var firstResult = new MethodGroupResolution();
             AnalyzedArguments actualArguments = null;
@@ -5872,7 +5877,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var overloadResolutionResult = OverloadResolutionResult<MethodSymbol>.GetInstance();
                 bool allowRefOmittedArguments = methodGroup.Receiver.IsExpressionOfComImportType();
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                OverloadResolution.MethodInvocationOverloadResolution(methodGroup.Methods, methodGroup.TypeArguments, actualArguments, overloadResolutionResult, ref useSiteDiagnostics, isMethodGroupConversion, allowRefOmittedArguments);
+                OverloadResolution.MethodInvocationOverloadResolution(
+                    methods: methodGroup.Methods,
+                    typeArguments: methodGroup.TypeArguments,
+                    receiver: methodGroup.Receiver,
+                    arguments: actualArguments,
+                    result: overloadResolutionResult,
+                    useSiteDiagnostics: ref useSiteDiagnostics,
+                    isMethodGroupConversion: isMethodGroupConversion,
+                    allowRefOmittedArguments: allowRefOmittedArguments,
+                    returnRefKind: returnRefKind,
+                    returnType: returnType);
                 diagnostics.Add(expression, useSiteDiagnostics);
                 var sealedDiagnostics = diagnostics.ToReadOnlyAndFree();
                 var result = new MethodGroupResolution(methodGroup, null, overloadResolutionResult, actualArguments, methodGroup.ResultKind, sealedDiagnostics);
@@ -6737,7 +6752,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             OverloadResolutionResult<PropertySymbol> overloadResolutionResult = OverloadResolutionResult<PropertySymbol>.GetInstance();
             bool allowRefOmittedArguments = receiverOpt.IsExpressionOfComImportType();
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            this.OverloadResolution.PropertyOverloadResolution(propertyGroup, analyzedArguments, overloadResolutionResult, allowRefOmittedArguments, ref useSiteDiagnostics);
+            this.OverloadResolution.PropertyOverloadResolution(propertyGroup, receiverOpt, analyzedArguments, overloadResolutionResult, allowRefOmittedArguments, ref useSiteDiagnostics);
             diagnostics.Add(syntax, useSiteDiagnostics);
             BoundExpression propertyAccess;
 
@@ -6768,13 +6783,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var name = candidate.IsIndexer ? SyntaxFacts.GetText(SyntaxKind.ThisKeyword) : candidate.Name;
 
                     overloadResolutionResult.ReportDiagnostics(
-                        this,
-                        syntax.Location,
-                        diagnostics,
-                        name,
-                        null,
-                        analyzedArguments,
-                        candidates,
+                        binder: this,
+                        location: syntax.Location,
+                        nodeOpt: syntax,
+                        diagnostics: diagnostics,
+                        name: name,
+                        receiver: null,
+                        invokedExpression: null,
+                        arguments: analyzedArguments,
+                        memberGroup: candidates,
                         typeContainingConstructor: null,
                         delegateTypeBeingInvoked: null);
                 }
@@ -6866,9 +6883,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             AnalyzedArguments analyzedArguments,
             bool isMethodGroupConversion,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics,
-            bool inferWithDynamic = false)
+            bool inferWithDynamic = false,
+            RefKind returnRefKind = default,
+            TypeSymbol returnType = null)
         {
-            return ResolveMethodGroup(node, node.Syntax, node.Name, analyzedArguments, isMethodGroupConversion, ref useSiteDiagnostics, inferWithDynamic: inferWithDynamic);
+            return ResolveMethodGroup(
+                node, node.Syntax, node.Name, analyzedArguments, isMethodGroupConversion, ref useSiteDiagnostics,
+                inferWithDynamic: inferWithDynamic, returnRefKind: returnRefKind, returnType: returnType);
         }
 
         internal MethodGroupResolution ResolveMethodGroup(
@@ -6879,11 +6900,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isMethodGroupConversion,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics,
             bool inferWithDynamic = false,
-            bool allowUnexpandedForm = true)
+            bool allowUnexpandedForm = true,
+            RefKind returnRefKind = default,
+            TypeSymbol returnType = null)
         {
             var methodResolution = ResolveMethodGroupInternal(
                 node, expression, methodName, analyzedArguments, isMethodGroupConversion, ref useSiteDiagnostics,
-                inferWithDynamic: inferWithDynamic, allowUnexpandedForm: allowUnexpandedForm);
+                inferWithDynamic: inferWithDynamic, allowUnexpandedForm: allowUnexpandedForm,
+                returnRefKind: returnRefKind, returnType: returnType);
             if (methodResolution.IsEmpty && !methodResolution.HasAnyErrors)
             {
                 Debug.Assert(node.LookupError == null);
@@ -6904,11 +6928,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isMethodGroupConversion,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics,
             bool inferWithDynamic = false,
-            bool allowUnexpandedForm = true)
+            bool allowUnexpandedForm = true,
+            RefKind returnRefKind = default,
+            TypeSymbol returnType = null)
         {
             var methodResolution = ResolveDefaultMethodGroup(
                 methodGroup, analyzedArguments, isMethodGroupConversion, ref useSiteDiagnostics,
-                inferWithDynamic: inferWithDynamic, allowUnexpandedForm: allowUnexpandedForm);
+                inferWithDynamic: inferWithDynamic, allowUnexpandedForm: allowUnexpandedForm,
+                returnRefKind: returnRefKind, returnType: returnType);
 
             // If the method group's receiver is dynamic then there is no point in looking for extension methods; 
             // it's going to be a dynamic invocation.
@@ -6917,7 +6944,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return methodResolution;
             }
 
-            var extensionMethodResolution = BindExtensionMethod(expression, methodName, analyzedArguments, methodGroup.ReceiverOpt, methodGroup.TypeArgumentsOpt, isMethodGroupConversion);
+            var extensionMethodResolution = BindExtensionMethod(
+                expression, methodName, analyzedArguments, methodGroup.ReceiverOpt, methodGroup.TypeArgumentsOpt, isMethodGroupConversion,
+                returnRefKind: returnRefKind, returnType: returnType);
             bool preferExtensionMethodResolution = false;
 
             if (extensionMethodResolution.HasAnyApplicableMethod)
@@ -6969,7 +6998,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isMethodGroupConversion,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics,
             bool inferWithDynamic = false,
-            bool allowUnexpandedForm = true)
+            bool allowUnexpandedForm = true,
+            RefKind returnRefKind = default,
+            TypeSymbol returnType = null)
         {
             var methods = node.Methods;
             if (methods.Length == 0)
@@ -7015,9 +7046,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var result = OverloadResolutionResult<MethodSymbol>.GetInstance();
                 bool allowRefOmittedArguments = methodGroup.Receiver.IsExpressionOfComImportType();
                 OverloadResolution.MethodInvocationOverloadResolution(
-                    methodGroup.Methods, methodGroup.TypeArguments, analyzedArguments,
-                    result, ref useSiteDiagnostics, isMethodGroupConversion, allowRefOmittedArguments,
-                    inferWithDynamic: inferWithDynamic, allowUnexpandedForm: allowUnexpandedForm);
+                    methods: methodGroup.Methods,
+                    typeArguments: methodGroup.TypeArguments,
+                    receiver: methodGroup.Receiver,
+                    arguments: analyzedArguments,
+                    result: result,
+                    useSiteDiagnostics: ref useSiteDiagnostics,
+                    isMethodGroupConversion: isMethodGroupConversion,
+                    allowRefOmittedArguments: allowRefOmittedArguments,
+                    inferWithDynamic: inferWithDynamic,
+                    allowUnexpandedForm: allowUnexpandedForm,
+                    returnRefKind: returnRefKind,
+                    returnType: returnType);
                 return new MethodGroupResolution(methodGroup, null, result, analyzedArguments, methodGroup.ResultKind, sealedDiagnostics);
             }
         }

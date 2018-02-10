@@ -4141,8 +4141,8 @@ catch (System.Exception e) 블록 뒤의 catch() 블록은 RuntimeCompatibilityA
         <note />
       </trans-unit>
       <trans-unit id="ERR_ForEachMissingMember">
-        <source>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public definition for '{1}'</source>
-        <target state="translated">{0}'에는 '{1}'에 대한 공용 정의가 포함되어 있지 않아 '{0}' 형식 변수에서 foreach 문을 수행할 수 없습니다.</target>
+        <source>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'</source>
+        <target state="needs-review-translation">{0}'에는 '{1}'에 대한 공용 정의가 포함되어 있지 않아 '{0}' 형식 변수에서 foreach 문을 수행할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadXMLRefParamType">

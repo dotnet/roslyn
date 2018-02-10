@@ -1000,8 +1000,8 @@ static class S3
 {
     internal static object F3(this N.C x, object y) { return null; }
 }";
-            var compilation = CreateStandardCompilation(source, references: new[] { SystemCoreRef });
-            compilation.VerifyDiagnostics(
+            CreateStandardCompilation(source, references: new[] { SystemCoreRef },
+                    parseOptions: TestOptions.WithoutImprovedOverloadCandidates).VerifyDiagnostics(
                 // (10,16): error CS0407: 'void S2.F1(object, object)' has the wrong return type
                 Diagnostic(ErrorCode.ERR_BadRetType, "c.F1").WithArguments("S2.F1(object, object)", "void").WithLocation(10, 16),
                 // (13,16): error CS0407: 'object S2.F2(N.C, object)' has the wrong return type
@@ -1009,6 +1009,19 @@ static class S3
                 // (14,16): error CS1503: Argument 1: cannot convert from 'method group' to 'System.Func<object, object>'
                 //             M1(c.F3); // ambiguous
                 Diagnostic(ErrorCode.ERR_BadArgType, "c.F3").WithArguments("1", "method group", "System.Func<object, object>"));
+            // NOTE: we have a degradation in the quality of diagnostics for a delegate conversion in this failure case
+            // because we don't report *why* a delegate conversion failed.
+            // See https://github.com/dotnet/roslyn/issues/24675 for a proposal to restore the quality of this diagnostic.
+            CreateStandardCompilation(source, references: new[] { SystemCoreRef }).VerifyDiagnostics(
+                // (10,16): error CS1503: Argument 1: cannot convert from 'method group' to 'Func<object, object>'
+                //             M1(c.F1); // wrong return type
+                Diagnostic(ErrorCode.ERR_BadArgType, "c.F1").WithArguments("1", "method group", "System.Func<object, object>").WithLocation(10, 16),
+                // (13,16): error CS1503: Argument 1: cannot convert from 'method group' to 'Action<object>'
+                //             M2(c.F2); // wrong return type
+                Diagnostic(ErrorCode.ERR_BadArgType, "c.F2").WithArguments("1", "method group", "System.Action<object>").WithLocation(13, 16),
+                // (14,16): error CS1503: Argument 1: cannot convert from 'method group' to 'Func<object, object>'
+                //             M1(c.F3); // ambiguous
+                Diagnostic(ErrorCode.ERR_BadArgType, "c.F3").WithArguments("1", "method group", "System.Func<object, object>").WithLocation(14, 16));
         }
 
         [Fact]
@@ -1874,7 +1887,7 @@ static class S
     void M()
     {
         this.E<int>(1);
-        this.E<S>(null);
+        this.E<S>();
         this.E<A>(null);
         this.E<int, int>(1);
     }
@@ -1890,9 +1903,9 @@ static class S
 }";
             var compilation = CreateStandardCompilation(source, references: new[] { SystemCoreRef });
             compilation.VerifyDiagnostics(
-                // (6,9): error CS0718: 'S': static types cannot be used as type arguments
-                //         this.E<S>(null);
-                Diagnostic(ErrorCode.ERR_GenericArgIsStaticClass, "this.E<S>").WithArguments("S").WithLocation(6, 9),
+                // (6,14): error CS0718: 'S': static types cannot be used as type arguments
+                //         this.E<S>();
+                Diagnostic(ErrorCode.ERR_GenericArgIsStaticClass, "E<S>").WithArguments("S").WithLocation(6, 14),
                 // (7,16): error CS0246: The type or namespace name 'A' could not be found (are you missing a using directive or an assembly reference?)
                 //         this.E<A>(null);
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("A").WithLocation(7, 16),
@@ -3771,9 +3784,9 @@ public class BaseClass<TMember>
 ";
             var compilation = CreateStandardCompilation(source, references: new[] { SystemCoreRef });
             compilation.VerifyDiagnostics(
-                // (7,9): error CS0311: The type 'BaseClass<int>' cannot be used as type parameter 'BC' in the generic type or method 'Extensions.SetMember<BC, TMember>(BC, TMember)'. There is no implicit reference conversion from 'BaseClass<int>' to 'BaseClass<long>'.
+                // (7,18): error CS0311: The type 'BaseClass<int>' cannot be used as type parameter 'BC' in the generic type or method 'Extensions.SetMember<BC, TMember>(BC, TMember)'. There is no implicit reference conversion from 'BaseClass<int>' to 'BaseClass<long>'.
                 //         Instance.SetMember(32);
-                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "Instance.SetMember").WithArguments("Extensions.SetMember<BC, TMember>(BC, TMember)", "BaseClass<long>", "BC", "BaseClass<int>").WithLocation(7, 9)
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "SetMember").WithArguments("Extensions.SetMember<BC, TMember>(BC, TMember)", "BaseClass<long>", "BC", "BaseClass<int>").WithLocation(7, 18)
                 );
 
             var tree = compilation.SyntaxTrees.Single();
@@ -3866,9 +3879,9 @@ public class BaseClass<TMember> : I1<TMember>
 ";
             var compilation = CreateStandardCompilation(source, references: new[] { SystemCoreRef });
             compilation.VerifyDiagnostics(
-                // (7,9): error CS0311: The type 'BaseClass<int>' cannot be used as type parameter 'BC' in the generic type or method 'Extensions.SetMember<BC, TMember>(BC, TMember)'. There is no implicit reference conversion from 'BaseClass<int>' to 'I1<long>'.
+                // (7,18): error CS0311: The type 'BaseClass<int>' cannot be used as type parameter 'BC' in the generic type or method 'Extensions.SetMember<BC, TMember>(BC, TMember)'. There is no implicit reference conversion from 'BaseClass<int>' to 'I1<long>'.
                 //         Instance.SetMember(32);
-                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "Instance.SetMember").WithArguments("Extensions.SetMember<BC, TMember>(BC, TMember)", "I1<long>", "BC", "BaseClass<int>").WithLocation(7, 9)
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "SetMember").WithArguments("Extensions.SetMember<BC, TMember>(BC, TMember)", "I1<long>", "BC", "BaseClass<int>").WithLocation(7, 18)
                 );
 
             var tree = compilation.SyntaxTrees.Single();

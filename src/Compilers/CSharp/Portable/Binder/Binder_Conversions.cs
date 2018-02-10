@@ -455,8 +455,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            BoundNode receiverOpt = ((BoundMethodGroup)node).ReceiverOpt;
-            return receiverOpt != null && receiverOpt.Kind == BoundKind.TypeOrValueExpression;
+            return Binder.IsTypeOrValueExpression(((BoundMethodGroup)node).ReceiverOpt);
         }
 
         private BoundMethodGroup FixMethodGroupWithTypeOrValue(BoundMethodGroup group, Conversion conversion, DiagnosticBag diagnostics)
@@ -572,7 +571,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //note that the same assert does not hold for all properties. Some properties and (all indexers) are not referenceable by name, yet
             //their binding brings them through here, perhaps needlessly.
 
-            if (receiverOpt != null && receiverOpt.Kind == BoundKind.TypeOrValueExpression)
+            if (IsTypeOrValueExpression(receiverOpt))
             {
                 // TypeOrValue expression isn't replaced only if the invocation is late bound, in which case it can't be extension method.
                 // None of the checks below apply if the receiver can't be classified as a type or value. 
@@ -678,7 +677,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return !IsMemberAccessedThroughType(receiverOpt);
         }
 
-        private static bool IsMemberAccessedThroughType(BoundExpression receiverOpt)
+        internal static bool IsMemberAccessedThroughType(BoundExpression receiverOpt)
         {
             if (receiverOpt == null)
             {
@@ -696,7 +695,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Was the receiver expression compiler-generated?
         /// </summary>
-        private static bool WasImplicitReceiver(BoundExpression receiverOpt)
+        internal static bool WasImplicitReceiver(BoundExpression receiverOpt)
         {
             if (receiverOpt == null) return true;
             if (!receiverOpt.WasCompilerGenerated) return false;

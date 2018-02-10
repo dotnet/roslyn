@@ -347,7 +347,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 var containingMember = this.ContainingMemberOrLambda;
-                switch (containingMember.Kind)
+                switch (containingMember?.Kind)
                 {
                     case SymbolKind.Method:
                         // global statements

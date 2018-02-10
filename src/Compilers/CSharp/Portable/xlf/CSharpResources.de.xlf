@@ -4141,8 +4141,8 @@ Ein catch()-Block nach einem catch (System.Exception e)-Block kann nicht-CLS-Aus
         <note />
       </trans-unit>
       <trans-unit id="ERR_ForEachMissingMember">
-        <source>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public definition for '{1}'</source>
-        <target state="translated">Eine foreach-Anweisung kann nicht für Variablen vom Typ "{0}" verwendet werden, da "{0}" keine öffentliche Definition für "{1}" enthält.</target>
+        <source>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'</source>
+        <target state="needs-review-translation">Eine foreach-Anweisung kann nicht für Variablen vom Typ "{0}" verwendet werden, da "{0}" keine öffentliche Definition für "{1}" enthält.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadXMLRefParamType">

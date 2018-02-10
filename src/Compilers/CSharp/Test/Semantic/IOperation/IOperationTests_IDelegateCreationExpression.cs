@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -521,7 +522,8 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
                 Diagnostic(ErrorCode.ERR_BadRetType, "M1").WithArguments("Program.M1()", "int").WithLocation(7, 30)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                parseOptions: TestOptions.WithoutImprovedOverloadCandidates);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -540,19 +542,26 @@ class Program
 }
 ";
 
-            string expectedOperationTree = @"
+            VerifyOperationTreeAndDiagnosticsForTest<IdentifierNameSyntax>(source, @"
 IMethodReferenceOperation: System.Int32 Program.M1() (OperationKind.MethodReference, Type: null, IsInvalid) (Syntax: 'M1')
   Instance Receiver: 
     IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M1')
-";
-            var expectedDiagnostics = new DiagnosticDescription[]
+", new DiagnosticDescription[]
             {
                 // CS0407: 'int Program.M1()' has the wrong return type
                 //         Action a = /*<bind>*/M1/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_BadRetType, "M1").WithArguments("Program.M1()", "int").WithLocation(7, 30)
-            };
-
-            VerifyOperationTreeAndDiagnosticsForTest<IdentifierNameSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            }, parseOptions: TestOptions.WithoutImprovedOverloadCandidates);
+            VerifyOperationTreeAndDiagnosticsForTest<IdentifierNameSyntax>(source, @"
+IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'M1')
+  Children(1):
+      IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M1')
+", new DiagnosticDescription[]
+            {
+                // CS0407: 'int Program.M1()' has the wrong return type
+                //         Action a = /*<bind>*/M1/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_BadRetType, "M1").WithArguments("Program.M1()", "int").WithLocation(7, 30)
+            });
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -742,7 +751,8 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action,
                 Diagnostic(ErrorCode.ERR_BadRetType, "(Action)M1").WithArguments("Program.M1()", "int").WithLocation(7, 30)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<CastExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<CastExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                parseOptions: TestOptions.WithoutImprovedOverloadCandidates);
         }
 
         [Fact]
@@ -760,20 +770,31 @@ class Program
     int M1() => 1;
 }
 ";
-            string expectedOperationTree = @"
+            VerifyOperationTreeAndDiagnosticsForTest<CastExpressionSyntax>(source, @"
 IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action, IsInvalid) (Syntax: '(Action)p.M1')
   Target: 
     IMethodReferenceOperation: System.Int32 Program.M1() (OperationKind.MethodReference, Type: null, IsInvalid) (Syntax: 'p.M1')
       Instance Receiver: 
         ILocalReferenceOperation: p (OperationKind.LocalReference, Type: Program, IsInvalid) (Syntax: 'p')
-";
-            var expectedDiagnostics = new DiagnosticDescription[] {
+", new DiagnosticDescription[] {
                 // CS0407: 'int Program.M1()' has the wrong return type
                 //         Action a = /*<bind>*/(Action)p.M1/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_BadRetType, "(Action)p.M1").WithArguments("Program.M1()", "int").WithLocation(8, 30)
-            };
-
-            VerifyOperationTreeAndDiagnosticsForTest<CastExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            }, parseOptions: TestOptions.WithoutImprovedOverloadCandidates);
+            // NOTE: we have a degradation in the quality of diagnostics for a delegate conversion in this failure case
+            // because we don't report *why* a delegate conversion failed.
+            // See https://github.com/dotnet/roslyn/issues/24675 for a proposal to restore the quality of this diagnostic.
+            VerifyOperationTreeAndDiagnosticsForTest<CastExpressionSyntax>(source, @"
+IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action, IsInvalid) (Syntax: '(Action)p.M1')
+  Target: 
+    IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'p.M1')
+      Children(1):
+          ILocalReferenceOperation: p (OperationKind.LocalReference, Type: Program, IsInvalid) (Syntax: 'p')
+", new DiagnosticDescription[] {
+                // file.cs(8,30): error CS0030: Cannot convert type 'method' to 'Action'
+                //         Action a = /*<bind>*/(Action)p.M1/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(Action)p.M1").WithArguments("method", "System.Action").WithLocation(8, 30)
+            });
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -1049,14 +1070,17 @@ class Program
             string expectedOperationTree = @"
 IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action, IsInvalid) (Syntax: 'new Action(this.M1)')
   Target: 
-    IMethodReferenceOperation: void Program.M1() (Static) (OperationKind.MethodReference, Type: null, IsInvalid) (Syntax: 'this.M1')
-      Instance Receiver: 
-        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsInvalid) (Syntax: 'this')
+    IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'this.M1')
+      Children(1):
+          IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsInvalid) (Syntax: 'this')
 ";
+            // NOTE: we have a degradation in the quality of diagnostics for a delegate conversion in this failure case
+            // because we don't report *why* a delegate conversion failed.
+            // See https://github.com/dotnet/roslyn/issues/24675 for a proposal to restore the quality of this diagnostic.
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // (7,41): error CS0176: Member 'Program.M1()' cannot be accessed with an instance reference; qualify it with a type name instead
+                // file.cs(7,30): error CS0123: No overload for 'M1' matches delegate 'Action'
                 //         Action a = /*<bind>*/new Action(this.M1)/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "this.M1").WithArguments("Program.M1()").WithLocation(7, 41)
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "new Action(this.M1)").WithArguments("M1", "System.Action").WithLocation(7, 30)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -1136,20 +1160,31 @@ class Program
     int M1() => 1;
 }
 ";
-            string expectedOperationTree = @"
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, @"
 IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action, IsInvalid) (Syntax: 'new Action(M1)')
   Target: 
     IMethodReferenceOperation: System.Int32 Program.M1() (OperationKind.MethodReference, Type: null, IsInvalid) (Syntax: 'M1')
       Instance Receiver: 
         IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M1')
-";
-            var expectedDiagnostics = new DiagnosticDescription[] {
+", new DiagnosticDescription[] {
                 // CS0407: 'int Program.M1()' has the wrong return type
                 //         Action a = /*<bind>*/new Action(M1)/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_BadRetType, "M1").WithArguments("Program.M1()", "int").WithLocation(7, 41)
-            };
-
-            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            }, parseOptions: TestOptions.WithoutImprovedOverloadCandidates);
+            // NOTE: we have a degradation in the quality of diagnostics for a delegate conversion in this failure case
+            // because we don't report *why* a delegate conversion failed.
+            // See https://github.com/dotnet/roslyn/issues/24675 for a proposal to restore the quality of this diagnostic.
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, @"
+IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action, IsInvalid) (Syntax: 'new Action(M1)')
+  Target: 
+    IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'M1')
+      Children(1):
+          IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M1')
+", new DiagnosticDescription[] {
+                // file.cs(7,30): error CS0123: No overload for 'M1' matches delegate 'Action'
+                //         Action a = /*<bind>*/new Action(M1)/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "new Action(M1)").WithArguments("M1", "System.Action").WithLocation(7, 30)
+            });
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -1477,7 +1512,8 @@ IInvalidOperation (OperationKind.Invalid, Type: System.Action, IsInvalid) (Synta
                 Diagnostic(ErrorCode.ERR_BadRetType, "(Action)M1").WithArguments("Program.M1()", "int").WithLocation(7, 41)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                parseOptions: TestOptions.WithoutImprovedOverloadCandidates);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
