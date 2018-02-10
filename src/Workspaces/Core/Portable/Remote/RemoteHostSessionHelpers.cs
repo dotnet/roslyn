@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
             try
             {
-                await connection.RegisterPinnedRemotableDataScopeAsync(scope).ConfigureAwait(false);
+                await connection.SetConnectionStateAsync(scope).ConfigureAwait(false);
                 return sessionWithSolution;
             }
             catch

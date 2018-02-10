@@ -32,9 +32,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             _remoteDataRpc = dataRpc;
         }
 
-        protected override async Task OnRegisterPinnedRemotableDataScopeAsync(PinnedRemotableDataScope scope)
+        public override Task SetConnectionStateAsync(PinnedRemotableDataScope scope)
         {
-            await InvokeAsync(WellKnownServiceHubServices.ServiceHubServiceBase_Initialize, new object[] { scope.SolutionInfo }, CancellationToken.None).ConfigureAwait(false);
+            return InvokeAsync(WellKnownServiceHubServices.ServiceHubServiceBase_Initialize, new object[] { scope.SolutionInfo }, CancellationToken.None);
         }
 
         public override Task InvokeAsync(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)

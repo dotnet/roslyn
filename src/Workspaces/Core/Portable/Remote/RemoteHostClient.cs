@@ -105,12 +105,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 _disposed = false;
             }
 
-            protected abstract Task OnRegisterPinnedRemotableDataScopeAsync(PinnedRemotableDataScope scope);
-
-            public virtual Task RegisterPinnedRemotableDataScopeAsync(PinnedRemotableDataScope scope)
-            {
-                return OnRegisterPinnedRemotableDataScopeAsync(scope);
-            }
+            public abstract Task SetConnectionStateAsync(PinnedRemotableDataScope scope);
 
             public abstract Task InvokeAsync(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken);
             public abstract Task<T> InvokeAsync<T>(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken);

@@ -22,13 +22,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
     {
         private class ConnectionPools
         {
+            private const int MaxConnection = 20;
+
             private readonly HubClient _hubClient;
             private readonly HostGroup _hostGroup;
             private readonly TimeSpan _timeout;
 
             private readonly ReferenceCountedDisposable<RemotableDataJsonRpc> _remotableDataRpc;
 
-            private readonly ConcurrentDictionary<string, JsonRpcConnection> _pools;
+            private readonly ConcurrentDictionary<string, ConcurrentQueue<JsonRpcConnection>> _pools;
 
             public ConnectionPools(HubClient hubClient, HostGroup hostGroup, TimeSpan timeout, ReferenceCountedDisposable<RemotableDataJsonRpc> remotableDataRpc)
             {
@@ -37,7 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 _timeout = timeout;
                 _remotableDataRpc = remotableDataRpc;
 
-                _pools = new ConcurrentDictionary<string, JsonRpcConnection>(concurrencyLevel: 4, capacity: 20);
+                _pools = new ConcurrentDictionary<string, ConcurrentQueue<JsonRpcConnection>>(concurrencyLevel: 4, capacity: 4);
             }
 
             public Task<Connection> TryCreateConnectionAsync(string serviceName, object callbackTarget, CancellationToken cancellationToken)
@@ -53,10 +55,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 return TryGetConnectionFromPoolAsync(serviceName, callbackTarget, cancellationToken);
             }
 
-            private Task<Connection> TryGetConnectionFromPoolAsync(string serviceName, object callbackTarget, CancellationToken cancellationToken)
+            private async Task<Connection> TryGetConnectionFromPoolAsync(string serviceName, object callbackTarget, CancellationToken cancellationToken)
             {
-                // no pool yet
-                return TryCreateNewConnectionAsync(serviceName, callbackTarget, cancellationToken);
+                var queue = _pools.GetOrAdd(serviceName, _ => new ConcurrentQueue<JsonRpcConnection>());
+                if (queue.TryDequeue(out var connection))
+                {
+                    return new PooledConnection(this, serviceName, connection);
+                }
+
+                return new PooledConnection(this, serviceName, (JsonRpcConnection)await TryCreateNewConnectionAsync(serviceName, callbackTarget, cancellationToken).ConfigureAwait(false));
             }
 
             private async Task<Connection> TryCreateNewConnectionAsync(string serviceName, object callbackTarget, CancellationToken cancellationToken)
@@ -78,10 +85,69 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 return new JsonRpcConnection(_hubClient.Logger, callbackTarget, serviceStream, dataRpc);
             }
 
+            private void Free(string serviceName, JsonRpcConnection connection)
+            {
+                // queue must exist
+                var queue = _pools[serviceName];
+                if (queue.Count >= MaxConnection)
+                {
+                    // let the connection actually go away
+                    connection.Dispose();
+                    return;
+                }
+
+                // pool the connection
+                queue.Enqueue(connection);
+            }
+
             public void Shutdown()
             {
                 // let ref count this one is holding go
                 _remotableDataRpc.Dispose();
+            }
+
+            private class PooledConnection : Connection
+            {
+                private readonly ConnectionPools _pools;
+                private readonly string _serviceName;
+                private readonly JsonRpcConnection _connection;
+
+                public PooledConnection(ConnectionPools pools, string serviceName, JsonRpcConnection connection)
+                {
+                    _pools = pools;
+                    _serviceName = serviceName;
+                    _connection = connection;
+                }
+
+                public override Task SetConnectionStateAsync(PinnedRemotableDataScope scope)
+                {
+                    return _connection.SetConnectionStateAsync(scope);
+                }
+
+                public override Task InvokeAsync(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
+                {
+                    return _connection.InvokeAsync(targetName, arguments, cancellationToken);
+                }
+
+                public override Task<T> InvokeAsync<T>(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
+                {
+                    return _connection.InvokeAsync<T>(targetName, arguments, cancellationToken);
+                }
+
+                public override Task InvokeAsync(string targetName, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, Task> funcWithDirectStreamAsync, CancellationToken cancellationToken)
+                {
+                    return _connection.InvokeAsync(targetName, arguments, funcWithDirectStreamAsync, cancellationToken);
+                }
+
+                public override Task<T> InvokeAsync<T>(string targetName, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync, CancellationToken cancellationToken)
+                {
+                    return _connection.InvokeAsync<T>(targetName, arguments, funcWithDirectStreamAsync, cancellationToken);
+                }
+
+                protected override void OnDisposed()
+                {
+                    _pools.Free(_serviceName, _connection);
+                }
             }
         }
 
