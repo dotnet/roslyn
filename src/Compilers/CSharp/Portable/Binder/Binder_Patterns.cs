@@ -277,7 +277,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics.Add(ErrorCode.ERR_VarMayNotBindToType, typeSyntax.Location, (boundDeclType.AliasOpt ?? (Symbol)boundDeclType.Type).ToDisplayString());
                 }
 
-                boundDeclType = new BoundTypeExpression(typeSyntax, null, inferredType: true, type: operandType, hasErrors: true);
+                boundDeclType = new BoundTypeExpression(
+                    syntax: typeSyntax, aliasOpt: null, inferredType: true, type: operandType, hasErrors: true);
             }
 
             TypeSymbol declType = boundDeclType.Type;
@@ -357,7 +358,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         variableSymbol = localSymbol;
-                        variableAccess = new BoundLocal(node, localSymbol, null, declType);
+                        variableAccess = new BoundLocal(
+                            syntax: node, localSymbol: localSymbol, constantValueOpt: null, type: declType);
                         return;
                     }
                     else
@@ -371,7 +373,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         BoundExpression receiver = SynthesizeReceiver(node, expressionVariableField, diagnostics);
 
                         variableSymbol = expressionVariableField;
-                        variableAccess = new BoundFieldAccess(node, receiver, expressionVariableField, null, hasErrors);
+                        variableAccess = new BoundFieldAccess(
+                            syntax: node, receiver: receiver, fieldSymbol: expressionVariableField, constantValueOpt: null, hasErrors: hasErrors);
                         return;
                     }
                 case DiscardDesignationSyntax _:
@@ -475,7 +478,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundPattern BindVarPattern(VarPatternSyntax node, TypeSymbol operandType, bool hasErrors, DiagnosticBag diagnostics)
         {
             TypeSymbol declType = operandType;
-            Symbol foundType = BindVarType(node.VarKeyword, diagnostics, out bool isVar, null);
+            Symbol foundType = BindVarType(varToken: node.VarKeyword, diagnostics: diagnostics, isVar: out bool isVar, basesBeingResolved: null);
             if (!isVar)
             {
                 // Give an error if there is a bindable type "var" in scope
@@ -495,13 +498,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                         //return new BoundDiscardPattern(designation);
                         // PROTOTYPE(patterns2): this should bind as a discard pattern, but for now we'll bind it as a declaration
                         // pattern for compatibility with the later phases of the compiler that do not yet handle the discard pattern.
-                        var boundOperandType = new BoundTypeExpression(node, null, operandType); // fake a type expression for the variable's type
-                        return new BoundDeclarationPattern(designation, null, null, boundOperandType, isVar: true, hasErrors: hasErrors);
+                        var boundOperandType = new BoundTypeExpression(
+                            syntax: node, aliasOpt: null, type: operandType); // fake a type expression for the variable's type
+                        return new BoundDeclarationPattern(
+                            syntax: designation, variable: null, variableAccess: null, declaredType: boundOperandType, isVar: true, hasErrors: hasErrors);
                     }
                 case SyntaxKind.SingleVariableDesignation:
                     {
-                        BindPatternDesignation(node, designation, operandType, null, diagnostics, ref hasErrors, out Symbol variableSymbol, out BoundExpression variableAccess);
-                        var boundOperandType = new BoundTypeExpression(node, null, operandType); // fake a type expression for the variable's type
+                        BindPatternDesignation(
+                            node: node, designation: designation, declType: operandType, typeSyntax: null, diagnostics: diagnostics,
+                            hasErrors: ref hasErrors, variableSymbol: out Symbol variableSymbol, variableAccess: out BoundExpression variableAccess);
+                        var boundOperandType = new BoundTypeExpression(syntax: node, aliasOpt: null, type: operandType); // fake a type expression for the variable's type
                         return new BoundDeclarationPattern(designation, variableSymbol, variableAccess, boundOperandType, isVar: true, hasErrors: hasErrors);
                     }
                 case SyntaxKind.ParenthesizedVariableDesignation:
@@ -515,7 +522,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             ImmutableArray<TypeSymbol> elementTypes = operandType.TupleElementTypes;
                             if (elementTypes.Length != tupleDesignation.Variables.Count && !hasErrors)
                             {
-                                var location = new SourceLocation(node.SyntaxTree, new Text.TextSpan(tupleDesignation.OpenParenToken.SpanStart, tupleDesignation.CloseParenToken.Span.End - tupleDesignation.OpenParenToken.SpanStart));
+                                var location = new SourceLocation(node.SyntaxTree, 
+                                    new Text.TextSpan(tupleDesignation.OpenParenToken.SpanStart, tupleDesignation.CloseParenToken.Span.End - tupleDesignation.OpenParenToken.SpanStart));
                                 diagnostics.Add(ErrorCode.ERR_WrongNumberOfSubpatterns, location, operandType.TupleElementTypes, elementTypes.Length, tupleDesignation.Variables.Count);
                                 hasErrors = true;
                             }
@@ -604,7 +612,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return builder.ToImmutableAndFree();
         }
 
-        private Symbol LookupMemberForPropertyPattern(TypeSymbol inputType, IdentifierNameSyntax name, DiagnosticBag diagnostics, ref bool hasErrors, out TypeSymbol memberType)
+        private Symbol LookupMemberForPropertyPattern(
+            TypeSymbol inputType, IdentifierNameSyntax name, DiagnosticBag diagnostics, ref bool hasErrors, out TypeSymbol memberType)
         {
             Symbol symbol = BindPropertyPatternMember(inputType, name, ref hasErrors, diagnostics);
 
@@ -682,7 +691,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
             }
 
-            if (hasErrors || !CheckValueKind(memberName.Parent, boundMember, BindValueKind.RValue, false, diagnostics))
+            if (hasErrors || !CheckValueKind(node: memberName.Parent, expr: boundMember, valueKind: BindValueKind.RValue,
+                                             checkingReceiver: false, diagnostics: diagnostics))
             {
                 return null;
             }
