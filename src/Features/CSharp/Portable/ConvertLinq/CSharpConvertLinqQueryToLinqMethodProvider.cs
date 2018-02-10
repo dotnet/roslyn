@@ -26,17 +26,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
             protected override ExpressionSyntax Convert(QueryExpressionSyntax source)
             {
                 var fromClause = source.FromClause;
-
                 var identifier = fromClause.Identifier;
-                var context = new ConversionContext(identifier);
-                var expression = fromClause.Expression;
+                var expression = fromClause.Expression.WithoutTrailingTrivia();
                 if (fromClause.Type != null)
                 {
                     var lambda = SyntaxFactory.BinaryExpression(SyntaxKind.IsExpression, SyntaxFactory.IdentifierName(identifier), SyntaxFactory.Token(SyntaxKind.IsKeyword), fromClause.Type);
-                    expression = ProcesQueryClause(context, expression, lambda, "Select");
+                    expression = CreateInvocationExpression(expression, identifier, lambda, "Select");
                 }
 
-                return ProcessQueryBody(context, expression.WithoutTrailingTrivia(), source.Body);
+                var context = new ConversionContext(identifier, expression);
+                return ProcessQueryBody(context, source.Body);
             }
 
             protected override bool Validate(QueryExpressionSyntax originalMethod, ExpressionSyntax convertedMethod, CancellationToken cancellationToken)
@@ -51,116 +50,102 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                 return true;
             }
 
-            private ExpressionSyntax ProcessQueryBody(ConversionContext context, ExpressionSyntax parentExpression, QueryBodySyntax queryBody)
+            private static ExpressionSyntax ProcessQueryBody(ConversionContext context, QueryBodySyntax queryBody)
             {
-                var expression = parentExpression;
+                var expression = context.Expression;
                 foreach (var queryClause in queryBody.Clauses)
                 {
-                    expression = ProcessQueryClause(context, expression, queryClause);
-                    if (expression == null)
+                    switch (queryClause.Kind())
                     {
-                        return null;
+                        case SyntaxKind.WhereClause: expression = CreateInvocationExpression(expression, context.Identifier, ((WhereClauseSyntax)queryClause).Condition, "Where"); break;
+                        case SyntaxKind.OrderByClause: expression = ProcessOrderByClause(expression, context.Identifier, (OrderByClauseSyntax)queryClause); break;
+                        case SyntaxKind.JoinClause: // Not supported because linq queries seem to provide essentially simpler syntax for the same than query methods.
+                        case SyntaxKind.FromClause: // More than one fromClause is not supported. The linq method seems to be more complicated for this.
+                        default: return null;
                     }
                 }
 
-                expression = ProcessSelectOrGroup(context, expression, queryBody.SelectOrGroup);
+                var selectOrGroupClause = queryBody.SelectOrGroup;
+                switch (selectOrGroupClause.Kind())
+                {
+                    case SyntaxKind.SelectClause: expression = ProcesSelectClause(expression, context.Identifier, (SelectClauseSyntax)selectOrGroupClause); break;
+                    case SyntaxKind.GroupClause: expression = ProcessGroupClause(expression, context.Identifier, (GroupClauseSyntax)selectOrGroupClause); break;
+                    case SyntaxKind.LetClause: return null; // Skip this because the linq method for the let will be more complicated than the query.
+                    default: return null;
+                }
 
                 if (queryBody.Continuation != null)
                 {
-                    var newContext = new ConversionContext(queryBody.Continuation.Identifier);
-                    return ProcessQueryBody(newContext, expression, queryBody.Continuation.Body);
+                    context = new ConversionContext(queryBody.Continuation.Identifier, expression);
+                    return ProcessQueryBody(context, queryBody.Continuation.Body);
                 }
 
                 return expression;
             }
 
-            private ExpressionSyntax ProcessSelectOrGroup(ConversionContext context, ExpressionSyntax parentExpression, SelectOrGroupClauseSyntax selectOrGroupClause)
+            private static ExpressionSyntax ProcessGroupClause(ExpressionSyntax expression, SyntaxToken identifier, GroupClauseSyntax groupClause)
             {
-                switch (selectOrGroupClause.Kind())
-                {
-                    case SyntaxKind.SelectClause: return ProcesSelectClause(context, parentExpression, (SelectClauseSyntax)selectOrGroupClause);
-                    case SyntaxKind.GroupClause: return ProcessGroupClause(context, parentExpression, (GroupClauseSyntax)selectOrGroupClause);
-                    case SyntaxKind.LetClause: return null; // Skip this because the linq method for the let will be more complicated than the query.
-                    default: return null;
-                }
-            }
-
-            private ExpressionSyntax ProcessGroupClause(ConversionContext context, ExpressionSyntax parentExpression, GroupClauseSyntax groupClause)
-            {
-                var parameter = SyntaxFactory.Parameter(context.Identifier);
+                var parameter = SyntaxFactory.Parameter(identifier);
                 var groupExpressionLambda = SyntaxFactory.SimpleLambdaExpression(parameter, groupClause.GroupExpression.WithoutTrailingTrivia());
                 var byExpressionLambda = SyntaxFactory.SimpleLambdaExpression(parameter, groupClause.ByExpression.WithoutTrailingTrivia());
                 var groupExpressionArgument = SyntaxFactory.Argument(groupExpressionLambda);
                 var byExpressionArgument = SyntaxFactory.Argument(byExpressionLambda);
                 var arguments = new SeparatedSyntaxList<ArgumentSyntax>().Add(byExpressionArgument).Add(groupExpressionArgument);
-                var argumentList = SyntaxFactory.ArgumentList(arguments);
 
-                var groupKeyword = SyntaxFactory.IdentifierName("GroupBy");
-                var memberAccessExpression = SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, parentExpression, groupKeyword);
-                return SyntaxFactory.InvocationExpression(memberAccessExpression, argumentList);
+                return CreateInvocationExpression(expression, arguments, "GroupBy");
             }
 
-            private ExpressionSyntax ProcesSelectClause(ConversionContext context, ExpressionSyntax parentExpression, SelectClauseSyntax selectClause)
+            private static ExpressionSyntax ProcesSelectClause(ExpressionSyntax expression, SyntaxToken identifier, SelectClauseSyntax selectClause)
             {
-                var expression = selectClause.Expression;
+                var selectExpression = selectClause.Expression;
                 // Avoid trivial Select(x => x)
-                if (expression is IdentifierNameSyntax identifierName)
+                if (selectExpression is IdentifierNameSyntax identifierName)
                 {
                     // TODO consider a better condition to compare
-                    if (identifierName.Identifier.Text == context.Identifier.Text)
+                    if (identifierName.Identifier.Text == identifier.Text)
                     {
-                        return parentExpression;
+                        return expression;
                     }
                 }
 
-                return ProcesQueryClause(context, parentExpression, selectClause.Expression, "Select");
+                return CreateInvocationExpression(expression, identifier, selectClause.Expression, "Select");
             }
 
-            private InvocationExpressionSyntax ProcesQueryClause(ConversionContext context, ExpressionSyntax parentExpression, ExpressionSyntax expression, string keyword)
+            private static ExpressionSyntax CreateInvocationExpression(ExpressionSyntax expression, SyntaxToken identifier, ExpressionSyntax bodyExpression, string keyword)
             {
-                var parameter = SyntaxFactory.Parameter(context.Identifier);
-                var lambda = SyntaxFactory.SimpleLambdaExpression(parameter, expression.WithoutTrailingTrivia());
+                var parameter = SyntaxFactory.Parameter(identifier);
+                var lambda = SyntaxFactory.SimpleLambdaExpression(parameter, bodyExpression.WithoutTrailingTrivia());
                 var argument = SyntaxFactory.Argument(lambda);
                 var arguments = new SeparatedSyntaxList<ArgumentSyntax>().Add(argument);
-                var argumentList = SyntaxFactory.ArgumentList(arguments);
 
-                var selectKeyword = SyntaxFactory.IdentifierName(keyword);
-                var memberAccessExpression = SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, parentExpression, selectKeyword);
+                return CreateInvocationExpression(expression, arguments, keyword);
+            }
+
+            private static InvocationExpressionSyntax CreateInvocationExpression(ExpressionSyntax expression, SeparatedSyntaxList<ArgumentSyntax> arguments, string keyword)
+            {
+                var argumentList = SyntaxFactory.ArgumentList(arguments);
+                var identifierName = SyntaxFactory.IdentifierName(keyword);
+                var memberAccessExpression = SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, expression, identifierName);
                 return SyntaxFactory.InvocationExpression(memberAccessExpression, argumentList);
             }
 
-            private ExpressionSyntax ProcessQueryClause(ConversionContext context, ExpressionSyntax parentExpression, QueryClauseSyntax queryClause)
-            {
-                switch (queryClause.Kind())
-                {
-                    case SyntaxKind.WhereClause: return ProcesQueryClause(context, parentExpression, ((WhereClauseSyntax)queryClause).Condition, "Where");
-                    case SyntaxKind.OrderByClause: return ProcessOrderByClause(context, parentExpression, (OrderByClauseSyntax)queryClause);
-                    case SyntaxKind.JoinClause: // Not supported because linq queries seem to provide essentially simpler syntax for the same than query methods.
-                    case SyntaxKind.FromClause: // More than one fromClause is not supported. The linq method seems to be more complicated for this.
-                    default: return null;
-                }
-            }
-
-            private ExpressionSyntax ProcessOrderByClause(ConversionContext context, ExpressionSyntax parentExpression, OrderByClauseSyntax orderByClause)
+            private static ExpressionSyntax ProcessOrderByClause(ExpressionSyntax expression, SyntaxToken identifier, OrderByClauseSyntax orderByClause)
             {
                 bool isFirst = true;
-                foreach(var ordering in orderByClause.Orderings)
+                foreach (var ordering in orderByClause.Orderings)
                 {
-                    parentExpression = ProcesQueryClause(context, parentExpression, ordering.Expression, GetOrderingKeyword(ordering, isFirst));
+                    string orderingKeyword;
+                    switch (ordering.Kind())
+                    {
+                        case SyntaxKind.AscendingOrdering: orderingKeyword = isFirst ? "OrderBy" : "ThenBy"; break;
+                        case SyntaxKind.DescendingOrdering: orderingKeyword = isFirst ? "OrderByDescending" : "ThenByDescending"; break;
+                        default: return null;
+                    }
+                    expression = CreateInvocationExpression(expression, identifier, ordering.Expression, orderingKeyword);
                     isFirst = false;
                 }
 
-                return parentExpression;
-            }
-
-            private string GetOrderingKeyword(OrderingSyntax ordering, bool isFirst)
-            {
-                switch (ordering.Kind())
-                {
-                    case SyntaxKind.AscendingOrdering: return isFirst ? "OrderBy" : "ThenBy";
-                    case SyntaxKind.DescendingOrdering: return isFirst ? "OrderByDescending" : "ThenByDescending";
-                    default: return null;
-                }
+                return expression;
             }
 
             protected override QueryExpressionSyntax FindNodeToRefactor(SyntaxNode root, CodeRefactoringContext context)
@@ -168,13 +153,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                 return root.FindNode(context.Span).FirstAncestorOrSelf<QueryExpressionSyntax>();
             }
 
-            private struct ConversionContext
+            private class ConversionContext
             {
                 public SyntaxToken Identifier { get; }
+                public ExpressionSyntax Expression { get; }
 
-                public ConversionContext(SyntaxToken identifier)
+                public ConversionContext(SyntaxToken identifier, ExpressionSyntax expression)
                 {
                     Identifier = identifier;
+                    Expression = expression;
                 }
             }
         }

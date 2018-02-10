@@ -1867,6 +1867,11 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
         <target state="translated">反轉 IF</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_linq_query_to_linq_method">
+        <source>Convert Linq query to Linq method</source>
+        <target state="new">Convert Linq query to Linq method</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>
