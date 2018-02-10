@@ -55,8 +55,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                 var compilation = compilationContext.Compilation;
                 var expressionTypeOpt = compilation.GetTypeByMetadataName(typeof(Expression<>).FullName);
 
-                context.RegisterSyntaxNodeAction(
-                    ctx => SyntaxNodeAction(ctx, expressionTypeOpt), SyntaxKind.SimpleLambdaExpression, SyntaxKind.ParenthesizedLambdaExpression);
+                context.RegisterSyntaxNodeAction(ctx => SyntaxNodeAction(ctx, expressionTypeOpt),
+                    SyntaxKind.SimpleLambdaExpression, SyntaxKind.ParenthesizedLambdaExpression, SyntaxKind.AnonymousMethodExpression);
             });
         }
 

@@ -274,6 +274,46 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestSimpleInitialization_AnonymousMethod()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        Func<int, int> [||]fibonacci = delegate (int v)
+        {
+            if (v <= 1)
+            {
+                return 1;
+            }
+
+            return fibonacci(v - 1, v - 2);
+        };
+    }
+}",
+@"using System;
+
+class C
+{
+    void M()
+    {
+        int fibonacci(int v)
+        {
+            if (v <= 1)
+            {
+                return 1;
+            }
+
+            return fibonacci(v - 1, v - 2);
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestSimpleInitialization_SimpleLambda_ExprBody()
         {
             await TestInRegularAndScriptAsync(
@@ -494,6 +534,46 @@ class C
     void M()
     {
         var [||]fibonacci = (Func<int, int>)((int v) =>
+        {
+            if (v <= 1)
+            {
+                return 1;
+            }
+
+            return fibonacci(v - 1, v - 2);
+        });
+    }
+}",
+@"using System;
+
+class C
+{
+    void M()
+    {
+        int fibonacci(int v)
+        {
+            if (v <= 1)
+            {
+                return 1;
+            }
+
+            return fibonacci(v - 1, v - 2);
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestCastInitialization_AnonymousMethod()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        var [||]fibonacci = (Func<int, int>)(delegate (int v)
         {
             if (v <= 1)
             {
@@ -908,6 +988,47 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestSplitInitialization_AnonymousMethod()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        Func<int, int> [||]fibonacci = null;
+        fibonacci = delegate (int v)
+        {
+            if (v <= 1)
+            {
+                return 1;
+            }
+
+            return fibonacci(v - 1, v - 2);
+        };
+    }
+}",
+@"using System;
+
+class C
+{
+    void M()
+    {
+        int fibonacci(int v)
+        {
+            if (v <= 1)
+            {
+                return 1;
+            }
+
+            return fibonacci(v - 1, v - 2);
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestSplitInitialization_SimpleLambda_ExprBody()
         {
             await TestInRegularAndScriptAsync(
@@ -1102,6 +1223,7 @@ class C
     }
 }");
         }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestTrivia()
         {
@@ -1693,6 +1815,133 @@ class Enclosing<T> where T : class
             var val = local(t);
             local(t);
         }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestWithDefaultParameter1()
+        {
+           await TestInRegularAndScript1Async(
+@"class C
+{
+    delegate string MyDelegate(string arg = ""hello"");
+
+    void M()
+    {
+        MyDelegate [||]local = (s) => s;
+    }
+}",
+@"class C
+{
+    delegate string MyDelegate(string arg = ""hello"");
+
+    void M()
+    {
+        string local(string s = ""hello"") => s;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [WorkItem(24760, "https://github.com/dotnet/roslyn/issues/24760#issuecomment-364655480")]
+        public async Task TestWithDefaultParameter2()
+        {
+            await TestInRegularAndScript1Async(
+ @"class C
+{
+    delegate string MyDelegate(string arg = ""hello"");
+
+    void M()
+    {
+        MyDelegate [||]local = (string s) => s;
+    }
+}",
+ @"class C
+{
+    delegate string MyDelegate(string arg = ""hello"");
+
+    void M()
+    {
+        string local(string s = ""hello"") => s;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestWithDefaultParameter3()
+        {
+            await TestInRegularAndScript1Async(
+ @"class C
+{
+    delegate string MyDelegate(string arg = ""hello"");
+
+    void M()
+    {
+        MyDelegate [||]local = delegate (string s) { return s; };
+    }
+}",
+ @"class C
+{
+    delegate string MyDelegate(string arg = ""hello"");
+
+    void M()
+    {
+        string local(string s = ""hello"")
+        { return s; }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestWithAsync1()
+        {
+            await TestInRegularAndScript1Async(
+ @"using System;
+using System.Threading.Tasks;
+
+class C
+{
+    void M()
+    {
+        Func<Task> [||]f = async () => await Task.Yield();
+    }
+}",
+ @"using System;
+using System.Threading.Tasks;
+
+class C
+{
+    void M()
+    {
+        async Task f() => await Task.Yield();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestWithAsync2()
+        {
+            await TestInRegularAndScript1Async(
+ @"using System;
+using System.Threading.Tasks;
+
+class C
+{
+    void M()
+    {
+        Func<Task<int>> [||]f = async delegate () { return 0; };
+    }
+}",
+ @"using System;
+using System.Threading.Tasks;
+
+class C
+{
+    void M()
+    {
+        async Task<int> f()
+        { return 0; }
     }
 }");
         }
