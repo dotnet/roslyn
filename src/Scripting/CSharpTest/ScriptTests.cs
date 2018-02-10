@@ -68,10 +68,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
             Assert.Equal(state.Script.SourceText, compilation.SyntaxTrees.First().GetText());
         }
 
-        [Theory]
-        [InlineData(DebugInformationFormat.PortablePdb)]
-        [InlineData(DebugInformationFormat.Pdb)]
-        public void TestEmit(DebugInformationFormat format)
+        [Fact]
+        public void TestEmit_PortablePdb() => TestEmit(DebugInformationFormat.PortablePdb);
+
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void TestEmit_WindowsPdb() => TestEmit(DebugInformationFormat.Pdb);
+
+        private void TestEmit(DebugInformationFormat format)
         {
             var script = CSharpScript.Create("1 + 2", options: ScriptOptions.Default.WithEmitDebugInformation(true));
             var compilation = script.GetCompilation();
