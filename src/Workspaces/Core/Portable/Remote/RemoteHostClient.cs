@@ -127,6 +127,16 @@ namespace Microsoft.CodeAnalysis.Remote
                 _disposed = true;
 
                 OnDisposed();
+
+                GC.SuppressFinalize(this);
+            }
+
+            ~Connection()
+            {
+                if (!Environment.HasShutdownStarted)
+                {
+                    Contract.Fail($@"Should have been disposed!");
+                }
             }
         }
     }

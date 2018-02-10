@@ -30,6 +30,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             private readonly ReferenceCountedDisposable<RemotableDataJsonRpc> _remotableDataRpc;
 
             private readonly int _maxPoolConnections;
+
+            // keyed to serviceName. each connection is for specific service such as CodeAnalysisService
             private readonly ConcurrentDictionary<string, ConcurrentQueue<JsonRpcConnection>> _pools;
 
             // indicate whether pool should be used.
@@ -50,6 +52,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 _remotableDataRpc = remotableDataRpc;
 
                 _maxPoolConnections = maxPoolConnection;
+
+                // we have 4 services. so start from 4. later if we add more services, it will still work.
                 _pools = new ConcurrentDictionary<string, ConcurrentQueue<JsonRpcConnection>>(concurrencyLevel: 4, capacity: 4);
 
                 _usePool = usePool;
@@ -72,10 +76,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     return TryCreateNewConnectionAsync(serviceName, callbackTarget, cancellationToken);
                 }
 
-                return TryGetConnectionFromPoolAsync(serviceName, callbackTarget, cancellationToken);
+                return TryGetConnectionFromPoolAsync(serviceName, cancellationToken);
             }
 
-            private async Task<Connection> TryGetConnectionFromPoolAsync(string serviceName, object callbackTarget, CancellationToken cancellationToken)
+            private async Task<Connection> TryGetConnectionFromPoolAsync(string serviceName, CancellationToken cancellationToken)
             {
                 var queue = _pools.GetOrAdd(serviceName, _ => new ConcurrentQueue<JsonRpcConnection>());
                 if (queue.TryDequeue(out var connection))
@@ -83,7 +87,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     return new PooledConnection(this, serviceName, connection);
                 }
 
-                return new PooledConnection(this, serviceName, (JsonRpcConnection)await TryCreateNewConnectionAsync(serviceName, callbackTarget, cancellationToken).ConfigureAwait(false));
+                return new PooledConnection(this, serviceName, (JsonRpcConnection)await TryCreateNewConnectionAsync(serviceName, callbackTarget: null, cancellationToken).ConfigureAwait(false));
             }
 
             private async Task<Connection> TryCreateNewConnectionAsync(string serviceName, object callbackTarget, CancellationToken cancellationToken)
@@ -261,7 +265,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 const int max_retry = 10;
                 const int retry_delayInMS = 50;
 
-                Exception lastException = null;
+                RemoteInvocationException lastException = null;
 
                 var descriptor = new ServiceDescriptor(serviceName) { HostGroup = hostGroup };
 
