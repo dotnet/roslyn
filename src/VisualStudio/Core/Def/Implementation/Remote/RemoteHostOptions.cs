@@ -55,7 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         public static readonly Option<bool> RemoteHostTest = new Option<bool>(nameof(InternalFeatureOnOffOptions), nameof(RemoteHostTest), defaultValue: false);
 
         public static readonly Option<bool> UseConnectionPool = new Option<bool>(
-            nameof(InternalFeatureOnOffOptions), nameof(UseConnectionPool), defaultValue: false,
+            nameof(InternalFeatureOnOffOptions), nameof(UseConnectionPool), defaultValue: true,
             storageLocations: new LocalUserProfileStorageLocation(InternalFeatureOnOffOptions.LocalRegistryPath + nameof(UseConnectionPool)));
 
         public static readonly Option<int> MaxPoolConnection = new Option<int>(
