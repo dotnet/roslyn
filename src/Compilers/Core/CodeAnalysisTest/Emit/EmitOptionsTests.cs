@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 nameof(EmitOptions.DebugInformationFormat),
                 nameof(EmitOptions.OutputNameOverride),
                 nameof(EmitOptions.PdbFilePath),
-                nameof(EmitOptions.WithPdbChecksumAlgorithm),
+                nameof(EmitOptions.PdbChecksumAlgorithm),
                 nameof(EmitOptions.RuntimeMetadataVersion),
                 nameof(EmitOptions.TolerateErrors),
                 nameof(EmitOptions.IncludePrivateMembers),
