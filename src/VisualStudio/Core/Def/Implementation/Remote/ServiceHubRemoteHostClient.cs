@@ -85,7 +85,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 var remotableDataRpc = new RemotableDataJsonRpc(
                     workspace, primary.Logger, await Connections.RequestServiceAsync(primary, WellKnownServiceHubServices.SnapshotService, hostGroup, timeout, cancellationToken).ConfigureAwait(false));
 
-                var connectionPools = new ConnectionPools(primary, hostGroup, timeout, new ReferenceCountedDisposable<RemotableDataJsonRpc>(remotableDataRpc));
+                var usePool = workspace.Options.GetOption(RemoteHostOptions.UseConnectionPool);
+                var maxConnection = workspace.Options.GetOption(RemoteHostOptions.MaxPoolConnection);
+
+                var connectionPools = new ConnectionPools(
+                    primary, hostGroup, usePool, maxConnection, timeout, new ReferenceCountedDisposable<RemotableDataJsonRpc>(remotableDataRpc));
+
                 client = new ServiceHubRemoteHostClient(workspace, connectionPools, remoteHostStream);
 
                 var uiCultureLCID = CultureInfo.CurrentUICulture.LCID;

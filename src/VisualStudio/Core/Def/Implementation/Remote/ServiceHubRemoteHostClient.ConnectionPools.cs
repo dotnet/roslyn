@@ -22,28 +22,48 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
     {
         private class ConnectionPools
         {
-            private const int MaxConnection = 20;
-
             private readonly HubClient _hubClient;
             private readonly HostGroup _hostGroup;
             private readonly TimeSpan _timeout;
 
+            private readonly ReaderWriterLockSlim _shutdownLock;
             private readonly ReferenceCountedDisposable<RemotableDataJsonRpc> _remotableDataRpc;
 
+            private readonly int _maxPoolConnections;
             private readonly ConcurrentDictionary<string, ConcurrentQueue<JsonRpcConnection>> _pools;
 
-            public ConnectionPools(HubClient hubClient, HostGroup hostGroup, TimeSpan timeout, ReferenceCountedDisposable<RemotableDataJsonRpc> remotableDataRpc)
+            // indicate whether pool should be used.
+            // it is mutable since it will set to false when this pool got shutdown
+            private volatile bool _usePool;
+
+            public ConnectionPools(
+                HubClient hubClient,
+                HostGroup hostGroup,
+                bool usePool,
+                int maxPoolConnection,
+                TimeSpan timeout,
+                ReferenceCountedDisposable<RemotableDataJsonRpc> remotableDataRpc)
             {
                 _hubClient = hubClient;
                 _hostGroup = hostGroup;
                 _timeout = timeout;
                 _remotableDataRpc = remotableDataRpc;
 
+                _maxPoolConnections = maxPoolConnection;
                 _pools = new ConcurrentDictionary<string, ConcurrentQueue<JsonRpcConnection>>(concurrencyLevel: 4, capacity: 4);
+
+                _usePool = usePool;
+                _shutdownLock = new ReaderWriterLockSlim(LockRecursionPolicy.NoRecursion);
             }
 
             public Task<Connection> TryCreateConnectionAsync(string serviceName, object callbackTarget, CancellationToken cancellationToken)
             {
+                // pool is turned off either by option or pool has shutdown.
+                if (!_usePool)
+                {
+                    return TryCreateNewConnectionAsync(serviceName, callbackTarget, cancellationToken);
+                }
+
                 // when callbackTarget is given, we can't share/pool connection since callbackTarget attaches a state to connection.
                 // so connection is only valid for that specific callbackTarget. it is up to the caller to keep connection open
                 // if he wants to reuse same connection
@@ -87,23 +107,48 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
             private void Free(string serviceName, JsonRpcConnection connection)
             {
-                // queue must exist
-                var queue = _pools[serviceName];
-                if (queue.Count >= MaxConnection)
+                using (_shutdownLock.DisposableRead())
                 {
-                    // let the connection actually go away
-                    connection.Dispose();
-                    return;
-                }
+                    if (!_usePool)
+                    {
+                        // pool is not being used.
+                        connection.Dispose();
+                        return;
+                    }
 
-                // pool the connection
-                queue.Enqueue(connection);
+                    // queue must exist
+                    var queue = _pools[serviceName];
+                    if (queue.Count >= _maxPoolConnections)
+                    {
+                        // let the connection actually go away
+                        connection.Dispose();
+                        return;
+                    }
+
+                    // pool the connection
+                    queue.Enqueue(connection);
+                }
             }
 
             public void Shutdown()
             {
-                // let ref count this one is holding go
-                _remotableDataRpc.Dispose();
+                using (_shutdownLock.DisposableWrite())
+                {
+                    // mark not to use pool
+                    _usePool = false;
+
+                    // let ref count this one is holding go
+                    _remotableDataRpc.Dispose();
+
+                    // let all connections in the pool to go away
+                    foreach (var kv in _pools)
+                    {
+                        while (kv.Value.TryDequeue(out var connection))
+                        {
+                            connection.Dispose();
+                        }
+                    }
+                }
             }
 
             private class PooledConnection : Connection
