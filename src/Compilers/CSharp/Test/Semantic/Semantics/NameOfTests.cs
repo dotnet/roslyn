@@ -1343,5 +1343,51 @@ class Program
     }
 }", expectedOutput: "Main");
         }
+
+        [Fact, WorkItem(20600, "https://github.com/dotnet/roslyn/issues/20600")]
+        public void PermitInstanceQualifiedFromType()
+        {
+            CreateStandardCompilation(@"
+class C
+{
+    public string Instance1 = null;
+    public static string Static1 = null;
+    public string Instance2 => string.Empty;
+    public static string Static2 => string.Empty;
+      
+    void M()
+    {
+        _ = nameof(C.Instance1);
+        _ = nameof(C.Instance1.Length);
+        _ = nameof(C.Static1);
+        _ = nameof(C.Static1.Length);
+        _ = nameof(C.Instance2);
+        _ = nameof(C.Instance2.Length);
+        _ = nameof(C.Static2);
+        _ = nameof(C.Static2.Length);
+    }
+}
+
+class C<T>
+{
+    public string Instance1 = null;
+    public static string Static1 = null;
+    public string Instance2 => string.Empty;
+    public static string Static2 => string.Empty;
+
+    void M()
+    {
+        _ = nameof(C<string>.Instance1);
+        _ = nameof(C<string>.Instance1.Length);
+        _ = nameof(C<string>.Static1);
+        _ = nameof(C<string>.Static1.Length);
+        _ = nameof(C<string>.Instance2);
+        _ = nameof(C<string>.Instance2.Length);
+        _ = nameof(C<string>.Static2);
+        _ = nameof(C<string>.Static2.Length);
+    }
+}
+").VerifyDiagnostics();
+        }
     }
 }
