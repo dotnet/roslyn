@@ -1894,6 +1894,61 @@ class Enclosing<T> where T : class
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [WorkItem(24760, "https://github.com/dotnet/roslyn/issues/24760#issuecomment-364764542")]
+        public async Task TestWithIncorrectSignature1()
+        {
+            await TestInRegularAndScript1Async(
+ @"using System;
+
+class C
+{
+    void M()
+    {
+        Action [||]x = (a, b) => {
+        };
+    }
+}",
+ @"using System;
+
+class C
+{
+    void M()
+    {
+        void x(object a, object b)
+        {
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestWithIncorrectSignature2()
+        {
+            await TestInRegularAndScript1Async(
+ @"using System;
+
+class C
+{
+    void M()
+    {
+        Action [||]x = (string a, int b) => {
+        };
+    }
+}",
+ @"using System;
+
+class C
+{
+    void M()
+    {
+        void x(string a, int b)
+        {
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestWithAsyncLambdaExpression()
         {
             await TestInRegularAndScript1Async(

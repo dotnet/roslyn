@@ -165,18 +165,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
             int i = 0;
 
             return parameterList != null
-                ? parameterList.ReplaceNodes(parameterList.Parameters, (parameterNode, _) => PromoteParameter(parameterNode, delegateMethod.Parameters[i++]))
+                ? parameterList.ReplaceNodes(parameterList.Parameters, (parameterNode, _) => PromoteParameter(parameterNode, delegateMethod.Parameters.ElementAtOrDefault(i++)))
                 : SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(delegateMethod.Parameters.Select(parameter =>
                     PromoteParameter(SyntaxFactory.Parameter(parameter.Name.ToIdentifierToken()), parameter))));
 
             ParameterSyntax PromoteParameter(ParameterSyntax parameterNode, IParameterSymbol delegateParameter)
             {
+                // delegateParameter may be null, consider this case: Action x = (a, b) => { };
+                // we will still fall back to object
+
                 if (parameterNode.Type == null)
                 {
-                    parameterNode = parameterNode.WithType(delegateParameter.Type.GenerateTypeSyntax() ?? s_objectType);
+                    parameterNode = parameterNode.WithType(delegateParameter?.Type.GenerateTypeSyntax() ?? s_objectType);
                 }
 
-                if (delegateParameter.HasExplicitDefaultValue)
+                if (delegateParameter?.HasExplicitDefaultValue == true)
                 {
                     parameterNode = parameterNode.WithDefault(GetDefaultValue(delegateParameter));
                 }
