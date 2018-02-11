@@ -212,16 +212,6 @@
         <target state="translated">using の削除と並べ替え(&amp;E)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Autoselect_disabled_due_to_potential_implicit_array_creation">
-        <source>Autoselect disabled due to potential implicit array creation.</source>
-        <target state="translated">暗黙的な配列作成が可能であるため、自動選択が無効になっています。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="implicit_array_creation">
-        <source>&lt;implicit array creation&gt;</source>
-        <target state="translated">&lt;暗黙的な配列の作成&gt;</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Insert_await">
         <source>Insert 'await'.</source>
         <target state="translated">await' を挿入します。</target>

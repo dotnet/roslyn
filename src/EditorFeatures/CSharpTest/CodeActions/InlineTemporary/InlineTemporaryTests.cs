@@ -1375,6 +1375,8 @@ class C
 @"
 {
         int y,
+#if true
+
 #endif
         z;
 
@@ -1399,7 +1401,9 @@ class C
 {
         int y,
 #if true
-        z;
+        z
+#endif
+        ;
 
         int a = 1;
 }");

@@ -75,6 +75,7 @@
     <PackageReference Include="System.IO.FileSystem" Version="$(SystemIOFileSystemVersion)" />
     <PackageReference Include="System.IO.FileSystem.DriveInfo" Version="$(SystemIOFileSystemDriveInfoVersion)" />
     <PackageReference Include="System.IO.Pipes" Version="$(SystemIOPipesVersion)" />
+    <PackageReference Include="System.IO.Pipes.AccessControl" Version="$(SystemIOPipesAccessControlVersion)" />
     <PackageReference Include="System.Linq" Version="$(SystemLinqVersion)" />
     <PackageReference Include="System.Reflection" Version="$(SystemReflectionVersion)" />
     <PackageReference Include="System.Security.AccessControl" Version="$(SystemSecurityAccessControlVersion)" />

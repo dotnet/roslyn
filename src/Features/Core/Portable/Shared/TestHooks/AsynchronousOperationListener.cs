@@ -1,12 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading.Tasks;
-using Roslyn.Utilities;
 using System.Runtime.CompilerServices;
 
 namespace Microsoft.CodeAnalysis.Shared.TestHooks
@@ -21,12 +18,15 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         private int _counter;
         private bool _trackActiveTokens;
 
-        public AsynchronousOperationListener(string featureName = "noname", bool enableDiagnosticTokens = false)
+        public AsynchronousOperationListener() :
+            this(featureName: "noname", enableDiagnosticTokens: false)
         {
-            TrackActiveTokens = Debugger.IsAttached;
+        }
 
+        public AsynchronousOperationListener(string featureName, bool enableDiagnosticTokens)
+        {
             _featureName = featureName;
-            TrackActiveTokens = enableDiagnosticTokens;
+            TrackActiveTokens = Debugger.IsAttached || enableDiagnosticTokens;
         }
 
         public IAsyncToken BeginAsyncOperation(string name, object tag = null, [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)

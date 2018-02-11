@@ -10,6 +10,7 @@ using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Utilities;
@@ -34,7 +35,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     blobReader.CurrentPointer, backtickIndex);
             }
         }
-        
+
         private static MetadataId GetMetadataIdNoThrow(PortableExecutableReference reference)
         {
             try
@@ -207,7 +208,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             // The set of type definitions we've read out of the current metadata reader.
             private readonly List<MetadataDefinition> _allTypeDefinitions;
-            
+
             public MetadataInfoCreator(
                 Solution solution, Checksum checksum, PortableExecutableReference reference, CancellationToken cancellationToken)
             {
@@ -253,24 +254,25 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     try
                     {
                         _metadataReader = moduleMetadata.GetMetadataReader();
+
+                        // First, walk all the symbols from metadata, populating the parentToChilren
+                        // map accordingly.
+                        GenerateMetadataNodes();
+
+                        // Now, once we populated the initial map, go and get all the inheritance 
+                        // information for all the types in the metadata.  This may refer to 
+                        // types that we haven't seen yet.  We'll add those types to the parentToChildren
+                        // map accordingly.
+                        PopulateInheritanceMap();
+
+                        // Clear the set of type definitions we read out of this piece of metadata.
+                        _allTypeDefinitions.Clear();
                     }
                     catch (BadImageFormatException)
                     {
+                        // any operation off metadata can throw BadImageFormatException
                         continue;
                     }
-
-                    // First, walk all the symbols from metadata, populating the parentToChilren
-                    // map accordingly.
-                    GenerateMetadataNodes();
-
-                    // Now, once we populated the initial map, go and get all the inheritance 
-                    // information for all the types in the metadata.  This may refer to 
-                    // types that we haven't seen yet.  We'll add those types to the parentToChildren
-                    // map accordingly.
-                    PopulateInheritanceMap();
-
-                    // Clear the set of type definitions we read out of this piece of metadata.
-                    _allTypeDefinitions.Clear();
                 }
 
                 var unsortedNodes = GenerateUnsortedNodes();
@@ -339,7 +341,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                     foreach (var kvp in definitionMap)
                     {
-                        GenerateMetadataNodes(childNode,kvp.Key, kvp.Value);
+                        GenerateMetadataNodes(childNode, kvp.Key, kvp.Value);
                     }
                 }
                 finally
@@ -732,7 +734,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 var typeName = GetMetadataNameWithoutBackticks(reader, definition.Name);
 
-                return new MetadataDefinition(MetadataDefinitionKind.Type,typeName)
+                return new MetadataDefinition(MetadataDefinitionKind.Type, typeName)
                 {
                     Type = definition
                 };
