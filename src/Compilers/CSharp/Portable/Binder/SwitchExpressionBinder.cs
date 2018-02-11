@@ -104,11 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                if (_switchGoverningExpression == null)
-                {
-                    EnsureSwitchGoverningExpressionAndDiagnosticsBound();
-                }
-
+                EnsureSwitchGoverningExpressionAndDiagnosticsBound();
                 Debug.Assert(_switchGoverningExpression != null);
                 return _switchGoverningExpression;
             }
@@ -121,16 +117,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 EnsureSwitchGoverningExpressionAndDiagnosticsBound();
+                Debug.Assert(_switchGoverningDiagnostics != null);
                 return _switchGoverningDiagnostics;
             }
         }
 
         private void EnsureSwitchGoverningExpressionAndDiagnosticsBound()
         {
-            var switchGoverningDiagnostics = new DiagnosticBag();
-            var boundSwitchGoverningExpression = BindSwitchGoverningExpression(switchGoverningDiagnostics);
-            _switchGoverningDiagnostics = switchGoverningDiagnostics;
-            Interlocked.CompareExchange(ref _switchGoverningExpression, boundSwitchGoverningExpression, null);
+            if (_switchGoverningExpression == null)
+            {
+                var switchGoverningDiagnostics = new DiagnosticBag();
+                var boundSwitchGoverningExpression = BindSwitchGoverningExpression(switchGoverningDiagnostics);
+                _switchGoverningDiagnostics = switchGoverningDiagnostics;
+                Interlocked.CompareExchange(ref _switchGoverningExpression, boundSwitchGoverningExpression, null);
+            }
         }
 
         private BoundExpression BindSwitchGoverningExpression(DiagnosticBag diagnostics)
