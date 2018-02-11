@@ -53,14 +53,14 @@
     <MicrosoftNETTestSdkVersion>15.6.0-dev</MicrosoftNETTestSdkVersion>
     <MicrosoftNetCompilersVersion>2.6.0</MicrosoftNetCompilersVersion>
     <MicrosoftNetRoslynDiagnosticsVersion>2.6.0-beta2</MicrosoftNetRoslynDiagnosticsVersion>
-    <MicrosoftNetCoreILAsmVersion>2.1.0-preview2-26125-07</MicrosoftNetCoreILAsmVersion>
+    <MicrosoftNetCoreILAsmVersion>2.1.0-preview2-26209-08</MicrosoftNetCoreILAsmVersion>
     <MicrosoftNETCoreCompilersVersion>2.6.0-beta3-62308-01</MicrosoftNETCoreCompilersVersion>
     <MicrosoftNETCoreVersion>5.0.0</MicrosoftNETCoreVersion>
     <MicrosoftNETCoreAppVersion>2.0.0</MicrosoftNETCoreAppVersion>
     <MicrosoftNETCorePlatformsVersion>2.0.0</MicrosoftNETCorePlatformsVersion>
     <MicrosoftNETCorePortableCompatibilityVersion>1.0.1</MicrosoftNETCorePortableCompatibilityVersion>
-    <MicrosoftNETCoreRuntimeCoreCLRVersion>2.1.0-preview2-26125-06</MicrosoftNETCoreRuntimeCoreCLRVersion>
-    <MicrosoftNETCoreTestHostVersion>2.1.0-preview2-26125-06</MicrosoftNETCoreTestHostVersion>
+    <MicrosoftNETCoreRuntimeCoreCLRVersion>2.1.0-preview2-26209-046</MicrosoftNETCoreRuntimeCoreCLRVersion>
+    <MicrosoftNETCoreTestHostVersion>2.1.0-preview2-26209-04</MicrosoftNETCoreTestHostVersion>
     <MicrosoftNetFX20Version>1.0.3</MicrosoftNetFX20Version>
     <MicrosoftNetSdkVersion>2.0.0-alpha-20170405-2</MicrosoftNetSdkVersion>
     <MicrosoftNuGetBuildTasksVersion>0.1.0</MicrosoftNuGetBuildTasksVersion>
