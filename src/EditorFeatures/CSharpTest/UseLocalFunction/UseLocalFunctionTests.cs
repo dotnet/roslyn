@@ -1894,7 +1894,7 @@ class Enclosing<T> where T : class
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
-        public async Task TestWithAsync1()
+        public async Task TestWithAsyncLambdaExpression()
         {
             await TestInRegularAndScript1Async(
  @"using System;
@@ -1920,7 +1920,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
-        public async Task TestWithAsync2()
+        public async Task TestWithAsyncAnonymousMethod()
         {
             await TestInRegularAndScript1Async(
  @"using System;
@@ -1930,7 +1930,9 @@ class C
 {
     void M()
     {
-        Func<Task<int>> [||]f = async delegate () { return 0; };
+        Func<Task<int>> [||]f = async delegate () {
+            return 0;
+        };
     }
 }",
  @"using System;
@@ -1941,8 +1943,45 @@ class C
     void M()
     {
         async Task<int> f()
-        { return 0; }
+        {
+            return 0;
+        }
     }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestWithParameterlessAnonymousMethod()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        EventHandler [||]handler = delegate {
+        };
+
+        E += handler;
+    }
+
+    event EventHandler E;
+}",
+@"using System;
+
+class C
+{
+    void M()
+    {
+        void handler(object sender, EventArgs e)
+        {
+        }
+
+        E += handler;
+    }
+
+    event EventHandler E;
 }");
         }
     }

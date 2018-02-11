@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
             foreach (var (originalLocalDeclaration, originalAnonymousFunction) in localDeclarationToAnonymousFunction.OrderByDescending(kvp => kvp.Value.SpanStart))
             {
                 var delegateType = (INamedTypeSymbol)semanticModel.GetTypeInfo(originalAnonymousFunction, cancellationToken).ConvertedType;
-                var parameterList = GenerateParameterList(semanticModel, originalAnonymousFunction, delegateType.DelegateInvokeMethod, cancellationToken);
+                var parameterList = GenerateParameterList(originalAnonymousFunction, delegateType.DelegateInvokeMethod);
 
                 var currentLocalDeclaration = currentRoot.GetCurrentNode(originalLocalDeclaration);
                 var currentAnonymousFunction = currentRoot.GetCurrentNode(originalAnonymousFunction);
@@ -159,25 +159,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
         }
 
         private static ParameterListSyntax GenerateParameterList(
-            SemanticModel semanticModel, AnonymousFunctionExpressionSyntax anonymousFunction, IMethodSymbol delegateMethod, CancellationToken cancellationToken)
+            AnonymousFunctionExpressionSyntax anonymousFunction, IMethodSymbol delegateMethod)
         {
-            var (parameterList, simpleParameter) = TryGetParameterListOrParameter(anonymousFunction);
-
+            var parameterList = GetOrMakeParameterList(anonymousFunction);
             int i = 0;
 
             return parameterList != null
-                ? parameterList.ReplaceNodes(parameterList.Parameters, (parameterNode, _) => PromoteParameter(parameterNode, i++))
-                : SyntaxFactory.ParameterList(simpleParameter != null ? SyntaxFactory.SingletonSeparatedList(PromoteParameter(simpleParameter, 0)) : default);
+                ? parameterList.ReplaceNodes(parameterList.Parameters, (parameterNode, _) => PromoteParameter(parameterNode, delegateMethod.Parameters[i++]))
+                : SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(delegateMethod.Parameters.Select(parameter =>
+                    PromoteParameter(SyntaxFactory.Parameter(parameter.Name.ToIdentifierToken()), parameter))));
 
-            ParameterSyntax PromoteParameter(ParameterSyntax parameterNode, int parameterIndex)
+            ParameterSyntax PromoteParameter(ParameterSyntax parameterNode, IParameterSymbol delegateParameter)
             {
                 if (parameterNode.Type == null)
                 {
-                    var parameter = semanticModel.GetDeclaredSymbol(parameterNode, cancellationToken);
-                    parameterNode = parameterNode.WithType(parameter?.Type.GenerateTypeSyntax() ?? s_objectType);
+                    parameterNode = parameterNode.WithType(delegateParameter.Type.GenerateTypeSyntax() ?? s_objectType);
                 }
 
-                var delegateParameter = delegateMethod.Parameters[parameterIndex];
                 if (delegateParameter.HasExplicitDefaultValue)
                 {
                     parameterNode = parameterNode.WithDefault(GetDefaultValue(delegateParameter));
@@ -187,16 +185,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
             }
         }
 
-        private static (ParameterListSyntax, ParameterSyntax) TryGetParameterListOrParameter(AnonymousFunctionExpressionSyntax anonymousFunction)
+        private static ParameterListSyntax GetOrMakeParameterList(AnonymousFunctionExpressionSyntax anonymousFunction)
         {
             switch (anonymousFunction)
             {
                 case SimpleLambdaExpressionSyntax simpleLambda:
-                    return (null, simpleLambda.Parameter);
+                    return SyntaxFactory.ParameterList(SyntaxFactory.SingletonSeparatedList(simpleLambda.Parameter));
                 case ParenthesizedLambdaExpressionSyntax parenthesizedLambda:
-                    return (parenthesizedLambda.ParameterList, null);
+                    return parenthesizedLambda.ParameterList;
                 case AnonymousMethodExpressionSyntax anonymousMethod:
-                    return (anonymousMethod.ParameterList, null);
+                    return anonymousMethod.ParameterList;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(anonymousFunction);
             }
