@@ -152,6 +152,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                             connection.Dispose();
                         }
                     }
+
+                    _pools.Clear();
                 }
             }
 
@@ -168,35 +170,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     _connection = connection;
                 }
 
-                public override Task SetConnectionStateAsync(PinnedRemotableDataScope scope)
-                {
-                    return _connection.SetConnectionStateAsync(scope);
-                }
+                public override Task SetConnectionStateAsync(PinnedRemotableDataScope scope) =>
+                    _connection.SetConnectionStateAsync(scope);
 
-                public override Task InvokeAsync(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
-                {
-                    return _connection.InvokeAsync(targetName, arguments, cancellationToken);
-                }
+                public override Task InvokeAsync(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken) =>
+                    _connection.InvokeAsync(targetName, arguments, cancellationToken);
 
-                public override Task<T> InvokeAsync<T>(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
-                {
-                    return _connection.InvokeAsync<T>(targetName, arguments, cancellationToken);
-                }
+                public override Task<T> InvokeAsync<T>(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken) =>
+                    _connection.InvokeAsync<T>(targetName, arguments, cancellationToken);
 
-                public override Task InvokeAsync(string targetName, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, Task> funcWithDirectStreamAsync, CancellationToken cancellationToken)
-                {
-                    return _connection.InvokeAsync(targetName, arguments, funcWithDirectStreamAsync, cancellationToken);
-                }
+                public override Task InvokeAsync(
+                    string targetName, IReadOnlyList<object> arguments,
+                    Func<Stream, CancellationToken, Task> funcWithDirectStreamAsync, CancellationToken cancellationToken) =>
+                    _connection.InvokeAsync(targetName, arguments, funcWithDirectStreamAsync, cancellationToken);
 
-                public override Task<T> InvokeAsync<T>(string targetName, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync, CancellationToken cancellationToken)
-                {
-                    return _connection.InvokeAsync<T>(targetName, arguments, funcWithDirectStreamAsync, cancellationToken);
-                }
+                public override Task<T> InvokeAsync<T>(
+                    string targetName, IReadOnlyList<object> arguments,
+                    Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync, CancellationToken cancellationToken) =>
+                    _connection.InvokeAsync<T>(targetName, arguments, funcWithDirectStreamAsync, cancellationToken);
 
-                protected override void OnDisposed()
-                {
+                protected override void OnDisposed() =>
                     _pools.Free(_serviceName, _connection);
-                }
+
             }
         }
 
@@ -260,7 +255,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 string serviceName,
                 HostGroup hostGroup,
                 TimeSpan timeout,
-                CancellationToken cancellationToken = default)
+                CancellationToken cancellationToken)
             {
                 const int max_retry = 10;
                 const int retry_delayInMS = 50;
