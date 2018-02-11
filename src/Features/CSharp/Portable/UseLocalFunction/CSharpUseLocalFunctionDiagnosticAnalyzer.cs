@@ -334,18 +334,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                             if (localDeclaration.Declaration.Variables.Count == 1)
                             {
                                 var variableDeclarator = localDeclaration.Declaration.Variables[0];
-                                if (variableDeclarator.Initializer != null)
+                                if (variableDeclarator.Initializer == null ||
+                                    variableDeclarator.Initializer.Value.IsKind(
+                                        SyntaxKind.NullLiteralExpression,
+                                        SyntaxKind.DefaultLiteralExpression,
+                                        SyntaxKind.DefaultExpression))
                                 {
-                                    var value = variableDeclarator.Initializer.Value;
-                                    if (value.IsKind(SyntaxKind.NullLiteralExpression) ||
-                                        value.IsKind(SyntaxKind.DefaultLiteralExpression) ||
-                                        value.IsKind(SyntaxKind.DefaultExpression))
+                                    var identifierName = (IdentifierNameSyntax)assignment.Left;
+                                    if (variableDeclarator.Identifier.ValueText == identifierName.Identifier.ValueText)
                                     {
-                                        var identifierName = (IdentifierNameSyntax)assignment.Left;
-                                        if (variableDeclarator.Identifier.ValueText == identifierName.Identifier.ValueText)
-                                        {
-                                            return true;
-                                        }
+                                        return true;
                                     }
                                 }
                             }
