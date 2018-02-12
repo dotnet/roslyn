@@ -18,7 +18,7 @@ efforts behind them.
 | Constraints | [constraints](https://github.com/dotnet/roslyn/tree/features/constraints) | In Progress | [OmarTawfik](https://github.com/OmarTawfik) | [vsadov](https://github.com/vsadov) | [jarepdar](https://github.com/jaredpar) |
 | [Stackalloc initializers](https://github.com/dotnet/csharplang/issues/1286) | [stackalloc-init](https://github.com/dotnet/roslyn/tree/features/stackalloc-init) | In Progress | [alrz](https://github.com/alrz) | [vsadov](https://github.com/vsadov) | [jcouv](https://github.com/jcouv) |
 | [Custom fixed](https://github.com/dotnet/csharplang/issues/1314) | [custom-fixed](https://github.com/dotnet/roslyn/tree/features/custom-fixed) | In Progress | [vsadov](https://github.com/vsadov) | TBD | [jarepdar](https://github.com/jaredpar) |
-| [Improved overload candidates](https://github.com/dotnet/csharplang/issues/98) | master | In Progress | [gafter](https://github.com/gafter) | TBD | [mattwar](https://github.com/mattwar) |
+| [Improved overload candidates](https://github.com/dotnet/csharplang/issues/98) | features/compiler | In Progress | [gafter](https://github.com/gafter) | TBD | [mattwar](https://github.com/mattwar) |
 
 # C# 8.0
 
