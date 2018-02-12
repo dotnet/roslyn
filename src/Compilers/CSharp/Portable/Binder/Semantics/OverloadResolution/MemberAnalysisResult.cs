@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public readonly ImmutableArray<Conversion> ConversionsOpt;
         public readonly ImmutableArray<int> BadArgumentsOpt;
         public readonly ImmutableArray<int> ArgsToParamsOpt;
-        public readonly ArrayBuilder<TypeParameterDiagnosticInfo> ConstraintFailureDiagnosticsOpt;
+        public readonly ImmutableArray<TypeParameterDiagnosticInfo> ConstraintFailureDiagnosticsOpt;
 
         public readonly int BadParameter;
         public readonly MemberResolutionKind Kind;
@@ -28,11 +28,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public readonly bool HasAnyRefOmittedArgument;
 
-        private MemberAnalysisResult(MemberResolutionKind kind)
-            : this(kind, constraintFailureDiagnosticsOpt: default)
-        {
-        }
-
         private MemberAnalysisResult(
             MemberResolutionKind kind,
             ImmutableArray<int> badArgumentsOpt = default,
@@ -40,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<Conversion> conversionsOpt = default,
             int missingParameter = -1,
             bool hasAnyRefOmittedArgument = false,
-            ArrayBuilder<TypeParameterDiagnosticInfo> constraintFailureDiagnosticsOpt = null)
+            ImmutableArray<TypeParameterDiagnosticInfo> constraintFailureDiagnosticsOpt = default)
         {
             this.Kind = kind;
             this.BadArgumentsOpt = badArgumentsOpt;
@@ -48,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.ConversionsOpt = conversionsOpt;
             this.BadParameter = missingParameter;
             this.HasAnyRefOmittedArgument = hasAnyRefOmittedArgument;
-            this.ConstraintFailureDiagnosticsOpt = constraintFailureDiagnosticsOpt;
+            this.ConstraintFailureDiagnosticsOpt = constraintFailureDiagnosticsOpt.NullToEmpty();
         }
 
         public override bool Equals(object obj)
@@ -284,7 +279,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new MemberAnalysisResult(MemberResolutionKind.Worst);
         }
 
-        internal static MemberAnalysisResult ConstraintFailure(ArrayBuilder<TypeParameterDiagnosticInfo> constraintFailureDiagnostics)
+        internal static MemberAnalysisResult ConstraintFailure(ImmutableArray<TypeParameterDiagnosticInfo> constraintFailureDiagnostics)
         {
             return new MemberAnalysisResult(MemberResolutionKind.ConstraintFailure, constraintFailureDiagnosticsOpt: constraintFailureDiagnostics);
         }

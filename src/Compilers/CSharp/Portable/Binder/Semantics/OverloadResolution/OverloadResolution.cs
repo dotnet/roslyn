@@ -365,7 +365,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     FailsConstraintChecks(member, out ArrayBuilder<TypeParameterDiagnosticInfo> constraintFailureDiagnosticsOpt))
                 {
                     results[f] = new MemberResolutionResult<TMember>(
-                        result.Member, result.LeastOverriddenMember, MemberAnalysisResult.ConstraintFailure(constraintFailureDiagnosticsOpt));
+                        result.Member, result.LeastOverriddenMember,
+                        MemberAnalysisResult.ConstraintFailure(constraintFailureDiagnosticsOpt.ToImmutableAndFree()));
                 }
             }
         }
@@ -379,8 +380,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
-            ArrayBuilder <TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
-            var constraintsSatisfied = ConstraintsHelper.CheckMethodConstraints(
+            ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
+            bool constraintsSatisfied = ConstraintsHelper.CheckMethodConstraints(
                 method,
                 this.Conversions,
                 this.Compilation,
@@ -433,9 +434,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var method = (MethodSymbol)(Symbol)result.Member;
-                bool returnsMatch = returnType == null ||
-                                    method.ReturnType.Equals(returnType, TypeCompareKind.AllIgnoreOptions) ||
-                                    returnRefKind == RefKind.None && Conversions.HasIdentityOrImplicitReferenceConversion(method.ReturnType, returnType, ref useSiteDiagnostics);
+                bool returnsMatch =
+                    (object)returnType == null ||
+                    method.ReturnType.Equals(returnType, TypeCompareKind.AllIgnoreOptions) ||
+                    returnRefKind == RefKind.None && Conversions.HasIdentityOrImplicitReferenceConversion(method.ReturnType, returnType, ref useSiteDiagnostics);
                 if (!returnsMatch)
                 {
                     results[f] = new MemberResolutionResult<TMember>(

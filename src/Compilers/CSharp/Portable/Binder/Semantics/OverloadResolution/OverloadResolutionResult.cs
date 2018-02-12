@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            // Otherwise, f there is any such method that has a bad conversion or out/ref mismatch 
+            // Otherwise, if there is any such method that has a bad argument conversion or out/ref mismatch 
             // then the first such method found is the best bad method.
 
             if (HadBadArguments(diagnostics, binder, name, arguments, symbols, location, binder.Flags, isMethodGroupConversion))

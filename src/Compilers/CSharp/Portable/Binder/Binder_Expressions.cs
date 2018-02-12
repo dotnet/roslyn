@@ -4871,9 +4871,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     result.ReportDiagnostics(
-                        binder: this, location: errorLocation, nodeOpt: null, diagnostics: diagnostics,
-                        name: errorName, receiver: null, invokedExpression: null, arguments: analyzedArguments,
-                        memberGroup: candidateConstructors, typeContainingConstructor: typeContainingConstructors, delegateTypeBeingInvoked: null);
+                        binder: this, location: errorLocation, nodeOpt: null, diagnostics,
+                        name: errorName, receiver: null, invokedExpression: null, analyzedArguments,
+                        memberGroup: candidateConstructors, typeContainingConstructors, delegateTypeBeingInvoked: null);
                 }
             }
 
@@ -5836,9 +5836,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression left,
             ImmutableArray<TypeSymbol> typeArguments,
             bool isMethodGroupConversion,
-            RefKind returnRefKind = default,
-            TypeSymbol returnType = null
-)
+            RefKind returnRefKind,
+            TypeSymbol returnType)
         {
             var firstResult = new MethodGroupResolution();
             AnalyzedArguments actualArguments = null;
@@ -6888,6 +6887,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// will either be the methods defined on the receiver class directly (no extension methods)
         /// or the first set of extension methods.
         /// </summary>
+        /// <param name="node">The node associated with the method group</param>
+        /// <param name="analyzedArguments">The arguments of the invocation (or the delegate type, if a method group conversion)</param>
+        /// <param name="isMethodGroupConversion">True if it is a method group conversion</param>
+        /// <param name="useSiteDiagnostics"></param>
+        /// <param name="inferWithDynamic"></param>
+        /// <param name="returnRefKind">If a method group conversion, the desired ref kind of the delegate</param>
+        /// <param name="returnType">If a method group conversion, the desired return type of the delegate.
+        /// May be null during inference if the return type of the delegate needs to be computed.</param>
         internal MethodGroupResolution ResolveMethodGroup(
             BoundMethodGroup node,
             AnalyzedArguments analyzedArguments,

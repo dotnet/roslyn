@@ -1390,6 +1390,7 @@ class C
                 // (58,9): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'S' in the generic type or method 'C.L<S>'
                 //         Test6<L<string>>(null);
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "Test6<L<string>>").WithArguments("C.L<S>", "S", "string").WithLocation(58, 9));
+
             CreateStandardCompilation(source).VerifyDiagnostics(
                 // (67,36): error CS0453: The type 'Y' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'C.N<T>'
                 //     static void Test5<Y>(Y y, N<Y> ny) { }
