@@ -46,39 +46,44 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            var anonymousFunctions = new List<(LocalDeclarationStatementSyntax declaration, AnonymousFunctionExpressionSyntax function)>();
+            var nodesFromDiagnostics = new List<(
+                LocalDeclarationStatementSyntax declaration,
+                AnonymousFunctionExpressionSyntax function,
+                List<InvocationExpressionSyntax> invocations)>();
+
             var nodesToTrack = new HashSet<SyntaxNode>();
-            var invocations = new List<InvocationExpressionSyntax>();
 
             foreach (var diagnostic in diagnostics)
             {
                 var localDeclaration = (LocalDeclarationStatementSyntax)diagnostic.AdditionalLocations[0].FindNode(cancellationToken);
                 var anonymousFunction = (AnonymousFunctionExpressionSyntax)diagnostic.AdditionalLocations[1].FindNode(cancellationToken);
 
-                anonymousFunctions.Add((localDeclaration, anonymousFunction));
-
-                nodesToTrack.Add(localDeclaration);
-                nodesToTrack.Add(anonymousFunction);
+                var invocations = new List<InvocationExpressionSyntax>(diagnostic.AdditionalLocations.Count - 2);
 
                 for (var i = 2; i < diagnostic.AdditionalLocations.Count; i++)
                 {
                     invocations.Add((InvocationExpressionSyntax)diagnostic.AdditionalLocations[i].FindNode(getInnermostNodeForTie: true, cancellationToken));
                 }
+
+                nodesFromDiagnostics.Add((localDeclaration, anonymousFunction, invocations));
+
+                nodesToTrack.Add(localDeclaration);
+                nodesToTrack.Add(anonymousFunction);
+                nodesToTrack.AddRange(invocations);
             }
 
-            nodesToTrack.AddRange(invocations);
             var root = editor.OriginalRoot;
             var currentRoot = root.TrackNodes(nodesToTrack);
 
             // Process declarations in reverse order so that we see the effects of nested
             // declarations befor processing the outer decls.
-            foreach (var (originalLocalDeclaration, originalAnonymousFunction) in anonymousFunctions.OrderByDescending(tuple => tuple.function.SpanStart))
+            foreach (var (localDeclaration, anonymousFunction, invocations) in nodesFromDiagnostics.OrderByDescending(nodes => nodes.function.SpanStart))
             {
-                var delegateType = (INamedTypeSymbol)semanticModel.GetTypeInfo(originalAnonymousFunction, cancellationToken).ConvertedType;
-                var parameterList = GenerateParameterList(originalAnonymousFunction, delegateType.DelegateInvokeMethod);
+                var delegateType = (INamedTypeSymbol)semanticModel.GetTypeInfo(anonymousFunction, cancellationToken).ConvertedType;
+                var parameterList = GenerateParameterList(anonymousFunction, delegateType.DelegateInvokeMethod);
 
-                var currentLocalDeclaration = currentRoot.GetCurrentNode(originalLocalDeclaration);
-                var currentAnonymousFunction = currentRoot.GetCurrentNode(originalAnonymousFunction);
+                var currentLocalDeclaration = currentRoot.GetCurrentNode(localDeclaration);
+                var currentAnonymousFunction = currentRoot.GetCurrentNode(anonymousFunction);
 
                 currentRoot = ReplaceAnonymousWithLocalFunction(
                     document.Project.Solution.Workspace, currentRoot,

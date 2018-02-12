@@ -1294,7 +1294,6 @@ class C
         int fibonacci(int v)
         {
             int fibonacciHelper(int n) => fibonacci(n - 1) + fibonacci(v: n - 2);
-
             return fibonacciHelper(v);
         }
     }
