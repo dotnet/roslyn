@@ -32,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         private static int s_instanceId = 0;
 
         private readonly JsonRpc _rpc;
-        private readonly ConnectionPools _connectionPools;
+        private readonly ConnectionManager _connectionManager;
 
         /// <summary>
         /// Lock for the <see cref="_globalNotificationsTask"/> task chain.  Each time we hear 
@@ -88,10 +88,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 var usePool = workspace.Options.GetOption(RemoteHostOptions.UseConnectionPool);
                 var maxConnection = workspace.Options.GetOption(RemoteHostOptions.MaxPoolConnection);
 
-                var connectionPools = new ConnectionPools(
+                var connectionManager = new ConnectionManager(
                     primary, hostGroup, usePool, maxConnection, timeout, new ReferenceCountedDisposable<RemotableDataJsonRpc>(remotableDataRpc));
 
-                client = new ServiceHubRemoteHostClient(workspace, connectionPools, remoteHostStream);
+                client = new ServiceHubRemoteHostClient(workspace, connectionManager, remoteHostStream);
 
                 var uiCultureLCID = CultureInfo.CurrentUICulture.LCID;
                 var cultureLCID = CultureInfo.CurrentCulture.LCID;
@@ -146,11 +146,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
         private ServiceHubRemoteHostClient(
             Workspace workspace,
-            ConnectionPools connectionPools,
+            ConnectionManager connectionManager,
             Stream stream)
             : base(workspace)
         {
-            _connectionPools = connectionPools;
+            _connectionManager = connectionManager;
 
             _rpc = new JsonRpc(new JsonRpcMessageHandler(stream, stream), target: this);
             _rpc.JsonSerializer.Converters.Add(AggregateJsonConverter.Instance);
@@ -163,7 +163,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
         public override Task<Connection> TryCreateConnectionAsync(string serviceName, object callbackTarget, CancellationToken cancellationToken)
         {
-            return _connectionPools.TryCreateConnectionAsync(serviceName, callbackTarget, cancellationToken);
+            return _connectionManager.TryCreateConnectionAsync(serviceName, callbackTarget, cancellationToken);
         }
 
         protected override void OnStarted()
@@ -181,7 +181,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             UnregisterGlobalOperationNotifications();
             _rpc.Disconnected -= OnRpcDisconnected;
             _rpc.Dispose();
-            _connectionPools.Shutdown();
+            _connectionManager.Shutdown();
         }
 
         private void RegisterGlobalOperationNotifications()
