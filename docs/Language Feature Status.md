@@ -27,8 +27,9 @@ efforts behind them.
 | [Nullable reference type](https://github.com/dotnet/csharplang/blob/master/proposals/nullable-reference-types.md) | [NullableReferenceTypes](https://github.com/dotnet/roslyn/tree/features/NullableReferenceTypes) | Prototype | [cston](https://github.com/cston), [AlekseyTs](https://github.com/AlekseyTs) | | [mattwar](https://github.com/mattwar) |
 | [Recursive patterns](https://github.com/dotnet/csharplang/blob/master/proposals/patterns.md) | [recursive-patterns](https://github.com/dotnet/roslyn/tree/features/recursive-patterns) | Prototype | [gafter](https://github.com/gafter) | [agocke](https://github.com/agocke) | [gafter](https://github.com/gafter) |
 | [Async streams](https://github.com/dotnet/csharplang/blob/master/proposals/async-streams.md) | [async-streams](https://github.com/dotnet/roslyn/tree/features/async-streams) | Prototype | [jcouv](https://github.com/jcouv) |  [OmarTawfik](https://github.com/OmarTawfik) | [stephentoub](https://github.com/stephentoub) |
-| [Caller expression attribute](https://github.com/dotnet/csharplang/issues/287) | TBD | Prototyping | [alrz](https://github.com/alrz) | [jcouv](https://github.com/jcouv) | [jcouv](https://github.com/jcouv) |
-| [Target-typed new](https://github.com/dotnet/csharplang/issues/100) | TBD | Prototyping | [alrz](https://github.com/alrz) | TBD | [jcouv](https://github.com/jcouv) |
+| [Caller expression attribute](https://github.com/dotnet/csharplang/issues/287) | TBD | Prototype | [alrz](https://github.com/alrz) | [jcouv](https://github.com/jcouv) | [jcouv](https://github.com/jcouv) |
+| [Target-typed new](https://github.com/dotnet/csharplang/issues/100) | TBD | Prototype | [alrz](https://github.com/alrz) | TBD | [jcouv](https://github.com/jcouv) |
+| [Generic attributes](https://github.com/dotnet/csharplang/issues/124) | [generic-attributes](https://github.com/dotnet/roslyn/tree/features/generic-attributes) | In Progress | [AviAvni](https://github.com/AviAvni) | TBD | [mattwar](https://github.com/mattwar) |
 
 
 # C# 7.1
