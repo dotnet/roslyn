@@ -1490,12 +1490,12 @@ Wyrażam zgodę na wszystkie następujące postanowienia:</target>
       </trans-unit>
       <trans-unit id="Disabling_the_extension_0_unbound_your_keyboard_bindings">
         <source>Disabling the extension '{0}' unbound your keyboard bindings.</source>
-        <target state="new">Disabling the extension '{0}' unbound your keyboard bindings.</target>
+        <target state="translated">Wyłączenie rozszerzenia „{0}” spowodowało usunięcie powiązań klawiaturowych.</target>
         <note>0 is an extension name</note>
       </trans-unit>
       <trans-unit id="Code_style_header_use_editor_config">
         <source>The settings configured here only apply to your machine. To configure these settings to travel with your solution, use .editorconfig files.</source>
-        <target state="new">The settings configured here only apply to your machine. To configure these settings to travel with your solution, use .editorconfig files.</target>
+        <target state="translated">Ustawienia skonfigurowane w tym miejscu mają zastosowanie tylko do Twojej maszyny. Aby skonfigurować te ustawienia tak, aby były przenoszone z Twoim rozwiązaniem, użyj plików .editorconfig.</target>
         <note />
       </trans-unit>
       <trans-unit id="Live_code_analysis">
