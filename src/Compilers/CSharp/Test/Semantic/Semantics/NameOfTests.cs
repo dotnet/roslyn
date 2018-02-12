@@ -1347,7 +1347,16 @@ class Program
         [Fact, WorkItem(20600, "https://github.com/dotnet/roslyn/issues/20600")]
         public void PermitInstanceQualifiedFromType()
         {
-            CreateStandardCompilation(@"
+            var source = @"
+class Program
+{
+    static void Main()
+    {
+        new C().M();
+        new C<int>().M();
+        System.Console.WriteLine(""passed"");
+    }
+}
 class C
 {
     public string Instance1 = null;
@@ -1355,19 +1364,18 @@ class C
     public string Instance2 => string.Empty;
     public static string Static2 => string.Empty;
       
-    void M()
+    public void M()
     {
-        _ = nameof(C.Instance1);
-        _ = nameof(C.Instance1.Length);
-        _ = nameof(C.Static1);
-        _ = nameof(C.Static1.Length);
-        _ = nameof(C.Instance2);
-        _ = nameof(C.Instance2.Length);
-        _ = nameof(C.Static2);
-        _ = nameof(C.Static2.Length);
+        nameof(C.Instance1).Verify(""Instance1"");
+        nameof(C.Instance1.Length).Verify(""Length"");
+        nameof(C.Static1).Verify(""Static1"");
+        nameof(C.Static1.Length).Verify(""Length"");
+        nameof(C.Instance2).Verify(""Instance2"");
+        nameof(C.Instance2.Length).Verify(""Length"");
+        nameof(C.Static2).Verify(""Static2"");
+        nameof(C.Static2.Length).Verify(""Length"");
     }
 }
-
 class C<T>
 {
     public string Instance1 = null;
@@ -1375,19 +1383,30 @@ class C<T>
     public string Instance2 => string.Empty;
     public static string Static2 => string.Empty;
 
-    void M()
+    public void M()
     {
-        _ = nameof(C<string>.Instance1);
-        _ = nameof(C<string>.Instance1.Length);
-        _ = nameof(C<string>.Static1);
-        _ = nameof(C<string>.Static1.Length);
-        _ = nameof(C<string>.Instance2);
-        _ = nameof(C<string>.Instance2.Length);
-        _ = nameof(C<string>.Static2);
-        _ = nameof(C<string>.Static2.Length);
+        nameof(C<string>.Instance1).Verify(""Instance1"");
+        nameof(C<string>.Instance1.Length).Verify(""Length"");
+        nameof(C<string>.Static1).Verify(""Static1"");
+        nameof(C<string>.Static1.Length).Verify(""Length"");
+        nameof(C<string>.Instance2).Verify(""Instance2"");
+        nameof(C<string>.Instance2.Length).Verify(""Length"");
+        nameof(C<string>.Static2).Verify(""Static2"");
+        nameof(C<string>.Static2.Length).Verify(""Length"");
     }
 }
-").VerifyDiagnostics();
+public static class Extensions
+{
+    public static void Verify(this string actual, string expected)
+    {
+        if (expected != actual) throw new System.Exception($""expected={expected}; actual={actual}"");
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: @"passed");
         }
     }
 }
