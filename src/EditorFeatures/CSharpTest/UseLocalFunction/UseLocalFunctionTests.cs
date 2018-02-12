@@ -1725,6 +1725,60 @@ class C
 
         [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestSimpleInitialization_SingleLine2()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void Goo()
+    {
+        var buildCancelled = false;
+        Action<int> [||]onUpdateSolutionCancel = a => { buildCancelled = true; };
+    }
+}",
+@"using System;
+
+class C
+{
+    void Goo()
+    {
+        var buildCancelled = false;
+        void onUpdateSolutionCancel(int a) { buildCancelled = true; }
+    }
+}");
+        }
+
+        [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestSimpleInitialization_SingleLine3()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void Goo()
+    {
+        var buildCancelled = false;
+        Action<int> [||]onUpdateSolutionCancel = (int a) => { buildCancelled = true; };
+    }
+}",
+@"using System;
+
+class C
+{
+    void Goo()
+    {
+        var buildCancelled = false;
+        void onUpdateSolutionCancel(int a) { buildCancelled = true; }
+    }
+}");
+        }
+
+        [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestCastInitialization_SingleLine1()
         {
             await TestInRegularAndScriptAsync(
@@ -1746,6 +1800,60 @@ class C
     {
         var buildCancelled = false;
         void onUpdateSolutionCancel() { buildCancelled = true; }
+    }
+}");
+        }
+
+        [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestCastInitialization_SingleLine2()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void Goo()
+    {
+        var buildCancelled = false;
+        var [||]onUpdateSolutionCancel = (Action<int>)(a => { buildCancelled = true; });
+    }
+}",
+@"using System;
+
+class C
+{
+    void Goo()
+    {
+        var buildCancelled = false;
+        void onUpdateSolutionCancel(int a) { buildCancelled = true; }
+    }
+}");
+        }
+
+        [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestCastInitialization_SingleLine3()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void Goo()
+    {
+        var buildCancelled = false;
+        var [||]onUpdateSolutionCancel = (Action<int>)((int a) => { buildCancelled = true; });
+    }
+}",
+@"using System;
+
+class C
+{
+    void Goo()
+    {
+        var buildCancelled = false;
+        void onUpdateSolutionCancel(int a) { buildCancelled = true; }
     }
 }");
         }
@@ -1774,6 +1882,62 @@ class C
     {
         var buildCancelled = false;
         void onUpdateSolutionCancel() { buildCancelled = true; }
+    }
+}");
+        }
+
+        [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestSplitInitialization_SingleLine2()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void Goo()
+    {
+        var buildCancelled = false;
+        Action<int> [||]onUpdateSolutionCancel = null;
+        onUpdateSolutionCancel = a => { buildCancelled = true; };
+    }
+}",
+@"using System;
+
+class C
+{
+    void Goo()
+    {
+        var buildCancelled = false;
+        void onUpdateSolutionCancel(int a) { buildCancelled = true; }
+    }
+}");
+        }
+
+        [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestSplitInitialization_SingleLine3()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void Goo()
+    {
+        var buildCancelled = false;
+        Action<int> [||]onUpdateSolutionCancel = null;
+        onUpdateSolutionCancel = (int a) => { buildCancelled = true; };
+    }
+}",
+@"using System;
+
+class C
+{
+    void Goo()
+    {
+        var buildCancelled = false;
+        void onUpdateSolutionCancel(int a) { buildCancelled = true; }
     }
 }");
         }
