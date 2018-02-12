@@ -1239,8 +1239,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        Task f(string x)
-        { return Task.CompletedTask; }
+        Task f(string x) { return Task.CompletedTask; }
         Func<string, Task> actual = null;
         AssertSame(f, actual);
     }
@@ -1693,6 +1692,88 @@ class Enclosing<T> where T : class
             var val = local(t);
             local(t);
         }
+    }
+}");
+        }
+
+        [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestSimpleInitialization_SingleLine1()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void Goo()
+    {
+        var buildCancelled = false;
+        Action [||]onUpdateSolutionCancel = () => { buildCancelled = true; };
+    }
+}",
+@"using System;
+
+class C
+{
+    void Goo()
+    {
+        var buildCancelled = false;
+        void onUpdateSolutionCancel() { buildCancelled = true; }
+    }
+}");
+        }
+
+        [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestCastInitialization_SingleLine1()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void Goo()
+    {
+        var buildCancelled = false;
+        var [||]onUpdateSolutionCancel = (Action)(() => { buildCancelled = true; });
+    }
+}",
+@"using System;
+
+class C
+{
+    void Goo()
+    {
+        var buildCancelled = false;
+        void onUpdateSolutionCancel() { buildCancelled = true; }
+    }
+}");
+        }
+
+        [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestSplitInitialization_SingleLine1()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void Goo()
+    {
+        var buildCancelled = false;
+        Action [||]onUpdateSolutionCancel = null;
+        onUpdateSolutionCancel = () => { buildCancelled = true; };
+    }
+}",
+@"using System;
+
+class C
+{
+    void Goo()
+    {
+        var buildCancelled = false;
+        void onUpdateSolutionCancel() { buildCancelled = true; }
     }
 }");
         }
