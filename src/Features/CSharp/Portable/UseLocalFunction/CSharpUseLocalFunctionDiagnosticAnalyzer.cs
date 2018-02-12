@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                 return;
             }
 
-            if (!CanReplaceAnonymousWithLocalFunction(semanticModel, expressionTypeOpt, local, block, anonymousFunction, out var explicitInvokeCallLocations, cancellationToken))
+            if (!CanReplaceAnonymousWithLocalFunction(semanticModel, expressionTypeOpt, local, block, anonymousFunction, out var invocationLocations, cancellationToken))
             {
                 return;
             }
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                 localDeclaration.GetLocation(),
                 anonymousFunction.GetLocation());
 
-            additionalLocations = additionalLocations.AddRange(explicitInvokeCallLocations);
+            additionalLocations = additionalLocations.AddRange(invocationLocations);
 
             if (severity != DiagnosticSeverity.Hidden)
             {
@@ -201,12 +201,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
 
         private bool CanReplaceAnonymousWithLocalFunction(
             SemanticModel semanticModel, INamedTypeSymbol expressionTypeOpt, ISymbol local, BlockSyntax block,
-            AnonymousFunctionExpressionSyntax anonymousFunction, out ImmutableArray<Location> explicitInvokeCallLocations, CancellationToken cancellationToken)
+            AnonymousFunctionExpressionSyntax anonymousFunction, out ImmutableArray<Location> invocationLocations, CancellationToken cancellationToken)
         {
             // Check all the references to the anonymous function and disallow the conversion if
             // they're used in certain ways.
-            var explicitInvokeCalls = ArrayBuilder<Location>.GetInstance();
-            explicitInvokeCallLocations = ImmutableArray<Location>.Empty;
+            var invocations = ArrayBuilder<Location>.GetInstance();
+            invocationLocations = ImmutableArray<Location>.Empty;
             var anonymousFunctionStart = anonymousFunction.SpanStart;
             foreach (var descendentNode in block.DescendantNodes())
             {
@@ -238,17 +238,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                             return false;
                         }
 
-                        if (nodeToCheck.Parent is MemberAccessExpressionSyntax memberAccessExpression)
+                        if (nodeToCheck.Parent is InvocationExpressionSyntax invocationExpression)
                         {
-                            if (memberAccessExpression.Name.Identifier.Text != WellKnownMemberNames.DelegateInvokeName)
+                            invocations.Add(invocationExpression.GetLocation());
+                        }
+                        else if (nodeToCheck.Parent is MemberAccessExpressionSyntax memberAccessExpression)
+                        {
+                            if (memberAccessExpression.Parent is InvocationExpressionSyntax explicitInvocationExpression &&
+                                memberAccessExpression.Name.Identifier.Text == WellKnownMemberNames.DelegateInvokeName)
+                            {
+                                invocations.Add(explicitInvocationExpression.GetLocation());
+                            }
+                            else
                             {
                                 // They're doing something like "del.ToString()".  Can't do this with a
                                 // local function.
                                 return false;
-                            }
-                            else
-                            {
-                                explicitInvokeCalls.Add(memberAccessExpression.GetLocation());
                             }
                         }
 
@@ -271,7 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                 }
             }
 
-            explicitInvokeCallLocations = explicitInvokeCalls.ToImmutableAndFree();
+            invocationLocations = invocations.ToImmutableAndFree();
             return true;
         }
 

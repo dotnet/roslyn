@@ -46,32 +46,33 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            var localDeclarationToAnonymousFunction = new Dictionary<LocalDeclarationStatementSyntax, AnonymousFunctionExpressionSyntax>();
+            var anonymousFunctions = new List<(LocalDeclarationStatementSyntax declaration, AnonymousFunctionExpressionSyntax function)>();
             var nodesToTrack = new HashSet<SyntaxNode>();
-            var explicitInvokeCalls = new List<MemberAccessExpressionSyntax>();
+            var invocations = new List<InvocationExpressionSyntax>();
+
             foreach (var diagnostic in diagnostics)
             {
                 var localDeclaration = (LocalDeclarationStatementSyntax)diagnostic.AdditionalLocations[0].FindNode(cancellationToken);
                 var anonymousFunction = (AnonymousFunctionExpressionSyntax)diagnostic.AdditionalLocations[1].FindNode(cancellationToken);
 
-                localDeclarationToAnonymousFunction[localDeclaration] = anonymousFunction;
+                anonymousFunctions.Add((localDeclaration, anonymousFunction));
 
                 nodesToTrack.Add(localDeclaration);
                 nodesToTrack.Add(anonymousFunction);
 
                 for (var i = 2; i < diagnostic.AdditionalLocations.Count; i++)
                 {
-                    explicitInvokeCalls.Add((MemberAccessExpressionSyntax)diagnostic.AdditionalLocations[i].FindNode(getInnermostNodeForTie: true, cancellationToken));
+                    invocations.Add((InvocationExpressionSyntax)diagnostic.AdditionalLocations[i].FindNode(getInnermostNodeForTie: true, cancellationToken));
                 }
             }
 
-            nodesToTrack.AddRange(explicitInvokeCalls);
+            nodesToTrack.AddRange(invocations);
             var root = editor.OriginalRoot;
             var currentRoot = root.TrackNodes(nodesToTrack);
 
-            // Process declarations in reverse order so that we see the effects of nested 
+            // Process declarations in reverse order so that we see the effects of nested
             // declarations befor processing the outer decls.
-            foreach (var (originalLocalDeclaration, originalAnonymousFunction) in localDeclarationToAnonymousFunction.OrderByDescending(kvp => kvp.Value.SpanStart))
+            foreach (var (originalLocalDeclaration, originalAnonymousFunction) in anonymousFunctions.OrderByDescending(tuple => tuple.function.SpanStart))
             {
                 var delegateType = (INamedTypeSymbol)semanticModel.GetTypeInfo(originalAnonymousFunction, cancellationToken).ConvertedType;
                 var parameterList = GenerateParameterList(originalAnonymousFunction, delegateType.DelegateInvokeMethod);
@@ -82,8 +83,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                 currentRoot = ReplaceAnonymousWithLocalFunction(
                     document.Project.Solution.Workspace, currentRoot,
                     currentLocalDeclaration, currentAnonymousFunction,
-                    delegateType.DelegateInvokeMethod, parameterList, explicitInvokeCalls.Select(node => currentRoot.GetCurrentNode(node)).ToImmutableArray(),
-                    cancellationToken);
+                    delegateType.DelegateInvokeMethod, parameterList);
+
+                // these invocations might actually be inside the local function! so we have to do this separately
+                currentRoot = ReplaceInvocations(
+                    document.Project.Solution.Workspace, currentRoot,
+                    delegateType.DelegateInvokeMethod, parameterList,
+                    invocations.Select(node => currentRoot.GetCurrentNode(node)).ToImmutableArray());
             }
 
             editor.ReplaceNode(root, currentRoot);
@@ -92,15 +98,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
         private static SyntaxNode ReplaceAnonymousWithLocalFunction(
             Workspace workspace, SyntaxNode currentRoot,
             LocalDeclarationStatementSyntax localDeclaration, AnonymousFunctionExpressionSyntax anonymousFunction,
-            IMethodSymbol delegateMethod, ParameterListSyntax parameterList,
-            ImmutableArray<MemberAccessExpressionSyntax> explicitInvokeCalls,
-            CancellationToken cancellationToken)
+            IMethodSymbol delegateMethod, ParameterListSyntax parameterList)
         {
-            var newLocalFunctionStatement = CreateLocalFunctionStatement(
-                localDeclaration, anonymousFunction, delegateMethod, parameterList, cancellationToken);
-
-            newLocalFunctionStatement = newLocalFunctionStatement.WithTriviaFrom(localDeclaration)
-                                                                 .WithAdditionalAnnotations(Formatter.Annotation);
+            var newLocalFunctionStatement = CreateLocalFunctionStatement(localDeclaration, anonymousFunction, delegateMethod, parameterList)
+                .WithTriviaFrom(localDeclaration)
+                .WithAdditionalAnnotations(Formatter.Annotation);
 
             var editor = new SyntaxEditor(currentRoot, workspace);
             editor.ReplaceNode(localDeclaration, newLocalFunctionStatement);
@@ -113,11 +115,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                 editor.RemoveNode(anonymousFunctionStatement);
             }
 
-            foreach (var usage in explicitInvokeCalls)
+            return editor.GetChangedRoot();
+        }
+
+        private static SyntaxNode ReplaceInvocations(
+            Workspace workspace, SyntaxNode currentRoot,
+            IMethodSymbol delegateMethod, ParameterListSyntax parameterList,
+            ImmutableArray<InvocationExpressionSyntax> invocations)
+        {
+            var editor = new SyntaxEditor(currentRoot, workspace);
+
+            foreach (var invocation in invocations)
             {
-                editor.ReplaceNode(
-                    usage.Parent,
-                    (usage.Parent as InvocationExpressionSyntax).WithExpression(usage.Expression).WithTriviaFrom(usage.Parent));
+                var directInvocation = invocation.Expression is MemberAccessExpressionSyntax memberAccessExpression // it's a .Invoke call
+                    ? invocation.WithExpression(memberAccessExpression.Expression).WithTriviaFrom(invocation)
+                    : invocation;
+
+                editor.ReplaceNode(invocation, WithNewParameterNames(directInvocation, delegateMethod, parameterList));
             }
 
             return editor.GetChangedRoot();
@@ -127,8 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
             LocalDeclarationStatementSyntax localDeclaration,
             AnonymousFunctionExpressionSyntax anonymousFunction,
             IMethodSymbol delegateMethod,
-            ParameterListSyntax parameterList,
-            CancellationToken cancellationToken)
+            ParameterListSyntax parameterList)
         {
             var modifiers = anonymousFunction.AsyncKeyword.IsKind(SyntaxKind.AsyncKeyword)
                 ? new SyntaxTokenList(anonymousFunction.AsyncKeyword)
@@ -161,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
         private static ParameterListSyntax GenerateParameterList(
             AnonymousFunctionExpressionSyntax anonymousFunction, IMethodSymbol delegateMethod)
         {
-            var parameterList = GetOrMakeParameterList(anonymousFunction);
+            var parameterList = TryGetOrCreateParameterList(anonymousFunction);
             int i = 0;
 
             return parameterList != null
@@ -188,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
             }
         }
 
-        private static ParameterListSyntax GetOrMakeParameterList(AnonymousFunctionExpressionSyntax anonymousFunction)
+        private static ParameterListSyntax TryGetOrCreateParameterList(AnonymousFunctionExpressionSyntax anonymousFunction)
         {
             switch (anonymousFunction)
             {
@@ -197,10 +210,41 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                 case ParenthesizedLambdaExpressionSyntax parenthesizedLambda:
                     return parenthesizedLambda.ParameterList;
                 case AnonymousMethodExpressionSyntax anonymousMethod:
-                    return anonymousMethod.ParameterList;
+                    return anonymousMethod.ParameterList; // may be null!
                 default:
                     throw ExceptionUtilities.UnexpectedValue(anonymousFunction);
             }
+        }
+
+        private static InvocationExpressionSyntax WithNewParameterNames(InvocationExpressionSyntax invocation, IMethodSymbol method, ParameterListSyntax newParameterList)
+        {
+            return invocation.ReplaceNodes(invocation.ArgumentList.Arguments, (argumentNode, _) =>
+            {
+                if (argumentNode.NameColon == null || argumentNode.NameColon.IsMissing)
+                {
+                    return argumentNode;
+                }
+
+                var parameterIndex = TryDetermineParameterIndex(argumentNode.NameColon, method);
+                if (parameterIndex == -1)
+                {
+                    return argumentNode;
+                }
+
+                var newParameter = newParameterList.Parameters.ElementAtOrDefault(parameterIndex);
+                if (newParameter == null || newParameter.Identifier.IsMissing)
+                {
+                    return argumentNode;
+                }
+
+                return argumentNode.WithNameColon(argumentNode.NameColon.WithName(SyntaxFactory.IdentifierName(newParameter.Identifier)));
+            });
+        }
+
+        private static int TryDetermineParameterIndex(NameColonSyntax argumentNameColon, IMethodSymbol method)
+        {
+            var name = argumentNameColon.Name.Identifier.ValueText;
+            return method.Parameters.IndexOf(p => p.Name == name);
         }
 
         private static EqualsValueClauseSyntax GetDefaultValue(IParameterSymbol parameter)
