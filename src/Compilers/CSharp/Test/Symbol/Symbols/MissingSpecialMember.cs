@@ -888,6 +888,7 @@ namespace System
                     case WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__OnCompleted:
                     case WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__Reset:
                     case WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__SetResult:
+                    case WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__SetException:
                     case WellKnownMember.System_Runtime_CompilerServices_IStrongBox_T__Value:
                     case WellKnownMember.System_Runtime_CompilerServices_IStrongBox_T__get_Value:
                     case WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource_T__GetResult:

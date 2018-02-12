@@ -3117,6 +3117,14 @@ namespace Microsoft.CodeAnalysis
                     0,                                                                                                                                          // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
 
+                // System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__SetException,
+                (byte)MemberFlags.Method,                                                                                                                       // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T - WellKnownType.ExtSentinel),    // DeclaringTypeId
+                0,                                                                                                                                              // Arity
+                    1,                                                                                                                                          // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Exception, // Argument
+
                 // System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__SetResult,
                 (byte)MemberFlags.Method,                                                                                                                       // Flags
                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T - WellKnownType.ExtSentinel),    // DeclaringTypeId
@@ -3578,6 +3586,7 @@ namespace Microsoft.CodeAnalysis
                 "GetStatus",                                // System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__GetStatus
                 "OnCompleted",                              // System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__OnCompleted
                 "Reset",                                    // System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__Reset
+                "SetException",                             // System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__SetException
                 "SetResult",                                // System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__SetResult
                 "get_Version",                              // System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__get_Version
                 "Value",                                    // System_Runtime_CompilerServices_IStrongBox_T__Value

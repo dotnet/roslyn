@@ -1,16 +1,934 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Immutable;
 using System.Linq;
+using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
-
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
+    using static Instruction;
+    internal enum Instruction
+    {
+        Write,
+        Yield,
+        AwaitSlow,
+        AwaitFast,
+        YieldBreak
+    }
+
     [CompilerTrait(CompilerFeature.AsyncStreams)]
     public class CodeGenAsyncIteratorTests : EmitMetadataTestBase
     {
+        // PROTOTYPE(async-streams)
+        // Test missing types/members
+        // Test with yield or await in try/catch/finally
+        // More tests with exception thrown
+        // Test yield break
+        // There is a case in GetIteratorElementType with IsDirectlyInIterator that relates to speculation, needs testing
+        // yield break disallowed in finally and top-level script (see BindYieldBreakStatement); same for yield return (see BindYieldReturnStatement)
+        // test local function
+        // binding for yield return (BindYieldReturnStatement) validates escape rules, needs testing
+        // test yield in async lambda (still error)
+        // test exception handling (should capture and return the exception via the promise)
+        // test IAsyncEnumerable<U> M<U>() ...
+        // test missing AsyncTaskMethodBuilder<T> or missing members Create(), Task, ...
+        // test with IAsyncEnumerable<dynamic>
+        // other tests with dynamic?
+        // test should cover both case with AwaitOnCompleted and AwaitUnsafeOnCompleted
+        // test `async IAsyncEnumerable<int> M() { return TaskLike(); }`
+        // Can we avoid making IAsyncEnumerable<T> special from the start? Making mark it with an attribute like we did for task-like?
+        // Test normal break in async iterator
+        // WaitForNextAsync is resilient to be called out of turn. Test that.
+
+        [Fact]
+        public void AsyncIteratorWithAwaitCompletedAndYield()
+        {
+            string source = @"
+using static System.Console;
+class C
+{
+    static async System.Collections.Generic.IAsyncEnumerable<int> M()
+    {
+        Write(""1 "");
+        await System.Threading.Tasks.Task.CompletedTask;
+        Write(""2 "");
+        yield return 3;
+        Write("" 4 "");
+    }
+    static async System.Threading.Tasks.Task Main()
+    {
+        Write(""0 "");
+        foreach await (var i in M())
+        {
+            Write(i);
+        }
+        Write(""5"");
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(source + s_common, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "0 1 2 3 4 5", verify: Verification.Passes);
+
+            verifier.VerifyIL("C.M", @"
+{
+  // Code size       52 (0x34)
+  .maxstack  2
+  .locals init (C.<M>d__0 V_0)
+  IL_0000:  newobj     ""C.<M>d__0..ctor()""
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  call       ""System.Runtime.CompilerServices.AsyncVoidMethodBuilder System.Runtime.CompilerServices.AsyncVoidMethodBuilder.Create()""
+  IL_000c:  stfld      ""System.Runtime.CompilerServices.AsyncVoidMethodBuilder C.<M>d__0.<>t__builder""
+  IL_0011:  ldloc.0
+  IL_0012:  ldc.i4.m1
+  IL_0013:  stfld      ""int C.<M>d__0.<>1__state""
+  IL_0018:  ldloc.0
+  IL_0019:  ldfld      ""System.Runtime.CompilerServices.AsyncVoidMethodBuilder C.<M>d__0.<>t__builder""
+  IL_001e:  pop
+  IL_001f:  ldloc.0
+  IL_0020:  ldloc.0
+  IL_0021:  newobj     ""System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool>..ctor(System.Runtime.CompilerServices.IStrongBox<System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool>>)""
+  IL_0026:  stfld      ""System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
+  IL_002b:  ldloc.0
+  IL_002c:  ldc.i4.1
+  IL_002d:  stfld      ""bool C.<M>d__0.<>w__promiseIsActive""
+  IL_0032:  ldloc.0
+  IL_0033:  ret
+}", sequencePoints: "C.M", source: source + s_common);
+
+            verifier.VerifyIL("C.<M>d__0.System.Collections.Generic.IAsyncEnumerator<int>.TryGetNext(out bool)", @"
+{
+  // Code size       65 (0x41)
+  .maxstack  2
+  .locals init (C.<M>d__0 V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""bool C.<M>d__0.<>w__promiseIsActive""
+  IL_0006:  brfalse.s  IL_0011
+  IL_0008:  ldarg.0
+  IL_0009:  ldc.i4.0
+  IL_000a:  stfld      ""bool C.<M>d__0.<>w__promiseIsActive""
+  IL_000f:  br.s       IL_0020
+  IL_0011:  ldarg.0
+  IL_0012:  stloc.0
+  IL_0013:  ldarg.0
+  IL_0014:  ldflda     ""System.Runtime.CompilerServices.AsyncVoidMethodBuilder C.<M>d__0.<>t__builder""
+  IL_0019:  ldloca.s   V_0
+  IL_001b:  call       ""void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.Start<C.<M>d__0>(ref C.<M>d__0)""
+  IL_0020:  ldarg.0
+  IL_0021:  ldfld      ""bool C.<M>d__0.<>w__promiseIsActive""
+  IL_0026:  brtrue.s   IL_0032
+  IL_0028:  ldarg.0
+  IL_0029:  ldfld      ""int C.<M>d__0.<>1__state""
+  IL_002e:  ldc.i4.s   -2
+  IL_0030:  bne.un.s   IL_0037
+  IL_0032:  ldarg.1
+  IL_0033:  ldc.i4.0
+  IL_0034:  stind.i1
+  IL_0035:  ldc.i4.0
+  IL_0036:  ret
+  IL_0037:  ldarg.1
+  IL_0038:  ldc.i4.1
+  IL_0039:  stind.i1
+  IL_003a:  ldarg.0
+  IL_003b:  ldfld      ""int C.<M>d__0.<>2__current""
+  IL_0040:  ret
+}");
+            verifier.VerifyIL("C.<M>d__0.System.Collections.Generic.IAsyncEnumerator<int>.WaitForNextAsync()", @"
+{
+  // Code size       70 (0x46)
+  .maxstack  2
+  .locals init (C.<M>d__0 V_0,
+                System.Threading.Tasks.ValueTask<bool> V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<M>d__0.<>1__state""
+  IL_0006:  ldc.i4.s   -2
+  IL_0008:  bne.un.s   IL_0014
+  IL_000a:  ldloca.s   V_1
+  IL_000c:  initobj    ""System.Threading.Tasks.ValueTask<bool>""
+  IL_0012:  ldloc.1
+  IL_0013:  ret
+  IL_0014:  ldarg.0
+  IL_0015:  ldfld      ""bool C.<M>d__0.<>w__promiseIsActive""
+  IL_001a:  brfalse.s  IL_0025
+  IL_001c:  ldarg.0
+  IL_001d:  ldfld      ""int C.<M>d__0.<>1__state""
+  IL_0022:  ldc.i4.m1
+  IL_0023:  bne.un.s   IL_0034
+  IL_0025:  ldarg.0
+  IL_0026:  stloc.0
+  IL_0027:  ldarg.0
+  IL_0028:  ldflda     ""System.Runtime.CompilerServices.AsyncVoidMethodBuilder C.<M>d__0.<>t__builder""
+  IL_002d:  ldloca.s   V_0
+  IL_002f:  call       ""void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.Start<C.<M>d__0>(ref C.<M>d__0)""
+  IL_0034:  ldarg.0
+  IL_0035:  ldarg.0
+  IL_0036:  ldflda     ""System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
+  IL_003b:  call       ""short System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool>.Version.get""
+  IL_0040:  newobj     ""System.Threading.Tasks.ValueTask<bool>..ctor(System.Threading.Tasks.Sources.IValueTaskSource<bool>, short)""
+  IL_0045:  ret
+}");
+            verifier.VerifyIL("C.<M>d__0.System.Runtime.CompilerServices.IStrongBox<System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool>>.get_Value()", @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
+  IL_0006:  ret
+}");
+            verifier.VerifyIL("C.<M>d__0.System.Collections.Generic.IAsyncEnumerable<int>.GetAsyncEnumerator()", @"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}");
+            verifier.VerifyIL("C.<M>d__0.System.Threading.Tasks.Sources.IValueTaskSource<bool>.GetResult(short)", @"
+{
+  // Code size       13 (0xd)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
+  IL_0006:  ldarg.1
+  IL_0007:  call       ""bool System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool>.GetResult(short)""
+  IL_000c:  ret
+}");
+            verifier.VerifyIL("C.<M>d__0.System.Threading.Tasks.Sources.IValueTaskSource<bool>.GetStatus(short)", @"
+{
+  // Code size       13 (0xd)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
+  IL_0006:  ldarg.1
+  IL_0007:  call       ""System.Threading.Tasks.Sources.ValueTaskSourceStatus System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool>.GetStatus(short)""
+  IL_000c:  ret
+}");
+            verifier.VerifyIL("C.<M>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine(System.Runtime.CompilerServices.IAsyncStateMachine)", @"
+{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}");
+            verifier.VerifyIL("C.<M>d__0.System.Threading.Tasks.Sources.IValueTaskSource<bool>.OnCompleted(System.Action<object>, object, short, System.Threading.Tasks.Sources.ValueTaskSourceOnCompletedFlags)", @"
+{
+  // Code size       17 (0x11)
+  .maxstack  5
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
+  IL_0006:  ldarg.1
+  IL_0007:  ldarg.2
+  IL_0008:  ldarg.3
+  IL_0009:  ldarg.s    V_4
+  IL_000b:  call       ""void System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool>.OnCompleted(System.Action<object>, object, short, System.Threading.Tasks.Sources.ValueTaskSourceOnCompletedFlags)""
+  IL_0010:  ret
+}");
+            verifier.VerifyIL("C.<M>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
+{
+  // Code size      304 (0x130)
+  .maxstack  3
+  .locals init (int V_0,
+                System.Runtime.CompilerServices.TaskAwaiter V_1,
+                C.<M>d__0 V_2,
+                System.Exception V_3)
+  // sequence point: <hidden>
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<M>d__0.<>1__state""
+  IL_0006:  stloc.0
+  .try
+  {
+    // sequence point: <hidden>
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_0012
+    IL_000a:  br.s       IL_000c
+    IL_000c:  ldloc.0
+    IL_000d:  ldc.i4.1
+    IL_000e:  beq.s      IL_0014
+    IL_0010:  br.s       IL_0019
+    IL_0012:  br.s       IL_007b
+    IL_0014:  br         IL_00d6
+    // sequence point: {
+    IL_0019:  nop
+    // sequence point: Write(""1 "");
+    IL_001a:  ldstr      ""1 ""
+    IL_001f:  call       ""void System.Console.Write(string)""
+    IL_0024:  nop
+    // sequence point: await System.Threading.Tasks.Task.CompletedTask;
+    IL_0025:  call       ""System.Threading.Tasks.Task System.Threading.Tasks.Task.CompletedTask.get""
+    IL_002a:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter System.Threading.Tasks.Task.GetAwaiter()""
+    IL_002f:  stloc.1
+    // sequence point: <hidden>
+    IL_0030:  ldloca.s   V_1
+    IL_0032:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter.IsCompleted.get""
+    IL_0037:  brtrue.s   IL_0097
+    IL_0039:  ldarg.0
+    IL_003a:  ldc.i4.0
+    IL_003b:  dup
+    IL_003c:  stloc.0
+    IL_003d:  stfld      ""int C.<M>d__0.<>1__state""
+    // async: yield
+    IL_0042:  ldarg.0
+    IL_0043:  ldloc.1
+    IL_0044:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter C.<M>d__0.<>u__1""
+    IL_0049:  ldarg.0
+    IL_004a:  ldfld      ""bool C.<M>d__0.<>w__promiseIsActive""
+    IL_004f:  brtrue.s   IL_0064
+    IL_0051:  ldarg.0
+    IL_0052:  ldc.i4.1
+    IL_0053:  stfld      ""bool C.<M>d__0.<>w__promiseIsActive""
+    IL_0058:  ldarg.0
+    IL_0059:  ldflda     ""System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
+    IL_005e:  call       ""void System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool>.Reset()""
+    IL_0063:  nop
+    IL_0064:  ldarg.0
+    IL_0065:  stloc.2
+    IL_0066:  ldarg.0
+    IL_0067:  ldflda     ""System.Runtime.CompilerServices.AsyncVoidMethodBuilder C.<M>d__0.<>t__builder""
+    IL_006c:  ldloca.s   V_1
+    IL_006e:  ldloca.s   V_2
+    IL_0070:  call       ""void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter, C.<M>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter, ref C.<M>d__0)""
+    IL_0075:  nop
+    IL_0076:  leave      IL_012f
+    // async: resume
+    IL_007b:  ldarg.0
+    IL_007c:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter C.<M>d__0.<>u__1""
+    IL_0081:  stloc.1
+    IL_0082:  ldarg.0
+    IL_0083:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter C.<M>d__0.<>u__1""
+    IL_0088:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter""
+    IL_008e:  ldarg.0
+    IL_008f:  ldc.i4.m1
+    IL_0090:  dup
+    IL_0091:  stloc.0
+    IL_0092:  stfld      ""int C.<M>d__0.<>1__state""
+    IL_0097:  ldloca.s   V_1
+    IL_0099:  call       ""void System.Runtime.CompilerServices.TaskAwaiter.GetResult()""
+    IL_009e:  nop
+    // sequence point: Write(""2 "");
+    IL_009f:  ldstr      ""2 ""
+    IL_00a4:  call       ""void System.Console.Write(string)""
+    IL_00a9:  nop
+    // sequence point: yield return 3;
+    IL_00aa:  ldarg.0
+    IL_00ab:  ldc.i4.3
+    IL_00ac:  stfld      ""int C.<M>d__0.<>2__current""
+    IL_00b1:  ldarg.0
+    IL_00b2:  ldfld      ""int C.<M>d__0.<>1__state""
+    IL_00b7:  pop
+    IL_00b8:  ldarg.0
+    IL_00b9:  ldc.i4.1
+    IL_00ba:  stfld      ""int C.<M>d__0.<>1__state""
+    IL_00bf:  ldarg.0
+    IL_00c0:  ldfld      ""bool C.<M>d__0.<>w__promiseIsActive""
+    IL_00c5:  brfalse.s  IL_00d4
+    IL_00c7:  ldarg.0
+    IL_00c8:  ldflda     ""System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
+    IL_00cd:  ldc.i4.1
+    IL_00ce:  call       ""void System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool>.SetResult(bool)""
+    IL_00d3:  nop
+    IL_00d4:  leave.s    IL_012f
+    // sequence point: Write("" 4 "");
+    IL_00d6:  ldstr      "" 4 ""
+    IL_00db:  call       ""void System.Console.Write(string)""
+    IL_00e0:  nop
+    IL_00e1:  ldarg.0
+    IL_00e2:  ldfld      ""bool C.<M>d__0.<>w__promiseIsActive""
+    IL_00e7:  brtrue.s   IL_00fc
+    IL_00e9:  ldarg.0
+    IL_00ea:  ldc.i4.1
+    IL_00eb:  stfld      ""bool C.<M>d__0.<>w__promiseIsActive""
+    IL_00f0:  ldarg.0
+    IL_00f1:  ldflda     ""System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
+    IL_00f6:  call       ""void System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool>.Reset()""
+    IL_00fb:  nop
+    IL_00fc:  ldarg.0
+    IL_00fd:  ldflda     ""System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
+    IL_0102:  ldc.i4.0
+    IL_0103:  call       ""void System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool>.SetResult(bool)""
+    IL_0108:  nop
+    IL_0109:  leave.s    IL_012f
+  }
+  catch System.Exception
+  {
+    // sequence point: <hidden>
+    IL_010b:  stloc.3
+    IL_010c:  ldarg.0
+    IL_010d:  ldc.i4.s   -2
+    IL_010f:  stfld      ""int C.<M>d__0.<>1__state""
+    IL_0114:  ldarg.0
+    IL_0115:  ldfld      ""bool C.<M>d__0.<>w__promiseIsActive""
+    IL_011a:  brfalse.s  IL_012b
+    IL_011c:  ldarg.0
+    IL_011d:  ldflda     ""System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
+    IL_0122:  ldloc.3
+    IL_0123:  call       ""void System.Threading.Tasks.ManualResetValueTaskSourceLogic<bool>.SetException(System.Exception)""
+    IL_0128:  nop
+    IL_0129:  br.s       IL_012d
+    IL_012b:  rethrow
+    IL_012d:  leave.s    IL_012f
+  }
+  IL_012f:  ret
+}", sequencePoints: "C+<M>d__0.MoveNext", source: source);
+        }
+
+        [Fact]
+        public void AsyncIteratorWithReturn()
+        {
+            string source = @"
+class C
+{
+    public static async System.Collections.Generic.IAsyncEnumerable<int> M()
+    {
+        await System.Threading.Tasks.Task.CompletedTask;
+        yield return 3;
+        return null;
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(source + s_common);
+            comp.VerifyDiagnostics(
+                // (8,9): error CS1622: Cannot return a value from an iterator. Use the yield return statement to return a value, or yield break to end the iteration.
+                //         return null;
+                Diagnostic(ErrorCode.ERR_ReturnInIterator, "return").WithLocation(8, 9)
+                );
+        }
+
+        [Fact]
+        public void AsyncIteratorWithAwaitCompletedAndTwoYields()
+        {
+            string source = @"
+using static System.Console;
+class C
+{
+    static async System.Collections.Generic.IAsyncEnumerable<int> M()
+    {
+        Write(""1 "");
+        await System.Threading.Tasks.Task.CompletedTask;
+        Write(""2 "");
+        yield return 3;
+        Write(""4 "");
+        yield return 5;
+    }
+    static async System.Threading.Tasks.Task Main()
+    {
+        Write(""0 "");
+        foreach await (var i in M())
+        {
+            Write($""{i} "");
+        }
+        Write(""Done"");
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(source + s_common, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "0 1 2 3 4 5 Done", verify: Verification.Passes);
+        }
+
+        [Fact]
+        public void AsyncIteratorWitYieldAndAwait()
+        {
+            string source = @"
+using static System.Console;
+class C
+{
+    static async System.Collections.Generic.IAsyncEnumerable<int> M()
+    {
+        Write(""1 "");
+        yield return 2;
+        Write(""3 "");
+        await System.Threading.Tasks.Task.Delay(10);
+    }
+    static async System.Threading.Tasks.Task Main()
+    {
+        Write(""0 "");
+        foreach await (var i in M())
+        {
+            Write($""{i} "");
+        }
+        Write(""Done"");
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(source + s_common, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "0 1 2 3 Done", verify: Verification.Passes);
+        }
+
+        [Fact]
+        public void AsyncIteratorWithAwaitCompletedAndYieldBreak()
+        {
+            string source = @"
+using static System.Console;
+class C
+{
+    static async System.Collections.Generic.IAsyncEnumerable<int> M()
+    {
+        Write(""1 "");
+        await System.Threading.Tasks.Task.CompletedTask;
+        Write(""2 "");
+        yield break;
+    }
+    static async System.Threading.Tasks.Task Main()
+    {
+        Write(""0 "");
+        foreach await (var i in M())
+        {
+            Write($""{i} "");
+        }
+        Write(""Done"");
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(source + s_common, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "0 1 2 Done", verify: Verification.Passes);
+        }
+
+        [Fact]
+        public void AsyncIteratorWithAwaitCompletedAndYieldBreakAndYieldReturn()
+        {
+            string source = @"
+using static System.Console;
+class C
+{
+    static async System.Collections.Generic.IAsyncEnumerable<int> M()
+    {
+        Write(""1 "");
+        await System.Threading.Tasks.Task.CompletedTask;
+        Write(""2 "");
+        goto label2;
+label1:
+        yield break;
+label2:
+        yield return 3;
+        goto label1;
+    }
+    static async System.Threading.Tasks.Task Main()
+    {
+        Write(""0 "");
+        foreach await (var i in M())
+        {
+            Write($""{i} "");
+        }
+        Write(""Done"");
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(source + s_common, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "0 1 2 3 Done", verify: Verification.Passes);
+        }
+
+        [Fact]
+        public void AsyncIteratorWithCustomCode()
+        {
+            verify(new[] { AwaitSlow, Write, Yield, AwaitSlow });
+            verify(new[] { AwaitSlow, Write, Yield, Yield });
+            verify(new[] { Write, Yield, Write, AwaitFast, Yield });
+            verify(new[] { Yield, Write, AwaitFast, Yield });
+            verify(new[] { AwaitFast, YieldBreak });
+            verify(new[] { AwaitSlow, YieldBreak });
+            verify(new[] { AwaitSlow, Yield, YieldBreak });
+
+            void verify(Instruction[] spec)
+            {
+                (string code, string expectation) = generateCode(spec);
+
+                string source = $@"
+using static System.Console;
+class C
+{{
+    static async System.Collections.Generic.IAsyncEnumerable<int> M()
+    {{
+        {code}
+    }}
+    static async System.Threading.Tasks.Task Main()
+    {{
+        Write(""0 "");
+        foreach await (var i in M())
+        {{
+            Write($""{{i}} "");
+        }}
+        Write(""Done"");
+    }}
+}}";
+                var comp = CreateCompilationWithTasksExtensions(source + s_common, options: TestOptions.DebugExe);
+                comp.VerifyDiagnostics();
+                var verifier = CompileAndVerify(comp, expectedOutput: expectation, verify: Verification.Passes);
+            }
+
+            (string code, string expectation) generateCode(Instruction[] spec)
+            {
+                var builder = new StringBuilder();
+                var expectationBuilder = new StringBuilder();
+                int counter = 1;
+                expectationBuilder.Append("0 ");
+
+                foreach (var instruction in spec)
+                {
+                    switch (instruction)
+                    {
+                        case Write:
+                            //Write(""N "");
+                            builder.AppendLine($@"Write(""{counter} "");");
+                            expectationBuilder.Append($"{counter} ");
+                            counter++;
+                            break;
+                        case Yield:
+                            //yield return N;
+                            builder.AppendLine($@"yield return {counter};");
+                            expectationBuilder.Append($"{counter} ");
+                            counter++;
+                            break;
+                        case AwaitSlow:
+                            //await System.Threading.Tasks.Task.Delay(10);
+                            builder.AppendLine("await System.Threading.Tasks.Task.Delay(10);");
+                            break;
+                        case AwaitFast:
+                            //await new System.Threading.Tasks.Task.CompletedTask;
+                            builder.AppendLine("await System.Threading.Tasks.Task.CompletedTask;");
+                            break;
+                        case YieldBreak:
+                            //yield break;
+                            builder.AppendLine($@"yield break;");
+                            break;
+                    }
+                }
+                expectationBuilder.Append("Done");
+                return (builder.ToString(), expectationBuilder.ToString());
+            }
+        }
+
+        [Fact]
+        public void AsyncIteratorWithAwaitAndYieldAndAwait()
+        {
+            string source = @"
+using static System.Console;
+class C
+{
+    static async System.Collections.Generic.IAsyncEnumerable<int> M()
+    {
+        Write(""1 "");
+        await System.Threading.Tasks.Task.Delay(10);
+        Write(""2 "");
+        yield return 3;
+        Write(""4 "");
+        await System.Threading.Tasks.Task.Delay(10);
+    }
+    static async System.Threading.Tasks.Task Main()
+    {
+        Write(""0 "");
+        foreach await (var i in M())
+        {
+            Write($""{i} "");
+        }
+        Write(""Done"");
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(source + s_common, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "0 1 2 3 4 Done", verify: Verification.Passes);
+        }
+
+        [Fact]
+        public void AsyncIteratorWithAwaitOnly()
+        {
+            string source = @"
+class C
+{
+    async System.Collections.Generic.IAsyncEnumerable<int> M()
+    {
+        await System.Threading.Tasks.Task.CompletedTask;
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(source + s_common);
+            comp.VerifyDiagnostics(
+                // (4,60): error CS0161: 'C.M()': not all code paths return a value
+                //     async System.Collections.Generic.IAsyncEnumerable<int> M()
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "M").WithArguments("C.M()").WithLocation(4, 60)
+                );
+        }
+
+        [Fact]
+        public void AsyncIteratorWithYieldOnly()
+        {
+            string source = @"
+class C
+{
+    async System.Collections.Generic.IAsyncEnumerable<int> M()
+    {
+        yield return 1;
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(source + s_common);
+            comp.VerifyDiagnostics(
+                // (4,60): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     async System.Collections.Generic.IAsyncEnumerable<int> M()
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 60)
+                );
+        }
+
+        [Fact]
+        public void AsyncIteratorWithoutAwaitOrYield()
+        {
+            string source = @"
+class C
+{
+    async System.Collections.Generic.IAsyncEnumerable<int> M()
+    {
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(source + s_common);
+            // PROTOTYPE(async-streams): There should be warning for missing yield too
+            comp.VerifyDiagnostics(
+                // (4,60): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     async System.Collections.Generic.IAsyncEnumerable<int> M()
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 60),
+                // (4,60): error CS0161: 'C.M()': not all code paths return a value
+                //     async System.Collections.Generic.IAsyncEnumerable<int> M()
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "M").WithArguments("C.M()").WithLocation(4, 60)
+                );
+        }
+
+        [Fact]
+        public void TestMissingIAsyncEnumerable()
+        {
+            string source = @"
+class C
+{
+    async System.Collections.Generic.IAsyncEnumerable<int> M()
+    {
+        yield return 1;
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(source + s_common);
+            comp.MakeTypeMissing(WellKnownType.System_Collections_Generic_IAsyncEnumerable_T);
+
+            // PROTOTYPE(async-streams) error CS1983 should mention IAsyncEnumerable
+            comp.VerifyDiagnostics(
+                // (4,60): error CS1983: The return type of an async method must be void, Task or Task<T>
+                //     async System.Collections.Generic.IAsyncEnumerable<int> M()
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "M").WithLocation(4, 60),
+                // (4,60): error CS1624: The body of 'C.M()' cannot be an iterator block because 'IAsyncEnumerable<int>' is not an iterator interface type
+                //     async System.Collections.Generic.IAsyncEnumerable<int> M()
+                Diagnostic(ErrorCode.ERR_BadIteratorReturn, "M").WithArguments("C.M()", "System.Collections.Generic.IAsyncEnumerable<int>").WithLocation(4, 60),
+                // (4,60): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     async System.Collections.Generic.IAsyncEnumerable<int> M()
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 60)
+                );
+        }
+
+        [Fact]
+        public void TestBadReturnValue()
+        {
+            string source = @"
+class C
+{
+    async System.Collections.Generic.IAsyncEnumerable<int> M()
+    {
+        yield return ""hello"";
+        yield return;
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(source + s_common);
+            comp.VerifyDiagnostics(
+                // (7,15): error CS1627: Expression expected after yield return
+                //         yield return;
+                Diagnostic(ErrorCode.ERR_EmptyYield, "return").WithLocation(7, 15),
+                // (6,22): error CS0029: Cannot implicitly convert type 'string' to 'int'
+                //         yield return "hello";
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""hello""").WithArguments("string", "int").WithLocation(6, 22),
+                // (4,60): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     async System.Collections.Generic.IAsyncEnumerable<int> M()
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 60)
+                );
+        }
+
+        [Fact]
+        public void TestWaitForNextAsyncCalledOutOfTurn()
+        {
+            string source = @"
+using static System.Console;
+class C
+{
+    public static async System.Threading.Tasks.Task Main()
+    {
+        var enumerator = new C().M().GetAsyncEnumerator();
+        await enumerator.WaitForNextAsync();
+        await enumerator.WaitForNextAsync();
+        await enumerator.WaitForNextAsync();
+
+        var value = enumerator.TryGetNext(out bool success);
+        Assert(success);
+        Assert(value == 42);
+
+        enumerator.TryGetNext(out success);
+        Assert(!success);
+
+        await enumerator.WaitForNextAsync();
+        await enumerator.WaitForNextAsync();
+        await enumerator.WaitForNextAsync();
+
+        value = enumerator.TryGetNext(out success);
+        Assert(success);
+        Assert(value == 43);
+
+        Write(""Done"");
+    }
+    async System.Collections.Generic.IAsyncEnumerable<int> M()
+    {
+        yield return 42;
+        await new System.Threading.Tasks.ValueTask(System.Threading.Tasks.Task.Delay(100));
+        yield return 43;
+    }
+    static void Assert(bool b)
+    {
+        if (!b) throw null;
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(source + s_common, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "Done", verify: Verification.Passes);
+        }
+
+        [Fact]
+        public void TestTryGetNextCalledOutOfTurn()
+        {
+            string source = @"
+using static System.Console;
+class C
+{
+    public static async System.Threading.Tasks.Task Main()
+    {
+        var enumerator = new C().M().GetAsyncEnumerator();
+        await enumerator.WaitForNextAsync();
+
+        var value = enumerator.TryGetNext(out bool success);
+        Assert(success);
+        Assert(value == 42);
+
+        enumerator.TryGetNext(out success);
+        Assert(!success);
+
+        try
+        {
+            enumerator.TryGetNext(out success);
+        }
+        catch (System.Exception e)
+        {
+            Assert(e != null);
+            Write(""Done"");
+        }
+    }
+    async System.Collections.Generic.IAsyncEnumerable<int> M()
+    {
+        yield return 42;
+        await new System.Threading.Tasks.ValueTask(System.Threading.Tasks.Task.Delay(100));
+        yield return 43;
+    }
+    static void Assert(bool b)
+    {
+        if (!b) throw null;
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(source + s_common, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            // PROTOTYPE(async-streams): need to implement the exception
+            //CompileAndVerify(comp, expectedOutput: "Done", verify: Verification.Passes);
+        }
+
+        [Fact]
+        public void TestThrownException_WhilePromiseInactive()
+        {
+            string source = @"
+using static System.Console;
+class C
+{
+    public static async System.Threading.Tasks.Task Main()
+    {
+        var enumerator = new C().M().GetAsyncEnumerator();
+        await enumerator.WaitForNextAsync();
+
+        var value = enumerator.TryGetNext(out bool success);
+        Assert(success);
+        Assert(value == 42);
+
+        try
+        {
+            enumerator.TryGetNext(out success);
+            Write(""UNREACHABLE"");
+        }
+        catch (System.Exception e)
+        {
+            Assert(e.Message == ""message"");
+        }
+        Write(""Done"");
+    }
+    async System.Collections.Generic.IAsyncEnumerable<int> M()
+    {
+        await System.Threading.Tasks.Task.CompletedTask;
+        yield return 42;
+        bool b = true;
+        if (b) throw new System.Exception(""message"");
+        Write(""UNREACHABLE2"");
+    }
+    static void Assert(bool b)
+    {
+        if (!b) throw null;
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(source + s_common, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "Done", verify: Verification.Passes);
+        }
+
+        [Fact]
+        public void TestThrownException_WhilePromiseActive()
+        {
+            string source = @"
+using static System.Console;
+class C
+{
+    public static async System.Threading.Tasks.Task Main()
+    {
+        var enumerator = new C().M().GetAsyncEnumerator();
+        await enumerator.WaitForNextAsync();
+
+        var value = enumerator.TryGetNext(out bool success);
+        Assert(success);
+        Assert(value == 42);
+
+        enumerator.TryGetNext(out success);
+        Assert(!success);
+
+        try
+        {
+            await enumerator.WaitForNextAsync();
+            Write(""UNREACHABLE"");
+        }
+        catch (System.Exception e)
+        {
+            Assert(e.Message == ""message"");
+        }
+        Write(""Done"");
+    }
+    async System.Collections.Generic.IAsyncEnumerable<int> M()
+    {
+        yield return 42;
+        await new System.Threading.Tasks.ValueTask(System.Threading.Tasks.Task.Delay(100));
+        bool b = true;
+        if (b) throw new System.Exception(""message"");
+        Write(""UNREACHABLE2"");
+    }
+    static void Assert(bool b)
+    {
+        if (!b) throw null;
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(source + s_common, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "Done", verify: Verification.Passes);
+        }
+
         // PROTOTYPE(async-streams): Consider moving this common test code to TestSources.cs
         private static readonly string s_common = @"
 namespace System.Collections.Generic
@@ -22,7 +940,7 @@ namespace System.Collections.Generic
 
     public interface IAsyncEnumerator<out T> : System.IAsyncDisposable
     {
-        System.Threading.Tasks.Task<bool> WaitForNextAsync();
+        System.Threading.Tasks.ValueTask<bool> WaitForNextAsync();
         T TryGetNext(out bool success);
     }
 }
@@ -30,7 +948,7 @@ namespace System
 {
     public interface IAsyncDisposable
     {
-        System.Threading.Tasks.Task DisposeAsync();
+        System.Threading.Tasks.ValueTask DisposeAsync();
     }
 }
 
@@ -45,34 +963,202 @@ namespace System.Runtime.CompilerServices
 namespace System.Threading.Tasks
 {
     using System.Runtime.CompilerServices;
+    using System.Runtime.ExceptionServices;
     using System.Threading.Tasks.Sources;
 
     public struct ManualResetValueTaskSourceLogic<TResult>
     {
+        private static readonly Action<object> s_sentinel = new Action<object>(s => throw new InvalidOperationException());
+
+        private readonly IStrongBox<ManualResetValueTaskSourceLogic<TResult>> _parent;
+        private Action<object> _continuation;
+        private object _continuationState;
+        private object _capturedContext;
+        private ExecutionContext _executionContext;
+        private bool _completed;
+        private TResult _result;
+        private ExceptionDispatchInfo _error;
+        private short _version;
+
         public ManualResetValueTaskSourceLogic(IStrongBox<ManualResetValueTaskSourceLogic<TResult>> parent)
         {
+            _parent = parent ?? throw new ArgumentNullException(nameof(parent));
+            _continuation = null;
+            _continuationState = null;
+            _capturedContext = null;
+            _executionContext = null;
+            _completed = false;
+            _result = default;
+            _error = null;
+            _version = 0;
         }
 
-        public short Version
-            => throw null;
+        public short Version => _version;
+
+        private void ValidateToken(short token)
+        {
+            if (token != _version)
+            {
+                throw new InvalidOperationException();
+            }
+        }
 
         public ValueTaskSourceStatus GetStatus(short token)
-            => throw null;
+        {
+            ValidateToken(token);
+
+            return
+                !_completed ? ValueTaskSourceStatus.Pending :
+                _error == null ? ValueTaskSourceStatus.Succeeded :
+                _error.SourceException is OperationCanceledException ? ValueTaskSourceStatus.Canceled :
+                ValueTaskSourceStatus.Faulted;
+        }
 
         public TResult GetResult(short token)
-            => throw null;
+        {
+            ValidateToken(token);
+
+            if (!_completed)
+            {
+                throw new InvalidOperationException();
+            }
+
+            _error?.Throw();
+            return _result;
+        }
 
         public void Reset()
-            => throw null;
+        {
+            _version++;
+
+            _completed = false;
+            _continuation = null;
+            _continuationState = null;
+            _result = default;
+            _error = null;
+            _executionContext = null;
+            _capturedContext = null;
+        }
 
         public void OnCompleted(Action<object> continuation, object state, short token, ValueTaskSourceOnCompletedFlags flags)
-            => throw null;
+        {
+            if (continuation == null)
+            {
+                throw new ArgumentNullException(nameof(continuation));
+            }
+            ValidateToken(token);
+
+            if ((flags & ValueTaskSourceOnCompletedFlags.FlowExecutionContext) != 0)
+            {
+                _executionContext = ExecutionContext.Capture();
+            }
+
+            if ((flags & ValueTaskSourceOnCompletedFlags.UseSchedulingContext) != 0)
+            {
+                SynchronizationContext sc = SynchronizationContext.Current;
+                if (sc != null && sc.GetType() != typeof(SynchronizationContext))
+                {
+                    _capturedContext = sc;
+                }
+                else
+                {
+                    TaskScheduler ts = TaskScheduler.Current;
+                    if (ts != TaskScheduler.Default)
+                    {
+                        _capturedContext = ts;
+                    }
+                }
+            }
+
+            _continuationState = state;
+            if (Interlocked.CompareExchange(ref _continuation, continuation, null) != null)
+            {
+                _executionContext = null;
+
+                object cc = _capturedContext;
+                _capturedContext = null;
+
+                switch (cc)
+                {
+                    case null:
+                        Task.Factory.StartNew(continuation, state, CancellationToken.None, TaskCreationOptions.DenyChildAttach, TaskScheduler.Default);
+                        break;
+
+                    case SynchronizationContext sc:
+                        sc.Post(s =>
+                        {
+                            var tuple = (Tuple<Action<object>, object>)s;
+                            tuple.Item1(tuple.Item2);
+                        }, Tuple.Create(continuation, state));
+                        break;
+
+                    case TaskScheduler ts:
+                        Task.Factory.StartNew(continuation, state, CancellationToken.None, TaskCreationOptions.DenyChildAttach, ts);
+                        break;
+                }
+            }
+        }
 
         public void SetResult(TResult result)
-            => throw null;
+        {
+            _result = result;
+            SignalCompletion();
+        }
 
         public void SetException(Exception error)
-            => throw null;
+        {
+            _error = ExceptionDispatchInfo.Capture(error);
+            SignalCompletion();
+        }
+
+        private void SignalCompletion()
+        {
+            if (_completed)
+            {
+                throw new InvalidOperationException();
+            }
+            _completed = true;
+
+            if (Interlocked.CompareExchange(ref _continuation, s_sentinel, null) != null)
+            {
+                if (_executionContext != null)
+                {
+                    ExecutionContext.Run(
+                        _executionContext,
+                        s => ((IStrongBox<ManualResetValueTaskSourceLogic<TResult>>)s).Value.InvokeContinuation(),
+                        _parent ?? throw new InvalidOperationException());
+                }
+                else
+                {
+                    InvokeContinuation();
+                }
+            }
+        }
+
+        private void InvokeContinuation()
+        {
+            object cc = _capturedContext;
+            _capturedContext = null;
+
+            switch (cc)
+            {
+                case null:
+                    _continuation(_continuationState);
+                    break;
+
+                case SynchronizationContext sc:
+                    sc.Post(s =>
+                    {
+                        ref ManualResetValueTaskSourceLogic<TResult> logicRef = ref ((IStrongBox<ManualResetValueTaskSourceLogic<TResult>>)s).Value;
+                        logicRef._continuation(logicRef._continuationState);
+                    }, _parent ?? throw new InvalidOperationException());
+                    break;
+
+                case TaskScheduler ts:
+                    Task.Factory.StartNew(_continuation, _continuationState, CancellationToken.None, TaskCreationOptions.DenyChildAttach, ts);
+                    break;
+            }
+        }
     }
 }
 ";
@@ -109,6 +1195,9 @@ namespace System.Threading.Tasks
 
             verifyMember(WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__Reset,
                 "void System.Threading.Tasks.ManualResetValueTaskSourceLogic<TResult>.Reset()");
+
+            verifyMember(WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__SetException,
+                "void System.Threading.Tasks.ManualResetValueTaskSourceLogic<TResult>.SetException(System.Exception error)");
 
             verifyMember(WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__SetResult,
                 "void System.Threading.Tasks.ManualResetValueTaskSourceLogic<TResult>.SetResult(TResult result)");

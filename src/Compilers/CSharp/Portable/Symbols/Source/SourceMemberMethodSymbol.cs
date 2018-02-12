@@ -1617,6 +1617,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var compilation = this.DeclaringCompilation;
 
+                // PROTOTYPE(async-streams): Need to review this
+
                 // The async state machine type is not synthesized until the async method body is rewritten. If we are
                 // only emitting metadata the method body will not have been rewritten, and the async state machine
                 // type will not have been created. In this case, omit the attribute.

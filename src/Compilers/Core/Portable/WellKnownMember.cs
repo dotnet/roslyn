@@ -452,6 +452,7 @@ namespace Microsoft.CodeAnalysis
         System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__GetStatus,
         System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__OnCompleted,
         System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__Reset,
+        System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__SetException,
         System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__SetResult,
         System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__get_Version,
         System_Runtime_CompilerServices_IStrongBox_T__Value,
