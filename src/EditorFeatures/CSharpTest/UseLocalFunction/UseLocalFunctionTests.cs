@@ -783,7 +783,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
-        public async Task TestSplitInitialization_SimpleLambda_Block_Uninitialized()
+        public async Task TestSplitInitialization_SimpleLambda_Block_NoInitializer()
         {
             await TestInRegularAndScriptAsync(
 @"using System;
@@ -2395,7 +2395,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
-        public async Task TestWithNamedAndDefaultArgumentsOnParameterlessAnonymousMethod()
+        public async Task TestWithNamedAndDefaultArgumentsAndNestedRecursiveInvocations_FixAll()
         {
             await TestInRegularAndScript1Async(
 @"class C
@@ -2404,12 +2404,23 @@ class C
 
     void M()
     {
-        MyDelegate [||]x = null;
-        x = delegate
+        var x = (MyDelegate)delegate
         {
-            x(null, arg3: 42);
-            return x.Invoke(null, arg3: 42);
+            MyDelegate {|FixAllInDocument:a|} = null;
+            a = (string a1, int a2, int a3) =>
+            {
+                MyDelegate b = null;
+                b = (b1, b2, b3) =>
+                    b.Invoke(arg1: b(null), arg2: a(arg1: a.Invoke(null)).Length, arg3: 42) +
+                    b(arg1: b.Invoke(null), arg3: a(arg1: a.Invoke(null)).Length, arg2: 42);
+
+                return b(arg1: a1, b(arg1: a1).Length);
+            };
+
+            return a(arg1: null);
         };
+
+        x(arg1: null);
     }
 }",
 @"class C
@@ -2420,9 +2431,18 @@ class C
     {
         string x(string arg1, int arg2 = 2, int arg3 = 3)
         {
-            x(null, arg3: 42);
-            return x(null, arg3: 42);
+            string a(string a1, int a2 = 2, int a3 = 3)
+            {
+                string b(string b1, int b2 = 2, int b3 = 3) =>
+                    b(b1: b(null), b2: a(a1: a(null)).Length, b3: 42) +
+                    b(b1: b(null), b3: a(a1: a(null)).Length, b2: 42);
+                return b(b1: a1, b(b1: a1).Length);
+            }
+
+            return a(a1: null);
         }
+
+        x(arg1: null);
     }
 }");
         }
