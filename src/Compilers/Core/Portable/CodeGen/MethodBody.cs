@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         private readonly ushort _maxStack;
         private readonly ImmutableArray<Cci.ILocalDefinition> _locals;
         private readonly ImmutableArray<Cci.ExceptionHandlerRegion> _exceptionHandlers;
-        private readonly bool _localsAreZeroed;
+        private readonly bool _areLocalsZeroed;
 
         // Debug information emitted to Release & Debug PDBs supporting the debugger, EEs and other tools:
         private readonly ImmutableArray<Cci.SequencePoint> _sequencePoints;
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             SequencePointList sequencePoints,
             DebugDocumentProvider debugDocumentProvider,
             ImmutableArray<Cci.ExceptionHandlerRegion> exceptionHandlers,
-            bool localsAreZeroed,
+            bool areLocalsZeroed,
             ImmutableArray<Cci.LocalScope> localScopes,
             bool hasDynamicLocalVariables,
             Cci.IImportScope importScopeOpt,
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             _methodId = methodId;
             _locals = locals;
             _exceptionHandlers = exceptionHandlers;
-            _localsAreZeroed = localsAreZeroed;
+            _areLocalsZeroed = areLocalsZeroed;
             _localScopes = localScopes;
             _hasDynamicLocalVariables = hasDynamicLocalVariables;
             _importScopeOpt = importScopeOpt;
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         ImmutableArray<Cci.ExceptionHandlerRegion> Cci.IMethodBody.ExceptionRegions => _exceptionHandlers;
 
-        bool Cci.IMethodBody.LocalsAreZeroed => _localsAreZeroed;
+        bool Cci.IMethodBody.AreLocalsZeroed => _areLocalsZeroed;
 
         ImmutableArray<Cci.ILocalDefinition> Cci.IMethodBody.LocalVariables => _locals;
 

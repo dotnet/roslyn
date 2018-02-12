@@ -1224,7 +1224,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Returns true if locals are to be initialized
         /// </summary>
-        public virtual bool LocalsAreZeroed
+        public virtual bool AreLocalsZeroed
         {
             get
             {

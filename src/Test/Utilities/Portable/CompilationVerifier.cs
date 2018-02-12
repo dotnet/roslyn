@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 _lazyModuleSymbol = GetSymbolFromMetadata(targetReference, MetadataImportOptions.All);
             }
 
-            return _lazyModuleSymbol != null ? _visualizeRealIL(_lazyModuleSymbol, methodData, markers, _testData.Module.GetMethodBody(methodData.Method).LocalsAreZeroed) : null;
+            return _lazyModuleSymbol != null ? _visualizeRealIL(_lazyModuleSymbol, methodData, markers, _testData.Module.GetMethodBody(methodData.Method).AreLocalsZeroed) : null;
         }
 
         public CompilationVerifier VerifyMemberInIL(string methodName, bool expected)
