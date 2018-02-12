@@ -31,7 +31,6 @@ efforts behind them.
 | [Target-typed new](https://github.com/dotnet/csharplang/issues/100) | TBD | Prototype | [alrz](https://github.com/alrz) | TBD | [jcouv](https://github.com/jcouv) |
 | [Generic attributes](https://github.com/dotnet/csharplang/issues/124) | [generic-attributes](https://github.com/dotnet/roslyn/tree/features/generic-attributes) | In Progress | [AviAvni](https://github.com/AviAvni) | TBD | [mattwar](https://github.com/mattwar) |
 
-
 # C# 7.1
 
 | Feature | Branch | State | Developers | Reviewer | LDM Champ |
