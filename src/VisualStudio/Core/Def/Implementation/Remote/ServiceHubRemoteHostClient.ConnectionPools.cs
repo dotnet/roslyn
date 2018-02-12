@@ -65,6 +65,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 // pool is turned off either by option or pool has shutdown.
                 if (!_usePool)
                 {
+                    // RemoteHostClient is allowed to be restarted by IRemoteHostClientService.RequestNewRemoteHostAsync
+                    // when that happen, existing RemoteHostClient doesn't suddenly go away and start to throw exception. it handles
+                    // shutdown gracefully. it will keep serving existing requests or even new requests if someone is holding old remoteHostClient.
+                    // all connections made to old RemoteHost will eventually go away and that's when RemoteHost is actually removed.
+                    // simplyput, RequestNewRemoteHostAsync is not intrusive to running features. all existing one will keep do what is doing
+                    // with old RemoteHost and only new request will go to new remoteHost.
                     return TryCreateNewConnectionAsync(serviceName, callbackTarget, cancellationToken);
                 }
 
@@ -277,6 +283,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                         // retry on cancellation token since HubClient will throw its own cancellation token
                         // when it couldn't connect to service hub service for some reasons
                         // (ex, OOP process GC blocked and not responding to request)
+                        //
+                        // we have double re-try here. we have these 2 seperated since 2 retries are for different problems.
+                        // as noted by 2 different issues above at the start of each 2 different retries.
+                        // first retry most likely deal with real issue on servicehub, second retry (cancellation) is to deal with
+                        // by design servicehub behavior we don't want to use.
                         return await RetryRemoteCallAsync<OperationCanceledException, Stream>(
                             () => client.RequestServiceAsync(descriptor, cancellationToken),
                             timeout,
