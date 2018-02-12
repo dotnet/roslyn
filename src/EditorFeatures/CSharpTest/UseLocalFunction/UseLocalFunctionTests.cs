@@ -1953,6 +1953,58 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [WorkItem(24760, "https://github.com/dotnet/roslyn/issues/24760#issuecomment-364935495")]
+        public async Task TestWithNestedInvokeMethod()
+        {
+            await TestInRegularAndScript1Async(
+ @"using System;
+
+class C
+{
+    void M()
+    {
+        Func<string, string> [||]a = s => s;
+        a.Invoke(a.Invoke(null));
+    }
+}",
+ @"using System;
+
+class C
+{
+    void M()
+    {
+        string a(string s) => s;
+        a(a(null));
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestWithNestedRecursiveInvokeMethod()
+        {
+            await TestInRegularAndScript1Async(
+ @"using System;
+
+class C
+{
+    void M()
+    {
+        Func<string, string> [||]a = null;
+        a = s => a.Invoke(a.Invoke(s));
+    }
+}",
+ @"using System;
+
+class C
+{
+    void M()
+    {
+        string a(string s) => a(a(s));
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestWithDefaultParameter1()
         {
            await TestInRegularAndScript1Async(

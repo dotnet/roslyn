@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
             var nodesFromDiagnostics = new List<(
                 LocalDeclarationStatementSyntax declaration,
                 AnonymousFunctionExpressionSyntax function,
-                List<InvocationExpressionSyntax> invocations)>();
+                List<InvocationExpressionSyntax> invocations)>(diagnostics.Length);
 
             var nodesToTrack = new HashSet<SyntaxNode>();
 
@@ -128,18 +128,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
             IMethodSymbol delegateMethod, ParameterListSyntax parameterList,
             ImmutableArray<InvocationExpressionSyntax> invocations)
         {
-            var editor = new SyntaxEditor(currentRoot, workspace);
-
-            foreach (var invocation in invocations)
+            return currentRoot.ReplaceNodes(invocations, (_ /* nested invocations! */, invocation) =>
             {
                 var directInvocation = invocation.Expression is MemberAccessExpressionSyntax memberAccessExpression // it's a .Invoke call
-                    ? invocation.WithExpression(memberAccessExpression.Expression).WithTriviaFrom(invocation)
+                    ? invocation.WithExpression(memberAccessExpression.Expression).WithTriviaFrom(invocation) // remove it
                     : invocation;
 
-                editor.ReplaceNode(invocation, WithNewParameterNames(directInvocation, delegateMethod, parameterList));
-            }
-
-            return editor.GetChangedRoot();
+                return WithNewParameterNames(directInvocation, delegateMethod, parameterList);
+            });
         }
 
         private static LocalFunctionStatementSyntax CreateLocalFunctionStatement(
