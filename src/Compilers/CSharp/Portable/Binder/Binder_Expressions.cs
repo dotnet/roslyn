@@ -1953,8 +1953,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case BoundKind.MethodGroup:
                     {
-                        // TODO: report more specific diagnostics here for failed method group conversions
-                        diagnostics.Add(ErrorCode.ERR_NoExplicitConv, syntax.Location, MessageID.IDS_SK_METHOD.Localize(), targetType);
+                        if (targetType.TypeKind != TypeKind.Delegate ||
+                            !MethodGroupConversionDoesNotExistOrHasErrors((BoundMethodGroup)operand, (NamedTypeSymbol)targetType, syntax.Location, diagnostics, out _))
+                        {
+                            diagnostics.Add(ErrorCode.ERR_NoExplicitConv, syntax.Location, MessageID.IDS_SK_METHOD.Localize(), targetType);
+                        }
+
                         return;
                     }
                 case BoundKind.TupleLiteral:
@@ -3598,16 +3602,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         methodGroup.PopulateWithSingleMethod(argument, sourceDelegate.DelegateInvokeMethod);
-
                         HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                         Conversion conv = Conversions.MethodGroupConversion(argument.Syntax, methodGroup, type, ref useSiteDiagnostics);
                         diagnostics.Add(node, useSiteDiagnostics);
                         if (!conv.Exists)
                         {
-                            // No overload for '{0}' matches delegate '{1}'
-                            diagnostics.Add(ErrorCode.ERR_MethDelegateMismatch, node.Location,
-                                sourceDelegate.Name, // duplicate questionable Dev10 diagnostic
-                                type);
+                            var boundMethodGroup = new BoundMethodGroup(
+                                argument.Syntax, default, WellKnownMemberNames.DelegateInvokeName, ImmutableArray.Create(sourceDelegate.DelegateInvokeMethod),
+                                sourceDelegate.DelegateInvokeMethod, null, BoundMethodGroupFlags.None, argument, LookupResultKind.Viable);
+                            if (!Conversions.ReportDelegateMethodGroupDiagnostics(this, boundMethodGroup, type, diagnostics))
+                            {
+                                // If we could not produce a more specialized diagnostic, we report
+                                // No overload for '{0}' matches delegate '{1}'
+                                diagnostics.Add(ErrorCode.ERR_MethDelegateMismatch, node.Location,
+                                    sourceDelegate.DelegateInvokeMethod,
+                                    type);
+                            }
                         }
                         else
                         {

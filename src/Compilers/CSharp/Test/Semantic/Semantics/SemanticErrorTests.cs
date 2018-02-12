@@ -2744,13 +2744,10 @@ class C
                 //         abc p = new abc();
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "p").WithArguments("p")
             );
-            // NOTE: we have a degradation in the quality of diagnostics for a delegate conversion in this failure case
-            // because we don't report *why* a delegate conversion failed.
-            // See https://github.com/dotnet/roslyn/issues/24675 for a proposal to restore the quality of this diagnostic.
             CreateStandardCompilation(source, parseOptions: TestOptions.Regular).VerifyDiagnostics(
-                // (16,16): error CS0123: No overload for 'bar' matches delegate 'boo'
+                // (16,24): error CS0120: An object reference is required for the non-static field, method, or property 'I.bar()'
                 //         goo += new boo(I.bar);
-                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "new boo(I.bar)").WithArguments("bar", "boo").WithLocation(16, 16),
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "I.bar").WithArguments("I.bar()").WithLocation(16, 24),
                 // (14,13): warning CS0219: The variable 'p' is assigned but its value is never used
                 //         abc p = new abc();
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "p").WithArguments("p").WithLocation(14, 13)
@@ -10180,13 +10177,10 @@ class C
                 //         d = new MyDelegate(G);  // CS0407 - G doesn't return int
                 Diagnostic(ErrorCode.ERR_BadRetType, "G").WithArguments("C.G()", "void").WithLocation(11, 28)
                 );
-            // NOTE: we have a degradation in the quality of diagnostics for a delegate conversion in this failure case
-            // because we don't report *why* a delegate conversion failed.
-            // See https://github.com/dotnet/roslyn/issues/24675 for a proposal to restore the quality of this diagnostic.
             CreateStandardCompilation(text).VerifyDiagnostics(
-                // (11,13): error CS0123: No overload for 'G' matches delegate 'MyDelegate'
+                // (11,28): error CS0407: 'void C.G()' has the wrong return type
                 //         d = new MyDelegate(G);  // CS0407 - G doesn't return int
-                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "new MyDelegate(G)").WithArguments("G", "MyDelegate").WithLocation(11, 13)
+                Diagnostic(ErrorCode.ERR_BadRetType, "G").WithArguments("C.G()", "void").WithLocation(11, 28)
                 );
         }
 
@@ -10216,16 +10210,13 @@ class C
                 //         var ss = new Func<string, string>(oo);
                 Diagnostic(ErrorCode.ERR_BadRetType, "oo").WithArguments("System.Func<object, object>.Invoke(object)", "object").WithLocation(11, 43)
                 );
-            // NOTE: we have a degradation in the quality of diagnostics for a delegate conversion in this failure case
-            // because we don't report *why* a delegate conversion failed.
-            // See https://github.com/dotnet/roslyn/issues/24675 for a proposal to restore the quality of this diagnostic.
             CreateStandardCompilation(text).VerifyDiagnostics(
-                // (10,18): error CS0123: No overload for 'Func' matches delegate 'Func<object, string>'
+                // (10,43): error CS0407: 'object Func<object, object>.Invoke(object)' has the wrong return type
                 //         var os = new Func<object, string>(oo);
-                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "new Func<object, string>(oo)").WithArguments("Func", "System.Func<object, string>").WithLocation(10, 18),
-                // (11,18): error CS0123: No overload for 'Func' matches delegate 'Func<string, string>'
+                Diagnostic(ErrorCode.ERR_BadRetType, "oo").WithArguments("System.Func<object, object>.Invoke(object)", "object").WithLocation(10, 43),
+                // (11,43): error CS0407: 'object Func<object, object>.Invoke(object)' has the wrong return type
                 //         var ss = new Func<string, string>(oo);
-                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "new Func<string, string>(oo)").WithArguments("Func", "System.Func<string, string>").WithLocation(11, 18)
+                Diagnostic(ErrorCode.ERR_BadRetType, "oo").WithArguments("System.Func<object, object>.Invoke(object)", "object").WithLocation(11, 43)
                 );
         }
 
@@ -22137,25 +22128,25 @@ namespace CSSample
             comp.VerifyDiagnostics(
                 // (28,25): error CS0149: Method name expected
                 //             d1 = new D1(2 + 2);
-                Diagnostic(ErrorCode.ERR_MethodNameExpected, "2 + 2"),
-                // (29,18): error CS0123: No overload for 'D3' matches delegate 'CSSample.Program.D1'
+                Diagnostic(ErrorCode.ERR_MethodNameExpected, "2 + 2").WithLocation(28, 25),
+                // (29,18): error CS0123: No overload for 'Program.D3.Invoke(int)' matches delegate 'Program.D1'
                 //             d1 = new D1(d3);
-                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "new D1(d3)").WithArguments("D3", "CSSample.Program.D1"),
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "new D1(d3)").WithArguments("CSSample.Program.D3.Invoke(int)", "CSSample.Program.D1").WithLocation(29, 18),
                 // (30,25): error CS0149: Method name expected
                 //             d1 = new D1(2, 3);
-                Diagnostic(ErrorCode.ERR_MethodNameExpected, "2, 3"),
+                Diagnostic(ErrorCode.ERR_MethodNameExpected, "2, 3").WithLocation(30, 25),
                 // (31,28): error CS0149: Method name expected
                 //             d1 = new D1(x: 3);
-                Diagnostic(ErrorCode.ERR_MethodNameExpected, "3"),
-                // (32,18): error CS0123: No overload for 'M2' matches delegate 'CSSample.Program.D1'
+                Diagnostic(ErrorCode.ERR_MethodNameExpected, "3").WithLocation(31, 28),
+                // (32,18): error CS0123: No overload for 'M2' matches delegate 'Program.D1'
                 //             d1 = new D1(M2);
-                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "new D1(M2)").WithArguments("M2", "CSSample.Program.D1"),
-                // (16,19): warning CS0169: The field 'CSSample.Program.d2' is never used
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "new D1(M2)").WithArguments("M2", "CSSample.Program.D1").WithLocation(32, 18),
+                // (16,19): warning CS0169: The field 'Program.d2' is never used
                 //         static D2 d2;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "d2").WithArguments("CSSample.Program.d2"),
-                // (17,19): warning CS0649: Field 'CSSample.Program.d3' is never assigned to, and will always have its default value null
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "d2").WithArguments("CSSample.Program.d2").WithLocation(16, 19),
+                // (17,19): warning CS0649: Field 'Program.d3' is never assigned to, and will always have its default value null
                 //         static D3 d3;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "d3").WithArguments("CSSample.Program.d3", "null"));
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "d3").WithArguments("CSSample.Program.d3", "null").WithLocation(17, 19));
         }
 
         [Fact, WorkItem(7359, "https://github.com/dotnet/roslyn/issues/7359")]

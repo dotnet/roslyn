@@ -2405,13 +2405,10 @@ class C
                 //         new D(M)();
                 Diagnostic(ErrorCode.ERR_DelegateRefMismatch, "M").WithArguments("C.M()", "D").WithLocation(15, 15)
                 );
-            // NOTE: we have a degradation in the quality of diagnostics for a delegate conversion in this failure case
-            // because we don't report *why* a delegate conversion failed.
-            // See https://github.com/dotnet/roslyn/issues/24675 for a proposal to restore the quality of this diagnostic.
             CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
-                // (15,9): error CS0123: No overload for 'M' matches delegate 'D'
+                // (15,15): error CS8189: Ref mismatch between 'C.M()' and delegate 'D'
                 //         new D(M)();
-                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "new D(M)").WithArguments("M", "D").WithLocation(15, 9)
+                Diagnostic(ErrorCode.ERR_DelegateRefMismatch, "M").WithArguments("C.M()", "D").WithLocation(15, 15)
                 );
         }
 
@@ -2475,13 +2472,10 @@ class C
                 //         M(M);
                 Diagnostic(ErrorCode.ERR_DelegateRefMismatch, "M").WithArguments("C.M()", "D").WithLocation(19, 11)
                 );
-            // NOTE: we have a degradation in the quality of diagnostics for a delegate conversion in this failure case
-            // because we don't report *why* a delegate conversion failed.
-            // See https://github.com/dotnet/roslyn/issues/24675 for a proposal to restore the quality of this diagnostic.
             CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
-                // (19,11): error CS1503: Argument 1: cannot convert from 'method group' to 'D'
+                // (19,11): error CS8189: Ref mismatch between 'C.M()' and delegate 'D'
                 //         M(M);
-                Diagnostic(ErrorCode.ERR_BadArgType, "M").WithArguments("1", "method group", "D").WithLocation(19, 11)
+                Diagnostic(ErrorCode.ERR_DelegateRefMismatch, "M").WithArguments("C.M()", "D").WithLocation(19, 11)
                 );
         }
 

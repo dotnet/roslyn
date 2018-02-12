@@ -1003,15 +1003,26 @@ static class S3
             CreateStandardCompilation(source, references: new[] { SystemCoreRef },
                     parseOptions: TestOptions.WithoutImprovedOverloadCandidates).VerifyDiagnostics(
                 // (10,16): error CS0407: 'void S2.F1(object, object)' has the wrong return type
+                //             M1(c.F1); // wrong return type
                 Diagnostic(ErrorCode.ERR_BadRetType, "c.F1").WithArguments("S2.F1(object, object)", "void").WithLocation(10, 16),
-                // (13,16): error CS0407: 'object S2.F2(N.C, object)' has the wrong return type
+                // (13,16): error CS0407: 'object S2.F2(C, object)' has the wrong return type
+                //             M2(c.F2); // wrong return type
                 Diagnostic(ErrorCode.ERR_BadRetType, "c.F2").WithArguments("S2.F2(N.C, object)", "object").WithLocation(13, 16),
-                // (14,16): error CS1503: Argument 1: cannot convert from 'method group' to 'System.Func<object, object>'
+                // (14,16): error CS0121: The call is ambiguous between the following methods or properties: 'S2.F3(C, object)' and 'S3.F3(C, object)'
                 //             M1(c.F3); // ambiguous
-                Diagnostic(ErrorCode.ERR_BadArgType, "c.F3").WithArguments("1", "method group", "System.Func<object, object>"));
-            // NOTE: we have a degradation in the quality of diagnostics for a delegate conversion in this failure case
-            // because we don't report *why* a delegate conversion failed.
-            // See https://github.com/dotnet/roslyn/issues/24675 for a proposal to restore the quality of this diagnostic.
+                Diagnostic(ErrorCode.ERR_AmbigCall, "c.F3").WithArguments("S2.F3(N.C, object)", "S3.F3(N.C, object)").WithLocation(14, 16));
+            // NOTE: we have a degradation in the quality of diagnostics for a delegate conversion in this particular failure case.
+            // See https://github.com/dotnet/roslyn/issues/24787
+            // It is caused by a combination of two shortcomings  in the computation of diagnostics. First, in `BindExtensionMethod`
+            // when we fail to find an applicable extension method, we only report a diagnostic for the first extension method group
+            // that failed, even if some other extension method group contains a much better candidate. In the case of this test the first
+            // extension method group contains a method with the wrong number of parameters, while the second one has an extension method
+            // that fails only because of its return type mismatch.  Second, in
+            // `OverloadResolutionResult<TMember>.ReportDiagnostics<T>`, we do not report a diagnostic for the failure
+            // `MemberResolutionKind.NoCorrespondingParameter`, leaving it to the caller to notice that we failed to produce a
+            // diagnostic (the caller has to grub through the diagnostic bag to see that there is no error there) and then the caller
+            // has to produce a generic error message, which we see below. It does not appear that all callers have that test, though,
+            // suggesting there may be a latent bug of missing diagnostics.
             CreateStandardCompilation(source, references: new[] { SystemCoreRef }).VerifyDiagnostics(
                 // (10,16): error CS1503: Argument 1: cannot convert from 'method group' to 'Func<object, object>'
                 //             M1(c.F1); // wrong return type
@@ -1019,9 +1030,9 @@ static class S3
                 // (13,16): error CS1503: Argument 1: cannot convert from 'method group' to 'Action<object>'
                 //             M2(c.F2); // wrong return type
                 Diagnostic(ErrorCode.ERR_BadArgType, "c.F2").WithArguments("1", "method group", "System.Action<object>").WithLocation(13, 16),
-                // (14,16): error CS1503: Argument 1: cannot convert from 'method group' to 'Func<object, object>'
+                // (14,16): error CS0121: The call is ambiguous between the following methods or properties: 'S2.F3(C, object)' and 'S3.F3(C, object)'
                 //             M1(c.F3); // ambiguous
-                Diagnostic(ErrorCode.ERR_BadArgType, "c.F3").WithArguments("1", "method group", "System.Func<object, object>").WithLocation(14, 16));
+                Diagnostic(ErrorCode.ERR_AmbigCall, "c.F3").WithArguments("S2.F3(N.C, object)", "S3.F3(N.C, object)").WithLocation(14, 16));
         }
 
         [Fact]

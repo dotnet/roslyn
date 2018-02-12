@@ -777,13 +777,10 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action,
       Instance Receiver: 
         ILocalReferenceOperation: p (OperationKind.LocalReference, Type: Program, IsInvalid) (Syntax: 'p')
 ", new DiagnosticDescription[] {
-                // CS0407: 'int Program.M1()' has the wrong return type
+                // file.cs(8,30): error CS0407: 'int Program.M1()' has the wrong return type
                 //         Action a = /*<bind>*/(Action)p.M1/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_BadRetType, "(Action)p.M1").WithArguments("Program.M1()", "int").WithLocation(8, 30)
             }, parseOptions: TestOptions.WithoutImprovedOverloadCandidates);
-            // NOTE: we have a degradation in the quality of diagnostics for a delegate conversion in this failure case
-            // because we don't report *why* a delegate conversion failed.
-            // See https://github.com/dotnet/roslyn/issues/24675 for a proposal to restore the quality of this diagnostic.
             VerifyOperationTreeAndDiagnosticsForTest<CastExpressionSyntax>(source, @"
 IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action, IsInvalid) (Syntax: '(Action)p.M1')
   Target: 
@@ -791,9 +788,9 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action,
       Children(1):
           ILocalReferenceOperation: p (OperationKind.LocalReference, Type: Program, IsInvalid) (Syntax: 'p')
 ", new DiagnosticDescription[] {
-                // file.cs(8,30): error CS0030: Cannot convert type 'method' to 'Action'
+                // file.cs(8,38): error CS0407: 'int Program.M1()' has the wrong return type
                 //         Action a = /*<bind>*/(Action)p.M1/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(Action)p.M1").WithArguments("method", "System.Action").WithLocation(8, 30)
+                Diagnostic(ErrorCode.ERR_BadRetType, "p.M1").WithArguments("Program.M1()", "int").WithLocation(8, 38)
             });
         }
 
@@ -821,9 +818,9 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action,
 ";
             var expectedDiagnostics = new DiagnosticDescription[]
             {
-                // CS0030: Cannot convert type 'method' to 'Action'
+                // file.cs(7,30): error CS0123: No overload for 'M1' matches delegate 'Action'
                 //         Action a = /*<bind>*/(Action)M1/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(Action)M1").WithArguments("method", "System.Action").WithLocation(7, 30)
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "(Action)M1").WithArguments("M1", "System.Action").WithLocation(7, 30)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<CastExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -853,9 +850,9 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action,
           ILocalReferenceOperation: p (OperationKind.LocalReference, Type: Program, IsInvalid) (Syntax: 'p')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0030: Cannot convert type 'method' to 'Action'
+                // file.cs(8,30): error CS0123: No overload for 'M1' matches delegate 'Action'
                 //         Action a = /*<bind>*/(Action)p.M1/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(Action)p.M1").WithArguments("method", "System.Action").WithLocation(8, 30)
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "(Action)p.M1").WithArguments("M1", "System.Action").WithLocation(8, 30)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<CastExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -1074,13 +1071,10 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action,
       Children(1):
           IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsInvalid) (Syntax: 'this')
 ";
-            // NOTE: we have a degradation in the quality of diagnostics for a delegate conversion in this failure case
-            // because we don't report *why* a delegate conversion failed.
-            // See https://github.com/dotnet/roslyn/issues/24675 for a proposal to restore the quality of this diagnostic.
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // file.cs(7,30): error CS0123: No overload for 'M1' matches delegate 'Action'
+                // file.cs(7,41): error CS0176: Member 'Program.M1()' cannot be accessed with an instance reference; qualify it with a type name instead
                 //         Action a = /*<bind>*/new Action(this.M1)/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "new Action(this.M1)").WithArguments("M1", "System.Action").WithLocation(7, 30)
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "this.M1").WithArguments("Program.M1()").WithLocation(7, 41)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -1171,9 +1165,6 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action,
                 //         Action a = /*<bind>*/new Action(M1)/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_BadRetType, "M1").WithArguments("Program.M1()", "int").WithLocation(7, 41)
             }, parseOptions: TestOptions.WithoutImprovedOverloadCandidates);
-            // NOTE: we have a degradation in the quality of diagnostics for a delegate conversion in this failure case
-            // because we don't report *why* a delegate conversion failed.
-            // See https://github.com/dotnet/roslyn/issues/24675 for a proposal to restore the quality of this diagnostic.
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, @"
 IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action, IsInvalid) (Syntax: 'new Action(M1)')
   Target: 
@@ -1181,9 +1172,9 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action,
       Children(1):
           IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M1')
 ", new DiagnosticDescription[] {
-                // file.cs(7,30): error CS0123: No overload for 'M1' matches delegate 'Action'
+                // file.cs(7,41): error CS0407: 'int Program.M1()' has the wrong return type
                 //         Action a = /*<bind>*/new Action(M1)/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "new Action(M1)").WithArguments("M1", "System.Action").WithLocation(7, 30)
+                Diagnostic(ErrorCode.ERR_BadRetType, "M1").WithArguments("Program.M1()", "int").WithLocation(7, 41)
             });
         }
 
@@ -1541,9 +1532,9 @@ IInvalidOperation (OperationKind.Invalid, Type: System.Action, IsInvalid) (Synta
                 IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0030: Cannot convert type 'method' to 'Action'
+                // file.cs(7,41): error CS0123: No overload for 'M1' matches delegate 'Action'
                 //         Action a = /*<bind>*/new Action((Action)M1)/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(Action)M1").WithArguments("method", "System.Action").WithLocation(7, 41)
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "(Action)M1").WithArguments("M1", "System.Action").WithLocation(7, 41)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -1643,9 +1634,9 @@ IInvalidOperation (OperationKind.Invalid, Type: System.Action<System.Int32>, IsI
               IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0123: No overload for 'Action' matches delegate 'Action<int>'
+                // file.cs(7,35): error CS0123: No overload for 'Action.Invoke()' matches delegate 'Action<int>'
                 //         Action<int> a = /*<bind>*/new Action<int>((Action)M1)/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "new Action<int>((Action)M1)").WithArguments("Action", "System.Action<int>").WithLocation(7, 35)
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "new Action<int>((Action)M1)").WithArguments("System.Action.Invoke()", "System.Action<int>").WithLocation(7, 35)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);

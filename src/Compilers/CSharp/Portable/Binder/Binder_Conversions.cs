@@ -807,8 +807,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             MethodSymbol selectedMethod = conversion.Method;
 
-            if (MemberGroupFinalValidation(receiverOpt, selectedMethod, syntax, diagnostics, isExtensionMethod) ||
-                !MethodGroupIsCompatibleWithDelegate(receiverOpt, isExtensionMethod, selectedMethod, delegateType, syntax.Location, diagnostics))
+            if (!MethodGroupIsCompatibleWithDelegate(receiverOpt, isExtensionMethod, selectedMethod, delegateType, syntax.Location, diagnostics) ||
+                MemberGroupFinalValidation(receiverOpt, selectedMethod, syntax, diagnostics, isExtensionMethod))
             {
                 return true;
             }
@@ -863,8 +863,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             diagnostics.Add(delegateMismatchLocation, useSiteDiagnostics);
             if (!conversion.Exists)
             {
-                // No overload for '{0}' matches delegate '{1}'
-                diagnostics.Add(ErrorCode.ERR_MethDelegateMismatch, delegateMismatchLocation, boundMethodGroup.Name, delegateType);
+                if (!Conversions.ReportDelegateMethodGroupDiagnostics(this, boundMethodGroup, delegateType, diagnostics))
+                {
+                    // No overload for '{0}' matches delegate '{1}'
+                    diagnostics.Add(ErrorCode.ERR_MethDelegateMismatch, delegateMismatchLocation, boundMethodGroup.Name, delegateType);
+                }
+
                 return true;
             }
             else

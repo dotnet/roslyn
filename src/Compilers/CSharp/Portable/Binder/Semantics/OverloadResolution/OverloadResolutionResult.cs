@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Otherwise, f there is any such method that has a bad conversion or out/ref mismatch 
             // then the first such method found is the best bad method.
 
-            if (HadBadArguments(diagnostics, binder.Compilation, name, arguments, symbols, location, binder.Flags, isMethodGroupConversion))
+            if (HadBadArguments(diagnostics, binder, name, arguments, symbols, location, binder.Flags, isMethodGroupConversion))
             {
                 return;
             }
@@ -972,7 +972,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool HadBadArguments(
             DiagnosticBag diagnostics,
-            Compilation compilation,
+            Binder binder,
             string name,
             AnalyzedArguments arguments,
             ImmutableArray<Symbol> symbols,
@@ -1023,15 +1023,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var arg in badArg.Result.BadArgumentsOpt)
             {
-                ReportBadArgumentError(diagnostics, compilation, name, arguments, symbols, location, badArg, method, arg);
+                ReportBadArgumentError(diagnostics, binder, name, arguments, symbols, location, badArg, method, arg);
             }
 
             return true;
         }
 
-        private static void ReportBadArgumentError(
+        private void ReportBadArgumentError(
             DiagnosticBag diagnostics,
-            Compilation compilation,
+            Binder binder,
             string name,
             AnalyzedArguments arguments,
             ImmutableArray<Symbol> symbols,
@@ -1093,11 +1093,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argument.Kind != BoundKind.OutVariablePendingInference &&
                 argument.Kind != BoundKind.DiscardExpression)
             {
+                TypeSymbol parameterType = UnwrapIfParamsArray(parameter, isLastParameter) is TypeSymbol t ? t : parameter.Type;
+
                 // If the problem is that a lambda isn't convertible to the given type, also report why.
                 // The argument and parameter type might match, but may not have same in/out modifiers
                 if (argument.Kind == BoundKind.UnboundLambda && refArg == refParameter)
                 {
-                    ((UnboundLambda)argument).GenerateAnonymousFunctionConversionError(diagnostics, parameter.Type);
+                    ((UnboundLambda)argument).GenerateAnonymousFunctionConversionError(diagnostics, parameterType);
+                }
+                else if (argument.Kind == BoundKind.MethodGroup && parameterType.TypeKind == TypeKind.Delegate &&
+                        Conversions.ReportDelegateMethodGroupDiagnostics(binder, (BoundMethodGroup)argument, parameterType, diagnostics))
+                {
+                    // a diagnostic has been reported by ReportDelegateMethodGroupDiagnostics
                 }
                 else
                 {
@@ -1174,7 +1181,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             isParams: false,
                             refKind: refArg);
 
-                        SymbolDistinguisher distinguisher = new SymbolDistinguisher(compilation, displayArg, UnwrapIfParamsArray(parameter, isLastParameter));
+                        SymbolDistinguisher distinguisher = new SymbolDistinguisher(binder.Compilation, displayArg, UnwrapIfParamsArray(parameter, isLastParameter));
 
                         // CS1503: Argument {0}: cannot convert from '{1}' to '{2}'
                         diagnostics.Add(
