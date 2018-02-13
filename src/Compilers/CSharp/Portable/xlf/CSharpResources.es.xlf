@@ -8610,6 +8610,11 @@ Para eliminar la advertencia puede usar /reference (establezca la propiedad Embe
         <target state="new">ref conditional expression</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InterfaceImplementedImplicitlyByVariadic">
+        <source>'{0}' cannot implement interface member '{1}' in type '{2}' because it has an __arglist parameter</source>
+        <target state="new">'{0}' cannot implement interface member '{1}' in type '{2}' because it has an __arglist parameter</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>
