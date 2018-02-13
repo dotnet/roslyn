@@ -63,38 +63,38 @@ namespace Microsoft.CodeAnalysis.MSBuild
         {
             ProjectId result = null;
             var projectPath = projectFileInfo.FilePath;
-            var OutputFilePath = projectFileInfo.OutputFilePath;
+            var outputFilePath = projectFileInfo.OutputFilePath;
 
             if (TryGetIdsByProjectPath(projectPath, out var ids))
             {
                 if (ids.Count == 1)
                 {
-                    result = ids.Single();
+                    var id = ids.Single();
+
+                    if (string.IsNullOrWhiteSpace(outputFilePath) ||
+                        (TryGetOutputFilePathById(id, out var path) && PathUtilities.Comparer.Equals(path, outputFilePath)))
+                    {
+                        result = id;
+                    }
                 }
-                else if (!string.IsNullOrEmpty(OutputFilePath))
+
+                if (result == null && !string.IsNullOrEmpty(outputFilePath))
                 {
                     foreach (var id in ids)
                     {
-                        if (TryGetOutputFilePathById(id, out var path))
+                        if (TryGetOutputFilePathById(id, out var path) && PathUtilities.Comparer.Equals(path, outputFilePath))
                         {
-                            if (PathUtilities.Comparer.Equals(path, OutputFilePath))
-                            {
-                                result = id;
-                                break;
-                            }
+                            result = id;
+                            break;
                         }
                     }
-                }
-                else
-                {
-                    Debug.Fail("ProjectFileInfo does not have unique path or output file path.");
                 }
             }
 
             if (result == null)
             {
                 result = ProjectId.CreateNewId(debugName: projectPath);
-                Add(result, projectPath, OutputFilePath);
+                Add(result, projectPath, outputFilePath);
             }
 
             return result;

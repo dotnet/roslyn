@@ -1,11 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.UnitTests;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
@@ -26,6 +27,11 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             using (var workspace = CreateMSBuildWorkspace())
             {
                 var project = await workspace.OpenProjectAsync(projectFilePath);
+
+                // Assert that there is a single project loaded.
+                Assert.Single(workspace.CurrentSolution.ProjectIds);
+
+                // Assert that the project does not have any diagnostics in Program.cs
                 var document = project.Documents.First(d => d.Name == "Program.cs");
                 var semanticModel = await document.GetSemanticModelAsync();
                 var diagnostics = semanticModel.GetDiagnostics();
@@ -33,7 +39,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             }
         }
 
-        [ConditionalFact(typeof(VisualStudioMSBuildInstalled), Skip = "Not passing yet")]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
         [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [Trait(Traits.Feature, Traits.Features.NetCore)]
         public async Task TestOpenProject_NetCoreMultiTFM()
@@ -46,33 +52,97 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 
             using (var workspace = CreateMSBuildWorkspace())
             {
-                var project = await workspace.OpenProjectAsync(projectFilePath);
-                var document = project.Documents.First(d => d.Name == "Program.cs");
-                var semanticModel = await document.GetSemanticModelAsync();
-                var diagnostics = semanticModel.GetDiagnostics();
-                Assert.Empty(diagnostics);
+                await workspace.OpenProjectAsync(projectFilePath);
+
+                // Assert that three projects have been loaded, one for each TFM.
+                Assert.Equal(3, workspace.CurrentSolution.ProjectIds.Count);
+
+                var projectPaths = new HashSet<string>();
+                var outputFilePaths = new HashSet<string>();
+
+                foreach (var project in workspace.CurrentSolution.Projects)
+                {
+                    projectPaths.Add(project.FilePath);
+                    outputFilePaths.Add(project.OutputFilePath);
+                }
+
+                // Assert that the three projects share the same file path
+                Assert.Single(projectPaths);
+
+                // Assert that the three projects have different output file paths
+                Assert.Equal(3, outputFilePaths.Count);
+
+                // Assert that none of the projects have any diagnostics in Program.cs
+                foreach (var project in workspace.CurrentSolution.Projects)
+                {
+                    var document = project.Documents.First(d => d.Name == "Program.cs");
+                    var semanticModel = await document.GetSemanticModelAsync();
+                    var diagnostics = semanticModel.GetDiagnostics();
+                    Assert.Empty(diagnostics);
+                }
             }
         }
 
-        [ConditionalFact(typeof(VisualStudioMSBuildInstalled), Skip = "Not passing yet")]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
         [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [Trait(Traits.Feature, Traits.Features.NetCore)]
         public async Task TestOpenProject_NetCoreMultiTFM_ProjectReference()
         {
             CreateFiles(GetNetCoreMultiTFMFiles_ProjectReference());
 
-            var output = DotNetHelper.Restore(@"Project\Project.csproj", workingDirectory: this.SolutionDirectory.Path);
-            output = DotNetHelper.Restore(@"Library\Library.csproj", workingDirectory: this.SolutionDirectory.Path);
+            // Restoring for Project.csproj should also restore Library.csproj
+            DotNetHelper.Restore(@"Project\Project.csproj", workingDirectory: this.SolutionDirectory.Path);
 
             var projectFilePath = GetSolutionFileName(@"Project\Project.csproj");
 
             using (var workspace = CreateMSBuildWorkspace())
             {
-                var project = await workspace.OpenProjectAsync(projectFilePath);
-                var document = project.Documents.First(d => d.Name == "Program.cs");
-                var semanticModel = await document.GetSemanticModelAsync();
-                var diagnostics = semanticModel.GetDiagnostics();
-                Assert.Empty(diagnostics);
+                await workspace.OpenProjectAsync(projectFilePath);
+
+                // Assert that four projects have been loaded, one for each TFM.
+                Assert.Equal(4, workspace.CurrentSolution.ProjectIds.Count);
+
+                var projectPaths = new HashSet<string>();
+                var outputFilePaths = new HashSet<string>();
+
+                foreach (var project in workspace.CurrentSolution.Projects)
+                {
+                    projectPaths.Add(project.FilePath);
+                    outputFilePaths.Add(project.OutputFilePath);
+                }
+
+                // Assert that there are two project file path among the four projects
+                Assert.Equal(2, projectPaths.Count);
+
+                // Assert that the four projects each have different output file paths
+                Assert.Equal(4, outputFilePaths.Count);
+
+                foreach (var project in workspace.CurrentSolution.Projects)
+                {
+                    var fileName = PathUtilities.GetFileName(project.FilePath);
+
+                    Document document;
+
+                    switch (fileName)
+                    {
+                        case "Project.csproj":
+                            document = project.Documents.First(d => d.Name == "Program.cs");
+                            break;
+
+                        case "Library.csproj":
+                            document = project.Documents.First(d => d.Name == "Class1.cs");
+                            break;
+
+                        default:
+                            Assert.True(false, $"Encountered unexpected project: {project.FilePath}");
+                            return;
+                    }
+
+                    // Assert that none of the projects have any diagnostics in their primary .cs file.
+                    var semanticModel = await document.GetSemanticModelAsync();
+                    var diagnostics = semanticModel.GetDiagnostics();
+                    Assert.Empty(diagnostics);
+                }
             }
         }
     }
