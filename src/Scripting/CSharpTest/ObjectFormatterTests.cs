@@ -13,16 +13,23 @@ using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Microsoft.CodeAnalysis.Scripting.Hosting.UnitTests;
 using ObjectFormatterFixtures;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
 {
+    extern alias Scripting;
+    using CoreClrShim = Scripting::Microsoft.CodeAnalysis.CoreClrShim;
+
     public class ObjectFormatterTests : ObjectFormatterTestBase
     {
         /// <seealso href="https://github.com/dotnet/roslyn/issues/19027">CoreCLR scripting tests loading PDBs fail after move to SDK</seealso>
-        private static readonly bool s_supportsLineNumbers = false;
+        private static readonly bool s_supportsLineNumbers = PlatformInformation.IsUnix || CoreClrShim.IsRunningOnCoreClr;
 
         private static readonly ObjectFormatter s_formatter = new TestCSharpObjectFormatter();
+
+        private static string StackTraceSourceFile =>
+            PlatformInformation.IsWindows ? @"z:\Fixture.cs" : "/_/src/Scripting/CSharpTest/z:/Fixture.cs";
 
         [Fact]
         public void Objects()
@@ -849,12 +856,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
             }
             catch (Exception e)
             {
-                const string filePath = @"z:\Fixture.cs";
-
                 var expected =
 $@"{new Exception().Message}
-  + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.Fixture.Method(){(s_supportsLineNumbers ? string.Format(ScriptingResources.AtFileLine, filePath, 10006) : "")}
-  + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.StackTrace_NonGeneric(){(s_supportsLineNumbers ? string.Format(ScriptingResources.AtFileLine, filePath, 10036) : "")}
+  + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.Fixture.Method(){(s_supportsLineNumbers ? string.Format(ScriptingResources.AtFileLine, StackTraceSourceFile, 10006) : "")}
+  + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.StackTrace_NonGeneric(){(s_supportsLineNumbers ? string.Format(ScriptingResources.AtFileLine, StackTraceSourceFile, 10038) : "")}
 ";
                 var actual = s_formatter.FormatException(e);
                 Assert.Equal(expected, actual);
@@ -872,13 +877,11 @@ $@"{new Exception().Message}
             }
             catch (Exception e)
             {
-                const string filePath = @"z:\Fixture.cs";
-
                 // TODO (DevDiv #173210): Should show Fixture.Method<char>
                 var expected =
 $@"{new Exception().Message}
-  + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.Fixture.Method<U>(){(s_supportsLineNumbers ? string.Format(ScriptingResources.AtFileLine, filePath, 10012) : "")}
-  + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.StackTrace_GenericMethod(){(s_supportsLineNumbers ? string.Format(ScriptingResources.AtFileLine, filePath, 10057) : "")}
+  + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.Fixture.Method<U>(){(s_supportsLineNumbers ? string.Format(ScriptingResources.AtFileLine, StackTraceSourceFile, 10012) : "")}
+  + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.StackTrace_GenericMethod(){(s_supportsLineNumbers ? string.Format(ScriptingResources.AtFileLine, StackTraceSourceFile, 10059) : "")}
 ";
                 var actual = s_formatter.FormatException(e);
                 Assert.Equal(expected, actual);
@@ -896,13 +899,11 @@ $@"{new Exception().Message}
             }
             catch (Exception e)
             {
-                const string filePath = @"z:\Fixture.cs";
-
                 // TODO (DevDiv #173210): Should show Fixture<int>.Method
                 var expected =
 $@"{new Exception().Message}
-  + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.Fixture<T>.Method(){(s_supportsLineNumbers ? string.Format(ScriptingResources.AtFileLine, filePath, 10021) : "")}
-  + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.StackTrace_GenericType(){(s_supportsLineNumbers ? string.Format(ScriptingResources.AtFileLine, filePath, 10079) : "")}
+  + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.Fixture<T>.Method(){(s_supportsLineNumbers ? string.Format(ScriptingResources.AtFileLine, StackTraceSourceFile, 10021) : "")}
+  + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.StackTrace_GenericType(){(s_supportsLineNumbers ? string.Format(ScriptingResources.AtFileLine, StackTraceSourceFile, 10081) : "")}
 ";
                 var actual = s_formatter.FormatException(e);
                 Assert.Equal(expected, actual);
@@ -920,13 +921,11 @@ $@"{new Exception().Message}
             }
             catch (Exception e)
             {
-                const string filePath = @"z:\Fixture.cs";
-
                 // TODO (DevDiv #173210): Should show Fixture<int>.Method<char>
                 var expected =
 $@"{new Exception().Message}
-  + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.Fixture<T>.Method<U>(){(s_supportsLineNumbers ? string.Format(ScriptingResources.AtFileLine, filePath, 10027) : "")}
-  + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.StackTrace_GenericMethodInGenericType(){(s_supportsLineNumbers ? string.Format(ScriptingResources.AtFileLine, filePath, 10101) : "")}
+  + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.Fixture<T>.Method<U>(){(s_supportsLineNumbers ? string.Format(ScriptingResources.AtFileLine, StackTraceSourceFile, 10027) : "")}
+  + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.StackTrace_GenericMethodInGenericType(){(s_supportsLineNumbers ? string.Format(ScriptingResources.AtFileLine, StackTraceSourceFile, 10103) : "")}
 ";
                 var actual = s_formatter.FormatException(e);
                 Assert.Equal(expected, actual);
@@ -954,13 +953,11 @@ $@"{new Exception().Message}
             }
             catch (Exception e)
             {
-                const string filePath = @"z:\Fixture.cs";
-
                 var expected =
 $@"'object' does not contain a definition for 'x'
   + System.Dynamic.UpdateDelegates.UpdateAndExecuteVoid1<T0>(System.Runtime.CompilerServices.CallSite, T0)
-  + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.Fixture2.MethodDynamic(){(s_supportsLineNumbers ? string.Format(ScriptingResources.AtFileLine, filePath, 10123) : "")}
-  + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.StackTrace_Dynamic(){(s_supportsLineNumbers ? string.Format(ScriptingResources.AtFileLine, filePath, 10132) : "")}
+  + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.Fixture2.MethodDynamic(){(s_supportsLineNumbers ? string.Format(ScriptingResources.AtFileLine, StackTraceSourceFile, 10124) : "")}
+  + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.StackTrace_Dynamic(){(s_supportsLineNumbers ? string.Format(ScriptingResources.AtFileLine, StackTraceSourceFile, 10135) : "")}
 ";
                 var actual = s_formatter.FormatException(e);
                 Assert.Equal(expected, actual);
@@ -995,12 +992,10 @@ $@"'object' does not contain a definition for 'x'
             }
             catch (Exception e)
             {
-                const string filePath = @"z:\Fixture.cs";
-
                 var expected =
 $@"{new Exception().Message}
-  + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.ParametersFixture.Method(ref char, out System.DateTime){(s_supportsLineNumbers ? string.Format(ScriptingResources.AtFileLine, filePath, 10155) : "")}
-  + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.StackTrace_RefOutParameters(){(s_supportsLineNumbers ? string.Format(ScriptingResources.AtFileLine, filePath, 10172) : "")}
+  + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.ParametersFixture.Method(ref char, out System.DateTime){(s_supportsLineNumbers ? string.Format(ScriptingResources.AtFileLine, StackTraceSourceFile, 10155) : "")}
+  + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.StackTrace_RefOutParameters(){(s_supportsLineNumbers ? string.Format(ScriptingResources.AtFileLine, StackTraceSourceFile, 10174) : "")}
 ";
                 var actual = s_formatter.FormatException(e);
                 Assert.Equal(expected, actual);
@@ -1019,13 +1014,11 @@ $@"{new Exception().Message}
             }
             catch (Exception e)
             {
-                const string filePath = @"z:\Fixture.cs";
-
                 // TODO (DevDiv #173210): Should show ParametersFixture.Method<char>(ref char)
                 var expected =
 $@"{new Exception().Message}
-  + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.ParametersFixture.Method<U>(ref U){(s_supportsLineNumbers ? string.Format(ScriptingResources.AtFileLine, filePath, 10161) : "")}
-  + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.StackTrace_GenericRefParameter(){(s_supportsLineNumbers ? string.Format(ScriptingResources.AtFileLine, filePath, 10194) : "")}
+  + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.ParametersFixture.Method<U>(ref U){(s_supportsLineNumbers ? string.Format(ScriptingResources.AtFileLine, StackTraceSourceFile, 10161) : "")}
+  + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.StackTrace_GenericRefParameter(){(s_supportsLineNumbers ? string.Format(ScriptingResources.AtFileLine, StackTraceSourceFile, 10196) : "")}
 ";
                 var actual = s_formatter.FormatException(e);
                 Assert.Equal(expected, actual);
