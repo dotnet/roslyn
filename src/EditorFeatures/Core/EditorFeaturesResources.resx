@@ -767,4 +767,85 @@ Do you want to proceed?</value>
   <data name="Inline_Rename_Field_Text" xml:space="preserve">
     <value>Inline Rename Field Text</value>
   </data>
+  <data name="View_Call_Hierarchy_Command_Handler" xml:space="preserve">
+    <value>View Call Hierarchy Command Handler</value>
+  </data>
+  <data name="Automatic_Line_Ender_Command_Handler" xml:space="preserve">
+    <value>Automatic Line Ender Command Handler</value>
+  </data>
+  <data name="Block_Comment_Editing_Command_Handler" xml:space="preserve">
+    <value>Block Comment Editing Command Handler</value>
+  </data>
+  <data name="Change_Signature_Command_Handler" xml:space="preserve">
+    <value>Change Signature Command Handler</value>
+  </data>
+  <data name="Comment_Uncomment_Selection_Command_Handler" xml:space="preserve">
+    <value>Comment/Uncomment Selection Command Handler</value>
+  </data>
+  <data name="Completion_Command_Handler" xml:space="preserve">
+    <value>Code Completion Command Handler</value>
+  </data>
+  <data name="Documentation_Comment_Command_Handler" xml:space="preserve">
+    <value>Documentation Comment Command Handler</value>
+  </data>
+  <data name="Encapsulate_Field_Command_Handler" xml:space="preserve">
+    <value>Encapsulate Field Command Handler</value>
+  </data>
+  <data name="Execute_In_Interactive_Command_Handler" xml:space="preserve">
+    <value>Execute In Interactive Command Handler</value>
+  </data>
+  <data name="Extract_Interface_Command_Handler" xml:space="preserve">
+    <value>Extract Interface Command Handler</value>
+  </data>
+  <data name="Extract_Method_Command_Handler" xml:space="preserve">
+    <value>Extract Method Command Handler</value>
+  </data>
+  <data name="Find_References_Command_Handler" xml:space="preserve">
+    <value>Find References Command Handler</value>
+  </data>
+  <data name="Format_Command_Handler" xml:space="preserve">
+    <value>Format Command Handler</value>
+  </data>
+  <data name="Go_To_Adjacent_Member_Command_Handler" xml:space="preserve">
+    <value>Go To Adjacent Member Command Handler</value>
+  </data>
+  <data name="Go_To_Definition_Command_Handler" xml:space="preserve">
+    <value>Go To Definition Command Handler</value>
+  </data>
+  <data name="Go_To_Implementation_Command_Handler" xml:space="preserve">
+    <value>Go To Implementation Command Handler</value>
+  </data>
+  <data name="IntelliSense_Command_Handler" xml:space="preserve">
+    <value>IntelliSense Command Handler</value>
+  </data>
+  <data name="Interactive_Command_Handler" xml:space="preserve">
+    <value>Interactive Command Handler</value>
+  </data>
+  <data name="Interactive_Paste_Command_Handler" xml:space="preserve">
+    <value>Interactive Paste Command Handler</value>
+  </data>
+  <data name="Navigate_To_Highlight_Reference_Command_Handler" xml:space="preserve">
+    <value>Navigate To Highlighted Reference Command Handler</value>
+  </data>
+  <data name="Organize_Document_Command_Handler" xml:space="preserve">
+    <value>Organize Document Command Handler</value>
+  </data>
+  <data name="Outlining_Command_Handler" xml:space="preserve">
+    <value>Outlining Command Handler</value>
+  </data>
+  <data name="Rename_Command_Handler" xml:space="preserve">
+    <value>Rename Command Handler</value>
+  </data>
+  <data name="Rename_Tracking_Cancellation_Command_Handler" xml:space="preserve">
+    <value>Rename Tracking Cancellation Command Handler</value>
+  </data>
+  <data name="Signature_Help_Command_Handler" xml:space="preserve">
+    <value>Signature Help Command Handler</value>
+  </data>
+  <data name="Smart_Token_Formatter_Command_Handler" xml:space="preserve">
+    <value>Smart Token Formatter Command Handler</value>
+  </data>
+  <data name="Xml_Tag_Completion_Command_Handler" xml:space="preserve">
+    <value>XML Tag Completion Command Handler</value>
+  </data>
 </root>
