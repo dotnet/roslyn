@@ -135,8 +135,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                 : default;
 
             var invokeMethod = delegateType.DelegateInvokeMethod;
-            var returnType = invokeMethod.GenerateReturnTypeSyntax();
 
+            // We add a space directly after the return-type, as the default presence of an elastic 
+            // trivia makes the formatting engine thing it can take a single-line local function and
+            // wrap it over multiple lines.
+            var returnType = invokeMethod.GenerateReturnTypeSyntax().WithTrailingTrivia(SyntaxFactory.Space);
+            
             var identifier = localDeclaration.Declaration.Variables[0].Identifier;
             var typeParameterList = default(TypeParameterListSyntax);
 
