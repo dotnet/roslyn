@@ -534,5 +534,10 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             throw ExceptionUtilities.Unreachable;
         }
+
+        public override IOperation VisitCaughtException(ICaughtExceptionOperation operation, object argument)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
     }
 }

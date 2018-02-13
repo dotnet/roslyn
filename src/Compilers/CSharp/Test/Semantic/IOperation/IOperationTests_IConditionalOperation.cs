@@ -84,12 +84,11 @@ class P
 }
 ";
             string expectedGraph = @"
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next Block[1]
-Block[1] - Block
-    Predecessors (1)
-        [0]
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
     Statements (1)
         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'GetArray()[0]')
           Value: 
@@ -102,41 +101,35 @@ Block[1] - Block
               Indices(1):
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
 
-    Jump if False to Block[4]
+    Jump if False (Regular) to Block[B4]
         IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'a')
 
-    Next Block[2]
-Block[2] - Block
-    Predecessors (1)
-        [1]
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
     Statements (0)
-    Jump if False to Block[4]
+    Jump if False (Regular) to Block[B4]
         IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
 
-    Next Block[3]
-Block[3] - Block
-    Predecessors (1)
-        [2]
+    Next (Regular) Block[B3]
+Block[B3] - Block
+    Predecessors: [B2]
     Statements (1)
         IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '1')
           Value: 
             ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 
-    Next Block[5]
-Block[4] - Block
-    Predecessors (2)
-        [1]
-        [2]
+    Next (Regular) Block[B5]
+Block[B4] - Block
+    Predecessors: [B1] [B2]
     Statements (1)
         IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '2')
           Value: 
             ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
 
-    Next Block[5]
-Block[5] - Block
-    Predecessors (2)
-        [3]
-        [4]
+    Next (Regular) Block[B5]
+Block[B5] - Block
+    Predecessors: [B3] [B4]
     Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'GetArray()[ ...  b ? 1 : 2;')
           Expression: 
@@ -146,10 +139,9 @@ Block[5] - Block
               Right: 
                 IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'a && b ? 1 : 2')
 
-    Next Block[6]
-Block[6] - Exit
-    Predecessors (1)
-        [5]
+    Next (Regular) Block[B6]
+Block[B6] - Exit
+    Predecessors: [B5]
     Statements (0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -173,12 +165,11 @@ class P
 }
 ";
             string expectedGraph = @"
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next Block[1]
-Block[1] - Block
-    Predecessors (1)
-        [0]
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
     Statements (1)
         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'GetArray()[0]')
           Value: 
@@ -191,68 +182,58 @@ Block[1] - Block
               Indices(1):
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
 
-    Jump if False to Block[5]
+    Jump if False (Regular) to Block[B5]
         IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'a')
 
-    Next Block[2]
-Block[2] - Block
-    Predecessors (1)
-        [1]
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
     Statements (0)
-    Jump if False to Block[4]
+    Jump if False (Regular) to Block[B4]
         IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
 
-    Next Block[3]
-Block[3] - Block
-    Predecessors (1)
-        [2]
+    Next (Regular) Block[B3]
+Block[B3] - Block
+    Predecessors: [B2]
     Statements (1)
         IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '1')
           Value: 
             ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 
-    Next Block[8]
-Block[4] - Block
-    Predecessors (1)
-        [2]
+    Next (Regular) Block[B8]
+Block[B4] - Block
+    Predecessors: [B2]
     Statements (1)
         IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '2')
           Value: 
             ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
 
-    Next Block[8]
-Block[5] - Block
-    Predecessors (1)
-        [1]
+    Next (Regular) Block[B8]
+Block[B5] - Block
+    Predecessors: [B1]
     Statements (0)
-    Jump if False to Block[7]
+    Jump if False (Regular) to Block[B7]
         IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'c')
 
-    Next Block[6]
-Block[6] - Block
-    Predecessors (1)
-        [5]
+    Next (Regular) Block[B6]
+Block[B6] - Block
+    Predecessors: [B5]
     Statements (1)
         IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '3')
           Value: 
             ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
 
-    Next Block[8]
-Block[7] - Block
-    Predecessors (1)
-        [5]
+    Next (Regular) Block[B8]
+Block[B7] - Block
+    Predecessors: [B5]
     Statements (1)
         IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '4')
           Value: 
             ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4) (Syntax: '4')
 
-    Next Block[8]
-Block[8] - Block
-    Predecessors (4)
-        [3]
-        [4]
-        [6]
-        [7]
+    Next (Regular) Block[B8]
+Block[B8] - Block
+    Predecessors: [B3] [B4] [B6] [B7]
     Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'GetArray()[ ... c ? 3 : 4);')
           Expression: 
@@ -262,10 +243,9 @@ Block[8] - Block
               Right: 
                 IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'a ? (b ? 1  ... (c ? 3 : 4)')
 
-    Next Block[9]
-Block[9] - Exit
-    Predecessors (1)
-        [8]
+    Next (Regular) Block[B9]
+Block[B9] - Exit
+    Predecessors: [B8]
     Statements (0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -289,12 +269,11 @@ class P
 }
 ";
             string expectedGraph = @"
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next Block[1]
-Block[1] - Block
-    Predecessors (1)
-        [0]
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
     Statements (1)
         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'GetArray()[0]')
           Value: 
@@ -307,68 +286,58 @@ Block[1] - Block
               Indices(1):
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
 
-    Jump if False to Block[5]
+    Jump if False (Regular) to Block[B5]
         IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'a')
 
-    Next Block[2]
-Block[2] - Block
-    Predecessors (1)
-        [1]
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
     Statements (0)
-    Jump if False to Block[4]
+    Jump if False (Regular) to Block[B4]
         IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
 
-    Next Block[3]
-Block[3] - Block
-    Predecessors (1)
-        [2]
+    Next (Regular) Block[B3]
+Block[B3] - Block
+    Predecessors: [B2]
     Statements (1)
         IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
           Value: 
             IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'c')
 
-    Next Block[8]
-Block[4] - Block
-    Predecessors (1)
-        [2]
+    Next (Regular) Block[B8]
+Block[B4] - Block
+    Predecessors: [B2]
     Statements (1)
         IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
           Value: 
             ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False, IsImplicit) (Syntax: 'b')
 
-    Next Block[8]
-Block[5] - Block
-    Predecessors (1)
-        [1]
+    Next (Regular) Block[B8]
+Block[B5] - Block
+    Predecessors: [B1]
     Statements (0)
-    Jump if True to Block[7]
+    Jump if True (Regular) to Block[B7]
         IParameterReferenceOperation: d (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'd')
 
-    Next Block[6]
-Block[6] - Block
-    Predecessors (1)
-        [5]
+    Next (Regular) Block[B6]
+Block[B6] - Block
+    Predecessors: [B5]
     Statements (1)
         IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'e')
           Value: 
             IParameterReferenceOperation: e (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'e')
 
-    Next Block[8]
-Block[7] - Block
-    Predecessors (1)
-        [5]
+    Next (Regular) Block[B8]
+Block[B7] - Block
+    Predecessors: [B5]
     Statements (1)
         IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'd')
           Value: 
             ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True, IsImplicit) (Syntax: 'd')
 
-    Next Block[8]
-Block[8] - Block
-    Predecessors (4)
-        [3]
-        [4]
-        [6]
-        [7]
+    Next (Regular) Block[B8]
+Block[B8] - Block
+    Predecessors: [B3] [B4] [B6] [B7]
     Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'GetArray()[ ... : (d || e);')
           Expression: 
@@ -378,10 +347,9 @@ Block[8] - Block
               Right: 
                 IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'a ? (b && c) : (d || e)')
 
-    Next Block[9]
-Block[9] - Exit
-    Predecessors (1)
-        [8]
+    Next (Regular) Block[B9]
+Block[B9] - Exit
+    Predecessors: [B8]
     Statements (0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;

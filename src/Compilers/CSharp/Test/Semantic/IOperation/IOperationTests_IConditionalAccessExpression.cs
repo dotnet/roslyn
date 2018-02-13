@@ -83,12 +83,11 @@ class P
 }
 ";
             string expectedGraph = @"
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next Block[1]
-Block[1] - Block
-    Predecessors (1)
-        [0]
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
     Statements (2)
         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'result')
           Value: 
@@ -98,15 +97,14 @@ Block[1] - Block
           Value: 
             IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.Array) (Syntax: 'input')
 
-    Jump if True to Block[3]
+    Jump if True (Regular) to Block[B3]
         IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'input')
           Operand: 
             IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Array, IsImplicit) (Syntax: 'input')
 
-    Next Block[2]
-Block[2] - Block
-    Predecessors (1)
-        [1]
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '.Length')
           Value: 
@@ -121,20 +119,17 @@ Block[2] - Block
               Initializer: 
                 null
 
-    Next Block[4]
-Block[3] - Block
-    Predecessors (1)
-        [1]
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input')
           Value: 
             IDefaultValueOperation (OperationKind.DefaultValue, Type: System.Int32?, IsImplicit) (Syntax: 'input')
 
-    Next Block[4]
-Block[4] - Block
-    Predecessors (2)
-        [2]
-        [3]
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
     Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = input?.Length;')
           Expression: 
@@ -144,10 +139,9 @@ Block[4] - Block
               Right: 
                 IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'input?.Length')
 
-    Next Block[5]
-Block[5] - Exit
-    Predecessors (1)
-        [4]
+    Next (Regular) Block[B5]
+Block[B5] - Exit
+    Predecessors: [B4]
     Statements (0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -168,12 +162,11 @@ class P
 }
 ";
             string expectedGraph = @"
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next Block[1]
-Block[1] - Block
-    Predecessors (1)
-        [0]
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
     Statements (2)
         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'result')
           Value: 
@@ -183,15 +176,14 @@ Block[1] - Block
           Value: 
             IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'input')
 
-    Jump if True to Block[3]
+    Jump if True (Regular) to Block[B3]
         IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'input')
           Operand: 
             IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'input')
 
-    Next Block[2]
-Block[2] - Block
-    Predecessors (1)
-        [1]
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '.ToString()')
           Value: 
@@ -203,20 +195,17 @@ Block[2] - Block
                   Arguments(0)
               Arguments(0)
 
-    Next Block[4]
-Block[3] - Block
-    Predecessors (1)
-        [1]
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input')
           Value: 
             IDefaultValueOperation (OperationKind.DefaultValue, Type: System.String, Constant: null, IsImplicit) (Syntax: 'input')
 
-    Next Block[4]
-Block[4] - Block
-    Predecessors (2)
-        [2]
-        [3]
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
     Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = in ... ToString();')
           Expression: 
@@ -226,10 +215,9 @@ Block[4] - Block
               Right: 
                 IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'input?.ToString()')
 
-    Next Block[5]
-Block[5] - Exit
-    Predecessors (1)
-        [4]
+    Next (Regular) Block[B5]
+Block[B5] - Exit
+    Predecessors: [B4]
     Statements (0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -252,12 +240,11 @@ class P
 }
 ";
             string expectedGraph = @"
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next Block[1]
-Block[1] - Block
-    Predecessors (1)
-        [0]
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
     Statements (2)
         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'result')
           Value: 
@@ -267,15 +254,14 @@ Block[1] - Block
           Value: 
             IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: P) (Syntax: 'input')
 
-    Jump if True to Block[3]
+    Jump if True (Regular) to Block[B3]
         IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'input')
           Operand: 
             IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: P, IsImplicit) (Syntax: 'input')
 
-    Next Block[2]
-Block[2] - Block
-    Predecessors (1)
-        [1]
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '.Access()')
           Value: 
@@ -284,20 +270,17 @@ Block[2] - Block
                 IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: P, IsImplicit) (Syntax: 'input')
               Arguments(0)
 
-    Next Block[4]
-Block[3] - Block
-    Predecessors (1)
-        [1]
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input')
           Value: 
             IDefaultValueOperation (OperationKind.DefaultValue, Type: System.Int32?, IsImplicit) (Syntax: 'input')
 
-    Next Block[4]
-Block[4] - Block
-    Predecessors (2)
-        [2]
-        [3]
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
     Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = in ... ?.Access();')
           Expression: 
@@ -307,10 +290,9 @@ Block[4] - Block
               Right: 
                 IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'input?.Access()')
 
-    Next Block[5]
-Block[5] - Exit
-    Predecessors (1)
-        [4]
+    Next (Regular) Block[B5]
+Block[B5] - Exit
+    Predecessors: [B4]
     Statements (0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -335,12 +317,11 @@ class P
 }
 ";
             string expectedGraph = @"
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next Block[1]
-Block[1] - Block
-    Predecessors (1)
-        [0]
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
     Statements (2)
         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'result')
           Value: 
@@ -350,15 +331,14 @@ Block[1] - Block
           Value: 
             IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: P) (Syntax: 'input')
 
-    Jump if True to Block[4]
+    Jump if True (Regular) to Block[B4]
         IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'input')
           Operand: 
             IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: P, IsImplicit) (Syntax: 'input')
 
-    Next Block[2]
-Block[2] - Block
-    Predecessors (1)
-        [1]
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '[11]')
           Value: 
@@ -371,15 +351,14 @@ Block[2] - Block
                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 
-    Jump if True to Block[4]
+    Jump if True (Regular) to Block[B4]
         IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: '[11]')
           Operand: 
             IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: P, IsImplicit) (Syntax: '[11]')
 
-    Next Block[3]
-Block[3] - Block
-    Predecessors (1)
-        [2]
+    Next (Regular) Block[B3]
+Block[B3] - Block
+    Predecessors: [B2]
     Statements (1)
         IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '.Access1()')
           Value: 
@@ -388,31 +367,26 @@ Block[3] - Block
                 IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: P, IsImplicit) (Syntax: '[11]')
               Arguments(0)
 
-    Next Block[5]
-Block[4] - Block
-    Predecessors (2)
-        [1]
-        [2]
+    Next (Regular) Block[B5]
+Block[B4] - Block
+    Predecessors: [B1] [B2]
     Statements (1)
         IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input?[11]?.Access1()')
           Value: 
             IDefaultValueOperation (OperationKind.DefaultValue, Type: P[], Constant: null, IsImplicit) (Syntax: 'input?[11]?.Access1()')
 
-    Next Block[5]
-Block[5] - Block
-    Predecessors (2)
-        [3]
-        [4]
+    Next (Regular) Block[B5]
+Block[B5] - Block
+    Predecessors: [B3] [B4]
     Statements (0)
-    Jump if True to Block[8]
+    Jump if True (Regular) to Block[B8]
         IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'input?[11]?.Access1()')
           Operand: 
             IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: P[], IsImplicit) (Syntax: 'input?[11]?.Access1()')
 
-    Next Block[6]
-Block[6] - Block
-    Predecessors (1)
-        [5]
+    Next (Regular) Block[B6]
+Block[B6] - Block
+    Predecessors: [B5]
     Statements (1)
         IFlowCaptureOperation: 4 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '[22]')
           Value: 
@@ -422,15 +396,14 @@ Block[6] - Block
               Indices(1):
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 22) (Syntax: '22')
 
-    Jump if True to Block[8]
+    Jump if True (Regular) to Block[B8]
         IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: '[22]')
           Operand: 
             IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: P, IsImplicit) (Syntax: '[22]')
 
-    Next Block[7]
-Block[7] - Block
-    Predecessors (1)
-        [6]
+    Next (Regular) Block[B7]
+Block[B7] - Block
+    Predecessors: [B6]
     Statements (1)
         IFlowCaptureOperation: 5 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '.Access2()')
           Value: 
@@ -439,21 +412,17 @@ Block[7] - Block
                 IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: P, IsImplicit) (Syntax: '[22]')
               Arguments(0)
 
-    Next Block[9]
-Block[8] - Block
-    Predecessors (2)
-        [5]
-        [6]
+    Next (Regular) Block[B9]
+Block[B8] - Block
+    Predecessors: [B5] [B6]
     Statements (1)
         IFlowCaptureOperation: 5 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '(input?[11] ... ?.Access2()')
           Value: 
             IDefaultValueOperation (OperationKind.DefaultValue, Type: P, Constant: null, IsImplicit) (Syntax: '(input?[11] ... ?.Access2()')
 
-    Next Block[9]
-Block[9] - Block
-    Predecessors (2)
-        [7]
-        [8]
+    Next (Regular) Block[B9]
+Block[B9] - Block
+    Predecessors: [B7] [B8]
     Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = (i ... .Access2();')
           Expression: 
@@ -463,10 +432,9 @@ Block[9] - Block
               Right: 
                 IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: P, IsImplicit) (Syntax: '(input?[11] ... ?.Access2()')
 
-    Next Block[10]
-Block[10] - Exit
-    Predecessors (1)
-        [9]
+    Next (Regular) Block[B10]
+Block[B10] - Exit
+    Predecessors: [B9]
     Statements (0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -491,12 +459,11 @@ struct P
 }
 ";
             string expectedGraph = @"
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next Block[1]
-Block[1] - Block
-    Predecessors (1)
-        [0]
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
     Statements (2)
         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'result')
           Value: 
@@ -506,15 +473,14 @@ Block[1] - Block
           Value: 
             IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: P?) (Syntax: 'input')
 
-    Jump if True to Block[4]
+    Jump if True (Regular) to Block[B4]
         IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'input')
           Operand: 
             IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: P?, IsImplicit) (Syntax: 'input')
 
-    Next Block[2]
-Block[2] - Block
-    Predecessors (1)
-        [1]
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '.Access1()')
           Value: 
@@ -526,15 +492,14 @@ Block[2] - Block
                   Arguments(0)
               Arguments(0)
 
-    Jump if True to Block[4]
+    Jump if True (Regular) to Block[B4]
         IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: '.Access1()')
           Operand: 
             IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: P[], IsImplicit) (Syntax: '.Access1()')
 
-    Next Block[3]
-Block[3] - Block
-    Predecessors (1)
-        [2]
+    Next (Regular) Block[B3]
+Block[B3] - Block
+    Predecessors: [B2]
     Statements (1)
         IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '[11]')
           Value: 
@@ -551,31 +516,26 @@ Block[3] - Block
               Initializer: 
                 null
 
-    Next Block[5]
-Block[4] - Block
-    Predecessors (2)
-        [1]
-        [2]
+    Next (Regular) Block[B5]
+Block[B4] - Block
+    Predecessors: [B1] [B2]
     Statements (1)
         IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input?.Access1()?[11]')
           Value: 
             IDefaultValueOperation (OperationKind.DefaultValue, Type: P?, IsImplicit) (Syntax: 'input?.Access1()?[11]')
 
-    Next Block[5]
-Block[5] - Block
-    Predecessors (2)
-        [3]
-        [4]
+    Next (Regular) Block[B5]
+Block[B5] - Block
+    Predecessors: [B3] [B4]
     Statements (0)
-    Jump if True to Block[8]
+    Jump if True (Regular) to Block[B8]
         IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'input?.Access1()?[11]')
           Operand: 
             IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: P?, IsImplicit) (Syntax: 'input?.Access1()?[11]')
 
-    Next Block[6]
-Block[6] - Block
-    Predecessors (1)
-        [5]
+    Next (Regular) Block[B6]
+Block[B6] - Block
+    Predecessors: [B5]
     Statements (1)
         IFlowCaptureOperation: 4 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '[22]')
           Value: 
@@ -591,15 +551,14 @@ Block[6] - Block
                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 
-    Jump if True to Block[8]
+    Jump if True (Regular) to Block[B8]
         IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: '[22]')
           Operand: 
             IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: P?, IsImplicit) (Syntax: '[22]')
 
-    Next Block[7]
-Block[7] - Block
-    Predecessors (1)
-        [6]
+    Next (Regular) Block[B7]
+Block[B7] - Block
+    Predecessors: [B6]
     Statements (1)
         IFlowCaptureOperation: 5 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '.Access2()')
           Value: 
@@ -618,21 +577,17 @@ Block[7] - Block
               Initializer: 
                 null
 
-    Next Block[9]
-Block[8] - Block
-    Predecessors (2)
-        [5]
-        [6]
+    Next (Regular) Block[B9]
+Block[B8] - Block
+    Predecessors: [B5] [B6]
     Statements (1)
         IFlowCaptureOperation: 5 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '(input?.Acc ... ?.Access2()')
           Value: 
             IDefaultValueOperation (OperationKind.DefaultValue, Type: P?, IsImplicit) (Syntax: '(input?.Acc ... ?.Access2()')
 
-    Next Block[9]
-Block[9] - Block
-    Predecessors (2)
-        [7]
-        [8]
+    Next (Regular) Block[B9]
+Block[B9] - Block
+    Predecessors: [B7] [B8]
     Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = (i ... .Access2();')
           Expression: 
@@ -642,10 +597,9 @@ Block[9] - Block
               Right: 
                 IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: P?, IsImplicit) (Syntax: '(input?.Acc ... ?.Access2()')
 
-    Next Block[10]
-Block[10] - Exit
-    Predecessors (1)
-        [9]
+    Next (Regular) Block[B10]
+Block[B10] - Exit
+    Predecessors: [B9]
     Statements (0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
