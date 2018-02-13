@@ -2572,6 +2572,125 @@ Block[4] - Exit
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void TryFlow_19()
+        {
+            var source = @"
+class C
+{
+    void F(bool input)
+    /*<bind>*/{
+        try
+        {
+        }
+        finally
+        {
+            if (input)
+            {}
+        }
+    }/*</bind>*/
+}";
+
+            var compilation = CreateStandardCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+
+            compilation.VerifyDiagnostics();
+
+            string expectedGraph = @"
+Block[0] - Entry
+    Statements (0)
+    Next (Regular) Block[1]
+        Entering: {1} {2}
+
+.try {1, 2}
+{
+    Block[1] - Block
+        Predecessors: [0]
+        Statements (0)
+        Next (Regular) Block[4]
+            Finalizing: {3}
+            Leaving: {2} {1}
+}
+.finally {3}
+{
+    Block[2] - Block
+        Predecessors (0)
+        Statements (0)
+        Jump if False (Regular) to Block[3]
+            IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'input')
+
+        Next (Regular) Block[3]
+    Block[3] - Block
+        Predecessors: [2]
+        Statements (0)
+        Next (StructuredExceptionHandling) Block[null]
+}
+
+Block[4] - Exit
+    Predecessors: [1]
+    Statements (0)
+";
+            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void TryFlow_20()
+        {
+            var source = @"
+class C
+{
+    void F(bool input)
+    /*<bind>*/{
+        try
+        {
+        }
+        finally
+        {
+            do
+            {}
+            while (input);
+        }
+    }/*</bind>*/
+}";
+
+            var compilation = CreateStandardCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+
+            compilation.VerifyDiagnostics();
+
+            string expectedGraph = @"
+Block[0] - Entry
+    Statements (0)
+    Next (Regular) Block[1]
+        Entering: {1} {2}
+
+.try {1, 2}
+{
+    Block[1] - Block
+        Predecessors: [0]
+        Statements (0)
+        Next (Regular) Block[3]
+            Finalizing: {3}
+            Leaving: {2} {1}
+}
+.finally {3}
+{
+    Block[2] - Block
+        Predecessors: [2]
+        Statements (0)
+        Jump if True (Regular) to Block[2]
+            IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'input')
+
+        Next (StructuredExceptionHandling) Block[null]
+}
+
+Block[3] - Exit
+    Predecessors: [1]
+    Statements (0)
+";
+            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+        }
+
         // PROTOTYPE(dataflow): Add flow graph tests to VB.
     }
 }

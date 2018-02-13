@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Operations
             builder._evalStack = ArrayBuilder<IOperation>.GetInstance();
             builder._regionMap = PooledDictionary<BasicBlock, RegionBuilder>.GetInstance();
 
-            var root = new RegionBuilder(ControlFlowGraph.RegionKind.Root, enclosing: null);
+            var root = new RegionBuilder(ControlFlowGraph.RegionKind.Root);
             builder.EnterRegion(root);
             builder.AppendNewBlock(builder._entry, linkToPrevious: false);
             builder._currentBasicBlock = null;
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Operations
             Debug.Assert(builder._currentRegion == null);
 
             Pack(blocks, root, builder._regionMap);
-            ControlFlowGraph.Region region = root.ToImmutableRegionAndFree();
+            ControlFlowGraph.Region region = root.ToImmutableRegionAndFree(blocks);
             root = null;
             CalculateBranchLeaveEnterLists(blocks);
 
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
             while (true)
             {
-                regionsChanged |= PackRegions(root, regionMap);
+                regionsChanged |= PackRegions(root, blocks, regionMap);
 
                 if (!regionsChanged || !PackBlocks(blocks, regionMap))
                 {
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
 
-        private static bool PackRegions(RegionBuilder root, PooledDictionary<BasicBlock, RegionBuilder> regionMap)
+        private static bool PackRegions(RegionBuilder root, ArrayBuilder<BasicBlock> blocks, PooledDictionary<BasicBlock, RegionBuilder> regionMap)
         {
             return PackRegion(root);
 
@@ -165,73 +165,73 @@ namespace Microsoft.CodeAnalysis.Operations
                     case ControlFlowGraph.RegionKind.Handler:
                     case ControlFlowGraph.RegionKind.Locals:
 
-                        if (!region.HasBlocks)
+                        if (region.Regions?.Count == 1)
                         {
-                            Debug.Assert(region.Kind != ControlFlowGraph.RegionKind.Root);
-
-                            if (region.Regions.Count == 1)
+                            RegionBuilder subRegion = region.Regions[0];
+                            if (subRegion.Kind == ControlFlowGraph.RegionKind.Locals && subRegion.FirstBlock == region.FirstBlock && subRegion.LastBlock == region.LastBlock)
                             {
-                                RegionBuilder subRegion = region.Regions[0];
-                                if (subRegion.Kind == ControlFlowGraph.RegionKind.Locals)
+                                Debug.Assert(region.Kind != ControlFlowGraph.RegionKind.Root);
+
+                                // Transfer all content of the sub-region into the current region
+#if DEBUG
+                                subRegion.AboutToFree();
+#endif 
+
+                                region.Locals = region.Locals.Concat(subRegion.Locals);
+                                region.Regions.Clear();
+
+                                int firstBlockToMove = subRegion.FirstBlock.Ordinal;
+
+                                if (subRegion.HasRegions)
                                 {
-                                    // Transfer all content of the sub-region into the current region
-                                    region.Locals = region.Locals.Concat(subRegion.Locals);
-                                    if (subRegion.HasBlocks)
+                                    foreach (RegionBuilder r in subRegion.Regions)
                                     {
-                                        region.AddRange(subRegion.Blocks);
-                                        foreach (BasicBlock b in subRegion.Blocks)
+                                        for (int i = firstBlockToMove; i < r.FirstBlock.Ordinal; i++)
                                         {
-                                            regionMap[b] = region;
+                                            Debug.Assert(regionMap[blocks[i]] == subRegion);
+                                            regionMap[blocks[i]] = region;
                                         }
+
+                                        region.Add(r);
+                                        firstBlockToMove = r.LastBlock.Ordinal + 1;
                                     }
-
-                                    region.Regions.Clear();
-
-                                    if (subRegion.HasRegions)
-                                    {
-                                        foreach (RegionBuilder r in subRegion.Regions)
-                                        {
-                                            r.Enclosing = region;
-                                            region.Add(r);
-                                        }
-                                    }
-
-                                    subRegion.Free();
-                                    result = true;
                                 }
 
+                                for (int i = firstBlockToMove; i <= subRegion.LastBlock.Ordinal; i++)
+                                {
+                                    Debug.Assert(regionMap[blocks[i]] == subRegion);
+                                    regionMap[blocks[i]] = region;
+                                }
+
+                                subRegion.Free();
+                                result = true;
                                 break;
                             }
                         }
 
                         if (region.HasRegions)
                         {
-                            bool blocksChanged = false;
-
                             for (int i = region.Regions.Count - 1; i >= 0; i--)
                             {
                                 RegionBuilder subRegion = region.Regions[i];
                             
-                                if (subRegion.Kind == ControlFlowGraph.RegionKind.Locals && !subRegion.HasRegions && subRegion.Blocks?.Count == 1)
+                                if (subRegion.Kind == ControlFlowGraph.RegionKind.Locals && !subRegion.HasRegions && subRegion.FirstBlock == subRegion.LastBlock)
                                 {
-                                    BasicBlock block = subRegion.Blocks[0];
+                                    BasicBlock block = subRegion.FirstBlock;
 
                                     if (block.Statements.IsEmpty && block.InternalConditional.Condition == null)
                                     {
                                         // This sub-region has no executable code, merge block into the parent and drop the sub-region
-                                        region.Add(block);
-                                        blocksChanged = true;
+                                        Debug.Assert(regionMap[block] == subRegion);
                                         regionMap[block] = region;
+#if DEBUG
+                                        subRegion.AboutToFree();
+#endif 
                                         subRegion.Free();
                                         region.Regions.RemoveAt(i);
                                         result = true;
                                     }
                                 }
-                            }
-
-                            if (blocksChanged)
-                            {
-                                region.Blocks.Sort((x, y) => x.Ordinal.CompareTo(y.Ordinal));
                             }
                         }
 
@@ -274,19 +274,11 @@ namespace Microsoft.CodeAnalysis.Operations
 
                 ref BasicBlock.Branch next = ref block.InternalNext;
 
-                if (next.Destination == null)
-                {
-                    Debug.Assert((next.Flags &
-                                 ~(BasicBlock.BranchFlags.Error | BasicBlock.BranchFlags.ProgramTermination |
-                                  BasicBlock.BranchFlags.Throw | BasicBlock.BranchFlags.ReThrow |
-                                  BasicBlock.BranchFlags.StructuredExceptionHandling)) == 0);
-                    continue;
-                }
-
-                if ((next.Flags & BasicBlock.BranchFlags.Regular) == 0)
-                {
-                    continue;
-                }
+                Debug.Assert(next.Destination != null || 
+                             (next.Flags &
+                              (BasicBlock.BranchFlags.Error | BasicBlock.BranchFlags.ProgramTermination |
+                              BasicBlock.BranchFlags.Throw | BasicBlock.BranchFlags.ReThrow |
+                              BasicBlock.BranchFlags.StructuredExceptionHandling)) != 0);
 
                 if (block.InternalConditional.Condition == null)
                 {
@@ -298,112 +290,156 @@ namespace Microsoft.CodeAnalysis.Operations
                     RegionBuilder currentRegion = regionMap[block];
 
                     // Is this the only block in the region
-                    if (currentRegion.Blocks.Count == 1 && !currentRegion.HasRegions)
+                    if (currentRegion.FirstBlock == currentRegion.LastBlock)
                     {
+                        Debug.Assert(currentRegion.FirstBlock == block);
                         continue;
                     }
 
-                    RegionBuilder destinationRegion = regionMap[next.Destination];
-
-                    // If source and destination are in different regions, it might
-                    // be unsafe to merge branches.
-                    if (currentRegion != destinationRegion)
+                    if (next.Destination == null)
                     {
-                        fromCurrent?.Clear();
-                        fromDestination?.Clear();
-
-                        if (!checkBranchesFromPredecessors())
+                        if ((next.Flags & BasicBlock.BranchFlags.StructuredExceptionHandling) == 0)
                         {
                             continue;
                         }
 
-                        bool checkBranchesFromPredecessors()
+                        ImmutableHashSet<BasicBlock> predecessors = block.Predecessors;
+
+                        // PROTOTYPE(dataflow): It should be safe to merge other branches with null destination, even when there are more than one predecessor 
+                        //                      and more than one incoming branch
+
+                        if (predecessors.Count != 1)
                         {
-                            foreach (BasicBlock predecessor in block.Predecessors)
+                            continue;
+                        }
+
+                        BasicBlock predecessor = predecessors.Single();
+
+                        if (predecessor.Ordinal != i - 1 ||
+                            predecessor.InternalNext.Destination != block ||
+                            predecessor.InternalConditional.Branch.Destination == block ||
+                            regionMap[predecessor] != currentRegion)
+                        {
+                            // Do not merge StructuredExceptionHandling into the middle of the filter or finally,
+                            // Do not merge StructuredExceptionHandling into conditional branch
+                            // Do not merge StructuredExceptionHandling into a different region
+                            continue;
+                        }
+
+                        predecessor.InternalNext = next;
+                    }
+                    else
+                    {
+                        Debug.Assert((next.Flags & ~(BasicBlock.BranchFlags.Regular | BasicBlock.BranchFlags.Error)) == 0);
+
+                        RegionBuilder destinationRegion = regionMap[next.Destination];
+
+                        // If source and destination are in different regions, it might
+                        // be unsafe to merge branches.
+                        if (currentRegion != destinationRegion)
+                        {
+                            fromCurrent?.Clear();
+                            fromDestination?.Clear();
+
+                            if (!checkBranchesFromPredecessors())
                             {
-                                RegionBuilder predecessorRegion = regionMap[predecessor];
+                                continue;
+                            }
 
-                                // If source and destination are in different regions, it might
-                                // be unsafe to merge branches.
-                                if (predecessorRegion != currentRegion)
+                            bool checkBranchesFromPredecessors()
+                            {
+                                foreach (BasicBlock predecessor in block.Predecessors)
                                 {
-                                    fromPredecessor?.Clear();
-                                    collectAncestorsAndSelf(currentRegion, ref fromCurrent);
-                                    collectAncestorsAndSelf(destinationRegion, ref fromDestination);
-                                    collectAncestorsAndSelf(predecessorRegion, ref fromPredecessor);
+                                    RegionBuilder predecessorRegion = regionMap[predecessor];
 
-                                    // On the way from predecessor directly to the destination, are we going leave the same regions as on the way
-                                    // from predecessor to the current block and then to the destination?
-                                    int lastLeftRegionOnTheWayFromCurrentToDestination = getIndexOfLastLeftRegion(fromCurrent, fromDestination);
-                                    int lastLeftRegionOnTheWayFromPredecessorToDestination = getIndexOfLastLeftRegion(fromPredecessor, fromDestination);
-                                    int lastLeftRegionOnTheWayFromPredecessorToCurrentBlock = getIndexOfLastLeftRegion(fromPredecessor, fromCurrent);
-                                    
-                                    // Since we are navigating up and down the tree and only movements up are significant, if we made the same number 
-                                    // of movements up during direct and indirect transition, we must have made the same movements up.
-                                    if ((fromPredecessor.Count - lastLeftRegionOnTheWayFromPredecessorToCurrentBlock +
-                                        fromCurrent.Count - lastLeftRegionOnTheWayFromCurrentToDestination) !=
-                                        (fromPredecessor.Count - lastLeftRegionOnTheWayFromPredecessorToDestination))
+                                    // If source and destination are in different regions, it might
+                                    // be unsafe to merge branches.
+                                    if (predecessorRegion != currentRegion)
                                     {
-                                        // We have different transitions 
-                                        return false;
+                                        fromPredecessor?.Clear();
+                                        collectAncestorsAndSelf(currentRegion, ref fromCurrent);
+                                        collectAncestorsAndSelf(destinationRegion, ref fromDestination);
+                                        collectAncestorsAndSelf(predecessorRegion, ref fromPredecessor);
+
+                                        // On the way from predecessor directly to the destination, are we going leave the same regions as on the way
+                                        // from predecessor to the current block and then to the destination?
+                                        int lastLeftRegionOnTheWayFromCurrentToDestination = getIndexOfLastLeftRegion(fromCurrent, fromDestination);
+                                        int lastLeftRegionOnTheWayFromPredecessorToDestination = getIndexOfLastLeftRegion(fromPredecessor, fromDestination);
+                                        int lastLeftRegionOnTheWayFromPredecessorToCurrentBlock = getIndexOfLastLeftRegion(fromPredecessor, fromCurrent);
+
+                                        // Since we are navigating up and down the tree and only movements up are significant, if we made the same number 
+                                        // of movements up during direct and indirect transition, we must have made the same movements up.
+                                        if ((fromPredecessor.Count - lastLeftRegionOnTheWayFromPredecessorToCurrentBlock +
+                                            fromCurrent.Count - lastLeftRegionOnTheWayFromCurrentToDestination) !=
+                                            (fromPredecessor.Count - lastLeftRegionOnTheWayFromPredecessorToDestination))
+                                        {
+                                            // We have different transitions 
+                                            return false;
+                                        }
                                     }
                                 }
+
+                                return true;
                             }
 
-                            return true;
+                            void collectAncestorsAndSelf(RegionBuilder from, ref ArrayBuilder<RegionBuilder> builder)
+                            {
+                                if (builder == null)
+                                {
+                                    builder = ArrayBuilder<RegionBuilder>.GetInstance();
+                                }
+                                else if (builder.Count != 0)
+                                {
+                                    return;
+                                }
+
+                                do
+                                {
+                                    builder.Add(from);
+                                    from = from.Enclosing;
+                                }
+                                while (from != null);
+
+                                builder.ReverseContents();
+                            }
+
+                            // Can return index beyond bounds of "from" when no regions will be left.
+                            int getIndexOfLastLeftRegion(ArrayBuilder<RegionBuilder> from, ArrayBuilder<RegionBuilder> to)
+                            {
+                                int mismatch = 0;
+
+                                while (mismatch < from.Count && mismatch < to.Count && from[mismatch] == to[mismatch])
+                                {
+                                    mismatch++;
+                                }
+
+                                return mismatch;
+                            }
                         }
 
-                        void collectAncestorsAndSelf(RegionBuilder from, ref ArrayBuilder<RegionBuilder> builder)
+                        foreach (BasicBlock predecessor in block.Predecessors)
                         {
-                            if (builder == null)
-                            {
-                                builder = ArrayBuilder<RegionBuilder>.GetInstance();
-                            }
-                            else if (builder.Count != 0)
-                            {
-                                return;
-                            }
-
-                            do
-                            {
-                                builder.Add(from);
-                                from = from.Enclosing;
-                            }
-                            while (from != null);
-
-                            builder.ReverseContents();
+                            tryMergeBranch(predecessor, ref predecessor.InternalNext, block);
+                            tryMergeBranch(predecessor, ref predecessor.InternalConditional.Branch, block);
                         }
 
-                        // Can return index beyond bounds of "from" when no regions will be left.
-                        int getIndexOfLastLeftRegion(ArrayBuilder<RegionBuilder> from, ArrayBuilder<RegionBuilder> to)
-                        {
-                            int mismatch = 0;
-
-                            while (mismatch < from.Count && mismatch < to.Count && from[mismatch] == to[mismatch])
-                            {
-                                mismatch++;
-                            }
-
-                            return mismatch;
-                        }
+                        next.Destination.RemovePredecessor(block);
                     }
 
-                    foreach (BasicBlock predecessor in block.Predecessors)
-                    {
-                        tryMergeBranch(predecessor, ref predecessor.InternalNext, block);
-                        tryMergeBranch(predecessor, ref predecessor.InternalConditional.Branch, block);
-                    }
-
-                    next.Destination.RemovePredecessor(block);
-
-                    blocks.RemoveAt(i);
                     i--;
                     count--;
-                    removeBlockFromRegion(block, currentRegion);
+                    removeBlock(block, currentRegion);
                     anyRemoved = true;
                 }
                 else
                 {
+                    if (next.Destination == null)
+                    {
+                        continue;
+                    }
+
+                    Debug.Assert((next.Flags & ~(BasicBlock.BranchFlags.Regular | BasicBlock.BranchFlags.Error)) == 0);
+
                     ImmutableHashSet<BasicBlock> predecessors = block.Predecessors;
 
                     if (predecessors.Count != 1)
@@ -424,10 +460,9 @@ namespace Microsoft.CodeAnalysis.Operations
                         destination.AddPredecessor(predecessor);
                         destination.RemovePredecessor(block);
 
-                        blocks.RemoveAt(i);
                         i--;
                         count--;
-                        removeBlockFromRegion(block, regionMap[block]);
+                        removeBlock(block, regionMap[block]);
                         anyRemoved = true;
                     }
                 }
@@ -442,13 +477,43 @@ namespace Microsoft.CodeAnalysis.Operations
 
             return anyRemoved;
 
-            void removeBlockFromRegion(BasicBlock block, RegionBuilder region)
+            void removeBlock(BasicBlock block, RegionBuilder region)
             {
-                ArrayBuilder<BasicBlock> regionBlocks = region.Blocks;
-                regionBlocks.RemoveAt(regionBlocks.FindIndex(b => (object)b == block));
+                Debug.Assert(region.FirstBlock.Ordinal >= 0);
+                Debug.Assert(region.FirstBlock.Ordinal <= region.LastBlock.Ordinal);
+                Debug.Assert(region.FirstBlock.Ordinal <= block.Ordinal);
+                Debug.Assert(block.Ordinal <= region.LastBlock.Ordinal);
+
+                if (region.FirstBlock == block)
+                {
+                    BasicBlock newFirst = blocks[block.Ordinal + 1];
+                    region.FirstBlock = newFirst;
+                    RegionBuilder enclosing = region.Enclosing;
+                    while (enclosing != null && enclosing.FirstBlock == block)
+                    {
+                        enclosing.FirstBlock = newFirst;
+                        enclosing = enclosing.Enclosing;
+                    }
+                }
+                else if (region.LastBlock == block)
+                {
+                    BasicBlock newLast = blocks[block.Ordinal - 1];
+                    region.LastBlock = newLast;
+                    RegionBuilder enclosing = region.Enclosing;
+                    while (enclosing != null && enclosing.LastBlock == block)
+                    {
+                        enclosing.LastBlock = newLast;
+                        enclosing = enclosing.Enclosing;
+                    }
+                }
+
+                Debug.Assert(region.FirstBlock.Ordinal <= region.LastBlock.Ordinal);
+
                 bool removed = regionMap.Remove(block);
                 Debug.Assert(removed);
-                Debug.Assert(!region.IsEmpty);
+                Debug.Assert(blocks[block.Ordinal] == block);
+                blocks.RemoveAt(block.Ordinal);
+                block.Ordinal = -1;
             }
 
             void tryMergeBranch(BasicBlock predecessor, ref BasicBlock.Branch predecessorBranch, BasicBlock successor)
@@ -527,13 +592,13 @@ namespace Microsoft.CodeAnalysis.Operations
             block.Ordinal = _blocks.Count;
             _blocks.Add(block);
             _currentBasicBlock = block;
-            _currentRegion.Add(block);
+            _currentRegion.ExtendToInclude(block);
             _regionMap.Add(block, _currentRegion);
         }
 
         private void EnterRegion(RegionBuilder region)
         {
-            Debug.Assert(_currentRegion == region.Enclosing);
+            _currentRegion?.Add(region);
             _currentRegion = region;
             _currentBasicBlock = null;
         }
@@ -546,7 +611,9 @@ namespace Microsoft.CodeAnalysis.Operations
                 AppendNewBlock(new BasicBlock(BasicBlockKind.Block));
             }
 
+            RegionBuilder enclosed = _currentRegion;
             _currentRegion = _currentRegion.Enclosing;
+            _currentRegion?.ExtendToInclude(enclosed.LastBlock);
             _currentBasicBlock = null;
         }
 
@@ -565,7 +632,7 @@ namespace Microsoft.CodeAnalysis.Operations
             bool haveLocals = !operation.Locals.IsEmpty;
             if (haveLocals)
             {
-                EnterRegion(new RegionBuilder(ControlFlowGraph.RegionKind.Locals, _currentRegion, locals: operation.Locals));
+                EnterRegion(new RegionBuilder(ControlFlowGraph.RegionKind.Locals, locals: operation.Locals));
             }
 
             foreach (var statement in operation.Operations)
@@ -1244,7 +1311,7 @@ namespace Microsoft.CodeAnalysis.Operations
             bool haveLocals = !operation.Locals.IsEmpty;
             if (haveLocals)
             {
-                locals = new RegionBuilder(ControlFlowGraph.RegionKind.Locals, _currentRegion, locals: operation.Locals);
+                locals = new RegionBuilder(ControlFlowGraph.RegionKind.Locals, locals: operation.Locals);
             }
 
             var @continue = new BasicBlock(BasicBlockKind.Block);
@@ -1330,16 +1397,16 @@ namespace Microsoft.CodeAnalysis.Operations
             bool haveFinally = operation.Finally != null;
             if (haveFinally)
             {
-                tryAndFinallyRegion = new RegionBuilder(ControlFlowGraph.RegionKind.TryAndFinally, _currentRegion);
+                tryAndFinallyRegion = new RegionBuilder(ControlFlowGraph.RegionKind.TryAndFinally);
                 EnterRegion(tryAndFinallyRegion);
-                EnterRegion(new RegionBuilder(ControlFlowGraph.RegionKind.Try, _currentRegion));
+                EnterRegion(new RegionBuilder(ControlFlowGraph.RegionKind.Try));
             }
 
             bool haveCatches = !operation.Catches.IsEmpty;
             if (haveCatches)
             {
-                EnterRegion(new RegionBuilder(ControlFlowGraph.RegionKind.TryAndCatch, _currentRegion));
-                EnterRegion(new RegionBuilder(ControlFlowGraph.RegionKind.Try, _currentRegion));
+                EnterRegion(new RegionBuilder(ControlFlowGraph.RegionKind.TryAndCatch));
+                EnterRegion(new RegionBuilder(ControlFlowGraph.RegionKind.Try));
             }
 
             var afterTryCatchFinally = new BasicBlock(BasicBlockKind.Block);
@@ -1363,10 +1430,10 @@ namespace Microsoft.CodeAnalysis.Operations
 
                     if (haveFilter)
                     {
-                        filterAndHandlerRegion = new RegionBuilder(ControlFlowGraph.RegionKind.FilterAndHandler, _currentRegion, catchClause.ExceptionType, catchClause.Locals);
+                        filterAndHandlerRegion = new RegionBuilder(ControlFlowGraph.RegionKind.FilterAndHandler, catchClause.ExceptionType, catchClause.Locals);
                         EnterRegion(filterAndHandlerRegion);
 
-                        var filterRegion = new RegionBuilder(ControlFlowGraph.RegionKind.Filter, _currentRegion, catchClause.ExceptionType);
+                        var filterRegion = new RegionBuilder(ControlFlowGraph.RegionKind.Filter, catchClause.ExceptionType);
                         EnterRegion(filterRegion);
 
                         AddExceptionStore(catchClause.ExceptionType, exceptionDeclarationOrExpression);
@@ -1374,13 +1441,12 @@ namespace Microsoft.CodeAnalysis.Operations
                         VisitConditionalBranch(filter, ref catchBlock, sense: true);
                         LeaveRegion();
 
-                        BasicBlock lastBlockInFilter = filterRegion.Blocks.Last();
-                        lastBlockInFilter.InternalNext.Flags = BasicBlock.BranchFlags.StructuredExceptionHandling;
-                        Debug.Assert(lastBlockInFilter.InternalNext.Destination == null);
-                        Debug.Assert(filterRegion.Blocks.First().Predecessors.IsEmpty);
+                        filterRegion.LastBlock.InternalNext.Flags = BasicBlock.BranchFlags.StructuredExceptionHandling;
+                        Debug.Assert(filterRegion.LastBlock.InternalNext.Destination == null);
+                        Debug.Assert(filterRegion.FirstBlock.Predecessors.IsEmpty);
                     }
 
-                    var handlerRegion = new RegionBuilder(ControlFlowGraph.RegionKind.Handler, _currentRegion, catchClause.ExceptionType,
+                    var handlerRegion = new RegionBuilder(ControlFlowGraph.RegionKind.Handler, catchClause.ExceptionType,
                                                           haveFilter ? default : catchClause.Locals);
                     EnterRegion(handlerRegion);
 
@@ -1400,12 +1466,13 @@ namespace Microsoft.CodeAnalysis.Operations
                     {
                         Debug.Assert(_currentRegion == filterAndHandlerRegion);
                         LeaveRegion();
-                        Debug.Assert(filterAndHandlerRegion.Regions[0].Blocks.Last().InternalNext.Destination == null);
-                        Debug.Assert(handlerRegion.Blocks.First().Predecessors.All(p => filterAndHandlerRegion.Regions[0].Blocks.Contains(p)));
+                        Debug.Assert(filterAndHandlerRegion.Regions[0].LastBlock.InternalNext.Destination == null);
+                        Debug.Assert(handlerRegion.FirstBlock.Predecessors.All(p => filterAndHandlerRegion.Regions[0].FirstBlock.Ordinal <= p.Ordinal &&
+                                                                                    filterAndHandlerRegion.Regions[0].LastBlock.Ordinal >= p.Ordinal));
                     }
                     else
                     {
-                        Debug.Assert(handlerRegion.Blocks.First().Predecessors.IsEmpty);
+                        Debug.Assert(handlerRegion.FirstBlock.Predecessors.IsEmpty);
                     }
                 }
 
@@ -1418,7 +1485,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 Debug.Assert(_currentRegion.Kind == ControlFlowGraph.RegionKind.Try);
                 LeaveRegion();
 
-                var finallyRegion = new RegionBuilder(ControlFlowGraph.RegionKind.Handler, _currentRegion);
+                var finallyRegion = new RegionBuilder(ControlFlowGraph.RegionKind.Handler);
                 EnterRegion(finallyRegion);
                 AppendNewBlock(new BasicBlock(BasicBlockKind.Block));
                 VisitStatement(operation.Finally);
@@ -1426,12 +1493,12 @@ namespace Microsoft.CodeAnalysis.Operations
                 LeaveRegion();
                 Debug.Assert(_currentRegion == tryAndFinallyRegion);
                 LeaveRegion();
-                Debug.Assert(finallyRegion.Blocks.Last().InternalNext.Destination == null);
-                Debug.Assert(finallyRegion.Blocks.First().Predecessors.IsEmpty);
+                Debug.Assert(finallyRegion.LastBlock.InternalNext.Destination == null);
+                Debug.Assert(finallyRegion.FirstBlock.Predecessors.IsEmpty);
             }
 
             AppendNewBlock(afterTryCatchFinally, linkToPrevious: false);
-            Debug.Assert(tryAndFinallyRegion?.Regions[1].Blocks.Last().InternalNext.Destination == null);
+            Debug.Assert(tryAndFinallyRegion?.Regions[1].LastBlock.InternalNext.Destination == null);
 
             return null;
         }
