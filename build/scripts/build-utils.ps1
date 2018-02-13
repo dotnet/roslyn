@@ -287,7 +287,7 @@ function Get-PackageDir([string]$name, [string]$version = "") {
     }
 
     $p = Get-PackagesDir
-    $p = Join-Path $p $name
+    $p = Join-Path $p $name.ToLowerInvariant()
     $p = Join-Path $p $version
     return $p
 }
