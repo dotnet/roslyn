@@ -194,7 +194,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 throw new ArgumentNullException(nameof(projectFilePath));
             }
 
-            var projects = await _loader.LoadProjectInfoAsync(projectFilePath, GetCurrentProjectMap(), cancellationToken).ConfigureAwait(false);
+            //var projects = await _loader.LoadProjectInfoAsync(projectFilePath, GetCurrentProjectMap(), cancellationToken).ConfigureAwait(false);
+            var projects = await _loader.LoadProjectInfoAsync(projectFilePath, GetCurrentProjectMap_New(), cancellationToken).ConfigureAwait(false);
 
             // add projects to solution
             foreach (var project in projects)
@@ -212,6 +213,18 @@ namespace Microsoft.CodeAnalysis.MSBuild
             return this.CurrentSolution.Projects
                 .Where(p => !string.IsNullOrEmpty(p.FilePath))
                 .ToImmutableDictionary(p => p.FilePath, p => p.Id, PathUtilities.Comparer);
+        }
+
+        private ProjectMap GetCurrentProjectMap_New()
+        {
+            var projectMap = new ProjectMap();
+
+            foreach (var project in this.CurrentSolution.Projects)
+            {
+                projectMap.Add(project);
+            }
+
+            return projectMap;
         }
 
         #endregion

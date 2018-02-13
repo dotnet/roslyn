@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.MSBuild.Logging;
 using Roslyn.Utilities;
 
@@ -11,6 +12,18 @@ namespace Microsoft.CodeAnalysis.MSBuild
     /// </summary>
     internal sealed class ProjectFileInfo
     {
+        public bool IsEmpty { get; }
+
+        /// <summary>
+        /// The language of this project.
+        /// </summary>
+        public string Language { get; }
+
+        /// <summary>
+        /// The path to the project file for this project.
+        /// </summary>
+        public string FilePath { get; }
+
         /// <summary>
         /// The path to the output file this project generates.
         /// </summary>
@@ -42,7 +55,10 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// </summary>
         public DiagnosticLog Log { get; }
 
-        public ProjectFileInfo(
+        private ProjectFileInfo(
+            bool isEmpty,
+            string language,
+            string filePath,
             string outputFilePath,
             IEnumerable<string> commandLineArgs,
             IEnumerable<DocumentFileInfo> documents,
@@ -50,6 +66,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
             IEnumerable<ProjectFileReference> projectReferences,
             DiagnosticLog log)
         {
+            Debug.Assert(filePath != null);
+
+            this.IsEmpty = isEmpty;
+            this.Language = language;
+            this.FilePath = filePath;
             this.OutputFilePath = outputFilePath;
             this.CommandLineArgs = commandLineArgs.ToImmutableArrayOrEmpty();
             this.Documents = documents.ToImmutableReadOnlyListOrEmpty();
@@ -58,8 +79,31 @@ namespace Microsoft.CodeAnalysis.MSBuild
             this.Log = log;
         }
 
-        public static ProjectFileInfo CreateEmpty(DiagnosticLog log)
+        public static ProjectFileInfo Create(
+            string language,
+            string filePath,
+            string outputFilePath,
+            IEnumerable<string> commandLineArgs,
+            IEnumerable<DocumentFileInfo> documents,
+            IEnumerable<DocumentFileInfo> additionalDocuments,
+            IEnumerable<ProjectFileReference> projectReferences,
+            DiagnosticLog log)
             => new ProjectFileInfo(
+                isEmpty: false,
+                language,
+                filePath,
+                outputFilePath,
+                commandLineArgs,
+                documents,
+                additionalDocuments,
+                projectReferences,
+                log);
+
+        public static ProjectFileInfo CreateEmpty(string language, string filePath, DiagnosticLog log)
+            => new ProjectFileInfo(
+                isEmpty: true,
+                language,
+                filePath,
                 outputFilePath: null,
                 commandLineArgs: SpecializedCollections.EmptyEnumerable<string>(),
                 documents: SpecializedCollections.EmptyEnumerable<DocumentFileInfo>(),

@@ -1433,9 +1433,9 @@ class C1
 
                 var project = await workspace.OpenProjectAsync(projectFilePath);
 
-                Assert.Equal(1, project.Solution.ProjectIds.Count); // didn't really open referenced project due to unrecognized extension.
-                Assert.Equal(0, project.ProjectReferences.Count()); // no resolved project references
-                Assert.Equal(1, project.AllProjectReferences.Count); // dangling project reference
+                Assert.Single(project.Solution.ProjectIds); // didn't really open referenced project due to unrecognized extension.
+                Assert.Empty(project.ProjectReferences); // no resolved project references
+                Assert.Single(project.AllProjectReferences); // dangling project reference
             }
         }
 
@@ -1499,12 +1499,10 @@ class C1
                 workspace.SkipUnrecognizedProjects = false;
                 var project = await workspace.OpenProjectAsync(projectFilePath);
 
-                Assert.Equal(1, project.Solution.ProjectIds.Count);
-                Assert.Equal(0, project.ProjectReferences.Count());
-                Assert.Equal(0, project.AllProjectReferences.Count());
-
-                var metaRefs = project.MetadataReferences.ToList();
-                Assert.Equal(true, metaRefs.Any(r => r is PortableExecutableReference && ((PortableExecutableReference)r).Display.Contains("CSharpProject.dll")));
+                Assert.Single(project.Solution.ProjectIds);
+                Assert.Empty(project.ProjectReferences);
+                Assert.Empty(project.AllProjectReferences);
+                Assert.Contains(project.MetadataReferences, r => r is PortableExecutableReference && ((PortableExecutableReference)r).Display.Contains("CSharpProject.dll"));
             }
         }
 
@@ -1526,9 +1524,9 @@ class C1
 
                 var project = await workspace.OpenProjectAsync(projectFilePath);
 
-                Assert.Equal(1, project.Solution.ProjectIds.Count);
-                Assert.Equal(0, project.ProjectReferences.Count());
-                Assert.Equal(1, project.AllProjectReferences.Count());
+                Assert.Single(project.Solution.ProjectIds);
+                Assert.Empty(project.ProjectReferences);
+                Assert.Single(project.AllProjectReferences);
 
                 // TODO: Figure out why the first two diagnostics are created twice in CI.
                 Assert.True(workspace.Diagnostics.Count >= 2);

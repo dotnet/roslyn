@@ -4,8 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.MSBuild.Logging;
 using Roslyn.Utilities;
@@ -20,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
         }
 
-        public override SourceCodeKind GetSourceCodeKind(string documentFileName)
+        protected override SourceCodeKind GetSourceCodeKind(string documentFileName)
         {
             // TODO: uncomment when fixing https://github.com/dotnet/roslyn/issues/5325
             //return documentFileName.EndsWith(".csx", StringComparison.OrdinalIgnoreCase)
@@ -77,10 +75,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 .ToImmutableArray();
 
             var additionalDocs = this.GetAdditionalFilesFromModel(project)
-                .Select(s => MakeDocumentFileInfo(projectDirectory, s))
+                .Select(s => MakeAdditionalDocumentFileInfo(projectDirectory, s))
                 .ToImmutableArray();
 
-            return new ProjectFileInfo(
+            return ProjectFileInfo.Create(
+                this.Language,
+                project.FullPath,
                 outputFilePath,
                 commandLineArgs,
                 docs,

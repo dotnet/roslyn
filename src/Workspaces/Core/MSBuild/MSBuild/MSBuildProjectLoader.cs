@@ -3,10 +3,9 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -137,8 +136,19 @@ namespace Microsoft.CodeAnalysis.MSBuild
             var solutionFile = MSB.Construction.SolutionFile.Parse(absoluteSolutionPath);
             var reportMode = this.SkipUnrecognizedProjects ? ReportMode.Log : ReportMode.Throw;
 
-            // a list to accumulate all the loaded projects
-            var loadedProjects = new LoadState(null);
+            var requestedProjectOptions = new ReportingOptions
+            {
+                OnPathFailure = reportMode,
+                OnLoaderFailure = reportMode
+            };
+
+            var discoveredProjectOptions = new ReportingOptions
+            {
+                OnPathFailure = reportMode,
+                OnLoaderFailure = reportMode
+            };
+
+            var projectPaths = new List<string>(capacity: solutionFile.ProjectsInOrder.Count);
 
             // load all the projects
             foreach (var project in solutionFile.ProjectsInOrder)
@@ -147,21 +157,27 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
                 if (project.ProjectType != MSB.Construction.SolutionProjectType.SolutionFolder)
                 {
-                    var projectAbsolutePath = TryGetAbsolutePath(project.AbsolutePath, reportMode);
-                    if (projectAbsolutePath != null)
-                    {
-                        if (TryGetLoaderFromProjectPath(projectAbsolutePath, reportMode, out var loader))
-                        {
-                            // projects get added to 'loadedProjects' as side-effect
-                            // never prefer metadata when loading solution, all projects get loaded if they can.
-                            var tmp = await GetOrLoadProjectAsync(projectAbsolutePath, loader, preferMetadata: false, loadedProjects: loadedProjects, cancellationToken: cancellationToken).ConfigureAwait(false);
-                        }
-                    }
+                    projectPaths.Add(project.RelativePath);
                 }
             }
 
+            var worker = new Worker(this,
+                projectPaths.ToImmutableArray(),
+                baseDirectory: Path.GetDirectoryName(absoluteSolutionPath),
+                _properties,
+                projectMap: null,
+                requestedProjectOptions,
+                discoveredProjectOptions,
+                preferMetadataForReferencedProjects: false);
+
+            var projects = await worker.LoadAsync(cancellationToken).ConfigureAwait(false);
+
             // construct workspace from loaded project infos
-            return SolutionInfo.Create(SolutionId.CreateNewId(debugName: absoluteSolutionPath), version, absoluteSolutionPath, loadedProjects.Projects);
+            return SolutionInfo.Create(
+                SolutionId.CreateNewId(debugName: absoluteSolutionPath),
+                version,
+                absoluteSolutionPath,
+                projects);
         }
 
         internal string GetAbsoluteSolutionPath(string path, string baseDirectory)
@@ -191,7 +207,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// </summary>
         public async Task<ImmutableArray<ProjectInfo>> LoadProjectInfoAsync(
             string projectFilePath,
-            ImmutableDictionary<string, ProjectId> projectPathToProjectIdMap = null,
+            ProjectMap projectMap = null,
             CancellationToken cancellationToken = default)
         {
             if (projectFilePath == null)
@@ -199,77 +215,59 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 throw new ArgumentNullException(nameof(projectFilePath));
             }
 
-            this.TryGetAbsoluteProjectPath(projectFilePath, Directory.GetCurrentDirectory(), ReportMode.Throw, out var fullPath);
-            this.TryGetLoaderFromProjectPath(projectFilePath, ReportMode.Throw, out var loader);
+            var requestedProjectOptions = new ReportingOptions
+            {
+                OnPathFailure = ReportMode.Throw,
+                OnLoaderFailure = ReportMode.Throw
+            };
 
-            var loadedProjects = new LoadState(projectPathToProjectIdMap);
+            var discoveredMode = this.SkipUnrecognizedProjects ? ReportMode.Log : ReportMode.Throw;
+            var discoveredProjectOptions = new ReportingOptions
+            {
+                OnPathFailure = discoveredMode,
+                OnLoaderFailure = discoveredMode
+            };
 
-            var id = await this.LoadProjectAsync(fullPath, loader, this.LoadMetadataForReferencedProjects, loadedProjects, cancellationToken).ConfigureAwait(false);
+            var worker = new Worker(this,
+                requestedProjectPaths: ImmutableArray.Create(projectFilePath),
+                baseDirectory: Directory.GetCurrentDirectory(),
+                globalProperties: _properties,
+                projectMap,
+                requestedProjectOptions,
+                discoveredProjectOptions,
+                this.LoadMetadataForReferencedProjects);
 
-            var result = loadedProjects.Projects.Reverse().ToImmutableArray();
-            Debug.Assert(result[0].Id == id);
-            return result;
+            return await worker.LoadAsync(cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task<ProjectId> GetOrLoadProjectAsync(string projectFilePath, IProjectFileLoader loader, bool preferMetadata, LoadState loadedProjects, CancellationToken cancellationToken)
+        private static ImmutableArray<DocumentInfo> CreateDocumentInfos(IReadOnlyList<DocumentFileInfo> documentFileInfos, ProjectId projectId, Encoding encoding)
         {
-            var projectId = loadedProjects.GetProjectId(projectFilePath);
-            if (projectId == null)
+            var results = ImmutableArray.CreateBuilder<DocumentInfo>();
+
+            foreach (var info in documentFileInfos)
             {
-                projectId = await this.LoadProjectAsync(projectFilePath, loader, preferMetadata, loadedProjects, cancellationToken).ConfigureAwait(false);
+                GetDocumentNameAndFolders(info.LogicalPath, out var name, out var folders);
+
+                var documentInfo = DocumentInfo.Create(
+                    DocumentId.CreateNewId(projectId, debugName: info.FilePath),
+                    name,
+                    folders,
+                    info.SourceCodeKind,
+                    new FileTextLoader(info.FilePath, encoding),
+                    info.FilePath,
+                    info.IsGenerated);
+
+                results.Add(documentInfo);
             }
 
-            return projectId;
+            return results.ToImmutable();
         }
 
-        private async Task<ProjectId> LoadProjectAsync(string projectFilePath, IProjectFileLoader loader, bool preferMetadata, LoadState loadedProjects, CancellationToken cancellationToken)
+        private IEnumerable<AnalyzerReference> ResolveAnalyzerReferences(CommandLineArguments commandLineArgs)
         {
-            Debug.Assert(projectFilePath != null);
-            Debug.Assert(loader != null);
-
-            var projectId = loadedProjects.GetOrCreateProjectId(projectFilePath);
-            var projectName = Path.GetFileNameWithoutExtension(projectFilePath);
-
-            var projectFile = await loader.LoadProjectFileAsync(projectFilePath, _properties, cancellationToken).ConfigureAwait(false);
-
-            // If there were any failures during load, we won't be able to build the project. So, bail early with an empty project.
-            if (projectFile.Log.HasFailure)
-            {
-                ReportDiagnosticLog(projectFile.Log);
-
-                loadedProjects.Add(CreateEmptyProjectInfo(projectId, projectFilePath, loader.Language));
-                return projectId;
-            }
-
-            var projectFileInfo = await projectFile.GetProjectFileInfoAsync(cancellationToken).ConfigureAwait(false);
-
-            // If any diagnostics were logged during build, we'll carry on and try to produce a meaningful project.
-            if (!projectFileInfo.Log.IsEmpty)
-            {
-                ReportDiagnosticLog(projectFileInfo.Log);
-            }
-
-            var outputFilePath = projectFileInfo.OutputFilePath;
-            var projectDirectory = Path.GetDirectoryName(projectFilePath);
-
-            var version = GetProjectVersion(projectFilePath);
-
-            // translate information from command line args
-            var commandLineParser = _workspace.Services.GetLanguageServices(loader.Language).GetService<ICommandLineParserService>();
-            var metadataService = _workspace.Services.GetService<IMetadataService>();
             var analyzerService = _workspace.Services.GetService<IAnalyzerService>();
-
-            var commandLineArgs = commandLineParser.Parse(
-                arguments: projectFileInfo.CommandLineArgs,
-                baseDirectory: projectDirectory,
-                isInteractive: false,
-                sdkDirectory: RuntimeEnvironment.GetRuntimeDirectory());
-
-            // we only support file paths in /r command line arguments
-            var resolver = new WorkspaceMetadataFileReferenceResolver(metadataService, new RelativePathResolver(commandLineArgs.ReferencePaths, commandLineArgs.BaseDirectory));
-            var metadataReferences = commandLineArgs.ResolveMetadataReferences(resolver);
-
             var analyzerLoader = analyzerService.GetLoader();
+
             foreach (var path in commandLineArgs.AnalyzerReferences.Select(r => r.FilePath))
             {
                 if (File.Exists(path))
@@ -278,99 +276,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 }
             }
 
-            var analyzerReferences = commandLineArgs.ResolveAnalyzerReferences(analyzerLoader);
-
-            var defaultEncoding = commandLineArgs.Encoding;
-
-            // docs & additional docs
-            var docFileInfos = projectFileInfo.Documents.ToImmutableArrayOrEmpty();
-            var additionalDocFileInfos = projectFileInfo.AdditionalDocuments.ToImmutableArrayOrEmpty();
-
-            // check for duplicate documents
-            var allDocFileInfos = docFileInfos.AddRange(additionalDocFileInfos);
-            CheckDocuments(allDocFileInfos, projectFilePath, projectId);
-
-            var docs = new List<DocumentInfo>();
-            foreach (var docFileInfo in docFileInfos)
-            {
-                GetDocumentNameAndFolders(docFileInfo.LogicalPath, out var name, out var folders);
-
-                docs.Add(DocumentInfo.Create(
-                    DocumentId.CreateNewId(projectId, debugName: docFileInfo.FilePath),
-                    name,
-                    folders,
-                    projectFile.GetSourceCodeKind(docFileInfo.FilePath),
-                    new FileTextLoader(docFileInfo.FilePath, defaultEncoding),
-                    docFileInfo.FilePath,
-                    docFileInfo.IsGenerated));
-            }
-
-            var additionalDocs = new List<DocumentInfo>();
-            foreach (var docFileInfo in additionalDocFileInfos)
-            {
-                GetDocumentNameAndFolders(docFileInfo.LogicalPath, out var name, out var folders);
-
-                additionalDocs.Add(DocumentInfo.Create(
-                    DocumentId.CreateNewId(projectId, debugName: docFileInfo.FilePath),
-                    name,
-                    folders,
-                    SourceCodeKind.Regular,
-                    new FileTextLoader(docFileInfo.FilePath, defaultEncoding),
-                    docFileInfo.FilePath,
-                    docFileInfo.IsGenerated));
-            }
-
-            // project references
-            var resolvedReferences = await ResolveProjectReferencesAsync(
-                projectId, projectFilePath, projectFileInfo.ProjectReferences, preferMetadata, loadedProjects, cancellationToken).ConfigureAwait(false);
-
-            // add metadata references for project refs converted to metadata refs
-            metadataReferences = metadataReferences.Concat(resolvedReferences.MetadataReferences)
-                .Where(m => !(m is UnresolvedMetadataReference));
-
-            // if the project file loader couldn't figure out an assembly name, make one using the project's file path.
-            var assemblyName = commandLineArgs.CompilationName;
-            if (string.IsNullOrWhiteSpace(assemblyName))
-            {
-                assemblyName = GetAssemblyNameFromProjectPath(projectFilePath);
-            }
-
-            // make sure that doc-comments at least get parsed.
-            var parseOptions = commandLineArgs.ParseOptions;
-            if (parseOptions.DocumentationMode == DocumentationMode.None)
-            {
-                parseOptions = parseOptions.WithDocumentationMode(DocumentationMode.Parse);
-            }
-
-            // add all the extra options that are really behavior overrides
-            var compOptions = commandLineArgs.CompilationOptions
-                    .WithXmlReferenceResolver(new XmlFileResolver(projectDirectory))
-                    .WithSourceReferenceResolver(new SourceFileResolver(ImmutableArray<string>.Empty, projectDirectory))
-                    // TODO: https://github.com/dotnet/roslyn/issues/4967
-                    .WithMetadataReferenceResolver(new WorkspaceMetadataFileReferenceResolver(metadataService, new RelativePathResolver(ImmutableArray<string>.Empty, projectDirectory)))
-                    .WithStrongNameProvider(new DesktopStrongNameProvider(commandLineArgs.KeyFileSearchPaths))
-                    .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default);
-
-            loadedProjects.Add(
-                ProjectInfo.Create(
-                    projectId,
-                    version,
-                    projectName,
-                    assemblyName,
-                    loader.Language,
-                    projectFilePath,
-                    outputFilePath,
-                    compilationOptions: compOptions,
-                    parseOptions: parseOptions,
-                    documents: docs,
-                    projectReferences: resolvedReferences.ProjectReferences,
-                    metadataReferences: metadataReferences,
-                    analyzerReferences: analyzerReferences,
-                    additionalDocuments: additionalDocs,
-                    isSubmission: false,
-                    hostObjectType: null));
-
-            return projectId;
+            return commandLineArgs.ResolveAnalyzerReferences(analyzerLoader);
         }
 
         private static string GetMsbuildFailedMessage(string projectFilePath, string message)
@@ -395,33 +301,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
             {
                 return VersionStamp.Create();
             }
-        }
-
-        private ProjectInfo CreateEmptyProjectInfo(ProjectId projectId, string projectFilePath, string language)
-        {
-            var languageService = _workspace.Services.GetLanguageServices(language);
-            var parseOptions = languageService.GetService<ISyntaxTreeFactoryService>().GetDefaultParseOptions();
-            var compilationOptions = languageService.GetService<ICompilationFactoryService>().GetDefaultCompilationOptions();
-            var projectName = Path.GetFileNameWithoutExtension(projectFilePath);
-            var version = GetProjectVersion(projectFilePath);
-
-            return ProjectInfo.Create(
-                projectId,
-                version,
-                projectName,
-                assemblyName: GetAssemblyNameFromProjectPath(projectFilePath),
-                language: language,
-                filePath: projectFilePath,
-                outputFilePath: string.Empty,
-                compilationOptions: compilationOptions,
-                parseOptions: parseOptions,
-                documents: SpecializedCollections.EmptyEnumerable<DocumentInfo>(),
-                projectReferences: SpecializedCollections.EmptyEnumerable<ProjectReference>(),
-                metadataReferences: SpecializedCollections.EmptyEnumerable<MetadataReference>(),
-                analyzerReferences: SpecializedCollections.EmptyEnumerable<AnalyzerReference>(),
-                additionalDocuments: SpecializedCollections.EmptyEnumerable<DocumentInfo>(),
-                isSubmission: false,
-                hostObjectType: null);
         }
 
         private static string GetAssemblyNameFromProjectPath(string projectFilePath)
@@ -462,139 +341,21 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
         }
 
-        private void CheckDocuments(ImmutableArray<DocumentFileInfo> docs, string projectFilePath, ProjectId projectId)
+        private void CheckForDuplicateDocuments(ImmutableArray<DocumentInfo> documents, ImmutableArray<DocumentInfo> additionalDocuments, string projectFilePath, ProjectId projectId)
         {
             var paths = new HashSet<string>();
-            foreach (var doc in docs)
+            foreach (var doc in documents.Concat(additionalDocuments))
             {
                 if (paths.Contains(doc.FilePath))
                 {
-                    _workspace.OnWorkspaceFailed(new ProjectDiagnostic(WorkspaceDiagnosticKind.Warning, string.Format(WorkspacesResources.Duplicate_source_file_0_in_project_1, doc.FilePath, projectFilePath), projectId));
+                    var message = string.Format(WorkspacesResources.Duplicate_source_file_0_in_project_1, doc.FilePath, projectFilePath);
+                    var diagnostic = new ProjectDiagnostic(WorkspaceDiagnosticKind.Warning, message, projectId);
+
+                    _workspace.OnWorkspaceFailed(diagnostic);
                 }
 
                 paths.Add(doc.FilePath);
             }
-        }
-
-        private class ResolvedReferences
-        {
-            public readonly List<ProjectReference> ProjectReferences = new List<ProjectReference>();
-            public readonly List<MetadataReference> MetadataReferences = new List<MetadataReference>();
-        }
-
-        private async Task<ResolvedReferences> ResolveProjectReferencesAsync(
-            ProjectId thisProjectId,
-            string thisProjectPath,
-            IReadOnlyList<ProjectFileReference> projectFileReferences,
-            bool preferMetadata,
-            LoadState loadedProjects,
-            CancellationToken cancellationToken)
-        {
-            var resolvedReferences = new ResolvedReferences();
-            var reportMode = this.SkipUnrecognizedProjects ? ReportMode.Log : ReportMode.Throw;
-
-            foreach (var projectFileReference in projectFileReferences)
-            {
-                if (TryGetAbsoluteProjectPath(projectFileReference.Path, Path.GetDirectoryName(thisProjectPath), reportMode, out var fullPath))
-                {
-                    // if the project is already loaded, then just reference the one we have
-                    var existingProjectId = loadedProjects.GetProjectId(fullPath);
-                    if (existingProjectId != null)
-                    {
-                        resolvedReferences.ProjectReferences.Add(new ProjectReference(existingProjectId, projectFileReference.Aliases));
-                        continue;
-                    }
-
-                    TryGetLoaderFromProjectPath(fullPath, ReportMode.Ignore, out var loader);
-
-                    // get metadata if preferred or if loader is unknown
-                    if (preferMetadata || loader == null)
-                    {
-                        var projectMetadata = await this.GetProjectMetadata(fullPath, projectFileReference.Aliases, _properties, cancellationToken).ConfigureAwait(false);
-                        if (projectMetadata != null)
-                        {
-                            resolvedReferences.MetadataReferences.Add(projectMetadata);
-                            continue;
-                        }
-                    }
-
-                    // must load, so we really need loader
-                    if (TryGetLoaderFromProjectPath(fullPath, reportMode, out loader))
-                    {
-                        // load the project
-                        var projectId = await this.GetOrLoadProjectAsync(fullPath, loader, preferMetadata, loadedProjects, cancellationToken).ConfigureAwait(false);
-
-                        // If that other project already has a reference on us, this will cause a circularity.
-                        // This check doesn't need to be in the "already loaded" path above, since in any circularity this path
-                        // must be taken at least once.
-                        if (loadedProjects.ProjectAlreadyReferencesProject(projectId, targetProject: thisProjectId))
-                        {
-                            // We'll try to make this metadata if we can
-                            var projectMetadata = await this.GetProjectMetadata(fullPath, projectFileReference.Aliases, _properties, cancellationToken).ConfigureAwait(false);
-                            if (projectMetadata != null)
-                            {
-                                resolvedReferences.MetadataReferences.Add(projectMetadata);
-                            }
-                            continue;
-                        }
-                        else
-                        {
-                            resolvedReferences.ProjectReferences.Add(new ProjectReference(projectId, projectFileReference.Aliases));
-                            continue;
-                        }
-                    }
-                }
-                else
-                {
-                    fullPath = projectFileReference.Path;
-                }
-
-                // cannot find metadata and project cannot be loaded, so leave a project reference to a non-existent project.
-                var id = loadedProjects.GetOrCreateProjectId(fullPath);
-                resolvedReferences.ProjectReferences.Add(new ProjectReference(id, projectFileReference.Aliases));
-            }
-
-            return resolvedReferences;
-        }
-
-        /// <summary>
-        /// Gets a MetadataReference to a project's output assembly.
-        /// </summary>
-        private async Task<MetadataReference> GetProjectMetadata(string projectFilePath, ImmutableArray<string> aliases, IDictionary<string, string> globalProperties, CancellationToken cancellationToken)
-        {
-            // use loader service to determine output file for project if possible
-            string outputFilePath = null;
-
-            try
-            {
-                outputFilePath = await ProjectFileLoader.GetOutputFilePathAsync(projectFilePath, globalProperties, cancellationToken).ConfigureAwait(false);
-            }
-            catch (Exception e)
-            {
-                _workspace.OnWorkspaceFailed(new WorkspaceDiagnostic(WorkspaceDiagnosticKind.Failure, e.Message));
-            }
-
-            if (outputFilePath != null && File.Exists(outputFilePath))
-            {
-                if (Workspace.TestHookStandaloneProjectsDoNotHoldReferences)
-                {
-                    var documentationService = _workspace.Services.GetService<IDocumentationProviderService>();
-                    var docProvider = documentationService.GetDocumentationProvider(outputFilePath);
-                    var metadata = AssemblyMetadata.CreateFromImage(File.ReadAllBytes(outputFilePath));
-
-                    return metadata.GetReference(
-                        documentation: docProvider,
-                        aliases: aliases,
-                        display: outputFilePath);
-                }
-                else
-                {
-                    var metadataService = _workspace.Services.GetService<IMetadataService>();
-                    return metadataService.GetReference(outputFilePath, new MetadataReferenceProperties(MetadataImageKind.Assembly, aliases));
-                }
-            }
-
-            return null;
         }
 
         private string TryGetAbsolutePath(string path, ReportMode mode)
@@ -748,5 +509,19 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 ReportFailure(ReportMode.Log, GetMsbuildFailedMessage(logItem.ProjectFilePath, logItem.ToString()));
             }
         }
+
+        private bool IsSupportedLanguage(string languageName)
+            => _workspace.Services.SupportedLanguages.Contains(languageName);
+
+        private TLanguageService GetLanguageService<TLanguageService>(string languageName)
+            where TLanguageService : ILanguageService
+            => _workspace.Services
+                .GetLanguageServices(languageName)
+                .GetService<TLanguageService>();
+
+        private TWorkspaceService GetWorkspaceService<TWorkspaceService>()
+            where TWorkspaceService : IWorkspaceService
+            => _workspace.Services
+                .GetService<TWorkspaceService>();
     }
 }

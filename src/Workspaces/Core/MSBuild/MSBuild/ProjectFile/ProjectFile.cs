@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         public DiagnosticLog Log { get; }
         public virtual string FilePath => _loadedProject.FullPath;
+        public string Language => _loader.Language;
 
         protected ProjectFile(ProjectFileLoader loader, MSB.Evaluation.Project loadedProject, DiagnosticLog log)
         {
@@ -42,7 +43,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
         }
 
-        public abstract SourceCodeKind GetSourceCodeKind(string documentFileName);
+        protected abstract SourceCodeKind GetSourceCodeKind(string documentFileName);
         public abstract string GetDocumentExtension(SourceCodeKind kind);
         protected abstract ProjectFileInfo CreateProjectFileInfo(MSB.Execution.ProjectInstance project);
 
@@ -52,7 +53,65 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             return project != null
                 ? CreateProjectFileInfo(project)
-                : ProjectFileInfo.CreateEmpty(this.Log);
+                : ProjectFileInfo.CreateEmpty(this.Language, _loadedProject.FullPath, this.Log);
+        }
+
+        public async Task<ImmutableArray<ProjectFileInfo>> GetProjectFileInfosAsync(CancellationToken cancellationToken)
+        {
+            var targetFrameworkValue = _loadedProject.GetPropertyValue("TargetFramework");
+            var targetFrameworksValue = _loadedProject.GetPropertyValue("TargetFrameworks");
+
+            if (string.IsNullOrEmpty(targetFrameworkValue) && !string.IsNullOrEmpty(targetFrameworksValue))
+            {
+                // This project has a <TargetFrameworks> property, but does not specify a <TargetFramework>.
+                // In this case, we need to iterate through the <TargetFrameworks>, set <TargetFramework> with
+                // each value, and build the project.
+
+                var hasTargetFrameworkProp = _loadedProject.GetProperty("TargetFramework") != null;
+                var targetFrameworks = targetFrameworksValue.Split(';');
+                var results = ImmutableArray.CreateBuilder<ProjectFileInfo>(targetFrameworks.Length);
+
+                foreach (var targetFramework in targetFrameworks)
+                {
+                    _loadedProject.SetProperty("TargetFramework", targetFramework);
+                    _loadedProject.ReevaluateIfNecessary();
+
+                    var projectFileInfo = await BuildProjectFileInfoAsync(cancellationToken).ConfigureAwait(false);
+
+                    results.Add(projectFileInfo);
+                }
+
+                // Remove the <TargetFramework> property if it didn't exist in the file before we set it.
+                // Otherwise, set it back to it's original value.
+                if (!hasTargetFrameworkProp)
+                {
+                    var targetFrameworkProp = _loadedProject.GetProperty("TargetFramework");
+                    _loadedProject.RemoveProperty(targetFrameworkProp);
+                }
+                else
+                {
+                    _loadedProject.SetProperty("TargetFramework", targetFrameworkValue);
+                }
+
+                _loadedProject.ReevaluateIfNecessary();
+
+                return results.ToImmutable();
+            }
+            else
+            {
+                var projectFileInfo = await BuildProjectFileInfoAsync(cancellationToken).ConfigureAwait(false);
+
+                return ImmutableArray.Create(projectFileInfo);
+            }
+        }
+
+        private async Task<ProjectFileInfo> BuildProjectFileInfoAsync(CancellationToken cancellationToken)
+        {
+            var project = await BuildProjectAsync(cancellationToken).ConfigureAwait(false);
+
+            return project != null
+                ? CreateProjectFileInfo(project)
+                : ProjectFileInfo.CreateEmpty(this.Language, _loadedProject.FullPath, this.Log);
         }
 
         private async Task<MSB.Execution.ProjectInstance> BuildProjectAsync(CancellationToken cancellationToken)
@@ -185,7 +244,19 @@ namespace Microsoft.CodeAnalysis.MSBuild
             var logicalPath = GetDocumentLogicalPath(item, projectDirectory);
             var isLinked = IsDocumentLinked(item);
             var isGenerated = IsDocumentGenerated(item);
-            return new DocumentFileInfo(filePath, logicalPath, isLinked, isGenerated);
+            var sourceCodeKind = GetSourceCodeKind(filePath);
+
+            return new DocumentFileInfo(filePath, logicalPath, isLinked, isGenerated, sourceCodeKind);
+        }
+
+        protected DocumentFileInfo MakeAdditionalDocumentFileInfo(string projectDirectory, MSB.Framework.ITaskItem item)
+        {
+            var filePath = GetDocumentFilePath(item);
+            var logicalPath = GetDocumentLogicalPath(item, projectDirectory);
+            var isLinked = IsDocumentLinked(item);
+            var isGenerated = IsDocumentGenerated(item);
+
+            return new DocumentFileInfo(filePath, logicalPath, isLinked, isGenerated, SourceCodeKind.Regular);
         }
 
         protected IEnumerable<ProjectFileReference> GetProjectReferences(MSB.Execution.ProjectInstance executedProject)

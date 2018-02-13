@@ -29,11 +29,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// </summary>
         Task<ProjectFileInfo> GetProjectFileInfoAsync(CancellationToken cancellationToken);
 
-        /// <summary>
-        /// Get the kind of source found in the specified file. 
-        /// This is usually determined by the file name extension.
-        /// </summary>
-        SourceCodeKind GetSourceCodeKind(string documentFileName);
+        Task<ImmutableArray<ProjectFileInfo>> GetProjectFileInfosAsync(CancellationToken cancellationToken);
 
         /// <summary>
         /// Gets the corresponding extension for a source file of a given kind.
