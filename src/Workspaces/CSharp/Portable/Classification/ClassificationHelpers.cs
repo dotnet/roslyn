@@ -120,13 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             }
             else if (token.Parent is MethodDeclarationSyntax methodDeclaration && methodDeclaration.Identifier == token)
             {
-                // TODO: Add proper extension method check - I'm sure there is some syntax based check somewhere burried in roslyn but I couldn't find it.
-                bool isExtensionMethod =
-                    (methodDeclaration.Parent as TypeDeclarationSyntax)?.Modifiers.Any(SyntaxKind.StaticKeyword) == true &&
-                    methodDeclaration.Modifiers.Any(SyntaxKind.StaticKeyword) &&
-                    methodDeclaration.ParameterList.Parameters.FirstOrDefault()?.Modifiers.Any(SyntaxKind.ThisKeyword) == true;
-
-                return isExtensionMethod ? ClassificationTypeNames.ExtensionMethodName : ClassificationTypeNames.MethodName;
+                return IsExtensionMethod(methodDeclaration) ? ClassificationTypeNames.ExtensionMethodName : ClassificationTypeNames.MethodName;
             }
             else if (token.Parent is PropertyDeclarationSyntax propertyDeclaration && propertyDeclaration.Identifier == token)
             {
@@ -145,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                         return fieldDeclaration.Modifiers.Any(SyntaxKind.ConstKeyword) ? ClassificationTypeNames.ConstantName : ClassificationTypeNames.FieldName;
                     case LocalDeclarationStatementSyntax localDeclarationStatement:
                         return localDeclarationStatement.IsConst ? ClassificationTypeNames.ConstantName : ClassificationTypeNames.LocalName;
-                    case EventDeclarationSyntax eventDeclarationSyntax:
+                    case EventFieldDeclarationSyntax aventFieldDeclarationSyntax:
                         return ClassificationTypeNames.EventName;
                 }
                 return ClassificationTypeNames.LocalName;
@@ -158,6 +152,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             {
                 return ClassificationTypeNames.LocalName;
             }
+            else if (token.Parent is EventDeclarationSyntax eventDeclarationSyntax && eventDeclarationSyntax.Identifier == token)
+            {
+                return ClassificationTypeNames.EventName;
+            }
             else if (IsActualContextualKeyword(token))
             {
                 return ClassificationTypeNames.Keyword;
@@ -166,6 +164,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             {
                 return ClassificationTypeNames.Identifier;
             }
+        }
+
+        private static bool IsExtensionMethod(MethodDeclarationSyntax methodDeclaration)
+        {
+            return methodDeclaration.ParameterList.Parameters.FirstOrDefault()?.Modifiers.Any(SyntaxKind.ThisKeyword) == true;
         }
 
         private static string GetClassificationForTypeDeclarationIdentifier(SyntaxToken identifier)

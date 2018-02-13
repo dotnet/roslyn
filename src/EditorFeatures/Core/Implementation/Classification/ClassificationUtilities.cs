@@ -37,9 +37,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         {
             foreach (var classifiedSpan in list)
             {
+                var classificationType = typeMap.GetClassificationType(classifiedSpan.ClassificationType) ?? typeMap.GetClassificationType(ClassificationTypeNames.Identifier);
                 addTag(new TagSpan<IClassificationTag>(
                     classifiedSpan.TextSpan.ToSnapshotSpan(snapshot),
-                    new ClassificationTag(typeMap.GetClassificationType(classifiedSpan.ClassificationType))));
+                    new ClassificationTag(classificationType)));
             }
         }
 

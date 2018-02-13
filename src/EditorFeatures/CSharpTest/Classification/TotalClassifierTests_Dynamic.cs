@@ -326,7 +326,7 @@ class C
             await TestInClassAsync(@"event Action dynamic",
                 Keyword("event"),
                 Identifier("Action"),
-                Identifier("dynamic"));
+                Event("dynamic"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -535,7 +535,7 @@ partial void F(dynamic d)
 {
 }",
                 Keyword("dynamic"),
-                Method("F"),
+                ExtensionMethod("F"),
                 Punctuation.OpenParen,
                 Keyword("this"),
                 Keyword("dynamic"),
@@ -653,7 +653,7 @@ partial void F(dynamic d)
                 Keyword("using"),
                 Punctuation.OpenParen,
                 Keyword("dynamic"),
-                Identifier("d"));
+                Local("d"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]

@@ -2276,7 +2276,7 @@ struct Type<T>
 
             await TestInMethodAsync(
                 source,
-                Keyword("var"));
+                Keyword("var"), Local("a"), Local("a"));
         }
 
         [WorkItem(633, "https://github.com/dotnet/roslyn/issues/633")]
