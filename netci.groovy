@@ -122,7 +122,7 @@ commitPullList.each { isPr ->
   def myJob = job(jobName) {
     description("Ubuntu 16.04 mono tests")
                   steps {
-                    shell("./build/scripts/cibuild.sh --debug --mono")
+                    shell("./build/scripts/cibuild.sh --debug --docker --mono")
                   }
                 }
 
