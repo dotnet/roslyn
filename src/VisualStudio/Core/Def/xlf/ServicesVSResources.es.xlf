@@ -1498,14 +1498,9 @@ Estoy de acuerdo con todo lo anterior:</target>
         <target state="translated">Los parámetros configurados aquí solo son aplicables a su equipo. Para configurar estos parámetros de manera que se desplacen con su solución, use los archivos .editorconfig.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Snippet_Command_Handler">
-        <source>Snippet Command Handler</source>
-        <target state="new">Snippet Command Handler</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Sync_Class_View_Command_Handler">
-        <source>Sync Class View Command Handler</source>
-        <target state="new">Sync Class View Command Handler</target>
+      <trans-unit id="Sync_Class_View">
+        <source>Sync Class View</source>
+        <target state="new">Sync Class View</target>
         <note />
       </trans-unit>
     </body>

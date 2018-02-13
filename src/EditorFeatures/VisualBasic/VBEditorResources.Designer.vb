@@ -86,16 +86,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.VBEditorResources
                 Return ResourceManager.GetString("Case_Correction", resourceCulture)
             End Get
         End Property
-
-        '''<summary>
-        '''  Looks up a localized string similar to Line Commit Command Handler.
-        '''</summary>
-        Friend ReadOnly Property Commit_Command_Handler() As String
-            Get
-                Return ResourceManager.GetString("Commit_Command_Handler", resourceCulture)
-            End Get
-        End Property
-
+        
         '''<summary>
         '''  Looks up a localized string similar to Committing line.
         '''</summary>
@@ -104,7 +95,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.VBEditorResources
                 Return ResourceManager.GetString("Committing_line", resourceCulture)
             End Get
         End Property
-
+        
         '''<summary>
         '''  Looks up a localized string similar to Correcting word casing....
         '''</summary>
@@ -113,7 +104,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.VBEditorResources
                 Return ResourceManager.GetString("Correcting_word_casing", resourceCulture)
             End Get
         End Property
-
+        
         '''<summary>
         '''  Looks up a localized string similar to End Construct.
         '''</summary>
@@ -122,16 +113,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.VBEditorResources
                 Return ResourceManager.GetString("End_Construct", resourceCulture)
             End Get
         End Property
-
-        '''<summary>
-        '''  Looks up a localized string similar to End Construct Command Handler.
-        '''</summary>
-        Friend ReadOnly Property End_Construct_Command_Handler() As String
-            Get
-                Return ResourceManager.GetString("End_Construct_Command_Handler", resourceCulture)
-            End Get
-        End Property
-
+        
         '''<summary>
         '''  Looks up a localized string similar to Format Document.
         '''</summary>
@@ -140,7 +122,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.VBEditorResources
                 Return ResourceManager.GetString("Format_Document", resourceCulture)
             End Get
         End Property
-
+        
         '''<summary>
         '''  Looks up a localized string similar to Format on Save.
         '''</summary>
@@ -149,7 +131,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.VBEditorResources
                 Return ResourceManager.GetString("Format_on_Save", resourceCulture)
             End Get
         End Property
-
+        
         '''<summary>
         '''  Looks up a localized string similar to Format Paste.
         '''</summary>
@@ -158,7 +140,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.VBEditorResources
                 Return ResourceManager.GetString("Format_Paste", resourceCulture)
             End Get
         End Property
-
+        
         '''<summary>
         '''  Looks up a localized string similar to Formatting Document....
         '''</summary>
@@ -167,7 +149,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.VBEditorResources
                 Return ResourceManager.GetString("Formatting_Document", resourceCulture)
             End Get
         End Property
-
+        
         '''<summary>
         '''  Looks up a localized string similar to Formatting pasted text....
         '''</summary>
@@ -176,7 +158,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.VBEditorResources
                 Return ResourceManager.GetString("Formatting_pasted_text", resourceCulture)
             End Get
         End Property
-
+        
         '''<summary>
         '''  Looks up a localized string similar to Generate Member.
         '''</summary>
@@ -185,13 +167,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.VBEditorResources
                 Return ResourceManager.GetString("Generate_Member", resourceCulture)
             End Get
         End Property
-
+        
         '''<summary>
-        '''  Looks up a localized string similar to Implement Abstract Class Or Interface Command Handler.
+        '''  Looks up a localized string similar to Implement Abstract Class Or Interface.
         '''</summary>
-        Friend ReadOnly Property Implement_Abstract_Class_Or_Interface_Command_Handler() As String
+        Friend ReadOnly Property Implement_Abstract_Class_Or_Interface() As String
             Get
-                Return ResourceManager.GetString("Implement_Abstract_Class_Or_Interface_Command_Handler", resourceCulture)
+                Return ResourceManager.GetString("Implement_Abstract_Class_Or_Interface", resourceCulture)
             End Get
         End Property
         

@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         private const int MaxMRUSize = 10;
         private ImmutableArray<string> _recentItems = ImmutableArray<string>.Empty;
 
-        public string DisplayName => EditorFeaturesResources.Completion_Command_Handler;
+        public string DisplayName => EditorFeaturesResources.Code_Completion;
 
         public void MakeMostRecentItem(string item)
         {

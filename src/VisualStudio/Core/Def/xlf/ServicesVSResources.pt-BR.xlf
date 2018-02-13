@@ -1498,14 +1498,9 @@ Eu concordo com todo o conteúdo supracitado:</target>
         <target state="translated">As configurações definidas aqui se aplicam somente a seu computador. Para definir essas configurações para viajar com sua solução, use arquivos .editorconfig.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Snippet_Command_Handler">
-        <source>Snippet Command Handler</source>
-        <target state="new">Snippet Command Handler</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Sync_Class_View_Command_Handler">
-        <source>Sync Class View Command Handler</source>
-        <target state="new">Sync Class View Command Handler</target>
+      <trans-unit id="Sync_Class_View">
+        <source>Sync Class View</source>
+        <target state="new">Sync Class View</target>
         <note />
       </trans-unit>
     </body>
