@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
         [WpfFact]
         public async Task TestPreviewDiagnosticTaggerInPreviewPane()
         {
-            using (var workspace = TestWorkspace.CreateCSharp("class { }", exportProvider: EditorServicesUtil.ExportProvider))
+            using (var workspace = TestWorkspace.CreateCSharp("class { }", exportProvider: EditorServicesUtil.CreateExportProvider()))
             {
                 // set up listener to wait until diagnostic finish running
                 var diagnosticService = workspace.ExportProvider.GetExportedValue<IDiagnosticService>();
