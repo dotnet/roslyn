@@ -8,6 +8,7 @@ using System.Runtime.CompilerServices;
 
 namespace Microsoft.CodeAnalysis.Shared.TestHooks
 {
+    [Obsolete("use IAsynchronousOperationListenerProvider")]
     internal class AggregateAsynchronousOperationListener : IAsynchronousOperationListener
     {
         private readonly IAsynchronousOperationListener _listener;
