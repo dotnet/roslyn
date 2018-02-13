@@ -19,6 +19,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
 {
     public class ObjectFormatterTests : ObjectFormatterTestBase
     {
+        /// <seealso href="https://github.com/dotnet/roslyn/issues/19027">CoreCLR scripting tests loading PDBs fail after move to SDK</seealso>
+        private static readonly bool s_supportsLineNumbers = false;
+
         private static readonly ObjectFormatter s_formatter = new TestCSharpObjectFormatter();
 
         [Fact]
@@ -835,7 +838,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
             }
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19027")]
+        [Fact]
         [WorkItem(15860, "https://github.com/dotnet/roslyn/issues/15860")]
         [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
         public void StackTrace_NonGeneric()
@@ -850,15 +853,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
 
                 var expected =
 $@"{new Exception().Message}
-  + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.Fixture.Method(){string.Format(ScriptingResources.AtFileLine, filePath, 10006)}
-  + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.StackTrace_NonGeneric(){string.Format(ScriptingResources.AtFileLine, filePath, 10036)}
+  + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.Fixture.Method(){(s_supportsLineNumbers ? string.Format(ScriptingResources.AtFileLine, filePath, 10006) : "")}
+  + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.StackTrace_NonGeneric(){(s_supportsLineNumbers ? string.Format(ScriptingResources.AtFileLine, filePath, 10036) : "")}
 ";
                 var actual = s_formatter.FormatException(e);
                 Assert.Equal(expected, actual);
             }
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19027")]
+        [Fact]
         [WorkItem(15860, "https://github.com/dotnet/roslyn/issues/15860")]
         [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
         public void StackTrace_GenericMethod()
@@ -874,15 +877,15 @@ $@"{new Exception().Message}
                 // TODO (DevDiv #173210): Should show Fixture.Method<char>
                 var expected =
 $@"{new Exception().Message}
-  + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.Fixture.Method<U>(){string.Format(ScriptingResources.AtFileLine, filePath, 10012)}
-  + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.StackTrace_GenericMethod(){string.Format(ScriptingResources.AtFileLine, filePath, 10057)}
+  + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.Fixture.Method<U>(){(s_supportsLineNumbers ? string.Format(ScriptingResources.AtFileLine, filePath, 10012) : "")}
+  + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.StackTrace_GenericMethod(){(s_supportsLineNumbers ? string.Format(ScriptingResources.AtFileLine, filePath, 10057) : "")}
 ";
                 var actual = s_formatter.FormatException(e);
                 Assert.Equal(expected, actual);
             }
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19027")]
+        [Fact]
         [WorkItem(15860, "https://github.com/dotnet/roslyn/issues/15860")]
         [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
         public void StackTrace_GenericType()
@@ -898,15 +901,15 @@ $@"{new Exception().Message}
                 // TODO (DevDiv #173210): Should show Fixture<int>.Method
                 var expected =
 $@"{new Exception().Message}
-  + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.Fixture<T>.Method(){string.Format(ScriptingResources.AtFileLine, filePath, 10021)}
-  + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.StackTrace_GenericType(){string.Format(ScriptingResources.AtFileLine, filePath, 10079)}
+  + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.Fixture<T>.Method(){(s_supportsLineNumbers ? string.Format(ScriptingResources.AtFileLine, filePath, 10021) : "")}
+  + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.StackTrace_GenericType(){(s_supportsLineNumbers ? string.Format(ScriptingResources.AtFileLine, filePath, 10079) : "")}
 ";
                 var actual = s_formatter.FormatException(e);
                 Assert.Equal(expected, actual);
             }
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19027")]
+        [Fact]
         [WorkItem(15860, "https://github.com/dotnet/roslyn/issues/15860")]
         [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
         public void StackTrace_GenericMethodInGenericType()
@@ -922,8 +925,8 @@ $@"{new Exception().Message}
                 // TODO (DevDiv #173210): Should show Fixture<int>.Method<char>
                 var expected =
 $@"{new Exception().Message}
-  + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.Fixture<T>.Method<U>(){string.Format(ScriptingResources.AtFileLine, filePath, 10027)}
-  + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.StackTrace_GenericMethodInGenericType(){string.Format(ScriptingResources.AtFileLine, filePath, 10101)}
+  + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.Fixture<T>.Method<U>(){(s_supportsLineNumbers ? string.Format(ScriptingResources.AtFileLine, filePath, 10027) : "")}
+  + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.StackTrace_GenericMethodInGenericType(){(s_supportsLineNumbers ? string.Format(ScriptingResources.AtFileLine, filePath, 10101) : "")}
 ";
                 var actual = s_formatter.FormatException(e);
                 Assert.Equal(expected, actual);
@@ -939,7 +942,8 @@ $@"{new Exception().Message}
             }
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/9221"), WorkItem(9221, "https://github.com/dotnet/roslyn/issues/9221")]
+        [Fact]
+        [WorkItem(9221, "https://github.com/dotnet/roslyn/issues/9221")]
         [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
         public void StackTrace_Dynamic()
         {
@@ -955,8 +959,8 @@ $@"{new Exception().Message}
                 var expected =
 $@"'object' does not contain a definition for 'x'
   + System.Dynamic.UpdateDelegates.UpdateAndExecuteVoid1<T0>(System.Runtime.CompilerServices.CallSite, T0)
-  + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.Fixture2.MethodDynamic(){string.Format(ScriptingResources.AtFileLine, filePath, 10123)}
-  + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.StackTrace_Dynamic(){string.Format(ScriptingResources.AtFileLine, filePath, 10132)}
+  + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.Fixture2.MethodDynamic(){(s_supportsLineNumbers ? string.Format(ScriptingResources.AtFileLine, filePath, 10123) : "")}
+  + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.StackTrace_Dynamic(){(s_supportsLineNumbers ? string.Format(ScriptingResources.AtFileLine, filePath, 10132) : "")}
 ";
                 var actual = s_formatter.FormatException(e);
                 Assert.Equal(expected, actual);
@@ -978,7 +982,7 @@ $@"'object' does not contain a definition for 'x'
             }
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19027")]
+        [Fact]
         [WorkItem(15860, "https://github.com/dotnet/roslyn/issues/15860")]
         [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
         public void StackTrace_RefOutParameters()
@@ -995,15 +999,15 @@ $@"'object' does not contain a definition for 'x'
 
                 var expected =
 $@"{new Exception().Message}
-  + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.ParametersFixture.Method(ref char, out System.DateTime){string.Format(ScriptingResources.AtFileLine, filePath, 10155)}
-  + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.StackTrace_RefOutParameters(){string.Format(ScriptingResources.AtFileLine, filePath, 10172)}
+  + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.ParametersFixture.Method(ref char, out System.DateTime){(s_supportsLineNumbers ? string.Format(ScriptingResources.AtFileLine, filePath, 10155) : "")}
+  + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.StackTrace_RefOutParameters(){(s_supportsLineNumbers ? string.Format(ScriptingResources.AtFileLine, filePath, 10172) : "")}
 ";
                 var actual = s_formatter.FormatException(e);
                 Assert.Equal(expected, actual);
             }
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19027")]
+        [Fact]
         [WorkItem(15860, "https://github.com/dotnet/roslyn/issues/15860")]
         [WorkItem(19027, "https://github.com/dotnet/roslyn/issues/19027")]
         public void StackTrace_GenericRefParameter()
@@ -1020,8 +1024,8 @@ $@"{new Exception().Message}
                 // TODO (DevDiv #173210): Should show ParametersFixture.Method<char>(ref char)
                 var expected =
 $@"{new Exception().Message}
-  + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.ParametersFixture.Method<U>(ref U){string.Format(ScriptingResources.AtFileLine, filePath, 10161)}
-  + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.StackTrace_GenericRefParameter(){string.Format(ScriptingResources.AtFileLine, filePath, 10194)}
+  + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.ParametersFixture.Method<U>(ref U){(s_supportsLineNumbers ? string.Format(ScriptingResources.AtFileLine, filePath, 10161) : "")}
+  + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.StackTrace_GenericRefParameter(){(s_supportsLineNumbers ? string.Format(ScriptingResources.AtFileLine, filePath, 10194) : "")}
 ";
                 var actual = s_formatter.FormatException(e);
                 Assert.Equal(expected, actual);
