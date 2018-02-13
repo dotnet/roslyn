@@ -134,21 +134,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
                     return true;
                 }
             }
-            else if (typeName.Parent is ForEachStatementSyntax foreachStatement)
+            else if (typeName.Parent is ForEachStatementSyntax foreachStatement &&
+                IsExpressionSameAfterVarConversion(foreachStatement.Expression, semanticModel, cancellationToken))
             {
-                if (IsExpressionSameAfterVarConversion(foreachStatement.Expression, semanticModel, cancellationToken))
+                var foreachStatementInfo = semanticModel.GetForEachStatementInfo(foreachStatement);
+                if (foreachStatementInfo.ElementConversion.IsIdentityOrImplicitReference())
                 {
-                    var foreachStatementInfo = semanticModel.GetForEachStatementInfo(foreachStatement);
-                    if (foreachStatementInfo.ElementConversion.IsIdentityOrImplicitReference())
-                    {
-                        issueSpan = candidateIssueSpan;
-                        return true;
-                    }
-                }
-                else
-                {
-                    issueSpan = default;
-                    return false;
+                    issueSpan = candidateIssueSpan;
+                    return true;
                 }
             }
             else if (typeName.Parent is DeclarationExpressionSyntax declarationExpression &&
@@ -265,7 +258,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
             return declaredType.Equals(initializerType);
         }
 
-        private bool IsExpressionSameAfterVarConversion(
+        private static bool IsExpressionSameAfterVarConversion(
             ExpressionSyntax expression,
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
