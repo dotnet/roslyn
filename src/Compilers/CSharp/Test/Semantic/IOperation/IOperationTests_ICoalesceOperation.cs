@@ -43,11 +43,11 @@ ICoalesceOperation (OperationKind.Coalesce, Type: System.Int32) (Syntax: 'input 
 ");
 
             string expectedGraph = @"
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-Block[1] - Block
-    Predecessors: [0]
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
     Statements (2)
         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'result')
           Value: 
@@ -57,14 +57,14 @@ Block[1] - Block
           Value: 
             IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'input')
 
-    Jump if True (Regular) to Block[3]
+    Jump if True (Regular) to Block[B3]
         IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'input')
           Operand: 
             IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'input')
 
-    Next (Regular) Block[2]
-Block[2] - Block
-    Predecessors: [1]
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input')
           Value: 
@@ -73,17 +73,17 @@ Block[2] - Block
                 IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'input')
               Arguments(0)
 
-    Next (Regular) Block[4]
-Block[3] - Block
-    Predecessors: [1]
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'alternative')
           Value: 
             IParameterReferenceOperation: alternative (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'alternative')
 
-    Next (Regular) Block[4]
-Block[4] - Block
-    Predecessors: [2] [3]
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
     Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = in ... lternative;')
           Expression: 
@@ -93,9 +93,9 @@ Block[4] - Block
               Right: 
                 IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'input ?? alternative')
 
-    Next (Regular) Block[5]
-Block[5] - Exit
-    Predecessors: [4]
+    Next (Regular) Block[B5]
+Block[B5] - Exit
+    Predecessors: [B4]
     Statements (0)
 ";
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
@@ -133,11 +133,11 @@ ICoalesceOperation (OperationKind.Coalesce, Type: System.Int64) (Syntax: 'input 
 ");
 
             string expectedGraph = @"
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-Block[1] - Block
-    Predecessors: [0]
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
     Statements (2)
         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'result')
           Value: 
@@ -147,14 +147,14 @@ Block[1] - Block
           Value: 
             IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'input')
 
-    Jump if True (Regular) to Block[3]
+    Jump if True (Regular) to Block[B3]
         IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'input')
           Operand: 
             IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'input')
 
-    Next (Regular) Block[2]
-Block[2] - Block
-    Predecessors: [1]
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input')
           Value: 
@@ -167,17 +167,17 @@ Block[2] - Block
                     IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'input')
                   Arguments(0)
 
-    Next (Regular) Block[4]
-Block[3] - Block
-    Predecessors: [1]
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'alternative')
           Value: 
             IParameterReferenceOperation: alternative (OperationKind.ParameterReference, Type: System.Int64) (Syntax: 'alternative')
 
-    Next (Regular) Block[4]
-Block[4] - Block
-    Predecessors: [2] [3]
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
     Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = in ... lternative;')
           Expression: 
@@ -187,9 +187,9 @@ Block[4] - Block
               Right: 
                 IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int64, IsImplicit) (Syntax: 'input ?? alternative')
 
-    Next (Regular) Block[5]
-Block[5] - Exit
-    Predecessors: [4]
+    Next (Regular) Block[B5]
+Block[B5] - Exit
+    Predecessors: [B4]
     Statements (0)
 ";
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
@@ -227,11 +227,11 @@ ICoalesceOperation (OperationKind.Coalesce, Type: System.Int64?) (Syntax: 'input
 ");
 
             string expectedGraph = @"
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-Block[1] - Block
-    Predecessors: [0]
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
     Statements (2)
         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'result')
           Value: 
@@ -241,14 +241,14 @@ Block[1] - Block
           Value: 
             IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'input')
 
-    Jump if True (Regular) to Block[3]
+    Jump if True (Regular) to Block[B3]
         IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'input')
           Operand: 
             IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'input')
 
-    Next (Regular) Block[2]
-Block[2] - Block
-    Predecessors: [1]
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input')
           Value: 
@@ -261,17 +261,17 @@ Block[2] - Block
                     IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'input')
                   Arguments(0)
 
-    Next (Regular) Block[4]
-Block[3] - Block
-    Predecessors: [1]
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'alternative')
           Value: 
             IParameterReferenceOperation: alternative (OperationKind.ParameterReference, Type: System.Int64?) (Syntax: 'alternative')
 
-    Next (Regular) Block[4]
-Block[4] - Block
-    Predecessors: [2] [3]
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
     Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = in ... lternative;')
           Expression: 
@@ -281,9 +281,9 @@ Block[4] - Block
               Right: 
                 IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int64?, IsImplicit) (Syntax: 'input ?? alternative')
 
-    Next (Regular) Block[5]
-Block[5] - Exit
-    Predecessors: [4]
+    Next (Regular) Block[B5]
+Block[B5] - Exit
+    Predecessors: [B4]
     Statements (0)
 ";
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
@@ -321,11 +321,11 @@ ICoalesceOperation (OperationKind.Coalesce, Type: System.Object) (Syntax: 'input
 ");
 
             string expectedGraph = @"
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-Block[1] - Block
-    Predecessors: [0]
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
     Statements (2)
         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'result')
           Value: 
@@ -335,14 +335,14 @@ Block[1] - Block
           Value: 
             IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.String) (Syntax: 'input')
 
-    Jump if True (Regular) to Block[3]
+    Jump if True (Regular) to Block[B3]
         IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'input')
           Operand: 
             IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'input')
 
-    Next (Regular) Block[2]
-Block[2] - Block
-    Predecessors: [1]
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input')
           Value: 
@@ -352,17 +352,17 @@ Block[2] - Block
               Operand: 
                 IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'input')
 
-    Next (Regular) Block[4]
-Block[3] - Block
-    Predecessors: [1]
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'alternative')
           Value: 
             IParameterReferenceOperation: alternative (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'alternative')
 
-    Next (Regular) Block[4]
-Block[4] - Block
-    Predecessors: [2] [3]
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
     Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = in ... lternative;')
           Expression: 
@@ -372,9 +372,9 @@ Block[4] - Block
               Right: 
                 IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'input ?? alternative')
 
-    Next (Regular) Block[5]
-Block[5] - Exit
-    Predecessors: [4]
+    Next (Regular) Block[B5]
+Block[B5] - Exit
+    Predecessors: [B4]
     Statements (0)
 ";
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
@@ -416,11 +416,11 @@ ICoalesceOperation (OperationKind.Coalesce, Type: ?, IsInvalid) (Syntax: 'input 
 ");
 
             string expectedGraph = @"
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-Block[1] - Block
-    Predecessors: [0]
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
     Statements (2)
         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'result')
           Value: 
@@ -430,14 +430,14 @@ Block[1] - Block
           Value: 
             IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.Int32?, IsInvalid) (Syntax: 'input')
 
-    Jump if True (Regular) to Block[3]
+    Jump if True (Regular) to Block[B3]
         IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'input')
           Operand: 
             IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsInvalid, IsImplicit) (Syntax: 'input')
 
-    Next (Regular) Block[2]
-Block[2] - Block
-    Predecessors: [1]
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'input')
           Value: 
@@ -445,17 +445,17 @@ Block[2] - Block
               Children(1):
                   IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsInvalid, IsImplicit) (Syntax: 'input')
 
-    Next (Regular) Block[4]
-Block[3] - Block
-    Predecessors: [1]
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'alternative')
           Value: 
             IParameterReferenceOperation: alternative (OperationKind.ParameterReference, Type: System.DateTime, IsInvalid) (Syntax: 'alternative')
 
-    Next (Regular) Block[4]
-Block[4] - Block
-    Predecessors: [2] [3]
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
     Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'result = in ... lternative;')
           Expression: 
@@ -469,9 +469,9 @@ Block[4] - Block
                   Operand: 
                     IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: ?, IsInvalid, IsImplicit) (Syntax: 'input ?? alternative')
 
-    Next (Regular) Block[5]
-Block[5] - Exit
-    Predecessors: [4]
+    Next (Regular) Block[B5]
+Block[B5] - Exit
+    Predecessors: [B4]
     Statements (0)
 ";
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
@@ -509,11 +509,11 @@ ICoalesceOperation (OperationKind.Coalesce, Type: dynamic) (Syntax: 'input ?? al
 ");
 
             string expectedGraph = @"
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-Block[1] - Block
-    Predecessors: [0]
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
     Statements (2)
         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'result')
           Value: 
@@ -523,14 +523,14 @@ Block[1] - Block
           Value: 
             IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'input')
 
-    Jump if True (Regular) to Block[3]
+    Jump if True (Regular) to Block[B3]
         IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'input')
           Operand: 
             IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'input')
 
-    Next (Regular) Block[2]
-Block[2] - Block
-    Predecessors: [1]
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input')
           Value: 
@@ -543,17 +543,17 @@ Block[2] - Block
                     IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'input')
                   Arguments(0)
 
-    Next (Regular) Block[4]
-Block[3] - Block
-    Predecessors: [1]
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'alternative')
           Value: 
             IParameterReferenceOperation: alternative (OperationKind.ParameterReference, Type: dynamic) (Syntax: 'alternative')
 
-    Next (Regular) Block[4]
-Block[4] - Block
-    Predecessors: [2] [3]
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
     Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = in ... lternative;')
           Expression: 
@@ -563,9 +563,9 @@ Block[4] - Block
               Right: 
                 IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: dynamic, IsImplicit) (Syntax: 'input ?? alternative')
 
-    Next (Regular) Block[5]
-Block[5] - Exit
-    Predecessors: [4]
+    Next (Regular) Block[B5]
+Block[B5] - Exit
+    Predecessors: [B4]
     Statements (0)
 ";
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
@@ -603,11 +603,11 @@ ICoalesceOperation (OperationKind.Coalesce, Type: dynamic) (Syntax: 'null ?? alt
 ");
 
             string expectedGraph = @"
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-Block[1] - Block
-    Predecessors: [0]
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
     Statements (2)
         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'result')
           Value: 
@@ -617,14 +617,14 @@ Block[1] - Block
           Value: 
             ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
 
-    Jump if True (Regular) to Block[3]
+    Jump if True (Regular) to Block[B3]
         IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, Constant: True, IsImplicit) (Syntax: 'null')
           Operand: 
             IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: null, Constant: null, IsImplicit) (Syntax: 'null')
 
-    Next (Regular) Block[2]
-Block[2] - Block
-    Predecessors: [1]
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'null')
           Value: 
@@ -634,17 +634,17 @@ Block[2] - Block
               Operand: 
                 IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: null, Constant: null, IsImplicit) (Syntax: 'null')
 
-    Next (Regular) Block[4]
-Block[3] - Block
-    Predecessors: [1]
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'alternative')
           Value: 
             IParameterReferenceOperation: alternative (OperationKind.ParameterReference, Type: dynamic) (Syntax: 'alternative')
 
-    Next (Regular) Block[4]
-Block[4] - Block
-    Predecessors: [2] [3]
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
     Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = nu ... lternative;')
           Expression: 
@@ -654,9 +654,9 @@ Block[4] - Block
               Right: 
                 IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: dynamic, IsImplicit) (Syntax: 'null ?? alternative')
 
-    Next (Regular) Block[5]
-Block[5] - Exit
-    Predecessors: [4]
+    Next (Regular) Block[B5]
+Block[B5] - Exit
+    Predecessors: [B4]
     Statements (0)
 ";
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
@@ -698,11 +698,11 @@ ICoalesceOperation (OperationKind.Coalesce, Type: ?, IsInvalid) (Syntax: 'null ?
 ");
 
             string expectedGraph = @"
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-Block[1] - Block
-    Predecessors: [0]
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
     Statements (2)
         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'result')
           Value: 
@@ -712,14 +712,14 @@ Block[1] - Block
           Value: 
             ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
 
-    Jump if True (Regular) to Block[3]
+    Jump if True (Regular) to Block[B3]
         IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, Constant: True, IsInvalid, IsImplicit) (Syntax: 'null')
           Operand: 
             IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: null, Constant: null, IsInvalid, IsImplicit) (Syntax: 'null')
 
-    Next (Regular) Block[2]
-Block[2] - Block
-    Predecessors: [1]
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'null')
           Value: 
@@ -727,17 +727,17 @@ Block[2] - Block
               Children(1):
                   IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: null, Constant: null, IsInvalid, IsImplicit) (Syntax: 'null')
 
-    Next (Regular) Block[4]
-Block[3] - Block
-    Predecessors: [1]
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'alternative')
           Value: 
             IParameterReferenceOperation: alternative (OperationKind.ParameterReference, Type: System.Int32, IsInvalid) (Syntax: 'alternative')
 
-    Next (Regular) Block[4]
-Block[4] - Block
-    Predecessors: [2] [3]
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
     Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'result = nu ... lternative;')
           Expression: 
@@ -751,9 +751,9 @@ Block[4] - Block
                   Operand: 
                     IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: ?, IsInvalid, IsImplicit) (Syntax: 'null ?? alternative')
 
-    Next (Regular) Block[5]
-Block[5] - Exit
-    Predecessors: [4]
+    Next (Regular) Block[B5]
+Block[B5] - Exit
+    Predecessors: [B4]
     Statements (0)
 ";
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
@@ -791,11 +791,11 @@ ICoalesceOperation (OperationKind.Coalesce, Type: System.Int32?) (Syntax: 'null 
 ");
 
             string expectedGraph = @"
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-Block[1] - Block
-    Predecessors: [0]
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
     Statements (2)
         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'result')
           Value: 
@@ -805,14 +805,14 @@ Block[1] - Block
           Value: 
             ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
 
-    Jump if True (Regular) to Block[3]
+    Jump if True (Regular) to Block[B3]
         IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, Constant: True, IsImplicit) (Syntax: 'null')
           Operand: 
             IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: null, Constant: null, IsImplicit) (Syntax: 'null')
 
-    Next (Regular) Block[2]
-Block[2] - Block
-    Predecessors: [1]
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'null')
           Value: 
@@ -822,17 +822,17 @@ Block[2] - Block
               Operand: 
                 IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: null, Constant: null, IsImplicit) (Syntax: 'null')
 
-    Next (Regular) Block[4]
-Block[3] - Block
-    Predecessors: [1]
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'alternative')
           Value: 
             IParameterReferenceOperation: alternative (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'alternative')
 
-    Next (Regular) Block[4]
-Block[4] - Block
-    Predecessors: [2] [3]
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
     Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = nu ... lternative;')
           Expression: 
@@ -842,9 +842,9 @@ Block[4] - Block
               Right: 
                 IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'null ?? alternative')
 
-    Next (Regular) Block[5]
-Block[5] - Exit
-    Predecessors: [4]
+    Next (Regular) Block[B5]
+Block[B5] - Exit
+    Predecessors: [B4]
     Statements (0)
 ";
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
@@ -885,11 +885,11 @@ ICoalesceOperation (OperationKind.Coalesce, Type: System.Int32?) (Syntax: 'input
 ");
 
             string expectedGraph = @"
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-Block[1] - Block
-    Predecessors: [0]
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
     Statements (2)
         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'result')
           Value: 
@@ -899,22 +899,22 @@ Block[1] - Block
           Value: 
             IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'input')
 
-    Jump if True (Regular) to Block[3]
+    Jump if True (Regular) to Block[B3]
         IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'input')
           Operand: 
             IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'input')
 
-    Next (Regular) Block[2]
-Block[2] - Block
-    Predecessors: [1]
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input')
           Value: 
             IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'input')
 
-    Next (Regular) Block[4]
-Block[3] - Block
-    Predecessors: [1]
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'alternative')
           Value: 
@@ -924,9 +924,9 @@ Block[3] - Block
               Operand: 
                 IParameterReferenceOperation: alternative (OperationKind.ParameterReference, Type: System.Byte?) (Syntax: 'alternative')
 
-    Next (Regular) Block[4]
-Block[4] - Block
-    Predecessors: [2] [3]
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
     Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = in ... lternative;')
           Expression: 
@@ -936,9 +936,9 @@ Block[4] - Block
               Right: 
                 IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'input ?? alternative')
 
-    Next (Regular) Block[5]
-Block[5] - Exit
-    Predecessors: [4]
+    Next (Regular) Block[B5]
+Block[B5] - Exit
+    Predecessors: [B4]
     Statements (0)
 ";
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
@@ -976,11 +976,11 @@ ICoalesceOperation (OperationKind.Coalesce, Type: System.Int32?) (Syntax: 'input
 ");
 
             string expectedGraph = @"
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-Block[1] - Block
-    Predecessors: [0]
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
     Statements (2)
         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'result')
           Value: 
@@ -990,30 +990,30 @@ Block[1] - Block
           Value: 
             IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'input')
 
-    Jump if True (Regular) to Block[3]
+    Jump if True (Regular) to Block[B3]
         IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'input')
           Operand: 
             IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'input')
 
-    Next (Regular) Block[2]
-Block[2] - Block
-    Predecessors: [1]
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input')
           Value: 
             IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'input')
 
-    Next (Regular) Block[4]
-Block[3] - Block
-    Predecessors: [1]
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'alternative')
           Value: 
             IParameterReferenceOperation: alternative (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'alternative')
 
-    Next (Regular) Block[4]
-Block[4] - Block
-    Predecessors: [2] [3]
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
     Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = in ... lternative;')
           Expression: 
@@ -1023,9 +1023,9 @@ Block[4] - Block
               Right: 
                 IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'input ?? alternative')
 
-    Next (Regular) Block[5]
-Block[5] - Exit
-    Predecessors: [4]
+    Next (Regular) Block[B5]
+Block[B5] - Exit
+    Predecessors: [B4]
     Statements (0)
 ";
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
@@ -1049,11 +1049,11 @@ class C
             compilation.VerifyDiagnostics();
 
             string expectedGraph = @"
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-Block[1] - Block
-    Predecessors: [0]
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
     Statements (2)
         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'result')
           Value: 
@@ -1063,76 +1063,76 @@ Block[1] - Block
           Value: 
             IParameterReferenceOperation: input1 (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'input1')
 
-    Jump if True (Regular) to Block[3]
+    Jump if True (Regular) to Block[B3]
         IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'input1')
           Operand: 
             IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'input1')
 
-    Next (Regular) Block[2]
-Block[2] - Block
-    Predecessors: [1]
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input1')
           Value: 
             IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'input1')
 
-    Next (Regular) Block[4]
-Block[3] - Block
-    Predecessors: [1]
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'alternative1')
           Value: 
             IParameterReferenceOperation: alternative1 (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'alternative1')
 
-    Next (Regular) Block[4]
-Block[4] - Block
-    Predecessors: [2] [3]
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
     Statements (0)
-    Jump if True (Regular) to Block[6]
+    Jump if True (Regular) to Block[B6]
         IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'input1 ?? alternative1')
           Operand: 
             IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'input1 ?? alternative1')
 
-    Next (Regular) Block[5]
-Block[5] - Block
-    Predecessors: [4]
+    Next (Regular) Block[B5]
+Block[B5] - Block
+    Predecessors: [B4]
     Statements (1)
         IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input1 ?? alternative1')
           Value: 
             IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'input1 ?? alternative1')
 
-    Next (Regular) Block[9]
-Block[6] - Block
-    Predecessors: [4]
+    Next (Regular) Block[B9]
+Block[B6] - Block
+    Predecessors: [B4]
     Statements (1)
         IFlowCaptureOperation: 4 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input2')
           Value: 
             IParameterReferenceOperation: input2 (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'input2')
 
-    Jump if True (Regular) to Block[8]
+    Jump if True (Regular) to Block[B8]
         IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'input2')
           Operand: 
             IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'input2')
 
-    Next (Regular) Block[7]
-Block[7] - Block
-    Predecessors: [6]
+    Next (Regular) Block[B7]
+Block[B7] - Block
+    Predecessors: [B6]
     Statements (1)
         IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input2')
           Value: 
             IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'input2')
 
-    Next (Regular) Block[9]
-Block[8] - Block
-    Predecessors: [6]
+    Next (Regular) Block[B9]
+Block[B8] - Block
+    Predecessors: [B6]
     Statements (1)
         IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'alternative2')
           Value: 
             IParameterReferenceOperation: alternative2 (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'alternative2')
 
-    Next (Regular) Block[9]
-Block[9] - Block
-    Predecessors: [5] [7] [8]
+    Next (Regular) Block[B9]
+Block[B9] - Block
+    Predecessors: [B5] [B7] [B8]
     Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = (i ... ernative2);')
           Expression: 
@@ -1142,9 +1142,9 @@ Block[9] - Block
               Right: 
                 IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: '(input1 ??  ... ternative2)')
 
-    Next (Regular) Block[10]
-Block[10] - Exit
-    Predecessors: [9]
+    Next (Regular) Block[B10]
+Block[B10] - Exit
+    Predecessors: [B9]
     Statements (0)
 ";
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
@@ -1170,11 +1170,11 @@ class C
             compilation.VerifyDiagnostics();
 
             string expectedGraph = @"
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-Block[1] - Block
-    Predecessors: [0]
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
     Statements (2)
         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'result')
           Value: 
@@ -1186,14 +1186,14 @@ Block[1] - Block
               Instance Receiver: 
                 null
 
-    Jump if True (Regular) to Block[3]
+    Jump if True (Regular) to Block[B3]
         IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, Constant: False, IsImplicit) (Syntax: 'input')
           Operand: 
             IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.String, Constant: ""a"", IsImplicit) (Syntax: 'input')
 
-    Next (Regular) Block[2]
-Block[2] - Block
-    Predecessors: [1]
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input')
           Value: 
@@ -1203,17 +1203,17 @@ Block[2] - Block
               Operand: 
                 IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.String, Constant: ""a"", IsImplicit) (Syntax: 'input')
 
-    Next (Regular) Block[4]
-Block[3] - Block
-    Predecessors: [1]
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'alternative')
           Value: 
             IParameterReferenceOperation: alternative (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'alternative')
 
-    Next (Regular) Block[4]
-Block[4] - Block
-    Predecessors: [2] [3]
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
     Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = in ... lternative;')
           Expression: 
@@ -1223,9 +1223,9 @@ Block[4] - Block
               Right: 
                 IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'input ?? alternative')
 
-    Next (Regular) Block[5]
-Block[5] - Exit
-    Predecessors: [4]
+    Next (Regular) Block[B5]
+Block[B5] - Exit
+    Predecessors: [B4]
     Statements (0)
 ";
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);

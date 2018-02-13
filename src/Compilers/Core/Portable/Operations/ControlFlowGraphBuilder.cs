@@ -70,14 +70,14 @@ namespace Microsoft.CodeAnalysis.Operations
 
             foreach (BasicBlock b in blocks)
             {
-                CalculateBranchLeaveEnterLists(ref b.InternalConditional.Branch, b);
-                CalculateBranchLeaveEnterLists(ref b.InternalNext, b);
+                calculateBranchLeaveEnterLists(ref b.InternalConditional.Branch, b);
+                calculateBranchLeaveEnterLists(ref b.InternalNext, b);
             }
 
             builder.Free();
             return;
 
-            void CalculateBranchLeaveEnterLists(ref BasicBlock.Branch branch, BasicBlock source)
+            void calculateBranchLeaveEnterLists(ref BasicBlock.Branch branch, BasicBlock source)
             {
                 if (branch.Destination == null)
                 {
@@ -351,79 +351,9 @@ namespace Microsoft.CodeAnalysis.Operations
                             fromCurrent?.Clear();
                             fromDestination?.Clear();
 
-                            if (!checkBranchesFromPredecessors())
+                            if (!checkBranchesFromPredecessors(block, currentRegion, destinationRegion))
                             {
                                 continue;
-                            }
-
-                            bool checkBranchesFromPredecessors()
-                            {
-                                foreach (BasicBlock predecessor in block.Predecessors)
-                                {
-                                    RegionBuilder predecessorRegion = regionMap[predecessor];
-
-                                    // If source and destination are in different regions, it might
-                                    // be unsafe to merge branches.
-                                    if (predecessorRegion != currentRegion)
-                                    {
-                                        fromPredecessor?.Clear();
-                                        collectAncestorsAndSelf(currentRegion, ref fromCurrent);
-                                        collectAncestorsAndSelf(destinationRegion, ref fromDestination);
-                                        collectAncestorsAndSelf(predecessorRegion, ref fromPredecessor);
-
-                                        // On the way from predecessor directly to the destination, are we going leave the same regions as on the way
-                                        // from predecessor to the current block and then to the destination?
-                                        int lastLeftRegionOnTheWayFromCurrentToDestination = getIndexOfLastLeftRegion(fromCurrent, fromDestination);
-                                        int lastLeftRegionOnTheWayFromPredecessorToDestination = getIndexOfLastLeftRegion(fromPredecessor, fromDestination);
-                                        int lastLeftRegionOnTheWayFromPredecessorToCurrentBlock = getIndexOfLastLeftRegion(fromPredecessor, fromCurrent);
-
-                                        // Since we are navigating up and down the tree and only movements up are significant, if we made the same number 
-                                        // of movements up during direct and indirect transition, we must have made the same movements up.
-                                        if ((fromPredecessor.Count - lastLeftRegionOnTheWayFromPredecessorToCurrentBlock +
-                                            fromCurrent.Count - lastLeftRegionOnTheWayFromCurrentToDestination) !=
-                                            (fromPredecessor.Count - lastLeftRegionOnTheWayFromPredecessorToDestination))
-                                        {
-                                            // We have different transitions 
-                                            return false;
-                                        }
-                                    }
-                                }
-
-                                return true;
-                            }
-
-                            void collectAncestorsAndSelf(RegionBuilder from, ref ArrayBuilder<RegionBuilder> builder)
-                            {
-                                if (builder == null)
-                                {
-                                    builder = ArrayBuilder<RegionBuilder>.GetInstance();
-                                }
-                                else if (builder.Count != 0)
-                                {
-                                    return;
-                                }
-
-                                do
-                                {
-                                    builder.Add(from);
-                                    from = from.Enclosing;
-                                }
-                                while (from != null);
-
-                                builder.ReverseContents();
-                            }
-
-                            // Can return index beyond bounds of "from" when no regions will be left.
-                            int getIndexOfLastLeftRegion(ArrayBuilder<RegionBuilder> from, ArrayBuilder<RegionBuilder> to)
-                            {
-                                int mismatch = 0;
-
-                                while (mismatch < from.Count && mismatch < to.Count && from[mismatch] == to[mismatch])
-                                {
-                                    mismatch++;
-                                }
-
-                                return mismatch;
                             }
                         }
 
@@ -539,6 +469,76 @@ namespace Microsoft.CodeAnalysis.Operations
                 predecessorBranch.Destination = successorBranch.Destination;
                 successorBranch.Destination.AddPredecessor(predecessor);
                 predecessorBranch.Flags |= (successorBranch.Flags & BasicBlock.BranchFlags.Error);
+            }
+
+            bool checkBranchesFromPredecessors(BasicBlock block, RegionBuilder currentRegion, RegionBuilder destinationRegion)
+            {
+                foreach (BasicBlock predecessor in block.Predecessors)
+                {
+                    RegionBuilder predecessorRegion = regionMap[predecessor];
+
+                    // If source and destination are in different regions, it might
+                    // be unsafe to merge branches.
+                    if (predecessorRegion != currentRegion)
+                    {
+                        fromPredecessor?.Clear();
+                        collectAncestorsAndSelf(currentRegion, ref fromCurrent);
+                        collectAncestorsAndSelf(destinationRegion, ref fromDestination);
+                        collectAncestorsAndSelf(predecessorRegion, ref fromPredecessor);
+
+                        // On the way from predecessor directly to the destination, are we going leave the same regions as on the way
+                        // from predecessor to the current block and then to the destination?
+                        int lastLeftRegionOnTheWayFromCurrentToDestination = getIndexOfLastLeftRegion(fromCurrent, fromDestination);
+                        int lastLeftRegionOnTheWayFromPredecessorToDestination = getIndexOfLastLeftRegion(fromPredecessor, fromDestination);
+                        int lastLeftRegionOnTheWayFromPredecessorToCurrentBlock = getIndexOfLastLeftRegion(fromPredecessor, fromCurrent);
+
+                        // Since we are navigating up and down the tree and only movements up are significant, if we made the same number 
+                        // of movements up during direct and indirect transition, we must have made the same movements up.
+                        if ((fromPredecessor.Count - lastLeftRegionOnTheWayFromPredecessorToCurrentBlock +
+                            fromCurrent.Count - lastLeftRegionOnTheWayFromCurrentToDestination) !=
+                            (fromPredecessor.Count - lastLeftRegionOnTheWayFromPredecessorToDestination))
+                        {
+                            // We have different transitions 
+                            return false;
+                        }
+                    }
+                }
+
+                return true;
+            }
+
+            void collectAncestorsAndSelf(RegionBuilder from, ref ArrayBuilder<RegionBuilder> builder)
+            {
+                if (builder == null)
+                {
+                    builder = ArrayBuilder<RegionBuilder>.GetInstance();
+                }
+                else if (builder.Count != 0)
+                {
+                    return;
+                }
+
+                do
+                {
+                    builder.Add(from);
+                    from = from.Enclosing;
+                }
+                while (from != null);
+
+                builder.ReverseContents();
+            }
+
+            // Can return index beyond bounds of "from" when no regions will be left.
+            int getIndexOfLastLeftRegion(ArrayBuilder<RegionBuilder> from, ArrayBuilder<RegionBuilder> to)
+            {
+                int mismatch = 0;
+
+                while (mismatch < from.Count && mismatch < to.Count && from[mismatch] == to[mismatch])
+                {
+                    mismatch++;
+                }
+
+                return mismatch;
             }
         }
 

@@ -974,30 +974,30 @@ class C
             compilation.VerifyDiagnostics();
 
             string expectedGraph = @"
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-        Entering: {1} {2}
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2}
 
-.try {1, 2}
+.try {R1, R2}
 {
-    Block[1] - Block
-        Predecessors: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
         Statements (0)
-        Next (Regular) Block[3]
-            Leaving: {2} {1}
+        Next (Regular) Block[B3]
+            Leaving: {R2} {R1}
 }
-.catch {3} (System.Object)
+.catch {R3} (System.Object)
 {
-    Block[2] - Block
+    Block[B2] - Block
         Predecessors (0)
         Statements (0)
-        Next (Regular) Block[3]
-            Leaving: {3} {1}
+        Next (Regular) Block[B3]
+            Leaving: {R3} {R1}
 }
 
-Block[3] - Exit
-    Predecessors: [1] [2]
+Block[B3] - Exit
+    Predecessors: [B1] [B2]
     Statements (0)
 ";
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
@@ -1024,30 +1024,30 @@ class C
             compilation.VerifyDiagnostics();
 
             string expectedGraph = @"
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-        Entering: {1} {2}
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2}
 
-.try {1, 2}
+.try {R1, R2}
 {
-    Block[1] - Block
-        Predecessors: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
         Statements (0)
-        Next (Regular) Block[3]
-            Finalizing: {3}
-            Leaving: {2} {1}
+        Next (Regular) Block[B3]
+            Finalizing: {R3}
+            Leaving: {R2} {R1}
 }
-.finally {3}
+.finally {R3}
 {
-    Block[2] - Block
+    Block[B2] - Block
         Predecessors (0)
         Statements (0)
         Next (StructuredExceptionHandling) Block[null]
 }
 
-Block[3] - Exit
-    Predecessors: [1]
+Block[B3] - Exit
+    Predecessors: [B1]
     Statements (0)
 ";
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
@@ -1108,17 +1108,17 @@ class C
             compilation.VerifyDiagnostics();
 
             string expectedGraph = @"
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-        Entering: {1} {2} {3} {4}
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2} {R3} {R4}
 
-.try {1, 2}
+.try {R1, R2}
 {
-    .try {3, 4}
+    .try {R3, R4}
     {
-        Block[1] - Block
-            Predecessors: [0]
+        Block[B1] - Block
+            Predecessors: [B0]
             Statements (1)
                 IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = -2;')
                   Expression: 
@@ -1130,14 +1130,14 @@ Block[0] - Entry
                           Operand: 
                             ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
 
-            Next (Regular) Block[12]
-                Finalizing: {17}
-                Leaving: {4} {3} {2} {1}
+            Next (Regular) Block[B12]
+                Finalizing: {R17}
+                Leaving: {R4} {R3} {R2} {R1}
     }
-    .catch {5} (Exception5)
+    .catch {R5} (Exception5)
     {
         Locals: [Exception5 e]
-        Block[2] - Block
+        Block[B2] - Block
             Predecessors (0)
             Statements (2)
                 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: '(Exception5 e)')
@@ -1154,16 +1154,16 @@ Block[0] - Entry
                       Right: 
                         ILocalReferenceOperation: e (OperationKind.LocalReference, Type: Exception5) (Syntax: 'e')
 
-            Next (Regular) Block[12]
-                Finalizing: {17}
-                Leaving: {5} {3} {2} {1}
+            Next (Regular) Block[B12]
+                Finalizing: {R17}
+                Leaving: {R5} {R3} {R2} {R1}
     }
-    .catch {6} (Exception4)
+    .catch {R6} (Exception4)
     {
         Locals: [Exception4 e]
-        .filter {7}
+        .filter {R7}
         {
-            Block[3] - Block
+            Block[B3] - Block
                 Predecessors (0)
                 Statements (1)
                     ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: '(Exception4 e)')
@@ -1172,17 +1172,17 @@ Block[0] - Entry
                       Right: 
                         ICaughtExceptionOperation (OperationKind.CaughtException, Type: Exception4, IsImplicit) (Syntax: '(Exception4 e)')
 
-                Jump if True (Regular) to Block[4]
+                Jump if True (Regular) to Block[B4]
                     IParameterReferenceOperation: filter1 (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'filter1')
-                    Leaving: {7}
-                    Entering: {8}
+                    Leaving: {R7}
+                    Entering: {R8}
 
                 Next (StructuredExceptionHandling) Block[null]
         }
-        .handler {8}
+        .handler {R8}
         {
-            Block[4] - Block
-                Predecessors: [3]
+            Block[B4] - Block
+                Predecessors: [B3]
                 Statements (1)
                     IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'e4 = e;')
                       Expression: 
@@ -1192,29 +1192,29 @@ Block[0] - Entry
                           Right: 
                             ILocalReferenceOperation: e (OperationKind.LocalReference, Type: Exception4) (Syntax: 'e')
 
-                Next (Regular) Block[12]
-                    Finalizing: {17}
-                    Leaving: {8} {6} {3} {2} {1}
+                Next (Regular) Block[B12]
+                    Finalizing: {R17}
+                    Leaving: {R8} {R6} {R3} {R2} {R1}
         }
     }
-    .catch {9} (Exception3)
+    .catch {R9} (Exception3)
     {
-        .filter {10}
+        .filter {R10}
         {
-            Block[5] - Block
+            Block[B5] - Block
                 Predecessors (0)
                 Statements (0)
-                Jump if True (Regular) to Block[6]
+                Jump if True (Regular) to Block[B6]
                     IParameterReferenceOperation: filter2 (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'filter2')
-                    Leaving: {10}
-                    Entering: {11}
+                    Leaving: {R10}
+                    Entering: {R11}
 
                 Next (StructuredExceptionHandling) Block[null]
         }
-        .handler {11}
+        .handler {R11}
         {
-            Block[6] - Block
-                Predecessors: [5]
+            Block[B6] - Block
+                Predecessors: [B5]
                 Statements (1)
                     IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = 3;')
                       Expression: 
@@ -1224,14 +1224,14 @@ Block[0] - Entry
                           Right: 
                             ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
 
-                Next (Regular) Block[12]
-                    Finalizing: {17}
-                    Leaving: {11} {9} {3} {2} {1}
+                Next (Regular) Block[B12]
+                    Finalizing: {R17}
+                    Leaving: {R11} {R9} {R3} {R2} {R1}
         }
     }
-    .catch {12} (Exception2)
+    .catch {R12} (Exception2)
     {
-        Block[7] - Block
+        Block[B7] - Block
             Predecessors (0)
             Statements (1)
                 IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = 2;')
@@ -1242,28 +1242,28 @@ Block[0] - Entry
                       Right: 
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
 
-            Next (Regular) Block[12]
-                Finalizing: {17}
-                Leaving: {12} {3} {2} {1}
+            Next (Regular) Block[B12]
+                Finalizing: {R17}
+                Leaving: {R12} {R3} {R2} {R1}
     }
-    .catch {13} (System.Object)
+    .catch {R13} (System.Object)
     {
-        .filter {14}
+        .filter {R14}
         {
-            Block[8] - Block
+            Block[B8] - Block
                 Predecessors (0)
                 Statements (0)
-                Jump if True (Regular) to Block[9]
+                Jump if True (Regular) to Block[B9]
                     IParameterReferenceOperation: filter3 (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'filter3')
-                    Leaving: {14}
-                    Entering: {15}
+                    Leaving: {R14}
+                    Entering: {R15}
 
                 Next (StructuredExceptionHandling) Block[null]
         }
-        .handler {15}
+        .handler {R15}
         {
-            Block[9] - Block
-                Predecessors: [8]
+            Block[B9] - Block
+                Predecessors: [B8]
                 Statements (1)
                     IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = 1;')
                       Expression: 
@@ -1273,14 +1273,14 @@ Block[0] - Entry
                           Right: 
                             ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 
-                Next (Regular) Block[12]
-                    Finalizing: {17}
-                    Leaving: {15} {13} {3} {2} {1}
+                Next (Regular) Block[B12]
+                    Finalizing: {R17}
+                    Leaving: {R15} {R13} {R3} {R2} {R1}
         }
     }
-    .catch {16} (System.Object)
+    .catch {R16} (System.Object)
     {
-        Block[10] - Block
+        Block[B10] - Block
             Predecessors (0)
             Statements (1)
                 IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = 0;')
@@ -1291,14 +1291,14 @@ Block[0] - Entry
                       Right: 
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
 
-            Next (Regular) Block[12]
-                Finalizing: {17}
-                Leaving: {16} {3} {2} {1}
+            Next (Regular) Block[B12]
+                Finalizing: {R17}
+                Leaving: {R16} {R3} {R2} {R1}
     }
 }
-.finally {17}
+.finally {R17}
 {
-    Block[11] - Block
+    Block[B11] - Block
         Predecessors (0)
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = -1;')
@@ -1314,8 +1314,8 @@ Block[0] - Entry
         Next (StructuredExceptionHandling) Block[null]
 }
 
-Block[12] - Exit
-    Predecessors: [1] [2] [4] [6] [7] [9] [10]
+Block[B12] - Exit
+    Predecessors: [B1] [B2] [B4] [B6] [B7] [B9] [B10]
     Statements (0)
 ";
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
@@ -1348,11 +1348,11 @@ class C
             compilation.VerifyDiagnostics();
 
             string expectedGraph = @"
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-Block[1] - Block
-    Predecessors: [0]
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
     Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = 1;')
           Expression: 
@@ -1362,22 +1362,22 @@ Block[1] - Block
               Right: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 
-    Next (Regular) Block[2]
-        Entering: {1} {2}
+    Next (Regular) Block[B2]
+        Entering: {R1} {R2}
 
-.try {1, 2}
+.try {R1, R2}
 {
-    Block[2] - Block
-        Predecessors: [1]
+    Block[B2] - Block
+        Predecessors: [B1]
         Statements (0)
-        Jump if False (Regular) to Block[5]
+        Jump if False (Regular) to Block[B5]
             IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'input')
-            Finalizing: {3}
-            Leaving: {2} {1}
+            Finalizing: {R3}
+            Leaving: {R2} {R1}
 
-        Next (Regular) Block[3]
-    Block[3] - Block
-        Predecessors: [2]
+        Next (Regular) Block[B3]
+    Block[B3] - Block
+        Predecessors: [B2]
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'input = false;')
               Expression: 
@@ -1387,13 +1387,13 @@ Block[1] - Block
                   Right: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
 
-        Next (Regular) Block[5]
-            Finalizing: {3}
-            Leaving: {2} {1}
+        Next (Regular) Block[B5]
+            Finalizing: {R3}
+            Leaving: {R2} {R1}
 }
-.finally {3}
+.finally {R3}
 {
-    Block[4] - Block
+    Block[B4] - Block
         Predecessors (0)
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = 0;')
@@ -1407,8 +1407,8 @@ Block[1] - Block
         Next (StructuredExceptionHandling) Block[null]
 }
 
-Block[5] - Exit
-    Predecessors: [2] [3]
+Block[B5] - Exit
+    Predecessors: [B2] [B3]
     Statements (0)
 ";
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
@@ -1441,30 +1441,30 @@ class C
             compilation.VerifyDiagnostics();
 
             string expectedGraph = @"
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-        Entering: {1} {2}
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2}
 
-.try {1, 2}
+.try {R1, R2}
 {
-    Block[1] - Block
-        Predecessors: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
         Statements (0)
-        Next (Regular) Block[3]
-            Leaving: {2} {1}
+        Next (Regular) Block[B3]
+            Leaving: {R2} {R1}
 }
-.catch {3} (System.Object)
+.catch {R3} (System.Object)
 {
-    Block[2] - Block
+    Block[B2] - Block
         Predecessors (0)
         Statements (0)
-        Next (Regular) Block[3]
-            Leaving: {3} {1}
+        Next (Regular) Block[B3]
+            Leaving: {R3} {R1}
 }
 
-Block[3] - Exit
-    Predecessors: [1] [2]
+Block[B3] - Exit
+    Predecessors: [B1] [B2]
     Statements (0)
 ";
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
@@ -1499,16 +1499,16 @@ class C
             compilation.VerifyDiagnostics();
 
             string expectedGraph = @"
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-        Entering: {1} {2}
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2}
 
-.try {1, 2}
+.try {R1, R2}
 {
     Locals: [System.Int32 i]
-    Block[1] - Block
-        Predecessors: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i = 1;')
               Expression: 
@@ -1518,13 +1518,13 @@ Block[0] - Entry
                   Right: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 
-        Next (Regular) Block[3]
-            Leaving: {2} {1}
+        Next (Regular) Block[B3]
+            Leaving: {R2} {R1}
 }
-.catch {3} (System.Object)
+.catch {R3} (System.Object)
 {
     Locals: [System.Int32 j]
-    Block[2] - Block
+    Block[B2] - Block
         Predecessors (0)
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'j = 2;')
@@ -1535,12 +1535,12 @@ Block[0] - Entry
                   Right: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
 
-        Next (Regular) Block[3]
-            Leaving: {3} {1}
+        Next (Regular) Block[B3]
+            Leaving: {R3} {R1}
 }
 
-Block[3] - Exit
-    Predecessors: [1] [2]
+Block[B3] - Exit
+    Predecessors: [B1] [B2]
     Statements (0)
 ";
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
@@ -1579,26 +1579,26 @@ class C
             compilation.VerifyDiagnostics();
 
             string expectedGraph = @"
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-        Entering: {1} {2} {3} {4}
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2} {R3} {R4}
 
-.try {1, 2}
+.try {R1, R2}
 {
-    .try {3, 4}
+    .try {R3, R4}
     {
-        Block[1] - Block
-            Predecessors: [0]
+        Block[B1] - Block
+            Predecessors: [B0]
             Statements (0)
-            Next (Regular) Block[6]
-                Finalizing: {7}
-                Leaving: {4} {3} {2} {1}
+            Next (Regular) Block[B6]
+                Finalizing: {R7}
+                Leaving: {R4} {R3} {R2} {R1}
     }
-    .catch {5} (Exception1)
+    .catch {R5} (Exception1)
     {
         Locals: [Exception1 e]
-        Block[2] - Block
+        Block[B2] - Block
             Predecessors (0)
             Statements (1)
                 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: '(Exception1 e)')
@@ -1607,14 +1607,14 @@ Block[0] - Entry
                   Right: 
                     ICaughtExceptionOperation (OperationKind.CaughtException, Type: Exception1, IsImplicit) (Syntax: '(Exception1 e)')
 
-            Next (Regular) Block[3]
-                Entering: {6}
+            Next (Regular) Block[B3]
+                Entering: {R6}
 
-        .locals {6}
+        .locals {R6}
         {
             Locals: [System.Int32 j]
-            Block[3] - Block
-                Predecessors: [2]
+            Block[B3] - Block
+                Predecessors: [B2]
                 Statements (1)
                     IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'j = 2;')
                       Expression: 
@@ -1624,18 +1624,18 @@ Block[0] - Entry
                           Right: 
                             ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
 
-                Next (Regular) Block[6]
-                    Finalizing: {7}
-                    Leaving: {6} {5} {3} {2} {1}
+                Next (Regular) Block[B6]
+                    Finalizing: {R7}
+                    Leaving: {R6} {R5} {R3} {R2} {R1}
         }
     }
 }
-.finally {7}
+.finally {R7}
 {
-    .locals {8}
+    .locals {R8}
     {
         Locals: [System.Int32 i]
-        Block[4] - Block
+        Block[B4] - Block
             Predecessors (0)
             Statements (1)
                 IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i = 1;')
@@ -1646,18 +1646,18 @@ Block[0] - Entry
                       Right: 
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 
-            Next (Regular) Block[5]
-                Leaving: {8}
+            Next (Regular) Block[B5]
+                Leaving: {R8}
     }
 
-    Block[5] - Block
-        Predecessors: [4]
+    Block[B5] - Block
+        Predecessors: [B4]
         Statements (0)
         Next (StructuredExceptionHandling) Block[null]
 }
 
-Block[6] - Exit
-    Predecessors: [1] [3]
+Block[B6] - Exit
+    Predecessors: [B1] [B3]
     Statements (0)
 ";
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
@@ -1694,26 +1694,26 @@ class C
             compilation.VerifyDiagnostics();
 
             string expectedGraph = @"
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-        Entering: {1} {2} {3} {4}
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2} {R3} {R4}
 
-.try {1, 2}
+.try {R1, R2}
 {
-    .try {3, 4}
+    .try {R3, R4}
     {
-        Block[1] - Block
-            Predecessors: [0]
+        Block[B1] - Block
+            Predecessors: [B0]
             Statements (0)
-            Next (Regular) Block[4]
-                Finalizing: {6}
-                Leaving: {4} {3} {2} {1}
+            Next (Regular) Block[B4]
+                Finalizing: {R6}
+                Leaving: {R4} {R3} {R2} {R1}
     }
-    .catch {5} (Exception1)
+    .catch {R5} (Exception1)
     {
         Locals: [Exception1 e]
-        Block[2] - Block
+        Block[B2] - Block
             Predecessors (0)
             Statements (1)
                 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: '(Exception1 e)')
@@ -1722,21 +1722,21 @@ Block[0] - Entry
                   Right: 
                     ICaughtExceptionOperation (OperationKind.CaughtException, Type: Exception1, IsImplicit) (Syntax: '(Exception1 e)')
 
-            Next (Regular) Block[4]
-                Finalizing: {6}
-                Leaving: {5} {3} {2} {1}
+            Next (Regular) Block[B4]
+                Finalizing: {R6}
+                Leaving: {R5} {R3} {R2} {R1}
     }
 }
-.finally {6}
+.finally {R6}
 {
-    Block[3] - Block
+    Block[B3] - Block
         Predecessors (0)
         Statements (0)
         Next (StructuredExceptionHandling) Block[null]
 }
 
-Block[4] - Exit
-    Predecessors: [1] [2]
+Block[B4] - Exit
+    Predecessors: [B1] [B2]
     Statements (0)
 ";
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
@@ -1772,25 +1772,25 @@ class C
             compilation.VerifyDiagnostics();
 
             string expectedGraph = @"
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-        Entering: {1} {2}
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2}
 
-.try {1, 2}
+.try {R1, R2}
 {
-    Block[1] - Block
-        Predecessors: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
         Statements (0)
-        Next (Regular) Block[4]
-            Leaving: {2} {1}
+        Next (Regular) Block[B4]
+            Leaving: {R2} {R1}
 }
-.catch {3} (Exception1)
+.catch {R3} (Exception1)
 {
     Locals: [Exception1 e] [System.Int32 i]
-    .filter {4}
+    .filter {R4}
     {
-        Block[2] - Block
+        Block[B2] - Block
             Predecessors (0)
             Statements (1)
                 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: '(Exception1 e)')
@@ -1799,7 +1799,7 @@ Block[0] - Entry
                   Right: 
                     ICaughtExceptionOperation (OperationKind.CaughtException, Type: Exception1, IsImplicit) (Syntax: '(Exception1 e)')
 
-            Jump if True (Regular) to Block[3]
+            Jump if True (Regular) to Block[B3]
                 IInvocationOperation ( System.Boolean C.filter(out System.Int32 i)) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'filter(out var i)')
                   Instance Receiver: 
                     IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'filter')
@@ -1809,16 +1809,16 @@ Block[0] - Entry
                           ILocalReferenceOperation: i (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                Leaving: {4}
-                Entering: {5}
+                Leaving: {R4}
+                Entering: {R5}
 
             Next (StructuredExceptionHandling) Block[null]
     }
-    .handler {5}
+    .handler {R5}
     {
         Locals: [System.Int32 j]
-        Block[3] - Block
-            Predecessors: [2]
+        Block[B3] - Block
+            Predecessors: [B2]
             Statements (1)
                 IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'j = 2;')
                   Expression: 
@@ -1828,13 +1828,13 @@ Block[0] - Entry
                       Right: 
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
 
-            Next (Regular) Block[4]
-                Leaving: {5} {3} {1}
+            Next (Regular) Block[B4]
+                Leaving: {R5} {R3} {R1}
     }
 }
 
-Block[4] - Exit
-    Predecessors: [1] [3]
+Block[B4] - Exit
+    Predecessors: [B1] [B3]
     Statements (0)
 ";
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
@@ -1869,25 +1869,25 @@ class C
             compilation.VerifyDiagnostics();
 
             string expectedGraph = @"
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-        Entering: {1} {2}
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2}
 
-.try {1, 2}
+.try {R1, R2}
 {
-    Block[1] - Block
-        Predecessors: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
         Statements (0)
-        Next (Regular) Block[4]
-            Leaving: {2} {1}
+        Next (Regular) Block[B4]
+            Leaving: {R2} {R1}
 }
-.catch {3} (Exception1)
+.catch {R3} (Exception1)
 {
     Locals: [Exception1 e] [System.Int32 i]
-    .filter {4}
+    .filter {R4}
     {
-        Block[2] - Block
+        Block[B2] - Block
             Predecessors (0)
             Statements (1)
                 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: '(Exception1 e)')
@@ -1896,7 +1896,7 @@ Block[0] - Entry
                   Right: 
                     ICaughtExceptionOperation (OperationKind.CaughtException, Type: Exception1, IsImplicit) (Syntax: '(Exception1 e)')
 
-            Jump if True (Regular) to Block[3]
+            Jump if True (Regular) to Block[B3]
                 IInvocationOperation ( System.Boolean C.filter(out System.Int32 i)) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'filter(out var i)')
                   Instance Receiver: 
                     IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'filter')
@@ -1906,23 +1906,23 @@ Block[0] - Entry
                           ILocalReferenceOperation: i (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                Leaving: {4}
-                Entering: {5}
+                Leaving: {R4}
+                Entering: {R5}
 
             Next (StructuredExceptionHandling) Block[null]
     }
-    .handler {5}
+    .handler {R5}
     {
-        Block[3] - Block
-            Predecessors: [2]
+        Block[B3] - Block
+            Predecessors: [B2]
             Statements (0)
-            Next (Regular) Block[4]
-                Leaving: {5} {3} {1}
+            Next (Regular) Block[B4]
+                Leaving: {R5} {R3} {R1}
     }
 }
 
-Block[4] - Exit
-    Predecessors: [1] [3]
+Block[B4] - Exit
+    Predecessors: [B1] [B3]
     Statements (0)
 ";
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
@@ -1958,28 +1958,28 @@ class C
             compilation.VerifyDiagnostics();
 
             string expectedGraph = @"
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-        Entering: {1} {2}
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2}
 
-.try {1, 2}
+.try {R1, R2}
 {
-    Block[1] - Block
-        Predecessors: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
         Statements (0)
-        Next (Regular) Block[4]
-            Leaving: {2} {1}
+        Next (Regular) Block[B4]
+            Leaving: {R2} {R1}
 }
-.catch {3} (Exception1)
+.catch {R3} (Exception1)
 {
     Locals: [System.Int32 i]
-    .filter {4}
+    .filter {R4}
     {
-        Block[2] - Block
+        Block[B2] - Block
             Predecessors (0)
             Statements (0)
-            Jump if True (Regular) to Block[3]
+            Jump if True (Regular) to Block[B3]
                 IInvocationOperation ( System.Boolean C.filter(out System.Int32 i)) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'filter(out var i)')
                   Instance Receiver: 
                     IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'filter')
@@ -1989,16 +1989,16 @@ Block[0] - Entry
                           ILocalReferenceOperation: i (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                Leaving: {4}
-                Entering: {5}
+                Leaving: {R4}
+                Entering: {R5}
 
             Next (StructuredExceptionHandling) Block[null]
     }
-    .handler {5}
+    .handler {R5}
     {
         Locals: [System.Int32 j]
-        Block[3] - Block
-            Predecessors: [2]
+        Block[B3] - Block
+            Predecessors: [B2]
             Statements (1)
                 IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'j = 2;')
                   Expression: 
@@ -2008,13 +2008,13 @@ Block[0] - Entry
                       Right: 
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
 
-            Next (Regular) Block[4]
-                Leaving: {5} {3} {1}
+            Next (Regular) Block[B4]
+                Leaving: {R5} {R3} {R1}
     }
 }
 
-Block[4] - Exit
-    Predecessors: [1] [3]
+Block[B4] - Exit
+    Predecessors: [B1] [B3]
     Statements (0)
 ";
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
@@ -2049,28 +2049,28 @@ class C
             compilation.VerifyDiagnostics();
 
             string expectedGraph = @"
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-        Entering: {1} {2}
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2}
 
-.try {1, 2}
+.try {R1, R2}
 {
-    Block[1] - Block
-        Predecessors: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
         Statements (0)
-        Next (Regular) Block[4]
-            Leaving: {2} {1}
+        Next (Regular) Block[B4]
+            Leaving: {R2} {R1}
 }
-.catch {3} (Exception1)
+.catch {R3} (Exception1)
 {
     Locals: [System.Int32 i]
-    .filter {4}
+    .filter {R4}
     {
-        Block[2] - Block
+        Block[B2] - Block
             Predecessors (0)
             Statements (0)
-            Jump if True (Regular) to Block[3]
+            Jump if True (Regular) to Block[B3]
                 IInvocationOperation ( System.Boolean C.filter(out System.Int32 i)) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'filter(out var i)')
                   Instance Receiver: 
                     IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'filter')
@@ -2080,23 +2080,23 @@ Block[0] - Entry
                           ILocalReferenceOperation: i (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                Leaving: {4}
-                Entering: {5}
+                Leaving: {R4}
+                Entering: {R5}
 
             Next (StructuredExceptionHandling) Block[null]
     }
-    .handler {5}
+    .handler {R5}
     {
-        Block[3] - Block
-            Predecessors: [2]
+        Block[B3] - Block
+            Predecessors: [B2]
             Statements (0)
-            Next (Regular) Block[4]
-                Leaving: {5} {3} {1}
+            Next (Regular) Block[B4]
+                Leaving: {R5} {R3} {R1}
     }
 }
 
-Block[4] - Exit
-    Predecessors: [1] [3]
+Block[B4] - Exit
+    Predecessors: [B1] [B3]
     Statements (0)
 ";
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
@@ -2132,28 +2132,28 @@ class C
             compilation.VerifyDiagnostics();
 
             string expectedGraph = @"
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-        Entering: {1} {2}
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2}
 
-.try {1, 2}
+.try {R1, R2}
 {
-    Block[1] - Block
-        Predecessors: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
         Statements (0)
-        Next (Regular) Block[4]
-            Leaving: {2} {1}
+        Next (Regular) Block[B4]
+            Leaving: {R2} {R1}
 }
-.catch {3} (System.Object)
+.catch {R3} (System.Object)
 {
     Locals: [System.Int32 i]
-    .filter {4}
+    .filter {R4}
     {
-        Block[2] - Block
+        Block[B2] - Block
             Predecessors (0)
             Statements (0)
-            Jump if True (Regular) to Block[3]
+            Jump if True (Regular) to Block[B3]
                 IInvocationOperation ( System.Boolean C.filter(out System.Int32 i)) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'filter(out var i)')
                   Instance Receiver: 
                     IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'filter')
@@ -2163,16 +2163,16 @@ Block[0] - Entry
                           ILocalReferenceOperation: i (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                Leaving: {4}
-                Entering: {5}
+                Leaving: {R4}
+                Entering: {R5}
 
             Next (StructuredExceptionHandling) Block[null]
     }
-    .handler {5}
+    .handler {R5}
     {
         Locals: [System.Int32 j]
-        Block[3] - Block
-            Predecessors: [2]
+        Block[B3] - Block
+            Predecessors: [B2]
             Statements (1)
                 IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'j = 2;')
                   Expression: 
@@ -2182,13 +2182,13 @@ Block[0] - Entry
                       Right: 
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
 
-            Next (Regular) Block[4]
-                Leaving: {5} {3} {1}
+            Next (Regular) Block[B4]
+                Leaving: {R5} {R3} {R1}
     }
 }
 
-Block[4] - Exit
-    Predecessors: [1] [3]
+Block[B4] - Exit
+    Predecessors: [B1] [B3]
     Statements (0)
 ";
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
@@ -2223,28 +2223,28 @@ class C
             compilation.VerifyDiagnostics();
 
             string expectedGraph = @"
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-        Entering: {1} {2}
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2}
 
-.try {1, 2}
+.try {R1, R2}
 {
-    Block[1] - Block
-        Predecessors: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
         Statements (0)
-        Next (Regular) Block[4]
-            Leaving: {2} {1}
+        Next (Regular) Block[B4]
+            Leaving: {R2} {R1}
 }
-.catch {3} (System.Object)
+.catch {R3} (System.Object)
 {
     Locals: [System.Int32 i]
-    .filter {4}
+    .filter {R4}
     {
-        Block[2] - Block
+        Block[B2] - Block
             Predecessors (0)
             Statements (0)
-            Jump if True (Regular) to Block[3]
+            Jump if True (Regular) to Block[B3]
                 IInvocationOperation ( System.Boolean C.filter(out System.Int32 i)) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'filter(out var i)')
                   Instance Receiver: 
                     IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'filter')
@@ -2254,23 +2254,23 @@ Block[0] - Entry
                           ILocalReferenceOperation: i (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                Leaving: {4}
-                Entering: {5}
+                Leaving: {R4}
+                Entering: {R5}
 
             Next (StructuredExceptionHandling) Block[null]
     }
-    .handler {5}
+    .handler {R5}
     {
-        Block[3] - Block
-            Predecessors: [2]
+        Block[B3] - Block
+            Predecessors: [B2]
             Statements (0)
-            Next (Regular) Block[4]
-                Leaving: {5} {3} {1}
+            Next (Regular) Block[B4]
+                Leaving: {R5} {R3} {R1}
     }
 }
 
-Block[4] - Exit
-    Predecessors: [1] [3]
+Block[B4] - Exit
+    Predecessors: [B1] [B3]
     Statements (0)
 ";
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
@@ -2304,23 +2304,23 @@ class C
             compilation.VerifyDiagnostics();
 
             string expectedGraph = @"
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-        Entering: {1} {2}
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2}
 
-.try {1, 2}
+.try {R1, R2}
 {
-    Block[1] - Block
-        Predecessors: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
         Statements (0)
-        Next (Regular) Block[3]
-            Leaving: {2} {1}
+        Next (Regular) Block[B3]
+            Leaving: {R2} {R1}
 }
-.catch {3} (Exception1)
+.catch {R3} (Exception1)
 {
     Locals: [System.Int32 j]
-    Block[2] - Block
+    Block[B2] - Block
         Predecessors (0)
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'j = 2;')
@@ -2331,12 +2331,12 @@ Block[0] - Entry
                   Right: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
 
-        Next (Regular) Block[3]
-            Leaving: {3} {1}
+        Next (Regular) Block[B3]
+            Leaving: {R3} {R1}
 }
 
-Block[3] - Exit
-    Predecessors: [1] [2]
+Block[B3] - Exit
+    Predecessors: [B1] [B2]
     Statements (0)
 ";
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
@@ -2369,30 +2369,30 @@ class C
             compilation.VerifyDiagnostics();
 
             string expectedGraph = @"
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-        Entering: {1} {2}
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2}
 
-.try {1, 2}
+.try {R1, R2}
 {
-    Block[1] - Block
-        Predecessors: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
         Statements (0)
-        Next (Regular) Block[3]
-            Leaving: {2} {1}
+        Next (Regular) Block[B3]
+            Leaving: {R2} {R1}
 }
-.catch {3} (Exception1)
+.catch {R3} (Exception1)
 {
-    Block[2] - Block
+    Block[B2] - Block
         Predecessors (0)
         Statements (0)
-        Next (Regular) Block[3]
-            Leaving: {3} {1}
+        Next (Regular) Block[B3]
+            Leaving: {R3} {R1}
 }
 
-Block[3] - Exit
-    Predecessors: [1] [2]
+Block[B3] - Exit
+    Predecessors: [B1] [B2]
     Statements (0)
 ";
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
@@ -2428,28 +2428,28 @@ class C
             compilation.VerifyDiagnostics();
 
             string expectedGraph = @"
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-        Entering: {1} {2}
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2}
 
-.try {1, 2}
+.try {R1, R2}
 {
-    Block[1] - Block
-        Predecessors: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
         Statements (0)
-        Next (Regular) Block[4]
-            Leaving: {2} {1}
+        Next (Regular) Block[B4]
+            Leaving: {R2} {R1}
 }
-.catch {3} (System.Object)
+.catch {R3} (System.Object)
 {
     Locals: [System.Int32 i]
-    .filter {4}
+    .filter {R4}
     {
-        Block[2] - Block
+        Block[B2] - Block
             Predecessors (0)
             Statements (0)
-            Jump if True (Regular) to Block[3]
+            Jump if True (Regular) to Block[B3]
                 IInvocationOperation ( System.Boolean C.filter(out System.Int32 i)) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'filter(out var i)')
                   Instance Receiver: 
                     IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'filter')
@@ -2459,16 +2459,16 @@ Block[0] - Entry
                           ILocalReferenceOperation: i (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                Leaving: {4}
-                Entering: {5}
+                Leaving: {R4}
+                Entering: {R5}
 
             Next (StructuredExceptionHandling) Block[null]
     }
-    .handler {5}
+    .handler {R5}
     {
         Locals: [System.Int32 j]
-        Block[3] - Block
-            Predecessors: [2]
+        Block[B3] - Block
+            Predecessors: [B2]
             Statements (1)
                 IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'j = 2;')
                   Expression: 
@@ -2478,13 +2478,13 @@ Block[0] - Entry
                       Right: 
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
 
-            Next (Regular) Block[4]
-                Leaving: {5} {3} {1}
+            Next (Regular) Block[B4]
+                Leaving: {R5} {R3} {R1}
     }
 }
 
-Block[4] - Exit
-    Predecessors: [1] [3]
+Block[B4] - Exit
+    Predecessors: [B1] [B3]
     Statements (0)
 ";
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
@@ -2519,28 +2519,28 @@ class C
             compilation.VerifyDiagnostics();
 
             string expectedGraph = @"
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-        Entering: {1} {2}
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2}
 
-.try {1, 2}
+.try {R1, R2}
 {
-    Block[1] - Block
-        Predecessors: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
         Statements (0)
-        Next (Regular) Block[4]
-            Leaving: {2} {1}
+        Next (Regular) Block[B4]
+            Leaving: {R2} {R1}
 }
-.catch {3} (System.Object)
+.catch {R3} (System.Object)
 {
     Locals: [System.Int32 i]
-    .filter {4}
+    .filter {R4}
     {
-        Block[2] - Block
+        Block[B2] - Block
             Predecessors (0)
             Statements (0)
-            Jump if True (Regular) to Block[3]
+            Jump if True (Regular) to Block[B3]
                 IInvocationOperation ( System.Boolean C.filter(out System.Int32 i)) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'filter(out var i)')
                   Instance Receiver: 
                     IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'filter')
@@ -2550,23 +2550,23 @@ Block[0] - Entry
                           ILocalReferenceOperation: i (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                Leaving: {4}
-                Entering: {5}
+                Leaving: {R4}
+                Entering: {R5}
 
             Next (StructuredExceptionHandling) Block[null]
     }
-    .handler {5}
+    .handler {R5}
     {
-        Block[3] - Block
-            Predecessors: [2]
+        Block[B3] - Block
+            Predecessors: [B2]
             Statements (0)
-            Next (Regular) Block[4]
-                Leaving: {5} {3} {1}
+            Next (Regular) Block[B4]
+                Leaving: {R5} {R3} {R1}
     }
 }
 
-Block[4] - Exit
-    Predecessors: [1] [3]
+Block[B4] - Exit
+    Predecessors: [B1] [B3]
     Statements (0)
 ";
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
@@ -2597,37 +2597,37 @@ class C
             compilation.VerifyDiagnostics();
 
             string expectedGraph = @"
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-        Entering: {1} {2}
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2}
 
-.try {1, 2}
+.try {R1, R2}
 {
-    Block[1] - Block
-        Predecessors: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
         Statements (0)
-        Next (Regular) Block[4]
-            Finalizing: {3}
-            Leaving: {2} {1}
+        Next (Regular) Block[B4]
+            Finalizing: {R3}
+            Leaving: {R2} {R1}
 }
-.finally {3}
+.finally {R3}
 {
-    Block[2] - Block
+    Block[B2] - Block
         Predecessors (0)
         Statements (0)
-        Jump if False (Regular) to Block[3]
+        Jump if False (Regular) to Block[B3]
             IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'input')
 
-        Next (Regular) Block[3]
-    Block[3] - Block
-        Predecessors: [2]
+        Next (Regular) Block[B3]
+    Block[B3] - Block
+        Predecessors: [B2]
         Statements (0)
         Next (StructuredExceptionHandling) Block[null]
 }
 
-Block[4] - Exit
-    Predecessors: [1]
+Block[B4] - Exit
+    Predecessors: [B1]
     Statements (0)
 ";
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
@@ -2659,33 +2659,33 @@ class C
             compilation.VerifyDiagnostics();
 
             string expectedGraph = @"
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-        Entering: {1} {2}
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2}
 
-.try {1, 2}
+.try {R1, R2}
 {
-    Block[1] - Block
-        Predecessors: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
         Statements (0)
-        Next (Regular) Block[3]
-            Finalizing: {3}
-            Leaving: {2} {1}
+        Next (Regular) Block[B3]
+            Finalizing: {R3}
+            Leaving: {R2} {R1}
 }
-.finally {3}
+.finally {R3}
 {
-    Block[2] - Block
-        Predecessors: [2]
+    Block[B2] - Block
+        Predecessors: [B2]
         Statements (0)
-        Jump if True (Regular) to Block[2]
+        Jump if True (Regular) to Block[B2]
             IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'input')
 
         Next (StructuredExceptionHandling) Block[null]
 }
 
-Block[3] - Exit
-    Predecessors: [1]
+Block[B3] - Exit
+    Predecessors: [B1]
     Statements (0)
 ";
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);

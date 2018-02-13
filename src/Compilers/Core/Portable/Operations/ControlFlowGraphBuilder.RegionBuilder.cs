@@ -138,7 +138,6 @@ namespace Microsoft.CodeAnalysis.Operations
                 Debug.Assert(!_aboutToFree);
 #endif 
                 Debug.Assert(!IsEmpty);
-                ControlFlowGraph.Region result;
 
                 ImmutableArray<ControlFlowGraph.Region> subRegions;
 
@@ -158,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Operations
                     subRegions = ImmutableArray<ControlFlowGraph.Region>.Empty;
                 }
 
-                result = new ControlFlowGraph.Region(Kind, FirstBlock.Ordinal, LastBlock.Ordinal, subRegions, Locals, ExceptionType);
+                var result = new ControlFlowGraph.Region(Kind, FirstBlock.Ordinal, LastBlock.Ordinal, subRegions, Locals, ExceptionType);
 
                 int firstBlockWithoutRegion = FirstBlock.Ordinal;
 

@@ -33,16 +33,16 @@ class C
             compilation.VerifyDiagnostics();
 
             string expectedGraph = @"
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-        Entering: {1}
+    Next (Regular) Block[B1]
+        Entering: {R1}
 
-.locals {1}
+.locals {R1}
 {
     Locals: [System.Int32 i]
-    Block[1] - Block
-        Predecessors: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i = 1;')
               Expression: 
@@ -52,12 +52,12 @@ Block[0] - Entry
                   Right: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 
-        Next (Regular) Block[2]
-            Leaving: {1}
+        Next (Regular) Block[B2]
+            Leaving: {R1}
 }
 
-Block[2] - Exit
-    Predecessors: [1]
+Block[B2] - Exit
+    Predecessors: [B1]
     Statements (0)
 ";
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
@@ -83,11 +83,11 @@ class C
             compilation.VerifyDiagnostics();
 
             string expectedGraph = @"
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-Block[1] - Exit
-    Predecessors: [0]
+    Next (Regular) Block[B1]
+Block[B1] - Exit
+    Predecessors: [B0]
     Statements (0)
 ";
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
@@ -118,16 +118,16 @@ class C
             compilation.VerifyDiagnostics();
 
             string expectedGraph = @"
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-        Entering: {1}
+    Next (Regular) Block[B1]
+        Entering: {R1}
 
-.locals {1}
+.locals {R1}
 {
     Locals: [System.Int32 i]
-    Block[1] - Block
-        Predecessors: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i = 1;')
               Expression: 
@@ -137,14 +137,14 @@ Block[0] - Entry
                   Right: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 
-        Next (Regular) Block[2]
-            Entering: {2}
+        Next (Regular) Block[B2]
+            Entering: {R2}
 
-    .locals {2}
+    .locals {R2}
     {
         Locals: [System.Int32 j]
-        Block[2] - Block
-            Predecessors: [1]
+        Block[B2] - Block
+            Predecessors: [B1]
             Statements (1)
                 IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'j = 1;')
                   Expression: 
@@ -154,13 +154,13 @@ Block[0] - Entry
                       Right: 
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 
-            Next (Regular) Block[3]
-                Leaving: {2} {1}
+            Next (Regular) Block[B3]
+                Leaving: {R2} {R1}
     }
 }
 
-Block[3] - Exit
-    Predecessors: [2]
+Block[B3] - Exit
+    Predecessors: [B2]
     Statements (0)
 ";
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
@@ -191,16 +191,16 @@ class C
             compilation.VerifyDiagnostics();
 
             string expectedGraph = @"
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-        Entering: {1}
+    Next (Regular) Block[B1]
+        Entering: {R1}
 
-.locals {1}
+.locals {R1}
 {
     Locals: [System.Int32 i] [System.Int32 j]
-    Block[1] - Block
-        Predecessors: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
         Statements (2)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i = 1;')
               Expression: 
@@ -218,12 +218,12 @@ Block[0] - Entry
                   Right: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 
-        Next (Regular) Block[2]
-            Leaving: {1}
+        Next (Regular) Block[B2]
+            Leaving: {R1}
 }
 
-Block[2] - Exit
-    Predecessors: [1]
+Block[B2] - Exit
+    Predecessors: [B1]
     Statements (0)
 ";
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
@@ -252,11 +252,11 @@ class C
             compilation.VerifyDiagnostics();
 
             string expectedGraph = @"
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-Block[1] - Exit
-    Predecessors: [0]
+    Next (Regular) Block[B1]
+Block[B1] - Exit
+    Predecessors: [B0]
     Statements (0)
 ";
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
@@ -289,16 +289,16 @@ class C
             compilation.VerifyDiagnostics();
 
             string expectedGraph = @"
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-        Entering: {1}
+    Next (Regular) Block[B1]
+        Entering: {R1}
 
-.locals {1}
+.locals {R1}
 {
     Locals: [System.Int32 i]
-    Block[1] - Block
-        Predecessors: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i = 1;')
               Expression: 
@@ -308,15 +308,15 @@ Block[0] - Entry
                   Right: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 
-        Next (Regular) Block[2]
-            Leaving: {1}
-            Entering: {2}
+        Next (Regular) Block[B2]
+            Leaving: {R1}
+            Entering: {R2}
 }
-.locals {2}
+.locals {R2}
 {
     Locals: [System.Int32 j]
-    Block[2] - Block
-        Predecessors: [1]
+    Block[B2] - Block
+        Predecessors: [B1]
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'j = 1;')
               Expression: 
@@ -326,12 +326,12 @@ Block[0] - Entry
                   Right: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 
-        Next (Regular) Block[3]
-            Leaving: {2}
+        Next (Regular) Block[B3]
+            Leaving: {R2}
 }
 
-Block[3] - Exit
-    Predecessors: [2]
+Block[B3] - Exit
+    Predecessors: [B2]
     Statements (0)
 ";
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
@@ -362,11 +362,11 @@ class C
             compilation.VerifyDiagnostics();
 
             string expectedGraph = @"
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-Block[1] - Exit
-    Predecessors: [0]
+    Next (Regular) Block[B1]
+Block[B1] - Exit
+    Predecessors: [B0]
     Statements (0)
 ";
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
@@ -410,11 +410,11 @@ class C
             compilation.VerifyDiagnostics();
 
             string expectedGraph = @"
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-Block[1] - Exit
-    Predecessors: [0]
+    Next (Regular) Block[B1]
+Block[B1] - Exit
+    Predecessors: [B0]
     Statements (0)
 ";
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
@@ -455,16 +455,16 @@ class C
             compilation.VerifyDiagnostics();
 
             string expectedGraph = @"
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-        Entering: {1}
+    Next (Regular) Block[B1]
+        Entering: {R1}
 
-.locals {1}
+.locals {R1}
 {
     Locals: [System.Int32 i] [System.Int32 j] [System.Int32 k] [System.Int32 l]
-    Block[1] - Block
-        Predecessors: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
         Statements (4)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i = 1;')
               Expression: 
@@ -498,12 +498,12 @@ Block[0] - Entry
                   Right: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 
-        Next (Regular) Block[2]
-            Leaving: {1}
+        Next (Regular) Block[B2]
+            Leaving: {R1}
 }
 
-Block[2] - Exit
-    Predecessors: [1]
+Block[B2] - Exit
+    Predecessors: [B1]
     Statements (0)
 ";
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
@@ -536,19 +536,19 @@ class C
             compilation.VerifyDiagnostics();
 
             string expectedGraph = @"
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-        Entering: {1} {2}
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2}
 
-.locals {1}
+.locals {R1}
 {
     Locals: [System.Int32 i]
-    .locals {2}
+    .locals {R2}
     {
         Locals: [System.Int32 j]
-        Block[1] - Block
-            Predecessors: [0]
+        Block[B1] - Block
+            Predecessors: [B0]
             Statements (2)
                 IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i = 1;')
                   Expression: 
@@ -566,12 +566,12 @@ Block[0] - Entry
                       Right: 
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 
-            Next (Regular) Block[2]
-                Leaving: {2}
+            Next (Regular) Block[B2]
+                Leaving: {R2}
     }
 
-    Block[2] - Block
-        Predecessors: [1]
+    Block[B2] - Block
+        Predecessors: [B1]
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i = 2;')
               Expression: 
@@ -581,12 +581,12 @@ Block[0] - Entry
                   Right: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
 
-        Next (Regular) Block[3]
-            Leaving: {1}
+        Next (Regular) Block[B3]
+            Leaving: {R1}
 }
 
-Block[3] - Exit
-    Predecessors: [2]
+Block[B3] - Exit
+    Predecessors: [B2]
     Statements (0)
 ";
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
@@ -614,16 +614,16 @@ class C
             compilation.VerifyDiagnostics();
 
             string expectedGraph = @"
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-        Entering: {1}
+    Next (Regular) Block[B1]
+        Entering: {R1}
 
-.locals {1}
+.locals {R1}
 {
     Locals: [System.Int32 i]
-    Block[1] - Block
-        Predecessors: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
         Statements (2)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'j = 2;')
               Expression: 
@@ -641,12 +641,12 @@ Block[0] - Entry
                   Right: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 
-        Next (Regular) Block[2]
-            Leaving: {1}
+        Next (Regular) Block[B2]
+            Leaving: {R1}
 }
 
-Block[2] - Exit
-    Predecessors: [1]
+Block[B2] - Exit
+    Predecessors: [B1]
     Statements (0)
 ";
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
@@ -683,16 +683,16 @@ class C
             compilation.VerifyDiagnostics();
 
             string expectedGraph = @"
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-        Entering: {1}
+    Next (Regular) Block[B1]
+        Entering: {R1}
 
-.locals {1}
+.locals {R1}
 {
     Locals: [System.Int32 a] [System.Int32 k] [System.Int32 m]
-    Block[1] - Block
-        Predecessors: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a = 1;')
               Expression: 
@@ -702,14 +702,14 @@ Block[0] - Entry
                   Right: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 
-        Next (Regular) Block[2]
-            Entering: {2}
+        Next (Regular) Block[B2]
+            Entering: {R2}
 
-    .locals {2}
+    .locals {R2}
     {
         Locals: [System.Int32 j]
-        Block[2] - Block
-            Predecessors: [1]
+        Block[B2] - Block
+            Predecessors: [B1]
             Statements (1)
                 IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'j = 2')
                   Expression: 
@@ -719,12 +719,12 @@ Block[0] - Entry
                       Right: 
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
 
-            Next (Regular) Block[3]
-                Leaving: {2}
+            Next (Regular) Block[B3]
+                Leaving: {R2}
     }
 
-    Block[3] - Block
-        Predecessors: [2]
+    Block[B3] - Block
+        Predecessors: [B2]
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'k = 3')
               Expression: 
@@ -734,14 +734,14 @@ Block[0] - Entry
                   Right: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
 
-        Next (Regular) Block[4]
-            Entering: {3}
+        Next (Regular) Block[B4]
+            Entering: {R3}
 
-    .locals {3}
+    .locals {R3}
     {
         Locals: [System.Int32 l]
-        Block[4] - Block
-            Predecessors: [3]
+        Block[B4] - Block
+            Predecessors: [B3]
             Statements (1)
                 IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'l = 4')
                   Expression: 
@@ -751,12 +751,12 @@ Block[0] - Entry
                       Right: 
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4) (Syntax: '4')
 
-            Next (Regular) Block[5]
-                Leaving: {3}
+            Next (Regular) Block[B5]
+                Leaving: {R3}
     }
 
-    Block[5] - Block
-        Predecessors: [4]
+    Block[B5] - Block
+        Predecessors: [B4]
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'm = 5')
               Expression: 
@@ -766,12 +766,12 @@ Block[0] - Entry
                   Right: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
 
-        Next (Regular) Block[6]
-            Leaving: {1}
+        Next (Regular) Block[B6]
+            Leaving: {R1}
 }
 
-Block[6] - Exit
-    Predecessors: [5]
+Block[B6] - Exit
+    Predecessors: [B5]
     Statements (0)
 ";
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
@@ -810,19 +810,19 @@ class C
             compilation.VerifyDiagnostics();
 
             string expectedGraph = @"
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-        Entering: {1} {2}
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2}
 
-.locals {1}
+.locals {R1}
 {
     Locals: [System.Int32 a] [System.Int32 l]
-    .locals {2}
+    .locals {R2}
     {
         Locals: [System.Int32 i]
-        Block[1] - Block
-            Predecessors: [0]
+        Block[B1] - Block
+            Predecessors: [B0]
             Statements (1)
                 IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'i = 1')
                   Expression: 
@@ -832,12 +832,12 @@ Block[0] - Entry
                       Right: 
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 
-            Next (Regular) Block[2]
-                Leaving: {2}
+            Next (Regular) Block[B2]
+                Leaving: {R2}
     }
 
-    Block[2] - Block
-        Predecessors: [1]
+    Block[B2] - Block
+        Predecessors: [B1]
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a = 2;')
               Expression: 
@@ -847,14 +847,14 @@ Block[0] - Entry
                   Right: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
 
-        Next (Regular) Block[3]
-            Entering: {3}
+        Next (Regular) Block[B3]
+            Entering: {R3}
 
-    .locals {3}
+    .locals {R3}
     {
         Locals: [System.Int32 k]
-        Block[3] - Block
-            Predecessors: [2]
+        Block[B3] - Block
+            Predecessors: [B2]
             Statements (1)
                 IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'k = 3')
                   Expression: 
@@ -864,12 +864,12 @@ Block[0] - Entry
                       Right: 
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
 
-            Next (Regular) Block[4]
-                Leaving: {3}
+            Next (Regular) Block[B4]
+                Leaving: {R3}
     }
 
-    Block[4] - Block
-        Predecessors: [3]
+    Block[B4] - Block
+        Predecessors: [B3]
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'l = 4')
               Expression: 
@@ -879,14 +879,14 @@ Block[0] - Entry
                   Right: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4) (Syntax: '4')
 
-        Next (Regular) Block[5]
-            Entering: {4}
+        Next (Regular) Block[B5]
+            Entering: {R4}
 
-    .locals {4}
+    .locals {R4}
     {
         Locals: [System.Int32 m]
-        Block[5] - Block
-            Predecessors: [4]
+        Block[B5] - Block
+            Predecessors: [B4]
             Statements (1)
                 IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'm = 5')
                   Expression: 
@@ -896,13 +896,13 @@ Block[0] - Entry
                       Right: 
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
 
-            Next (Regular) Block[6]
-                Leaving: {4} {1}
+            Next (Regular) Block[B6]
+                Leaving: {R4} {R1}
     }
 }
 
-Block[6] - Exit
-    Predecessors: [5]
+Block[B6] - Exit
+    Predecessors: [B5]
     Statements (0)
 ";
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);

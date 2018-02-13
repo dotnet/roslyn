@@ -1963,11 +1963,11 @@ End Class]]>.Value
             Dim expectedDiagnostics = String.Empty
 
             Dim expectedGraph = <![CDATA[
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-Block[1] - Block
-    Predecessors: [0]
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
     Statements (2)
         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'GetArray()(0)')
           Value: 
@@ -1984,14 +1984,14 @@ Block[1] - Block
           Value: 
             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'a')
 
-    Jump if True (Regular) to Block[3]
+    Jump if True (Regular) to Block[B3]
         IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'a')
           Operand: 
             IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
 
-    Next (Regular) Block[2]
-Block[2] - Block
-    Predecessors: [1]
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
           Value: 
@@ -2000,17 +2000,17 @@ Block[2] - Block
                 IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
               Arguments(0)
 
-    Next (Regular) Block[4]
-Block[3] - Block
-    Predecessors: [1]
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
           Value: 
             IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
 
-    Next (Regular) Block[4]
-Block[4] - Block
-    Predecessors: [2] [3]
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
     Statements (3)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'GetArray()( ... f(a, b) + b')
           Expression: 
@@ -2032,9 +2032,9 @@ Block[4] - Block
           ReturnedValue: 
             null
 
-    Next (Regular) Block[5]
-Block[5] - Exit
-    Predecessors: [4]
+    Next (Regular) Block[B5]
+Block[B5] - Exit
+    Predecessors: [B4]
     Statements (0)
 ]]>.Value
 
@@ -2059,11 +2059,11 @@ End Class]]>.Value
             Dim expectedDiagnostics = String.Empty
 
             Dim expectedGraph = <![CDATA[
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-Block[1] - Block
-    Predecessors: [0]
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
     Statements (3)
         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'GetArray()(0)')
           Value: 
@@ -2084,14 +2084,14 @@ Block[1] - Block
           Value: 
             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'a')
 
-    Jump if True (Regular) to Block[3]
+    Jump if True (Regular) to Block[B3]
         IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'a')
           Operand: 
             IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
 
-    Next (Regular) Block[2]
-Block[2] - Block
-    Predecessors: [1]
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
           Value: 
@@ -2100,17 +2100,17 @@ Block[2] - Block
                 IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
               Arguments(0)
 
-    Next (Regular) Block[4]
-Block[3] - Block
-    Predecessors: [1]
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
           Value: 
             IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
 
-    Next (Regular) Block[4]
-Block[4] - Block
-    Predecessors: [2] [3]
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
     Statements (3)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'GetArray()( ...  + If(a, b)')
           Expression: 
@@ -2132,9 +2132,9 @@ Block[4] - Block
           ReturnedValue: 
             null
 
-    Next (Regular) Block[5]
-Block[5] - Exit
-    Predecessors: [4]
+    Next (Regular) Block[B5]
+Block[B5] - Exit
+    Predecessors: [B4]
     Statements (0)
 ]]>.Value
 
@@ -2159,11 +2159,11 @@ End Class]]>.Value
             Dim expectedDiagnostics = String.Empty
 
             Dim expectedGraph = <![CDATA[
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-Block[1] - Block
-    Predecessors: [0]
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
     Statements (2)
         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'GetArray()(0)')
           Value: 
@@ -2180,14 +2180,14 @@ Block[1] - Block
           Value: 
             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'a')
 
-    Jump if True (Regular) to Block[3]
+    Jump if True (Regular) to Block[B3]
         IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'a')
           Operand: 
             IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
 
-    Next (Regular) Block[2]
-Block[2] - Block
-    Predecessors: [1]
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
           Value: 
@@ -2196,30 +2196,30 @@ Block[2] - Block
                 IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
               Arguments(0)
 
-    Next (Regular) Block[4]
-Block[3] - Block
-    Predecessors: [1]
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
           Value: 
             IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
 
-    Next (Regular) Block[4]
-Block[4] - Block
-    Predecessors: [2] [3]
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
     Statements (1)
         IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
           Value: 
             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'a')
 
-    Jump if True (Regular) to Block[6]
+    Jump if True (Regular) to Block[B6]
         IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'a')
           Operand: 
             IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
 
-    Next (Regular) Block[5]
-Block[5] - Block
-    Predecessors: [4]
+    Next (Regular) Block[B5]
+Block[B5] - Block
+    Predecessors: [B4]
     Statements (1)
         IFlowCaptureOperation: 4 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
           Value: 
@@ -2228,17 +2228,17 @@ Block[5] - Block
                 IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
               Arguments(0)
 
-    Next (Regular) Block[7]
-Block[6] - Block
-    Predecessors: [4]
+    Next (Regular) Block[B7]
+Block[B6] - Block
+    Predecessors: [B4]
     Statements (1)
         IFlowCaptureOperation: 4 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
           Value: 
             IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
 
-    Next (Regular) Block[7]
-Block[7] - Block
-    Predecessors: [5] [6]
+    Next (Regular) Block[B7]
+Block[B7] - Block
+    Predecessors: [B5] [B6]
     Statements (3)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'GetArray()( ...  + If(a, b)')
           Expression: 
@@ -2260,9 +2260,9 @@ Block[7] - Block
           ReturnedValue: 
             null
 
-    Next (Regular) Block[8]
-Block[8] - Exit
-    Predecessors: [7]
+    Next (Regular) Block[B8]
+Block[B8] - Exit
+    Predecessors: [B7]
     Statements (0)
 ]]>.Value
 
@@ -2291,11 +2291,11 @@ End Class]]>.Value
             Dim expectedDiagnostics = String.Empty
 
             Dim expectedGraph = <![CDATA[
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-Block[1] - Block
-    Predecessors: [0]
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
     Statements (2)
         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'GetArray()(0)')
           Value: 
@@ -2312,59 +2312,59 @@ Block[1] - Block
           Value: 
             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: C) (Syntax: 'a')
 
-    Jump if True (Regular) to Block[3]
+    Jump if True (Regular) to Block[B3]
         IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'a')
           Operand: 
             IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'a')
 
-    Next (Regular) Block[2]
-Block[2] - Block
-    Predecessors: [1]
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
           Value: 
             IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'a')
 
-    Next (Regular) Block[4]
-Block[3] - Block
-    Predecessors: [1]
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
           Value: 
             IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: C) (Syntax: 'b')
 
-    Next (Regular) Block[4]
-Block[4] - Block
-    Predecessors: [2] [3]
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
     Statements (1)
         IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
           Value: 
             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: C) (Syntax: 'a')
 
-    Jump if True (Regular) to Block[6]
+    Jump if True (Regular) to Block[B6]
         IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'a')
           Operand: 
             IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'a')
 
-    Next (Regular) Block[5]
-Block[5] - Block
-    Predecessors: [4]
+    Next (Regular) Block[B5]
+Block[B5] - Block
+    Predecessors: [B4]
     Statements (1)
         IFlowCaptureOperation: 4 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
           Value: 
             IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'a')
 
-    Next (Regular) Block[7]
-Block[6] - Block
-    Predecessors: [4]
+    Next (Regular) Block[B7]
+Block[B6] - Block
+    Predecessors: [B4]
     Statements (1)
         IFlowCaptureOperation: 4 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
           Value: 
             IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: C) (Syntax: 'b')
 
-    Next (Regular) Block[7]
-Block[7] - Block
-    Predecessors: [5] [6]
+    Next (Regular) Block[B7]
+Block[B7] - Block
+    Predecessors: [B5] [B6]
     Statements (3)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'GetArray()( ...  + If(a, b)')
           Expression: 
@@ -2386,9 +2386,9 @@ Block[7] - Block
           ReturnedValue: 
             null
 
-    Next (Regular) Block[8]
-Block[8] - Exit
-    Predecessors: [7]
+    Next (Regular) Block[B8]
+Block[B8] - Exit
+    Predecessors: [B7]
     Statements (0)
 ]]>.Value
 
@@ -2413,11 +2413,11 @@ End Class]]>.Value
             Dim expectedDiagnostics = String.Empty
 
             Dim expectedGraph = <![CDATA[
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-Block[1] - Block
-    Predecessors: [0]
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
     Statements (3)
         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'GetArray()(0)')
           Value: 
@@ -2438,14 +2438,14 @@ Block[1] - Block
           Value: 
             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'a')
 
-    Jump if True (Regular) to Block[3]
+    Jump if True (Regular) to Block[B3]
         IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'a')
           Operand: 
             IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
 
-    Next (Regular) Block[2]
-Block[2] - Block
-    Predecessors: [1]
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
           Value: 
@@ -2454,17 +2454,17 @@ Block[2] - Block
                 IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
               Arguments(0)
 
-    Next (Regular) Block[4]
-Block[3] - Block
-    Predecessors: [1]
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
           Value: 
             IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
 
-    Next (Regular) Block[4]
-Block[4] - Block
-    Predecessors: [2] [3]
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
     Statements (3)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'GetArray()( ...  - If(a, b)')
           Expression: 
@@ -2486,9 +2486,9 @@ Block[4] - Block
           ReturnedValue: 
             null
 
-    Next (Regular) Block[5]
-Block[5] - Exit
-    Predecessors: [4]
+    Next (Regular) Block[B5]
+Block[B5] - Exit
+    Predecessors: [B4]
     Statements (0)
 ]]>.Value
 
@@ -2513,11 +2513,11 @@ End Class]]>.Value
             Dim expectedDiagnostics = String.Empty
 
             Dim expectedGraph = <![CDATA[
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-Block[1] - Block
-    Predecessors: [0]
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
     Statements (3)
         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'GetArray()(0)')
           Value: 
@@ -2538,14 +2538,14 @@ Block[1] - Block
           Value: 
             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'a')
 
-    Jump if True (Regular) to Block[3]
+    Jump if True (Regular) to Block[B3]
         IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'a')
           Operand: 
             IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
 
-    Next (Regular) Block[2]
-Block[2] - Block
-    Predecessors: [1]
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
           Value: 
@@ -2554,17 +2554,17 @@ Block[2] - Block
                 IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
               Arguments(0)
 
-    Next (Regular) Block[4]
-Block[3] - Block
-    Predecessors: [1]
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
           Value: 
             IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
 
-    Next (Regular) Block[4]
-Block[4] - Block
-    Predecessors: [2] [3]
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
     Statements (3)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'GetArray()( ... << If(a, b)')
           Expression: 
@@ -2586,9 +2586,9 @@ Block[4] - Block
           ReturnedValue: 
             null
 
-    Next (Regular) Block[5]
-Block[5] - Exit
-    Predecessors: [4]
+    Next (Regular) Block[B5]
+Block[B5] - Exit
+    Predecessors: [B4]
     Statements (0)
 ]]>.Value
 
@@ -2613,11 +2613,11 @@ End Class]]>.Value
             Dim expectedDiagnostics = String.Empty
 
             Dim expectedGraph = <![CDATA[
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-Block[1] - Block
-    Predecessors: [0]
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
     Statements (3)
         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'GetArray()(0)')
           Value: 
@@ -2638,14 +2638,14 @@ Block[1] - Block
           Value: 
             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'a')
 
-    Jump if True (Regular) to Block[3]
+    Jump if True (Regular) to Block[B3]
         IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'a')
           Operand: 
             IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
 
-    Next (Regular) Block[2]
-Block[2] - Block
-    Predecessors: [1]
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
           Value: 
@@ -2654,17 +2654,17 @@ Block[2] - Block
                 IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
               Arguments(0)
 
-    Next (Regular) Block[4]
-Block[3] - Block
-    Predecessors: [1]
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
           Value: 
             IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
 
-    Next (Regular) Block[4]
-Block[4] - Block
-    Predecessors: [2] [3]
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
     Statements (3)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'GetArray()( ... >> If(a, b)')
           Expression: 
@@ -2686,9 +2686,9 @@ Block[4] - Block
           ReturnedValue: 
             null
 
-    Next (Regular) Block[5]
-Block[5] - Exit
-    Predecessors: [4]
+    Next (Regular) Block[B5]
+Block[B5] - Exit
+    Predecessors: [B4]
     Statements (0)
 ]]>.Value
 
@@ -2713,11 +2713,11 @@ End Class]]>.Value
             Dim expectedDiagnostics = String.Empty
 
             Dim expectedGraph = <![CDATA[
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-Block[1] - Block
-    Predecessors: [0]
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
     Statements (3)
         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'GetArray()(0)')
           Value: 
@@ -2738,14 +2738,14 @@ Block[1] - Block
           Value: 
             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'a')
 
-    Jump if True (Regular) to Block[3]
+    Jump if True (Regular) to Block[B3]
         IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'a')
           Operand: 
             IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
 
-    Next (Regular) Block[2]
-Block[2] - Block
-    Predecessors: [1]
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
           Value: 
@@ -2754,17 +2754,17 @@ Block[2] - Block
                 IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
               Arguments(0)
 
-    Next (Regular) Block[4]
-Block[3] - Block
-    Predecessors: [1]
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
           Value: 
             IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
 
-    Next (Regular) Block[4]
-Block[4] - Block
-    Predecessors: [2] [3]
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
     Statements (3)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'GetArray()( ...  * If(a, b)')
           Expression: 
@@ -2786,9 +2786,9 @@ Block[4] - Block
           ReturnedValue: 
             null
 
-    Next (Regular) Block[5]
-Block[5] - Exit
-    Predecessors: [4]
+    Next (Regular) Block[B5]
+Block[B5] - Exit
+    Predecessors: [B4]
     Statements (0)
 ]]>.Value
 
@@ -2813,11 +2813,11 @@ End Class]]>.Value
             Dim expectedDiagnostics = String.Empty
 
             Dim expectedGraph = <![CDATA[
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-Block[1] - Block
-    Predecessors: [0]
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
     Statements (3)
         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'GetArray()(0)')
           Value: 
@@ -2842,14 +2842,14 @@ Block[1] - Block
           Value: 
             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'a')
 
-    Jump if True (Regular) to Block[3]
+    Jump if True (Regular) to Block[B3]
         IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'a')
           Operand: 
             IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
 
-    Next (Regular) Block[2]
-Block[2] - Block
-    Predecessors: [1]
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
           Value: 
@@ -2858,17 +2858,17 @@ Block[2] - Block
                 IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
               Arguments(0)
 
-    Next (Regular) Block[4]
-Block[3] - Block
-    Predecessors: [1]
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
           Value: 
             IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
 
-    Next (Regular) Block[4]
-Block[4] - Block
-    Predecessors: [2] [3]
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
     Statements (3)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'GetArray()( ...  / If(a, b)')
           Expression: 
@@ -2898,9 +2898,9 @@ Block[4] - Block
           ReturnedValue: 
             null
 
-    Next (Regular) Block[5]
-Block[5] - Exit
-    Predecessors: [4]
+    Next (Regular) Block[B5]
+Block[B5] - Exit
+    Predecessors: [B4]
     Statements (0)
 ]]>.Value
 
@@ -2925,11 +2925,11 @@ End Class]]>.Value
             Dim expectedDiagnostics = String.Empty
 
             Dim expectedGraph = <![CDATA[
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-Block[1] - Block
-    Predecessors: [0]
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
     Statements (3)
         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'GetArray()(0)')
           Value: 
@@ -2950,14 +2950,14 @@ Block[1] - Block
           Value: 
             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'a')
 
-    Jump if True (Regular) to Block[3]
+    Jump if True (Regular) to Block[B3]
         IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'a')
           Operand: 
             IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
 
-    Next (Regular) Block[2]
-Block[2] - Block
-    Predecessors: [1]
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
           Value: 
@@ -2966,17 +2966,17 @@ Block[2] - Block
                 IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
               Arguments(0)
 
-    Next (Regular) Block[4]
-Block[3] - Block
-    Predecessors: [1]
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
           Value: 
             IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
 
-    Next (Regular) Block[4]
-Block[4] - Block
-    Predecessors: [2] [3]
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
     Statements (3)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'GetArray()( ... od If(a, b)')
           Expression: 
@@ -2998,9 +2998,9 @@ Block[4] - Block
           ReturnedValue: 
             null
 
-    Next (Regular) Block[5]
-Block[5] - Exit
-    Predecessors: [4]
+    Next (Regular) Block[B5]
+Block[B5] - Exit
+    Predecessors: [B4]
     Statements (0)
 ]]>.Value
 
@@ -3021,11 +3021,11 @@ End Class]]>.Value
             Dim expectedDiagnostics = String.Empty
 
             Dim expectedFlowGraph = <![CDATA[
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-Block[1] - Block
-    Predecessors: [0]
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
     Statements (3)
         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
           Value: 
@@ -3043,14 +3043,14 @@ Block[1] - Block
           Value: 
             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'a')
 
-    Jump if True (Regular) to Block[3]
+    Jump if True (Regular) to Block[B3]
         IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'a')
           Operand: 
             IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
 
-    Next (Regular) Block[2]
-Block[2] - Block
-    Predecessors: [1]
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
           Value: 
@@ -3059,17 +3059,17 @@ Block[2] - Block
                 IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
               Arguments(0)
 
-    Next (Regular) Block[4]
-Block[3] - Block
-    Predecessors: [1]
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
           Value: 
             IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
 
-    Next (Regular) Block[4]
-Block[4] - Block
-    Predecessors: [2] [3]
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
     Statements (3)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'c = b ^ If(a, b)')
           Expression: 
@@ -3099,9 +3099,9 @@ Block[4] - Block
           ReturnedValue: 
             null
 
-    Next (Regular) Block[5]
-Block[5] - Exit
-    Predecessors: [4]
+    Next (Regular) Block[B5]
+Block[B5] - Exit
+    Predecessors: [B4]
     Statements (0)
 ]]>.Value
 
@@ -3122,11 +3122,11 @@ End Class]]>.Value
             Dim expectedDiagnostics = String.Empty
 
             Dim expectedFlowGraph = <![CDATA[
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-Block[1] - Block
-    Predecessors: [0]
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
     Statements (3)
         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
           Value: 
@@ -3140,14 +3140,14 @@ Block[1] - Block
           Value: 
             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'a')
 
-    Jump if True (Regular) to Block[3]
+    Jump if True (Regular) to Block[B3]
         IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'a')
           Operand: 
             IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
 
-    Next (Regular) Block[2]
-Block[2] - Block
-    Predecessors: [1]
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
           Value: 
@@ -3156,17 +3156,17 @@ Block[2] - Block
                 IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
               Arguments(0)
 
-    Next (Regular) Block[4]
-Block[3] - Block
-    Predecessors: [1]
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
           Value: 
             IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
 
-    Next (Regular) Block[4]
-Block[4] - Block
-    Predecessors: [2] [3]
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
     Statements (3)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'c = b = If(a, b)')
           Expression: 
@@ -3188,9 +3188,9 @@ Block[4] - Block
           ReturnedValue: 
             null
 
-    Next (Regular) Block[5]
-Block[5] - Exit
-    Predecessors: [4]
+    Next (Regular) Block[B5]
+Block[B5] - Exit
+    Predecessors: [B4]
     Statements (0)
 ]]>.Value
 
@@ -3211,11 +3211,11 @@ End Class]]>.Value
             Dim expectedDiagnostics = String.Empty
 
             Dim expectedFlowGraph = <![CDATA[
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-Block[1] - Block
-    Predecessors: [0]
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
     Statements (3)
         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
           Value: 
@@ -3229,14 +3229,14 @@ Block[1] - Block
           Value: 
             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'a')
 
-    Jump if True (Regular) to Block[3]
+    Jump if True (Regular) to Block[B3]
         IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'a')
           Operand: 
             IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
 
-    Next (Regular) Block[2]
-Block[2] - Block
-    Predecessors: [1]
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
           Value: 
@@ -3245,17 +3245,17 @@ Block[2] - Block
                 IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
               Arguments(0)
 
-    Next (Regular) Block[4]
-Block[3] - Block
-    Predecessors: [1]
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
           Value: 
             IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
 
-    Next (Regular) Block[4]
-Block[4] - Block
-    Predecessors: [2] [3]
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
     Statements (3)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'c = b <> If(a, b)')
           Expression: 
@@ -3277,9 +3277,9 @@ Block[4] - Block
           ReturnedValue: 
             null
 
-    Next (Regular) Block[5]
-Block[5] - Exit
-    Predecessors: [4]
+    Next (Regular) Block[B5]
+Block[B5] - Exit
+    Predecessors: [B4]
     Statements (0)
 ]]>.Value
 
@@ -3300,11 +3300,11 @@ End Class]]>.Value
             Dim expectedDiagnostics = String.Empty
 
             Dim expectedFlowGraph = <![CDATA[
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-Block[1] - Block
-    Predecessors: [0]
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
     Statements (3)
         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
           Value: 
@@ -3318,14 +3318,14 @@ Block[1] - Block
           Value: 
             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'a')
 
-    Jump if True (Regular) to Block[3]
+    Jump if True (Regular) to Block[B3]
         IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'a')
           Operand: 
             IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
 
-    Next (Regular) Block[2]
-Block[2] - Block
-    Predecessors: [1]
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
           Value: 
@@ -3334,17 +3334,17 @@ Block[2] - Block
                 IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
               Arguments(0)
 
-    Next (Regular) Block[4]
-Block[3] - Block
-    Predecessors: [1]
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
           Value: 
             IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
 
-    Next (Regular) Block[4]
-Block[4] - Block
-    Predecessors: [2] [3]
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
     Statements (3)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'c = b < If(a, b)')
           Expression: 
@@ -3366,9 +3366,9 @@ Block[4] - Block
           ReturnedValue: 
             null
 
-    Next (Regular) Block[5]
-Block[5] - Exit
-    Predecessors: [4]
+    Next (Regular) Block[B5]
+Block[B5] - Exit
+    Predecessors: [B4]
     Statements (0)
 ]]>.Value
 
@@ -3389,11 +3389,11 @@ End Class]]>.Value
             Dim expectedDiagnostics = String.Empty
 
             Dim expectedFlowGraph = <![CDATA[
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-Block[1] - Block
-    Predecessors: [0]
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
     Statements (3)
         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
           Value: 
@@ -3407,14 +3407,14 @@ Block[1] - Block
           Value: 
             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'a')
 
-    Jump if True (Regular) to Block[3]
+    Jump if True (Regular) to Block[B3]
         IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'a')
           Operand: 
             IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
 
-    Next (Regular) Block[2]
-Block[2] - Block
-    Predecessors: [1]
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
           Value: 
@@ -3423,17 +3423,17 @@ Block[2] - Block
                 IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
               Arguments(0)
 
-    Next (Regular) Block[4]
-Block[3] - Block
-    Predecessors: [1]
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
           Value: 
             IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
 
-    Next (Regular) Block[4]
-Block[4] - Block
-    Predecessors: [2] [3]
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
     Statements (3)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'c = b > If(a, b)')
           Expression: 
@@ -3455,9 +3455,9 @@ Block[4] - Block
           ReturnedValue: 
             null
 
-    Next (Regular) Block[5]
-Block[5] - Exit
-    Predecessors: [4]
+    Next (Regular) Block[B5]
+Block[B5] - Exit
+    Predecessors: [B4]
     Statements (0)
 ]]>.Value
 
@@ -3478,11 +3478,11 @@ End Class]]>.Value
             Dim expectedDiagnostics = String.Empty
 
             Dim expectedFlowGraph = <![CDATA[
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-Block[1] - Block
-    Predecessors: [0]
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
     Statements (3)
         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
           Value: 
@@ -3496,14 +3496,14 @@ Block[1] - Block
           Value: 
             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'a')
 
-    Jump if True (Regular) to Block[3]
+    Jump if True (Regular) to Block[B3]
         IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'a')
           Operand: 
             IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
 
-    Next (Regular) Block[2]
-Block[2] - Block
-    Predecessors: [1]
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
           Value: 
@@ -3512,17 +3512,17 @@ Block[2] - Block
                 IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
               Arguments(0)
 
-    Next (Regular) Block[4]
-Block[3] - Block
-    Predecessors: [1]
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
           Value: 
             IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
 
-    Next (Regular) Block[4]
-Block[4] - Block
-    Predecessors: [2] [3]
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
     Statements (3)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'c = b <= If(a, b)')
           Expression: 
@@ -3544,9 +3544,9 @@ Block[4] - Block
           ReturnedValue: 
             null
 
-    Next (Regular) Block[5]
-Block[5] - Exit
-    Predecessors: [4]
+    Next (Regular) Block[B5]
+Block[B5] - Exit
+    Predecessors: [B4]
     Statements (0)
 ]]>.Value
 
@@ -3567,11 +3567,11 @@ End Class]]>.Value
             Dim expectedDiagnostics = String.Empty
 
             Dim expectedFlowGraph = <![CDATA[
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-Block[1] - Block
-    Predecessors: [0]
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
     Statements (3)
         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
           Value: 
@@ -3585,14 +3585,14 @@ Block[1] - Block
           Value: 
             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'a')
 
-    Jump if True (Regular) to Block[3]
+    Jump if True (Regular) to Block[B3]
         IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'a')
           Operand: 
             IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
 
-    Next (Regular) Block[2]
-Block[2] - Block
-    Predecessors: [1]
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
           Value: 
@@ -3601,17 +3601,17 @@ Block[2] - Block
                 IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
               Arguments(0)
 
-    Next (Regular) Block[4]
-Block[3] - Block
-    Predecessors: [1]
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
           Value: 
             IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
 
-    Next (Regular) Block[4]
-Block[4] - Block
-    Predecessors: [2] [3]
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
     Statements (3)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'c = b >= If(a, b)')
           Expression: 
@@ -3633,9 +3633,9 @@ Block[4] - Block
           ReturnedValue: 
             null
 
-    Next (Regular) Block[5]
-Block[5] - Exit
-    Predecessors: [4]
+    Next (Regular) Block[B5]
+Block[B5] - Exit
+    Predecessors: [B4]
     Statements (0)
 ]]>.Value
 
@@ -3656,11 +3656,11 @@ End Class]]>.Value
             Dim expectedDiagnostics = String.Empty
 
             Dim expectedFlowGraph = <![CDATA[
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-Block[1] - Block
-    Predecessors: [0]
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
     Statements (3)
         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
           Value: 
@@ -3674,30 +3674,30 @@ Block[1] - Block
           Value: 
             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.String) (Syntax: 'a')
 
-    Jump if True (Regular) to Block[3]
+    Jump if True (Regular) to Block[B3]
         IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'a')
           Operand: 
             IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'a')
 
-    Next (Regular) Block[2]
-Block[2] - Block
-    Predecessors: [1]
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
           Value: 
             IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'a')
 
-    Next (Regular) Block[4]
-Block[3] - Block
-    Predecessors: [1]
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
           Value: 
             IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.String) (Syntax: 'b')
 
-    Next (Regular) Block[4]
-Block[4] - Block
-    Predecessors: [2] [3]
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
     Statements (3)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'c = b + If(a, b)')
           Expression: 
@@ -3719,9 +3719,9 @@ Block[4] - Block
           ReturnedValue: 
             null
 
-    Next (Regular) Block[5]
-Block[5] - Exit
-    Predecessors: [4]
+    Next (Regular) Block[B5]
+Block[B5] - Exit
+    Predecessors: [B4]
     Statements (0)
 ]]>.Value
 
@@ -3742,11 +3742,11 @@ End Class]]>.Value
             Dim expectedDiagnostics = String.Empty
 
             Dim expectedFlowGraph = <![CDATA[
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-Block[1] - Block
-    Predecessors: [0]
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
     Statements (3)
         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
           Value: 
@@ -3760,30 +3760,30 @@ Block[1] - Block
           Value: 
             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.String) (Syntax: 'a')
 
-    Jump if True (Regular) to Block[3]
+    Jump if True (Regular) to Block[B3]
         IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'a')
           Operand: 
             IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'a')
 
-    Next (Regular) Block[2]
-Block[2] - Block
-    Predecessors: [1]
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
           Value: 
             IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'a')
 
-    Next (Regular) Block[4]
-Block[3] - Block
-    Predecessors: [1]
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
           Value: 
             IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.String) (Syntax: 'b')
 
-    Next (Regular) Block[4]
-Block[4] - Block
-    Predecessors: [2] [3]
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
     Statements (3)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'c = b & If(a, b)')
           Expression: 
@@ -3805,9 +3805,9 @@ Block[4] - Block
           ReturnedValue: 
             null
 
-    Next (Regular) Block[5]
-Block[5] - Exit
-    Predecessors: [4]
+    Next (Regular) Block[B5]
+Block[B5] - Exit
+    Predecessors: [B4]
     Statements (0)
 ]]>.Value
 
@@ -3828,11 +3828,11 @@ End Class]]>.Value
             Dim expectedDiagnostics = String.Empty
 
             Dim expectedFlowGraph = <![CDATA[
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-Block[1] - Block
-    Predecessors: [0]
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
     Statements (3)
         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
           Value: 
@@ -3846,14 +3846,14 @@ Block[1] - Block
           Value: 
             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Nullable(Of System.Boolean)) (Syntax: 'a')
 
-    Jump if True (Regular) to Block[3]
+    Jump if True (Regular) to Block[B3]
         IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'a')
           Operand: 
             IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: 'a')
 
-    Next (Regular) Block[2]
-Block[2] - Block
-    Predecessors: [1]
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
           Value: 
@@ -3862,17 +3862,17 @@ Block[2] - Block
                 IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: 'a')
               Arguments(0)
 
-    Next (Regular) Block[4]
-Block[3] - Block
-    Predecessors: [1]
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
           Value: 
             IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
 
-    Next (Regular) Block[4]
-Block[4] - Block
-    Predecessors: [2] [3]
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
     Statements (3)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'c = b And If(a, b)')
           Expression: 
@@ -3894,9 +3894,9 @@ Block[4] - Block
           ReturnedValue: 
             null
 
-    Next (Regular) Block[5]
-Block[5] - Exit
-    Predecessors: [4]
+    Next (Regular) Block[B5]
+Block[B5] - Exit
+    Predecessors: [B4]
     Statements (0)
 ]]>.Value
 
@@ -3917,11 +3917,11 @@ End Class]]>.Value
             Dim expectedDiagnostics = String.Empty
 
             Dim expectedFlowGraph = <![CDATA[
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-Block[1] - Block
-    Predecessors: [0]
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
     Statements (3)
         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
           Value: 
@@ -3935,14 +3935,14 @@ Block[1] - Block
           Value: 
             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Nullable(Of System.Boolean)) (Syntax: 'a')
 
-    Jump if True (Regular) to Block[3]
+    Jump if True (Regular) to Block[B3]
         IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'a')
           Operand: 
             IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: 'a')
 
-    Next (Regular) Block[2]
-Block[2] - Block
-    Predecessors: [1]
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
           Value: 
@@ -3951,17 +3951,17 @@ Block[2] - Block
                 IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: 'a')
               Arguments(0)
 
-    Next (Regular) Block[4]
-Block[3] - Block
-    Predecessors: [1]
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
           Value: 
             IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
 
-    Next (Regular) Block[4]
-Block[4] - Block
-    Predecessors: [2] [3]
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
     Statements (3)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'c = b Or If(a, b)')
           Expression: 
@@ -3983,9 +3983,9 @@ Block[4] - Block
           ReturnedValue: 
             null
 
-    Next (Regular) Block[5]
-Block[5] - Exit
-    Predecessors: [4]
+    Next (Regular) Block[B5]
+Block[B5] - Exit
+    Predecessors: [B4]
     Statements (0)
 ]]>.Value
 
@@ -4006,11 +4006,11 @@ End Class]]>.Value
             Dim expectedDiagnostics = String.Empty
 
             Dim expectedFlowGraph = <![CDATA[
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-Block[1] - Block
-    Predecessors: [0]
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
     Statements (3)
         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
           Value: 
@@ -4024,14 +4024,14 @@ Block[1] - Block
           Value: 
             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Nullable(Of System.Boolean)) (Syntax: 'a')
 
-    Jump if True (Regular) to Block[3]
+    Jump if True (Regular) to Block[B3]
         IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'a')
           Operand: 
             IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: 'a')
 
-    Next (Regular) Block[2]
-Block[2] - Block
-    Predecessors: [1]
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
           Value: 
@@ -4040,17 +4040,17 @@ Block[2] - Block
                 IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: 'a')
               Arguments(0)
 
-    Next (Regular) Block[4]
-Block[3] - Block
-    Predecessors: [1]
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
           Value: 
             IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
 
-    Next (Regular) Block[4]
-Block[4] - Block
-    Predecessors: [2] [3]
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
     Statements (3)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'c = b Xor If(a, b)')
           Expression: 
@@ -4072,9 +4072,9 @@ Block[4] - Block
           ReturnedValue: 
             null
 
-    Next (Regular) Block[5]
-Block[5] - Exit
-    Predecessors: [4]
+    Next (Regular) Block[B5]
+Block[B5] - Exit
+    Predecessors: [B4]
     Statements (0)
 ]]>.Value
 
@@ -4095,11 +4095,11 @@ End Class]]>.Value
             Dim expectedDiagnostics = String.Empty
 
             Dim expectedFlowGraph = <![CDATA[
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-Block[1] - Block
-    Predecessors: [0]
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
     Statements (3)
         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
           Value: 
@@ -4113,30 +4113,30 @@ Block[1] - Block
           Value: 
             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'a')
 
-    Jump if True (Regular) to Block[3]
+    Jump if True (Regular) to Block[B3]
         IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'a')
           Operand: 
             IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'a')
 
-    Next (Regular) Block[2]
-Block[2] - Block
-    Predecessors: [1]
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
           Value: 
             IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'a')
 
-    Next (Regular) Block[4]
-Block[3] - Block
-    Predecessors: [1]
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
           Value: 
             IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'b')
 
-    Next (Regular) Block[4]
-Block[4] - Block
-    Predecessors: [2] [3]
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
     Statements (3)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'c = b Is If(a, b)')
           Expression: 
@@ -4158,9 +4158,9 @@ Block[4] - Block
           ReturnedValue: 
             null
 
-    Next (Regular) Block[5]
-Block[5] - Exit
-    Predecessors: [4]
+    Next (Regular) Block[B5]
+Block[B5] - Exit
+    Predecessors: [B4]
     Statements (0)
 ]]>.Value
 
@@ -4181,11 +4181,11 @@ End Class]]>.Value
             Dim expectedDiagnostics = String.Empty
 
             Dim expectedFlowGraph = <![CDATA[
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-Block[1] - Block
-    Predecessors: [0]
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
     Statements (3)
         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
           Value: 
@@ -4199,30 +4199,30 @@ Block[1] - Block
           Value: 
             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'a')
 
-    Jump if True (Regular) to Block[3]
+    Jump if True (Regular) to Block[B3]
         IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'a')
           Operand: 
             IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'a')
 
-    Next (Regular) Block[2]
-Block[2] - Block
-    Predecessors: [1]
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
           Value: 
             IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'a')
 
-    Next (Regular) Block[4]
-Block[3] - Block
-    Predecessors: [1]
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
           Value: 
             IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'b')
 
-    Next (Regular) Block[4]
-Block[4] - Block
-    Predecessors: [2] [3]
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
     Statements (3)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'c = b IsNot If(a, b)')
           Expression: 
@@ -4244,9 +4244,9 @@ Block[4] - Block
           ReturnedValue: 
             null
 
-    Next (Regular) Block[5]
-Block[5] - Exit
-    Predecessors: [4]
+    Next (Regular) Block[B5]
+Block[B5] - Exit
+    Predecessors: [B4]
     Statements (0)
 ]]>.Value
 
@@ -4267,11 +4267,11 @@ End Class]]>.Value
             Dim expectedDiagnostics = String.Empty
 
             Dim expectedFlowGraph = <![CDATA[
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-Block[1] - Block
-    Predecessors: [0]
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
     Statements (3)
         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
           Value: 
@@ -4285,30 +4285,30 @@ Block[1] - Block
           Value: 
             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.String) (Syntax: 'a')
 
-    Jump if True (Regular) to Block[3]
+    Jump if True (Regular) to Block[B3]
         IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'a')
           Operand: 
             IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'a')
 
-    Next (Regular) Block[2]
-Block[2] - Block
-    Predecessors: [1]
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
           Value: 
             IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'a')
 
-    Next (Regular) Block[4]
-Block[3] - Block
-    Predecessors: [1]
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
     Statements (1)
         IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
           Value: 
             IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.String) (Syntax: 'b')
 
-    Next (Regular) Block[4]
-Block[4] - Block
-    Predecessors: [2] [3]
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
     Statements (3)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'c = b Like If(a, b)')
           Expression: 
@@ -4330,9 +4330,9 @@ Block[4] - Block
           ReturnedValue: 
             null
 
-    Next (Regular) Block[5]
-Block[5] - Exit
-    Predecessors: [4]
+    Next (Regular) Block[B5]
+Block[B5] - Exit
+    Predecessors: [B4]
     Statements (0)
 ]]>.Value
 

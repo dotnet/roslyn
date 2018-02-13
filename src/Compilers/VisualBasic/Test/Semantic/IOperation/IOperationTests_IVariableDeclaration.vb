@@ -2785,16 +2785,16 @@ End Class]]>.Value
             Dim expectedDiagnostics = String.Empty
 
             Dim expectedFlowGraph = <![CDATA[
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-        Entering: {1}
+    Next (Regular) Block[B1]
+        Entering: {R1}
 
-.locals {1}
+.locals {R1}
 {
     Locals: [a As System.Int32] [b As System.Int32] [c As System.Int32] [d As System.Int32] [e As System.Int32] [f As System.Int32]
-    Block[1] - Block
-        Predecessors: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
         Statements (8)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'a As Integer = 1')
               Expression: 
@@ -2858,12 +2858,12 @@ Block[0] - Entry
               ReturnedValue: 
                 null
 
-        Next (Regular) Block[2]
-            Leaving: {1}
+        Next (Regular) Block[B2]
+            Leaving: {R1}
 }
 
-Block[2] - Exit
-    Predecessors: [1]
+Block[B2] - Exit
+    Predecessors: [B1]
     Statements (0)
 ]]>.Value
 
@@ -2885,16 +2885,16 @@ End Class]]>.Value
             Dim expectedDiagnostics = String.Empty
 
             Dim expectedFlowGraph = <![CDATA[
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-        Entering: {1}
+    Next (Regular) Block[B1]
+        Entering: {R1}
 
-.locals {1}
+.locals {R1}
 {
     Locals: [a As System.Int32]
-    Block[1] - Block
-        Predecessors: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
         Statements (3)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a = 1')
               Expression: 
@@ -2912,12 +2912,12 @@ Block[0] - Entry
               ReturnedValue: 
                 null
 
-        Next (Regular) Block[2]
-            Leaving: {1}
+        Next (Regular) Block[B2]
+            Leaving: {R1}
 }
 
-Block[2] - Exit
-    Predecessors: [1]
+Block[B2] - Exit
+    Predecessors: [B1]
     Statements (0)
 ]]>.Value
 
@@ -2938,39 +2938,39 @@ End Class]]>.Value
             Dim expectedDiagnostics = String.Empty
 
             Dim expectedFlowGraph = <![CDATA[
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-        Entering: {1}
+    Next (Regular) Block[B1]
+        Entering: {R1}
 
-.locals {1}
+.locals {R1}
 {
     Locals: [d As System.Int32]
-    Block[1] - Block
-        Predecessors: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
         Statements (0)
-        Jump if False (Regular) to Block[3]
+        Jump if False (Regular) to Block[B3]
             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'a')
 
-        Next (Regular) Block[2]
-    Block[2] - Block
-        Predecessors: [1]
+        Next (Regular) Block[B2]
+    Block[B2] - Block
+        Predecessors: [B1]
         Statements (1)
             IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
               Value: 
                 IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
 
-        Next (Regular) Block[4]
-    Block[3] - Block
-        Predecessors: [1]
+        Next (Regular) Block[B4]
+    Block[B3] - Block
+        Predecessors: [B1]
         Statements (1)
             IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
               Value: 
                 IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'c')
 
-        Next (Regular) Block[4]
-    Block[4] - Block
-        Predecessors: [2] [3]
+        Next (Regular) Block[B4]
+    Block[B4] - Block
+        Predecessors: [B2] [B3]
         Statements (3)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'd As Intege ... If(a, b, c)')
               Expression: 
@@ -2988,12 +2988,12 @@ Block[0] - Entry
               ReturnedValue: 
                 null
 
-        Next (Regular) Block[5]
-            Leaving: {1}
+        Next (Regular) Block[B5]
+            Leaving: {R1}
 }
 
-Block[5] - Exit
-    Predecessors: [4]
+Block[B5] - Exit
+    Predecessors: [B4]
     Statements (0)
 ]]>.Value
 
@@ -3018,16 +3018,16 @@ BC30201: Expression expected.
 ]]>.Value
 
             Dim expectedFlowGraph = <![CDATA[
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-        Entering: {1}
+    Next (Regular) Block[B1]
+        Entering: {R1}
 
-.locals {1}
+.locals {R1}
 {
     Locals: [d As System.Int32]
-    Block[1] - Block
-        Predecessors: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
         Statements (3)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid, IsImplicit) (Syntax: 'd As Integer =')
               Expression: 
@@ -3046,12 +3046,12 @@ Block[0] - Entry
               ReturnedValue: 
                 null
 
-        Next (Regular) Block[2]
-            Leaving: {1}
+        Next (Regular) Block[B2]
+            Leaving: {R1}
 }
 
-Block[2] - Exit
-    Predecessors: [1]
+Block[B2] - Exit
+    Predecessors: [B1]
     Statements (0)
 ]]>.Value
 
@@ -3076,16 +3076,16 @@ BC30182: Type expected.
 ]]>.Value
 
             Dim expectedFlowGraph = <![CDATA[
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-        Entering: {1}
+    Next (Regular) Block[B1]
+        Entering: {R1}
 
-.locals {1}
+.locals {R1}
 {
     Locals: [d As ?]
-    Block[1] - Block
-        Predecessors: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
         Statements (3)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid, IsImplicit) (Syntax: 'd As New')
               Expression: 
@@ -3104,12 +3104,12 @@ Block[0] - Entry
               ReturnedValue: 
                 null
 
-        Next (Regular) Block[2]
-            Leaving: {1}
+        Next (Regular) Block[B2]
+            Leaving: {R1}
 }
 
-Block[2] - Exit
-    Predecessors: [1]
+Block[B2] - Exit
+    Predecessors: [B1]
     Statements (0)
 ]]>.Value
 
@@ -3133,16 +3133,16 @@ End Class]]>.Value
 
             ' PROTOTYPE(dataflow): Is this good enough to indicate that the static local is only initialized once?
             Dim expectedFlowGraph = <![CDATA[
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-        Entering: {1}
+    Next (Regular) Block[B1]
+        Entering: {R1}
 
-.locals {1}
+.locals {R1}
 {
     Locals: [a As System.Int32] [b As System.Int32]
-    Block[1] - Block
-        Predecessors: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
         Statements (4)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'a As Integer = 1')
               Expression: 
@@ -3168,12 +3168,12 @@ Block[0] - Entry
               ReturnedValue: 
                 null
 
-        Next (Regular) Block[2]
-            Leaving: {1}
+        Next (Regular) Block[B2]
+            Leaving: {R1}
 }
 
-Block[2] - Exit
-    Predecessors: [1]
+Block[B2] - Exit
+    Predecessors: [B1]
     Statements (0)
 ]]>.Value
 
@@ -3194,16 +3194,16 @@ End Class]]>.Value
             Dim expectedDiagnostics = String.Empty
 
             Dim expectedFlowGraph = <![CDATA[
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-        Entering: {1}
+    Next (Regular) Block[B1]
+        Entering: {R1}
 
-.locals {1}
+.locals {R1}
 {
     Locals: [a As System.Int32()]
-    Block[1] - Block
-        Predecessors: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
         Statements (3)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'a(10)')
               Expression: 
@@ -3229,12 +3229,12 @@ Block[0] - Entry
               ReturnedValue: 
                 null
 
-        Next (Regular) Block[2]
-            Leaving: {1}
+        Next (Regular) Block[B2]
+            Leaving: {R1}
 }
 
-Block[2] - Exit
-    Predecessors: [1]
+Block[B2] - Exit
+    Predecessors: [B1]
     Statements (0)
 ]]>.Value
 
@@ -3262,16 +3262,16 @@ BC30311: Value of type 'Integer' cannot be converted to 'Integer()'.
 ]]>.Value
 
             Dim expectedFlowGraph = <![CDATA[
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-        Entering: {1}
+    Next (Regular) Block[B1]
+        Entering: {R1}
 
-.locals {1}
+.locals {R1}
 {
     Locals: [a As System.Int32()]
-    Block[1] - Block
-        Predecessors: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
         Statements (3)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid, IsImplicit) (Syntax: 'a(10) As Integer = 1')
               Expression: 
@@ -3304,12 +3304,12 @@ Block[0] - Entry
               ReturnedValue: 
                 null
 
-        Next (Regular) Block[2]
-            Leaving: {1}
+        Next (Regular) Block[B2]
+            Leaving: {R1}
 }
 
-Block[2] - Exit
-    Predecessors: [1]
+Block[B2] - Exit
+    Predecessors: [B1]
     Statements (0)
 ]]>.Value
 
@@ -3334,16 +3334,16 @@ BC30053: Arrays cannot be declared with 'New'.
 ]]>.Value
 
             Dim expectedFlowGraph = <![CDATA[
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-        Entering: {1}
+    Next (Regular) Block[B1]
+        Entering: {R1}
 
-.locals {1}
+.locals {R1}
 {
     Locals: [a As System.Int32()]
-    Block[1] - Block
-        Predecessors: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
         Statements (3)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid, IsImplicit) (Syntax: 'a(10) As New Integer()')
               Expression: 
@@ -3377,12 +3377,12 @@ Block[0] - Entry
               ReturnedValue: 
                 null
 
-        Next (Regular) Block[2]
-            Leaving: {1}
+        Next (Regular) Block[B2]
+            Leaving: {R1}
 }
 
-Block[2] - Exit
-    Predecessors: [1]
+Block[B2] - Exit
+    Predecessors: [B1]
     Statements (0)
 ]]>.Value
 
@@ -3412,16 +3412,16 @@ BC30183: Keyword is not valid as an identifier.
 ]]>.Value
 
             Dim expectedFlowGraph = <![CDATA[
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-        Entering: {1}
+    Next (Regular) Block[B1]
+        Entering: {R1}
 
-.locals {1}
+.locals {R1}
 {
     Locals: [ As System.Int32] [[As] As System.Object]
-    Block[1] - Block
-        Predecessors: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
         Statements (3)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid, IsImplicit) (Syntax: '= 1')
               Expression: 
@@ -3439,12 +3439,12 @@ Block[0] - Entry
               ReturnedValue: 
                 null
 
-        Next (Regular) Block[2]
-            Leaving: {1}
+        Next (Regular) Block[B2]
+            Leaving: {R1}
 }
 
-Block[2] - Exit
-    Predecessors: [1]
+Block[B2] - Exit
+    Predecessors: [B1]
     Statements (0)
 ]]>.Value
 
@@ -3465,16 +3465,16 @@ End Class]]>.Value
             Dim expectedDiagnostics = String.Empty
 
             Dim expectedFlowGraph = <![CDATA[
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-        Entering: {1}
+    Next (Regular) Block[B1]
+        Entering: {R1}
 
-.locals {1}
+.locals {R1}
 {
     Locals: [d As System.Int32] [e As System.Int32]
-    Block[1] - Block
-        Predecessors: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'd As Integer = b')
               Expression: 
@@ -3484,28 +3484,28 @@ Block[0] - Entry
                   Right: 
                     IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
 
-        Jump if False (Regular) to Block[3]
+        Jump if False (Regular) to Block[B3]
             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'a')
 
-        Next (Regular) Block[2]
-    Block[2] - Block
-        Predecessors: [1]
+        Next (Regular) Block[B2]
+    Block[B2] - Block
+        Predecessors: [B1]
         Statements (1)
             IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
               Value: 
                 IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
 
-        Next (Regular) Block[4]
-    Block[3] - Block
-        Predecessors: [1]
+        Next (Regular) Block[B4]
+    Block[B3] - Block
+        Predecessors: [B1]
         Statements (1)
             IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
               Value: 
                 IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'c')
 
-        Next (Regular) Block[4]
-    Block[4] - Block
-        Predecessors: [2] [3]
+        Next (Regular) Block[B4]
+    Block[B4] - Block
+        Predecessors: [B2] [B3]
         Statements (3)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'e As Intege ... If(a, b, c)')
               Expression: 
@@ -3523,12 +3523,12 @@ Block[0] - Entry
               ReturnedValue: 
                 null
 
-        Next (Regular) Block[5]
-            Leaving: {1}
+        Next (Regular) Block[B5]
+            Leaving: {R1}
 }
 
-Block[5] - Exit
-    Predecessors: [4]
+Block[B5] - Exit
+    Predecessors: [B4]
     Statements (0)
 ]]>.Value
 
@@ -3555,16 +3555,16 @@ BC32000: Local variable 'a' cannot be referred to before it is declared.
 ]]>.Value
 
             Dim expectedFlowGraph = <![CDATA[
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-        Entering: {1}
+    Next (Regular) Block[B1]
+        Entering: {R1}
 
-.locals {1}
+.locals {R1}
 {
     Locals: [a As System.Object]
-    Block[1] - Block
-        Predecessors: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
         Statements (3)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'a = 1')
               Expression: 
@@ -3586,12 +3586,12 @@ Block[0] - Entry
               ReturnedValue: 
                 null
 
-        Next (Regular) Block[2]
-            Leaving: {1}
+        Next (Regular) Block[B2]
+            Leaving: {R1}
 }
 
-Block[2] - Exit
-    Predecessors: [1]
+Block[B2] - Exit
+    Predecessors: [B1]
     Statements (0)
 ]]>.Value
 

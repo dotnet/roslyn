@@ -1409,25 +1409,25 @@ class P
 }
 ";
             string expectedGraph = @"
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-Block[1] - Block
-    Predecessors: [0] [2] [3]
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0] [B2] [B3]
     Statements (0)
-    Jump if False (Regular) to Block[4]
+    Jump if False (Regular) to Block[B4]
         IParameterReferenceOperation: condition1 (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'condition1')
 
-    Next (Regular) Block[2]
-Block[2] - Block
-    Predecessors: [1]
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
     Statements (0)
-    Jump if False (Regular) to Block[1]
+    Jump if False (Regular) to Block[B1]
         IParameterReferenceOperation: condition2 (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'condition2')
 
-    Next (Regular) Block[3]
-Block[3] - Block
-    Predecessors: [2]
+    Next (Regular) Block[B3]
+Block[B3] - Block
+    Predecessors: [B2]
     Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'condition1 = false;')
           Expression: 
@@ -1437,9 +1437,9 @@ Block[3] - Block
               Right: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
 
-    Next (Regular) Block[1]
-Block[4] - Exit
-    Predecessors: [1]
+    Next (Regular) Block[B1]
+Block[B4] - Exit
+    Predecessors: [B1]
     Statements (0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -1466,11 +1466,11 @@ class P
 }
 ";
             string expectedGraph = @"
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-Block[1] - Block
-    Predecessors: [0] [1]
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0] [B1]
     Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'condition = false;')
           Expression: 
@@ -1480,12 +1480,12 @@ Block[1] - Block
               Right: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
 
-    Jump if True (Regular) to Block[1]
+    Jump if True (Regular) to Block[B1]
         IParameterReferenceOperation: condition (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'condition')
 
-    Next (Regular) Block[2]
-Block[2] - Exit
-    Predecessors: [1]
+    Next (Regular) Block[B2]
+Block[B2] - Exit
+    Predecessors: [B1]
     Statements (0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -1510,18 +1510,18 @@ class P
 }
 ";
             string expectedGraph = @"
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-Block[1] - Block
-    Predecessors: [0] [1]
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0] [B1]
     Statements (0)
-    Jump if True (Regular) to Block[1]
+    Jump if True (Regular) to Block[B1]
         IParameterReferenceOperation: condition (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'condition')
 
-    Next (Regular) Block[2]
-Block[2] - Exit
-    Predecessors: [1]
+    Next (Regular) Block[B2]
+Block[B2] - Exit
+    Predecessors: [B1]
     Statements (0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -1549,23 +1549,23 @@ class P
 }
 ";
             string expectedGraph = @"
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-Block[1] - Block
-    Predecessors: [0] [2]
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0] [B2]
     Statements (0)
-    Jump if False (Regular) to Block[3]
+    Jump if False (Regular) to Block[B3]
         IParameterReferenceOperation: condition1 (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'condition1')
 
-    Next (Regular) Block[2]
-        Entering: {1}
+    Next (Regular) Block[B2]
+        Entering: {R1}
 
-.locals {1}
+.locals {R1}
 {
     Locals: [System.Int32 i]
-    Block[2] - Block
-        Predecessors: [1]
+    Block[B2] - Block
+        Predecessors: [B1]
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i = 1;')
               Expression: 
@@ -1575,12 +1575,12 @@ Block[1] - Block
                   Right: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 
-        Next (Regular) Block[1]
-            Leaving: {1}
+        Next (Regular) Block[B1]
+            Leaving: {R1}
 }
 
-Block[3] - Exit
-    Predecessors: [1]
+Block[B3] - Exit
+    Predecessors: [B1]
     Statements (0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -1607,18 +1607,18 @@ class P
 }
 ";
             string expectedGraph = @"
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-Block[1] - Block
-    Predecessors: [0] [1]
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0] [B1]
     Statements (0)
-    Jump if False (Regular) to Block[2]
+    Jump if False (Regular) to Block[B2]
         IParameterReferenceOperation: condition1 (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'condition1')
 
-    Next (Regular) Block[1]
-Block[2] - Exit
-    Predecessors: [1]
+    Next (Regular) Block[B1]
+Block[B2] - Exit
+    Predecessors: [B1]
     Statements (0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -1647,22 +1647,22 @@ class P
 }
 ";
             string expectedGraph = @"
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-Block[1] - Block
-    Predecessors: [0] [3]
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0] [B3]
     Statements (0)
-    Next (Regular) Block[2]
-        Entering: {1}
+    Next (Regular) Block[B2]
+        Entering: {R1}
 
-.locals {1}
+.locals {R1}
 {
     Locals: [System.Int32 j]
-    Block[2] - Block
-        Predecessors: [1]
+    Block[B2] - Block
+        Predecessors: [B1]
         Statements (0)
-        Jump if False (Regular) to Block[4]
+        Jump if False (Regular) to Block[B4]
             IInvocationOperation ( System.Boolean P.filter(out System.Int32 i)) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'filter(out var j)')
               Instance Receiver: 
                 IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'filter')
@@ -1672,16 +1672,16 @@ Block[1] - Block
                       ILocalReferenceOperation: j (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Leaving: {1}
+            Leaving: {R1}
 
-        Next (Regular) Block[3]
-            Entering: {2}
+        Next (Regular) Block[B3]
+            Entering: {R2}
 
-    .locals {2}
+    .locals {R2}
     {
         Locals: [System.Int32 i]
-        Block[3] - Block
-            Predecessors: [2]
+        Block[B3] - Block
+            Predecessors: [B2]
             Statements (1)
                 IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i = 1;')
                   Expression: 
@@ -1691,13 +1691,13 @@ Block[1] - Block
                       Right: 
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 
-            Next (Regular) Block[1]
-                Leaving: {2} {1}
+            Next (Regular) Block[B1]
+                Leaving: {R2} {R1}
     }
 }
 
-Block[4] - Exit
-    Predecessors: [2]
+Block[B4] - Exit
+    Predecessors: [B2]
     Statements (0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -1725,22 +1725,22 @@ class P
 }
 ";
             string expectedGraph = @"
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-Block[1] - Block
-    Predecessors: [0] [2]
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0] [B2]
     Statements (0)
-    Next (Regular) Block[2]
-        Entering: {1}
+    Next (Regular) Block[B2]
+        Entering: {R1}
 
-.locals {1}
+.locals {R1}
 {
     Locals: [System.Int32 j]
-    Block[2] - Block
-        Predecessors: [1]
+    Block[B2] - Block
+        Predecessors: [B1]
         Statements (0)
-        Jump if False (Regular) to Block[3]
+        Jump if False (Regular) to Block[B3]
             IInvocationOperation ( System.Boolean P.filter(out System.Int32 i)) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'filter(out var j)')
               Instance Receiver: 
                 IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'filter')
@@ -1750,14 +1750,14 @@ Block[1] - Block
                       ILocalReferenceOperation: j (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Leaving: {1}
+            Leaving: {R1}
 
-        Next (Regular) Block[1]
-            Leaving: {1}
+        Next (Regular) Block[B1]
+            Leaving: {R1}
 }
 
-Block[3] - Exit
-    Predecessors: [2]
+Block[B3] - Exit
+    Predecessors: [B2]
     Statements (0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -1786,16 +1786,16 @@ class P
 }
 ";
             string expectedGraph = @"
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-        Entering: {1}
+    Next (Regular) Block[B1]
+        Entering: {R1}
 
-.locals {1}
+.locals {R1}
 {
     Locals: [System.Int32 i]
-    Block[1] - Block
-        Predecessors: [0] [2]
+    Block[B1] - Block
+        Predecessors: [B0] [B2]
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i = 1;')
               Expression: 
@@ -1805,20 +1805,20 @@ Block[0] - Entry
                   Right: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 
-        Next (Regular) Block[2]
-            Leaving: {1}
+        Next (Regular) Block[B2]
+            Leaving: {R1}
 }
 
-Block[2] - Block
-    Predecessors: [1]
+Block[B2] - Block
+    Predecessors: [B1]
     Statements (0)
-    Jump if True (Regular) to Block[1]
+    Jump if True (Regular) to Block[B1]
         IParameterReferenceOperation: condition (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'condition')
-        Entering: {1}
+        Entering: {R1}
 
-    Next (Regular) Block[3]
-Block[3] - Exit
-    Predecessors: [2]
+    Next (Regular) Block[B3]
+Block[B3] - Exit
+    Predecessors: [B2]
     Statements (0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -1846,18 +1846,18 @@ class P
 }
 ";
             string expectedGraph = @"
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-Block[1] - Block
-    Predecessors: [0] [1]
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0] [B1]
     Statements (0)
-    Jump if True (Regular) to Block[1]
+    Jump if True (Regular) to Block[B1]
         IParameterReferenceOperation: condition (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'condition')
 
-    Next (Regular) Block[2]
-Block[2] - Exit
-    Predecessors: [1]
+    Next (Regular) Block[B2]
+Block[B2] - Exit
+    Predecessors: [B1]
     Statements (0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -1887,23 +1887,23 @@ class P
 }
 ";
             string expectedGraph = @"
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-Block[1] - Block
-    Predecessors: [0] [3]
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0] [B3]
     Statements (0)
-    Next (Regular) Block[2]
-        Entering: {1} {2}
+    Next (Regular) Block[B2]
+        Entering: {R1} {R2}
 
-.locals {1}
+.locals {R1}
 {
     Locals: [System.Int32 j]
-    .locals {2}
+    .locals {R2}
     {
         Locals: [System.Int32 i]
-        Block[2] - Block
-            Predecessors: [1]
+        Block[B2] - Block
+            Predecessors: [B1]
             Statements (1)
                 IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i = 1;')
                   Expression: 
@@ -1913,14 +1913,14 @@ Block[1] - Block
                       Right: 
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 
-            Next (Regular) Block[3]
-                Leaving: {2}
+            Next (Regular) Block[B3]
+                Leaving: {R2}
     }
 
-    Block[3] - Block
-        Predecessors: [2]
+    Block[B3] - Block
+        Predecessors: [B2]
         Statements (0)
-        Jump if True (Regular) to Block[1]
+        Jump if True (Regular) to Block[B1]
             IInvocationOperation ( System.Boolean P.filter(out System.Int32 i)) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'filter(out var j)')
               Instance Receiver: 
                 IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'filter')
@@ -1930,14 +1930,14 @@ Block[1] - Block
                       ILocalReferenceOperation: j (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Leaving: {1}
+            Leaving: {R1}
 
-        Next (Regular) Block[4]
-            Leaving: {1}
+        Next (Regular) Block[B4]
+            Leaving: {R1}
 }
 
-Block[4] - Exit
-    Predecessors: [3]
+Block[B4] - Exit
+    Predecessors: [B3]
     Statements (0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -1966,22 +1966,22 @@ class P
 }
 ";
             string expectedGraph = @"
-Block[0] - Entry
+Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[1]
-Block[1] - Block
-    Predecessors: [0] [2]
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0] [B2]
     Statements (0)
-    Next (Regular) Block[2]
-        Entering: {1}
+    Next (Regular) Block[B2]
+        Entering: {R1}
 
-.locals {1}
+.locals {R1}
 {
     Locals: [System.Int32 j]
-    Block[2] - Block
-        Predecessors: [1]
+    Block[B2] - Block
+        Predecessors: [B1]
         Statements (0)
-        Jump if True (Regular) to Block[1]
+        Jump if True (Regular) to Block[B1]
             IInvocationOperation ( System.Boolean P.filter(out System.Int32 i)) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'filter(out var j)')
               Instance Receiver: 
                 IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'filter')
@@ -1991,14 +1991,14 @@ Block[1] - Block
                       ILocalReferenceOperation: j (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            Leaving: {1}
+            Leaving: {R1}
 
-        Next (Regular) Block[3]
-            Leaving: {1}
+        Next (Regular) Block[B3]
+            Leaving: {R1}
 }
 
-Block[3] - Exit
-    Predecessors: [2]
+Block[B3] - Exit
+    Predecessors: [B2]
     Statements (0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;

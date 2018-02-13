@@ -118,7 +118,6 @@ namespace Microsoft.CodeAnalysis.Operations
                 Locals = locals.NullToEmpty();
                 Regions = regions.NullToEmpty();
 
-
                 foreach(Region r in Regions)
                 {
                     Debug.Assert(r.Enclosing == null && r.Kind != RegionKind.Root);
