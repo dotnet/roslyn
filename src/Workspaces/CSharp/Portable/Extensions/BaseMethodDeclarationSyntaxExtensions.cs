@@ -6,17 +6,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
     internal static class BaseMethodDeclarationSyntaxExtensions
     {
-        public static BaseMethodDeclarationSyntax WithSemicolonToken(this BaseMethodDeclarationSyntax node, SyntaxToken token)
+        public static BaseMethodDeclarationSyntax WithSemicolonToken(this BaseMethodDeclarationSyntax node, SyntaxToken semicolonToken)
         {
             if (node != null)
             {
                 switch (node.Kind())
                 {
-                    case SyntaxKind.ConstructorDeclaration: return ((ConstructorDeclarationSyntax)node).WithSemicolonToken(token);
-                    case SyntaxKind.DestructorDeclaration: return ((DestructorDeclarationSyntax)node).WithSemicolonToken(token);
-                    case SyntaxKind.MethodDeclaration: return ((MethodDeclarationSyntax)node).WithSemicolonToken(token);
-                    case SyntaxKind.OperatorDeclaration: return ((OperatorDeclarationSyntax)node).WithSemicolonToken(token);
-                    case SyntaxKind.ConversionOperatorDeclaration: return ((ConversionOperatorDeclarationSyntax)node).WithSemicolonToken(token);
+                    case SyntaxKind.ConstructorDeclaration: return ((ConstructorDeclarationSyntax)node).WithSemicolonToken(semicolonToken);
+                    case SyntaxKind.DestructorDeclaration: return ((DestructorDeclarationSyntax)node).WithSemicolonToken(semicolonToken);
+                    case SyntaxKind.MethodDeclaration: return ((MethodDeclarationSyntax)node).WithSemicolonToken(semicolonToken);
+                    case SyntaxKind.OperatorDeclaration: return ((OperatorDeclarationSyntax)node).WithSemicolonToken(semicolonToken);
+                    case SyntaxKind.ConversionOperatorDeclaration: return ((ConversionOperatorDeclarationSyntax)node).WithSemicolonToken(semicolonToken);
                 }
             }
 
@@ -34,6 +34,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     case SyntaxKind.MethodDeclaration: return ((MethodDeclarationSyntax)node).WithBody(body);
                     case SyntaxKind.OperatorDeclaration: return ((OperatorDeclarationSyntax)node).WithBody(body);
                     case SyntaxKind.ConversionOperatorDeclaration: return ((ConversionOperatorDeclarationSyntax)node).WithBody(body);
+                }
+            }
+
+            return node;
+        }
+
+        public static BaseMethodDeclarationSyntax WithExpressionBody(this BaseMethodDeclarationSyntax node, ArrowExpressionClauseSyntax expressionBody)
+        {
+            if (node != null)
+            {
+                switch (node.Kind())
+                {
+                    case SyntaxKind.ConstructorDeclaration: return ((ConstructorDeclarationSyntax)node).WithExpressionBody(expressionBody);
+                    case SyntaxKind.DestructorDeclaration: return ((DestructorDeclarationSyntax)node).WithExpressionBody(expressionBody);
+                    case SyntaxKind.MethodDeclaration: return ((MethodDeclarationSyntax)node).WithExpressionBody(expressionBody);
+                    case SyntaxKind.OperatorDeclaration: return ((OperatorDeclarationSyntax)node).WithExpressionBody(expressionBody);
+                    case SyntaxKind.ConversionOperatorDeclaration: return ((ConversionOperatorDeclarationSyntax)node).WithExpressionBody(expressionBody);
                 }
             }
 
