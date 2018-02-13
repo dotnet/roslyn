@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Editor.Shared;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Undo;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
@@ -167,7 +168,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     var textSnapshot = text.FindCorrespondingEditorTextSnapshot();
                     if (textSnapshot == null)
                     {
-                        return;
+                        FatalError.ReportWithoutCrash(new NullTextBufferException(document));
+                        continue;
                     }
                     Contract.ThrowIfNull(textSnapshot.TextBuffer);
 
