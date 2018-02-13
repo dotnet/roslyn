@@ -18,17 +18,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.UnitTests
             Assert.Equal("vbBack", s_formatter.FormatObject(ChrW(&H8), SingleLineOptions))
         End Sub
 
-        <Fact(Skip:="IDK")>
+        <Fact>
         Public Sub QuotedStrings()
             Dim s = "a" & ChrW(&HFFFE) & ChrW(&HFFFF) & vbCrLf & "b"
 
             Dim options = New PrintOptions With {.NumberRadix = ObjectFormatterHelpers.NumberRadixHexadecimal}
+            Dim optionsWithoutEscaping = New PrintOptions With {.NumberRadix = ObjectFormatterHelpers.NumberRadixHexadecimal, .EscapeNonPrintableCharacters = False}
             Dim withQuotes = New TestVisualBasicObjectFormatter(quoteStringsAndCharacters:=True)
             Dim withoutQuotes = New TestVisualBasicObjectFormatter(quoteStringsAndCharacters:=False)
 
-            ' ObjectFormatter should substitute spaces for non-printable characters
-            Assert.Equal("""a"" & ChrW(&HABCF) & ChrW(&HABCD) & vbCrLf & ""b""", withQuotes.FormatObject(s, options))
-            Assert.Equal("a    b", withoutQuotes.FormatObject(s, options))
+            ' ObjectFormatter supports quoted strings with escaped non-printable characters
+            Assert.Equal("""a"" & ChrW(&HFFFE) & ChrW(&HFFFF) & vbCrLf & ""b""", withQuotes.FormatObject(s, options))
+
+            ' ObjectFormatter supports quoted strings without escaping non-printable characters
+            Assert.Equal("""" & s & """", withQuotes.FormatObject(s, optionsWithoutEscaping))
+
+            ' ObjectFormatter supports unquoted strings without escaping non-printable characters
+            Assert.Equal("""a"" & ChrW(&HFFFE) & ChrW(&HFFFF) & vbCrLf & ""b""", withQuotes.FormatObject(s, options))
+
+            ' ObjectFormatter throws for unquoted strings with escaped non-printable characters
+            Assert.Throws(Of ArgumentException)(Sub() withoutQuotes.FormatObject(s, options))
         End Sub
 
         <Fact>
