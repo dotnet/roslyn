@@ -1540,7 +1540,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe,
+            var comp = CreateCompilationWithMscorlib40(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe,
                         references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
 
             comp.VerifyEmitDiagnostics();

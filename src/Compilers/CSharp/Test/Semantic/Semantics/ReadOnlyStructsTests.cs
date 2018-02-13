@@ -218,7 +218,7 @@ public class Program
 }
 ";
 
-            var comp = CreateStandardCompilationWithCustomILSource(csharp, ilreadonlyStructWithWriteableFieldIL, options:TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithCustomILSource(csharp, ilreadonlyStructWithWriteableFieldIL, options:TestOptions.ReleaseExe);
             
             comp.VerifyDiagnostics();
             
@@ -241,7 +241,7 @@ public class Program
 }
 ";
 
-            var comp = CreateStandardCompilationWithCustomILSource(csharp, ilreadonlyStructWithWriteableFieldIL, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithCustomILSource(csharp, ilreadonlyStructWithWriteableFieldIL, options: TestOptions.ReleaseExe);
 
             comp.VerifyDiagnostics(
                 // (8,9): error CS1650: Fields of static readonly field 'Program.s' cannot be assigned to (except in a static constructor or a variable initializer)

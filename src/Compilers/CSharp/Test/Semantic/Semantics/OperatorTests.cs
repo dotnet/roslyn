@@ -10645,7 +10645,7 @@ class Program
         if (t is ValueTuple<int, int>) { }    // goldilocks
     }
 }";
-            var compilation = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef })
+            var compilation = CreateCompilationWithMscorlib40(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef })
                 .VerifyDiagnostics(
                 // (7,13): warning CS0184: The given expression is never of the provided ('(long, int)') type
                 //         if (t is ValueTuple<long, int>) { }   // too big

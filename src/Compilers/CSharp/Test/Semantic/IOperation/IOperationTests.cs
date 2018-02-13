@@ -88,7 +88,7 @@ public class C
         a = b = c = 1;
     }
 }";
-            var compilation = CreateStandardCompilation(text, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var compilation = CreateCompilationWithMscorlib40(text, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             compilation.VerifyDiagnostics();
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -119,7 +119,7 @@ public class C
         {
             var sourceCode = TestResource.AllInOneCSharpCode;
 
-            var compilation = CreateStandardCompilation(sourceCode, new[] { SystemRef, SystemCoreRef, ValueTupleRef, SystemRuntimeFacadeRef }, sourceFileName: "file.cs");
+            var compilation = CreateCompilationWithMscorlib40(sourceCode, new[] { SystemRef, SystemCoreRef, ValueTupleRef, SystemRuntimeFacadeRef }, sourceFileName: "file.cs");
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
 
@@ -153,7 +153,7 @@ System.Console.WriteLine();
         {
             var sourceCode = TestResource.AllInOneCSharpCode;
             
-            var compilation = CreateStandardCompilation(sourceCode, new[] { SystemRef, SystemCoreRef, ValueTupleRef, SystemRuntimeFacadeRef }, sourceFileName: "file.cs");
+            var compilation = CreateCompilationWithMscorlib40(sourceCode, new[] { SystemRef, SystemCoreRef, ValueTupleRef, SystemRuntimeFacadeRef }, sourceFileName: "file.cs");
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
 

@@ -1829,7 +1829,7 @@ public class Example
         {
             var tree = Parse(text);
 
-            var comp = CreateStandardCompilation(tree, new[] { TestReferences.NetFx.v4_0_30319.System_Core });
+            var comp = CreateCompilationWithMscorlib40(new[] { tree }, new[] { TestReferences.NetFx.v4_0_30319.System_Core });
             comp.VerifyDiagnostics(expectedDiagnostics);
 
             var model = comp.GetSemanticModel(tree);

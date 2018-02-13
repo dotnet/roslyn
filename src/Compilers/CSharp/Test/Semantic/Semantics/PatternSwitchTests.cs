@@ -3115,8 +3115,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateStandardCompilation(
-                source, options: TestOptions.ReleaseExe, references: new[] { SystemRuntimeFacadeRef, ValueTupleRef });
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
                 // (10,18): error CS8120: The switch case has already been handled by a previous case.
                 //             case System.ValueTuple<int, int> x: // error: subsumed
@@ -3156,7 +3155,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateStandardCompilation(
+            var compilation = CreateCompilationWithMscorlib40(
                 source, options: TestOptions.ReleaseExe, references: new[] { SystemRuntimeFacadeRef, ValueTupleRef });
             compilation.VerifyDiagnostics();
             var comp = CompileAndVerify(compilation, expectedOutput: "Main");

@@ -193,7 +193,7 @@ public class Cls
         return null;
     }
 }";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilationWithMscorlib40(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (6,20): error CS8185: A declaration is not allowed in this context.
@@ -243,7 +243,7 @@ public class Cls
         return null;
     }
 }";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilationWithMscorlib40(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (6,20): error CS8185: A declaration is not allowed in this context.
@@ -300,7 +300,7 @@ public class Cls
         return null;
     }
 }";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilationWithMscorlib40(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (6,20): error CS8185: A declaration is not allowed in this context.
@@ -378,8 +378,7 @@ public class Cls
         return null;
     }
 }";
-            var compilation = CreateStandardCompilation(text, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
-                                                            options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (11,19): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
@@ -771,8 +770,7 @@ public class Cls
         return null;
     }
 }";
-            var compilation = CreateStandardCompilation(text, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
-                                                            options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 );
@@ -811,8 +809,7 @@ public class Cls
         return null;
     }
 }";
-            var compilation = CreateStandardCompilation(text, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
-                                                            options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
                 // (11,19): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
@@ -31034,7 +31031,7 @@ public class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll);
             comp.VerifyDiagnostics(
                 // (6,9): error CS0103: The name '_' does not exist in the current context
                 //         _.ToString();
@@ -31182,7 +31179,7 @@ public static class S
 {
     public static void M2(this A self, out B x) { x = null; }
 }";
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll, references: new[] { SystemCoreRef });
+            var comp = CreateCompilationWithMscorlib40(source, options: TestOptions.DebugDll, references: new[] { SystemCoreRef });
             comp.VerifyDiagnostics(
                 // (7,18): error CS1503: Argument 2: cannot convert from 'out A' to 'out B'
                 //         a.M2(out A x);

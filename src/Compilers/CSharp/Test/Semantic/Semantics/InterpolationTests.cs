@@ -784,7 +784,7 @@ class Program {
         IFormattable f = $""test"";
     }
 }";
-            CreateStandardCompilation(source).VerifyEmitDiagnostics(
+            CreateCompilationWithMscorlib40(source).VerifyEmitDiagnostics(
                 // (5,26): error CS0518: Predefined type 'System.Runtime.CompilerServices.FormattableStringFactory' is not defined or imported
                 //         IFormattable f = $"test";
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, @"$""test""").WithArguments("System.Runtime.CompilerServices.FormattableStringFactory").WithLocation(5, 26)
@@ -809,8 +809,8 @@ class Program {
         Console.WriteLine($""{ await hello }, { await world }!"");
     }
 }";
-            CompileStandardAndVerify(
-                source, references: new[] { MscorlibRef_v4_0_30316_17626, SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929 }, expectedOutput: "Hello, world!");
+            CompileAndVerify(
+                source, references: new[] { MscorlibRef_v4_0_30316_17626, SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929 }, expectedOutput: "Hello, world!", targetFramework: TargetFramework.None);
         }
 
         [Fact]

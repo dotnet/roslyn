@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [CompilerTrait(CompilerFeature.Tuples)]
         public void TupleFieldNameAliasing()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilationWithMscorlib40(@"
 using System;
 
 class C

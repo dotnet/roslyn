@@ -153,10 +153,10 @@ public class C
         c.M(a: 1, 2);
     }
 }";
-            var verifier = CompileStandardAndVerify(source, expectedOutput: "1 2.", parseOptions: TestOptions.Regular7_2, references: new[] { SystemCoreRef });
+            var verifier = CompileAndVerify(source, expectedOutput: "1 2.", parseOptions: TestOptions.Regular7_2, references: new[] { SystemCoreRef });
             verifier.VerifyDiagnostics();
 
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, references: new[] { SystemCoreRef });
+            var comp = CreateCompilationWithMscorlib40(source, parseOptions: TestOptions.Regular7_1, references: new[] { SystemCoreRef });
             comp.VerifyDiagnostics(
                 // (14,19): error CS1738: Named argument specifications must appear after all fixed arguments have been specified. Please use language version 7.2 or greater to allow non-trailing named arguments.
                 //         c.M(a: 1, 2);

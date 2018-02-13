@@ -160,7 +160,7 @@ namespace System
         [Fact]
         public void TestMissingWellKnownMembersForValueTuple()
         {
-            var comp = CreateStandardCompilation("");
+            var comp = CreateCompilationWithMscorlib40("");
             Assert.True(comp.GetWellKnownType(WellKnownType.System_ValueTuple_T1).IsErrorType());
             Assert.Null(comp.GetWellKnownTypeMember(WellKnownMember.System_ValueTuple_T1__Item1));
 

@@ -296,8 +296,8 @@ public class C
     }
 }";
 
-            var comp1 = CreateStandardCompilation(
-                Parse(text1),
+            var comp1 = CreateCompilationWithMscorlib40(
+                new[] { Parse(text1) },
                 new[] { TestReferences.NetFx.v4_0_30319.System });
 
             var text2 = @"
@@ -310,8 +310,8 @@ class Program
 }
 ";
 
-            var comp2 = CreateStandardCompilation(
-                Parse(text2),
+            var comp2 = CreateCompilationWithMscorlib40(
+                new[] { Parse(text2) },
                 new[] { new CSharpCompilationReference(comp1) });
 
             Assert.Equal(0, comp2.GetDiagnostics().Count());

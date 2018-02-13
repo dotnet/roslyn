@@ -9542,7 +9542,7 @@ struct S
             // Note that none of these errors except the first one are reported by the native compiler, because
             // it does not report additional errors after an error is found in a formal parameter of a method.
 
-            CreateStandardCompilation(text, references: new[] { SystemCoreRef }).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(text, references: new[] { SystemCoreRef }).VerifyDiagnostics(
                 // (9,36): error CS0310: 'U' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'D<T>'
                 Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "d").WithArguments("D<T>", "T", "U").WithLocation(9, 36),
                 // (29,9): error CS0310: 'B' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'U' in the generic type or method 'C<A>.M<U>()'
@@ -9640,7 +9640,7 @@ static class S
 {
     internal static void E<T>(this T t) where T : new() { }
 }";
-            CreateStandardCompilation(text, references: new[] { SystemCoreRef }).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(text, references: new[] { SystemCoreRef }).VerifyDiagnostics(
                 // (15,9): error CS0310: 'B' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'V' in the generic type or method 'C<T, U>.M<V>(V)'
                 Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "M").WithArguments("C<T, U>.M<V>(V)", "V", "B").WithLocation(15, 9),
                 // (16,9): error CS0310: 'B' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'S.E<T>(T)'
@@ -13129,7 +13129,7 @@ static class SC
     static void M4(this S s) { }
     static void M5(this double d) { }
 }";
-            CreateStandardCompilation(source, references: new[] { SystemCoreRef }).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(source, references: new[] { SystemCoreRef }).VerifyDiagnostics(
                 // (24,29): error CS1113: Extension methods 'SC.M3(E)' defined on value type 'E' cannot be used to create delegates
                 Diagnostic(ErrorCode.ERR_ValueTypeExtDelegate, "e.M3").WithArguments("SC.M3(E)", "E").WithLocation(24, 29),
                 // (26,29): error CS1113: Extension methods 'SC.M4(S)' defined on value type 'S' cannot be used to create delegates
@@ -13175,7 +13175,7 @@ static class E
     internal static void M1<T>(this T t) { }
     internal static void M2<T, U>(this T t) { }
 }";
-            CreateStandardCompilation(source, references: new[] { SystemCoreRef }).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(source, references: new[] { SystemCoreRef }).VerifyDiagnostics(
                 // (13,13): error CS1113: Extension methods 'E.M1<int>(int)' defined on value type 'int' cannot be used to create delegates
                 Diagnostic(ErrorCode.ERR_ValueTypeExtDelegate, "i.M1").WithArguments("E.M1<int>(int)", "int").WithLocation(13, 13),
                 // (14,13): error CS1113: Extension methods 'E.M2<int, object>(int)' defined on value type 'int' cannot be used to create delegates
@@ -16202,7 +16202,7 @@ static class S
 {
     internal static void F(this double d) { }
 }";
-            var compilation = CreateStandardCompilation(text, references: new[] { SystemCoreRef });
+            var compilation = CreateCompilationWithMscorlib40(text, references: new[] { SystemCoreRef });
             // Previously ERR_BadExtensionArgTypes.
             compilation.VerifyDiagnostics(
                 // (5,9): error CS1929: 'float' does not contain a definition for 'F' and the best extension method overload 'S.F(double)' requires a receiver of type 'double'
@@ -16225,7 +16225,7 @@ static class S
 {
     internal static void E(this B b) { }
 }";
-            var compilation = CreateStandardCompilation(source, references: new[] { SystemCoreRef });
+            var compilation = CreateCompilationWithMscorlib40(source, references: new[] { SystemCoreRef });
             compilation.VerifyDiagnostics(
                 // (6,9): error CS1929: 'A' does not contain a definition for 'E' and the best extension method overload 'S.E(B)' requires a receiver of type 'B'
                 //         a.E();
@@ -21636,7 +21636,7 @@ static class C
     }
     static void E(this object o) { }
 }";
-            CreateStandardCompilation(source, references: new[] { SystemCoreRef }).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(source, references: new[] { SystemCoreRef }).VerifyDiagnostics(
                 // (20,9): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'object' is null
                 Diagnostic(ErrorCode.WRN_DotOnDefault, "default(object).GetHashCode").WithArguments("object").WithLocation(20, 9),
                 // (24,9): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'T4' is null
@@ -21733,7 +21733,7 @@ class C
     }
 }
 ";
-            CompileStandardAndVerify(source, expectedOutput: "True", references: new[] { SystemCoreRef }).VerifyDiagnostics(
+            CompileAndVerify(source, expectedOutput: "True", references: new[] { SystemCoreRef }).VerifyDiagnostics(
                 // Do not report the following warning:
                 // (5,34): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'string' is null
                 //         System.Console.WriteLine(default(string).IsNull());

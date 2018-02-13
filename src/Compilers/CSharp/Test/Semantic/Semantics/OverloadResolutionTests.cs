@@ -4435,7 +4435,7 @@ class Test
 30
 31
 32";
-            var compilation = CreateStandardCompilationWithCustomILSource(source2, source1, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithCustomILSource(source2, source1, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
@@ -8080,7 +8080,7 @@ namespace ConsoleApplication2
 }
 ";
 
-            var compilation = CreateStandardCompilation(source1, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
+            var compilation = CreateCompilationWithMscorlib40(source1, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
         }
 
@@ -8116,7 +8116,7 @@ namespace ConsoleApplication2
 }
 ";
 
-            var compilation = CreateStandardCompilation(source1, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
+            var compilation = CreateCompilationWithMscorlib40(source1, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
         }
 
@@ -10806,7 +10806,7 @@ class Program
 }
 ";
 
-            CompileStandardAndVerify(code, references: new[] { SystemRuntimeFacadeRef, ValueTupleRef }, expectedOutput: @"
+            CompileAndVerify(code, references: new[] { SystemRuntimeFacadeRef, ValueTupleRef }, expectedOutput: @"
 System.String
 System.Int32
 System.Object
@@ -10847,7 +10847,7 @@ class Program
 }
 ";
 
-            CreateStandardCompilation(code, references: new[] { SystemRuntimeFacadeRef, ValueTupleRef }).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(code, references: new[] { SystemRuntimeFacadeRef, ValueTupleRef }).VerifyDiagnostics(
                 // (15,9): error CS0411: The type arguments for method 'Program.Method<T>(in (T arg1, T arg2))' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         Method((null, null));
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Method").WithArguments("Program.Method<T>(in (T arg1, T arg2))").WithLocation(15, 9),
@@ -10930,7 +10930,7 @@ public static class Extensions
 }
 ";
 
-            var libComp = CreateStandardCompilation(librarySrc, references: new[] { SystemCoreRef }).VerifyDiagnostics();
+            var libComp = CreateCompilationWithMscorlib40(librarySrc, references: new[] { SystemCoreRef }).VerifyDiagnostics();
 
 
             var code = @"

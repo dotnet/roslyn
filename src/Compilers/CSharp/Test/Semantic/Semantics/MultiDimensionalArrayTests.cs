@@ -291,7 +291,7 @@ Diagnostic(ErrorCode.ERR_ArrayInitializerExpected, "null")
         System.Console.WriteLine(t.Test1()[0]);
     }
 }";
-            var compilation = CreateStandardCompilationWithCustomILSource(source, s_arraysOfRank1IlSource, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithCustomILSource(source, s_arraysOfRank1IlSource, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(compilation, expectedOutput:
 @"Test1
 -100");
@@ -326,7 +326,7 @@ Diagnostic(ErrorCode.ERR_ArrayInitializerExpected, "null")
         System.Console.WriteLine(t.Test2(a));
     }
 }";
-            var compilation = CreateStandardCompilationWithCustomILSource(source, s_arraysOfRank1IlSource, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithCustomILSource(source, s_arraysOfRank1IlSource, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(compilation, expectedOutput:
 @"Test1
 Test2
@@ -374,7 +374,7 @@ Test2
         val = 123;
     }
 }";
-            var compilation = CreateStandardCompilationWithCustomILSource(source, s_arraysOfRank1IlSource, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithCustomILSource(source, s_arraysOfRank1IlSource, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(compilation, expectedOutput:
 @"Test1
 Test2
@@ -594,7 +594,7 @@ Test2
         System.Console.WriteLine(typeof(T));
     }
 }";
-            var compilation = CreateStandardCompilationWithCustomILSource(source, s_arraysOfRank1IlSource, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithCustomILSource(source, s_arraysOfRank1IlSource, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput:
 @"Test1
 System.Double[*]
@@ -619,7 +619,7 @@ System.Double
         }
     }
 }";
-            var compilation = CreateStandardCompilationWithCustomILSource(source, s_arraysOfRank1IlSource, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithCustomILSource(source, s_arraysOfRank1IlSource, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(compilation, expectedOutput:
 @"Test1
 -100");
@@ -673,7 +673,7 @@ System.Double
         System.Console.WriteLine(t.Test1().Length);
     }
 }";
-            var compilation = CreateStandardCompilationWithCustomILSource(source, s_arraysOfRank1IlSource, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithCustomILSource(source, s_arraysOfRank1IlSource, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(compilation, expectedOutput:
 @"Test1
 1");
@@ -705,7 +705,7 @@ System.Double
         System.Console.WriteLine(t.Test1().LongLength);
     }
 }";
-            var compilation = CreateStandardCompilationWithCustomILSource(source, s_arraysOfRank1IlSource, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithCustomILSource(source, s_arraysOfRank1IlSource, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(compilation, expectedOutput:
 @"Test1
 1");
@@ -1083,7 +1083,7 @@ System.Double
     }
 }
 ";
-            var compilation = CreateStandardCompilationWithCustomILSource(source, ilSource, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithCustomILSource(source, ilSource, options: TestOptions.ReleaseExe);
 
             var test = compilation.GetTypeByMetadataName("Test");
             var array = (IArrayTypeSymbol)test.GetMember<MethodSymbol>("Test1").ReturnType;
@@ -1531,7 +1531,7 @@ Overriden 16
     }
 }
 ";
-            var compilation = CreateStandardCompilationWithCustomILSource(source, ilSource, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithCustomILSource(source, ilSource, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(compilation, expectedOutput:
 @"Test1
 Test2
@@ -1671,7 +1671,7 @@ class C
         return (System.Type)typeof(Program).GetMember(target)[0].GetCustomAttributesData().ElementAt(0).ConstructorArguments[0].Value;
     }
 }";
-            var compilation = CreateStandardCompilationWithCustomILSource(source, ilSource, new [] { SystemCoreRef }, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithCustomILSource(source, ilSource, references: new [] { SystemCoreRef }, options: TestOptions.ReleaseExe);
 
             var p = compilation.GetTypeByMetadataName("Program");
             var a1 = (ArrayTypeSymbol)p.GetMember<MethodSymbol>("Test1").GetAttributes().Single().ConstructorArguments.Single().Value;

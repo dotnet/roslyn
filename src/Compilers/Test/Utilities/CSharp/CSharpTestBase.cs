@@ -496,7 +496,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             IEnumerable<MetadataReference> additionalReferences = null,
             CSharpCompilationOptions options = null,
             CSharpParseOptions parseOptions = null,
-            string assemblyName = "") => CreateCompilation(source, TargetFrameworkUtil.GetReferences(targetFramework, additionalReferences), options, parseOptions);
+            string assemblyName = "") => CreateCompilation(source, TargetFrameworkUtil.GetReferences(targetFramework, additionalReferences), options, parseOptions, assemblyName);
 
         public static CSharpCompilation CreateCompilation(
             IEnumerable<string> sources,
@@ -504,7 +504,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             IEnumerable<MetadataReference> additionalReferences = null,
             CSharpCompilationOptions options = null,
             CSharpParseOptions parseOptions = null,
-            string assemblyName = "") => CreateCompilation(Parse(sources, parseOptions), TargetFrameworkUtil.GetReferences(targetFramework, additionalReferences), options);
+            string assemblyName = "") => CreateCompilation(Parse(sources, parseOptions), TargetFrameworkUtil.GetReferences(targetFramework, additionalReferences), options, assemblyName);
 
         public static CSharpCompilation CreateCompilation(
             string source,
@@ -1202,13 +1202,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             MetadataReference[] additionalReferences = null,
             Action<IOperation, Compilation, SyntaxNode> additionalOperationTreeVerifier = null,
             bool useLatestFrameworkReferences = false)
+            where TSyntaxNode : SyntaxNode =>
+            VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(
+                testSrc,
+                expectedOperationTree,
+                useLatestFrameworkReferences ? TargetFramework.Net46Extended : TargetFramework.Standard,
+                expectedDiagnostics,
+                compilationOptions,
+                parseOptions,
+                additionalReferences,
+                additionalOperationTreeVerifier);
+
+        protected static void VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(
+            string testSrc,
+            string expectedOperationTree,
+            TargetFramework targetFramework,
+            DiagnosticDescription[] expectedDiagnostics,
+            CSharpCompilationOptions compilationOptions = null,
+            CSharpParseOptions parseOptions = null,
+            MetadataReference[] references = null,
+            Action<IOperation, Compilation, SyntaxNode> additionalOperationTreeVerifier = null)
             where TSyntaxNode : SyntaxNode
         {
-            var targetFramework = useLatestFrameworkReferences ? TargetFramework.Net46Extended : TargetFramework.Standard;
             var compilation = CreateCompilation(
                 new[] { Parse(testSrc, filename: "file.cs", options: parseOptions) },
                 targetFramework,
-                additionalReferences,
+                references,
                 options: compilationOptions ?? TestOptions.ReleaseDll);
             VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(compilation, expectedOperationTree, expectedDiagnostics, additionalOperationTreeVerifier);
         }

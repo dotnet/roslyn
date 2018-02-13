@@ -733,7 +733,7 @@ class Program
 }
 
 ";
-            CreateStandardCompilation(source, references: new[] { SystemCoreRef }).VerifyDiagnostics();
+            CreateCompilationWithMscorlib40(source, references: new[] { SystemCoreRef }).VerifyDiagnostics();
         }
 
 

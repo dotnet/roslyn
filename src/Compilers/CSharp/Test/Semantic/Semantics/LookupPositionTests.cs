@@ -1653,7 +1653,7 @@ class Derived : Base<int>
             var text = textBuilder.ToString();
 
             var parseOptions = TestOptions.RegularWithDocumentationComments;
-            var compilation = CreateStandardCompilation(text, parseOptions: parseOptions);
+            var compilation = CreateCompilationWithMscorlib40(text, parseOptions: parseOptions);
             var tree = compilation.SyntaxTrees[0];
             return compilation.GetSemanticModel(tree);
         }

@@ -185,7 +185,7 @@ class Program
     }
 }";
 
-            var comp = CreateStandardCompilationWithCustomILSource(csharp, il);
+            var comp = CreateCompilationWithCustomILSource(csharp, il);
             CompileAndVerify(comp).VerifyIL("Program.Main", @"
 {
   // Code size       23 (0x17)
@@ -517,7 +517,7 @@ class Program
     }
 }";
 
-            var comp = CreateStandardCompilationWithCustomILSource(csharp, il);
+            var comp = CreateCompilationWithCustomILSource(csharp, il);
             CompileAndVerify(comp).VerifyIL("Program.Main", @"
 {
   // Code size       25 (0x19)
