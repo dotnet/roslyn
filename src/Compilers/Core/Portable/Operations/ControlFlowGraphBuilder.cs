@@ -280,6 +280,16 @@ namespace Microsoft.CodeAnalysis.Operations
                               BasicBlock.BranchFlags.Throw | BasicBlock.BranchFlags.ReThrow |
                               BasicBlock.BranchFlags.StructuredExceptionHandling)) != 0);
 
+#if DEBUG
+                if ((next.Flags & BasicBlock.BranchFlags.StructuredExceptionHandling) != 0)
+                {
+                    RegionBuilder currentRegion = regionMap[block];
+                    Debug.Assert(currentRegion.Kind == ControlFlowGraph.RegionKind.Filter ||
+                                 (currentRegion.Kind == ControlFlowGraph.RegionKind.Handler && currentRegion.Enclosing.Kind == ControlFlowGraph.RegionKind.TryAndFinally));
+                    Debug.Assert(block == currentRegion.LastBlock);
+                }
+#endif
+
                 if (block.InternalConditional.Condition == null)
                 {
                     if (next.Destination == block)
@@ -1439,9 +1449,11 @@ namespace Microsoft.CodeAnalysis.Operations
                         AddExceptionStore(catchClause.ExceptionType, exceptionDeclarationOrExpression);
 
                         VisitConditionalBranch(filter, ref catchBlock, sense: true);
+                        var continueDispatchBlock = new BasicBlock(BasicBlockKind.Block);
+                        AppendNewBlock(continueDispatchBlock);
+                        continueDispatchBlock.InternalNext.Flags = BasicBlock.BranchFlags.StructuredExceptionHandling;
                         LeaveRegion();
 
-                        filterRegion.LastBlock.InternalNext.Flags = BasicBlock.BranchFlags.StructuredExceptionHandling;
                         Debug.Assert(filterRegion.LastBlock.InternalNext.Destination == null);
                         Debug.Assert(filterRegion.FirstBlock.Predecessors.IsEmpty);
                     }
@@ -1489,7 +1501,9 @@ namespace Microsoft.CodeAnalysis.Operations
                 EnterRegion(finallyRegion);
                 AppendNewBlock(new BasicBlock(BasicBlockKind.Block));
                 VisitStatement(operation.Finally);
-                CurrentBasicBlock.InternalNext.Flags = BasicBlock.BranchFlags.StructuredExceptionHandling;
+                var continueDispatchBlock = new BasicBlock(BasicBlockKind.Block);
+                AppendNewBlock(continueDispatchBlock);
+                continueDispatchBlock.InternalNext.Flags = BasicBlock.BranchFlags.StructuredExceptionHandling;
                 LeaveRegion();
                 Debug.Assert(_currentRegion == tryAndFinallyRegion);
                 LeaveRegion();
