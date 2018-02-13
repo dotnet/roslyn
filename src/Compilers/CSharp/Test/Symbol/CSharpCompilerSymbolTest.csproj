@@ -34,5 +34,6 @@
     <PackageReference Include="xunit.analyzers" Version="$(xunitanalyzersVersion)" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="$(MicrosoftNETTestSdkVersion)" />
     <PackageReference Include="Microsoft.NETCore.App" Version="$(MicrosoftNETCoreAppVersion)" Condition="'$(TargetFramework)' == 'netcoreapp2.0'" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="$(xunitrunnervisualstudioVersion)" />
   </ItemGroup>
 </Project>
