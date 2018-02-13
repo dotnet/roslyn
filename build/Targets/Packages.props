@@ -3,6 +3,10 @@
 <Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+  </PropertyGroup>
+
+  <PropertyGroup>
     <BasicUndoVersion>0.9.3</BasicUndoVersion>
     <CommandLineParserVersion>2.0.273-beta</CommandLineParserVersion>
     <EnvDTEVersion>8.0.1</EnvDTEVersion>
