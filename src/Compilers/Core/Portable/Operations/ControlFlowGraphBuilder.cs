@@ -1659,6 +1659,55 @@ namespace Microsoft.CodeAnalysis.Operations
             throw ExceptionUtilities.Unreachable;
         }
 
+        internal override IOperation VisitNoneOperation(IOperation operation, int? captureIdForResult)
+        {
+            if (_currentStatement == operation)
+            {
+                VisitNoneOperationStatement(operation);
+                return null;
+            }
+            else
+            {
+                return VisitNoneOperationExpression(operation);
+            }
+        }
+
+        private void VisitNoneOperationStatement(IOperation operation)
+        {
+            Debug.Assert(_currentStatement == operation);
+            foreach (var child in operation.Children)
+            {
+                VisitStatement(child);
+            }
+        }
+
+        private IOperation VisitNoneOperationExpression(IOperation operation)
+        {
+            int startingStackSize = _evalStack.Count;
+            foreach (IOperation child in operation.Children)
+            {
+                _evalStack.Push(Visit(child));
+            }
+
+            int numChildren = _evalStack.Count - startingStackSize;
+            Debug.Assert(numChildren == operation.Children.Count());
+
+            if (numChildren == 0)
+            {
+                return Operation.CreateOperationNone(semanticModel: null, operation.Syntax, operation.ConstantValue, ImmutableArray<IOperation>.Empty, operation.IsImplicit);
+            }
+
+            var childrenBuilder = ArrayBuilder<IOperation>.GetInstance(numChildren);
+            for (int i = 0; i < numChildren; i++)
+            {
+                childrenBuilder.Add(_evalStack.Pop());
+            }
+
+            childrenBuilder.ReverseContents();
+
+            return Operation.CreateOperationNone(semanticModel: null, operation.Syntax, operation.ConstantValue, childrenBuilder.ToImmutableAndFree(), operation.IsImplicit);
+        }
+
         private T Visit<T>(T node) where T : IOperation
         {
             return (T)Visit(node, argument: null);
@@ -1676,11 +1725,6 @@ namespace Microsoft.CodeAnalysis.Operations
         }
 
         #region PROTOTYPE(dataflow): Naive implementation that simply clones nodes and erases SemanticModel, likely to change
-        internal override IOperation VisitNoneOperation(IOperation operation, int? captureIdForResult)
-        {
-            return Operation.CreateOperationNone(semanticModel: null, operation.Syntax, operation.ConstantValue, () => VisitArray(operation.Children.ToImmutableArray()), operation.IsImplicit);
-        }
-
         private ImmutableArray<T> VisitArray<T>(ImmutableArray<T> nodes) where T : IOperation
         {
             // clone the array
