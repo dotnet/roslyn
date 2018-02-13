@@ -137,12 +137,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
             else if (typeName.Parent is ForEachStatementSyntax foreachStatement &&
                 IsExpressionSameAfterVarConversion(foreachStatement.Expression, semanticModel, cancellationToken))
             {
-                var foreachStatementInfo = semanticModel.GetForEachStatementInfo(foreachStatement);
-                if (foreachStatementInfo.ElementConversion.IsIdentityOrImplicitReference())
-                {
-                    issueSpan = candidateIssueSpan;
-                    return true;
-                }
+                issueSpan = candidateIssueSpan;
+                return true;
             }
             else if (typeName.Parent is DeclarationExpressionSyntax declarationExpression &&
                      TryAnalyzeDeclarationExpression(declarationExpression, semanticModel, optionSet, cancellationToken))
@@ -268,7 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
             // and if we're replacing the declaration with 'var' we'd be changing the semantics by inferring type of
             // initializer expression and thereby losing the conversion.
             var conversion = semanticModel.GetConversion(expression, cancellationToken);
-            return conversion.Exists && conversion.IsImplicit && conversion.IsIdentity;
+            return conversion.IsIdentity;
         }
 
         protected override bool ShouldAnalyzeDeclarationExpression(DeclarationExpressionSyntax declaration, SemanticModel semanticModel, CancellationToken cancellationToken)
