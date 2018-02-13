@@ -49,7 +49,8 @@ namespace Microsoft.CodeAnalysis.Operations
             builder._currentBasicBlock = null;
             builder.VisitStatement(body);
             builder.AppendNewBlock(builder._exit);
-            builder.LeaveRegion(root);
+            builder.LeaveRegion();
+            Debug.Assert(builder._currentRegion == null);
 
             Pack(blocks, root, builder._regionMap);
             ControlFlowGraph.Region region = root.ToImmutableRegionAndFree();
@@ -273,7 +274,16 @@ namespace Microsoft.CodeAnalysis.Operations
 
                 ref BasicBlock.Branch next = ref block.InternalNext;
 
-                if (next.Destination == null || (next.Flags & BasicBlock.BranchFlags.Regular) == 0)
+                if (next.Destination == null)
+                {
+                    Debug.Assert((next.Flags &
+                                 ~(BasicBlock.BranchFlags.Error | BasicBlock.BranchFlags.ProgramTermination |
+                                  BasicBlock.BranchFlags.Throw | BasicBlock.BranchFlags.ReThrow |
+                                  BasicBlock.BranchFlags.StructuredExceptionHandling)) == 0);
+                    continue;
+                }
+
+                if ((next.Flags & BasicBlock.BranchFlags.Regular) == 0)
                 {
                     continue;
                 }
@@ -322,46 +332,12 @@ namespace Microsoft.CodeAnalysis.Operations
                                     collectAncestorsAndSelf(destinationRegion, ref fromDestination);
                                     collectAncestorsAndSelf(predecessorRegion, ref fromPredecessor);
 
-                                    void collectAncestorsAndSelf(RegionBuilder from, ref ArrayBuilder<RegionBuilder> builder)
-                                    {
-                                        if (builder == null)
-                                        {
-                                            builder = ArrayBuilder<RegionBuilder>.GetInstance();
-                                        }
-                                        else if (builder.Count != 0)
-                                        {
-                                            return;
-                                        }
-                                        
-                                        do
-                                        {
-                                            builder.Add(from);
-                                            from = from.Enclosing;
-                                        }
-                                        while (from != null);
-
-                                        builder.ReverseContents();
-                                    }
-
                                     // On the way from predecessor directly to the destination, are we going leave the same regions as on the way
                                     // from predecessor to the current block and then to the destination?
                                     int lastLeftRegionOnTheWayFromCurrentToDestination = getIndexOfLastLeftRegion(fromCurrent, fromDestination);
                                     int lastLeftRegionOnTheWayFromPredecessorToDestination = getIndexOfLastLeftRegion(fromPredecessor, fromDestination);
                                     int lastLeftRegionOnTheWayFromPredecessorToCurrentBlock = getIndexOfLastLeftRegion(fromPredecessor, fromCurrent);
                                     
-                                    // Can return index beyond bounds of "from" when no regions will be left.
-                                    int getIndexOfLastLeftRegion(ArrayBuilder<RegionBuilder> from, ArrayBuilder<RegionBuilder> to)
-                                    {
-                                        int mismatch = 0;
-
-                                        while (mismatch < from.Count && mismatch < to.Count && from[mismatch] == to[mismatch])
-                                        {
-                                            mismatch++;
-                                        }
-
-                                        return mismatch;
-                                    }
-
                                     // Since we are navigating up and down the tree and only movements up are significant, if we made the same number 
                                     // of movements up during direct and indirect transition, we must have made the same movements up.
                                     if ((fromPredecessor.Count - lastLeftRegionOnTheWayFromPredecessorToCurrentBlock +
@@ -375,6 +351,40 @@ namespace Microsoft.CodeAnalysis.Operations
                             }
 
                             return true;
+                        }
+
+                        void collectAncestorsAndSelf(RegionBuilder from, ref ArrayBuilder<RegionBuilder> builder)
+                        {
+                            if (builder == null)
+                            {
+                                builder = ArrayBuilder<RegionBuilder>.GetInstance();
+                            }
+                            else if (builder.Count != 0)
+                            {
+                                return;
+                            }
+
+                            do
+                            {
+                                builder.Add(from);
+                                from = from.Enclosing;
+                            }
+                            while (from != null);
+
+                            builder.ReverseContents();
+                        }
+
+                        // Can return index beyond bounds of "from" when no regions will be left.
+                        int getIndexOfLastLeftRegion(ArrayBuilder<RegionBuilder> from, ArrayBuilder<RegionBuilder> to)
+                        {
+                            int mismatch = 0;
+
+                            while (mismatch < from.Count && mismatch < to.Count && from[mismatch] == to[mismatch])
+                            {
+                                mismatch++;
+                            }
+
+                            return mismatch;
                         }
                     }
 
@@ -528,14 +538,12 @@ namespace Microsoft.CodeAnalysis.Operations
             _currentBasicBlock = null;
         }
 
-        private void LeaveRegion(RegionBuilder region)
+        private void LeaveRegion()
         {
-            Debug.Assert(_currentRegion == region);
-
             // Ensure there is at least one block in the region
-            if (region.IsEmpty)
+            if (_currentRegion.IsEmpty)
             {
-                _ = CurrentBasicBlock;
+                AppendNewBlock(new BasicBlock(BasicBlockKind.Block));
             }
 
             _currentRegion = _currentRegion.Enclosing;
@@ -553,12 +561,11 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation VisitBlock(IBlockOperation operation, int? captureIdForResult)
         {
             Debug.Assert(_currentStatement == operation);
-            RegionBuilder locals = null;
 
-            if (!operation.Locals.IsEmpty)
+            bool haveLocals = !operation.Locals.IsEmpty;
+            if (haveLocals)
             {
-                locals = new RegionBuilder(ControlFlowGraph.RegionKind.Locals, _currentRegion, locals: operation.Locals);
-                EnterRegion(locals);
+                EnterRegion(new RegionBuilder(ControlFlowGraph.RegionKind.Locals, _currentRegion, locals: operation.Locals));
             }
 
             foreach (var statement in operation.Operations)
@@ -566,9 +573,9 @@ namespace Microsoft.CodeAnalysis.Operations
                 VisitStatement(statement);
             }
 
-            if (locals != null)
+            if (haveLocals)
             {
-                LeaveRegion(locals);
+                LeaveRegion();
             }
 
             return null;
@@ -1234,8 +1241,8 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             Debug.Assert(_currentStatement == operation);
             RegionBuilder locals = null;
-
-            if (!operation.Locals.IsEmpty)
+            bool haveLocals = !operation.Locals.IsEmpty;
+            if (haveLocals)
             {
                 locals = new RegionBuilder(ControlFlowGraph.RegionKind.Locals, _currentRegion, locals: operation.Locals);
             }
@@ -1260,7 +1267,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
                 AppendNewBlock(@continue);
 
-                if (locals != null)
+                if (haveLocals)
                 {
                     EnterRegion(locals);
                 }
@@ -1289,7 +1296,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 var start = new BasicBlock(BasicBlockKind.Block);
                 AppendNewBlock(start);
 
-                if (locals != null)
+                if (haveLocals)
                 {
                     EnterRegion(locals);
                 }
@@ -1301,13 +1308,13 @@ namespace Microsoft.CodeAnalysis.Operations
                 VisitConditionalBranch(operation.Condition, ref start, sense: !operation.ConditionIsUntil);
             }
 
-            if (locals != null)
+            if (haveLocals)
             {
-                LeaveRegion(locals);
+                Debug.Assert(_currentRegion == locals);
+                LeaveRegion();
             }
 
             AppendNewBlock(@break);
-
             return null;
         }
 
@@ -1319,109 +1326,106 @@ namespace Microsoft.CodeAnalysis.Operations
                 throw ExceptionUtilities.Unreachable;
             }
 
-            RegionBuilder tryAndCatchRegion = null;
-            RegionBuilder tryAndCatchTryRegion = null;
             RegionBuilder tryAndFinallyRegion = null;
-            RegionBuilder tryAndFinallyTryRegion = null;
-
-            if (operation.Finally != null)
+            bool haveFinally = operation.Finally != null;
+            if (haveFinally)
             {
                 tryAndFinallyRegion = new RegionBuilder(ControlFlowGraph.RegionKind.TryAndFinally, _currentRegion);
-                tryAndFinallyTryRegion = new RegionBuilder(ControlFlowGraph.RegionKind.Try, tryAndFinallyRegion);
                 EnterRegion(tryAndFinallyRegion);
-                EnterRegion(tryAndFinallyTryRegion);
+                EnterRegion(new RegionBuilder(ControlFlowGraph.RegionKind.Try, _currentRegion));
             }
 
-            if (!operation.Catches.IsEmpty)
+            bool haveCatches = !operation.Catches.IsEmpty;
+            if (haveCatches)
             {
-                tryAndCatchRegion = new RegionBuilder(ControlFlowGraph.RegionKind.TryAndCatch, tryAndFinallyTryRegion ?? _currentRegion);
-                EnterRegion(tryAndCatchRegion);
-
-                tryAndCatchTryRegion = new RegionBuilder(ControlFlowGraph.RegionKind.Try, tryAndCatchRegion);
-                EnterRegion(tryAndCatchTryRegion);
+                EnterRegion(new RegionBuilder(ControlFlowGraph.RegionKind.TryAndCatch, _currentRegion));
+                EnterRegion(new RegionBuilder(ControlFlowGraph.RegionKind.Try, _currentRegion));
             }
 
-            Debug.Assert(tryAndCatchRegion != null || tryAndFinallyRegion != null);
             var afterTryCatchFinally = new BasicBlock(BasicBlockKind.Block);
 
             VisitStatement(operation.Body);
             LinkBlocks(CurrentBasicBlock, afterTryCatchFinally);
 
-            if (tryAndCatchTryRegion != null)
+            if (haveCatches)
             {
-                LeaveRegion(tryAndCatchTryRegion);
+                Debug.Assert(_currentRegion.Kind == ControlFlowGraph.RegionKind.Try);
+                LeaveRegion();
+
+                foreach (ICatchClauseOperation catchClause in operation.Catches)
+                {
+                    RegionBuilder filterAndHandlerRegion = null;
+
+                    IOperation exceptionDeclarationOrExpression = catchClause.ExceptionDeclarationOrExpression;
+                    IOperation filter = catchClause.Filter;
+                    bool haveFilter = filter != null;
+                    var catchBlock = new BasicBlock(BasicBlockKind.Block);
+
+                    if (haveFilter)
+                    {
+                        filterAndHandlerRegion = new RegionBuilder(ControlFlowGraph.RegionKind.FilterAndHandler, _currentRegion, catchClause.ExceptionType, catchClause.Locals);
+                        EnterRegion(filterAndHandlerRegion);
+
+                        var filterRegion = new RegionBuilder(ControlFlowGraph.RegionKind.Filter, _currentRegion, catchClause.ExceptionType);
+                        EnterRegion(filterRegion);
+
+                        AddExceptionStore(catchClause.ExceptionType, exceptionDeclarationOrExpression);
+
+                        VisitConditionalBranch(filter, ref catchBlock, sense: true);
+                        LeaveRegion();
+
+                        BasicBlock lastBlockInFilter = filterRegion.Blocks.Last();
+                        lastBlockInFilter.InternalNext.Flags = BasicBlock.BranchFlags.StructuredExceptionHandling;
+                        Debug.Assert(lastBlockInFilter.InternalNext.Destination == null);
+                        Debug.Assert(filterRegion.Blocks.First().Predecessors.IsEmpty);
+                    }
+
+                    var handlerRegion = new RegionBuilder(ControlFlowGraph.RegionKind.Handler, _currentRegion, catchClause.ExceptionType,
+                                                          haveFilter ? default : catchClause.Locals);
+                    EnterRegion(handlerRegion);
+
+                    AppendNewBlock(catchBlock, linkToPrevious: false);
+
+                    if (!haveFilter)
+                    {
+                        AddExceptionStore(catchClause.ExceptionType, exceptionDeclarationOrExpression);
+                    }
+
+                    VisitStatement(catchClause.Handler);
+                    LinkBlocks(CurrentBasicBlock, afterTryCatchFinally);
+
+                    LeaveRegion();
+
+                    if (haveFilter)
+                    {
+                        Debug.Assert(_currentRegion == filterAndHandlerRegion);
+                        LeaveRegion();
+                        Debug.Assert(filterAndHandlerRegion.Regions[0].Blocks.Last().InternalNext.Destination == null);
+                        Debug.Assert(handlerRegion.Blocks.First().Predecessors.All(p => filterAndHandlerRegion.Regions[0].Blocks.Contains(p)));
+                    }
+                    else
+                    {
+                        Debug.Assert(handlerRegion.Blocks.First().Predecessors.IsEmpty);
+                    }
+                }
+
+                Debug.Assert(_currentRegion.Kind == ControlFlowGraph.RegionKind.TryAndCatch);
+                LeaveRegion();
             }
 
-            foreach (ICatchClauseOperation catchClause in operation.Catches)
+            if (haveFinally)
             {
-                RegionBuilder filterAndHandlerRegion = null;
+                Debug.Assert(_currentRegion.Kind == ControlFlowGraph.RegionKind.Try);
+                LeaveRegion();
 
-                IOperation exceptionDeclarationOrExpression = catchClause.ExceptionDeclarationOrExpression;
-                IOperation filter = catchClause.Filter;
-                var catchBlock = new BasicBlock(BasicBlockKind.Block);
-
-                if (filter != null)
-                {
-                    filterAndHandlerRegion = new RegionBuilder(ControlFlowGraph.RegionKind.FilterAndHandler, tryAndCatchRegion, catchClause.ExceptionType, catchClause.Locals);
-                    var filterRegion = new RegionBuilder(ControlFlowGraph.RegionKind.Filter, filterAndHandlerRegion, catchClause.ExceptionType);
-
-                    EnterRegion(filterAndHandlerRegion);
-                    EnterRegion(filterRegion);
-                    AddExceptionStore(catchClause.ExceptionType, exceptionDeclarationOrExpression);
-
-                    VisitConditionalBranch(filter, ref catchBlock, sense: true);
-                    LeaveRegion(filterRegion);
-
-                    BasicBlock lastBlockInFilter = filterRegion.Blocks.Last();
-                    lastBlockInFilter.InternalNext.Flags = BasicBlock.BranchFlags.StructuredExceptionHandling;
-                    Debug.Assert(lastBlockInFilter.InternalNext.Destination == null);
-                    Debug.Assert(filterRegion.Blocks.First().Predecessors.IsEmpty);
-                }
-
-                var handlerRegion = new RegionBuilder(ControlFlowGraph.RegionKind.Handler, filterAndHandlerRegion ?? tryAndCatchRegion, catchClause.ExceptionType,
-                                                      filterAndHandlerRegion == null ? catchClause.Locals : default);
-                EnterRegion(handlerRegion);
-
-                AppendNewBlock(catchBlock, linkToPrevious: false);
-
-                if (filter == null)
-                {
-                    AddExceptionStore(catchClause.ExceptionType, exceptionDeclarationOrExpression);
-                }
-
-                VisitStatement(catchClause.Handler);
-                LinkBlocks(CurrentBasicBlock, afterTryCatchFinally);
-
-                LeaveRegion(handlerRegion);
-
-                if (filterAndHandlerRegion != null)
-                {
-                    LeaveRegion(filterAndHandlerRegion);
-                    Debug.Assert(filterAndHandlerRegion.Regions[0].Blocks.Last().InternalNext.Destination == null);
-                    Debug.Assert(handlerRegion.Blocks.First().Predecessors.All(p => filterAndHandlerRegion.Regions[0].Blocks.Contains(p)));
-                }
-                else
-                {
-                    Debug.Assert(handlerRegion.Blocks.First().Predecessors.IsEmpty);
-                }
-            }
-
-            if (tryAndCatchRegion != null)
-            {
-                LeaveRegion(tryAndCatchRegion);
-            }
-
-            if (operation.Finally != null)
-            {
-                LeaveRegion(tryAndFinallyTryRegion);
-
-                var finallyRegion = new RegionBuilder(ControlFlowGraph.RegionKind.Handler, tryAndFinallyRegion);
+                var finallyRegion = new RegionBuilder(ControlFlowGraph.RegionKind.Handler, _currentRegion);
                 EnterRegion(finallyRegion);
                 AppendNewBlock(new BasicBlock(BasicBlockKind.Block));
                 VisitStatement(operation.Finally);
                 CurrentBasicBlock.InternalNext.Flags = BasicBlock.BranchFlags.StructuredExceptionHandling;
-                LeaveRegion(finallyRegion);
-                LeaveRegion(tryAndFinallyRegion);
+                LeaveRegion();
+                Debug.Assert(_currentRegion == tryAndFinallyRegion);
+                LeaveRegion();
                 Debug.Assert(finallyRegion.Blocks.Last().InternalNext.Destination == null);
                 Debug.Assert(finallyRegion.Blocks.First().Predecessors.IsEmpty);
             }
@@ -1554,6 +1558,26 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation VisitVariableInitializer(IVariableInitializerOperation operation, int? captureIdForResult)
         {
             // All variable initializers should be removed from the tree by VisitVariableDeclaration.
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        public override IOperation VisitFlowCapture(IFlowCaptureOperation operation, int? captureIdForResult)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        public override IOperation VisitFlowCaptureReference(IFlowCaptureReferenceOperation operation, int? captureIdForResult)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        public override IOperation VisitIsNull(IIsNullOperation operation, int? captureIdForResult)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        public override IOperation VisitCaughtException(ICaughtExceptionOperation operation, int? captureIdForResult)
+        {
             throw ExceptionUtilities.Unreachable;
         }
 
@@ -1971,26 +1995,6 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation VisitRaiseEvent(IRaiseEventOperation operation, int? captureIdForResult)
         {
             return new RaiseEventStatement(Visit(operation.EventReference), VisitArray(operation.Arguments), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
-        }
-
-        public override IOperation VisitFlowCapture(IFlowCaptureOperation operation, int? captureIdForResult)
-        {
-            throw ExceptionUtilities.Unreachable;
-        }
-
-        public override IOperation VisitFlowCaptureReference(IFlowCaptureReferenceOperation operation, int? captureIdForResult)
-        {
-            throw ExceptionUtilities.Unreachable;
-        }
-
-        public override IOperation VisitIsNull(IIsNullOperation operation, int? captureIdForResult)
-        {
-            throw ExceptionUtilities.Unreachable;
-        }
-
-        public override IOperation VisitCaughtException(ICaughtExceptionOperation operation, int? captureIdForResult)
-        {
-            throw ExceptionUtilities.Unreachable;
         }
         #endregion
     }

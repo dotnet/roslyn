@@ -1035,7 +1035,7 @@ Block[0] - Entry
         Predecessors: [0]
         Statements (0)
         Next (Regular) Block[3]
-            Finallizing: {3}
+            Finalizing: {3}
             Leaving: {2} {1}
 }
 .finally {3}
@@ -1131,7 +1131,7 @@ Block[0] - Entry
                             ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
 
             Next (Regular) Block[12]
-                Finallizing: {17}
+                Finalizing: {17}
                 Leaving: {4} {3} {2} {1}
     }
     .catch {5} (Exception5)
@@ -1155,7 +1155,7 @@ Block[0] - Entry
                         ILocalReferenceOperation: e (OperationKind.LocalReference, Type: Exception5) (Syntax: 'e')
 
             Next (Regular) Block[12]
-                Finallizing: {17}
+                Finalizing: {17}
                 Leaving: {5} {3} {2} {1}
     }
     .catch {6} (Exception4)
@@ -1193,7 +1193,7 @@ Block[0] - Entry
                             ILocalReferenceOperation: e (OperationKind.LocalReference, Type: Exception4) (Syntax: 'e')
 
                 Next (Regular) Block[12]
-                    Finallizing: {17}
+                    Finalizing: {17}
                     Leaving: {8} {6} {3} {2} {1}
         }
     }
@@ -1225,7 +1225,7 @@ Block[0] - Entry
                             ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
 
                 Next (Regular) Block[12]
-                    Finallizing: {17}
+                    Finalizing: {17}
                     Leaving: {11} {9} {3} {2} {1}
         }
     }
@@ -1243,7 +1243,7 @@ Block[0] - Entry
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
 
             Next (Regular) Block[12]
-                Finallizing: {17}
+                Finalizing: {17}
                 Leaving: {12} {3} {2} {1}
     }
     .catch {13} (System.Object)
@@ -1274,7 +1274,7 @@ Block[0] - Entry
                             ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 
                 Next (Regular) Block[12]
-                    Finallizing: {17}
+                    Finalizing: {17}
                     Leaving: {15} {13} {3} {2} {1}
         }
     }
@@ -1292,7 +1292,7 @@ Block[0] - Entry
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
 
             Next (Regular) Block[12]
-                Finallizing: {17}
+                Finalizing: {17}
                 Leaving: {16} {3} {2} {1}
     }
 }
@@ -1372,7 +1372,7 @@ Block[1] - Block
         Statements (0)
         Jump if False (Regular) to Block[5]
             IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'input')
-            Finallizing: {3}
+            Finalizing: {3}
             Leaving: {2} {1}
 
         Next (Regular) Block[3]
@@ -1388,7 +1388,7 @@ Block[1] - Block
                     ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
 
         Next (Regular) Block[5]
-            Finallizing: {3}
+            Finalizing: {3}
             Leaving: {2} {1}
 }
 .finally {3}
@@ -1592,7 +1592,7 @@ Block[0] - Entry
             Predecessors: [0]
             Statements (0)
             Next (Regular) Block[6]
-                Finallizing: {7}
+                Finalizing: {7}
                 Leaving: {4} {3} {2} {1}
     }
     .catch {5} (Exception1)
@@ -1625,7 +1625,7 @@ Block[0] - Entry
                             ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
 
                 Next (Regular) Block[6]
-                    Finallizing: {7}
+                    Finalizing: {7}
                     Leaving: {6} {5} {3} {2} {1}
         }
     }
@@ -1707,7 +1707,7 @@ Block[0] - Entry
             Predecessors: [0]
             Statements (0)
             Next (Regular) Block[4]
-                Finallizing: {6}
+                Finalizing: {6}
                 Leaving: {4} {3} {2} {1}
     }
     .catch {5} (Exception1)
@@ -1723,7 +1723,7 @@ Block[0] - Entry
                     ICaughtExceptionOperation (OperationKind.CaughtException, Type: Exception1, IsImplicit) (Syntax: '(Exception1 e)')
 
             Next (Regular) Block[4]
-                Finallizing: {6}
+                Finalizing: {6}
                 Leaving: {5} {3} {2} {1}
     }
 }

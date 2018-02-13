@@ -31,36 +31,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             bool lastPrintedBlockIsInCurrentReagion = true;
             PooledObjects.PooledDictionary<ControlFlowGraph.Region, int> regionMap = buildRegionMap();
 
-            PooledObjects.PooledDictionary<ControlFlowGraph.Region, int> buildRegionMap()
-            {
-                var result = PooledObjects.PooledDictionary<ControlFlowGraph.Region, int>.GetInstance();
-                int ordinal = 0;
-                visit(graph.Root);
-
-                void visit(ControlFlowGraph.Region region)
-                {
-                    result.Add(region, ordinal++);
-
-                    foreach (ControlFlowGraph.Region r in region.Regions)
-                    {
-                        visit(r);
-                    }
-                }
-
-                return result;
-            }
-
-            void appendLine(string line)
-            {
-                appendIndent();
-                stringBuilder.AppendLine(line);
-            }
-
-            void appendIndent()
-            {
-                stringBuilder.Append(' ', indent);
-            }
-
             for (int i = 0; i < blocks.Length; i++)
             {
                 var block = blocks[i];
@@ -105,101 +75,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                 if (block.Region != currentRegion)
                 {
-                    enterRegions(block.Region);
-
-                    void printLocals(ControlFlowGraph.Region region)
-                    {
-                        if (!region.Locals.IsEmpty)
-                        {
-                            appendIndent();
-                            stringBuilder.Append("Locals:");
-                            foreach (ILocalSymbol local in region.Locals)
-                            {
-                                stringBuilder.Append($" [{local.ToTestDisplayString()}]");
-                            }
-                            stringBuilder.AppendLine();
-                        }
-                    }
-
-                    void enterRegions(ControlFlowGraph.Region region)
-                    {
-                        if (region.FirstBlockOrdinal != i)
-                        {
-                            Assert.Same(currentRegion, region);
-
-                            if (lastPrintedBlockIsInCurrentReagion)
-                            {
-                                stringBuilder.AppendLine();
-                            }
-
-                            return;
-                        }
-
-                        enterRegions(region.Enclosing);
-                        currentRegion = region;
-                        lastPrintedBlockIsInCurrentReagion = true;
-
-                        void enterRegion(string header)
-                        {
-                            appendLine(header);
-                            appendLine("{");
-                            indent += 4;
-                            printLocals(region);
-                        }
-
-                        switch (region.Kind)
-                        {
-                            case ControlFlowGraph.RegionKind.Filter:
-                                Assert.Empty(region.Locals);
-                                Assert.Equal(i, region.Enclosing.FirstBlockOrdinal);
-                                Assert.Same(region.ExceptionType, region.Enclosing.ExceptionType);
-                                enterRegion(".filter {" + regionMap[region] + "}");
-                                break;
-                            case ControlFlowGraph.RegionKind.Try:
-                                Assert.Null(region.ExceptionType);
-                                Assert.Equal(i, region.Enclosing.FirstBlockOrdinal);
-                                enterRegion(".try {" + regionMap[region.Enclosing] + ", " + regionMap[region] + "}");
-                                break;
-                            case ControlFlowGraph.RegionKind.FilterAndHandler:
-                                enterRegion(".catch {" + regionMap[region] + "}" + $" ({region.ExceptionType?.ToTestDisplayString() ?? "null"})");
-                                break;
-
-                            case ControlFlowGraph.RegionKind.Handler:
-                                switch (region.Enclosing.Kind)
-                                {
-                                    case ControlFlowGraph.RegionKind.FilterAndHandler:
-                                        Assert.Same(region.ExceptionType, region.Enclosing.ExceptionType);
-                                        enterRegion(".handler {" + regionMap[region] + "}");
-                                        break;
-                                    case ControlFlowGraph.RegionKind.TryAndCatch:
-                                        enterRegion(".catch {" + regionMap[region] + "}" + $" ({region.ExceptionType?.ToTestDisplayString() ?? "null"})");
-                                        break;
-                                    case ControlFlowGraph.RegionKind.TryAndFinally:
-                                        Assert.Null(region.ExceptionType);
-                                        enterRegion(".finally {" + regionMap[region] + "}");
-                                        break;
-
-                                    default:
-                                        Assert.False(true, $"Unexpected region kind {region.Enclosing.Kind}");
-                                        break;
-                                }
-                                break;
-                            case ControlFlowGraph.RegionKind.Locals:
-                                Assert.Null(region.ExceptionType);
-                                Assert.NotEmpty(region.Locals);
-                                enterRegion(".locals {" + regionMap[region] + "}");
-                                break;
-
-                            case ControlFlowGraph.RegionKind.TryAndCatch:
-                            case ControlFlowGraph.RegionKind.TryAndFinally:
-                                Assert.Empty(region.Locals);
-                                Assert.Null(region.ExceptionType);
-                                break;
-                            default:
-                                Assert.False(true, $"Unexpected region kind {region.Kind}");
-                                break;
-                        }
-                    }
+                    enterRegions(block.Region, block.Ordinal);
                 }
 
                 if (!lastPrintedBlockIsInCurrentReagion)
@@ -248,84 +124,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     IOperation value = block.Conditional.Condition;
                     validateRoot(value);
                     stringBuilder.Append(OperationTreeVerifier.GetOperationTree(compilation, value, initialIndent: 8 + indent));
-                    validateBranch(conditionalBranch);
+                    validateBranch(block, conditionalBranch);
                     stringBuilder.AppendLine();
                 }
                 else
                 {
                     Assert.Null(conditionalBranch.Destination);
-                    validateBranch(conditionalBranch);
-                }
-
-                void validateBranch(BasicBlock.Branch branch)
-                {
-                    if (branch.Destination == null)
-                    {
-                        Assert.Empty(branch.FinallyRegions);
-                        Assert.Empty(branch.LeavingRegions);
-                        Assert.Empty(branch.EnteringRegions);
-                        return;
-                    }
-
-                    Assert.True(branch.Destination.Predecessors.Contains(block));
-
-                    if (!branch.FinallyRegions.IsEmpty)
-                    {
-                        appendLine($"        Finallizing:" + buildList(branch.FinallyRegions));
-                    }
-
-                    ControlFlowGraph.Region remainedIn1 = block.Region;
-                    if (!branch.LeavingRegions.IsEmpty)
-                    {
-                        appendLine($"        Leaving:" + buildList(branch.LeavingRegions));
-                        foreach (ControlFlowGraph.Region r in branch.LeavingRegions)
-                        {
-                            Assert.Same(remainedIn1, r);
-                            remainedIn1 = r.Enclosing;
-                        }
-                    }
-
-                    ControlFlowGraph.Region remainedIn2 = branch.Destination.Region;
-                    if (!branch.EnteringRegions.IsEmpty)
-                    {
-                        appendLine($"        Entering:" + buildList(branch.EnteringRegions));
-                        for (int j = branch.EnteringRegions.Length -1; j >= 0; j--)
-                        {
-                            ControlFlowGraph.Region r = branch.EnteringRegions[j];
-                            Assert.Same(remainedIn2, r);
-                            remainedIn2 = r.Enclosing;
-                        }
-                    }
-
-                    Assert.Same(remainedIn1.Enclosing, remainedIn2.Enclosing);
-
-                    string buildList(ImmutableArray<ControlFlowGraph.Region> list)
-                    {
-                        var builder = PooledObjects.PooledStringBuilder.GetInstance();
-
-                        foreach (ControlFlowGraph.Region r in list)
-                        {
-                            builder.Builder.Append(" {" + regionMap[r] + "}");
-                        }
-
-                        return builder.ToStringAndFree();
-                    }
-                }
-
-                void validateRoot(IOperation root)
-                {
-                    visitor.Visit(root);
-                    Assert.Null(root.Parent);
-                    Assert.Null(((Operation)root).SemanticModel);
-                    Assert.True(CanBeInControlFlowGraph(root), $"Unexpected node kind OperationKind.{root.Kind}");
-
-                    foreach (var operation in root.Descendants())
-                    {
-                        visitor.Visit(operation);
-                        Assert.NotNull(operation.Parent);
-                        Assert.Null(((Operation)operation).SemanticModel);
-                        Assert.True(CanBeInControlFlowGraph(operation), $"Unexpected node kind OperationKind.{operation.Kind}");
-                    }
+                    validateBranch(block, conditionalBranch);
                 }
 
                 BasicBlock.Branch nextBranch = block.Next;
@@ -345,58 +150,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     Assert.Null(nextBranch.Destination);
                 }
 
-                validateBranch(nextBranch);
+                validateBranch(block, nextBranch);
 
                 if (currentRegion.LastBlockOrdinal == block.Ordinal && i != blocks.Length - 1)
                 {
-                    leaveRegions(block.Region);
-
-                    void leaveRegions(ControlFlowGraph.Region region)
-                    {
-                        if (region.LastBlockOrdinal != i)
-                        {
-                            currentRegion = region;
-                            lastPrintedBlockIsInCurrentReagion = false;
-                            return;
-                        }
-
-                        leaveRegions(region.Enclosing);
-
-                        switch (region.Kind)
-                        {
-                            case ControlFlowGraph.RegionKind.Locals:
-                            case ControlFlowGraph.RegionKind.Filter:
-                            case ControlFlowGraph.RegionKind.Try:
-                            case ControlFlowGraph.RegionKind.FilterAndHandler:
-                                indent -= 4;
-                                appendLine("}");
-                                break;
-                            case ControlFlowGraph.RegionKind.Handler:
-                                switch (region.Enclosing.Kind)
-                                {
-                                    case ControlFlowGraph.RegionKind.FilterAndHandler:
-                                    case ControlFlowGraph.RegionKind.TryAndCatch:
-                                    case ControlFlowGraph.RegionKind.TryAndFinally:
-                                        goto endRegion;
-
-                                    default:
-                                        Assert.False(true, $"Unexpected region kind {region.Enclosing.Kind}");
-                                        break;
-                                }
-
-                                break;
-
-endRegion:
-                                goto case ControlFlowGraph.RegionKind.Filter;
-
-                            case ControlFlowGraph.RegionKind.TryAndCatch:
-                            case ControlFlowGraph.RegionKind.TryAndFinally:
-                                break;
-                            default:
-                                Assert.False(true, $"Unexpected region kind {region.Kind}");
-                                break;
-                        }
-                    }
+                    leaveRegions(block.Region, block.Ordinal);
                 }
                 else
                 {
@@ -407,6 +165,248 @@ endRegion:
 
             regionMap.Free();
             return pooledBuilder.ToStringAndFree();
+
+            PooledObjects.PooledDictionary<ControlFlowGraph.Region, int> buildRegionMap()
+            {
+                var result = PooledObjects.PooledDictionary<ControlFlowGraph.Region, int>.GetInstance();
+                int ordinal = 0;
+                visit(graph.Root);
+
+                void visit(ControlFlowGraph.Region region)
+                {
+                    result.Add(region, ordinal++);
+
+                    foreach (ControlFlowGraph.Region r in region.Regions)
+                    {
+                        visit(r);
+                    }
+                }
+
+                return result;
+            }
+
+            void appendLine(string line)
+            {
+                appendIndent();
+                stringBuilder.AppendLine(line);
+            }
+
+            void appendIndent()
+            {
+                stringBuilder.Append(' ', indent);
+            }
+
+            void printLocals(ControlFlowGraph.Region region)
+            {
+                if (!region.Locals.IsEmpty)
+                {
+                    appendIndent();
+                    stringBuilder.Append("Locals:");
+                    foreach (ILocalSymbol local in region.Locals)
+                    {
+                        stringBuilder.Append($" [{local.ToTestDisplayString()}]");
+                    }
+                    stringBuilder.AppendLine();
+                }
+            }
+
+            void enterRegions(ControlFlowGraph.Region region, int firstBlockOrdinal)
+            {
+                if (region.FirstBlockOrdinal != firstBlockOrdinal)
+                {
+                    Assert.Same(currentRegion, region);
+
+                    if (lastPrintedBlockIsInCurrentReagion)
+                    {
+                        stringBuilder.AppendLine();
+                    }
+
+                    return;
+                }
+
+                enterRegions(region.Enclosing, firstBlockOrdinal);
+                currentRegion = region;
+                lastPrintedBlockIsInCurrentReagion = true;
+
+                switch (region.Kind)
+                {
+                    case ControlFlowGraph.RegionKind.Filter:
+                        Assert.Empty(region.Locals);
+                        Assert.Equal(firstBlockOrdinal, region.Enclosing.FirstBlockOrdinal);
+                        Assert.Same(region.ExceptionType, region.Enclosing.ExceptionType);
+                        enterRegion(".filter {" + regionMap[region] + "}");
+                        break;
+                    case ControlFlowGraph.RegionKind.Try:
+                        Assert.Null(region.ExceptionType);
+                        Assert.Equal(firstBlockOrdinal, region.Enclosing.FirstBlockOrdinal);
+                        enterRegion(".try {" + regionMap[region.Enclosing] + ", " + regionMap[region] + "}");
+                        break;
+                    case ControlFlowGraph.RegionKind.FilterAndHandler:
+                        enterRegion(".catch {" + regionMap[region] + "}" + $" ({region.ExceptionType?.ToTestDisplayString() ?? "null"})");
+                        break;
+
+                    case ControlFlowGraph.RegionKind.Handler:
+                        switch (region.Enclosing.Kind)
+                        {
+                            case ControlFlowGraph.RegionKind.FilterAndHandler:
+                                Assert.Same(region.ExceptionType, region.Enclosing.ExceptionType);
+                                enterRegion(".handler {" + regionMap[region] + "}");
+                                break;
+                            case ControlFlowGraph.RegionKind.TryAndCatch:
+                                enterRegion(".catch {" + regionMap[region] + "}" + $" ({region.ExceptionType?.ToTestDisplayString() ?? "null"})");
+                                break;
+                            case ControlFlowGraph.RegionKind.TryAndFinally:
+                                Assert.Null(region.ExceptionType);
+                                enterRegion(".finally {" + regionMap[region] + "}");
+                                break;
+
+                            default:
+                                Assert.False(true, $"Unexpected region kind {region.Enclosing.Kind}");
+                                break;
+                        }
+                        break;
+                    case ControlFlowGraph.RegionKind.Locals:
+                        Assert.Null(region.ExceptionType);
+                        Assert.NotEmpty(region.Locals);
+                        enterRegion(".locals {" + regionMap[region] + "}");
+                        break;
+
+                    case ControlFlowGraph.RegionKind.TryAndCatch:
+                    case ControlFlowGraph.RegionKind.TryAndFinally:
+                        Assert.Empty(region.Locals);
+                        Assert.Null(region.ExceptionType);
+                        break;
+                    default:
+                        Assert.False(true, $"Unexpected region kind {region.Kind}");
+                        break;
+                }
+
+                void enterRegion(string header)
+                {
+                    appendLine(header);
+                    appendLine("{");
+                    indent += 4;
+                    printLocals(region);
+                }
+            }
+
+            void leaveRegions(ControlFlowGraph.Region region, int lastBlockOrdinal)
+            {
+                if (region.LastBlockOrdinal != lastBlockOrdinal)
+                {
+                    currentRegion = region;
+                    lastPrintedBlockIsInCurrentReagion = false;
+                    return;
+                }
+
+                leaveRegions(region.Enclosing, lastBlockOrdinal);
+
+                switch (region.Kind)
+                {
+                    case ControlFlowGraph.RegionKind.Locals:
+                    case ControlFlowGraph.RegionKind.Filter:
+                    case ControlFlowGraph.RegionKind.Try:
+                    case ControlFlowGraph.RegionKind.FilterAndHandler:
+                        indent -= 4;
+                        appendLine("}");
+                        break;
+                    case ControlFlowGraph.RegionKind.Handler:
+                        switch (region.Enclosing.Kind)
+                        {
+                            case ControlFlowGraph.RegionKind.FilterAndHandler:
+                            case ControlFlowGraph.RegionKind.TryAndCatch:
+                            case ControlFlowGraph.RegionKind.TryAndFinally:
+                                goto endRegion;
+
+                            default:
+                                Assert.False(true, $"Unexpected region kind {region.Enclosing.Kind}");
+                                break;
+                        }
+
+                        break;
+
+                        endRegion:
+                        goto case ControlFlowGraph.RegionKind.Filter;
+
+                    case ControlFlowGraph.RegionKind.TryAndCatch:
+                    case ControlFlowGraph.RegionKind.TryAndFinally:
+                        break;
+                    default:
+                        Assert.False(true, $"Unexpected region kind {region.Kind}");
+                        break;
+                }
+            }
+
+            void validateBranch(BasicBlock fromBlock, BasicBlock.Branch branch)
+            {
+                if (branch.Destination == null)
+                {
+                    Assert.Empty(branch.FinallyRegions);
+                    Assert.Empty(branch.LeavingRegions);
+                    Assert.Empty(branch.EnteringRegions);
+                    return;
+                }
+
+                Assert.True(branch.Destination.Predecessors.Contains(fromBlock));
+
+                if (!branch.FinallyRegions.IsEmpty)
+                {
+                    appendLine($"        Finalizing:" + buildList(branch.FinallyRegions));
+                }
+
+                ControlFlowGraph.Region remainedIn1 = fromBlock.Region;
+                if (!branch.LeavingRegions.IsEmpty)
+                {
+                    appendLine($"        Leaving:" + buildList(branch.LeavingRegions));
+                    foreach (ControlFlowGraph.Region r in branch.LeavingRegions)
+                    {
+                        Assert.Same(remainedIn1, r);
+                        remainedIn1 = r.Enclosing;
+                    }
+                }
+
+                ControlFlowGraph.Region remainedIn2 = branch.Destination.Region;
+                if (!branch.EnteringRegions.IsEmpty)
+                {
+                    appendLine($"        Entering:" + buildList(branch.EnteringRegions));
+                    for (int j = branch.EnteringRegions.Length - 1; j >= 0; j--)
+                    {
+                        ControlFlowGraph.Region r = branch.EnteringRegions[j];
+                        Assert.Same(remainedIn2, r);
+                        remainedIn2 = r.Enclosing;
+                    }
+                }
+
+                Assert.Same(remainedIn1.Enclosing, remainedIn2.Enclosing);
+
+                string buildList(ImmutableArray<ControlFlowGraph.Region> list)
+                {
+                    var builder = PooledObjects.PooledStringBuilder.GetInstance();
+
+                    foreach (ControlFlowGraph.Region r in list)
+                    {
+                        builder.Builder.Append(" {" + regionMap[r] + "}");
+                    }
+
+                    return builder.ToStringAndFree();
+                }
+            }
+
+            void validateRoot(IOperation root)
+            {
+                visitor.Visit(root);
+                Assert.Null(root.Parent);
+                Assert.Null(((Operation)root).SemanticModel);
+                Assert.True(CanBeInControlFlowGraph(root), $"Unexpected node kind OperationKind.{root.Kind}");
+
+                foreach (var operation in root.Descendants())
+                {
+                    visitor.Visit(operation);
+                    Assert.NotNull(operation.Parent);
+                    Assert.Null(((Operation)operation).SemanticModel);
+                    Assert.True(CanBeInControlFlowGraph(operation), $"Unexpected node kind OperationKind.{operation.Kind}");
+                }
+            }
         }
 
         private static bool CanBeInControlFlowGraph(IOperation n)

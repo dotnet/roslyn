@@ -20,7 +20,8 @@ namespace Microsoft.CodeAnalysis.Operations
             Root,
 
             /// <summary>
-            /// Region with the only purpose to represent the life-time of locals
+            /// Region with the only purpose to represent the life-time of locals.
+            /// PROTOTYPE(dataflow): We should clearly explain what "life-time" refers to here, or use a different term.
             /// </summary>
             Locals,
 
