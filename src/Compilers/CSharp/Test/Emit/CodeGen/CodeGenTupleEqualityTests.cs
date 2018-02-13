@@ -108,6 +108,37 @@ class C
         }
 
         [Fact]
+        void TestWithoutValueTuple()
+        {
+            var source = @"
+class C
+{
+    static bool M()
+    {
+        return (1, 2) == (3, 4);
+    }
+}";
+            var comp = CreateStandardCompilation(source);
+
+            // PROTOTYPE(tuple-equality) See if we can relax the restriction on requiring ValueTuple types
+
+            comp.VerifyDiagnostics(
+                // (6,16): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
+                //         return (1, 2) == (3, 4);
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(1, 2)").WithArguments("System.ValueTuple`2").WithLocation(6, 16),
+                // (6,26): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
+                //         return (1, 2) == (3, 4);
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(3, 4)").WithArguments("System.ValueTuple`2").WithLocation(6, 26),
+                // (6,16): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
+                //         return (1, 2) == (3, 4);
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(1, 2)").WithArguments("System.ValueTuple`2").WithLocation(6, 16),
+                // (6,26): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
+                //         return (1, 2) == (3, 4);
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(3, 4)").WithArguments("System.ValueTuple`2").WithLocation(6, 26)
+                );
+        }
+
+        [Fact]
         void TestNestedNullableTuplesWithDifferentCardinalities()
         {
             var source = @"

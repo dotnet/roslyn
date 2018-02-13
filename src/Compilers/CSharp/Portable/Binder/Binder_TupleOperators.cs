@@ -22,11 +22,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             TupleBinaryOperatorInfo operators = BindTupleBinaryOperatorInfo(node, kind, left, right, diagnostics);
 
-            TypeSymbol leftConvertedType = operators.GetConvertedType(isRight: false);
-            TypeSymbol rightConvertedType = operators.GetConvertedType(isRight: true);
-
-            BoundExpression convertedLeft = GenerateConversionForAssignment(leftConvertedType, left, diagnostics);
-            BoundExpression convertedRight = GenerateConversionForAssignment(rightConvertedType, right, diagnostics);
+            BoundExpression convertedLeft = GenerateConversionForAssignment(operators.LeftConvertedType, left, diagnostics);
+            BoundExpression convertedRight = GenerateConversionForAssignment(operators.RightConvertedType, right, diagnostics);
 
             TypeSymbol resultType = GetSpecialType(SpecialType.System_Boolean, diagnostics, node);
             return new BoundTupleBinaryOperator(node, convertedLeft, convertedRight, kind, operators, resultType);
@@ -86,6 +83,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!best.HasValue)
             {
                 resultOperatorKind = kind;
+                convertedLeftType = convertedLeftType ?? leftType ?? CreateErrorType();
+                convertedRightType = convertedRightType ?? rightType ?? CreateErrorType();
                 returnType = CreateErrorType();
                 hasErrors = true;
             }
@@ -107,13 +106,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                 hasErrors = isObjectEquality && !BuiltInOperators.IsValidObjectEquality(Conversions, leftType, leftNull, rightType, rightNull, ref useSiteDiagnostics);
                 diagnostics.Add(node, useSiteDiagnostics);
-            }
-
-            if (convertedLeftType is null || convertedRightType is null)
-            {
-                convertedLeftType = convertedLeftType ?? leftType ?? CreateErrorType();
-                convertedRightType = convertedRightType ?? rightType ?? CreateErrorType();
-                hasErrors = true;
             }
 
             if (hasErrors)
@@ -185,10 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)left.Type != null && left.Type.IsDynamic() || (object)right.Type != null && right.Type.IsDynamic());
 
             bool hasError = false;
-            bool leftValidOperand = IsLegalDynamicOperand(left);
-            bool rightValidOperand = IsLegalDynamicOperand(right);
-
-            if (!leftValidOperand || !rightValidOperand)
+            if (!IsLegalDynamicOperand(left) || !IsLegalDynamicOperand(right))
             {
                 // Operator '{0}' cannot be applied to operands of type '{1}' and '{2}'
                 Error(diagnostics, ErrorCode.ERR_BadBinaryOps, node, node.OperatorToken.Text, left.Display, right.Display);
@@ -205,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private TupleBinaryOperatorInfo BindTupleBinaryOperatorNestedInfo(BinaryExpressionSyntax node, BinaryOperatorKind kind,
             ImmutableArray<BoundExpression> left, ImmutableArray<BoundExpression> right,
-            bool nullable, DiagnosticBag diagnostics)
+            bool isNullable, DiagnosticBag diagnostics)
         {
             int length = left.Length;
             Debug.Assert(length == right.Length);
@@ -218,10 +207,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var compilation = this.Compilation;
-            TypeSymbol leftTupleType = MakeConvertedType(operatorsBuilder, node.Left, left, nullable, compilation, diagnostics, isRight: false);
-            TypeSymbol rightTupleType = MakeConvertedType(operatorsBuilder, node.Right, right, nullable, compilation, diagnostics, isRight: true);
+            var operators = operatorsBuilder.ToImmutableAndFree();
+            TypeSymbol leftTupleType = MakeConvertedType(operators, node.Left, left, isNullable, compilation, diagnostics, isRight: false);
+            TypeSymbol rightTupleType = MakeConvertedType(operators, node.Right, right, isNullable, compilation, diagnostics, isRight: true);
 
-            return new TupleBinaryOperatorInfo.Nested(operatorsBuilder.ToImmutableAndFree(), leftTupleType, rightTupleType);
+            return new TupleBinaryOperatorInfo.Nested(operators, leftTupleType, rightTupleType);
         }
 
         private static int? GetTupleCardinality(BoundExpression expr)
@@ -257,24 +247,24 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // placeholder bound nodes with the proper types are sufficient to bind the element-wise binary operators
             return expr.Type.StrippedType().TupleElementTypes
-                .SelectAsArray(t => (BoundExpression)new BoundTupleOperandPlaceholder(expr.Syntax, t));
+                .SelectAsArray((t, s) => (BoundExpression)new BoundTupleOperandPlaceholder(s, t), expr.Syntax);
         }
 
         /// <summary>
         /// Make a tuple type (with appropriate nesting) from the types (on the left or on the right) collected
         /// from binding element-wise binary operators.
         /// </summary>
-        private TypeSymbol MakeConvertedType(ArrayBuilder<TupleBinaryOperatorInfo> operators, CSharpSyntaxNode syntax,
-            ImmutableArray<BoundExpression> elements, bool nullable, CSharpCompilation compilation, DiagnosticBag diagnostics, bool isRight)
+        private TypeSymbol MakeConvertedType(ImmutableArray<TupleBinaryOperatorInfo> operators, CSharpSyntaxNode syntax,
+            ImmutableArray<BoundExpression> elements, bool isNullable, CSharpCompilation compilation, DiagnosticBag diagnostics, bool isRight)
         {
-            ImmutableArray<TypeSymbol> convertedTypes = operators.SelectAsArray(o => o.GetConvertedType(isRight));
+            ImmutableArray<TypeSymbol> convertedTypes = operators.SelectAsArray((o, r) => r ? o.RightConvertedType : o.LeftConvertedType, isRight);
             ImmutableArray<Location> elementLocations = elements.SelectAsArray(e => e.Syntax.Location);
 
             var tuple = TupleTypeSymbol.Create(locationOpt: null, elementTypes: convertedTypes,
                 elementLocations, elementNames: default, compilation,
                 shouldCheckConstraints: true, errorPositions: default, syntax, diagnostics);
 
-            if (!nullable)
+            if (!isNullable)
             {
                 return tuple;
             }
@@ -289,26 +279,31 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal abstract class TupleBinaryOperatorInfo
     {
-        internal abstract TypeSymbol GetConvertedType(bool isRight);
         internal abstract bool IsSingle();
+        internal readonly TypeSymbol LeftConvertedType;
+        internal readonly TypeSymbol RightConvertedType;
 #if DEBUG
         internal abstract TreeDumperNode DumpCore();
         internal string Dump() => TreeDumper.DumpCompact(DumpCore());
 #endif
 
+        private TupleBinaryOperatorInfo(TypeSymbol leftConvertedType, TypeSymbol rightConvertedType)
+        {
+            LeftConvertedType = leftConvertedType;
+            RightConvertedType = rightConvertedType;
+        }
+
         internal class Single : TupleBinaryOperatorInfo
         {
-            internal TypeSymbol LeftConvertedType { get; }
-            internal TypeSymbol RightConvertedType { get; }
-            internal BinaryOperatorKind Kind { get; }
-            internal MethodSymbol MethodSymbolOpt { get; } // User-defined comparison operator, if applicable
+            internal readonly BinaryOperatorKind Kind;
+            internal readonly MethodSymbol MethodSymbolOpt; // User-defined comparison operator, if applicable
 
             // To convert the result of comparison to bool
-            internal Conversion BoolConversion { get; }
-            internal UnaryOperatorSignature BoolOperator { get; } // Information for op_true or op_false
+            internal readonly Conversion BoolConversion;
+            internal readonly UnaryOperatorSignature BoolOperator; // Information for op_true or op_false
 
             internal Single(TypeSymbol leftConvertedType, TypeSymbol rightConvertedType, BinaryOperatorKind kind,
-                MethodSymbol methodSymbolOpt, Conversion boolConversion, UnaryOperatorSignature boolOperator)
+                MethodSymbol methodSymbolOpt, Conversion boolConversion, UnaryOperatorSignature boolOperator) : base(leftConvertedType, rightConvertedType)
             {
                 // If a user-defined comparison operator is present, then the operator kind must be user-defined
                 Debug.Assert(Kind.IsUserDefined() || (object)MethodSymbolOpt == null);
@@ -317,16 +312,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(BoolConversion != default || !Kind.IsDynamic() || (Kind.IsUserDefined() && MethodSymbolOpt.ReturnType.SpecialType == SpecialType.System_Boolean));
                 Debug.Assert((object)BoolOperator != null || !Kind.IsDynamic() || (Kind.IsUserDefined() && MethodSymbolOpt.ReturnType.SpecialType == SpecialType.System_Boolean));
 
-                LeftConvertedType = leftConvertedType;
-                RightConvertedType = rightConvertedType;
                 Kind = kind;
                 MethodSymbolOpt = methodSymbolOpt;
                 BoolConversion = boolConversion;
                 BoolOperator = boolOperator;
             }
-
-            internal override TypeSymbol GetConvertedType(bool isRight)
-                => isRight ? RightConvertedType : LeftConvertedType;
 
             internal override bool IsSingle()
                 => true;
@@ -352,21 +342,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal class Nested : TupleBinaryOperatorInfo
         {
-            internal ImmutableArray<TupleBinaryOperatorInfo> NestedOperators { get; }
-            internal TypeSymbol LeftConvertedType { get; }
-            internal TypeSymbol RightConvertedType { get; }
+            internal readonly ImmutableArray<TupleBinaryOperatorInfo> NestedOperators;
 
-            internal Nested(ImmutableArray<TupleBinaryOperatorInfo> nestedOperators,
-                TypeSymbol leftConvertedType, TypeSymbol rightConvertedType)
+            internal Nested(ImmutableArray<TupleBinaryOperatorInfo> nestedOperators, TypeSymbol leftConvertedType, TypeSymbol rightConvertedType) 
+                : base(leftConvertedType, rightConvertedType)
             {
                 Debug.Assert(!nestedOperators.IsDefaultOrEmpty);
                 NestedOperators = nestedOperators;
-                LeftConvertedType = leftConvertedType;
-                RightConvertedType = rightConvertedType;
             }
-
-            internal override TypeSymbol GetConvertedType(bool isRight)
-                => isRight ? RightConvertedType : LeftConvertedType;
 
             internal override bool IsSingle()
                 => false;
