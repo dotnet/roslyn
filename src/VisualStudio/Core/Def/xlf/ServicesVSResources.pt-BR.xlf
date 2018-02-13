@@ -1498,6 +1498,16 @@ Eu concordo com todo o conteúdo supracitado:</target>
         <target state="translated">As configurações definidas aqui se aplicam somente a seu computador. Para definir essas configurações para viajar com sua solução, use arquivos .editorconfig.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Live_code_analysis">
+        <source>Live code analysis</source>
+        <target state="new">Live code analysis</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Analyzing_0">
+        <source>Analyzing '{0}'</source>
+        <target state="new">Analyzing '{0}'</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>
