@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public readonly ImmutableArray<Conversion> ConversionsOpt;
         public readonly ImmutableArray<int> BadArgumentsOpt;
         public readonly ImmutableArray<int> ArgsToParamsOpt;
-        public readonly ImmutableArray<TypeParameterDiagnosticInfo> ConstraintFailureDiagnosticsOpt;
+        public readonly ImmutableArray<TypeParameterDiagnosticInfo> ConstraintFailureDiagnostics;
 
         public readonly int BadParameter;
         public readonly MemberResolutionKind Kind;
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.ConversionsOpt = conversionsOpt;
             this.BadParameter = missingParameter;
             this.HasAnyRefOmittedArgument = hasAnyRefOmittedArgument;
-            this.ConstraintFailureDiagnosticsOpt = constraintFailureDiagnosticsOpt.NullToEmpty();
+            this.ConstraintFailureDiagnostics = constraintFailureDiagnosticsOpt.NullToEmpty();
         }
 
         public override bool Equals(object obj)

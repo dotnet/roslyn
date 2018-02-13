@@ -638,7 +638,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            foreach (var pair in constraintFailure.Result.ConstraintFailureDiagnosticsOpt)
+            foreach (var pair in constraintFailure.Result.ConstraintFailureDiagnostics)
             {
                 diagnostics.Add(new CSDiagnostic(pair.DiagnosticInfo, location));
             }
