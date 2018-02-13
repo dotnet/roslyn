@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var stringBuilder = pooledBuilder.Builder;
             int indent = 0;
             ControlFlowGraph.Region currentRegion = graph.Root;
-            bool lastPrintedBlockIsInCurrentReagion = true;
+            bool lastPrintedBlockIsInCurrentRegion = true;
             PooledObjects.PooledDictionary<ControlFlowGraph.Region, int> regionMap = buildRegionMap();
 
             for (int i = 0; i < blocks.Length; i++)
@@ -78,12 +78,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     enterRegions(block.Region, block.Ordinal);
                 }
 
-                if (!lastPrintedBlockIsInCurrentReagion)
+                if (!lastPrintedBlockIsInCurrentRegion)
                 {
                     stringBuilder.AppendLine();
                 }
 
-                appendLine($"Block[{i}] - {block.Kind}");
+                appendLine($"Block[B{i}] - {block.Kind}");
 
                 var predecessors = block.Predecessors;
 
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     {
                         Assert.Same(blocks[predecessor.Ordinal], predecessor);
                         Assert.True(predecessor.Conditional.Branch.Destination == block || predecessor.Next.Destination == block);
-                        stringBuilder.Append($" [{predecessor.Ordinal}]");
+                        stringBuilder.Append($" [B{predecessor.Ordinal}]");
                     }
 
                     stringBuilder.AppendLine();
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 {
                     int index = conditionalBranch.Destination.Ordinal;
                     Assert.Same(blocks[index], conditionalBranch.Destination);
-                    appendLine($"    Jump if {(block.Conditional.JumpIfTrue ? "True" : "False")} ({conditionalBranch.Flags}) to Block[{index}]");
+                    appendLine($"    Jump if {(block.Conditional.JumpIfTrue ? "True" : "False")} ({conditionalBranch.Flags}) to Block[B{index}]");
 
                     IOperation value = block.Conditional.Condition;
                     validateRoot(value);
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         Assert.Same(blocks[nextBranch.Destination.Ordinal], nextBranch.Destination);
                     }
 
-                    appendLine($"    Next ({nextBranch.Flags}) Block[{nextBranch.Destination?.Ordinal ?? (object)"null"}]");
+                    appendLine($"    Next ({nextBranch.Flags}) Block[{(nextBranch.Destination != null ? ("B" + nextBranch.Destination.Ordinal) : (object)"null")}]");
                 }
                 else
                 {
@@ -158,9 +158,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 }
                 else
                 {
-                    lastPrintedBlockIsInCurrentReagion = true;
+                    lastPrintedBlockIsInCurrentRegion = true;
                 }
-
             }
 
             regionMap.Free();
@@ -216,7 +215,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 {
                     Assert.Same(currentRegion, region);
 
-                    if (lastPrintedBlockIsInCurrentReagion)
+                    if (lastPrintedBlockIsInCurrentRegion)
                     {
                         stringBuilder.AppendLine();
                     }
@@ -226,7 +225,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                 enterRegions(region.Enclosing, firstBlockOrdinal);
                 currentRegion = region;
-                lastPrintedBlockIsInCurrentReagion = true;
+                lastPrintedBlockIsInCurrentRegion = true;
 
                 switch (region.Kind)
                 {
@@ -234,15 +233,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         Assert.Empty(region.Locals);
                         Assert.Equal(firstBlockOrdinal, region.Enclosing.FirstBlockOrdinal);
                         Assert.Same(region.ExceptionType, region.Enclosing.ExceptionType);
-                        enterRegion(".filter {" + regionMap[region] + "}");
+                        enterRegion(".filter {R" + regionMap[region] + "}");
                         break;
                     case ControlFlowGraph.RegionKind.Try:
                         Assert.Null(region.ExceptionType);
                         Assert.Equal(firstBlockOrdinal, region.Enclosing.FirstBlockOrdinal);
-                        enterRegion(".try {" + regionMap[region.Enclosing] + ", " + regionMap[region] + "}");
+                        enterRegion(".try {R" + regionMap[region.Enclosing] + ", R" + regionMap[region] + "}");
                         break;
                     case ControlFlowGraph.RegionKind.FilterAndHandler:
-                        enterRegion(".catch {" + regionMap[region] + "}" + $" ({region.ExceptionType?.ToTestDisplayString() ?? "null"})");
+                        enterRegion(".catch {R" + regionMap[region] + "}" + $" ({region.ExceptionType?.ToTestDisplayString() ?? "null"})");
                         break;
 
                     case ControlFlowGraph.RegionKind.Handler:
@@ -250,14 +249,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         {
                             case ControlFlowGraph.RegionKind.FilterAndHandler:
                                 Assert.Same(region.ExceptionType, region.Enclosing.ExceptionType);
-                                enterRegion(".handler {" + regionMap[region] + "}");
+                                enterRegion(".handler {R" + regionMap[region] + "}");
                                 break;
                             case ControlFlowGraph.RegionKind.TryAndCatch:
-                                enterRegion(".catch {" + regionMap[region] + "}" + $" ({region.ExceptionType?.ToTestDisplayString() ?? "null"})");
+                                enterRegion(".catch {R" + regionMap[region] + "}" + $" ({region.ExceptionType?.ToTestDisplayString() ?? "null"})");
                                 break;
                             case ControlFlowGraph.RegionKind.TryAndFinally:
                                 Assert.Null(region.ExceptionType);
-                                enterRegion(".finally {" + regionMap[region] + "}");
+                                enterRegion(".finally {R" + regionMap[region] + "}");
                                 break;
 
                             default:
@@ -268,7 +267,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     case ControlFlowGraph.RegionKind.Locals:
                         Assert.Null(region.ExceptionType);
                         Assert.NotEmpty(region.Locals);
-                        enterRegion(".locals {" + regionMap[region] + "}");
+                        enterRegion(".locals {R" + regionMap[region] + "}");
                         break;
 
                     case ControlFlowGraph.RegionKind.TryAndCatch:
@@ -295,7 +294,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 if (region.LastBlockOrdinal != lastBlockOrdinal)
                 {
                     currentRegion = region;
-                    lastPrintedBlockIsInCurrentReagion = false;
+                    lastPrintedBlockIsInCurrentRegion = false;
                     return;
                 }
 
@@ -385,7 +384,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                     foreach (ControlFlowGraph.Region r in list)
                     {
-                        builder.Builder.Append(" {" + regionMap[r] + "}");
+                        builder.Builder.Append(" {R" + regionMap[r] + "}");
                     }
 
                     return builder.ToStringAndFree();
