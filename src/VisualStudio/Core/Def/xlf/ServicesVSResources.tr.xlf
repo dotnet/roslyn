@@ -1398,7 +1398,7 @@ Geçerli durum için 'basit çözüm yükü' etkin. Hata ayıklama başlatıldı
         <note />
       </trans-unit>
       <trans-unit id="Prefer_local_function_over_anonymous_function">
-        <source>Prefere local function over anonymous function</source>
+        <source>Prefer local function over anonymous function</source>
         <target state="translated">Anonim işlevler yerine yerel işlevleri tercih et</target>
         <note />
       </trans-unit>
