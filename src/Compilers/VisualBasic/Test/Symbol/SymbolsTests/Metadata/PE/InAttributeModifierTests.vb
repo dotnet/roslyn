@@ -5,8 +5,6 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata
 
-    ' PROTOTYPE: check tests here
-
     Public Class InAttributeModifierTests
         Inherits BasicTestBase
 

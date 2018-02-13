@@ -141,6 +141,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             CheckForBlockAndExpressionBody(
                 syntax.Body, syntax.ExpressionBody, syntax, diagnostics);
+
+            foreach (var typeParameter in _typeParameters)
+            {
+                if (typeParameter.HasUnmanagedTypeConstraint)
+                {
+                    // This check has to come last, after all relevants fields of this symbol (including overriden symbols) are set.
+                    DeclaringCompilation.EnsureIsUnmanagedAttributeExists(diagnostics, syntax.Location, modifyCompilationForIsUnmanaged: true);
+                }
+            }
         }
 
         public override bool ReturnsVoid
