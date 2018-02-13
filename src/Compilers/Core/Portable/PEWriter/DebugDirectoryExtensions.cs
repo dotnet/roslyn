@@ -36,11 +36,6 @@ namespace System.Reflection.PortableExecutable
         {
             int start = builder.Count;
 
-            builder.WriteByte((byte)'P');
-            builder.WriteByte((byte)'D');
-            builder.WriteByte((byte)'B');
-            builder.WriteByte((byte)'C');
-
             // NUL-terminated algorithm name:
             builder.WriteUTF8(algorithmName, allowUnpairedSurrogates: true);
             builder.WriteByte(0);
@@ -69,14 +64,6 @@ namespace System.Reflection.PortableExecutable
 
             int dataOffset = peReader.IsLoadedImage ? entry.DataRelativeVirtualAddress : entry.DataPointer;
             var reader = peImage.GetReader(dataOffset, entry.DataSize);
-
-            if (reader.ReadByte() != (byte)'P' ||
-                reader.ReadByte() != (byte)'D' ||
-                reader.ReadByte() != (byte)'B' ||
-                reader.ReadByte() != (byte)'C')
-            {
-                throw new BadImageFormatException("Unexpected PDB Checksum signature");
-            }
 
             int nameLength = reader.IndexOf(0);
             if (nameLength <= 0)
