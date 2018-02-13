@@ -384,6 +384,7 @@ Parent",
                         .Single(assembly => !assembly.Identity.Equals(module.ContainingAssembly.CorLibrary.Identity))
                         .GetTypeByMetadataName("Child").GetMethod("M");
 
+                    Assert.True(method.IsOverride);
                     Assert.True(method.HasUseSiteError);
                     Assert.Equal((int)ErrorCode.ERR_BindToBogus, method.GetUseSiteDiagnostic().Code);
                 });
@@ -536,6 +537,7 @@ Parent",
                         .Single(assembly => !assembly.Identity.Equals(module.ContainingAssembly.CorLibrary.Identity))
                         .GetTypeByMetadataName("Child").GetMethod("M");
 
+                    Assert.True(method.IsOverride);
                     Assert.True(method.HasUseSiteError);
                     Assert.Equal((int)ErrorCode.ERR_BindToBogus, method.GetUseSiteDiagnostic().Code);
                 });
@@ -1395,6 +1397,7 @@ Parent Set",
                         .Single(assembly => !assembly.Identity.Equals(module.ContainingAssembly.CorLibrary.Identity))
                         .GetTypeByMetadataName("Child").GetIndexer<PEPropertySymbol>("Item");
 
+                    Assert.True(indexer.IsOverride);
                     Assert.True(indexer.HasUseSiteError);
                     Assert.Equal((int)ErrorCode.ERR_BindToBogus, indexer.GetUseSiteDiagnostic().Code);
                 });
@@ -1650,6 +1653,7 @@ Parent Get",
                         .Single(assembly => !assembly.Identity.Equals(module.ContainingAssembly.CorLibrary.Identity))
                         .GetTypeByMetadataName("Child").GetIndexer<PEPropertySymbol>("Item");
 
+                    Assert.True(indexer.IsOverride);
                     Assert.True(indexer.HasUseSiteError);
                     Assert.Equal((int)ErrorCode.ERR_BindToBogus, indexer.GetUseSiteDiagnostic().Code);
                 });
@@ -1861,6 +1865,7 @@ Parent Set",
                         .Single(assembly => !assembly.Identity.Equals(module.ContainingAssembly.CorLibrary.Identity))
                         .GetTypeByMetadataName("Child").GetIndexer<PEPropertySymbol>("Item");
 
+                    Assert.True(indexer.IsOverride);
                     Assert.True(indexer.HasUseSiteError);
                     Assert.Equal((int)ErrorCode.ERR_BindToBogus, indexer.GetUseSiteDiagnostic().Code);
                 });
@@ -2103,6 +2108,7 @@ Parent Set",
                         .Single(assembly => !assembly.Identity.Equals(module.ContainingAssembly.CorLibrary.Identity))
                         .GetTypeByMetadataName("Child").GetIndexer<PEPropertySymbol>("Item");
 
+                    Assert.True(indexer.IsOverride);
                     Assert.True(indexer.HasUseSiteError);
                     Assert.Equal((int)ErrorCode.ERR_BindToBogus, indexer.GetUseSiteDiagnostic().Code);
                 });
@@ -2358,6 +2364,7 @@ Parent Get",
                         .Single(assembly => !assembly.Identity.Equals(module.ContainingAssembly.CorLibrary.Identity))
                         .GetTypeByMetadataName("Child").GetIndexer<PEPropertySymbol>("Item");
 
+                    Assert.True(indexer.IsOverride);
                     Assert.True(indexer.HasUseSiteError);
                     Assert.Equal((int)ErrorCode.ERR_BindToBogus, indexer.GetUseSiteDiagnostic().Code);
                 });
@@ -2569,6 +2576,7 @@ Parent Set",
                         .Single(assembly => !assembly.Identity.Equals(module.ContainingAssembly.CorLibrary.Identity))
                         .GetTypeByMetadataName("Child").GetIndexer<PEPropertySymbol>("Item");
 
+                    Assert.True(indexer.IsOverride);
                     Assert.True(indexer.HasUseSiteError);
                     Assert.Equal((int)ErrorCode.ERR_BindToBogus, indexer.GetUseSiteDiagnostic().Code);
                 });
