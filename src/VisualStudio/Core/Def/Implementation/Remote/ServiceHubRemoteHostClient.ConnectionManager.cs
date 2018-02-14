@@ -27,7 +27,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             private readonly ConcurrentDictionary<string, ConcurrentQueue<JsonRpcConnection>> _pools;
 
             // indicate whether pool should be used.
-            // it is mutable since it will set to false when this pool got shutdown
             private readonly bool _enableConnectionPool;
 
             public ConnectionManager(
@@ -90,7 +89,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     return new PooledConnection(this, serviceName, connection);
                 }
 
-                return new PooledConnection(this, serviceName, (JsonRpcConnection)await TryCreateNewConnectionAsync(serviceName, callbackTarget: null, cancellationToken).ConfigureAwait(false));
+                var newConnection = (JsonRpcConnection)await TryCreateNewConnectionAsync(serviceName, callbackTarget: null, cancellationToken).ConfigureAwait(false);
+                if (newConnection == null)
+                {
+                    // we might not get new connection if we are either shutdown explicitly or due to OOP terminated
+                    return null;
+                }
+
+                return new PooledConnection(this, serviceName, newConnection);
             }
 
             private async Task<Connection> TryCreateNewConnectionAsync(string serviceName, object callbackTarget, CancellationToken cancellationToken)
