@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
     internal class GoToDefinitionCommandHandler :
         VSCommanding.ICommandHandler<GoToDefinitionCommandArgs>
     {
-        public string DisplayName => EditorFeaturesResources.Go_To_Definition_Command_Handler;
+        public string DisplayName => EditorFeaturesResources.Go_to_Definition;
 
         private (Document, IGoToDefinitionService) GetDocumentAndService(ITextSnapshot snapshot)
         {
@@ -63,10 +63,10 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
         {
             string errorMessage = null;
 
-            using (context.WaitContext.AddScope(allowCancellation: true, EditorFeaturesResources.Navigating_to_definition))
+            using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Navigating_to_definition))
             {
                 if (goToDefinitionService != null &&
-                    goToDefinitionService.TryGoToDefinition(document, caretPosition, context.WaitContext.UserCancellationToken))
+                    goToDefinitionService.TryGoToDefinition(document, caretPosition, context.OperationContext.UserCancellationToken))
                 {
                     return true;
                 }
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
                 // We are about to show a modal UI dialog so we should take over the command execution
                 // wait context. That means the command system won't attempt to show its own wait dialog 
                 // and also will take it into consideration when measuring command handling duration.
-                context.WaitContext.TakeOwnership();
+                context.OperationContext.TakeOwnership();
                 var workspace = document.Project.Solution.Workspace;
                 var notificationService = workspace.Services.GetService<INotificationService>();
                 notificationService.SendNotification(errorMessage, title: EditorFeaturesResources.Go_to_Definition, severity: NotificationSeverity.Information);

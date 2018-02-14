@@ -986,11 +986,8 @@ Additional information: {1}</value>
   <data name="Search_found_no_results" xml:space="preserve">
     <value>Search found no results</value>
   </data>
-  <data name="Snippet_Command_Handler" xml:space="preserve">
-    <value>Snippet Command Handler</value>
-  </data>
-  <data name="Sync_Class_View_Command_Handler" xml:space="preserve">
-    <value>Sync Class View Command Handler</value>
+  <data name="Sync_Class_View" xml:space="preserve">
+    <value>Sync Class View</value>
   </data>
   <data name="Restore_Visual_Studio_keybindings" xml:space="preserve">
     <value>Restore Visual Studio keybindings</value>
