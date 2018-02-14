@@ -8656,6 +8656,78 @@ public class C
 }", realIL: false);
         }
 
+        [Fact]
+        public void WhenMethodsDifferBySkipLocalsInitAttributeTheyMustHaveDifferentRVA()
+        {
+            var source = @"
+namespace System.Runtime.CompilerServices
+{
+    public class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+public class C
+{
+    [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+    public unsafe void M_skip()
+    {
+        int *ptr = stackalloc int[10];
+        System.Console.WriteLine(ptr[0]);
+    }
+
+    public unsafe void M_init()
+    {
+        int *ptr = stackalloc int[10];
+        System.Console.WriteLine(ptr[0]);
+    }
+}
+";
+
+            var comp = CreateStandardCompilation(source, options: TestOptions.UnsafeReleaseDll);
+            var metadata = ModuleMetadata.CreateFromStream(comp.EmitToStream());
+            var peReader = metadata.Module.GetMetadataReader();
+
+            TypeDefinition typeC = default;
+
+            foreach (var typeHandle in peReader.TypeDefinitions)
+            {
+                var type = peReader.GetTypeDefinition(typeHandle);
+                var name = peReader.GetString(type.Name);
+
+                if (name == "C")
+                {
+                    typeC = type;
+                    break;
+                }
+            }
+
+            Assert.NotEqual(typeC, default);
+
+            MethodDefinition methodInit = default;
+            MethodDefinition methodSkip = default;
+
+            foreach (var methodHandle in typeC.GetMethods())
+            {
+                var method = peReader.GetMethodDefinition(methodHandle);
+                var name = peReader.GetString(method.Name);
+
+                if (name == "M_init")
+                {
+                    methodInit = method;
+                }
+                else if (name == "M_skip")
+                {
+                    methodSkip = method;
+                }
+            }
+
+            Assert.NotEqual(methodInit, default);
+            Assert.NotEqual(methodSkip, default);
+
+            Assert.NotEqual(methodInit.RelativeVirtualAddress, methodSkip.RelativeVirtualAddress);
+        }
+
         #endregion
 
         [Fact, WorkItem(807, "https://github.com/dotnet/roslyn/issues/807")]

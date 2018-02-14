@@ -70,7 +70,7 @@ namespace Microsoft.Cci
         internal readonly bool EmitTestCoverageData;
 
         // A map of method body before token translation to RVA. Used for deduplication of small bodies.
-        private readonly Dictionary<ImmutableArray<byte>, int> _smallMethodBodies;
+        private readonly Dictionary<(ImmutableArray<byte>, bool), int> _smallMethodBodies;
 
         private const byte TinyFormat = 2;
         private const int ThrowNullCodeSize = 2;
@@ -110,7 +110,7 @@ namespace Microsoft.Cci
             this.metadata = metadata;
             _debugMetadataOpt = debugMetadataOpt;
             _dynamicAnalysisDataWriterOpt = dynamicAnalysisDataWriterOpt;
-            _smallMethodBodies = new Dictionary<ImmutableArray<byte>, int>(ByteSequenceComparer.Instance);
+            _smallMethodBodies = new Dictionary<(ImmutableArray<byte>, bool), int>(ByteSequenceBoolTupleComparer.Instance);
         }
 
         private int NumberOfTypeDefsEstimate { get { return _numTypeDefsEstimate; } }
@@ -2949,7 +2949,7 @@ namespace Microsoft.Cci
             // Don't do small body method caching during deterministic builds until this issue is fixed
             // https://github.com/dotnet/roslyn/issues/7595
             int bodyOffset;
-            if (!_deterministic && isSmallBody && _smallMethodBodies.TryGetValue(methodBody.IL, out bodyOffset))
+            if (!_deterministic && isSmallBody && _smallMethodBodies.TryGetValue((methodBody.IL, methodBody.AreLocalsZeroed), out bodyOffset))
             {
                 return bodyOffset;
             }
@@ -2966,7 +2966,7 @@ namespace Microsoft.Cci
             // https://github.com/dotnet/roslyn/issues/7595
             if (isSmallBody && !_deterministic)
             {
-                _smallMethodBodies.Add(methodBody.IL, encodedBody.Offset);
+                _smallMethodBodies.Add((methodBody.IL, methodBody.AreLocalsZeroed), encodedBody.Offset);
             }
 
             WriteInstructions(encodedBody.Instructions, methodBody.IL, ref mvidStringHandle, ref mvidStringFixup);
@@ -4175,6 +4175,22 @@ namespace Microsoft.Cci
             {
                 _instanceIndex.Add(item, index);
                 _structuralIndex.Add(item, index);
+            }
+        }
+
+        private class ByteSequenceBoolTupleComparer : IEqualityComparer<(ImmutableArray<byte>, bool)>
+        {
+            private static ByteSequenceComparer _byteSequenceComparer = ByteSequenceComparer.Instance;
+            internal static readonly ByteSequenceBoolTupleComparer Instance = new ByteSequenceBoolTupleComparer();
+
+            bool IEqualityComparer<(ImmutableArray<byte>, bool)>.Equals((ImmutableArray<byte>, bool) x, (ImmutableArray<byte>, bool) y)
+            {
+                return x.Item2 == y.Item2 && ByteSequenceComparer.Equals(x.Item1, y.Item1);
+            }
+
+            int IEqualityComparer<(ImmutableArray<byte>, bool)>.GetHashCode((ImmutableArray<byte>, bool) x)
+            {
+                return Hash.Combine(x.Item1.GetHashCode(), x.Item2.GetHashCode());
             }
         }
     }
