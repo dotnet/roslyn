@@ -25,10 +25,22 @@ using RoslynTrigger = Microsoft.CodeAnalysis.Completion.CompletionTrigger;
 
 namespace RoslynCompletionPrototype
 {
-    [Export(typeof(IAsyncCompletionItemSource))]
-    [Name("C# and Visual Basic Completion Item Source")]
+    [Export(typeof(IAsyncCompletionItemSourceProvider))]
+    [Name("C# and Visual Basic Item Source Provider")]
     [ContentType(ContentTypeNames.VisualBasicContentType)]
     [ContentType(ContentTypeNames.CSharpContentType)]
+    internal class RoslynCompletionItemSourceProvider : IAsyncCompletionItemSourceProvider
+    {
+        RoslynCompletionItemSource _instance;
+
+        IAsyncCompletionItemSource IAsyncCompletionItemSourceProvider.GetOrCreate(ITextView textView)
+        {
+            if (_instance == null)
+                _instance = new RoslynCompletionItemSource();
+            return _instance;
+        }
+    }
+
     internal class RoslynCompletionItemSource : IAsyncCompletionItemSource
     {
         private ImmutableArray<char> CommitChars => ImmutableArray.Create(
@@ -73,7 +85,7 @@ namespace RoslynCompletionPrototype
             {
                 var needsCustomCommit = service.GetProvider(roslynItem) is ICustomCommitCompletionProvider;
 
-                var item = Convert(roslynItem, imageIdService, completionService, filterCache, needsCustomCommit);
+                var item = Convert(document, roslynItem, imageIdService, completionService, filterCache, needsCustomCommit);
                 item.Properties.AddProperty(TriggerSnapshot, triggerLocation.Snapshot);
                 return item;
             });
@@ -87,6 +99,7 @@ namespace RoslynCompletionPrototype
         }
 
         private EditorCompletion.CompletionItem Convert(
+            Document document,
             RoslynCompletionItem roslynItem, 
             IImageIdService imageService, 
             CompletionService completionService, 
@@ -98,12 +111,13 @@ namespace RoslynCompletionPrototype
             var filters = GetFilters(roslynItem, imageService, filterCache);
 
             var attributeImages = ImmutableArray<AccessibleImageId>.Empty;
-            var supportedPlatforms = SymbolCompletionItem.GetSupportedPlatforms(roslynItem, roslynItem.Document.Project.Solution.Workspace);
-            if (supportedPlatforms.InvalidProjects.Count > 0)
+
+            var supportedPlatforms = SymbolCompletionItem.GetSupportedPlatforms(roslynItem, document.Project.Solution.Workspace);
+            if (supportedPlatforms != null && false) // TODO, this makes the completion list invisible
             {
                 var warningImage = imageService.GetImageId(Glyph.CompletionWarning);
 
-                attributeImages = new ImmutableArray<AccessibleImageId> { new AccessibleImageId(warningImage.Guid, warningImage.Id, "Temporary Automation Id", "Temporary Automation Name") };
+                attributeImages = SpecializedCollections.SingletonEnumerable(new AccessibleImageId(warningImage.Guid, warningImage.Id, "Temporary Automation Id", "Temporary Automation Name")).ToImmutableArray();
             }
 
             var item = new EditorCompletion.CompletionItem(

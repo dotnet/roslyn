@@ -24,10 +24,33 @@ using RoslynCompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem;
 
 namespace RoslynCompletionPrototype
 {
-    [Export(typeof(EditorCompletion.IAsyncCompletionService))]
-    [Name("C# completion service")]
+
+    [Export(typeof(EditorCompletion.IAsyncCompletionServiceProvider))]
+    [Name("C# and Visual Basic Completion Service Provider")]
     [ContentType(ContentTypeNames.CSharpContentType)]
     [ContentType(ContentTypeNames.VisualBasicContentType)]
+    internal class RoslynAsyncCompletionServiceProvider : EditorCompletion.IAsyncCompletionServiceProvider
+    {
+        private readonly IAsyncCompletionBroker _broker;
+        private RoslynAsyncCompletionService _instance;
+
+        [ImportingConstructor]
+        public RoslynAsyncCompletionServiceProvider(IAsyncCompletionBroker broker)
+        {
+            _broker = broker;
+        }
+
+        public EditorCompletion.IAsyncCompletionService GetOrCreate(ITextView textView)
+        {
+            if (_instance == null)
+            {
+                _instance = new RoslynAsyncCompletionService(_broker);
+            }
+
+            return _instance;
+        }
+    }
+
     internal class RoslynAsyncCompletionService : EditorCompletion.IAsyncCompletionService
     {
         private readonly IAsyncCompletionBroker _broker;
@@ -36,7 +59,6 @@ namespace RoslynCompletionPrototype
         private ImmutableArray<string> _recentItems = ImmutableArray<string>.Empty;
         private static readonly CultureInfo EnUSCultureInfo = new CultureInfo("en-US");
 
-        [ImportingConstructor]
         public RoslynAsyncCompletionService(IAsyncCompletionBroker broker)
         {
             _broker = broker;
