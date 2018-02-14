@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Tags;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.QuickInfo
@@ -240,7 +241,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
 
             if (showWarningGlyph)
             {
-                tags = tags.Add(Completion.CompletionTags.Warning);
+                tags = tags.Add(WellKnownTags.Warning);
             }
 
             return QuickInfoItem.Create(token.Span, tags: tags, sections: sections.ToImmutableArray());

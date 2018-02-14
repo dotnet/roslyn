@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
         public TextSpan Span { get; }
 
         /// <summary>
-        /// Descriptive tags from the <see cref="Completion.CompletionTags"/> type.
+        /// Descriptive tags from the <see cref="Tags.WellKnownTags"/> type.
         /// These tags may influence how the item is displayed.
         /// </summary>
         public ImmutableArray<string> Tags { get; }
