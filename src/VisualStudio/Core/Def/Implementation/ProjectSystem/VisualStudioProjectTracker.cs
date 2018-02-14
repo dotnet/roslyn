@@ -287,8 +287,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                     _solutionAdded = true;
 
-                    var persistenceService = (VisualStudioPersistentStorageLocationService)WorkspaceServices.GetRequiredService<IPersistentStorageLocationService>();
-                    persistenceService.UpdateForVisualStudioWorkspace(_workspace);
+                    var persistenceService = WorkspaceServices.GetRequiredService<IPersistentStorageLocationService>() as VisualStudioPersistentStorageLocationService;
+                    persistenceService?.UpdateForVisualStudioWorkspace(_workspace);
 
                 }
                 else
