@@ -517,6 +517,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             var onCompleted = (useUnsafeOnCompleted ?
                 _asyncMethodBuilderMemberCollection.AwaitUnsafeOnCompleted :
                 _asyncMethodBuilderMemberCollection.AwaitOnCompleted).Construct(loweredAwaiterType, F.This().Type);
+            if (_asyncMethodBuilderMemberCollection.CheckGenericMethodConstraints)
+            {
+                onCompleted.CheckConstraints(F.Compilation.Conversions, F.Syntax, F.Compilation, this.Diagnostics);
+            }
 
             BoundExpression result =
                 F.Call(

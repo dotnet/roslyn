@@ -1040,7 +1040,7 @@ class C
 }";
             // Triage decision was made to have this be a parse error as the grammar specifies it as such.
             // TODO: vsadov, the error recovery would be much nicer here if we consumed "int", bu tneed to consider other cases.
-            CreateStandardCompilation(text, parseOptions: TestOptions.Regular).VerifyDiagnostics(
+            CreateCompilationWithMscorlib46(text, parseOptions: TestOptions.Regular).VerifyDiagnostics(
                 // (5,11): error CS1001: Identifier expected
                 //     int F<int>() { }  // CS0081
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "int").WithLocation(5, 11),
@@ -1091,7 +1091,7 @@ class C
   }
 }";
             // Triage decision was made to have this be a parse error as the grammar specifies it as such.
-            CreateStandardCompilation(Parse(text, options: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6))).VerifyDiagnostics(
+            CreateCompilationWithMscorlib46(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)).VerifyDiagnostics(
                 // (5,11): error CS1001: Identifier expected
                 //     int F<int>() { }  // CS0081
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "int").WithLocation(5, 11),
@@ -4124,7 +4124,7 @@ static class S
     internal static void E<T, U>(this object o) { }
 }
 ";
-            CreateStandardCompilation(source, references: new[] { SystemCoreRef }).VerifyDiagnostics(
+            CreateCompilationWithMscorlib46(source).VerifyDiagnostics(
 // (7,15): error CS0306: The type 'int*' may not be used as a type argument
 //         new C<int*>();
 Diagnostic(ErrorCode.ERR_BadTypeArgument, "int*").WithArguments("int*"),
@@ -4180,7 +4180,7 @@ class C<T>
         COfIntPtr.F<object>();
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib46(source).VerifyDiagnostics(
                 // (2,7): error CS0306: The type 'int*' may not be used as a type argument
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "COfIntPtr").WithArguments("int*").WithLocation(2, 7),
                 // (3,7): error CS0306: The type 'System.ArgIterator' may not be used as a type argument
@@ -4924,14 +4924,18 @@ class B2<T> : B<T>, IB<T>
 {
 }";
             CreateStandardCompilation(source).VerifyDiagnostics(
-                // (30,7): error CS0425: The constraints for type parameter 'V' of method 'A<T, U>.A1<V>()' must match the constraints for type parameter 'V' of interface method 'IA<T, U>.A1<V>()'. Consider using an explicit interface implementation instead.
-                Diagnostic(ErrorCode.ERR_ImplBadConstraints, "A2").WithArguments("V", "A<T, U>.A1<V>()", "V", "IA<T, U>.A1<V>()").WithLocation(30, 7),
-                // (30,7): error CS0425: The constraints for type parameter 'V' of method 'A<T, U>.A2<V>()' must match the constraints for type parameter 'V' of interface method 'IA<T, U>.A2<V>()'. Consider using an explicit interface implementation instead.
-                Diagnostic(ErrorCode.ERR_ImplBadConstraints, "A2").WithArguments("V", "A<T, U>.A2<V>()", "V", "IA<T, U>.A2<V>()").WithLocation(30, 7),
-                // (36,7): error CS0425: The constraints for type parameter 'U' of method 'B<T>.B1<U>()' must match the constraints for type parameter 'U' of interface method 'IB<T>.B1<U>()'. Consider using an explicit interface implementation instead.
-                Diagnostic(ErrorCode.ERR_ImplBadConstraints, "B2").WithArguments("U", "B<T>.B1<U>()", "U", "IB<T>.B1<U>()").WithLocation(36, 7),
-                // (36,7): error CS0425: The constraints for type parameter 'U' of method 'B<T>.B2<U, V>()' must match the constraints for type parameter 'U' of interface method 'IB<T>.B2<U, V>()'. Consider using an explicit interface implementation instead.
-                Diagnostic(ErrorCode.ERR_ImplBadConstraints, "B2").WithArguments("U", "B<T>.B2<U, V>()", "U", "IB<T>.B2<U, V>()").WithLocation(36, 7));
+                // (30,27): error CS0425: The constraints for type parameter 'V' of method 'A<T, U>.A2<V>()' must match the constraints for type parameter 'V' of interface method 'IA<T, U>.A2<V>()'. Consider using an explicit interface implementation instead.
+                // class A2<T, U> : A<T, U>, IA<T, U>
+                Diagnostic(ErrorCode.ERR_ImplBadConstraints, "IA<T, U>").WithArguments("V", "A<T, U>.A2<V>()", "V", "IA<T, U>.A2<V>()").WithLocation(30, 27),
+                // (30,27): error CS0425: The constraints for type parameter 'V' of method 'A<T, U>.A1<V>()' must match the constraints for type parameter 'V' of interface method 'IA<T, U>.A1<V>()'. Consider using an explicit interface implementation instead.
+                // class A2<T, U> : A<T, U>, IA<T, U>
+                Diagnostic(ErrorCode.ERR_ImplBadConstraints, "IA<T, U>").WithArguments("V", "A<T, U>.A1<V>()", "V", "IA<T, U>.A1<V>()").WithLocation(30, 27),
+                // (36,21): error CS0425: The constraints for type parameter 'U' of method 'B<T>.B2<U, V>()' must match the constraints for type parameter 'U' of interface method 'IB<T>.B2<U, V>()'. Consider using an explicit interface implementation instead.
+                // class B2<T> : B<T>, IB<T>
+                Diagnostic(ErrorCode.ERR_ImplBadConstraints, "IB<T>").WithArguments("U", "B<T>.B2<U, V>()", "U", "IB<T>.B2<U, V>()").WithLocation(36, 21),
+                // (36,21): error CS0425: The constraints for type parameter 'U' of method 'B<T>.B1<U>()' must match the constraints for type parameter 'U' of interface method 'IB<T>.B1<U>()'. Consider using an explicit interface implementation instead.
+                // class B2<T> : B<T>, IB<T>
+                Diagnostic(ErrorCode.ERR_ImplBadConstraints, "IB<T>").WithArguments("U", "B<T>.B1<U>()", "U", "IB<T>.B1<U>()").WithLocation(36, 21));
         }
 
         [Fact]
@@ -10941,7 +10945,7 @@ class C
         // CS0625: See AttributeTests_StructLayout.ExplicitFieldLayout_Errors
 
         [Fact]
-        public void CS0629ERR_InterfaceImplementedByConditional()
+        public void CS0629ERR_InterfaceImplementedByConditional01()
         {
             var text = @"interface MyInterface
 {
@@ -10962,6 +10966,33 @@ public class MyClass : MyInterface
 ";
             var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_InterfaceImplementedByConditional, Line = 9, Column = 17 });
+        }
+
+        [Fact]
+        public void CS0629ERR_InterfaceImplementedByConditional02()
+        {
+            var source = @"
+using System.Diagnostics;
+
+interface I<T>
+{
+	void M(T x);
+}
+class Base
+{
+    [Conditional(""debug"")]
+    public void M(int x) {}
+}
+class Derived : Base, I<int>
+{
+}
+";
+
+            var comp = CreateStandardCompilation(source);
+            comp.VerifyDiagnostics(
+                // (13,23): error CS0629: Conditional member 'Base.M(int)' cannot implement interface member 'I<int>.M(int)' in type 'Derived'
+                // class Derived : Base, I<int>
+                Diagnostic(ErrorCode.ERR_InterfaceImplementedByConditional, "I<int>").WithArguments("Base.M(int)", "I<int>.M(int)", "Derived").WithLocation(13, 23));
         }
 
         [Fact]
@@ -14433,7 +14464,7 @@ class C
     }
 }
 ";
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
 // (5,5): error CS1599: Method or delegate cannot return type 'System.ArgIterator'
 //     ArgIterator M(); // 1599
 Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "ArgIterator").WithArguments("System.ArgIterator"),
@@ -14478,7 +14509,7 @@ class MyClass
     MyClass(ref RuntimeArgumentHandle r5) {} // CS1601
 }
 ";
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
 // (6,23): error CS1601: Cannot make reference to variable of type 'System.TypedReference'
 //     public void Test1(ref TypedReference t2, RuntimeArgumentHandle r3)   // CS1601
 Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "ref TypedReference t2").WithArguments("System.TypedReference"),
@@ -17822,7 +17853,7 @@ class Derived : Base<int, int>, IFace
 }
 ";
             var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.WRN_MultipleRuntimeImplementationMatches, Line = 9, Column = 24, IsWarning = true });
+                new ErrorDescription { Code = (int)ErrorCode.WRN_MultipleRuntimeImplementationMatches, Line = 20, Column = 33, IsWarning = true });
         }
 
         [Fact]

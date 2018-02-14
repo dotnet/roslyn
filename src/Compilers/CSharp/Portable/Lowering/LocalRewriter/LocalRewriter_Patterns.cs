@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // use site diagnostics will already have been reported during binding.
             HashSet<DiagnosticInfo> ignoredDiagnostics = null;
             var sourceType = source.Type.IsDynamic() ? _compilation.GetSpecialType(SpecialType.System_Object) : source.Type;
-            var conversionKind = _compilation.Conversions.ClassifyConversionFromType(sourceType, targetType, ref ignoredDiagnostics).Kind;
+            var conversionKind = _compilation.Conversions.ClassifyBuiltInConversion(sourceType, targetType, ref ignoredDiagnostics).Kind;
             var constantResult = Binder.GetIsOperatorConstantResult(sourceType, targetType, conversionKind, source.ConstantValue, requiredNullTest);
             return
                 constantResult == ConstantValue.True ? true :

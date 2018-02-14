@@ -13292,6 +13292,162 @@ blah");
 ");
         }
 
+        [WorkItem(24348, "https://github.com/dotnet/roslyn/issues/24348")]
+        [Fact]
+        public void VarargBridgeSource()
+        {
+
+            var code = @"
+public class VarArgs
+{
+    public void Invoke(__arglist)
+    {
+        var ai = new System.ArgIterator(__arglist);
+        System.Console.WriteLine(ai.GetRemainingCount());
+    }
+}
+
+interface IVarArgs
+{
+    void Invoke(__arglist);
+}
+
+class MyVarArgs : VarArgs, IVarArgs
+{
+
+}
+
+public static class P
+{
+    public static void Main()
+    {
+        IVarArgs iv = new MyVarArgs();
+
+        iv.Invoke(__arglist(1, 2, 3, 4));
+    }
+}
+";
+
+            var compilation = CompileAndVerify(code, expectedOutput: "4");
+        }
+
+        [WorkItem(24348, "https://github.com/dotnet/roslyn/issues/24348")]
+        [Fact]
+        public void VarargBridgeMeta()
+        {
+            var reference = CreateStandardCompilation(@"
+public class VarArgs
+{
+    public void Invoke(__arglist)
+    {
+        var ai = new System.ArgIterator(__arglist);
+        System.Console.WriteLine(ai.GetRemainingCount());
+    }
+}");
+
+            var code = @"
+interface IVarArgs
+{
+    void Invoke(__arglist);
+}
+
+class MyVarArgs : VarArgs, IVarArgs
+{
+
+}
+
+public static class P
+{
+    public static void Main()
+    {
+        IVarArgs iv = new MyVarArgs();
+
+        iv.Invoke(__arglist(1, 2, 3, 4));
+    }
+}
+";
+
+            var comp = CreateStandardCompilation(code, references: new[] { reference.ToMetadataReference() });
+            comp.VerifyDiagnostics(
+                // (7,28): error CS0630: 'VarArgs.Invoke(__arglist)' cannot implement interface member 'IVarArgs.Invoke(__arglist)' in type 'MyVarArgs' because it has an __arglist parameter.
+                // class MyVarArgs : VarArgs, IVarArgs
+                Diagnostic(ErrorCode.ERR_InterfaceImplementedImplicitlyByVariadic, "IVarArgs").WithArguments("VarArgs.Invoke(__arglist)", "IVarArgs.Invoke(__arglist)", "MyVarArgs").WithLocation(7, 28)
+                );
+
+            comp = CreateStandardCompilation(code, references: new[] { reference.EmitToImageReference() });
+            comp.VerifyDiagnostics(
+                // (7,28): error CS0630: 'VarArgs.Invoke(__arglist)' cannot implement interface member 'IVarArgs.Invoke(__arglist)' in type 'MyVarArgs' because it has an __arglist parameter.
+                // class MyVarArgs : VarArgs, IVarArgs
+                Diagnostic(ErrorCode.ERR_InterfaceImplementedImplicitlyByVariadic, "IVarArgs").WithArguments("VarArgs.Invoke(__arglist)", "IVarArgs.Invoke(__arglist)", "MyVarArgs").WithLocation(7, 28)
+                );
+        }
+
+        [WorkItem(24348, "https://github.com/dotnet/roslyn/issues/24348")]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
+        public void VarargBridgeSourceModopt()
+        {
+
+            var il = @"
+.class interface public auto ansi abstract IVarArgs
+{
+	// Methods
+	.method public hidebysig newslot abstract virtual 
+		instance vararg int32 modopt(int64) Invoke () cil managed 
+	{
+	} // end of method IVarArgs::Invoke
+
+} // end of class IVarArgs
+
+
+";
+
+            var reference = CompileIL(il);
+
+            var code = @"
+
+public class VarArgs
+{
+    public int Invoke(__arglist) => throw null;
+}
+
+class MyVarArgs : VarArgs, IVarArgs
+{
+
+}
+
+class MyVarArgs2 : IVarArgs
+{
+    public int Invoke(__arglist) => throw null;
+}
+
+class MyVarArgs3 : IVarArgs
+{
+    // this is ok, modifiers are copied
+    int IVarArgs.Invoke(__arglist) => throw null;
+}
+
+public static class P
+{
+    public static void Main()
+    {
+        IVarArgs iv = new MyVarArgs3();
+
+        iv.Invoke(__arglist(1, 2, 3, 4));
+    }
+}
+";
+
+            var comp = CreateStandardCompilation(code, references: new[] { reference});
+            comp.VerifyDiagnostics(
+                // (15,16): error CS0630: 'MyVarArgs2.Invoke(__arglist)' cannot implement interface member 'IVarArgs.Invoke(__arglist)' in type 'MyVarArgs2' because it has an __arglist parameter
+                //     public int Invoke(__arglist) => throw null;
+                Diagnostic(ErrorCode.ERR_InterfaceImplementedImplicitlyByVariadic, "Invoke").WithArguments("MyVarArgs2.Invoke(__arglist)", "IVarArgs.Invoke(__arglist)", "MyVarArgs2").WithLocation(15, 16),
+                // (8,28): error CS0630: 'VarArgs.Invoke(__arglist)' cannot implement interface member 'IVarArgs.Invoke(__arglist)' in type 'MyVarArgs' because it has an __arglist parameter
+                // class MyVarArgs : VarArgs, IVarArgs
+                Diagnostic(ErrorCode.ERR_InterfaceImplementedImplicitlyByVariadic, "IVarArgs").WithArguments("VarArgs.Invoke(__arglist)", "IVarArgs.Invoke(__arglist)", "MyVarArgs").WithLocation(8, 28)
+                );
+        }
+
         [WorkItem(530067, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530067")]
         [Fact]
         public void NopAfterCall()
@@ -16072,6 +16228,210 @@ unsafe class Test
 }", TestOptions.UnsafeReleaseExe);
 
             CompileAndVerify(comp, expectedOutput: "SpanOpCalled", verify: Verification.Fails);
+        }
+
+        [Fact]
+        public void ArrayElementCompoundAssignment_Invariant()
+        {
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        F(new string[] { """" }, ""B"");
+    }
+    static void F(string[] a, string s)
+    {
+        G(a, s);
+        System.Console.Write(a[0]);
+    }
+    static void G(string[] a, string s)
+    {
+        a[0] += s;
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "B");
+            verifier.VerifyIL("C.G",
+@"{
+  // Code size       17 (0x11)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  ldelema    ""string""
+  IL_0007:  dup
+  IL_0008:  ldind.ref
+  IL_0009:  ldarg.1
+  IL_000a:  call       ""string string.Concat(string, string)""
+  IL_000f:  stind.ref
+  IL_0010:  ret
+}");
+        }
+
+        [WorkItem(547533, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=547533")]
+        [Fact]
+        public void ArrayElementCompoundAssignment_Covariant()
+        {
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        F(new object[] { """" }, ""A"");
+        F(new string[] { """" }, ""B"");
+    }
+    static void F(object[] a, string s)
+    {
+        G(a, s);
+        System.Console.Write(a[0]);
+    }
+    static void G(object[] a, string s)
+    {
+        a[0] += s;
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "AB");
+            verifier.VerifyIL("C.G",
+@"{
+  // Code size       15 (0xf)
+  .maxstack  4
+  .locals init (object[] V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldc.i4.0
+  IL_0004:  ldloc.0
+  IL_0005:  ldc.i4.0
+  IL_0006:  ldelem.ref
+  IL_0007:  ldarg.1
+  IL_0008:  call       ""string string.Concat(object, object)""
+  IL_000d:  stelem.ref
+  IL_000e:  ret
+}");
+        }
+
+        [Fact]
+        public void ArrayElementCompoundAssignment_ValueType()
+        {
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        F(new int[] { 1 }, 2);
+    }
+    static void F(int[] a, int i)
+    {
+        G(a, i);
+        System.Console.Write(a[0]);
+    }
+    static void G(int[] a, int i)
+    {
+        a[0] += i;
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "3");
+            verifier.VerifyIL("C.G",
+@"{
+  // Code size       13 (0xd)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  ldelema    ""int""
+  IL_0007:  dup
+  IL_0008:  ldind.i4
+  IL_0009:  ldarg.1
+  IL_000a:  add
+  IL_000b:  stind.i4
+  IL_000c:  ret
+}");
+        }
+
+        [WorkItem(547533, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=547533")]
+        [Fact]
+        public void ArrayElementCompoundAssignment_Covariant_NonConstantIndex()
+        {
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        F(new object[] { """" }, ""A"");
+        F(new string[] { """" }, ""B"");
+    }
+    static void F(object[] a, string s)
+    {
+        G(a, s);
+        System.Console.Write(a[0]);
+    }
+    static void G(object[] a, string s)
+    {
+        a[Index(a)] += s;
+    }
+    static int Index(object arg)
+    {
+        System.Console.Write(arg.GetType().Name);
+        return 0;
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "Object[]AString[]B");
+            verifier.VerifyIL("C.G",
+@"{
+  // Code size       22 (0x16)
+  .maxstack  4
+  .locals init (object[] V_0,
+                int V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldarg.0
+  IL_0003:  call       ""int C.Index(object)""
+  IL_0008:  stloc.1
+  IL_0009:  ldloc.0
+  IL_000a:  ldloc.1
+  IL_000b:  ldloc.0
+  IL_000c:  ldloc.1
+  IL_000d:  ldelem.ref
+  IL_000e:  ldarg.1
+  IL_000f:  call       ""string string.Concat(object, object)""
+  IL_0014:  stelem.ref
+  IL_0015:  ret
+}");
+        }
+
+        [Fact]
+        public void ArrayElementIncrement_ValueType()
+        {
+            string source =
+@"class C
+{
+    static void Main()
+    {
+        F(new int[] { 1 });
+    }
+    static void F(int[] a)
+    {
+        G(a);
+        System.Console.Write(a[0]);
+    }
+    static void G(int[] a)
+    {
+        a[0]++;
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "2");
+            verifier.VerifyIL("C.G",
+@"{
+  // Code size       13 (0xd)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  ldelema    ""int""
+  IL_0007:  dup
+  IL_0008:  ldind.i4
+  IL_0009:  ldc.i4.1
+  IL_000a:  add
+  IL_000b:  stind.i4
+  IL_000c:  ret
+}");
         }
     }
 }

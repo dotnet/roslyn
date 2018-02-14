@@ -148,10 +148,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             Using environment = New TestEnvironment()
 
                 Dim project1 = CreateVisualBasicProject(environment, "project1")
-                environment.ProjectTracker.UpdateProjectBinPath(project1, Nothing, "C:\project1.dll")
+                project1.SetBinOutputPathAndRelatedData("C:\project1.dll")
 
                 Dim project2 = CreateVisualBasicProject(environment, "project2")
-                environment.ProjectTracker.UpdateProjectBinPath(project2, Nothing, "C:\project2.dll")
+                project2.SetBinOutputPathAndRelatedData("C:\project2.dll")
 
                 ' since this is known to be the output path of project1, the metadata reference is converted to a project reference
                 project2.AddMetaDataReference("c:\project1.dll", True)
@@ -169,10 +169,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             Using environment = New TestEnvironment()
 
                 Dim project1 = CreateVisualBasicProject(environment, "project1")
-                environment.ProjectTracker.UpdateProjectBinPath(project1, Nothing, "C:\project1.dll")
+                project1.SetBinOutputPathAndRelatedData("C:\project1.dll")
 
                 Dim project2 = CreateVisualBasicProject(environment, "project2")
-                environment.ProjectTracker.UpdateProjectBinPath(project2, Nothing, "C:\project2.dll")
+                project2.SetBinOutputPathAndRelatedData("C:\project2.dll")
 
                 project1.AddProjectReference(project2)
 

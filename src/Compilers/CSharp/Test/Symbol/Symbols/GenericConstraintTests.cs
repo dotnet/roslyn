@@ -1816,9 +1816,11 @@ class B2 : A<object>, I<object>
 }";
             CreateStandardCompilation(source).VerifyDiagnostics(
                 // (14,17): error CS0425: The constraints for type parameter 'T' of method 'B1.M2<T>()' must match the constraints for type parameter 'U' of interface method 'I<object>.M2<U>()'. Consider using an explicit interface implementation instead.
+                //     public void M2<T>() { }
                 Diagnostic(ErrorCode.ERR_ImplBadConstraints, "M2").WithArguments("T", "B1.M2<T>()", "U", "I<object>.M2<U>()").WithLocation(14, 17),
-                // (16,7): error CS0425: The constraints for type parameter 'U' of method 'A<object>.M2<U>()' must match the constraints for type parameter 'U' of interface method 'I<object>.M2<U>()'. Consider using an explicit interface implementation instead.
-                Diagnostic(ErrorCode.ERR_ImplBadConstraints, "B2").WithArguments("U", "A<object>.M2<U>()", "U", "I<object>.M2<U>()").WithLocation(16, 7));
+                // (16,23): error CS0425: The constraints for type parameter 'U' of method 'A<object>.M2<U>()' must match the constraints for type parameter 'U' of interface method 'I<object>.M2<U>()'. Consider using an explicit interface implementation instead.
+                // class B2 : A<object>, I<object>
+                Diagnostic(ErrorCode.ERR_ImplBadConstraints, "I<object>").WithArguments("U", "A<object>.M2<U>()", "U", "I<object>.M2<U>()").WithLocation(16, 23));
         }
 
         [Fact]
@@ -1937,14 +1939,18 @@ class B4 : A4, I
 {
 }";
             CreateStandardCompilation(source).VerifyDiagnostics(
-                // (16,7): error CS0425: The constraints for type parameter 'T' of method 'A2.M<T>()' must match the constraints for type parameter 'T' of interface method 'I.M<T>()'. Consider using an explicit interface implementation instead.
-                Diagnostic(ErrorCode.ERR_ImplBadConstraints, "B2").WithArguments("T", "A2.M<T>()", "T", "I.M<T>()").WithLocation(16, 7),
-                // (23,7): error CS0425: The constraints for type parameter 'T' of method 'A3.M<T>()' must match the constraints for type parameter 'T' of interface method 'I.M<T>()'. Consider using an explicit interface implementation instead.
-                Diagnostic(ErrorCode.ERR_ImplBadConstraints, "B3").WithArguments("T", "A3.M<T>()", "T", "I.M<T>()").WithLocation(23, 7),
+                // (16,16): error CS0425: The constraints for type parameter 'T' of method 'A2.M<T>()' must match the constraints for type parameter 'T' of interface method 'I.M<T>()'. Consider using an explicit interface implementation instead.
+                // class B2 : A2, I
+                Diagnostic(ErrorCode.ERR_ImplBadConstraints, "I").WithArguments("T", "A2.M<T>()", "T", "I.M<T>()").WithLocation(16, 16),
+                // (23,16): error CS0425: The constraints for type parameter 'T' of method 'A3.M<T>()' must match the constraints for type parameter 'T' of interface method 'I.M<T>()'. Consider using an explicit interface implementation instead.
+                // class B3 : A3, I
+                Diagnostic(ErrorCode.ERR_ImplBadConstraints, "I").WithArguments("T", "A3.M<T>()", "T", "I.M<T>()").WithLocation(23, 16),
                 // (28,17): error CS0425: The constraints for type parameter 'T' of method 'A4.M<T>()' must match the constraints for type parameter 'T' of interface method 'I.M<T>()'. Consider using an explicit interface implementation instead.
+                //     public void M<T>() { }
                 Diagnostic(ErrorCode.ERR_ImplBadConstraints, "M").WithArguments("T", "A4.M<T>()", "T", "I.M<T>()").WithLocation(28, 17),
-                // (30,7): error CS0425: The constraints for type parameter 'T' of method 'A4.M<T>()' must match the constraints for type parameter 'T' of interface method 'I.M<T>()'. Consider using an explicit interface implementation instead.
-                Diagnostic(ErrorCode.ERR_ImplBadConstraints, "B4").WithArguments("T", "A4.M<T>()", "T", "I.M<T>()").WithLocation(30, 7));
+                // (30,16): error CS0425: The constraints for type parameter 'T' of method 'A4.M<T>()' must match the constraints for type parameter 'T' of interface method 'I.M<T>()'. Consider using an explicit interface implementation instead.
+                // class B4 : A4, I
+                Diagnostic(ErrorCode.ERR_ImplBadConstraints, "I").WithArguments("T", "A4.M<T>()", "T", "I.M<T>()").WithLocation(30, 16));
         }
 
         /// <summary>
@@ -1991,14 +1997,18 @@ class B3 : A3, I { }
 class B4 : A4, I { }
 class B5 : A5, I { }";
             CreateCompilationWithCustomILSource(csharpSource, ilSource).VerifyDiagnostics(
-                // (2,7): error CS0425: The constraints for type parameter 'T' of method 'A2.M<T>()' must match the constraints for type parameter 'T' of interface method 'I.M<T>()'. Consider using an explicit interface implementation instead.
-                Diagnostic(ErrorCode.ERR_ImplBadConstraints, "B2").WithArguments("T", "A2.M<T>()", "T", "I.M<T>()"),
-                // (3,7): error CS0425: The constraints for type parameter 'T' of method 'A3.M<T>()' must match the constraints for type parameter 'T' of interface method 'I.M<T>()'. Consider using an explicit interface implementation instead.
-                Diagnostic(ErrorCode.ERR_ImplBadConstraints, "B3").WithArguments("T", "A3.M<T>()", "T", "I.M<T>()"),
-                // (4,7): error CS0425: The constraints for type parameter 'T' of method 'A4.M<T>()' must match the constraints for type parameter 'T' of interface method 'I.M<T>()'. Consider using an explicit interface implementation instead.
-                Diagnostic(ErrorCode.ERR_ImplBadConstraints, "B4").WithArguments("T", "A4.M<T>()", "T", "I.M<T>()"),
-                // (5,7): error CS0535: 'B5' does not implement interface member 'I.M<T>()'
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I").WithArguments("B5", "I.M<T>()"));
+                // (2,16): error CS0425: The constraints for type parameter 'T' of method 'A2.M<T>()' must match the constraints for type parameter 'T' of interface method 'I.M<T>()'. Consider using an explicit interface implementation instead.
+                // class B2 : A2, I { }
+                Diagnostic(ErrorCode.ERR_ImplBadConstraints, "I").WithArguments("T", "A2.M<T>()", "T", "I.M<T>()").WithLocation(2, 16),
+                // (3,16): error CS0425: The constraints for type parameter 'T' of method 'A3.M<T>()' must match the constraints for type parameter 'T' of interface method 'I.M<T>()'. Consider using an explicit interface implementation instead.
+                // class B3 : A3, I { }
+                Diagnostic(ErrorCode.ERR_ImplBadConstraints, "I").WithArguments("T", "A3.M<T>()", "T", "I.M<T>()").WithLocation(3, 16),
+                // (4,16): error CS0425: The constraints for type parameter 'T' of method 'A4.M<T>()' must match the constraints for type parameter 'T' of interface method 'I.M<T>()'. Consider using an explicit interface implementation instead.
+                // class B4 : A4, I { }
+                Diagnostic(ErrorCode.ERR_ImplBadConstraints, "I").WithArguments("T", "A4.M<T>()", "T", "I.M<T>()").WithLocation(4, 16),
+                // (5,16): error CS0535: 'B5' does not implement interface member 'I.M<T>()'
+                // class B5 : A5, I { }
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I").WithArguments("B5", "I.M<T>()").WithLocation(5, 16));
         }
 
         /// <summary>
@@ -3143,9 +3153,11 @@ class C2 : A, I
     public new void M<T>() { }
 }";
             CreateStandardCompilation(source).VerifyDiagnostics(
-                // (13,7): error CS0425: The constraints for type parameter 'T' of method 'B.M<T>()' must match the constraints for type parameter 'T' of interface method 'I.M<T>()'. Consider using an explicit interface implementation instead.
-                Diagnostic(ErrorCode.ERR_ImplBadConstraints, "C1").WithArguments("T", "B.M<T>()", "T", "I.M<T>()").WithLocation(13, 7),
+                // (13,15): error CS0425: The constraints for type parameter 'T' of method 'B.M<T>()' must match the constraints for type parameter 'T' of interface method 'I.M<T>()'. Consider using an explicit interface implementation instead.
+                // class C1 : B, I
+                Diagnostic(ErrorCode.ERR_ImplBadConstraints, "I").WithArguments("T", "B.M<T>()", "T", "I.M<T>()").WithLocation(13, 15),
                 // (18,21): error CS0425: The constraints for type parameter 'T' of method 'C2.M<T>()' must match the constraints for type parameter 'T' of interface method 'I.M<T>()'. Consider using an explicit interface implementation instead.
+                //     public new void M<T>() { }
                 Diagnostic(ErrorCode.ERR_ImplBadConstraints, "M").WithArguments("T", "C2.M<T>()", "T", "I.M<T>()").WithLocation(18, 21));
         }
 
@@ -3187,8 +3199,9 @@ class D
 }";
             var compilation = CreateCompilationWithCustomILSource(csharpSource, ilSource);
             compilation.VerifyDiagnostics(
-                // (1,7): error CS0425: The constraints for type parameter 'T' of method 'B.M<T>()' must match the constraints for type parameter 'T' of interface method 'I.M<T>()'. Consider using an explicit interface implementation instead.
-                Diagnostic(ErrorCode.ERR_ImplBadConstraints, "C2").WithArguments("T", "B.M<T>()", "T", "I.M<T>()").WithLocation(1, 7));
+                // (1,15): error CS0425: The constraints for type parameter 'T' of method 'B.M<T>()' must match the constraints for type parameter 'T' of interface method 'I.M<T>()'. Consider using an explicit interface implementation instead.
+                // class C2 : B, I { }
+                Diagnostic(ErrorCode.ERR_ImplBadConstraints, "I").WithArguments("T", "B.M<T>()", "T", "I.M<T>()").WithLocation(1, 15));
 
             // Arguably, B.M<T> should not be considered an implementation of
             // I.M<T> since the CLR does not consider it so. For now, however,
@@ -3245,6 +3258,11 @@ class C<T> : IT<T>
                 // (8,7): error CS0648: '' is a type not supported by the language
                 // class C<T> : IT<T>
                 Diagnostic(ErrorCode.ERR_BogusType, "C").WithArguments("").WithLocation(8, 7));
+
+            var m = ((NamedTypeSymbol)compilation.GetMember("C1")).GetMember("I.M");
+            var constraintType = ((SourceOrdinaryMethodSymbol)m).TypeParameters[0].ConstraintTypesNoUseSiteDiagnostics[0];
+            Assert.IsType<UnsupportedMetadataTypeSymbol>(constraintType);
+            Assert.False(((INamedTypeSymbol)constraintType).IsSerializable);
         }
 
         /// <summary>

@@ -6629,5 +6629,36 @@ class Test
             var typeParameter = (TypeParameterSymbol)model.GetSymbolInfo(name).Symbol;
             Assert.Empty(model.LookupSymbols(name.SpanStart, typeParameter, "GetAwaiter"));
         }
+
+        [Fact]
+        [WorkItem(23957, "https://github.com/dotnet/roslyn/issues/23957")]
+        public void CRef_InParameter()
+        {
+            var source = @"
+class Test
+{
+    void M(in int x)
+    {
+    }
+
+    /// <summary>
+    /// <see cref=""M(in int)""/>
+    /// </summary>
+    void S()
+    {
+    }
+}
+";
+
+            var compilation = CreateStandardCompilation(source, parseOptions: TestOptions.RegularWithDocumentationComments).VerifyDiagnostics();
+            var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
+            var cref = (NameMemberCrefSyntax)GetCrefSyntaxes(compilation).Single();
+
+            var parameter = cref.Parameters.Parameters.Single();
+            Assert.Equal(SyntaxKind.InKeyword, parameter.RefKindKeyword.Kind());
+
+            var parameterSymbol = ((MethodSymbol)model.GetSymbolInfo(cref).Symbol).Parameters.Single();
+            Assert.Equal(RefKind.In, parameterSymbol.RefKind);
+        }
     }
 }

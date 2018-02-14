@@ -670,5 +670,57 @@ class Test
                 Assert.True(memberNames2.Contains(m), m);
             }
         }
+
+        [Fact]
+        public void TestMetadataImportOptions()
+        {
+            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
+
+            Assert.Equal(MetadataImportOptions.Public, options.MetadataImportOptions);
+            options = options.WithMetadataImportOptions(MetadataImportOptions.Internal);
+            Assert.Equal(MetadataImportOptions.Internal, options.MetadataImportOptions);
+            options = options.WithMetadataImportOptions(MetadataImportOptions.All);
+            Assert.Equal(MetadataImportOptions.All, options.MetadataImportOptions);
+            options = options.WithMetadataImportOptions(MetadataImportOptions.Public);
+            Assert.Equal(MetadataImportOptions.Public, options.MetadataImportOptions);
+
+            var commonOptions = (CompilationOptions)options;
+
+            commonOptions = commonOptions.WithMetadataImportOptions(MetadataImportOptions.Internal);
+            Assert.Equal(MetadataImportOptions.Internal, ((CSharpCompilationOptions)commonOptions).MetadataImportOptions);
+            commonOptions = commonOptions.WithMetadataImportOptions(MetadataImportOptions.All);
+            Assert.Equal(MetadataImportOptions.All, ((CSharpCompilationOptions)commonOptions).MetadataImportOptions);
+            commonOptions = commonOptions.WithMetadataImportOptions(MetadataImportOptions.Public);
+            Assert.Equal(MetadataImportOptions.Public, ((CSharpCompilationOptions)commonOptions).MetadataImportOptions);
+
+            var source = @"
+public class C
+{
+    public int P1 {get; set;}
+    internal int P2 {get; set;}
+    private int P3 {get; set;}
+}
+";
+            var compilation0 = CreateStandardCompilation(source);
+
+            options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
+            var compilation = CreateStandardCompilation("", options: options, references: new[] { compilation0.EmitToImageReference() });
+            var c = compilation.GetTypeByMetadataName("C");
+            Assert.NotEmpty(c.GetMembers("P1"));
+            Assert.Empty(c.GetMembers("P2"));
+            Assert.Empty(c.GetMembers("P3"));
+
+            compilation = compilation.WithOptions(options.WithMetadataImportOptions(MetadataImportOptions.Internal));
+            c = compilation.GetTypeByMetadataName("C");
+            Assert.NotEmpty(c.GetMembers("P1"));
+            Assert.NotEmpty(c.GetMembers("P2"));
+            Assert.Empty(c.GetMembers("P3"));
+
+            compilation = compilation.WithOptions(options.WithMetadataImportOptions(MetadataImportOptions.All));
+            c = compilation.GetTypeByMetadataName("C");
+            Assert.NotEmpty(c.GetMembers("P1"));
+            Assert.NotEmpty(c.GetMembers("P2"));
+            Assert.NotEmpty(c.GetMembers("P3"));
+        }
     }
 }

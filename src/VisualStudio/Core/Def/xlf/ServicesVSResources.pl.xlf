@@ -1457,16 +1457,6 @@ Funkcja „Uproszczone ładowanie rozwiązania” jest włączona dla bieżąceg
         <target state="translated">Użyj powiązań klawiszy dla programu ReSharper/IntelliJ/Vim/etc.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Your_keybindings_are_no_longer_mapped_to_Visual_Studio_commands">
-        <source>Your keybindings are no longer mapped to Visual Studio commands.</source>
-        <target state="translated">Twoje powiązania klawiszy nie są już zamapowane na polecenia programu Visual Studio.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="We_noticed_you_suspended_ReSharper_Ultimate_Restore_Visual_Studio_keybindings_to_continue_to_navigate_and_refactor">
-        <source>We noticed you suspended ‘ReSharper Ultimate’. Restore Visual Studio keybindings to continue to navigate and refactor.</source>
-        <target state="translated">Zauważyliśmy, że program „ReSharper Ultimate” został przez Ciebie zawieszony. Przywróć powiązania klawiszy programu Visual Studio, aby kontynuować nawigowanie i refaktoryzację.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Enable_navigation_to_decompiled_sources">
         <source>Enable navigation to decompiled sources (experimental)</source>
         <target state="translated">Włącz nawigowanie do dekompilowanych źródeł (funkcja eksperymentalna)</target>
@@ -1496,6 +1486,16 @@ Wyrażam zgodę na wszystkie następujące postanowienia:</target>
       <trans-unit id="Decompiler_Legal_Notice_Title">
         <source>Decompiler Legal Notice</source>
         <target state="translated">Informacje prawne dotyczące Dekompilatora</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Disabling_the_extension_0_unbound_your_keyboard_bindings">
+        <source>Disabling the extension '{0}' unbound your keyboard bindings.</source>
+        <target state="translated">Wyłączenie rozszerzenia „{0}” spowodowało usunięcie powiązań klawiaturowych.</target>
+        <note>0 is an extension name</note>
+      </trans-unit>
+      <trans-unit id="Code_style_header_use_editor_config">
+        <source>The settings configured here only apply to your machine. To configure these settings to travel with your solution, use .editorconfig files.</source>
+        <target state="translated">Ustawienia skonfigurowane w tym miejscu mają zastosowanie tylko do Twojej maszyny. Aby skonfigurować te ustawienia tak, aby były przenoszone z Twoim rozwiązaniem, użyj plików .editorconfig.</target>
         <note />
       </trans-unit>
     </body>

@@ -4703,6 +4703,154 @@ delegate void D();
             });
         }
 
+        [Fact]
+        [WorkItem(3898, "https://github.com/dotnet/roslyn/issues/3898")]
+        void SerializableFromPE()
+        {
+            string lib_cs = @"
+using System;
+[Serializable, Bob]
+public class C
+{
+}
+[AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
+public class BobAttribute : Attribute
+{
+}";
+            var lib_comp = CreateStandardCompilation(lib_cs);
+            verify(lib_comp, isSerializablePresent: true);
+
+            var client1 = CreateStandardCompilation("", references: new[] { lib_comp.ToMetadataReference() });
+            verify(client1, isSerializablePresent: true);
+
+            var client2 = CreateStandardCompilation("", references: new[] { lib_comp.EmitToImageReference() });
+            verify(client2, isSerializablePresent: false);
+
+            void verify(CSharpCompilation comp, bool isSerializablePresent)
+            {
+                INamedTypeSymbol typeC = comp.GetTypeByMetadataName("C");
+                var expectedAttributes = isSerializablePresent ? new[] { "System.SerializableAttribute", "BobAttribute" } : new[] { "BobAttribute" };
+                AssertEx.SetEqual(expectedAttributes, typeC.GetAttributes().Select(a => a.ToString()));
+
+                Assert.True(typeC.IsSerializable);
+
+                INamedTypeSymbol typeBobAttribute = comp.GetTypeByMetadataName("BobAttribute");
+                Assert.False(typeBobAttribute.IsSerializable);
+            }
+        }
+
+        [Fact]
+        [WorkItem(3898, "https://github.com/dotnet/roslyn/issues/3898")]
+        public void TestIsSerializableProperty()
+        {
+            string missing = @"
+public class TopLevel
+{
+    public class Nested { }
+}
+public class TopLevel<T>
+{
+    public class Nested<U> { }
+}
+public class Constructed<T> { }
+";
+
+            string source = @"
+public class C<T>
+{
+    public class Nested { }
+}
+
+[System.Serializable]
+public class CS<T>
+{
+    [System.Serializable]
+    public class NestedS { }
+}
+
+public class SubstitutedNested : C<int>.Nested { }
+public class SubstitutedNestedS : CS<int>.NestedS { }
+
+public class Constructed : C<int> { }
+public class ConstructedS : CS<int> { }
+
+public class MissingTopLevel : TopLevel { }
+public class MissingNested : TopLevel.Nested { }
+public class MissingConstructed : Constructed<int> { }
+
+public class MissingSubstitutedNested<T, U> : TopLevel<T>.Nested<U> { }
+
+namespace System
+{
+    [System.Serializable]
+    public struct ValueTuple<T1, T2> { }
+}
+
+public class ValueTupleS
+{
+    (int, int) M() => throw null;
+}
+";
+
+            string errors = @"
+public class ExtendedError : ExtendedErrorBase { }
+public class Unbound : Constructed<> { }
+";
+            var lib = CreateCompilationWithMscorlib46(missing, assemblyName: "missing");
+            lib.VerifyDiagnostics();
+            var comp = CreateCompilationWithMscorlib46(source, references: new[] { lib.EmitToImageReference() });
+            comp.VerifyDiagnostics();
+            var comp2 = CreateCompilationWithMscorlib46(errors, references: new[] { comp.EmitToImageReference() });
+
+            var substitutedNested = comp.GetTypeByMetadataName("SubstitutedNested").BaseType();
+            Assert.IsType<SubstitutedNestedTypeSymbol>(substitutedNested);
+            Assert.False(((INamedTypeSymbol)substitutedNested).IsSerializable);
+
+            var substitutedNestedS = comp.GetTypeByMetadataName("SubstitutedNestedS").BaseType();
+            Assert.IsType<SubstitutedNestedTypeSymbol>(substitutedNestedS);
+            Assert.True(((INamedTypeSymbol)substitutedNestedS).IsSerializable);
+
+            var valueTupleS = comp.GetTypeByMetadataName("ValueTupleS").GetMember("M").GetTypeOrReturnType();
+            Assert.IsType<TupleTypeSymbol>(valueTupleS);
+            Assert.True(((INamedTypeSymbol)valueTupleS).IsSerializable);
+
+            var constructed = comp.GetTypeByMetadataName("Constructed").BaseType();
+            Assert.IsType<ConstructedNamedTypeSymbol>(constructed);
+            Assert.False(((INamedTypeSymbol)constructed).IsSerializable);
+
+            var constructedS = comp.GetTypeByMetadataName("ConstructedS").BaseType();
+            Assert.IsType<ConstructedNamedTypeSymbol>(constructedS);
+            Assert.True(((INamedTypeSymbol)constructedS).IsSerializable);
+
+            var extendedError = comp2.GetTypeByMetadataName("ExtendedError").BaseType();
+            Assert.IsType<ExtendedErrorTypeSymbol>(extendedError);
+            Assert.False(((INamedTypeSymbol)extendedError).IsSerializable);
+
+            var topLevel = comp2.GetTypeByMetadataName("MissingTopLevel").BaseType();
+            Assert.IsType<MissingMetadataTypeSymbol.TopLevel>(topLevel);
+            Assert.False(((INamedTypeSymbol)topLevel).IsSerializable);
+
+            var nested = comp2.GetTypeByMetadataName("MissingNested").BaseType();
+            Assert.IsType<MissingMetadataTypeSymbol.Nested>(nested);
+            Assert.False(((INamedTypeSymbol)nested).IsSerializable);
+
+            var constructedError = comp2.GetTypeByMetadataName("MissingConstructed").BaseType();
+            Assert.IsType<ConstructedErrorTypeSymbol>(constructedError);
+            Assert.False(((INamedTypeSymbol)constructedError).IsSerializable);
+
+            var nestedSubstitutedError = comp2.GetTypeByMetadataName("MissingSubstitutedNested`2").BaseType().ConstructedFrom;
+            Assert.IsType<SubstitutedNestedErrorTypeSymbol>(nestedSubstitutedError);
+            Assert.False(((INamedTypeSymbol)nestedSubstitutedError).IsSerializable);
+
+            var unbound = comp2.GetTypeByMetadataName("Unbound").BaseType().TypeArgumentsNoUseSiteDiagnostics[0];
+            Assert.IsType<UnboundArgumentErrorTypeSymbol>(unbound);
+            Assert.False(((INamedTypeSymbol)unbound).IsSerializable);
+
+            var script = CreateCompilation("", parseOptions: TestOptions.Script);
+            var scriptClass = script.GetTypeByMetadataName("Script");
+            Assert.IsType<ImplicitNamedTypeSymbol>(scriptClass);
+            Assert.False(((INamedTypeSymbol)scriptClass).IsSerializable);
+        }
         #endregion
 
         #region ParamArrayAttribute
