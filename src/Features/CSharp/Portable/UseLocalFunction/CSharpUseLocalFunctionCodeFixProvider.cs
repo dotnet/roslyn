@@ -148,7 +148,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                 ? new SyntaxTokenList(anonymousFunction.AsyncKeyword)
                 : default;
 
-            var returnType = delegateMethod.GenerateReturnTypeSyntax();
+            // We add a space directly after the return-type, as the default presence of an elastic 
+            // trivia makes the formatting engine thing it can take a single-line local function and
+            // wrap it over multiple lines.
+            var returnType = delegateMethod.GenerateReturnTypeSyntax().WithTrailingTrivia(SyntaxFactory.Space);
+            if (modifiers.Count > 0) // if it's async, we need to add one before the return type as well...
+            {
+                returnType = returnType.WithLeadingTrivia(SyntaxFactory.Space);
+            }
 
             var identifier = localDeclaration.Declaration.Variables[0].Identifier;
             var typeParameterList = default(TypeParameterListSyntax);
