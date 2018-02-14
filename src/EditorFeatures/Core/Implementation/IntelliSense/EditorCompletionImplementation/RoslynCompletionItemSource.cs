@@ -100,7 +100,7 @@ namespace RoslynCompletionPrototype
                 this,
                 new AccessibleImageId(imageId.Guid, imageId.Id, "Temporary Automation ID", "Temporary Automation Name"), // TODO
                 filters,
-                suffix: "Test Suffix",
+                suffix: string.Empty,
                 needsCustomCommit,
                 insertText: insertionText,
                 roslynItem.SortText,
