@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractMethod
             _editorOperationsFactoryService = editorOperationsFactoryService;
             _renameService = renameService;
         }
-        public string DisplayName => EditorFeaturesResources.Extract_Method_Command_Handler;
+        public string DisplayName => EditorFeaturesResources.Extract_Method;
 
         public VSCommanding.CommandState GetCommandState(ExtractMethodCommandArgs args)
         {
@@ -91,9 +91,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractMethod
                 _renameService.ActiveSession.Commit();
             }
 
-            using (context.WaitContext.AddScope(allowCancellation: true, EditorFeaturesResources.Applying_Extract_Method_refactoring))
+            using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Applying_Extract_Method_refactoring))
             {
-                return Execute(args.SubjectBuffer, args.TextView, context.WaitContext);
+                return Execute(args.SubjectBuffer, args.TextView, context.OperationContext);
             }
         }
 

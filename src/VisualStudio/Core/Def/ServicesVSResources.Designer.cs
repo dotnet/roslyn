@@ -2224,15 +2224,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Snippet Command Handler.
-        /// </summary>
-        internal static string Snippet_Command_Handler {
-            get {
-                return ResourceManager.GetString("Snippet_Command_Handler", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Some naming rules are incomplete. Please complete or remove them..
         /// </summary>
         internal static string Some_naming_rules_are_incomplete_Please_complete_or_remove_them {
@@ -2332,11 +2323,11 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Sync Class View Command Handler.
+        ///   Looks up a localized string similar to Sync Class View.
         /// </summary>
-        internal static string Sync_Class_View_Command_Handler {
+        internal static string Sync_Class_View {
             get {
-                return ResourceManager.GetString("Sync_Class_View_Command_Handler", resourceCulture);
+                return ResourceManager.GetString("Sync_Class_View", resourceCulture);
             }
         }
         
