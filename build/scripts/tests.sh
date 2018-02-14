@@ -49,8 +49,9 @@ echo "Using ${xunit_console}"
 mkdir -p "${log_dir}"
 
 exit_code=0
-for file_name in "${file_list[@]}"
+for test_path in "${unittest_dir}"/*/"${target_framework}"
 do
+    file_name=( "${test_path}"/*.UnitTests.dll )
     log_file="${log_dir}"/"$(basename "${file_name%.*}.xml")"
     deps_json="${file_name%.*}".deps.json
     runtimeconfig_json="${file_name%.*}".runtimeconfig.json
@@ -68,6 +69,11 @@ do
         runner="dotnet exec --depsfile ${deps_json} --runtimeconfig ${runtimeconfig_json}"
     elif [[ "${runtime}" == "mono" ]]; then
         runner=mono
+        if [[ "${file_name[@]}" == *'Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests.dll' || "${file_name[@]}" == *'Roslyn.Compilers.CompilerServer.UnitTests.dll' ]]
+        then
+            echo "Skipping ${file_name[@]}"
+            continue
+        fi
     fi
     if ${runner} "${xunit_console}" "${file_name[@]}" -xml "${log_file}"
     then

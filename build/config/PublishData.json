@@ -2,10 +2,10 @@
     "branches": {
         "master-vs-deps": {
             "nugetKind": "PerBuildPreRelease",
-            "version": "2.8.*",
+            "version": "2.7.*",
             "nuget": [ "https://dotnet.myget.org/F/roslyn/api/v2/package" ],
             "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
-            "channels": [ "dev15.8p1", "dev15.8" ]
+            "channels": [ "dev15.6", "dev15.6p3" ]
         },
         "dev15.6-preview2-vs-deps": {
             "nugetKind": "PerBuildPreRelease",
@@ -14,13 +14,6 @@
             "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
             "channels": [ "dev15.6p2" ]
         },
-        "dev15.6.x-vs-deps": {
-            "nugetKind": "PerBuildPreRelease",
-            "version": "2.7.*",
-            "nuget": [ "https://dotnet.myget.org/F/roslyn/api/v2/package" ],
-            "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
-            "channels": [ "dev15.6p4", "dev15.6" ]
-        },
         "dev15.5.x": {
             "nugetKind": "PerBuildPreRelease",
             "version": "2.6.*",
@@ -28,12 +21,26 @@
             "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
             "channels": [ "dev15.5", "dev15.5p3" ]
         },
+        "features/readonly-ref": {
+            "nugetKind": "PerBuildPreRelease",
+            "version": "2.6.*",
+            "nuget": [ "https://dotnet.myget.org/F/roslyn/api/v2/package" ],
+            "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
+            "channels": [ "ref-readonly" ]
+        },
         "features/NullableReferenceTypes": {
             "nugetKind": "PerBuildPreRelease",
             "version": "2.6.*",
             "nuget": [ "https://dotnet.myget.org/F/roslyn-nonnull/api/v2/package" ],
             "vsix": [ "https://dotnet.myget.org/F/roslyn-nonnull/vsix/upload" ],
             "channels": [ "nonnull" ]
+        },
+        "features/vs-for-mac-packages": {
+            "nugetKind": "PerBuildPreRelease",
+            "version": "2.6.*",
+            "nuget": [ "https://dotnet.myget.org/F/roslyn-for-vs-for-mac/api/v2/package" ],
+            "vsix": [ "https://dotnet.myget.org/F/roslyn-for-vs-for-mac/vsix/upload" ],
+            "channels": [ "vs-for-mac" ]
         }
     },
     "releases": {
@@ -43,13 +50,6 @@
             "nuget": [ "https://api.nuget.org/v3/index.json" ],
             "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
             "channels": [ "dev15.3" ]
-        },
-        "dev15.6": {
-            "nugetKind": "Release",
-            "version": "2.7.*",
-            "nuget": [ "https://api.nuget.org/v3/index.json" ],
-            "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
-            "channels": [ "dev15.6" ]
         }
     }
 }
