@@ -138,6 +138,9 @@
     <DeterministicSourceRoot Condition="'$(DeveloperBuild)' != 'true'">/_/</DeterministicSourceRoot>
 
     <EnableSourceLink Condition="'$(DeveloperBuild)' != 'true'">true</EnableSourceLink>
+
+    <ChecksumAlgorithm>SHA256</ChecksumAlgorithm>
+
     <EnableDefaultNoneItems>false</EnableDefaultNoneItems>
 
     <!-- 
