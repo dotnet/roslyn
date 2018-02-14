@@ -16,19 +16,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         {
             private class PooledConnection : Connection
             {
-                private readonly ConnectionManager _pools;
+                private readonly ConnectionManager _connectionManager;
                 private readonly string _serviceName;
                 private readonly JsonRpcConnection _connection;
 
                 public PooledConnection(ConnectionManager pools, string serviceName, JsonRpcConnection connection)
                 {
-                    _pools = pools;
+                    _connectionManager = pools;
                     _serviceName = serviceName;
                     _connection = connection;
                 }
-
-                public override Task SetConnectionStateAsync(PinnedRemotableDataScope scope) =>
-                    _connection.SetConnectionStateAsync(scope);
 
                 public override Task InvokeAsync(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken) =>
                     _connection.InvokeAsync(targetName, arguments, cancellationToken);
@@ -47,7 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     _connection.InvokeAsync<T>(targetName, arguments, funcWithDirectStreamAsync, cancellationToken);
 
                 protected override void OnDisposed() =>
-                    _pools.Free(_serviceName, _connection);
+                    _connectionManager.Free(_serviceName, _connection);
 
             }
         }

@@ -28,12 +28,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
             // indicate whether pool should be used.
             // it is mutable since it will set to false when this pool got shutdown
-            private volatile bool _usePool;
+            private readonly bool _enableConnectionPool;
 
             public ConnectionManager(
                 HubClient hubClient,
                 HostGroup hostGroup,
-                bool usePool,
+                bool enableConnectionPool,
                 int maxPoolConnection,
                 TimeSpan timeout,
                 ReferenceCountedDisposable<RemotableDataJsonRpc> remotableDataRpc)
@@ -41,28 +41,33 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 _hubClient = hubClient;
                 _hostGroup = hostGroup;
                 _timeout = timeout;
-                _remotableDataRpc = remotableDataRpc;
 
+                _remotableDataRpc = remotableDataRpc;
                 _maxPoolConnections = maxPoolConnection;
 
                 // we have 4 services. so start from 4. later if we add more services, it will still work.
                 _pools = new ConcurrentDictionary<string, ConcurrentQueue<JsonRpcConnection>>(concurrencyLevel: 4, capacity: 4);
 
-                _usePool = usePool;
+                _enableConnectionPool = enableConnectionPool;
                 _shutdownLock = new ReaderWriterLockSlim(LockRecursionPolicy.NoRecursion);
             }
 
             public Task<Connection> TryCreateConnectionAsync(string serviceName, object callbackTarget, CancellationToken cancellationToken)
             {
-                // pool is turned off either by option or pool has shutdown.
-                if (!_usePool)
+                // pool is not enabled by option
+                if (!_enableConnectionPool)
                 {
-                    // RemoteHostClient is allowed to be restarted by IRemoteHostClientService.RequestNewRemoteHostAsync
-                    // when that happen, existing RemoteHostClient doesn't suddenly go away and start to throw exception. it handles
-                    // shutdown gracefully. it will keep serving existing requests or even new requests if someone is holding old remoteHostClient.
-                    // all connections made to old RemoteHost will eventually go away and that's when RemoteHost is actually removed.
-                    // simplyput, RequestNewRemoteHostAsync is not intrusive to running features. all existing one will keep do what is doing
-                    // with old RemoteHost and only new request will go to new remoteHost.
+                    // RemoteHost is allowed to be restarted by IRemoteHostClientService.RequestNewRemoteHostAsync
+                    // when that happens, existing Connection will keep working until they get disposed.
+                    //
+                    // now question is when someone calls RemoteHostClient.TryGetConnection for the client that got
+                    // shutdown, whether it should gracefully handle that request or fail after shutdown.
+                    // for current expected usage case where new remoteHost is only created when new solution is added,
+                    // we should be fine on failing after shutdown.
+                    //
+                    // but, at some point, if we want to support RemoteHost being restarted at any random point, 
+                    // we need to revisit this to support such case by creating new temporary connections.
+                    // for now, I dropped it since it felt over-designing when there is no usage case for that yet.
                     return TryCreateNewConnectionAsync(serviceName, callbackTarget, cancellationToken);
                 }
 
@@ -111,7 +116,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             {
                 using (_shutdownLock.DisposableRead())
                 {
-                    if (!_usePool)
+                    if (!_enableConnectionPool)
                     {
                         // pool is not being used.
                         connection.Dispose();
@@ -136,16 +141,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             {
                 using (_shutdownLock.DisposableWrite())
                 {
-                    // mark not to use pool
-                    _usePool = false;
-
                     // let ref count this one is holding go
                     _remotableDataRpc.Dispose();
 
                     // let all connections in the pool to go away
-                    foreach (var kv in _pools)
+                    foreach (var (_, queue) in _pools)
                     {
-                        while (kv.Value.TryDequeue(out var connection))
+                        while (queue.TryDequeue(out var connection))
                         {
                             connection.Dispose();
                         }

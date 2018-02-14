@@ -6,7 +6,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Remote;
 using Roslyn.Utilities;
 
@@ -30,11 +29,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
             _serviceRpc = new ServiceJsonRpcEx(logger, serviceStream, callbackTarget);
             _remoteDataRpc = dataRpc;
-        }
-
-        public override Task SetConnectionStateAsync(PinnedRemotableDataScope scope)
-        {
-            return InvokeAsync(WellKnownServiceHubServices.ServiceHubServiceBase_Initialize, new object[] { scope.SolutionInfo }, CancellationToken.None);
         }
 
         public override Task InvokeAsync(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
