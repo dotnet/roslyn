@@ -1,22 +1,39 @@
-<Project>
+<Project DefaultTargets="Build">
 
   <Import Project="..\..\..\build\Targets\Settings.props" />
 
+  <!-- Based on two incoming properties (PublishStableVersions and VersionStampToPublish, determine what packages to push for the .NET Core build
+       PublishStableVersions = false - Push PerBuildPreRelease
+       PublishStableVersions = true - Push either PreRelease or Release, based on VersionStampToPublish value
+       VersionStampToPublish = '' - Push Release
+       VersionStampToPublish != '' - Push PreRelease
+       PublishStableVersions = false and VersionStampToPublish == '' - Error, no per build versioning of release builds
+   -->
+
   <PropertyGroup>
     <PublishOverwrite Condition="'$(PublishOverwrite)' == ''">false</PublishOverwrite>
+    <PublishStableVersions Condition="'$(PublishStableVersions)' == ''">false</PublishStableVersions>
   </PropertyGroup>
 
   <!--
   This is for the internal orchestrated build scenarios and will likely never be run on a
   developer's machine.  The official build definition builds this file directly.
   -->
+
   <Import Project="$(NuGetPackageRoot)\Microsoft.DotNet.Build.Tasks.Feed\$(MicrosoftDotNetBuildTasksFeedVersion)\build\Microsoft.DotNet.Build.Tasks.Feed.targets" />
 
   <ItemGroup>
-    <ItemsToPush Include="$(OutputPath)\NuGet\**\*.nupkg" />
+    <ItemsToPush Include="$(OutputPath)\NuGet\PerBuildPreRelease\*.nupkg" Condition="'$(PublishStableVersions)'=='false'"/>
+    <ItemsToPush Include="$(OutputPath)\NuGet\Release\*.nupkg" Condition="'$(PublishStableVersions)'=='true' and '$(VersionStampToPublish)'==''"/>
+    <ItemsToPush Include="$(OutputPath)\NuGet\PreRelease\*.nupkg" Condition="'$(PublishStableVersions)'=='true' and '$(VersionStampToPublish)'!=''"/>
   </ItemGroup>
 
   <Target Name="Build">
+    <Error Text="Invalid combination of PublishStableVersions and VersionStampToPublish" Condition="'$(PublishStableVersions)'=='false' and '$(VersionStampToPublish)'==''" />
+    <Error Text="Missing storage account key as PB_PublishBlobFeedKey" Condition="'$(PB_PublishBlobFeedKey)'==''" />
+    <Error Text="Missing expected feed url as PB_PublishBlobFeedUrl" Condition="'$(PB_PublishBlobFeedUrl)'==''" />
+    <Error Text="No Items to push at $(OutputPath)" Condition="'@(ItemsToPush)'==''" />
+
     <PushToBlobFeed ExpectedFeedUrl="$(PB_PublishBlobFeedUrl)"
                     AccountKey="$(PB_PublishBlobFeedKey)"
                     ItemsToPush="@(ItemsToPush)"
