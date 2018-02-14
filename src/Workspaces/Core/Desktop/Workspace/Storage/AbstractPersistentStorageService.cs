@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Storage
     {
         private readonly IOptionService _optionService;
         private readonly IPersistentStorageLocationService _locationService;
-        private readonly SolutionSizeTracker _solutionSizeTracker;
+        private readonly ISolutionSizeTracker _solutionSizeTracker;
 
         /// <summary>
         /// This lock guards all mutable fields in this type.
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Storage
         protected AbstractPersistentStorageService(
             IOptionService optionService,
             IPersistentStorageLocationService locationService,
-            SolutionSizeTracker solutionSizeTracker)
+            ISolutionSizeTracker solutionSizeTracker)
         {
             _optionService = optionService;
             _locationService = locationService;

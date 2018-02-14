@@ -13,10 +13,10 @@ namespace Microsoft.CodeAnalysis.Storage
     internal class PersistenceStorageServiceFactory : IWorkspaceServiceFactory
     {
         private readonly object _gate = new object();
-        private readonly SolutionSizeTracker _solutionSizeTracker;
+        private readonly ISolutionSizeTracker _solutionSizeTracker;
 
         [ImportingConstructor]
-        public PersistenceStorageServiceFactory(SolutionSizeTracker solutionSizeTracker)
+        public PersistenceStorageServiceFactory(ISolutionSizeTracker solutionSizeTracker)
         {
             _solutionSizeTracker = solutionSizeTracker;
         }

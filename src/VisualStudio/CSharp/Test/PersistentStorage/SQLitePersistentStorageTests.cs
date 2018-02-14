@@ -4,6 +4,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.SolutionSize;
 using Microsoft.CodeAnalysis.SQLite;
 using Xunit;
 
@@ -16,8 +17,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
     /// </remarks>
     public class SQLitePersistentStorageTests : AbstractPersistentStorageTests
     {
-        internal override IPersistentStorageService GetStorageService(IPersistentStorageLocationService locationService, IPersistentStorageFaultInjector faultInjector)
-            => new SQLitePersistentStorageService(_persistentEnabledOptionService, locationService, solutionSizeTracker: null, faultInjector);
+        internal override IPersistentStorageService GetStorageService(IPersistentStorageLocationService locationService, ISolutionSizeTracker solutionSizeTracker, IPersistentStorageFaultInjector faultInjector)
+            => new SQLitePersistentStorageService(_persistentEnabledOptionService, locationService, solutionSizeTracker, faultInjector);
 
         [Fact]
         public void TestCrashInNewConnection()

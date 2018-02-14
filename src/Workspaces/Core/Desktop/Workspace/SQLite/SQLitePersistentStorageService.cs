@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.SQLite
         public SQLitePersistentStorageService(
             IOptionService optionService,
             IPersistentStorageLocationService locationService,
-            SolutionSizeTracker solutionSizeTracker)
+            ISolutionSizeTracker solutionSizeTracker)
             : base(optionService, locationService, solutionSizeTracker)
         {
         }
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.SQLite
         public SQLitePersistentStorageService(
             IOptionService optionService,
             IPersistentStorageLocationService locationService,
-            SolutionSizeTracker solutionSizeTracker,
+            ISolutionSizeTracker solutionSizeTracker,
             IPersistentStorageFaultInjector faultInjector)
             : this(optionService, locationService, solutionSizeTracker)
         {
