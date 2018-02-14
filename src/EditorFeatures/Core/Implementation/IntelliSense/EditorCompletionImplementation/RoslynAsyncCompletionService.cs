@@ -30,10 +30,11 @@ namespace RoslynCompletionPrototype
     [ContentType(ContentTypeNames.VisualBasicContentType)]
     internal class RoslynAsyncCompletionService : EditorCompletion.IAsyncCompletionService
     {
+        private readonly IAsyncCompletionBroker _broker;
+
         private const int MaxMRUSize = 10;
         private ImmutableArray<string> _recentItems = ImmutableArray<string>.Empty;
         private static readonly CultureInfo EnUSCultureInfo = new CultureInfo("en-US");
-        private readonly IAsyncCompletionBroker _broker;
 
         [ImportingConstructor]
         public RoslynAsyncCompletionService(IAsyncCompletionBroker broker)
@@ -49,6 +50,7 @@ namespace RoslynCompletionPrototype
             ITextView view, 
             CancellationToken token)
         {
+            // TODO: We know that sessions start sort is invoked, but this could be cleaner
             _broker.GetSession(view).ItemCommitted += ItemCommitted;
             _broker.GetSession(view).Dismissed += SessionDismissed;
             return Task.FromResult(initialList.OrderBy(i => i.DisplayText).ToImmutableArray());
@@ -61,7 +63,7 @@ namespace RoslynCompletionPrototype
 
         private void SessionDismissed(object sender, EventArgs e)
         {
-            // TODO: Unhook the session's events
+            // TODO: Unhook the session's events when the session is available in the args
         }
 
         public Task<FilteredCompletionModel> UpdateCompletionListAsync(
