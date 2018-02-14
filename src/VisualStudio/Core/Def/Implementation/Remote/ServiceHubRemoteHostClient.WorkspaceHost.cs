@@ -30,6 +30,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             // gone.
             private SolutionId _currentSolutionId;
 
+            /// <summary>
+            /// A task that represents the most recent queued work to notify the remote process
+            /// about working folder paths.
+            /// </summary>
+            private Task _currentRemoteWorkspaceNotificationTask = Task.CompletedTask;
+
             public WorkspaceHost(VisualStudioWorkspaceImpl workspace, KeepAliveSession session)
             {
                 _workspace = workspace;
@@ -57,9 +63,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                 var storageLocation = _workspace.DeferredState?.ProjectTracker.GetWorkingFolderPath(_workspace.CurrentSolution);
 
-                _session.TryInvokeAsync(
-                    nameof(IRemoteHostService.RegisterPrimarySolutionId),
-                    new object[] { solutionId, storageLocation }, CancellationToken.None).Wait(CancellationToken.None);
+                _currentRemoteWorkspaceNotificationTask = _currentRemoteWorkspaceNotificationTask.SafeContinueWithFromAsync(_ =>
+                    {
+                        return _session.TryInvokeAsync(
+                            nameof(IRemoteHostService.RegisterPrimarySolutionId),
+                            new object[] { solutionId, storageLocation }, CancellationToken.None);
+                    }, CancellationToken.None, TaskScheduler.Default);
             }
 
             public void OnBeforeWorkingFolderChange()
@@ -87,10 +96,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             private void UnregisterPrimarySolution(
                 SolutionId solutionId, bool synchronousShutdown)
             {
-                _session.TryInvokeAsync(
-                    nameof(IRemoteHostService.UnregisterPrimarySolutionId),
-                    new object[] { solutionId, synchronousShutdown },
-                    CancellationToken.None).Wait(CancellationToken.None);
+                _currentRemoteWorkspaceNotificationTask = _currentRemoteWorkspaceNotificationTask.SafeContinueWith(_ =>
+                    {
+                        return _session.TryInvokeAsync(
+                            nameof(IRemoteHostService.UnregisterPrimarySolutionId),
+                            new object[] { solutionId, synchronousShutdown },
+                            CancellationToken.None);
+                    }, CancellationToken.None, TaskScheduler.Default);
+
+                if (synchronousShutdown)
+                {
+                    _currentRemoteWorkspaceNotificationTask.Wait();
+                }
             }
 
             public void ClearSolution() { }
