@@ -1508,6 +1508,16 @@ Ich stimme allen vorstehenden Bedingungen zu:</target>
         <target state="new">Analyzing '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Snippet_Command_Handler">
+        <source>Snippet Command Handler</source>
+        <target state="new">Snippet Command Handler</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sync_Class_View_Command_Handler">
+        <source>Sync Class View Command Handler</source>
+        <target state="new">Sync Class View Command Handler</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>
