@@ -227,6 +227,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return null;
         }
 
+        public override bool AreLocalsZeroed
+        {
+            get { throw ExceptionUtilities.Unreachable; }
+        }
+
         internal override ImmutableArray<string> GetAppliedConditionalSymbols()
         {
             throw ExceptionUtilities.Unreachable;

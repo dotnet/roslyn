@@ -132,6 +132,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsExtern { get { throw ExceptionUtilities.Unreachable; } }
 
+        public override bool AreLocalsZeroed { get { throw ExceptionUtilities.Unreachable; } }
+
         public override AssemblySymbol ContainingAssembly { get { throw ExceptionUtilities.Unreachable; } }
 
         internal override ModuleSymbol ContainingModule { get { throw ExceptionUtilities.Unreachable; } }
