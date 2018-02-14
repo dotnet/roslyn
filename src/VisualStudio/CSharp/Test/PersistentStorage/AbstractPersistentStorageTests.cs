@@ -437,7 +437,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
             var storage = GetStorageService(_persistentLocationService, solutionSizeTrackerMock.Object, faultInjectorOpt).GetStorage(solution);
 
-            Assert.NotEqual(NoOpPersistentStorage.Instance, storage);
+            // If we're injecting faults, we expect things to be strange
+            if (faultInjectorOpt == null)
+            {
+                Assert.NotEqual(NoOpPersistentStorage.Instance, storage);
+            }
+
             return storage;
         }
 

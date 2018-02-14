@@ -181,12 +181,6 @@ namespace Microsoft.CodeAnalysis.Storage
             {
                 StorageDatabaseLogger.LogException(ex);
 
-                if (persistentStorage != null)
-                {
-                    persistentStorage.Dispose();
-                    persistentStorage = null;
-                }
-
                 if (ShouldDeleteDatabase(ex))
                 {
                     // this was not a normal exception that we expected during DB open.

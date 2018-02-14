@@ -54,10 +54,21 @@ namespace Microsoft.CodeAnalysis.SQLite
                 return false;
             }
 
-            var sqlStorage = new SQLitePersistentStorage(
-                 workingFolderPath, solution.FilePath, databaseFilePath, dbOwnershipLock, _faultInjectorOpt);
+            SQLitePersistentStorage sqlStorage = null;
 
-            sqlStorage.Initialize(solution);
+            try
+            {
+                sqlStorage = new SQLitePersistentStorage(
+                     workingFolderPath, solution.FilePath, databaseFilePath, dbOwnershipLock, _faultInjectorOpt);
+
+                sqlStorage.Initialize(solution);
+
+            }
+            catch (Exception)
+            {
+                sqlStorage?.Dispose();
+                throw;
+            }
 
             storage = sqlStorage;
             return true;
