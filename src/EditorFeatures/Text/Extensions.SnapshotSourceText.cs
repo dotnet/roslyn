@@ -251,14 +251,14 @@ namespace Microsoft.CodeAnalysis.Text
                 if (!s_roslynToEditorSnapshotMap.TryGetValue(textImage, out var weakReference))
                 {
                     // put reverse entry that won't hold onto anything
-                    s_roslynToEditorSnapshotMap.GetValue(
+                    weakReference = s_roslynToEditorSnapshotMap.GetValue(
                         textImage, _ => new WeakReference<ITextSnapshot>(editorSnapshot));
                 }
 
 #if DEBUG
                 // forward and reversed map is 1:1 map. as long as snapshot is not null, it can't be
                 // different
-                var snapshot = weakReference?.GetTarget();
+                var snapshot = weakReference.GetTarget();
                 Contract.ThrowIfFalse(snapshot == null || snapshot == editorSnapshot);
 #endif
                 return textImage;
