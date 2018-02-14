@@ -252,14 +252,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
             // and if we're replacing the declaration with 'var' we'd be changing the semantics by inferring type of
             // initializer expression and thereby losing the conversion.
             var conversion = semanticModel.GetConversion(expression, cancellationToken);
-            if (conversion.Exists && conversion.IsImplicit && !conversion.IsIdentity)
+            if (conversion.IsIdentity)
             {
-                return false;
+                // final check to compare type information on both sides of assignment.
+                var initializerType = semanticModel.GetTypeInfo(expression, cancellationToken).Type;
+                return declaredType.Equals(initializerType);
             }
 
-            // final check to compare type information on both sides of assignment.
-            var initializerType = semanticModel.GetTypeInfo(expression, cancellationToken).Type;
-            return declaredType.Equals(initializerType);
+            return false;
         }
 
         protected override bool ShouldAnalyzeDeclarationExpression(DeclarationExpressionSyntax declaration, SemanticModel semanticModel, CancellationToken cancellationToken)
