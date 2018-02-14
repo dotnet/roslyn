@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                             methodToken: 0x06000000 | (methodRowIds != null ? methodRowIds[index] : index + 1),
                             methodVersion: (methodVersions != null) ? methodVersions[index] : 1,
                             ilOffset: (ilOffsets != null) ? ilOffsets[index] : 0),
-                        documentName: documentName,
+                        documentNameOpt: documentName,
                         linePositionSpan: text.Lines.GetLinePositionSpan(span),
                         threadIds: (threads != null) ? threads[index] : ImmutableArray.Create(threadId),
                         flags: (flags != null) ? flags[index] : ((id == 0 ? ActiveStatementFlags.IsLeafFrame : ActiveStatementFlags.IsNonLeafFrame) | ActiveStatementFlags.MethodUpToDate));
@@ -235,6 +235,15 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                 methodRowIds: new[] { 1, 2, 3, 4, 5 },
                 ilOffsets: new[] { 1, 1, 1, 2, 3 },
                 modules: new[] { module1, module1, module2, module2, module2 });
+
+            // add an extra active statement that has no location, it should be ignored:
+            activeStatements = activeStatements.Add(
+                new ActiveStatementDebugInfo(
+                    new ActiveInstructionId(moduleId: Guid.NewGuid(), methodToken: 0x06000005, methodVersion: 1, ilOffset: 10),
+                    documentNameOpt: null,
+                    linePositionSpan: default,
+                    threadIds: ImmutableArray.Create(Guid.NewGuid()),
+                    ActiveStatementFlags.IsNonLeafFrame));
 
             // add an extra active statement from project not belonging to the solution, it should be ignored:
             activeStatements = activeStatements.Add(

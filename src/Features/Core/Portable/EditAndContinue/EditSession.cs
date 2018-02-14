@@ -132,7 +132,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             foreach (var debugInfo in debugInfos)
             {
-                var documentIds = solution.GetDocumentIdsWithFilePath(debugInfo.DocumentName);
+                string documentName = debugInfo.DocumentNameOpt;
+                if (documentName == null)
+                {
+                    // Ignore active statements that do not have a source location.
+                    continue;
+                }
+
+                var documentIds = solution.GetDocumentIdsWithFilePath(documentName);
                 var firstDocumentId = documentIds.FirstOrDefault(SupportsEditAndContinue);
                 if (firstDocumentId == null)
                 {

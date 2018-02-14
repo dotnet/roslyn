@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
@@ -17,12 +18,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public readonly ActiveInstructionId InstructionId;
 
         /// <summary>
-        /// Document name as found in the PDB.
+        /// Document name as found in the PDB, or null if the debugger can't determine the location of the active statement.
         /// </summary>
-        public readonly string DocumentName;
+        public readonly string DocumentNameOpt;
 
         /// <summary>
-        /// Location of the closest non-hidden sequence point retrieved from the PDB.
+        /// Location of the closest non-hidden sequence point retrieved from the PDB, 
+        /// or default(<see cref="LinePositionSpan"/>) if the debugger can't determine the location of the active statement.
         /// </summary>
         public readonly LinePositionSpan LinePositionSpan;
 
@@ -38,16 +40,20 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         public ActiveStatementDebugInfo(
             ActiveInstructionId instructionId,
-            string documentName,
+            string documentNameOpt,
             LinePositionSpan linePositionSpan,
             ImmutableArray<Guid> threadIds,
             ActiveStatementFlags flags)
         {
+            Debug.Assert(!threadIds.IsDefaultOrEmpty);
+
             ThreadIds = threadIds;
             InstructionId = instructionId;
             Flags = flags;
-            DocumentName = documentName;
+            DocumentNameOpt = documentNameOpt;
             LinePositionSpan = linePositionSpan;
         }
+
+        public bool HasSourceLocation => DocumentNameOpt != null;
     }
 }

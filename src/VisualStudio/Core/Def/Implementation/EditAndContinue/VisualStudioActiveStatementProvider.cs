@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Debugger;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.Symbols;
@@ -26,7 +27,6 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
         {
             using (DebuggerComponent.ManagedEditAndContinueService())
             {
-                // TODO: report errors
                 // TODO: return empty outside of debug session.
                 // https://github.com/dotnet/roslyn/issues/24325
 
@@ -93,15 +93,28 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
                                             return;
                                         }
 
-                                        if (sourcePositionResult.ErrorCode == 0)
+                                        var position = sourcePositionResult.SourcePosition;
+                                        string documentNameOpt;
+                                        LinePositionSpan span;
+                                        if (sourcePositionResult.ErrorCode == 0 && position != null)
                                         {
-                                            builders[runtimeIndex][index] = new ActiveStatementDebugInfo(
-                                                instructionId,
-                                                sourcePositionResult.SourcePosition.DocumentName,
-                                                ToLinePositionSpan(sourcePositionResult.SourcePosition.TextSpan),
-                                                immutableThreads,
-                                                flags);
+                                            documentNameOpt = position.DocumentName;
+                                            span = ToLinePositionSpan(position.TextSpan);
                                         }
+                                        else
+                                        {
+                                            // The debugger can't determine source location for the active statement.
+                                            // The PDB might not be available or the statement is in a method that doesn't have debug information.
+                                            documentNameOpt = null;
+                                            span = default;
+                                        }
+
+                                        builders[runtimeIndex][index] = new ActiveStatementDebugInfo(
+                                            instructionId,
+                                            documentNameOpt,
+                                            span,
+                                            immutableThreads,
+                                            flags);
 
                                         // the last active statement of the current runtime has been processed:
                                         if (Interlocked.Decrement(ref pendingStatements) == 0)
