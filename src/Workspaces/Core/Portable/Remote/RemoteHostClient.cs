@@ -130,9 +130,11 @@ namespace Microsoft.CodeAnalysis.Remote
 
             ~Connection()
             {
+                // this can happen if someone killed OOP, and when that happen, we don't
+                // want to crash VS. 
                 if (!Environment.HasShutdownStarted)
                 {
-                    Contract.Fail($@"Should have been disposed!");
+                    Contract.Requires(false, $@"Should have been disposed!");
                 }
             }
         }
