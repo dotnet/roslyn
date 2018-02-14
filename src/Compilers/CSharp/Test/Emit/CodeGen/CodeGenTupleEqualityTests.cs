@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         private static readonly MetadataReference[] s_valueTupleRefs = new[] { SystemRuntimeFacadeRef, ValueTupleRef };
 
         [Fact]
-        void TestCSharp7_2()
+        public void TestCSharp7_2()
         {
             var source = @"
 class C
@@ -66,7 +66,7 @@ class C
         }
 
         [Fact]
-        void TestTuplesWithDifferentCardinalities()
+        public void TestTuplesWithDifferentCardinalities()
         {
             var source = @"
 class C
@@ -87,7 +87,7 @@ class C
         }
 
         [Fact]
-        void TestNestedTuplesWithDifferentCardinalities()
+        public void TestNestedTuplesWithDifferentCardinalities()
         {
             var source = @"
 class C
@@ -108,7 +108,7 @@ class C
         }
 
         [Fact]
-        void TestWithoutValueTuple()
+        public void TestWithoutValueTuple()
         {
             var source = @"
 class C
@@ -139,7 +139,7 @@ class C
         }
 
         [Fact]
-        void TestNestedNullableTuplesWithDifferentCardinalities()
+        public void TestNestedNullableTuplesWithDifferentCardinalities()
         {
             var source = @"
 class C
@@ -161,7 +161,7 @@ class C
         }
 
         [Fact]
-        void TestILForSimpleEqual()
+        public void TestILForSimpleEqual()
         {
             var source = @"
 class C
@@ -209,7 +209,7 @@ class C
         }
 
         [Fact]
-        void TestILForSimpleNotEqual()
+        public void TestILForSimpleNotEqual()
         {
             var source = @"
 class C
@@ -250,7 +250,7 @@ class C
         }
 
         [Fact]
-        void TestILForSimpleEqualOnTupleLiterals()
+        public void TestILForSimpleEqualOnTupleLiterals()
         {
             var source = @"
 class C
@@ -313,7 +313,7 @@ class C
         }
 
         [Fact]
-        void TestILForNullableElementsEqualsToNull()
+        public void TestILForNullableElementsEqualsToNull()
         {
             var source = @"
 class C
@@ -356,7 +356,7 @@ class C
         }
 
         [Fact]
-        void TestILForNullableElementsNotEqualsToNull()
+        public void TestILForNullableElementsNotEqualsToNull()
         {
             var source = @"
 class C
@@ -397,7 +397,7 @@ class C
         }
 
         [Fact]
-        void TestILForNullableElementsComparedToNonNullValues()
+        public void TestILForNullableElementsComparedToNonNullValues()
         {
             var source = @"
 class C
@@ -459,7 +459,7 @@ class C
         }
 
         [Fact]
-        void TestSimpleEqualOnTypelessTupleLiteral()
+        public void TestSimpleEqualOnTypelessTupleLiteral()
         {
             var source = @"
 class C
@@ -486,7 +486,7 @@ class C
         }
 
         [Fact]
-        void TestOtherOperatorsOnTuples()
+        public void TestOtherOperatorsOnTuples()
         {
             var source = @"
 class C
@@ -518,7 +518,7 @@ class C
         }
 
         [Fact]
-        void TestTypelessTuples()
+        public void TestTypelessTuples()
         {
             var source = @"
 class C
@@ -550,7 +550,7 @@ class C
         }
 
         [Fact]
-        void TestSimpleTypelessTupleAndTupleType()
+        public void TestSimpleTypelessTupleAndTupleType()
         {
             var source = @"
 class C
@@ -576,7 +576,7 @@ class C
         }
 
         [Fact]
-        void TestNestedTypelessTupleAndTupleType()
+        public void TestNestedTypelessTupleAndTupleType()
         {
             var source = @"
 class C
@@ -603,7 +603,7 @@ class C
         }
 
         [Fact]
-        void TestTypelessTupleAndTupleType2()
+        public void TestTypelessTupleAndTupleType2()
         {
             var source = @"
 class C
@@ -629,7 +629,7 @@ class C
         }
 
         [Fact]
-        void TestTypedTupleAndDefault()
+        public void TestTypedTupleAndDefault()
         {
             var source = @"
 class C
@@ -649,7 +649,7 @@ class C
         }
 
         [Fact]
-        void TestMixedTupleLiteralsAndTypes()
+        public void TestMixedTupleLiteralsAndTypes()
         {
             var source = @"
 class C
@@ -676,7 +676,7 @@ class C
         }
 
         [Fact]
-        void TestFailedInference()
+        public void TestFailedInference()
         {
             var source = @"
 class C
@@ -710,7 +710,7 @@ class C
         }
 
         [Fact]
-        void TestFailedConversion()
+        public void TestFailedConversion()
         {
             var source = @"
 class C
@@ -747,7 +747,7 @@ class C
         }
 
         [Fact]
-        void TestDynamic()
+        public void TestDynamic()
         {
             var source = @"
 public class C
@@ -769,7 +769,7 @@ public class C
         }
 
         [Fact]
-        void TestDynamic_WithTypelessExpression()
+        public void TestDynamic_WithTypelessExpression()
         {
             var source = @"
 public class C
@@ -793,7 +793,7 @@ public class C
         }
 
         [Fact]
-        void TestDynamic_WithBadType()
+        public void TestDynamic_WithBadType()
         {
             var source = @"
 public class C
@@ -818,7 +818,7 @@ public class C
         }
 
         [Fact]
-        void TestDynamic_WithNull()
+        public void TestDynamic_WithNull()
         {
             var source = @"
 public class C
@@ -837,7 +837,7 @@ public class C
         }
 
         [Fact]
-        void TestBadConstraintOnTuple()
+        public void TestBadConstraintOnTuple()
         {
             var source = @"
 ref struct S
@@ -865,7 +865,7 @@ ref struct S
         }
 
         [Fact]
-        void TestErrorInTuple()
+        public void TestErrorInTuple()
         {
             var source = @"
 public class C
@@ -887,7 +887,7 @@ public class C
         }
 
         [Fact]
-        void TempTest()
+        public void TestWithTypelessTuple()
         {
             var source = @"
 public class C
@@ -1022,7 +1022,7 @@ Operator '!=' cannot be applied to operands of type 'System.ValueTuple<int,int>'
         }
 
         [Fact]
-        public void TestComparisonWithDeconstruction()
+        public void TestComparisonWithDeconstructionResult()
         {
             var source = @"
 public class C
@@ -1048,6 +1048,31 @@ public class C
             comp.VerifyDiagnostics();
 
             CompileAndVerify(comp, expectedOutput: @"True True False True True False");
+        }
+
+        [Fact]
+        public void TestComparisonWithDeconstruction()
+        {
+            var source = @"
+public class C
+{
+    public static void Main()
+    {
+        var b1 = (1, 2) == new C();
+    }
+    public void Deconstruct(out int x, out int y)
+    {
+        x = 1;
+        y = 2;
+    }
+}
+";
+            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (6,18): error CS0019: Operator '==' cannot be applied to operands of type '(int, int)' and 'C'
+                //         var b1 = (1, 2) == new C();
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "(1, 2) == new C()").WithArguments("==", "(int, int)", "C").WithLocation(6, 18)
+                );
         }
 
         [Fact]
@@ -1336,6 +1361,103 @@ ValueTuple2
 Y:8
 A == Y
 A == Y
+A == Y
+A == Y
+True");
+        }
+
+        [Fact]
+        public void TestEvaluationOrderOnTupleType3()
+        {
+            var source = @"
+public class C
+{
+    public static void Main()
+    {
+        System.Console.WriteLine($""{GetTuple() == (new X(6), new Y(7))}"");
+    }
+    public static (A, A) GetTuple()
+    {
+        System.Console.WriteLine($""GetTuple"");
+        return (new A(30), new A(40));
+    }
+}
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            System.Console.WriteLine(""ValueTuple2"");
+            this.Item1 = item1;
+            this.Item2 = item2;
+        }
+    }
+    public struct ValueTuple<T1, T2, T3>
+    {
+        public ValueTuple(T1 item1, T2 item2, T3 item3)
+        {
+            // ValueTuple'3 required (constructed in bound tree), but not emitted
+            throw null;
+        }
+    }
+}
+public class Base
+{
+    public int I;
+    public Base(int i) { I = i; }
+}
+public class A : Base
+{
+    public A(int i) : base(i)
+    {
+        System.Console.WriteLine($""A:{i}"");
+    }
+    public static bool operator ==(A a, Y y)
+    {
+        System.Console.WriteLine(""A == Y"");
+        return true;
+    }
+    public static bool operator !=(A a, Y y)
+        => throw null;
+    public override bool Equals(object o)
+        => throw null;
+    public override int GetHashCode()
+        => throw null;
+}
+public class X : Base
+{
+    public X(int i) : base(i)
+    {
+        System.Console.WriteLine($""X:{i}"");
+    }
+}
+public class Y : Base
+{
+    public Y(int i) : base(i)
+    {
+        System.Console.WriteLine($""Y:{i}"");
+    }
+    public static implicit operator Y(X x)
+    {
+        System.Console.Write(""X -> "");
+        return new Y(x.I);
+    }
+}
+";
+            var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput:
+@"GetTuple
+A:30
+A:40
+ValueTuple2
+X:6
+X -> Y:6
+Y:7
 A == Y
 A == Y
 True");
@@ -2075,79 +2197,6 @@ class C
   IL_00db:  call       ""void System.Console.Write(string)""
   IL_00e0:  nop
   IL_00e1:  ret
-}");
-        }
-
-        [Fact]
-        public void TestOnNullableVsNullableTuples_WithImplicitCustomConversion_NoTuples()
-        {
-            var source = @"
-struct C
-{
-    int _value;
-    public C(int v) { _value = v; }
-
-    public static void Main()
-    {
-        Compare(null, new C(20));
-    }
-    private static void Compare(int? nt1, C? nt2)
-    {
-        System.Console.Write($""{nt1 == nt2} "");
-    }
-    public static implicit operator int(C c)
-    {
-        System.Console.Write($""Convert{c._value} "");
-        return c._value;
-    }
-}
-";
-            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            var verifier = CompileAndVerify(comp, expectedOutput: "Convert20 False");
-
-            verifier.VerifyIL("C.Compare", @"{
-  // Code size      100 (0x64)
-  .maxstack  3
-  .locals init (int? V_0,
-                int? V_1,
-                C? V_2,
-                int? V_3)
-  IL_0000:  nop
-  IL_0001:  ldstr      ""{0} ""
-  IL_0006:  ldarg.0
-  IL_0007:  stloc.0
-  IL_0008:  ldarg.1
-  IL_0009:  stloc.2
-  IL_000a:  ldloca.s   V_2
-  IL_000c:  call       ""bool C?.HasValue.get""
-  IL_0011:  brtrue.s   IL_001e
-  IL_0013:  ldloca.s   V_3
-  IL_0015:  initobj    ""int?""
-  IL_001b:  ldloc.3
-  IL_001c:  br.s       IL_002f
-  IL_001e:  ldloca.s   V_2
-  IL_0020:  call       ""C C?.GetValueOrDefault()""
-  IL_0025:  call       ""int C.op_Implicit(C)""
-  IL_002a:  newobj     ""int?..ctor(int)""
-  IL_002f:  stloc.1
-  IL_0030:  ldloca.s   V_0
-  IL_0032:  call       ""int int?.GetValueOrDefault()""
-  IL_0037:  ldloca.s   V_1
-  IL_0039:  call       ""int int?.GetValueOrDefault()""
-  IL_003e:  beq.s      IL_0043
-  IL_0040:  ldc.i4.0
-  IL_0041:  br.s       IL_0053
-  IL_0043:  ldloca.s   V_0
-  IL_0045:  call       ""bool int?.HasValue.get""
-  IL_004a:  ldloca.s   V_1
-  IL_004c:  call       ""bool int?.HasValue.get""
-  IL_0051:  ceq
-  IL_0053:  box        ""bool""
-  IL_0058:  call       ""string string.Format(string, object)""
-  IL_005d:  call       ""void System.Console.Write(string)""
-  IL_0062:  nop
-  IL_0063:  ret
 }");
         }
 

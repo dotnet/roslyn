@@ -32,13 +32,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         private TupleBinaryOperatorInfo BindTupleBinaryOperatorInfo(BinaryExpressionSyntax node, BinaryOperatorKind kind,
             BoundExpression left, BoundExpression right, DiagnosticBag diagnostics)
         {
-            TypeSymbol leftType = left.Type;
-            TypeSymbol rightType = right.Type;
             int? leftCardinality = GetTupleCardinality(left);
             int? rightCardinality = GetTupleCardinality(right);
 
             if (leftCardinality.HasValue && rightCardinality.HasValue)
             {
+                TypeSymbol leftType = left.Type;
+                TypeSymbol rightType = right.Type;
+
                 if (leftCardinality.Value != rightCardinality.Value)
                 {
                     Error(diagnostics, ErrorCode.ERR_TupleSizesMismatchForBinOps, node, leftCardinality, rightCardinality);
@@ -75,16 +76,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             MethodSymbol resultMethod = null;
             BinaryOperatorKind resultOperatorKind;
-            TypeSymbol convertedLeftType = null;
-            TypeSymbol convertedRightType = null;
+            TypeSymbol convertedLeftType;
+            TypeSymbol convertedRightType;
             TypeSymbol returnType;
             bool hasErrors;
 
             if (!best.HasValue)
             {
                 resultOperatorKind = kind;
-                convertedLeftType = convertedLeftType ?? leftType ?? CreateErrorType();
-                convertedRightType = convertedRightType ?? rightType ?? CreateErrorType();
+                convertedLeftType = leftType ?? CreateErrorType();
+                convertedRightType = rightType ?? CreateErrorType();
                 returnType = CreateErrorType();
                 hasErrors = true;
             }
@@ -111,14 +112,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (hasErrors)
             {
                 ReportBinaryOperatorError(node, diagnostics, node.OperatorToken, left, right, resultKind);
-                //resultOperatorKind &= ~BinaryOperatorKind.TypeMask; // PROTOTYPE(tuple-equality) Not sure what this is for
             }
 
-            ConvertToBool(returnType, node, kind, diagnostics, out Conversion boolConversion, out UnaryOperatorSignature boolOperator);
+            PrepareBoolConversionAndTruthOperator(returnType, node, kind, diagnostics, out Conversion boolConversion, out UnaryOperatorSignature boolOperator);
             return new TupleBinaryOperatorInfo.Single(convertedLeftType, convertedRightType, resultOperatorKind, resultMethod, boolConversion, boolOperator);
         }
 
-        private void ConvertToBool(TypeSymbol type, BinaryExpressionSyntax node, BinaryOperatorKind binaryOperator, DiagnosticBag diagnostics,
+        /// <summary>
+        /// If a element-wise binary operator returns a non-bool type, we will either:
+        /// - prepare a conversion to bool if one exists
+        /// - prepare a truth operator: op_false in the case of an equality (`a == b` will be lowered to `!((a == b).op_false)) or op_true in the case of inequality
+        /// </summary>
+        private void PrepareBoolConversionAndTruthOperator(TypeSymbol type, BinaryExpressionSyntax node, BinaryOperatorKind binaryOperator, DiagnosticBag diagnostics,
             out Conversion boolConversion, out UnaryOperatorSignature boolOperator)
         {
             BoundExpression comparisonResult = new BoundTupleOperandPlaceholder(node, type);
@@ -187,7 +192,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BinaryOperatorKind elementOperatorKind = hasError ? kind : kind.WithType(BinaryOperatorKind.Dynamic);
             TypeSymbol dynamicType = Compilation.DynamicType;
 
-            // We'll end up dynamically invoking operators true and false, so no result conversion. We'll deal with that during lowering.
+            // We'll want to dynamically invoke operators op_true (/op_false) for equality (/inequality) comparison, but we don't need
+            // to prepare either a conversion or a truth operator. Those can just be synthesized during lowering.
             return new TupleBinaryOperatorInfo.Single(dynamicType, dynamicType, elementOperatorKind,
                 methodSymbolOpt: null, boolConversion: Conversion.Identity, boolOperator: default);
         }
@@ -211,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol leftTupleType = MakeConvertedType(operators, node.Left, left, isNullable, compilation, diagnostics, isRight: false);
             TypeSymbol rightTupleType = MakeConvertedType(operators, node.Right, right, isNullable, compilation, diagnostics, isRight: true);
 
-            return new TupleBinaryOperatorInfo.Nested(operators, leftTupleType, rightTupleType);
+            return new TupleBinaryOperatorInfo.Multiple(operators, leftTupleType, rightTupleType);
         }
 
         private static int? GetTupleCardinality(BoundExpression expr)
@@ -271,99 +277,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             NamedTypeSymbol nullableT = GetSpecialType(SpecialType.System_Nullable_T, diagnostics, syntax);
             return nullableT.Construct(tuple);
-        }
-    }
-
-    /// <summary>
-    /// A tree of binary operators
-    /// </summary>
-    internal abstract class TupleBinaryOperatorInfo
-    {
-        internal abstract bool IsSingle();
-        internal readonly TypeSymbol LeftConvertedType;
-        internal readonly TypeSymbol RightConvertedType;
-#if DEBUG
-        internal abstract TreeDumperNode DumpCore();
-        internal string Dump() => TreeDumper.DumpCompact(DumpCore());
-#endif
-
-        private TupleBinaryOperatorInfo(TypeSymbol leftConvertedType, TypeSymbol rightConvertedType)
-        {
-            LeftConvertedType = leftConvertedType;
-            RightConvertedType = rightConvertedType;
-        }
-
-        internal class Single : TupleBinaryOperatorInfo
-        {
-            internal readonly BinaryOperatorKind Kind;
-            internal readonly MethodSymbol MethodSymbolOpt; // User-defined comparison operator, if applicable
-
-            // To convert the result of comparison to bool
-            internal readonly Conversion BoolConversion;
-            internal readonly UnaryOperatorSignature BoolOperator; // Information for op_true or op_false
-
-            internal Single(TypeSymbol leftConvertedType, TypeSymbol rightConvertedType, BinaryOperatorKind kind,
-                MethodSymbol methodSymbolOpt, Conversion boolConversion, UnaryOperatorSignature boolOperator) : base(leftConvertedType, rightConvertedType)
-            {
-                // If a user-defined comparison operator is present, then the operator kind must be user-defined
-                Debug.Assert(Kind.IsUserDefined() || (object)MethodSymbolOpt == null);
-
-                // If the return type of methodSymbolOpt is not bool, then there must be a boolConversion or boolOperator
-                Debug.Assert(BoolConversion != default || !Kind.IsDynamic() || (Kind.IsUserDefined() && MethodSymbolOpt.ReturnType.SpecialType == SpecialType.System_Boolean));
-                Debug.Assert((object)BoolOperator != null || !Kind.IsDynamic() || (Kind.IsUserDefined() && MethodSymbolOpt.ReturnType.SpecialType == SpecialType.System_Boolean));
-
-                Kind = kind;
-                MethodSymbolOpt = methodSymbolOpt;
-                BoolConversion = boolConversion;
-                BoolOperator = boolOperator;
-            }
-
-            internal override bool IsSingle()
-                => true;
-
-            public override string ToString()
-                => $"binaryOperatorKind: {Kind}";
-
-#if DEBUG
-            internal override TreeDumperNode DumpCore()
-            {
-                var sub = new List<TreeDumperNode>();
-                if ((object)MethodSymbolOpt != null)
-                {
-                    sub.Add(new TreeDumperNode("methodSymbolOpt", MethodSymbolOpt.ToDisplayString(), null));
-                }
-                sub.Add(new TreeDumperNode("leftConversion", LeftConvertedType.ToDisplayString(), null));
-                sub.Add(new TreeDumperNode("rightConversion", RightConvertedType.ToDisplayString(), null));
-
-                return new TreeDumperNode("nested", Kind, sub);
-            }
-#endif
-        }
-
-        internal class Nested : TupleBinaryOperatorInfo
-        {
-            internal readonly ImmutableArray<TupleBinaryOperatorInfo> NestedOperators;
-
-            internal Nested(ImmutableArray<TupleBinaryOperatorInfo> nestedOperators, TypeSymbol leftConvertedType, TypeSymbol rightConvertedType) 
-                : base(leftConvertedType, rightConvertedType)
-            {
-                Debug.Assert(!nestedOperators.IsDefaultOrEmpty);
-                NestedOperators = nestedOperators;
-            }
-
-            internal override bool IsSingle()
-                => false;
-
-#if DEBUG
-            internal override TreeDumperNode DumpCore()
-            {
-                var sub = new List<TreeDumperNode>();
-                sub.Add(new TreeDumperNode($"nestedOperators[{NestedOperators.Length}]", null,
-                    NestedOperators.SelectAsArray(c => c.DumpCore())));
-
-                return new TreeDumperNode("nested", null, sub);
-            }
-#endif
         }
     }
 }
