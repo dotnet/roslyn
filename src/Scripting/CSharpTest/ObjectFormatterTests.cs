@@ -956,8 +956,8 @@ $@"{new Exception().Message}
                 var expected =
 $@"'object' does not contain a definition for 'x'
   + System.Dynamic.UpdateDelegates.UpdateAndExecuteVoid1<T0>(System.Runtime.CompilerServices.CallSite, T0)
-  + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.Fixture2.MethodDynamic(){(s_supportsLineNumbers ? string.Format(ScriptingResources.AtFileLine, StackTraceSourceFile, 10124) : "")}
-  + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.StackTrace_Dynamic(){(s_supportsLineNumbers ? string.Format(ScriptingResources.AtFileLine, StackTraceSourceFile, 10135) : "")}
+  + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.Fixture2.MethodDynamic(){(s_supportsLineNumbers ? string.Format(ScriptingResources.AtFileLine, StackTraceSourceFile, PlatformInformation.IsUnix && CoreClrShim.IsRunningOnCoreClr ? 10123 : 10124) : "")}
+  + Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests.ObjectFormatterTests.StackTrace_Dynamic(){(s_supportsLineNumbers ? string.Format(ScriptingResources.AtFileLine, StackTraceSourceFile, PlatformInformation.IsUnix && CoreClrShim.IsRunningOnCoreClr ? 10134 : 10135) : "")}
 ";
                 var actual = s_formatter.FormatException(e);
                 Assert.Equal(expected, actual);
