@@ -134,12 +134,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
                     return true;
                 }
             }
-            else if (typeName.Parent is ForEachStatementSyntax foreachStatement &&
-                IsExpressionSyntaxSameAfterVarConversion(foreachStatement.Expression, semanticModel, cancellationToken))
+            else if (typeName.Parent is ForEachStatementSyntax foreachStatement)
             {
-                // Semantic check to see if the conversion changes expression
                 var foreachStatementInfo = semanticModel.GetForEachStatementInfo(foreachStatement);
-                if (foreachStatementInfo.ElementConversion.IsIdentityOrImplicitReference())
+                if (foreachStatementInfo.ElementConversion.IsIdentity)
                 {
                     issueSpan = candidateIssueSpan;
                     return true;
@@ -249,7 +247,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
                 return false;
             }
 
-            if (!IsExpressionSyntaxSameAfterVarConversion(expression, semanticModel, cancellationToken))
+            // Get the conversion that occurred between the expression's type and type implied by the expression's context
+            // and filter out implicit conversions. If an implicit conversion (other than identity) exists
+            // and if we're replacing the declaration with 'var' we'd be changing the semantics by inferring type of
+            // initializer expression and thereby losing the conversion.
+            var conversion = semanticModel.GetConversion(expression, cancellationToken);
+            if (conversion.Exists && conversion.IsImplicit && !conversion.IsIdentity)
             {
                 return false;
             }
@@ -257,19 +260,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
             // final check to compare type information on both sides of assignment.
             var initializerType = semanticModel.GetTypeInfo(expression, cancellationToken).Type;
             return declaredType.Equals(initializerType);
-        }
-
-        private static bool IsExpressionSyntaxSameAfterVarConversion(
-            ExpressionSyntax expression,
-            SemanticModel semanticModel,
-            CancellationToken cancellationToken)
-        {
-            // Get the conversion that occurred between the expression's type and type implied by the expression's context
-            // and filter out implicit conversions. If an implicit conversion (other than identity) exists
-            // and if we're replacing the declaration with 'var' we'd be changing the semantics by inferring type of
-            // initializer expression and thereby losing the conversion.
-            var conversion = semanticModel.GetConversion(expression, cancellationToken);
-            return conversion.IsIdentity;
         }
 
         protected override bool ShouldAnalyzeDeclarationExpression(DeclarationExpressionSyntax declaration, SemanticModel semanticModel, CancellationToken cancellationToken)
