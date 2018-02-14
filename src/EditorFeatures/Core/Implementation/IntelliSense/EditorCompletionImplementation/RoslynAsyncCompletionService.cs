@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
 using EditorCompletion = Microsoft.VisualStudio.Language.Intellisense;
 using RoslynCompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem;
@@ -29,24 +30,38 @@ namespace RoslynCompletionPrototype
     [ContentType(ContentTypeNames.VisualBasicContentType)]
     internal class RoslynAsyncCompletionService : EditorCompletion.IAsyncCompletionService
     {
-        [ImportingConstructor]
-        public RoslynAsyncCompletionService(IAsyncCompletionBroker broker)
-        {
-            broker.ItemCommitted += Broker_ItemCommitted;
-        }
-
-        private void Broker_ItemCommitted(object sender, CompletionItemCommittedEventArgs e)
-        {
-            MakeMostRecentItem(e.CommittedItem.DisplayText);
-        }
-
         private const int MaxMRUSize = 10;
         private ImmutableArray<string> _recentItems = ImmutableArray<string>.Empty;
         private static readonly CultureInfo EnUSCultureInfo = new CultureInfo("en-US");
+        private readonly IAsyncCompletionBroker _broker;
 
-        public Task<ImmutableArray<EditorCompletion.CompletionItem>> SortCompletionListAsync(ImmutableArray<EditorCompletion.CompletionItem> originalList, CompletionTriggerReason triggerReason, ITextSnapshot snapshot, ITrackingSpan applicableToSpan, CancellationToken token)
+        [ImportingConstructor]
+        public RoslynAsyncCompletionService(IAsyncCompletionBroker broker)
         {
-            return Task.FromResult(originalList.OrderBy(i => i.DisplayText).ToImmutableArray());
+            _broker = broker;
+        }
+
+        public Task<ImmutableArray<EditorCompletion.CompletionItem>> SortCompletionListAsync(
+            ImmutableArray<EditorCompletion.CompletionItem> initialList, 
+            CompletionTriggerReason triggerReason, 
+            ITextSnapshot snapshot, 
+            ITrackingSpan applicableToSpan, 
+            ITextView view, 
+            CancellationToken token)
+        {
+            _broker.GetSession(view).ItemCommitted += ItemCommitted;
+            _broker.GetSession(view).Dismissed += SessionDismissed;
+            return Task.FromResult(initialList.OrderBy(i => i.DisplayText).ToImmutableArray());
+        }
+
+        private void ItemCommitted(object sender, EditorCompletion.CompletionItemEventArgs e)
+        {
+            MakeMostRecentItem(e.Item.DisplayText);
+        }
+
+        private void SessionDismissed(object sender, EventArgs e)
+        {
+            // TODO: Unhook the session's events
         }
 
         public Task<FilteredCompletionModel> UpdateCompletionListAsync(
@@ -56,6 +71,7 @@ namespace RoslynCompletionPrototype
             ITextSnapshot snapshot, 
             ITrackingSpan applicableToSpan, 
             ImmutableArray<CompletionFilterWithState> filters, 
+            ITextView view, 
             CancellationToken cancellationToken)
         {
             var filterText = applicableToSpan.GetText(snapshot);

@@ -98,14 +98,14 @@ namespace RoslynCompletionPrototype
             var item = new EditorCompletion.CompletionItem(
                 roslynItem.DisplayText,
                 this,
-                imageId,
+                new AccessibleImageId(imageId.Guid, imageId.Id, "Temporary Automation ID", "Temporary Automation Name"), // TODO
                 filters,
                 suffix: "Test Suffix",
-                useCustomCommit: needsCustomCommit,
+                needsCustomCommit,
                 insertText: insertionText,
                 roslynItem.SortText,
                 roslynItem.FilterText,
-                attributeIcons: ImmutableArray<AccessibleImage>.Empty);
+                attributeimages: ImmutableArray<AccessibleImageId>.Empty);
 
             item.Properties.AddProperty(RoslynItem, roslynItem);
             return item;
@@ -124,7 +124,11 @@ namespace RoslynCompletionPrototype
                     }
                     else
                     {
-                        var itemFilter = new CompletionFilter(filter.DisplayText, filter.AccessKey.ToString(), imageService.GetImageId(filter.Tags.GetGlyph()));
+                        var imageId = imageService.GetImageId(filter.Tags.GetGlyph());
+                        var itemFilter = new CompletionFilter(
+                            filter.DisplayText, 
+                            filter.AccessKey.ToString(), 
+                            new AccessibleImageId(imageId.Guid, imageId.Id, "Temporary Automation Id", "Temporary Automation Name")); // TODO
                         filterCache[filter.DisplayText] = itemFilter;
                         result.Add(itemFilter);
                     }
@@ -153,7 +157,13 @@ namespace RoslynCompletionPrototype
             return description.Text;
         }
 
-        public void CustomCommit(ITextView view, ITextBuffer buffer, EditorCompletion.CompletionItem item, ITrackingSpan applicableSpan, char commitCharacter)
+        public void CustomCommit(
+            ITextView view, 
+            ITextBuffer buffer, 
+            EditorCompletion.CompletionItem item, 
+            ITrackingSpan applicableSpan, 
+            char commitCharacter, 
+            CancellationToken token)
         {
             var service = GetCompletionService(buffer.CurrentSnapshot) as CompletionServiceWithProviders;
 
@@ -162,21 +172,8 @@ namespace RoslynCompletionPrototype
 
             var edit = buffer.CreateEdit();
             var provider = service.GetProvider(roslynItem);
-            if (provider is ICustomCommitCompletionProvider c)
-            {
-                c.Commit(roslynItem, view, buffer, triggerSnapshot, null);
-            }
-            else
-            {
-                var document = buffer.GetRelatedDocuments().First();
-                var roslynChange = service.GetChangeAsync(document, roslynItem, commitCharacter, CancellationToken.None).Result;
 
-                // TODO: Editor to reapply inserted trigger after we commit
-                var ts = new SnapshotSpan(triggerSnapshot, roslynChange.TextChange.Span.ToSpan());
-                var mapped = ts.TranslateTo(buffer.CurrentSnapshot, SpanTrackingMode.EdgeInclusive);
-
-                edit.Replace(mapped.Span, roslynChange.TextChange.NewText);
-            }
+            ((ICustomCommitCompletionProvider)provider).Commit(roslynItem, view, buffer, triggerSnapshot, null);
 
             edit.Apply();
         }
