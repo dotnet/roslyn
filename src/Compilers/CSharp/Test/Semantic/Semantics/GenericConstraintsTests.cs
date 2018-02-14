@@ -1542,7 +1542,7 @@ class B<T> : A<T> where T : System.Delegate { }";
         }
 
         [Fact]
-        public void UnmanagedConstraint_Compilation_Alone()
+        public void UnmanagedConstraint_Compilation_Alone_Type()
         {
             CreateStandardCompilation(@"
 public class Test<T> where T : unmanaged
@@ -1571,6 +1571,66 @@ public class Test2
                 // (16,26): error CS8375: The type 'W' cannot be a reference type, or contain reference type fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'Test<T>'
                 //         var f = new Test<W>();                  // unconstrained generic type
                 Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "W").WithArguments("Test<T>", "T", "W").WithLocation(16, 26));
+        }
+
+        [Fact]
+        public void UnmanagedConstraint_Compilation_Alone_Method()
+        {
+            CreateStandardCompilation(@"
+public class Test
+{
+    public int M<T>() where T : unmanaged => 0;
+}
+public struct GoodType { public int I; }
+public struct BadType { public string S; }
+public class Test2
+{
+    public void M<U, W>() where U : unmanaged
+    {
+        var a = new Test().M<GoodType>();           // unmanaged struct
+        var b = new Test().M<BadType>();            // managed struct
+        var c = new Test().M<string>();             // reference type
+        var d = new Test().M<int>();                // value type
+        var e = new Test().M<U>();                  // generic type constrained to unmanaged
+        var f = new Test().M<W>();                  // unconstrained generic type
+    }
+}").VerifyDiagnostics(
+                // (13,17): error CS8375: The type 'BadType' cannot be a reference type, or contain reference type fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'Test.M<T>()'
+                //         var b = new Test().M<BadType>();            // managed struct
+                Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "new Test().M<BadType>").WithArguments("Test.M<T>()", "T", "BadType").WithLocation(13, 17),
+                // (14,17): error CS8375: The type 'string' cannot be a reference type, or contain reference type fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'Test.M<T>()'
+                //         var c = new Test().M<string>();             // reference type
+                Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "new Test().M<string>").WithArguments("Test.M<T>()", "T", "string").WithLocation(14, 17),
+                // (17,17): error CS8375: The type 'W' cannot be a reference type, or contain reference type fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'Test.M<T>()'
+                //         var f = new Test().M<W>();                  // unconstrained generic type
+                Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "new Test().M<W>").WithArguments("Test.M<T>()", "T", "W").WithLocation(17, 17));
+        }
+
+        [Fact]
+        public void UnmanagedConstraint_Compilation_Alone_Delegate()
+        {
+            CreateStandardCompilation(@"
+public delegate void D<T>() where T : unmanaged;
+public struct GoodType { public int I; }
+public struct BadType { public string S; }
+public abstract class Test2<U, W> where U : unmanaged
+{
+    public abstract D<GoodType> a();                // unmanaged struct
+    public abstract D<BadType> b();                 // managed struct
+    public abstract D<string> c();                  // reference type
+    public abstract D<int> d();                     // value type
+    public abstract D<U> e();                       // generic type constrained to unmanaged
+    public abstract D<W> f();                       // unconstrained generic type
+}").VerifyDiagnostics(
+                // (8,32): error CS8375: The type 'BadType' cannot be a reference type, or contain reference type fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'D<T>'
+                //     public abstract D<BadType> b();                 // managed struct
+                Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "b").WithArguments("D<T>", "T", "BadType").WithLocation(8, 32),
+                // (9,31): error CS8375: The type 'string' cannot be a reference type, or contain reference type fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'D<T>'
+                //     public abstract D<string> c();                  // reference type
+                Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "c").WithArguments("D<T>", "T", "string").WithLocation(9, 31),
+                // (12,26): error CS8375: The type 'W' cannot be a reference type, or contain reference type fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'D<T>'
+                //     public abstract D<W> f();                       // unconstrained generic type
+                Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "f").WithArguments("D<T>", "T", "W").WithLocation(12, 26));
         }
 
         [Fact]
@@ -1681,7 +1741,7 @@ public class Test<T> where T : unmanaged
         }
 
         [Fact]
-        public void UnmanagedConstraint_Reference_Alone()
+        public void UnmanagedConstraint_Reference_Alone_Type()
         {
             var reference = CreateStandardCompilation(@"
 public class Test<T> where T : unmanaged
@@ -1716,6 +1776,73 @@ public class Test2
         }
 
         [Fact]
+        public void UnmanagedConstraint_Reference_Alone_Method()
+        {
+            var reference = CreateStandardCompilation(@"
+public class Test
+{
+    public int M<T>() where T : unmanaged => 0;
+}").EmitToImageReference();
+
+            var code = @"
+public struct GoodType { public int I; }
+public struct BadType { public string S; }
+public class Test2
+{
+    public void M<U, W>() where U : unmanaged
+    {
+        var a = new Test().M<GoodType>();           // unmanaged struct
+        var b = new Test().M<BadType>();            // managed struct
+        var c = new Test().M<string>();             // reference type
+        var d = new Test().M<int>();                // value type
+        var e = new Test().M<U>();                  // generic type constrained to unmanaged
+        var f = new Test().M<W>();                  // unconstrained generic type
+    }
+}";
+            CreateStandardCompilation(code, references: new[] { reference }).VerifyDiagnostics(
+                // (9,17): error CS8375: The type 'BadType' cannot be a reference type, or contain reference type fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'Test.M<T>()'
+                //         var b = new Test().M<BadType>();            // managed struct
+                Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "new Test().M<BadType>").WithArguments("Test.M<T>()", "T", "BadType").WithLocation(9, 17),
+                // (10,17): error CS8375: The type 'string' cannot be a reference type, or contain reference type fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'Test.M<T>()'
+                //         var c = new Test().M<string>();             // reference type
+                Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "new Test().M<string>").WithArguments("Test.M<T>()", "T", "string").WithLocation(10, 17),
+                // (13,17): error CS8375: The type 'W' cannot be a reference type, or contain reference type fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'Test.M<T>()'
+                //         var f = new Test().M<W>();                  // unconstrained generic type
+                Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "new Test().M<W>").WithArguments("Test.M<T>()", "T", "W").WithLocation(13, 17));
+        }
+
+        [Fact]
+        public void UnmanagedConstraint_Reference_Alone_Delegate()
+        {
+            var reference = CreateStandardCompilation(@"
+public delegate void D<T>() where T : unmanaged;
+").EmitToImageReference();
+
+            var code = @"
+public struct GoodType { public int I; }
+public struct BadType { public string S; }
+public abstract class Test2<U, W> where U : unmanaged
+{
+    public abstract D<GoodType> a();                // unmanaged struct
+    public abstract D<BadType> b();                 // managed struct
+    public abstract D<string> c();                  // reference type
+    public abstract D<int> d();                     // value type
+    public abstract D<U> e();                       // generic type constrained to unmanaged
+    public abstract D<W> f();                       // unconstrained generic type
+}";
+            CreateStandardCompilation(code, references: new[] { reference }).VerifyDiagnostics(
+                // (7,32): error CS8375: The type 'BadType' cannot be a reference type, or contain reference type fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'D<T>'
+                //     public abstract D<BadType> b();                 // managed struct
+                Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "b").WithArguments("D<T>", "T", "BadType").WithLocation(7, 32),
+                // (8,31): error CS8375: The type 'string' cannot be a reference type, or contain reference type fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'D<T>'
+                //     public abstract D<string> c();                  // reference type
+                Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "c").WithArguments("D<T>", "T", "string").WithLocation(8, 31),
+                // (11,26): error CS8375: The type 'W' cannot be a reference type, or contain reference type fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'D<T>'
+                //     public abstract D<W> f();                       // unconstrained generic type
+                Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "f").WithArguments("D<T>", "T", "W").WithLocation(11, 26));
+        }
+
+        [Fact]
         public void UnmanagedConstraint_Before_7_3()
         {
             var code = @"
@@ -1730,13 +1857,53 @@ public class Test<T> where T : unmanaged
         }
 
         [Fact]
-        public void UnmanagedConstraint_IsReflectedinSymbols_Alone()
+        public void UnmanagedConstraint_IsReflectedinSymbols_Alone_Type()
         {
             var code = "public class Test<T> where T : unmanaged { }";
 
             Action<ModuleSymbol> validator = module =>
             {
                 var typeParameter = module.GlobalNamespace.GetTypeMember("Test").TypeParameters.Single();
+                Assert.True(typeParameter.HasUnmanagedTypeConstraint);
+                Assert.True(typeParameter.HasValueTypeConstraint);
+                Assert.False(typeParameter.HasReferenceTypeConstraint);
+                Assert.False(typeParameter.HasConstructorConstraint);
+                Assert.Empty(typeParameter.ConstraintTypes());
+            };
+
+            CompileAndVerify(code, sourceSymbolValidator: validator, symbolValidator: validator);
+        }
+
+        [Fact]
+        public void UnmanagedConstraint_IsReflectedinSymbols_Alone_Method()
+        {
+            var code = @"
+public class Test
+{
+    public void M<T>() where T : unmanaged {}
+}";
+
+            Action<ModuleSymbol> validator = module =>
+            {
+                var typeParameter = module.GlobalNamespace.GetTypeMember("Test").GetMethod("M").TypeParameters.Single();
+                Assert.True(typeParameter.HasUnmanagedTypeConstraint);
+                Assert.True(typeParameter.HasValueTypeConstraint);
+                Assert.False(typeParameter.HasReferenceTypeConstraint);
+                Assert.False(typeParameter.HasConstructorConstraint);
+                Assert.Empty(typeParameter.ConstraintTypes());
+            };
+
+            CompileAndVerify(code, sourceSymbolValidator: validator, symbolValidator: validator);
+        }
+
+        [Fact]
+        public void UnmanagedConstraint_IsReflectedinSymbols_Alone_Delegate()
+        {
+            var code = "public delegate void D<T>() where T : unmanaged;";
+
+            Action<ModuleSymbol> validator = module =>
+            {
+                var typeParameter = module.GlobalNamespace.GetTypeMember("D").TypeParameters.Single();
                 Assert.True(typeParameter.HasUnmanagedTypeConstraint);
                 Assert.True(typeParameter.HasValueTypeConstraint);
                 Assert.False(typeParameter.HasReferenceTypeConstraint);
@@ -2062,6 +2229,27 @@ class Test
                 // (20,13): error CS1061: 'T' does not contain a definition for 'Print' and no extension method 'Print' accepting a first argument of type 'T' could be found (are you missing a using directive or an assembly reference?)
                 //         arg.Print();
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Print").WithArguments("T", "Print").WithLocation(20, 13));
+        }
+
+        [Fact]
+        public void UnmanagedConstraints_UnmanagedIsValidForStructConstraint()
+        {
+            CompileAndVerify(@"
+class Program
+{
+    static void A<T>(T arg) where T : struct
+    {
+        System.Console.WriteLine(arg);
+    }
+    static void B<T>(T arg) where T : unmanaged
+    {
+        A(arg);
+    }
+    static void Main()
+    {
+        B(5);
+    }
+}", expectedOutput: "5");
         }
     }
 }

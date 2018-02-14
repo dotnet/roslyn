@@ -167,6 +167,37 @@ BC30649: '' is an unsupported type.
                                                 </expected>)
         End Sub
 
+        <Fact>
+        Public Sub UnmanagedConstraint_RejectedSymbol_OnDelegate()
+            Dim reference = CreateCSharpCompilation("
+public delegate T D<T>() where T : unmanaged;
+", parseOptions:=New CSharpParseOptions(CSharp.LanguageVersion.Latest)).EmitToImageReference()
+
+            Dim source =
+                <compilation>
+                    <file>
+Class Test
+    Shared Sub Main(del As D(Of String)) 
+    End Sub
+End Class
+    </file>
+                </compilation>
+
+            Dim compilation = CreateCompilationWithMscorlib(source, references:={reference})
+
+            AssertTheseDiagnostics(compilation, <expected>
+BC30649: '' is an unsupported type.
+    Shared Sub Main(del As D(Of String)) 
+                    ~~~
+BC32044: Type argument 'String' does not inherit from or implement the constraint type '?'.
+    Shared Sub Main(del As D(Of String)) 
+                    ~~~
+BC32105: Type argument 'String' does not satisfy the 'Structure' constraint for type parameter 'T'.
+    Shared Sub Main(del As D(Of String)) 
+                    ~~~
+                                                </expected>)
+        End Sub
+
     End Class
 
 End Namespace

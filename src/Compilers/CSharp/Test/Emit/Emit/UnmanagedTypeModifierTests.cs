@@ -134,9 +134,15 @@ public class Test
 }";
 
             CreateStandardCompilation(code, references: new[] { reference }).VerifyDiagnostics(
+                // (9,9): error CS0315: The type 'int' cannot be used as type parameter 'T' in the generic type or method 'TestRef.M2<T>()'. There is no boxing conversion from 'int' to '?'.
+                //         obj.M2<int>();      // invalid
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "obj.M2<int>").WithArguments("TestRef.M2<T>()", "?", "T", "int").WithLocation(9, 9),
                 // (9,9): error CS0570: 'T' is not supported by the language
                 //         obj.M2<int>();      // invalid
-                Diagnostic(ErrorCode.ERR_BindToBogus, "obj.M2<int>").WithArguments("T").WithLocation(9, 9));
+                Diagnostic(ErrorCode.ERR_BindToBogus, "obj.M2<int>").WithArguments("T").WithLocation(9, 9),
+                // (9,9): error CS0648: '' is a type not supported by the language
+                //         obj.M2<int>();      // invalid
+                Diagnostic(ErrorCode.ERR_BogusType, "obj.M2<int>").WithArguments("").WithLocation(9, 9));
         }
 
         [Fact]
@@ -303,6 +309,26 @@ class Test
         }
 
         [Fact]
+        public void ProperErrorsArePropagatedIfModreqTypeIsNotAvailable_Delegate()
+        {
+            var code = @"
+namespace System
+{
+    public class Object {}
+    public class Void {}
+    public class ValueType {}
+    public class IntPtr {}
+    public class MulticastDelegate {}
+}
+public delegate void D<T>() where T : unmanaged;";
+
+            CreateCompilation(code).VerifyDiagnostics(
+                // (10,39): error CS0518: Predefined type 'System.Runtime.InteropServices.UnmanagedType' is not defined or imported
+                // public delegate void D<T>() where T : unmanaged;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "unmanaged").WithArguments("System.Runtime.InteropServices.UnmanagedType").WithLocation(10, 39));
+        }
+
+        [Fact]
         public void ProperErrorsArePropagatedIfValueTypeIsNotAvailable_Class()
         {
             var code = @"
@@ -358,7 +384,73 @@ class Test
         }
 
         [Fact]
-        public void UnmanagedTypeModreqIsCopiedToOverrides_Virtual()
+        public void ProperErrorsArePropagatedIfValueTypeIsNotAvailable_Delegate()
+        {
+            var code = @"
+namespace System
+{
+    public class Object {}
+    public class Void {}
+    public class IntPtr {}
+    public class MulticastDelegate {}
+
+    namespace Runtime
+    {
+        namespace InteropServices
+        {
+            public class UnmanagedType {}
+        }
+    }
+}
+public delegate void M<T>() where T : unmanaged;";
+
+            CreateCompilation(code).VerifyDiagnostics(
+                // (17,39): error CS0518: Predefined type 'System.ValueType' is not defined or imported
+                // public delegate void M<T>() where T : unmanaged;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "unmanaged").WithArguments("System.ValueType").WithLocation(17, 39));
+        }
+
+        [Fact]
+        public void UnmanagedTypeModreqIsCopiedToOverrides_Virtual_Compilation()
+        {
+            var reference = CompileAndVerify(@"
+public class Parent
+{
+    public virtual string M<T>() where T : unmanaged => ""Parent"";
+}
+public class Child : Parent
+{
+    public override string M<T>() => ""Child"";
+}", symbolValidator: module =>
+            {
+                var parentTypeParameter = module.ContainingAssembly.GetTypeByMetadataName("Parent").GetMethod("M").TypeParameters.Single();
+                Assert.True(parentTypeParameter.HasValueTypeConstraint);
+                Assert.True(parentTypeParameter.HasUnmanagedTypeConstraint);
+
+                Assert.Equal("IsUnmanagedAttribute", parentTypeParameter.GetAttributes().Single().AttributeClass.Name);
+
+                var childTypeParameter = module.ContainingAssembly.GetTypeByMetadataName("Child").GetMethod("M").TypeParameters.Single();
+                Assert.True(childTypeParameter.HasValueTypeConstraint);
+                Assert.True(childTypeParameter.HasUnmanagedTypeConstraint);
+
+                Assert.Equal("IsUnmanagedAttribute", childTypeParameter.GetAttributes().Single().AttributeClass.Name);
+            });
+
+            CompileAndVerify(@"
+class Program
+{
+    public static void Main()
+    {
+        System.Console.WriteLine(new Parent().M<int>());
+        System.Console.WriteLine(new Child().M<int>());
+    }
+}", additionalRefs: new[] { reference.Compilation.EmitToImageReference() }, expectedOutput: @"
+Parent
+Child");
+        }
+
+        [Fact]
+        public void UnmanagedTypeModreqIsCopiedToOverrides_Virtual_Reference()
         {
             var parent = CompileAndVerify(@"
 public class Parent
@@ -401,7 +493,43 @@ Child");
         }
 
         [Fact]
-        public void UnmanagedTypeModreqIsCopiedToOverrides_Abstract()
+        public void UnmanagedTypeModreqIsCopiedToOverrides_Abstract_Compilation()
+        {
+            var reference = CompileAndVerify(@"
+public abstract class Parent
+{
+    public abstract string M<T>() where T : unmanaged;
+}
+public class Child : Parent
+{
+    public override string M<T>() => ""Child"";
+}", symbolValidator: module =>
+            {
+                var parentTypeParameter = module.ContainingAssembly.GetTypeByMetadataName("Parent").GetMethod("M").TypeParameters.Single();
+                Assert.True(parentTypeParameter.HasValueTypeConstraint);
+                Assert.True(parentTypeParameter.HasUnmanagedTypeConstraint);
+
+                Assert.Equal("IsUnmanagedAttribute", parentTypeParameter.GetAttributes().Single().AttributeClass.Name);
+
+                var childTypeParameter = module.ContainingAssembly.GetTypeByMetadataName("Child").GetMethod("M").TypeParameters.Single();
+                Assert.True(childTypeParameter.HasValueTypeConstraint);
+                Assert.True(childTypeParameter.HasUnmanagedTypeConstraint);
+
+                Assert.Equal("IsUnmanagedAttribute", childTypeParameter.GetAttributes().Single().AttributeClass.Name);
+            });
+
+            CompileAndVerify(@"
+class Program
+{
+    public static void Main()
+    {
+        System.Console.WriteLine(new Child().M<int>());
+    }
+}", additionalRefs: new[] { reference.Compilation.EmitToImageReference() }, expectedOutput: "Child");
+        }
+
+        [Fact]
+        public void UnmanagedTypeModreqIsCopiedToOverrides_Abstract_Reference()
         {
             var parent = CompileAndVerify(@"
 public abstract class Parent
@@ -441,7 +569,43 @@ class Program
         }
 
         [Fact]
-        public void UnmanagedTypeModreqIsCopiedToOverrides_Interface_Implicit_Nonvirtual()
+        public void UnmanagedTypeModreqIsCopiedToOverrides_Interface_Implicit_Nonvirtual_Compilation()
+        {
+            var reference = CompileAndVerify(@"
+public interface Parent
+{
+    string M<T>() where T : unmanaged;
+}
+public class Child : Parent
+{
+    public string M<T>() where T : unmanaged => ""Child"";
+}", symbolValidator: module =>
+            {
+                var parentTypeParameter = module.ContainingAssembly.GetTypeByMetadataName("Parent").GetMethod("M").TypeParameters.Single();
+                Assert.True(parentTypeParameter.HasValueTypeConstraint);
+                Assert.True(parentTypeParameter.HasUnmanagedTypeConstraint);
+
+                Assert.Equal("IsUnmanagedAttribute", parentTypeParameter.GetAttributes().Single().AttributeClass.Name);
+
+                var childTypeParameter = module.ContainingAssembly.GetTypeByMetadataName("Child").GetMethod("M").TypeParameters.Single();
+                Assert.True(childTypeParameter.HasValueTypeConstraint);
+                Assert.True(childTypeParameter.HasUnmanagedTypeConstraint);
+
+                Assert.Equal("IsUnmanagedAttribute", childTypeParameter.GetAttributes().Single().AttributeClass.Name);
+            });
+
+            CompileAndVerify(@"
+class Program
+{
+    public static void Main()
+    {
+        System.Console.WriteLine(new Child().M<int>());
+    }
+}", additionalRefs: new[] { reference.Compilation.EmitToImageReference() }, expectedOutput: "Child");
+        }
+
+        [Fact]
+        public void UnmanagedTypeModreqIsCopiedToOverrides_Interface_Implicit_Nonvirtual_Reference()
         {
             var parent = CompileAndVerify(@"
 public interface Parent
@@ -481,7 +645,43 @@ class Program
         }
 
         [Fact]
-        public void UnmanagedTypeModreqIsCopiedToOverrides_Interface_Implicit_Virtual()
+        public void UnmanagedTypeModreqIsCopiedToOverrides_Interface_Implicit_Virtual_Compilation()
+        {
+            var reference = CompileAndVerify(@"
+public interface Parent
+{
+    string M<T>() where T : unmanaged;
+}
+public class Child : Parent
+{
+    public virtual string M<T>() where T : unmanaged => ""Child"";
+}", symbolValidator: module =>
+            {
+                var parentTypeParameter = module.ContainingAssembly.GetTypeByMetadataName("Parent").GetMethod("M").TypeParameters.Single();
+                Assert.True(parentTypeParameter.HasValueTypeConstraint);
+                Assert.True(parentTypeParameter.HasUnmanagedTypeConstraint);
+
+                Assert.Equal("IsUnmanagedAttribute", parentTypeParameter.GetAttributes().Single().AttributeClass.Name);
+
+                var childTypeParameter = module.ContainingAssembly.GetTypeByMetadataName("Child").GetMethod("M").TypeParameters.Single();
+                Assert.True(childTypeParameter.HasValueTypeConstraint);
+                Assert.True(childTypeParameter.HasUnmanagedTypeConstraint);
+
+                Assert.Equal("IsUnmanagedAttribute", childTypeParameter.GetAttributes().Single().AttributeClass.Name);
+            });
+
+            CompileAndVerify(@"
+class Program
+{
+    public static void Main()
+    {
+        System.Console.WriteLine(new Child().M<int>());
+    }
+}", additionalRefs: new[] { reference.Compilation.EmitToImageReference() }, expectedOutput: "Child");
+        }
+
+        [Fact]
+        public void UnmanagedTypeModreqIsCopiedToOverrides_Interface_Implicit_Virtual_Reference()
         {
             var parent = CompileAndVerify(@"
 public interface Parent
@@ -521,7 +721,44 @@ class Program
         }
 
         [Fact]
-        public void UnmanagedTypeModreqIsCopiedToOverrides_Interface_Explicit()
+        public void UnmanagedTypeModreqIsCopiedToOverrides_Interface_Explicit_Compilation()
+        {
+            var reference = CompileAndVerify(@"
+public interface Parent
+{
+    string M<T>() where T : unmanaged;
+}
+public class Child : Parent
+{
+    string Parent.M<T>() => ""Child"";
+}", symbolValidator: module =>
+            {
+                var parentTypeParameter = module.ContainingAssembly.GetTypeByMetadataName("Parent").GetMethod("M").TypeParameters.Single();
+                Assert.True(parentTypeParameter.HasValueTypeConstraint);
+                Assert.True(parentTypeParameter.HasUnmanagedTypeConstraint);
+
+                Assert.Equal("IsUnmanagedAttribute", parentTypeParameter.GetAttributes().Single().AttributeClass.Name);
+
+                var childTypeParameter = module.ContainingAssembly.GetTypeByMetadataName("Child").GetMethod("Parent.M").TypeParameters.Single();
+                Assert.True(childTypeParameter.HasValueTypeConstraint);
+                Assert.True(childTypeParameter.HasUnmanagedTypeConstraint);
+
+                Assert.Equal("IsUnmanagedAttribute", childTypeParameter.GetAttributes().Single().AttributeClass.Name);
+            });
+
+            CompileAndVerify(@"
+class Program
+{
+    public static void Main()
+    {
+        Parent obj = new Child();
+        System.Console.WriteLine(obj.M<int>());
+    }
+}", additionalRefs: new[] { reference.Compilation.EmitToImageReference() }, expectedOutput: "Child");
+        }
+
+        [Fact]
+        public void UnmanagedTypeModreqIsCopiedToOverrides_Interface_Explicit_Reference()
         {
             var parent = CompileAndVerify(@"
 public interface Parent
@@ -559,6 +796,95 @@ class Program
         System.Console.WriteLine(obj.M<int>());
     }
 }", additionalRefs: new[] { parent.Compilation.EmitToImageReference(), child.Compilation.EmitToImageReference() }, expectedOutput: "Child");
+        }
+
+        [Fact]
+        public void UnmanagedTypeModreqIsCopiedToLambda_Compilation()
+        {
+            CompileAndVerify(@"
+public delegate T D<T>() where T : unmanaged;
+public class TestRef
+{
+    public static void Print<T>(D<T> lambda) where T : unmanaged
+    {
+        System.Console.WriteLine(lambda());
+    }
+}
+public class Program
+{
+    static void Test<T>(T arg)  where T : unmanaged
+    {
+        TestRef.Print(() => arg);
+    }
+    
+    public static void Main()
+    {
+        Test(5);
+    }
+}",
+                expectedOutput: "5",
+                options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                symbolValidator: module =>
+            {
+                var delegateTypeParameter = module.ContainingAssembly.GetTypeByMetadataName("D`1").TypeParameters.Single();
+                Assert.True(delegateTypeParameter.HasValueTypeConstraint);
+                Assert.True(delegateTypeParameter.HasUnmanagedTypeConstraint);
+
+                Assert.Equal("IsUnmanagedAttribute", delegateTypeParameter.GetAttributes().Single().AttributeClass.Name);
+
+                var lambdaTypeParameter = module.ContainingAssembly.GetTypeByMetadataName("Program").GetTypeMember("<>c__DisplayClass0_0").TypeParameters.Single();
+                Assert.True(lambdaTypeParameter.HasValueTypeConstraint);
+                Assert.True(lambdaTypeParameter.HasUnmanagedTypeConstraint);
+
+                Assert.Equal("IsUnmanagedAttribute", lambdaTypeParameter.GetAttributes().Single().AttributeClass.Name);
+            });
+        }
+
+        [Fact]
+        public void UnmanagedTypeModreqIsCopiedToLambda_Reference()
+        {
+            var reference = CompileAndVerify(@"
+public delegate T D<T>() where T : unmanaged;
+public class TestRef
+{
+    public static void Print<T>(D<T> lambda) where T : unmanaged
+    {
+        System.Console.WriteLine(lambda());
+    }
+}", symbolValidator: module =>
+            {
+                var typeParameter = module.ContainingAssembly.GetTypeByMetadataName("D`1").TypeParameters.Single();
+                Assert.True(typeParameter.HasValueTypeConstraint);
+                Assert.True(typeParameter.HasUnmanagedTypeConstraint);
+
+                Assert.Equal("IsUnmanagedAttribute", typeParameter.GetAttributes().Single().AttributeClass.Name);
+            });
+
+
+            CompileAndVerify(@"
+public class Program
+{
+    static void Test<T>(T arg)  where T : unmanaged
+    {
+        TestRef.Print(() => arg);
+    }
+    
+    public static void Main()
+    {
+        Test(5);
+    }
+}",
+                expectedOutput: "5",
+                additionalRefs: new[] { reference.Compilation.EmitToImageReference() },
+                options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                symbolValidator: module =>
+                {
+                    var typeParameter = module.ContainingAssembly.GetTypeByMetadataName("Program").GetTypeMember("<>c__DisplayClass0_0").TypeParameters.Single();
+                    Assert.True(typeParameter.HasValueTypeConstraint);
+                    Assert.True(typeParameter.HasUnmanagedTypeConstraint);
+
+                    Assert.Equal("IsUnmanagedAttribute", typeParameter.GetAttributes().Single().AttributeClass.Name);
+                });
         }
 
         [Fact]

@@ -5,7 +5,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.IO;
 using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -889,7 +888,7 @@ namespace Microsoft.CodeAnalysis
                         try
                         {
                             var memoryReader = this.Module.GetTypeSpecificationSignatureReaderOrThrow((TypeSpecificationHandle)token);
-                            DecodeModifiersOrThrow(ref memoryReader, AllowedRequiredModifierType.System_Runtime_InteropServices_UnmanagedType, out var typeCode, out var modReqFound);
+                            var modifiers = DecodeModifiersOrThrow(ref memoryReader, AllowedRequiredModifierType.System_Runtime_InteropServices_UnmanagedType, out var typeCode, out var modReqFound);
                             var type = DecodeTypeOrThrow(ref memoryReader, typeCode, out _);
 
                             if (modReqFound)
@@ -902,6 +901,12 @@ namespace Microsoft.CodeAnalysis
                                 {
                                     return GetUnsupportedMetadataTypeSymbol();
                                 }
+                            }
+                            else if (!modifiers.IsDefaultOrEmpty)
+                            {
+                                // Optional modifiers (also, other required parameters) not allowed on generic parameters
+                                // http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528856
+                                return GetUnsupportedMetadataTypeSymbol();
                             }
 
                             return type;

@@ -445,18 +445,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        internal static bool IsManagedTypeFromConstraintTypes(ImmutableArray<TypeSymbol> constraintTypes)
-        {
-            foreach (var constraintType in constraintTypes)
-            {
-                if (constraintType.IsManagedType)
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
-
         public sealed override bool IsReferenceType
         {
             get
@@ -477,7 +465,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return !this.HasUnmanagedTypeConstraint && IsManagedTypeFromConstraintTypes(this.ConstraintTypesNoUseSiteDiagnostics);
+                return !this.HasUnmanagedTypeConstraint;
             }
         }
 
