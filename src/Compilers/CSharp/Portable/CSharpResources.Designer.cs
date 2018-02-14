@@ -3176,6 +3176,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Type parameter &apos;{1}&apos; has the &apos;unmanaged&apos; constraint so &apos;{1}&apos; cannot be used as a constraint for &apos;{0}&apos;.
+        /// </summary>
+        internal static string ERR_ConWithUnmanagedCon {
+            get {
+                return ResourceManager.GetString("ERR_ConWithUnmanagedCon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Type parameter &apos;{1}&apos; has the &apos;struct&apos; constraint so &apos;{1}&apos; cannot be used as a constraint for &apos;{0}&apos;.
         /// </summary>
         internal static string ERR_ConWithValCon {
@@ -9733,6 +9742,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_UnmanagedConstraintNotSatisfied {
             get {
                 return ResourceManager.GetString("ERR_UnmanagedConstraintNotSatisfied", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Using unmanaged constraint on local functions type parameters is not supported..
+        /// </summary>
+        internal static string ERR_UnmanagedConstraintWithLocalFunctions {
+            get {
+                return ResourceManager.GetString("ERR_UnmanagedConstraintWithLocalFunctions", resourceCulture);
             }
         }
         

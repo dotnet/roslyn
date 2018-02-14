@@ -163,10 +163,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 constraintDeducedBase = constraintTypeParameter.GetDeducedBaseType(constraintsInProgress);
                                 AddInterfaces(interfacesBuilder, constraintTypeParameter.GetInterfaces(constraintsInProgress));
 
-                                if (constraintTypeParameter.HasValueTypeConstraint && !inherited && currentCompilation != null && constraintTypeParameter.IsFromCompilation(currentCompilation))
+                                if (!inherited && currentCompilation != null && constraintTypeParameter.IsFromCompilation(currentCompilation))
                                 {
-                                    // "Type parameter '{1}' has the 'struct' constraint so '{1}' cannot be used as a constraint for '{0}'"
-                                    diagnosticsBuilder.Add(new TypeParameterDiagnosticInfo(typeParameter, new CSDiagnosticInfo(ErrorCode.ERR_ConWithValCon, typeParameter, constraintTypeParameter)));
+                                    ErrorCode errorCode;
+                                    if (constraintTypeParameter.HasUnmanagedTypeConstraint)
+                                    {
+                                        errorCode = ErrorCode.ERR_ConWithUnmanagedCon;
+                                    }
+                                    else if (constraintTypeParameter.HasValueTypeConstraint)
+                                    {
+                                        errorCode = ErrorCode.ERR_ConWithValCon;
+                                    }
+                                    else
+                                    {
+                                        break;
+                                    }
+
+                                    // "Type parameter '{1}' has the '?' constraint so '{1}' cannot be used as a constraint for '{0}'"
+                                    diagnosticsBuilder.Add(new TypeParameterDiagnosticInfo(typeParameter, new CSDiagnosticInfo(errorCode, typeParameter, constraintTypeParameter)));
                                     continue;
                                 }
                             }

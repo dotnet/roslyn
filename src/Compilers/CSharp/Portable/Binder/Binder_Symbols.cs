@@ -403,7 +403,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var elementType = BindType(node.ElementType, diagnostics, basesBeingResolved);
                         ReportUnsafeIfNotAllowed(node, diagnostics);
 
-                        if (elementType.IsManagedType)
+                        // Checking BinderFlags.GenericConstraintsClause to prevent cycles in binding
+                        if (Flags.HasFlag(BinderFlags.GenericConstraintsClause) && elementType.TypeKind == TypeKind.TypeParameter)
+                        {
+                            // Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                            Error(diagnostics, ErrorCode.ERR_BadConstraintType, node);
+                        }
+                        else if (elementType.IsManagedType)
                         {
                             // "Cannot take the address of, get the size of, or declare a pointer to a managed type ('{0}')"
                             Error(diagnostics, ErrorCode.ERR_ManagedAddr, node, elementType);

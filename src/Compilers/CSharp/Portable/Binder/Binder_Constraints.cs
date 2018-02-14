@@ -135,7 +135,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             var typeConstraintSyntax = (TypeConstraintSyntax)syntax;
                             var typeSyntax = typeConstraintSyntax.Type;
-                            if (typeSyntax.Kind() != SyntaxKind.PredefinedType && !SyntaxFacts.IsName(typeSyntax.Kind()))
+                            var typeSyntaxKind = typeSyntax.Kind();
+                            if (typeSyntaxKind != SyntaxKind.PredefinedType && typeSyntaxKind != SyntaxKind.PointerType && !SyntaxFacts.IsName(typeSyntax.Kind()))
                             {
                                 diagnostics.Add(ErrorCode.ERR_BadConstraintType, typeSyntax.GetLocation());
                             }
@@ -153,8 +154,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 // This should produce diagnostics if the types are missing
                                 GetWellKnownType(WellKnownType.System_Runtime_InteropServices_UnmanagedType, diagnostics, typeSyntax);
                                 GetSpecialType(SpecialType.System_ValueType, diagnostics, typeSyntax);
-
-                                Compilation.EnsureIsUnmanagedAttributeExists(diagnostics, typeSyntax.Location, modifyCompilationForIsUnmanaged: true);
 
                                 constraints |= TypeParameterConstraintKind.Unmanaged;
                                 continue;

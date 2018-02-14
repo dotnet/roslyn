@@ -66,15 +66,9 @@ public class Test
 }";
 
             CreateStandardCompilation(code, references: new[] { reference }).VerifyDiagnostics(
-                // (9,9): error CS0315: The type 'int' cannot be used as type parameter 'T' in the generic type or method 'TestRef.M2<T>()'. There is no boxing conversion from 'int' to '?'.
-                //         obj.M2<int>();      // invalid
-                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "obj.M2<int>").WithArguments("TestRef.M2<T>()", "?", "T", "int").WithLocation(9, 9),
                 // (9,9): error CS0570: 'T' is not supported by the language
                 //         obj.M2<int>();      // invalid
-                Diagnostic(ErrorCode.ERR_BindToBogus, "obj.M2<int>").WithArguments("T").WithLocation(9, 9),
-                // (9,9): error CS0648: '' is a type not supported by the language
-                //         obj.M2<int>();      // invalid
-                Diagnostic(ErrorCode.ERR_BogusType, "obj.M2<int>").WithArguments("").WithLocation(9, 9));
+                Diagnostic(ErrorCode.ERR_BindToBogus, "obj.M2<int>").WithArguments("T").WithLocation(9, 9));
         }
 
         [Fact]
@@ -134,15 +128,9 @@ public class Test
 }";
 
             CreateStandardCompilation(code, references: new[] { reference }).VerifyDiagnostics(
-                // (9,9): error CS0315: The type 'int' cannot be used as type parameter 'T' in the generic type or method 'TestRef.M2<T>()'. There is no boxing conversion from 'int' to '?'.
-                //         obj.M2<int>();      // invalid
-                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "obj.M2<int>").WithArguments("TestRef.M2<T>()", "?", "T", "int").WithLocation(9, 9),
                 // (9,9): error CS0570: 'T' is not supported by the language
                 //         obj.M2<int>();      // invalid
-                Diagnostic(ErrorCode.ERR_BindToBogus, "obj.M2<int>").WithArguments("T").WithLocation(9, 9),
-                // (9,9): error CS0648: '' is a type not supported by the language
-                //         obj.M2<int>();      // invalid
-                Diagnostic(ErrorCode.ERR_BogusType, "obj.M2<int>").WithArguments("").WithLocation(9, 9));
+                Diagnostic(ErrorCode.ERR_BindToBogus, "obj.M2<int>").WithArguments("T").WithLocation(9, 9));
         }
 
         [Fact]
@@ -909,7 +897,151 @@ public class Test<T> where T : unmanaged
                 // public class Test<T> where T : unmanaged
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "unmanaged").WithArguments("System.Runtime.InteropServices.UnmanagedType").WithLocation(2, 32));
         }
-        
+
+        [Fact]
+        public void UnmanagedConstraintWithClassConstraint_IL()
+        {
+            var ilSource = IsUnmanagedAttributeIL + @"
+.class public auto ansi beforefieldinit TestRef
+       extends [mscorlib]System.Object
+{
+  .method public hidebysig instance void
+          M<class (class [mscorlib]System.ValueType modreq([mscorlib]System.Runtime.InteropServices.UnmanagedType)) T>() cil managed
+  {
+    .param type T
+    .custom instance void System.Runtime.CompilerServices.IsUnmanagedAttribute::.ctor() = ( 01 00 00 00 )
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000:  nop
+    IL_0001:  ret
+  } // end of method TestRef::M
+
+  .method public hidebysig specialname rtspecialname
+          instance void  .ctor() cil managed
+  {
+    // Code size       8 (0x8)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
+    IL_0006:  nop
+    IL_0007:  ret
+  } // end of method TestRef::.ctor
+
+}";
+
+            var reference = CompileIL(ilSource, prependDefaultHeader: false);
+
+            var code = @"
+public class Test
+{
+    public static void Main()
+    {
+        new TestRef().M<int>();
+    }
+}";
+
+            CreateStandardCompilation(code, references: new[] { reference }).VerifyDiagnostics(
+                // (6,9): error CS0570: 'T' is not supported by the language
+                //         new TestRef().M<int>();
+                Diagnostic(ErrorCode.ERR_BindToBogus, "new TestRef().M<int>").WithArguments("T").WithLocation(6, 9));
+        }
+
+        [Fact]
+        public void UnmanagedConstraintWithConstructorConstraint_IL()
+        {
+            var ilSource = IsUnmanagedAttributeIL + @"
+.class public auto ansi beforefieldinit TestRef
+       extends [mscorlib]System.Object
+{
+  .method public hidebysig instance void
+          M<.ctor (class [mscorlib]System.ValueType modreq([mscorlib]System.Runtime.InteropServices.UnmanagedType)) T>() cil managed
+  {
+    .param type T
+    .custom instance void System.Runtime.CompilerServices.IsUnmanagedAttribute::.ctor() = ( 01 00 00 00 )
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000:  nop
+    IL_0001:  ret
+  } // end of method TestRef::M
+
+  .method public hidebysig specialname rtspecialname
+          instance void  .ctor() cil managed
+  {
+    // Code size       8 (0x8)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
+    IL_0006:  nop
+    IL_0007:  ret
+  } // end of method TestRef::.ctor
+
+}";
+
+            var reference = CompileIL(ilSource, prependDefaultHeader: false);
+
+            var code = @"
+public class Test
+{
+    public static void Main()
+    {
+        new TestRef().M<int>();
+    }
+}";
+
+            CreateStandardCompilation(code, references: new[] { reference }).VerifyDiagnostics(
+                // (6,9): error CS0570: 'T' is not supported by the language
+                //         new TestRef().M<int>();
+                Diagnostic(ErrorCode.ERR_BindToBogus, "new TestRef().M<int>").WithArguments("T").WithLocation(6, 9));
+        }
+
+        [Fact]
+        public void UnmanagedConstraintWithTypeConstraint_IL()
+        {
+            var ilSource = IsUnmanagedAttributeIL + @"
+.class public auto ansi beforefieldinit TestRef
+       extends [mscorlib]System.Object
+{
+  .method public hidebysig instance void
+          M<valuetype .ctor(class [mscorlib]System.IComparable, class [mscorlib]System.ValueType modreq([mscorlib]System.Runtime.InteropServices.UnmanagedType)) T>() cil managed
+  {
+    .param type T
+    .custom instance void System.Runtime.CompilerServices.IsUnmanagedAttribute::.ctor() = ( 01 00 00 00 )
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000:  nop
+    IL_0001:  ret
+  } // end of method TestRef::M
+
+  .method public hidebysig specialname rtspecialname
+          instance void  .ctor() cil managed
+  {
+    // Code size       8 (0x8)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
+    IL_0006:  nop
+    IL_0007:  ret
+  } // end of method TestRef::.ctor
+
+}";
+
+            var reference = CompileIL(ilSource, prependDefaultHeader: false);
+
+            var code = @"
+public class Test
+{
+    public static void Main()
+    {
+        new TestRef().M<int>();
+    }
+}";
+
+            CreateStandardCompilation(code, references: new[] { reference }).VerifyDiagnostics(
+                // (6,9): error CS0570: 'T' is not supported by the language
+                //         new TestRef().M<int>();
+                Diagnostic(ErrorCode.ERR_BindToBogus, "new TestRef().M<int>").WithArguments("T").WithLocation(6, 9));
+        }
+
         private const string IsUnmanagedAttributeIL = @"
 .assembly extern mscorlib
 {

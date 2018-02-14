@@ -3,6 +3,7 @@
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -756,7 +757,7 @@ public class Test2
                 //         var c = new Test<string>();         // reference type
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "string").WithArguments("Test<T>", "System.Delegate", "T", "string").WithLocation(9, 26));
         }
-        
+
         [Fact]
         public void DelegateConstraint_Reference_Constructor()
         {
@@ -1634,6 +1635,24 @@ public abstract class Test2<U, W> where U : unmanaged
         }
 
         [Fact]
+        public void UnmanagedConstraint_Compilation_Alone_LocalFunction()
+        {
+            CreateStandardCompilation(@"
+public abstract class Test2<U, W> where U : unmanaged
+{
+    public void M()
+    {
+        void local<T>() where T : unmanaged { }
+
+        local<int>();
+    }
+}").VerifyDiagnostics(
+                // (6,20): error CS8376: Using unmanaged constraint on local functions type parameters is not supported.
+                //         void local<T>() where T : unmanaged { }
+                Diagnostic(ErrorCode.ERR_UnmanagedConstraintWithLocalFunctions, "T").WithLocation(6, 20));
+        }
+
+        [Fact]
         public void UnmanagedConstraint_Compilation_ReferenceType()
         {
             CreateStandardCompilation("public class Test<T> where T : class, unmanaged {}").VerifyDiagnostics(
@@ -2034,46 +2053,67 @@ class Test
         }
 
         [Theory]
-        [InlineData("(sbyte)1", "System.SByte")]
-        [InlineData("(byte)1", "System.Byte")]
-        [InlineData("(short)1", "System.Int16")]
-        [InlineData("(ushort)1", "System.UInt16")]
-        [InlineData("(int)1", "System.Int32")]
-        [InlineData("(uint)1", "System.UInt32")]
-        [InlineData("(long)1", "System.Int64")]
-        [InlineData("(ulong)1", "System.UInt64")]
-        [InlineData("'a'", "System.Char")]
-        [InlineData("(float)1", "System.Single")]
-        [InlineData("(double)1", "System.Double")]
-        [InlineData("(decimal)1", "System.Decimal")]
-        [InlineData("false", "System.Boolean")]
-        [InlineData("E.A", "E")]
-        public void UnmanagedConstraints_PointerOperations_SimpleTypes(string arg, string output)
+        [InlineData("(sbyte)1", "System.SByte", 1)]
+        [InlineData("(byte)1", "System.Byte", 1)]
+        [InlineData("(short)1", "System.Int16", 2)]
+        [InlineData("(ushort)1", "System.UInt16", 2)]
+        [InlineData("(int)1", "System.Int32", 4)]
+        [InlineData("(uint)1", "System.UInt32", 4)]
+        [InlineData("(long)1", "System.Int64", 8)]
+        [InlineData("(ulong)1", "System.UInt64", 8)]
+        [InlineData("'a'", "System.Char", 2)]
+        [InlineData("(float)1", "System.Single", 4)]
+        [InlineData("(double)1", "System.Double", 8)]
+        [InlineData("(decimal)1", "System.Decimal", 16)]
+        [InlineData("false", "System.Boolean", 1)]
+        [InlineData("E.A", "E", 4)]
+        [InlineData("new S { a = 1, b = 2, c = 3 }", "S", 12)]
+        public void UnmanagedConstraints_PointerOperations_SimpleTypes(string arg, string type, int size)
         {
             CompileAndVerify(@"
-enum E { A }
-class Test
+enum E
 {
-    unsafe static void M<T>(T arg) where T : unmanaged
+    A
+}
+struct S
+{
+    public int a;
+    public int b;
+    public int c;
+}
+unsafe class Test
+{
+    static T* M<T>(T arg) where T : unmanaged
     {
         T* ptr = &arg;
-        System.Console.WriteLine(ptr->GetType());
+        System.Console.WriteLine(ptr->GetType());   // method access
+        System.Console.WriteLine(sizeof(T));        // sizeof operator
+    
+        T* ar = stackalloc T [10];
+        return ar;
     }
     static void Main()
     {
         M(" + arg + @");
     }
 }",
-    options: TestOptions.UnsafeReleaseExe, expectedOutput: output).VerifyIL("Test.M<T>", @"
+    options: TestOptions.UnsafeReleaseExe, expectedOutput: string.Join(Environment.NewLine, type, size)).VerifyIL("Test.M<T>", @"
 {
-  // Code size       20 (0x14)
-  .maxstack  1
+  // Code size       43 (0x2b)
+  .maxstack  2
   IL_0000:  ldarga.s   V_0
   IL_0002:  conv.u
   IL_0003:  constrained. ""T""
   IL_0009:  callvirt   ""System.Type object.GetType()""
   IL_000e:  call       ""void System.Console.WriteLine(object)""
-  IL_0013:  ret
+  IL_0013:  sizeof     ""T""
+  IL_0019:  call       ""void System.Console.WriteLine(int)""
+  IL_001e:  ldc.i4.s   10
+  IL_0020:  conv.u
+  IL_0021:  sizeof     ""T""
+  IL_0027:  mul.ovf.un
+  IL_0028:  localloc
+  IL_002a:  ret
 }");
         }
 
@@ -2136,7 +2176,7 @@ unsafe class Test
     }
 }", options: TestOptions.UnsafeReleaseExe, expectedOutput: "8");
         }
-        
+
         [Fact]
         public void UnmanagedConstraints_NestedStructs_Error()
         {
@@ -2232,7 +2272,7 @@ class Test
         }
 
         [Fact]
-        public void UnmanagedConstraints_UnmanagedIsValidForStructConstraint()
+        public void UnmanagedConstraints_UnmanagedIsValidForStructConstraint_Methods()
         {
             CompileAndVerify(@"
 class Program
@@ -2250,6 +2290,126 @@ class Program
         B(5);
     }
 }", expectedOutput: "5");
+        }
+
+        [Fact]
+        public void UnmanagedConstraints_UnmanagedIsValidForStructConstraint_Types()
+        {
+            CompileAndVerify(@"
+class A<T> where T : struct
+{
+    public void M(T arg)
+    {
+        System.Console.WriteLine(arg);
+    }
+}
+class B<T> : A<T> where T : unmanaged
+{
+}
+class Program
+{
+    static void Main()
+    {
+        new B<int>().M(5);
+    }
+}", expectedOutput: "5");
+        }
+
+        [Fact]
+        public void UnmanagedConstraints_UnmanagedIsValidForStructConstraint_Interfaces()
+        {
+            CompileAndVerify(@"
+interface A<T> where T : struct
+{
+    void M(T arg);
+}
+class B<T> : A<T> where T : unmanaged
+{
+    public void M(T arg)
+    {
+        System.Console.WriteLine(arg);
+    }
+}
+class Program
+{
+    static void Main()
+    {
+        new B<int>().M(5);
+    }
+}", expectedOutput: "5");
+        }
+
+        [Fact]
+        public void UnmanagedConstraints_PointerTypeSubstitution()
+        {
+            var compilation = CreateStandardCompilation(@"
+unsafe public class Test
+{
+    public T* M<T>() where T : unmanaged => throw null;
+    
+    public void N()
+    {
+        var result = M<int>();
+    }
+}", options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree, ignoreAccessibility: true);
+
+            var value = ((VariableDeclaratorSyntax)tree.FindNodeOrTokenByKind(SyntaxKind.VariableDeclarator)).Initializer.Value;
+            Assert.Equal("M<int>()", value.ToFullString());
+
+            var symbol = (MethodSymbol)model.GetSymbolInfo(value).Symbol;
+            Assert.Equal("System.Int32*", symbol.ReturnType.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void UnmanagedConstraints_CannotConstraintToTypeParameterConstrainedByUnmanaged()
+        {
+            CreateStandardCompilation(@"
+class Test<U> where U : unmanaged
+{
+    void M<T>() where T : U
+    {
+    }
+}").VerifyDiagnostics(
+                // (4,12): error CS8377: Type parameter 'U' has the 'unmanaged' constraint so 'U' cannot be used as a constraint for 'T'
+                //     void M<T>() where T : U
+                Diagnostic(ErrorCode.ERR_ConWithUnmanagedCon, "T").WithArguments("T", "U").WithLocation(4, 12));
+        }
+
+        [Fact]
+        public void UnmanagedConstraints_UnmanagedAsTypeConstraintName()
+        {
+            CreateStandardCompilation(@"
+class Test<unmanaged> where unmanaged : System.IDisposable
+{
+    void M<T>(T arg) where T : unmanaged
+    {
+        arg.Dispose();
+        arg.NonExistentMethod();
+    }
+}").VerifyDiagnostics(
+                // (7,13): error CS1061: 'T' does not contain a definition for 'NonExistentMethod' and no extension method 'NonExistentMethod' accepting a first argument of type 'T' could be found (are you missing a using directive or an assembly reference?)
+                //         arg.NonExistentMethod();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "NonExistentMethod").WithArguments("T", "NonExistentMethod").WithLocation(7, 13));
+        }
+
+        [Fact]
+        public void UnmanagedConstraints_CircularReferenceToUnmanagedTypeWillBindSuccessfully()
+        {
+            CreateStandardCompilation(@"
+public unsafe class C<U> where U : unmanaged
+{
+    public void M1<T>() where T : T* { }
+    public void M2<T>() where T : U* { }
+}", options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (5,35): error CS0706: Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                //     public void M2<T>() where T : U* { }
+                Diagnostic(ErrorCode.ERR_BadConstraintType, "U*").WithLocation(5, 35),
+                // (4,35): error CS0706: Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                //     public void M1<T>() where T : T* { }
+                Diagnostic(ErrorCode.ERR_BadConstraintType, "T*").WithLocation(4, 35));
         }
     }
 }

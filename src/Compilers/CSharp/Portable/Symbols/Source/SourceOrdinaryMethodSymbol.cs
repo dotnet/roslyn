@@ -373,7 +373,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (typeParameter.HasUnmanagedTypeConstraint)
                 {
-                    DeclaringCompilation.EnsureIsUnmanagedAttributeExists(diagnostics, syntax.Location, modifyCompilationForIsUnmanaged: true);
+                    DeclaringCompilation.EnsureIsUnmanagedAttributeExists(diagnostics, typeParameter.GetNonNullSyntaxNode().Location, modifyCompilationForIsUnmanaged: true);
                 }
             }
         }

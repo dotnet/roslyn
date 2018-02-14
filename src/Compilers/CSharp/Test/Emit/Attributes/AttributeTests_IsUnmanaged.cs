@@ -429,9 +429,9 @@ public class Test<T> where T : unmanaged
 }";
 
             CreateStandardCompilation(code, options: TestOptions.ReleaseModule).VerifyDiagnostics(
-                // (2,32): error CS0518: Predefined type 'System.Runtime.CompilerServices.IsUnmanagedAttribute' is not defined or imported
+                // (2,19): error CS0518: Predefined type 'System.Runtime.CompilerServices.IsUnmanagedAttribute' is not defined or imported
                 // public class Test<T> where T : unmanaged
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "unmanaged").WithArguments("System.Runtime.CompilerServices.IsUnmanagedAttribute").WithLocation(2, 32));
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "T").WithArguments("System.Runtime.CompilerServices.IsUnmanagedAttribute").WithLocation(2, 19));
         }
 
         [Fact]
@@ -444,9 +444,9 @@ public class Test
 }";
 
             CreateStandardCompilation(code, options: TestOptions.ReleaseModule).VerifyDiagnostics(
-                // (4,34): error CS0518: Predefined type 'System.Runtime.CompilerServices.IsUnmanagedAttribute' is not defined or imported
+                // (4,19): error CS0518: Predefined type 'System.Runtime.CompilerServices.IsUnmanagedAttribute' is not defined or imported
                 //     public void M<T>() where T : unmanaged {}
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "unmanaged").WithArguments("System.Runtime.CompilerServices.IsUnmanagedAttribute").WithLocation(4, 34));
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "T").WithArguments("System.Runtime.CompilerServices.IsUnmanagedAttribute").WithLocation(4, 19));
         }
 
         [Fact]
@@ -502,9 +502,9 @@ class Test<T> where T : unmanaged
 }";
 
             CreateStandardCompilation(text, options: new CSharpCompilationOptions(outputKind)).VerifyDiagnostics(
-                // (9,25): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.IsUnmanagedAttribute..ctor'
+                // (9,12): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.IsUnmanagedAttribute..ctor'
                 // class Test<T> where T : unmanaged
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "unmanaged").WithArguments("System.Runtime.CompilerServices.IsUnmanagedAttribute", ".ctor").WithLocation(9, 25));
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "T").WithArguments("System.Runtime.CompilerServices.IsUnmanagedAttribute", ".ctor").WithLocation(9, 12));
         }
 
         [Theory]
@@ -525,9 +525,9 @@ class Test<T> where T : unmanaged
 }";
 
             CreateStandardCompilation(text, options: new CSharpCompilationOptions(outputKind)).VerifyDiagnostics(
-                // (9,25): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.IsUnmanagedAttribute..ctor'
+                // (9,12): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.IsUnmanagedAttribute..ctor'
                 // class Test<T> where T : unmanaged
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "unmanaged").WithArguments("System.Runtime.CompilerServices.IsUnmanagedAttribute", ".ctor").WithLocation(9, 25));
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "T").WithArguments("System.Runtime.CompilerServices.IsUnmanagedAttribute", ".ctor").WithLocation(9, 12));
         }
 
         [Theory]
@@ -545,9 +545,9 @@ class Test<T> where T : unmanaged
 }";
 
             CreateStandardCompilation(text, options: new CSharpCompilationOptions(outputKind)).VerifyDiagnostics(
-                // (6,25): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.IsUnmanagedAttribute..ctor'
+                // (6,12): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.IsUnmanagedAttribute..ctor'
                 // class Test<T> where T : unmanaged
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "unmanaged").WithArguments("System.Runtime.CompilerServices.IsUnmanagedAttribute", ".ctor").WithLocation(6, 25));
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "T").WithArguments("System.Runtime.CompilerServices.IsUnmanagedAttribute", ".ctor").WithLocation(6, 12));
         }
 
         private void AssertReferencedIsUnmanagedAttribute(Accessibility accessibility, ImmutableArray<CSharpAttributeData> attributes, string assemblyName)

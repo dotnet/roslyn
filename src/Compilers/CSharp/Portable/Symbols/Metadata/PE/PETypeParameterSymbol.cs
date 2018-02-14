@@ -90,6 +90,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             _flags = ((flags & GenericParameterAttributes.NotNullableValueTypeConstraint) == 0) ? flags : (flags & ~GenericParameterAttributes.DefaultConstructorConstraint);
             _hasIsUnmanagedAttribute = moduleSymbol.Module.HasIsUnmanagedAttribute(handle);
 
+            if (_hasIsUnmanagedAttribute && (_flags & (GenericParameterAttributes.ReferenceTypeConstraint | GenericParameterAttributes.DefaultConstructorConstraint)) != 0)
+            {
+                // Unmanaged constraint cannot be combined with new() or class constraints
+                _flags = _flags & ~(GenericParameterAttributes.ReferenceTypeConstraint | GenericParameterAttributes.DefaultConstructorConstraint);
+                _lazyConstraintsUseSiteErrorInfo = new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this);
+            }
+
             _ordinal = ordinal;
             _handle = handle;
         }
@@ -188,7 +195,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                     if (hasUnmanagedModreq != this._hasIsUnmanagedAttribute)
                     {
+                        // The presence of UnmanagedType modreq has to match the presence of the IsUnmanagedAttribute
                         Interlocked.CompareExchange(ref _lazyConstraintsUseSiteErrorInfo, new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this), CSDiagnosticInfo.EmptyErrorInfo);
+                        continue;
                     }
 
                     // Drop 'System.Object' constraint type.
@@ -204,9 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         continue;
                     }
 
-                    typeSymbol = TupleTypeDecoder.DecodeTupleTypesIfApplicable(typeSymbol,
-                                                                               constraintHandle,
-                                                                               moduleSymbol);
+                    typeSymbol = TupleTypeDecoder.DecodeTupleTypesIfApplicable(typeSymbol, constraintHandle, moduleSymbol);
 
                     symbolsBuilder.Add(typeSymbol);
                 }
