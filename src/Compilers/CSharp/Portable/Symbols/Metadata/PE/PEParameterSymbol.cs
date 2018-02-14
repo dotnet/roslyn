@@ -142,11 +142,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         internal static PEParameterSymbol Create(
             PEModuleSymbol moduleSymbol,
             PEMethodSymbol containingSymbol,
+            bool isContainingSymbolVirtual,
             int ordinal,
-            ParamInfo<TypeSymbol> parameter,
+            ParamInfo<TypeSymbol> parameterInfo,
+            bool isReturn,
             out bool isBad)
         {
-            return Create(moduleSymbol, containingSymbol, ordinal, parameter.IsByRef, parameter.RefCustomModifiers, parameter.Type, parameter.Handle, parameter.CustomModifiers, out isBad);
+            return Create(
+                moduleSymbol, containingSymbol, isContainingSymbolVirtual, ordinal,
+                parameterInfo.IsByRef, parameterInfo.RefCustomModifiers, parameterInfo.Type,
+                parameterInfo.Handle, parameterInfo.CustomModifiers, isReturn, out isBad);
         }
 
         /// <summary>
@@ -158,17 +163,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// <param name="handle">The property parameter doesn't have a name in metadata,
         /// so this is the handle of a corresponding accessor parameter, if there is one,
         /// or of the ParamInfo passed in, otherwise).</param>
+        /// <param name="parameterInfo" />
         /// <param name="isBad" />
-        /// <param name="parameter"></param>
         internal static PEParameterSymbol Create(
             PEModuleSymbol moduleSymbol,
             PEPropertySymbol containingSymbol,
+            bool isContainingSymbolVirtual,
             int ordinal,
             ParameterHandle handle,
-            ParamInfo<TypeSymbol> parameter,
+            ParamInfo<TypeSymbol> parameterInfo,
             out bool isBad)
         {
-            return Create(moduleSymbol, containingSymbol, ordinal, parameter.IsByRef, parameter.RefCustomModifiers, parameter.Type, handle, parameter.CustomModifiers, out isBad);
+            return Create(
+                moduleSymbol, containingSymbol, isContainingSymbolVirtual, ordinal,
+                parameterInfo.IsByRef, parameterInfo.RefCustomModifiers, parameterInfo.Type,
+                handle, parameterInfo.CustomModifiers, isReturn: false, out isBad);
         }
 
         private PEParameterSymbol(
@@ -266,20 +275,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private static PEParameterSymbol Create(
             PEModuleSymbol moduleSymbol,
             Symbol containingSymbol,
+            bool isContainingSymbolVirtual,
             int ordinal,
             bool isByRef,
             ImmutableArray<ModifierInfo<TypeSymbol>> refCustomModifiers,
             TypeSymbol type,
             ParameterHandle handle,
             ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers,
+            bool isReturn,
             out bool isBad)
         {
-            if (customModifiers.IsDefaultOrEmpty && refCustomModifiers.IsDefaultOrEmpty)
+            PEParameterSymbol parameter = customModifiers.IsDefaultOrEmpty && refCustomModifiers.IsDefaultOrEmpty
+                ? new PEParameterSymbol(moduleSymbol, containingSymbol, ordinal, isByRef, type, handle, 0, out isBad)
+                : new PEParameterSymbolWithCustomModifiers(moduleSymbol, containingSymbol, ordinal, isByRef, refCustomModifiers, type, handle, customModifiers, out isBad);
+
+            bool hasInAttributeModifier = parameter.RefCustomModifiers.HasInAttributeModifier();
+
+            if (isReturn)
             {
-                return new PEParameterSymbol(moduleSymbol, containingSymbol, ordinal, isByRef, type, handle, 0, out isBad);
+                // A RefReadOnly return parameter should always have this modreq, and vice versa.
+                isBad |= (parameter.RefKind == RefKind.RefReadOnly) != hasInAttributeModifier;
+            }
+            else if (parameter.RefKind == RefKind.In)
+            {
+                // An in parameter should not have this modreq, unless the containing symbol was virtual or abstract.
+                isBad |= isContainingSymbolVirtual != hasInAttributeModifier;
+            }
+            else if (hasInAttributeModifier)
+            {
+                // This modreq should not exist on non-in parameters.
+                isBad = true;
             }
 
-            return new PEParameterSymbolWithCustomModifiers(moduleSymbol, containingSymbol, ordinal, isByRef, refCustomModifiers, type, handle, customModifiers, out isBad);
+            return parameter;
         }
 
         private sealed class PEParameterSymbolWithCustomModifiers : PEParameterSymbol
@@ -303,12 +331,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 _customModifiers = CSharpCustomModifier.Convert(customModifiers);
                 _refCustomModifiers = CSharpCustomModifier.Convert(refCustomModifiers);
-
-                if (this.RefKind != RefKind.In && _refCustomModifiers.Any(modifier => !modifier.IsOptional && modifier.Modifier.IsWellKnownTypeInAttribute()))
-                {
-                    // The modreq is only accepted on RefReadOnly symbols
-                    isBad = true;
-                }
 
                 Debug.Assert(_refCustomModifiers.IsEmpty || isByRef);
             }

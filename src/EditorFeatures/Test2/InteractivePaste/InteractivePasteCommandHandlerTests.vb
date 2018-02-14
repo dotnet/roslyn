@@ -130,7 +130,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
             End Using
         End Sub
 
-        <WpfFact>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/24749")>
         <Trait(Traits.Feature, Traits.Features.Interactive)>
         Public Sub PasteCommandWithInteractiveFormatAsBoxCopy()
             Using workspace = TestWorkspace.Create(

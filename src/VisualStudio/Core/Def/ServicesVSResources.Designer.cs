@@ -1750,7 +1750,7 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Prefere local function over anonymous function.
+        ///   Looks up a localized string similar to Prefer local function over anonymous function.
         /// </summary>
         internal static string Prefer_local_function_over_anonymous_function {
             get {

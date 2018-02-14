@@ -36,7 +36,8 @@ namespace Roslyn.MSBuild.Util
 
             if (MSBuildMinimumFileVersion != null)
             {
-                var msbuildFilePath = Path.Combine(MSBuildBinPath, "msbuild.exe");
+                var msbuildFileName = "MSBuild." + (Environment.NewLine == "\r\n" ? "exe" : "dll");
+                var msbuildFilePath = Path.Combine(MSBuildBinPath, msbuildFileName);
                 var fileVersionInfo = FileVersionInfo.GetVersionInfo(msbuildFilePath);
                 var fileVersion = new Version(fileVersionInfo.FileVersion);
                 var minimumVersion = new Version(MSBuildMinimumFileVersion);

@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             CancellationToken cancellationToken)
         {
             Document doc = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-            var semanticDocument = await SemanticDocument.CreateAsync(doc, cancellationToken).ConfigureAwait(true);
+            var semanticDocument = await SemanticDocument.CreateAsync(doc, cancellationToken).ConfigureAwait(false);
             var root = semanticDocument.Root;
 
             return GetExecutableSyntaxTreeNodeSelection(selectionSpan, root)
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
                 TextSpan.FromBounds(selectedSpansStart, selectedSpansEnd),
                 args,
                 snapshot,
-                cancellationToken).ConfigureAwait(true);
+                cancellationToken).ConfigureAwait(false);
 
             return newSpans.Any()
                 ? newSpans.Select(n => new SnapshotSpan(snapshot, n.Span.Start, n.Span.Length))
