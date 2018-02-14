@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Remote
         Task SynchronizePrimaryWorkspaceAsync(Checksum checksum, CancellationToken cancellationToken);
         Task SynchronizeGlobalAssetsAsync(Checksum[] checksums, CancellationToken cancellationToken);
 
-        void RegisterPrimarySolutionId(SolutionId solutionId, string storageLocation, CancellationToken cancellationToken);
+        void UpdateSolutionStorageLocation(SolutionId solutionId, string storageLocation, CancellationToken cancellationToken);
 
         /// <summary>
         /// This is only for debugging

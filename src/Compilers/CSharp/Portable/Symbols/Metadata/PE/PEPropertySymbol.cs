@@ -69,18 +69,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             var propertyParams = metadataDecoder.GetSignatureForProperty(handle, out callingConvention, out propEx);
             Debug.Assert(propertyParams.Length > 0);
 
-            var isBad = false;
             var returnInfo = propertyParams[0];
-            PEPropertySymbol result;
 
-            if (returnInfo.CustomModifiers.IsDefaultOrEmpty && returnInfo.RefCustomModifiers.IsDefaultOrEmpty)
-            {
-                result = new PEPropertySymbol(moduleSymbol, containingType, handle, getMethod, setMethod, 0, propertyParams, metadataDecoder);
-            }
-            else
-            {
-                result = new PEPropertySymbolWithCustomModifiers(moduleSymbol, containingType, handle, getMethod, setMethod, propertyParams, metadataDecoder, out isBad);
-            }
+            PEPropertySymbol result = returnInfo.CustomModifiers.IsDefaultOrEmpty && returnInfo.RefCustomModifiers.IsDefaultOrEmpty
+                ? new PEPropertySymbol(moduleSymbol, containingType, handle, getMethod, setMethod, 0, propertyParams, metadataDecoder)
+                : new PEPropertySymbolWithCustomModifiers(moduleSymbol, containingType, handle, getMethod, setMethod, propertyParams, metadataDecoder);
+
+            // A property should always have this modreq, and vice versa.
+            var isBad = (result.RefKind == RefKind.In) != result.RefCustomModifiers.HasInAttributeModifier();
 
             if (propEx != null || isBad)
             {
@@ -133,7 +129,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             // use the parameter names from one of the indexers
             // NB: prefer setter names to getter names if both are present.
             bool isBad;
-            _parameters = GetParameters(moduleSymbol, this, propertyParams, setMethodParams ?? getMethodParams, out isBad);
+
+            _parameters = setMethodParams is null
+                ? GetParameters(moduleSymbol, this, propertyParams, getMethodParams, getMethod.IsMetadataVirtual(), out isBad)
+                : GetParameters(moduleSymbol, this, propertyParams, setMethodParams, setMethod.IsMetadataVirtual(), out isBad);
 
             if (getEx != null || setEx != null || mrEx != null || isBad)
             {
@@ -650,6 +649,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             PEPropertySymbol property,
             ParamInfo<TypeSymbol>[] propertyParams,
             ParamInfo<TypeSymbol>[] accessorParams,
+            bool isPropertyVirtual,
             out bool anyParameterIsBad)
         {
             anyParameterIsBad = false;
@@ -671,13 +671,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 var paramHandle = i < numAccessorParams ? accessorParams[i].Handle : propertyParam.Handle;
                 var ordinal = i - 1;
                 bool isBad;
-                parameters[ordinal] = PEParameterSymbol.Create(moduleSymbol, property, ordinal, paramHandle, propertyParam, out isBad);
+                
+                parameters[ordinal] = PEParameterSymbol.Create(moduleSymbol, property, isPropertyVirtual, ordinal, paramHandle, propertyParam, out isBad);
 
                 if (isBad)
                 {
                     anyParameterIsBad = true;
                 }
             }
+
             return parameters.AsImmutableOrNull();
         }
 
@@ -732,18 +734,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 PEMethodSymbol getMethod,
                 PEMethodSymbol setMethod,
                 ParamInfo<TypeSymbol>[] propertyParams,
-                MetadataDecoder metadataDecoder,
-                out bool isBad)
-                : base (moduleSymbol, containingType, handle, getMethod, setMethod,
+                MetadataDecoder metadataDecoder)
+                : base(moduleSymbol, containingType, handle, getMethod, setMethod,
                         propertyParams[0].CustomModifiers.NullToEmpty().Length + propertyParams[0].RefCustomModifiers.NullToEmpty().Length,
                         propertyParams, metadataDecoder)
             {
                 var returnInfo = propertyParams[0];
                 _typeCustomModifiers = CSharpCustomModifier.Convert(returnInfo.CustomModifiers);
                 _refCustomModifiers = CSharpCustomModifier.Convert(returnInfo.RefCustomModifiers);
-
-                // The modreq is only accepted on RefReadOnly symbols
-                isBad = this.RefKind != RefKind.RefReadOnly && _refCustomModifiers.Any(modifier => !modifier.IsOptional && modifier.Modifier.IsWellKnownTypeInAttribute());
             }
 
             public override ImmutableArray<CustomModifier> TypeCustomModifiers
