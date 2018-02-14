@@ -313,17 +313,15 @@ namespace RoslynCompletionPrototype
                 return Task.FromResult(new FilteredCompletionModel(highlightedList, 0));
             }
 
+            RoslynCompletionItem uniqueItem = null;
+            if (bestItem != null && matchingItems.Length == 1 && filterText.Length > 0)
+            {
+                uniqueItem = bestItem;
+            }
+
             // TODO: Better conversion between Roslyn/Editor completion items
             var selectedItemIndex = filterResults.IndexOf(i => i.CompletionItem.DisplayText == bestItem.DisplayText);
-
-            return Task.FromResult(new FilteredCompletionModel(
-                highlightedList, 
-                selectedItemIndex, 
-                filters, 
-                CompletionItemSelection.NoChange,
-                uniqueItem: bestItem != null && matchingItems.Length == 1 && filterText.Length > 0
-                    ? highlightedList[selectedItemIndex].CompletionItem
-                    : null));
+            return Task.FromResult(new FilteredCompletionModel(highlightedList, selectedItemIndex, filters, CompletionItemSelection.NoChange, highlightedList[selectedItemIndex].CompletionItem));
         }
 
         private static bool IsAfterDot(ITextSnapshot snapshot, ITrackingSpan applicableToSpan)
