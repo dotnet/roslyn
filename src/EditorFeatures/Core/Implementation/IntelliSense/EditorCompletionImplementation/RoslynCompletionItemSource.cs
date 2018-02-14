@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -95,6 +96,16 @@ namespace RoslynCompletionPrototype
             var imageId = imageService.GetImageId(roslynItem.Tags.GetGlyph());
             var insertionText = roslynItem.DisplayText; // TODO
             var filters = GetFilters(roslynItem, imageService, filterCache);
+
+            var attributeImages = ImmutableArray<AccessibleImageId>.Empty;
+            var supportedPlatforms = SymbolCompletionItem.GetSupportedPlatforms(roslynItem, roslynItem.Document.Project.Solution.Workspace);
+            if (supportedPlatforms.InvalidProjects.Count > 0)
+            {
+                var warningImage = imageService.GetImageId(Glyph.CompletionWarning);
+
+                attributeImages = new ImmutableArray<AccessibleImageId> { new AccessibleImageId(warningImage.Guid, warningImage.Id, "Temporary Automation Id", "Temporary Automation Name") };
+            }
+
             var item = new EditorCompletion.CompletionItem(
                 roslynItem.DisplayText,
                 this,
@@ -105,7 +116,7 @@ namespace RoslynCompletionPrototype
                 insertText: insertionText,
                 roslynItem.SortText,
                 roslynItem.FilterText,
-                attributeimages: ImmutableArray<AccessibleImageId>.Empty);
+                attributeImages);
 
             item.Properties.AddProperty(RoslynItem, roslynItem);
             return item;
