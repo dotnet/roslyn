@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using Roslyn.Utilities;
 
@@ -14,6 +15,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
     /// </summary>
     /// <remarks>A good link is: http://mef.codeplex.com/wikipage?title=Exports%20and%20Metadata
     /// </remarks>
+    [Obsolete("use IAsynchronousOperationListenerProvider")]
     internal class FeatureMetadata
     {
         public string FeatureName { get; }

@@ -99,13 +99,13 @@ End Module")
             }
         }
 
-        private static void ReferenceNetstandardDllIfCoreClr(List<string> arguments)
+        private static void ReferenceNetstandardDllIfCoreClr(TempDirectory currentDirectory, List<string> arguments)
         {
 #if NETCOREAPP2_0
+            var filePath = Path.Combine(currentDirectory.Path, "netstandard.dll");
+            File.WriteAllBytes(filePath, TestResources.NetFX.netstandard20.netstandard);
             arguments.Add("/nostdlib");
-            var selfDir = Path.GetDirectoryName(typeof(CompilerServerUnitTests).Assembly.Location);
-            var arg = "/r:" + Path.Combine(selfDir, "ref", "netstandard.dll");
-            arguments.Add(arg);
+            arguments.Add("/r:netstandard.dll");
 #endif
         }
 
@@ -187,7 +187,7 @@ End Module")
             bool shouldRunOnServer = true)
         {
             var arguments = new List<string>(argumentsSingle.Split(' '));
-            ReferenceNetstandardDllIfCoreClr(arguments);
+            ReferenceNetstandardDllIfCoreClr(currentDirectory, arguments);
             CheckForBadShared(arguments);
             CreateFiles(currentDirectory, filesInDirectory);
 

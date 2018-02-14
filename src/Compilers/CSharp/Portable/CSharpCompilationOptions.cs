@@ -423,14 +423,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new CSharpCompilationOptions(this) { DebugPlusMode_internal_protected_set = debugPlusMode };
         }
 
-        internal new CSharpCompilationOptions WithMetadataImportOptions(MetadataImportOptions value)
+        public new CSharpCompilationOptions WithMetadataImportOptions(MetadataImportOptions value)
         {
             if (value == this.MetadataImportOptions)
             {
                 return this;
             }
 
-            return new CSharpCompilationOptions(this) { MetadataImportOptions_internal_protected_set = value };
+            return new CSharpCompilationOptions(this) { MetadataImportOptions = value };
         }
 
         internal CSharpCompilationOptions WithReferencesSupersedeLowerVersions(bool value)
@@ -521,7 +521,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override CompilationOptions CommonWithStrongNameProvider(StrongNameProvider provider) =>
             WithStrongNameProvider(provider);
 
-        internal override CompilationOptions CommonWithMetadataImportOptions(MetadataImportOptions value) =>
+        protected override CompilationOptions CommonWithMetadataImportOptions(MetadataImportOptions value) =>
             WithMetadataImportOptions(value);
 
         [Obsolete]

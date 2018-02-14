@@ -9,6 +9,7 @@
     <AssemblyName>Microsoft.CodeAnalysis.EditorFeatures</AssemblyName>
     <TargetFramework>net46</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DefineConstants>$(DefineConstants);EDITOR_FEATURES</DefineConstants>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj" />
@@ -93,6 +94,12 @@
     <InternalsVisibleToRemoteLS Include="Microsoft.VisualStudio.LanguageServices.Remote.CSharp" />
     <InternalsVisibleToFSharp Include="FSharp.Editor" />
     <InternalsVisibleToMoq Include="DynamicProxyGenAssembly2" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\Compilers\Shared\GlobalAssemblyCacheHelpers\ClrGlobalAssemblyCache.cs" Link="Shared\GlobalAssemblyCacheHelpers\ClrGlobalAssemblyCache.cs" />
+    <Compile Include="..\..\Compilers\Shared\GlobalAssemblyCacheHelpers\FusionAssemblyIdentity.cs" Link="Shared\GlobalAssemblyCacheHelpers\FusionAssemblyIdentity.cs" />
+    <Compile Include="..\..\Compilers\Shared\GlobalAssemblyCacheHelpers\GlobalAssemblyCache.cs" Link="Shared\GlobalAssemblyCacheHelpers\GlobalAssemblyCache.cs" />
+    <Compile Include="..\..\Compilers\Shared\GlobalAssemblyCacheHelpers\MonoGlobalAssemblyCache.cs" Link="Shared\GlobalAssemblyCacheHelpers\MonoGlobalAssemblyCache.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="EditorFeaturesResources.Designer.cs">

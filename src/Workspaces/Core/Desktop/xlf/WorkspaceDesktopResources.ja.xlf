@@ -4,22 +4,22 @@
     <body>
       <trans-unit id="Invalid_assembly_name">
         <source>Invalid assembly name</source>
-        <target state="new">Invalid assembly name</target>
+        <target state="translated">無効なアセンブリ名</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_characters_in_assembly_name">
         <source>Invalid characters in assembly name</source>
-        <target state="new">Invalid characters in assembly name</target>
+        <target state="translated">アセンブリ名に無効な文字があります</target>
         <note />
       </trans-unit>
       <trans-unit id="Msbuild_failed_when_processing_the_file_0">
         <source>Msbuild failed when processing the file '{0}'</source>
-        <target state="new">Msbuild failed when processing the file '{0}'</target>
+        <target state="translated">ファイル '{0}' の処理中に MSBuild が失敗しました</target>
         <note />
       </trans-unit>
       <trans-unit id="Msbuild_failed_when_processing_the_file_0_with_message_1">
         <source>Msbuild failed when processing the file '{0}' with message: {1}</source>
-        <target state="new">Msbuild failed when processing the file '{0}' with message: {1}</target>
+        <target state="translated">ファイル '{0}' の処理中に MSBuild が次のメッセージで失敗しました: {1}</target>
         <note />
       </trans-unit>
     </body>

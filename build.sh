@@ -27,6 +27,8 @@ binaries_path="${root_path}"/Binaries
 bootstrap_path="${binaries_path}"/Bootstrap
 bootstrap_framework=netcoreapp2.0
 
+args=
+build_in_docker=false
 build_configuration=Debug
 restore=false
 build=false
@@ -53,56 +55,61 @@ do
     opt="$(echo "$1" | awk '{print tolower($0)}')"
     case "$opt" in
         -h|--help)
-        usage
-        exit 1
-        ;;
+            usage
+            exit 1
+            ;;
+        --docker)
+            build_in_docker=true
+            shift
+            continue
+            ;;
         --debug)
-        build_configuration=Debug
-        shift 1
-        ;;
+            build_configuration=Debug
+            ;;
         --release)
-        build_configuration=Release
-        shift 1
-        ;;
+            build_configuration=Release
+            ;;
         --restore|-r)
-        restore=true
-        shift 1
-        ;;
+            restore=true
+            ;;
         --build|-b)
-        build=true
-        shift 1
-        ;;
+            build=true
+            ;;
         --test|-t)
-        test_=true
-        shift 1
-        ;;
+            test_=true
+            ;;
         --mono)
-        use_mono=true
-        shift 1
-        ;;
+            use_mono=true
+            ;;
         --build-bootstrap)
-        build_bootstrap=true
-        shift 1
-        ;;
+            build_bootstrap=true
+            ;;
         --use-bootstrap)
-        use_bootstrap=true
-        shift 1
-        ;;
+            use_bootstrap=true
+            ;;
         --bootstrap)
-        build_bootstrap=true
-        use_bootstrap=true
-        shift 1
-        ;;
+            build_bootstrap=true
+            use_bootstrap=true
+            ;;
         --stop-vbcscompiler)
-        stop_vbcscompiler=true
-        shift 1
-        ;;
+            stop_vbcscompiler=true
+            ;;
         *)
-        usage
-        exit 1
+            echo "$1"
+            usage
+            exit 1
         ;;
     esac
+    args="$args $1"
+    shift
 done
+
+if [[ "$build_in_docker" = true ]]
+then
+    echo "Docker exec: $args"
+    BUILD_COMMAND=/opt/code/build.sh "$root_path"/build/scripts/dockerrun.sh $args
+    exit
+fi
 
 source "${root_path}"/build/scripts/obtain_dotnet.sh
 
