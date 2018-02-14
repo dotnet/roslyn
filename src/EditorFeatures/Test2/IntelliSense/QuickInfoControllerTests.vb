@@ -5,7 +5,6 @@ Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
-Imports Microsoft.CodeAnalysis.Editor.QuickInfo
 Imports Microsoft.CodeAnalysis.Editor.QuickInfo.Presentation
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.QuickInfo
@@ -15,7 +14,9 @@ Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Utilities
 Imports Moq
+Imports QuickInfoItem = Microsoft.CodeAnalysis.QuickInfo.QuickInfoItem
 
+#Disable Warning BC40000 ' IQuickInfo* is obsolete
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
     Public Class QuickInfoControllerTests
@@ -266,3 +267,4 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         End Class
     End Class
 End Namespace
+#Enable Warning BC40000 ' IQuickInfo* is obsolete

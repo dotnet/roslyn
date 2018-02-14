@@ -4,44 +4,46 @@ using System;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.Editor.Commands;
-using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Editor.Commanding;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
+using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
 {
-    [ExportCommandHandler(PredefinedCommandHandlerNames.FormatDocument, ContentTypeNames.RoslynContentType)]
+    [Export(typeof(VSCommanding.ICommandHandler))]
+    [ContentType(ContentTypeNames.RoslynContentType)]
+    [Name(PredefinedCommandHandlerNames.FormatDocument)]
     [Order(After = PredefinedCommandHandlerNames.Rename)]
     [Order(Before = PredefinedCommandHandlerNames.Completion)]
     internal partial class FormatCommandHandler :
-        ICommandHandler<FormatDocumentCommandArgs>,
-        ICommandHandler<FormatSelectionCommandArgs>,
-        ICommandHandler<PasteCommandArgs>,
-        ICommandHandler<TypeCharCommandArgs>,
-        ICommandHandler<ReturnKeyCommandArgs>
+        VSCommanding.ICommandHandler<FormatDocumentCommandArgs>,
+        VSCommanding.ICommandHandler<FormatSelectionCommandArgs>,
+        IChainedCommandHandler<PasteCommandArgs>,
+        IChainedCommandHandler<TypeCharCommandArgs>,
+        IChainedCommandHandler<ReturnKeyCommandArgs>
     {
-        private readonly IWaitIndicator _waitIndicator;
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
 
+        public string DisplayName => EditorFeaturesResources.Automatic_Formatting;
+
         [ImportingConstructor]
         public FormatCommandHandler(
-            IWaitIndicator waitIndicator,
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IEditorOperationsFactoryService editorOperationsFactoryService)
         {
-            _waitIndicator = waitIndicator;
             _undoHistoryRegistry = undoHistoryRegistry;
             _editorOperationsFactoryService = editorOperationsFactoryService;
         }
@@ -79,17 +81,27 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
             }
         }
 
-        private static CommandState GetCommandState(ITextBuffer buffer, Func<CommandState> nextHandler)
+        private static bool CanExecuteCommand(ITextBuffer buffer)
         {
-            if (!buffer.CanApplyChangeDocumentToWorkspace())
+            return buffer.CanApplyChangeDocumentToWorkspace();
+        }
+
+        private static VSCommanding.CommandState GetCommandState(ITextBuffer buffer, Func<VSCommanding.CommandState> nextHandler)
+        {
+            if (!CanExecuteCommand(buffer))
             {
                 return nextHandler();
             }
 
-            return CommandState.Available;
+            return VSCommanding.CommandState.Available;
         }
 
-        public void ExecuteReturnOrTypeCommand(CommandArgs args, Action nextHandler, CancellationToken cancellationToken)
+        private static VSCommanding.CommandState GetCommandState(ITextBuffer buffer)
+        {
+            return CanExecuteCommand(buffer) ? VSCommanding.CommandState.Available : VSCommanding.CommandState.Unspecified;
+        }
+
+        public void ExecuteReturnOrTypeCommand(EditorCommandArgs args, Action nextHandler, CancellationToken cancellationToken)
         {
             // This method handles only return / type char
             if (!(args is ReturnKeyCommandArgs || args is TypeCharCommandArgs))

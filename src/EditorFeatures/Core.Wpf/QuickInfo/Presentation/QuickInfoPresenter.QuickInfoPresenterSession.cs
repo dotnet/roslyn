@@ -7,7 +7,6 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
-using Microsoft.CodeAnalysis.Editor.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Wpf;
@@ -20,6 +19,9 @@ using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Projection;
 
+using QuickInfoItem = Microsoft.CodeAnalysis.QuickInfo.QuickInfoItem;
+
+#pragma warning disable CS0618 // IQuickInfo* is obsolete, tracked by https://github.com/dotnet/roslyn/issues/24094
 namespace Microsoft.CodeAnalysis.Editor.QuickInfo.Presentation
 {
     internal partial class QuickInfoPresenter
@@ -208,7 +210,7 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo.Presentation
                 return documentationTextBlock;
             }
 
-            private FrameworkElement CreateDocumentSpanPresentation(QuickInfoItem info, ITextSnapshot snapshot)
+            private FrameworkElement CreateDocumentSpanPresentation(Microsoft.CodeAnalysis.QuickInfo.QuickInfoItem info, ITextSnapshot snapshot)
             {
                 return ProjectionBufferContent.Create(
                     info.RelatedSpans.Select(s => new SnapshotSpan(snapshot, new Span(s.Start, s.Length))).ToImmutableArray(),
@@ -219,3 +221,4 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo.Presentation
         }
     }
 }
+#pragma warning restore CS0618 // IQuickInfo* is obsolete, tracked by https://github.com/dotnet/roslyn/issues/24094

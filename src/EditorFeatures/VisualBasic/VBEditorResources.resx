@@ -177,4 +177,7 @@
   <data name="Line_commit" xml:space="preserve">
     <value>Line commit</value>
   </data>
+  <data name="Implement_Abstract_Class_Or_Interface" xml:space="preserve">
+    <value>Implement Abstract Class Or Interface</value>
+  </data>
 </root>

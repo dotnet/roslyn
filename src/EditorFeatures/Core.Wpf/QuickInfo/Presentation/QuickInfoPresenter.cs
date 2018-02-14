@@ -9,6 +9,7 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.Utilities;
 
+#pragma warning disable CS0618 // IQuickInfo* is obsolete, tracked by https://github.com/dotnet/roslyn/issues/24094
 namespace Microsoft.CodeAnalysis.Editor.QuickInfo.Presentation
 {
     [Export(typeof(IQuickInfoSourceProvider))]
@@ -65,3 +66,4 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo.Presentation
         }
     }
 }
+#pragma warning restore CS0618 // IQuickInfo* is obsolete, tracked by https://github.com/dotnet/roslyn/issues/24094

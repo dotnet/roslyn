@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 
+#pragma warning disable CS0618 // IQuickInfo* is obsolete, tracked by https://github.com/dotnet/roslyn/issues/24094
 namespace Microsoft.CodeAnalysis.Editor.QuickInfo.Presentation
 {
     internal partial class QuickInfoPresenter
@@ -30,3 +31,4 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo.Presentation
         }
     }
 }
+#pragma warning restore CS0618 // IQuickInfo* is obsolete, tracked by https://github.com/dotnet/roslyn/issues/24094

@@ -1749,8 +1749,9 @@ Derived`2.Method(U)
 Derived.Method()");
 
             comp.VerifyDiagnostics(
-                // (17,17): warning CS1956: Member 'Derived<int, string>.Method(int)' implements interface member 'Interface<int>.Method(int)' in type 'Derived'. There are multiple matches for the interface member at run-time. It is implementation dependent which method will be called.
-                Diagnostic(ErrorCode.WRN_MultipleRuntimeImplementationMatches, "Method").WithArguments("Derived<int, string>.Method(int)", "Interface<int>.Method(int)", "Derived")); // No errors
+                // (20,58): warning CS1956: Member 'Derived<int, string>.Method(int)' implements interface member 'Interface<int>.Method(int)' in type 'Derived'. There are multiple matches for the interface member at run-time. It is implementation dependent which method will be called.
+                // class Derived : Derived<int, string>, Interface<string>, Interface<int>
+                Diagnostic(ErrorCode.WRN_MultipleRuntimeImplementationMatches, "Interface<int>").WithArguments("Derived<int, string>.Method(int)", "Interface<int>.Method(int)", "Derived").WithLocation(20, 58)); // No errors
         }
 
         [Fact]

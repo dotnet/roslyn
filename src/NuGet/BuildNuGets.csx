@@ -161,10 +161,7 @@ var PreReleaseOnlyPackages = new HashSet<string>
     
     // C# Interactive on CoreCLR is pre-release
     "Microsoft.Net.CSharp.Interactive.netcore",
-    
-    // Pre-release package, API and structure not finalized
-    "Microsoft.NETCore.Compilers",
-    
+
     "Microsoft.CodeAnalysis.Remote.Razor.ServiceHub",
     "Microsoft.CodeAnalysis.Remote.ServiceHub",
     "Microsoft.CodeAnalysis.Remote.Workspaces",

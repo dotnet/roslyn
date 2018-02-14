@@ -87,7 +87,7 @@ commitPullList.each { isPr ->
     def myJob = job(jobName) {
       description("Windows CoreCLR unit tests")
             steps {
-              batchFile(""".\\build\\scripts\\cibuild.cmd ${(configuration == 'debug') ? '-debug' : '-release'} -testCoreClr""")
+              batchFile(""".\\build\\scripts\\cibuild.cmd ${(configuration == 'debug') ? '-debug' : '-release'} -buildCoreClr -testCoreClr""")
             }
     }
 
@@ -122,7 +122,7 @@ commitPullList.each { isPr ->
   def myJob = job(jobName) {
     description("Ubuntu 16.04 mono tests")
                   steps {
-                    shell("./build/scripts/cibuild.sh --debug --mono")
+                    shell("./build/scripts/cibuild.sh --debug --docker --mono")
                   }
                 }
 
@@ -212,27 +212,6 @@ commitPullList.each { isPr ->
   def triggerPhraseExtra = "microbuild"
   Utilities.setMachineAffinity(myJob, 'Windows_NT', windowsUnitTestMachine)
   addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
-}
-
-// VS Integration Tests
-commitPullList.each { isPr ->
-  ['debug', 'release'].each { configuration ->
-    ['vs-integration'].each { buildTarget ->
-      def jobName = Utilities.getFullJobName(projectName, "windows_${configuration}_${buildTarget}", isPr)
-      def myJob = job(jobName) {
-        description("Windows ${configuration} tests on ${buildTarget}")
-        steps {
-          batchFile(""".\\build\\scripts\\cibuild.cmd ${(configuration == 'debug') ? '-debug' : '-release'} -testVsi""")
-        }
-      }
-
-      def triggerPhraseOnly = false
-      def triggerPhraseExtra = ""
-      Utilities.setMachineAffinity(myJob, 'Windows_NT', 'latest-dev15-3')
-      Utilities.addXUnitDotNETResults(myJob, '**/xUnitResults/*.xml')
-      addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
-    }
-  }
 }
 
 JobReport.Report.generateJobReport(out)

@@ -4781,7 +4781,7 @@ namespace MyNs
 ";
             using (var workspace = TestWorkspace.Create(XElement.Parse(workspaceDefinition), workspaceKind: WorkspaceKind.Interactive))
             {
-                await TestWithOptionsAsync(workspace, MainDescription("(parameter) int x = 1"));
+                await TestWithOptionsAsync(workspace, MainDescription($"({ FeaturesResources.parameter }) int x = 1"));
             }
         }
 
@@ -4826,7 +4826,7 @@ public class C
     }
 }
 " + TestResources.NetFX.ValueTuple.tuplelib_cs,
-                MainDescription("(local variable) ValueTuple y"));
+                MainDescription($"({ FeaturesResources.local_variable }) ValueTuple y"));
         }
 
         [WorkItem(18311, "https://github.com/dotnet/roslyn/issues/18311")]
@@ -4862,7 +4862,7 @@ public class C
     }
 }
 " + TestResources.NetFX.ValueTuple.tuplelib_cs,
-                MainDescription("(local variable) ValueTuple<int> y"));
+                MainDescription($"({ FeaturesResources.local_variable }) ValueTuple<int> y"));
         }
 
         [WorkItem(18311, "https://github.com/dotnet/roslyn/issues/18311")]
@@ -4898,7 +4898,7 @@ public class C
     }
 }
 " + TestResources.NetFX.ValueTuple.tuplelib_cs,
-                MainDescription("(local variable) (int, int) y"));
+                MainDescription($"({ FeaturesResources.local_variable }) (int, int) y"));
         }
 
         [WorkItem(18311, "https://github.com/dotnet/roslyn/issues/18311")]
@@ -5172,7 +5172,7 @@ class Program
     }
 }
 ",
-            MainDescription("(parameter) ? b"));
+            MainDescription($"({ FeaturesResources.parameter }) ? b"));
         }
     }
 }

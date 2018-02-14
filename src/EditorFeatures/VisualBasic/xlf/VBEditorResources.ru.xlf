@@ -102,6 +102,11 @@
         <target state="translated">Фиксация строки</target>
         <note />
       </trans-unit>
+      <trans-unit id="Implement_Abstract_Class_Or_Interface">
+        <source>Implement Abstract Class Or Interface</source>
+        <target state="new">Implement Abstract Class Or Interface</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

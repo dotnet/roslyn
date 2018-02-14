@@ -706,6 +706,135 @@ class Test
             await VerifyItemExistsAsync(markup, "tokens");
         }
 
+        [WorkItem(23497, "https://github.com/dotnet/roslyn/issues/23497")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void InPatternMatching1()
+        {
+            var markup = @"
+using System.Threading;
+
+public class C
+{
+    public static void Main()
+    {
+        object obj = null;
+        if (obj is CancellationToken $$) { }
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "cancellationToken");
+            await VerifyItemExistsAsync(markup, "cancellation");
+            await VerifyItemExistsAsync(markup, "token");
+        }
+
+        [WorkItem(23497, "https://github.com/dotnet/roslyn/issues/23497")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void InPatternMatching2()
+        {
+            var markup = @"
+using System.Threading;
+
+public class C
+{
+    public static bool Foo()
+    {
+        object obj = null;
+        return obj is CancellationToken $$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "cancellationToken");
+            await VerifyItemExistsAsync(markup, "cancellation");
+            await VerifyItemExistsAsync(markup, "token");
+        }
+
+        [WorkItem(23497, "https://github.com/dotnet/roslyn/issues/23497")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void InPatternMatching3()
+        {
+            var markup = @"
+using System.Threading;
+
+public class C
+{
+    public static void Main()
+    {
+        object obj = null;
+        switch(obj)
+        {
+            case CancellationToken $$
+        }
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "cancellationToken");
+            await VerifyItemExistsAsync(markup, "cancellation");
+            await VerifyItemExistsAsync(markup, "token");
+        }
+
+        [WorkItem(23497, "https://github.com/dotnet/roslyn/issues/23497")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void InPatternMatching4()
+        {
+            var markup = @"
+using System.Threading;
+
+public class C
+{
+    public static void Main()
+    {
+        object obj = null;
+        if (obj is CancellationToken ca$$) { }
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "cancellationToken");
+            await VerifyItemExistsAsync(markup, "cancellation");
+        }
+
+        [WorkItem(23497, "https://github.com/dotnet/roslyn/issues/23497")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void InPatternMatching5()
+        {
+            var markup = @"
+using System.Threading;
+
+public class C
+{
+    public static bool Foo()
+    {
+        object obj = null;
+        return obj is CancellationToken to$$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "cancellationToken");
+            await VerifyItemExistsAsync(markup, "token");
+        }
+
+        [WorkItem(23497, "https://github.com/dotnet/roslyn/issues/23497")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void InPatternMatching6()
+        {
+            var markup = @"
+using System.Threading;
+
+public class C
+{
+    public static void Main()
+    {
+        object obj = null;
+        switch(obj)
+        {
+            case CancellationToken to$$
+        }
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "cancellationToken");
+            await VerifyItemExistsAsync(markup, "token");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async void DisabledByOption()
         {
@@ -728,6 +857,175 @@ class Test
             {
                 workspace.Options = originalOptions;
             }
+        }
+
+        [WorkItem(23590, "https://github.com/dotnet/roslyn/issues/23590")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void TypeImplementsIEnumerableOfType()
+        {
+            var markup = @"
+using System.Collections.Generic;
+
+public class Class1
+{
+  public void Method()
+  {
+    Container $$
+  }
+}
+
+public class Container : ContainerBase { }
+public class ContainerBase : IEnumerable<ContainerBase> { }
+";
+            await VerifyItemExistsAsync(markup, "container");
+        }
+
+        [WorkItem(23590, "https://github.com/dotnet/roslyn/issues/23590")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void TypeImplementsIEnumerableOfType2()
+        {
+            var markup = @"
+using System.Collections.Generic;
+
+public class Class1
+{
+  public void Method()
+  {
+     Container $$
+  }
+}
+
+public class ContainerBase : IEnumerable<Container> { }
+public class Container : ContainerBase { }
+";
+            await VerifyItemExistsAsync(markup, "container");
+        }
+
+        [WorkItem(23590, "https://github.com/dotnet/roslyn/issues/23590")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void TypeImplementsIEnumerableOfType3()
+        {
+            var markup = @"
+using System.Collections.Generic;
+
+public class Class1
+{
+  public void Method()
+  {
+     Container $$
+  }
+}
+
+public class Container : IEnumerable<Container> { }
+";
+            await VerifyItemExistsAsync(markup, "container");
+        }
+
+        [WorkItem(23590, "https://github.com/dotnet/roslyn/issues/23590")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void TypeImplementsIEnumerableOfType4()
+        {
+            var markup = @"
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+public class Class1
+{
+  public void Method()
+  {
+     TaskType $$
+  }
+}
+
+public class ContainerBase : IEnumerable<Container> { }
+public class Container : ContainerBase { }
+public class TaskType : Task<Container> { }
+";
+            await VerifyItemExistsAsync(markup, "taskType");
+        }
+
+        [WorkItem(23590, "https://github.com/dotnet/roslyn/issues/23590")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void TypeImplementsTaskOfType()
+        {
+            var markup = @"
+using System.Threading.Tasks;
+
+public class Class1
+{
+  public void Method()
+  {
+    Container $$
+  }
+}
+
+public class Container : ContainerBase { }
+public class ContainerBase : Task<ContainerBase> { }
+";
+            await VerifyItemExistsAsync(markup, "container");
+        }
+
+        [WorkItem(23590, "https://github.com/dotnet/roslyn/issues/23590")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void TypeImplementsTaskOfType2()
+        {
+            var markup = @"
+using System.Threading.Tasks;
+
+public class Class1
+{
+  public void Method()
+  {
+     Container $$
+  }
+}
+
+public class Container : Task<ContainerBase> { }
+public class ContainerBase : Container { }
+";
+            await VerifyItemExistsAsync(markup, "container");
+        }
+
+        [WorkItem(23590, "https://github.com/dotnet/roslyn/issues/23590")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void TypeImplementsTaskOfType3()
+        {
+            var markup = @"
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+public class Class1
+{
+  public void Method()
+  {
+    EnumerableType $$
+  }
+}
+
+public class TaskType : TaskTypeBase { }
+public class TaskTypeBase : Task<TaskTypeBase> { }
+public class EnumerableType : IEnumerable<TaskType> { }
+";
+            await VerifyItemExistsAsync(markup, "taskTypes");
+        }
+
+        [WorkItem(23590, "https://github.com/dotnet/roslyn/issues/23590")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void TypeIsNullableOfNullable()
+        {
+            var markup = @"
+using System.Collections.Generic;
+
+public class Class1
+{
+  public void Method()
+  {
+      // This code isn't legal, but we want to ensure we don't crash in this broken code scenario
+      IEnumerable<Nullable<int?>> $$
+  }
+}
+";
+            await VerifyItemExistsAsync(markup, "nullables");
         }
     }
 }
