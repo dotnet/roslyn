@@ -1941,5 +1941,31 @@ class C
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestNestedInvoke()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void Goo()
+    {
+        Func<int, int> [||]f = x => 0;
+        f.Invoke(f.Invoke(0));
+    }
+}",
+@"using System;
+
+class C
+{
+    void Goo()
+    {
+        int f(int x) => 0;
+        f(f(0));
+    }
+}");
+        }
     }
 }

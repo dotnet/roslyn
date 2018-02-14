@@ -117,7 +117,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
             {
                 editor.ReplaceNode(
                     usage.Parent,
-                    (usage.Parent as InvocationExpressionSyntax).WithExpression(usage.Expression).WithTriviaFrom(usage.Parent));
+                    (current, _) => {
+                        var currentInvocation = (InvocationExpressionSyntax)current;
+                        return currentInvocation.WithExpression(
+                            ((MemberAccessExpressionSyntax)currentInvocation.Expression).Expression);
+                    });
             }
 
             return editor.GetChangedRoot();
