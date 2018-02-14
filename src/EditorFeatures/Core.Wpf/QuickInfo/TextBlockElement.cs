@@ -4,6 +4,9 @@ using System.Windows.Controls;
 
 namespace Microsoft.CodeAnalysis.Editor.QuickInfo
 {
+    /// <summary>
+    /// Holds the <see cref="TextBlock"/> for a particular <see cref="Microsoft.CodeAnalysis.QuickInfo.QuickInfoSectionKinds">QuickInfoSectionKind</see>.
+    /// </summary>
     internal class TextBlockElement
     {
         public string Kind { get; }

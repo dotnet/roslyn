@@ -15,7 +15,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
         End Function
 
         Protected Async Function TestSharedAsync(workspace As TestWorkspace, position As Integer, ParamArray expectedResults() As Action(Of QuickInfoItem)) As Task
-            Dim service = workspace.Services.GetLanguageServices(LanguageNames.VisualBasic)?.GetService(Of QuickInfoService)
+            Dim service = workspace.Services _
+                .GetLanguageServices(LanguageNames.VisualBasic) _
+                .GetService(Of QuickInfoService)
 
             Await TestSharedAsync(workspace, service, position, expectedResults)
 

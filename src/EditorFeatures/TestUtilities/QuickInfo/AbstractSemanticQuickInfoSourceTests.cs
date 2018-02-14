@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
         {
             return qi =>
             {
-                Assert.True(qi.Tags.GetGlyphs().Contains(expectedGlyph));
+                Assert.Contains(expectedGlyph, qi.Tags.GetGlyphs());
             };
         }
 
@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
                 }
                 else
                 {
-                    Assert.False(item.Tags.GetGlyphs().Contains(Glyph.CompletionWarning));
+                    Assert.DoesNotContain(Glyph.CompletionWarning, item.Tags.GetGlyphs());
                 }
             };
         }

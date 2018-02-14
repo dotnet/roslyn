@@ -32,8 +32,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Dim controller As Controller = CreateController(documentProvider:=emptyProvider, triggerQuickInfo:=True)
             controller.WaitForController()
 
-            'GetMocks(controller).Provider.Verify(Function(p) p.GetItemAsync(It.IsAny(Of Document), It.IsAny(Of Integer), It.IsAny(Of CancellationToken)), Times.Never)
-            Assert.Equal(0, If(TryCast(GetMocks(controller).Service, ServiceMock)?.InvokeCount, 0))
+            Dim service = TryCast(GetMocks(controller).Service, ServiceMock)
+            Assert.NotNull(service)
+
+            Assert.Equal(0, service.InvokeCount)
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
