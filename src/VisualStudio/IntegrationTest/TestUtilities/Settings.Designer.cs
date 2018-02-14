@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("15")]
+        [global::System.Configuration.DefaultSettingValueAttribute("15.6")]
         public string VsProductVersion {
             get {
                 return ((string)(this["VsProductVersion"]));
