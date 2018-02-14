@@ -65,7 +65,28 @@ namespace RoslynCompletionPrototype
 
             var completionService = document.GetLanguageService<CompletionService>();
 
-            var completionList = await completionService.GetCompletionsAsync(document, triggerLocation.Position).ConfigureAwait(false);
+            RoslynTrigger roslynTrigger = default;
+            switch (trigger.Reason)
+            {
+                case CompletionTriggerReason.Invoke:
+                case CompletionTriggerReason.InvokeAndCommitIfUnique:
+                    roslynTrigger = RoslynTrigger.Invoke;
+                    break;
+                case CompletionTriggerReason.Insertion:
+                    roslynTrigger = RoslynTrigger.CreateInsertionTrigger(trigger.Character);
+                    break;
+                case CompletionTriggerReason.Deletion:
+                    roslynTrigger = RoslynTrigger.CreateDeletionTrigger(trigger.Character);
+                    break;
+                case CompletionTriggerReason.Snippets:
+                    break;
+            }
+
+            var completionList = await completionService.GetCompletionsAsync(
+                document, 
+                triggerLocation.Position,
+                roslynTrigger).ConfigureAwait(false);
+
             if (completionList == null)
             {
                 // TODO: return default;
