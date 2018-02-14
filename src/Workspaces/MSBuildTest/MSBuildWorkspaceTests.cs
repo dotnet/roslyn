@@ -1502,7 +1502,7 @@ class C1
                 Assert.Empty(project.ProjectReferences);
                 Assert.Single(project.AllProjectReferences);
 
-                Assert.Equal(2, workspace.Diagnostics.Count);
+                Assert.InRange(workspace.Diagnostics.Count, 2, 3);
             }
         }
 
