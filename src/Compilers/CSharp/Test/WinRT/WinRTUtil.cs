@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var isWin8 = OSVersion.IsWin8;
             return testBase.CompileAndVerifyWinRt(
                 source,
-                additionalRefs: additionalRefs,
+                references: additionalRefs,
                 expectedOutput: isWin8 ? expectedOutput : null,
                 verify: isWin8 ? Verification.Passes : Verification.Fails);
         }

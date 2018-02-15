@@ -30,39 +30,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 {
     public abstract class CSharpTestBase : CommonTestBase
     {
-        protected CSharpCompilation GetCSharpCompilationForEmit(
-            IEnumerable<string> source,
-            IEnumerable<MetadataReference> additionalRefs,
-            CompilationOptions options,
-            ParseOptions parseOptions)
-        {
-            return (CSharpCompilation)GetCompilationForEmit(source, additionalRefs, options, parseOptions);
-        }
-
-        private Action<IModuleSymbol> Translate2(Action<ModuleSymbol> action)
-        {
-            if (action != null)
-            {
-                return (m) => action((ModuleSymbol)m);
-            }
-            else
-            {
-                return null;
-            }
-        }
-
-        private Action<IModuleSymbol> Translate(Action<ModuleSymbol> action)
-        {
-            if (action != null)
-            {
-                return m => action((ModuleSymbol)m);
-            }
-            else
-            {
-                return null;
-            }
-        }
-
         internal CompilationVerifier CompileStandardAndVerify(
             string source,
             IEnumerable<MetadataReference> references = null,
@@ -215,13 +182,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             EmitOptions emitOptions = null,
             Verification verify = Verification.Passes)
         {
+            Action<IModuleSymbol> translate(Action<ModuleSymbol> action)
+            {
+                if (action != null)
+                {
+                    return (m) => action((ModuleSymbol)m);
+                }
+                else
+                {
+                    return null;
+                }
+            }
+
             return base.CompileAndVerify(
                 compilation,
                 manifestResources,
                 dependencies,
-                Translate2(sourceSymbolValidator),
+                translate(sourceSymbolValidator),
                 validator,
-                Translate2(symbolValidator),
+                translate(symbolValidator),
                 expectedSignatures,
                 expectedOutput,
                 expectedReturnCode,
@@ -233,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         internal CompilationVerifier CompileAndVerifyWinRt(
             string source,
             string expectedOutput = null,
-            MetadataReference[] additionalRefs = null,
+            MetadataReference[] references = null,
             CSharpCompilationOptions options = null,
             Verification verify = Verification.Passes)
         {
@@ -243,7 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             }
 
             var compilation = CreateCompilation(source,
-                                                WinRtRefs.Concat(additionalRefs ?? Enumerable.Empty<MetadataReference>()),
+                                                WinRtRefs.Concat(references ?? Enumerable.Empty<MetadataReference>()),
                                                 options);
 
             return CompileAndVerify(
@@ -489,18 +468,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         public static CSharpCompilation CreateCompilation(
             string source,
             TargetFramework targetFramework,
-            IEnumerable<MetadataReference> additionalReferences = null,
+            IEnumerable<MetadataReference> references = null,
             CSharpCompilationOptions options = null,
             CSharpParseOptions parseOptions = null,
-            string assemblyName = "") => CreateCompilation(source, TargetFrameworkUtil.GetReferences(targetFramework, additionalReferences), options, parseOptions, assemblyName);
+            string assemblyName = "") => CreateCompilation(source, TargetFrameworkUtil.GetReferences(targetFramework, references), options, parseOptions, assemblyName);
 
         public static CSharpCompilation CreateCompilation(
             IEnumerable<string> sources,
             TargetFramework targetFramework,
-            IEnumerable<MetadataReference> additionalReferences = null,
+            IEnumerable<MetadataReference> references = null,
             CSharpCompilationOptions options = null,
             CSharpParseOptions parseOptions = null,
-            string assemblyName = "") => CreateCompilation(Parse(sources, parseOptions), TargetFrameworkUtil.GetReferences(targetFramework, additionalReferences), options, assemblyName);
+            string assemblyName = "") => CreateCompilation(Parse(sources, parseOptions), TargetFrameworkUtil.GetReferences(targetFramework, references), options, assemblyName);
 
         public static CSharpCompilation CreateCompilation(
             string source,
@@ -519,16 +498,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         public static CSharpCompilation CreateCompilation(
             SyntaxTree tree,
             TargetFramework targetFramework,
-            IEnumerable<MetadataReference> additionalReferences = null,
+            IEnumerable<MetadataReference> references = null,
             CSharpCompilationOptions options = null,
-            string assemblyName = "") => CreateCompilation(new[] { tree }, TargetFrameworkUtil.GetReferences(targetFramework, additionalReferences), options, assemblyName);
+            string assemblyName = "") => CreateCompilation(new[] { tree }, TargetFrameworkUtil.GetReferences(targetFramework, references), options, assemblyName);
 
         public static CSharpCompilation CreateCompilation(
             IEnumerable<SyntaxTree> trees,
             TargetFramework targetFramework,
-            IEnumerable<MetadataReference> additionalReferences = null,
+            IEnumerable<MetadataReference> references = null,
             CSharpCompilationOptions options = null,
-            string assemblyName = "") => CreateCompilation(trees, TargetFrameworkUtil.GetReferences(targetFramework, additionalReferences), options, assemblyName);
+            string assemblyName = "") => CreateCompilation(trees, TargetFrameworkUtil.GetReferences(targetFramework, references), options, assemblyName);
 
         public static CSharpCompilation CreateCompilation(
             IEnumerable<SyntaxTree> trees,
@@ -651,15 +630,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
         protected override Compilation GetCompilationForEmit(
             IEnumerable<string> source,
-            IEnumerable<MetadataReference> additionalRefs,
+            IEnumerable<MetadataReference> references,
             CompilationOptions options,
             ParseOptions parseOptions)
         {
             var single = new[] { MscorlibRef };
-            var references = additionalRefs != null ? single.Concat(additionalRefs) : single;
+            references = references != null ? single.Concat(references) : single;
             return CreateCompilation(
                 source.ToArray(),
-                references: references,
+                references: (IEnumerable<MetadataReference>)references,
                 options: (CSharpCompilationOptions)options,
                 parseOptions: (CSharpParseOptions)parseOptions,
                 assemblyName: GetUniqueName());
@@ -1195,7 +1174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             DiagnosticDescription[] expectedDiagnostics,
             CSharpCompilationOptions compilationOptions = null,
             CSharpParseOptions parseOptions = null,
-            MetadataReference[] additionalReferences = null,
+            MetadataReference[] references = null,
             Action<IOperation, Compilation, SyntaxNode> additionalOperationTreeVerifier = null,
             bool useLatestFrameworkReferences = false)
             where TSyntaxNode : SyntaxNode =>
@@ -1206,7 +1185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 expectedDiagnostics,
                 compilationOptions,
                 parseOptions,
-                additionalReferences,
+                references,
                 additionalOperationTreeVerifier);
 
         protected static void VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(
@@ -1234,7 +1213,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             DiagnosticDescription[] expectedDiagnostics,
             CSharpCompilationOptions compilationOptions = null,
             CSharpParseOptions parseOptions = null,
-            MetadataReference[] additionalReferences = null,
+            MetadataReference[] references = null,
             Action<IOperation, Compilation, SyntaxNode> additionalOperationTreeVerifier = null,
             bool useLatestFrameworkReferences = false)
             where TSyntaxNode : SyntaxNode

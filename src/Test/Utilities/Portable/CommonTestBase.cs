@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         protected abstract CompilationOptions CompilationOptionsReleaseDll { get; }
 
-        internal CompilationVerifier CompileAndVerify(
+        internal CompilationVerifier CompileAndVerifyCommon(
             string source,
             IEnumerable<MetadataReference> additionalRefs = null,
             IEnumerable<ModuleData> dependencies = null,
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             EmitOptions emitOptions = null,
             Verification verify = Verification.Passes)
         {
-            return CompileAndVerify(
+            return CompileAndVerifyiCommon(
                 sources: new string[] { source },
                 additionalRefs: additionalRefs,
                 dependencies: dependencies,
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 verify: verify);
         }
 
-        internal CompilationVerifier CompileAndVerify(
+        internal CompilationVerifier CompileAndVerifyiCommon(
             IEnumerable<string> sources,
             IEnumerable<MetadataReference> additionalRefs = null,
             IEnumerable<ModuleData> dependencies = null,
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         internal CompilationVerifier CompileAndVerifyFieldMarshal(string source, Func<string, PEAssembly, byte[]> getExpectedBlob, bool isField = true)
         {
-            return CompileAndVerify(source, options: CompilationOptionsReleaseDll, assemblyValidator: (assembly) => MetadataValidation.MarshalAsMetadataValidator(assembly, getExpectedBlob, isField));
+            return CompileAndVerifyCommon(source, options: CompilationOptionsReleaseDll, assemblyValidator: (assembly) => MetadataValidation.MarshalAsMetadataValidator(assembly, getExpectedBlob, isField));
         }
 
         static internal void RunValidators(CompilationVerifier verifier, Action<PEAssembly> assemblyValidator, Action<IModuleSymbol> symbolValidator)
