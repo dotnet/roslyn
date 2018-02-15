@@ -128,11 +128,14 @@ namespace RoslynCompletionPrototype
             bool needsCustomCommit)
         {
             var imageId = imageService.GetImageId(roslynItem.Tags.GetGlyph());
-            var insertionText = roslynItem.DisplayText; // TODO
             var filters = GetFilters(roslynItem, imageService, filterCache);
 
-            var attributeImages = ImmutableArray<AccessibleImageId>.Empty;
+            if (!roslynItem.Properties.TryGetValue("InsertionText", out var insertionText))
+            {
+                insertionText = roslynItem.DisplayText;
+            }
 
+            var attributeImages = ImmutableArray<AccessibleImageId>.Empty;
             var supportedPlatforms = SymbolCompletionItem.GetSupportedPlatforms(roslynItem, document.Project.Solution.Workspace);
             if (supportedPlatforms != null && false) // TODO, this makes the completion list invisible
             {
