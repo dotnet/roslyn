@@ -413,6 +413,51 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(24432, "https://github.com/dotnet/roslyn/issues/24432")]
+        public async Task TestInObjectCreation()
+        {
+            var markup = @"using System;
+class Program
+{
+    static void Main()
+    {
+        Program x = new P$$
+    }
+}";
+            await VerifyNotBuilderAsync(markup);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(24432, "https://github.com/dotnet/roslyn/issues/24432")]
+        public async Task TestInArrayCreation()
+        {
+            var markup = @"using System;
+class Program
+{
+    static void Main()
+    {
+        Program[] x = new $$
+    }
+}";
+            await VerifyNotBuilderAsync(markup);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(24432, "https://github.com/dotnet/roslyn/issues/24432")]
+        public async Task TestInArrayCreation2()
+        {
+            var markup = @"using System;
+class Program
+{
+    static void Main()
+    {
+        Program[] x = new Pr$$
+    }
+}";
+            await VerifyNotBuilderAsync(markup);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TupleExpressionInVarDeclaration()
         {
             var markup = @"using System;
@@ -647,7 +692,7 @@ class a
         int[] a = new $$;
     }
 }";
-            await VerifyBuilderAsync(markup);
+            await VerifyNotBuilderAsync(markup);
         }
 
         [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
@@ -842,7 +887,7 @@ class Program
                 if (isBuilder)
                 {
                     Assert.NotNull(completionList);
-                    Assert.NotNull(completionList.SuggestionModeItem);
+                    Assert.True(completionList.SuggestionModeItem != null, "Expecting a suggestion mode, but none was present");
                 }
                 else
                 {

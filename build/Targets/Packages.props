@@ -1,6 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project>
+
+  <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+  </PropertyGroup>
 
   <PropertyGroup>
     <BasicUndoVersion>0.9.3</BasicUndoVersion>
@@ -28,7 +32,7 @@
     <MicrosoftCodeAnalysisCSharpWorkspacesVersion>1.0.1</MicrosoftCodeAnalysisCSharpWorkspacesVersion>
     <MicrosoftCodeAnalysisEditorFeaturesTextVersion>1.0.1</MicrosoftCodeAnalysisEditorFeaturesTextVersion>
     <MicrosoftCodeAnalysisElfieVersion>0.10.6</MicrosoftCodeAnalysisElfieVersion>
-    <MicrosoftCodeAnalysisTestResourcesProprietaryVersion>2.0.0-pre-20170517</MicrosoftCodeAnalysisTestResourcesProprietaryVersion>
+    <MicrosoftCodeAnalysisTestResourcesProprietaryVersion>2.0.5</MicrosoftCodeAnalysisTestResourcesProprietaryVersion>
     <MicrosoftCodeAnalysisVisualBasicVersion>1.0.1</MicrosoftCodeAnalysisVisualBasicVersion>
     <MicrosoftCodeAnalysisVisualBasicWorkspacesVersion>1.0.1</MicrosoftCodeAnalysisVisualBasicWorkspacesVersion>
     <MicrosoftCodeAnalysisWorkspacesCommonVersion>1.0.1</MicrosoftCodeAnalysisWorkspacesCommonVersion>
@@ -43,7 +47,7 @@
     <MicrosoftDiaSymReaderPortablePdbVersion>1.4.0</MicrosoftDiaSymReaderPortablePdbVersion>
     <MicrosoftDotNetIBCMerge>4.7.2-alpha-00001</MicrosoftDotNetIBCMerge>
     <MicrosoftDotNetVersionToolsVersion>1.0.27-prerelease-01811-02</MicrosoftDotNetVersionToolsVersion>
-    <MicrosoftDotNetBuildTasksFeedVersion>2.1.0-prerelease-02221-02</MicrosoftDotNetBuildTasksFeedVersion>
+    <MicrosoftDotNetBuildTasksFeedVersion>2.1.0-prerelease-02419-02</MicrosoftDotNetBuildTasksFeedVersion>
     <MicrosoftIdentityModelClientsActiveDirectoryVersion>3.13.8</MicrosoftIdentityModelClientsActiveDirectoryVersion>
     <MicrosoftInternalPerformanceCodeMarkersDesignTimeVersion>15.0.26730-alpha</MicrosoftInternalPerformanceCodeMarkersDesignTimeVersion>
     <MicrosoftInternalVisualStudioShellInterop140DesignTimeVersion>14.3.25407-alpha</MicrosoftInternalVisualStudioShellInterop140DesignTimeVersion>
@@ -233,11 +237,12 @@
     <vswhereVersion>1.0.71</vswhereVersion>
     <XliffTasksVersion>0.2.0-beta-000081</XliffTasksVersion>
     <xunitVersion>2.3.1</xunitVersion>
-    <xunitanalyzersVersion>0.7.0</xunitanalyzersVersion>
+    <xunitanalyzersVersion>0.8.0</xunitanalyzersVersion>
     <xunitassertVersion>2.3.1</xunitassertVersion>
     <xunitextensibilityexecution>2.3.1</xunitextensibilityexecution>
     <xunitrunnerconsoleVersion>2.3.1</xunitrunnerconsoleVersion>
-    <xunitrunnerwpfVersion>1.0.41</xunitrunnerwpfVersion>
+    <xunitrunnerwpfVersion>1.0.51</xunitrunnerwpfVersion>
+    <xunitrunnervisualstudioVersion>2.3.1</xunitrunnervisualstudioVersion>
   </PropertyGroup>
 
 </Project>

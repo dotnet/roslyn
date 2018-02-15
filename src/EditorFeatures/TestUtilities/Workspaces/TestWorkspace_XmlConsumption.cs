@@ -465,6 +465,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var cryptoKeyFile = default(string);
             var strongNameProvider = default(StrongNameProvider);
             var delaySign = default(bool?);
+            var checkOverflow = false;
 
             if (compilationOptionsElement != null)
             {
@@ -474,6 +475,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 if (rootNamespaceAttribute != null)
                 {
                     rootNamespace = rootNamespaceAttribute.Value;
+                }
+
+                var checkOverflowAttribute = compilationOptionsElement.Attribute(CheckOverflowAttributeName);
+                if (checkOverflowAttribute != null)
+                {
+                    checkOverflow = (bool)checkOverflowAttribute;
                 }
 
                 var reportDiagnosticAttribute = compilationOptionsElement.Attribute(ReportDiagnosticAttributeName);
@@ -547,7 +554,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                                                    .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default)
                                                    .WithCryptoKeyFile(cryptoKeyFile)
                                                    .WithStrongNameProvider(strongNameProvider)
-                                                   .WithDelaySign(delaySign);
+                                                   .WithDelaySign(delaySign)
+                                                   .WithOverflowChecks(checkOverflow);
 
             if (language == LanguageNames.VisualBasic)
             {

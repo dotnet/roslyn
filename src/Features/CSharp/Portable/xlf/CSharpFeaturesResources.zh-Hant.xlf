@@ -212,16 +212,6 @@
         <target state="translated">移除並排序 Using(&amp;E)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Autoselect_disabled_due_to_potential_implicit_array_creation">
-        <source>Autoselect disabled due to potential implicit array creation.</source>
-        <target state="translated">由於可能的隱含建立陣列，所以停用自動選取。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="implicit_array_creation">
-        <source>&lt;implicit array creation&gt;</source>
-        <target state="translated">&lt;隱含建立陣列&gt;</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Insert_await">
         <source>Insert 'await'.</source>
         <target state="translated">插入 'await'。</target>

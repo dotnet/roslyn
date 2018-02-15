@@ -77,11 +77,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             var conditionPart = (BinaryExpressionSyntax)conditionLocation.FindNode(cancellationToken);
             var asExpression = (BinaryExpressionSyntax)asExpressionLocation.FindNode(cancellationToken);
 
-            var updatedConditionPart = SyntaxFactory.IsPatternExpression(
+            ExpressionSyntax updatedConditionPart = SyntaxFactory.IsPatternExpression(
                 asExpression.Left, SyntaxFactory.DeclarationPattern(
                     ((TypeSyntax)asExpression.Right).WithoutTrivia(),
                     SyntaxFactory.SingleVariableDesignation(
                         localDeclaration.Declaration.Variables[0].Identifier.WithoutTrivia())));
+
+            // We should negate the is-expression if we have something like "x == null"
+            if (conditionPart.IsKind(SyntaxKind.EqualsExpression))
+            {
+                updatedConditionPart = SyntaxFactory.PrefixUnaryExpression(
+                    SyntaxKind.LogicalNotExpression,
+                    updatedConditionPart.Parenthesize());
+            }
 
             var currentCondition = GetCondition(targetStatement);
             var updatedCondition = currentCondition.ReplaceNode(conditionPart, updatedConditionPart);

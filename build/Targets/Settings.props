@@ -3,6 +3,10 @@
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+  </PropertyGroup>
+
+  <PropertyGroup>
     <RepoRoot>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\..\'))</RepoRoot>
     <RepositoryUrl>https://github.com/dotnet/roslyn</RepositoryUrl>
     <RepositoryRawUrl>https://raw.githubusercontent.com/dotnet/roslyn</RepositoryRawUrl>
@@ -57,9 +61,6 @@
     <BaseIntermediateOutputPath>$(BaseIntermediateOutputPath)$(MSBuildProjectName)\</BaseIntermediateOutputPath>
     <IntermediateOutputPath>$(BaseIntermediateOutputPath)$(Configuration)</IntermediateOutputPath>
     <ArtifactsSymStoreDirectory Condition="'$(DeveloperBuild)' != 'true' and '$(OS)' == 'Windows_NT'">$(BaseOutputPath)$(Configuration)\SymStore\</ArtifactsSymStoreDirectory>
-
-    <NetStandard20RefPath>$(NuGetPackageRoot)/netstandard.library/$(NETStandardLibraryFixedVersion)/build/netstandard2.0/ref/</NetStandard20RefPath>
-    <MicrosoftCSharpRefPath>$(NuGetPackageRoot)/microsoft.csharp/$(MicrosoftCSharpVersion)/ref/netstandard1.0/</MicrosoftCSharpRefPath>
 
     <ToolsetPackagesSemaphore>$(ToolsetPackagesDir)toolsetpackages.semaphore</ToolsetPackagesSemaphore>
     <ToolsetCompilerPackageName Condition="'$(MSBuildRuntimeType)' != 'Core'">Microsoft.Net.Compilers</ToolsetCompilerPackageName>

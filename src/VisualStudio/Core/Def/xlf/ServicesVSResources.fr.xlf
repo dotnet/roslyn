@@ -1398,7 +1398,7 @@ Informations supplémentaires : {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_local_function_over_anonymous_function">
-        <source>Prefere local function over anonymous function</source>
+        <source>Prefer local function over anonymous function</source>
         <target state="translated">Préférer une fonction locale à une fonction anonyme</target>
         <note />
       </trans-unit>
