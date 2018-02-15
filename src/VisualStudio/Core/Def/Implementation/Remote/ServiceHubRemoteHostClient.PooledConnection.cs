@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Remote;
 
 namespace Microsoft.VisualStudio.LanguageServices.Remote
@@ -43,9 +42,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync, CancellationToken cancellationToken) =>
                     _connection.InvokeAsync<T>(targetName, arguments, funcWithDirectStreamAsync, cancellationToken);
 
-                protected override void OnDisposed() =>
-                    _connectionManager.Free(_serviceName, _connection);
+                protected override void Dispose(bool disposing)
+                {
+                    if (disposing)
+                    {
+                        _connectionManager.Free(_serviceName, _connection);
+                    }
 
+                    base.Dispose(disposing);
+                }
             }
         }
     }

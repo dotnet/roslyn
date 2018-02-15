@@ -51,13 +51,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             return _serviceRpc.InvokeAsync<T>(targetName, arguments, funcWithDirectStreamAsync, cancellationToken);
         }
 
-        protected override void OnDisposed()
+        protected override void Dispose(bool disposing)
         {
-            base.OnDisposed();
+            if (disposing)
+            {
+                // dispose service and snapshot channels
+                _serviceRpc.Dispose();
+                _remoteDataRpc.Dispose();
+            }
 
-            // dispose service and snapshot channels
-            _serviceRpc.Dispose();
-            _remoteDataRpc.Dispose();
+            base.Dispose(disposing);
         }
 
         /// <summary>

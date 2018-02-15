@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Remote
             public abstract Task InvokeAsync(string targetName, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, Task> funcWithDirectStreamAsync, CancellationToken cancellationToken);
             public abstract Task<T> InvokeAsync<T>(string targetName, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync, CancellationToken cancellationToken);
 
-            protected virtual void OnDisposed()
+            protected virtual void Dispose(bool disposing)
             {
                 // do nothing
             }
@@ -123,15 +123,14 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 _disposed = true;
 
-                OnDisposed();
-
+                Dispose(disposing: true);
                 GC.SuppressFinalize(this);
             }
 
             ~Connection()
             {
-                // this can happen if someone killed OOP, and when that happen, we don't
-                // want to crash VS. 
+                // this can happen if someone kills OOP. 
+                // when that happen, we don't want to crash VS, so this is debug only check
                 if (!Environment.HasShutdownStarted)
                 {
                     Contract.Requires(false, $@"Should have been disposed!");

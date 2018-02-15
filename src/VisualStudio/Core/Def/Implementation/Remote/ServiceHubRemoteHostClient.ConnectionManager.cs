@@ -44,7 +44,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 _remotableDataRpc = remotableDataRpc;
                 _maxPoolConnections = maxPoolConnection;
 
-                // we have 4 services. so start from 4. later if we add more services, it will still work.
+                // initial value 4 is chosen to stop concurrent dictionary creating too many locks.
+                // and big enough for all our services such as codeanalysis, remotehost, snapshot and etc services
                 _pools = new ConcurrentDictionary<string, ConcurrentQueue<JsonRpcConnection>>(concurrencyLevel: 4, capacity: 4);
 
                 _enableConnectionPool = enableConnectionPool;

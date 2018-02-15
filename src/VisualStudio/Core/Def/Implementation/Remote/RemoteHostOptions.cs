@@ -58,6 +58,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             nameof(InternalFeatureOnOffOptions), nameof(EnableConnectionPool), defaultValue: true,
             storageLocations: new LocalUserProfileStorageLocation(InternalFeatureOnOffOptions.LocalRegistryPath + nameof(EnableConnectionPool)));
 
+        /// <summary>
+        /// default 15 is chosen which is big enough but not too big for service hub to handle
+        /// </summary>
         public static readonly Option<int> MaxPoolConnection = new Option<int>(
             nameof(InternalFeatureOnOffOptions), nameof(MaxPoolConnection), defaultValue: 15,
             storageLocations: new LocalUserProfileStorageLocation(InternalFeatureOnOffOptions.LocalRegistryPath + nameof(MaxPoolConnection)));
