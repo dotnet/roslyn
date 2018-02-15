@@ -871,11 +871,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return attributes.Select(a => a.AttributeClass.Name);
         }
 
-        internal void AssertHasAttribute(PEModuleSymbol peModule, WellKnownType type, Accessibility expectedAccessibility)
-        {
-            var name = MetadataTypeName.FromFullName(type.GetMetadataName());
-            Assert.Equal(expectedAccessibility, peModule.LookupTopLevelMetadataType(ref name).DeclaredAccessibility);
-        }
         #endregion
 
         #region Documentation Comments

@@ -38,7 +38,7 @@ class Test
 
                 var peModule = (PEModuleSymbol)module;
                 Assert.True(peModule.Module.HasIsByRefLikeAttribute(((PENamedTypeSymbol)type).Handle));
-                AssertHasAttribute(peModule, WellKnownType.System_Runtime_CompilerServices_IsByRefLikeAttribute, Accessibility.Public);
+                AssertDeclaresType(peModule, WellKnownType.System_Runtime_CompilerServices_IsByRefLikeAttribute, Accessibility.Public);
             }
 
             CompileAndVerify(text, verify: Verification.Passes, symbolValidator: validate);
@@ -92,7 +92,7 @@ class Test
 
                 var peModule = (PEModuleSymbol)module;
                 Assert.True(peModule.Module.HasIsByRefLikeAttribute(((PENamedTypeSymbol)type).Handle));
-                AssertHasAttribute(peModule, WellKnownType.System_Runtime_CompilerServices_IsByRefLikeAttribute, Accessibility.Internal);
+                AssertDeclaresType(peModule, WellKnownType.System_Runtime_CompilerServices_IsByRefLikeAttribute, Accessibility.Internal);
             }
 
             CompileAndVerify(text, symbolValidator: validate);
@@ -669,7 +669,7 @@ class Test
                 if (module is PEModuleSymbol peModule)
                 {
                     Assert.True(peModule.Module.HasIsByRefLikeAttribute(((PENamedTypeSymbol)type).Handle));
-                    AssertHasAttribute(peModule, WellKnownType.System_Runtime_CompilerServices_IsByRefLikeAttribute, Accessibility.Public);
+                    AssertDeclaresType(peModule, WellKnownType.System_Runtime_CompilerServices_IsByRefLikeAttribute, Accessibility.Public);
                 }
             };
 

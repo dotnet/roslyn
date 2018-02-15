@@ -38,7 +38,7 @@ class Test
 
                 var peModule = (PEModuleSymbol)module;
                 Assert.True(peModule.Module.HasIsReadOnlyAttribute(((PENamedTypeSymbol)type).Handle));
-                AssertHasAttribute(peModule, WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute, Accessibility.Public);
+                AssertDeclaresType(peModule, WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute, Accessibility.Public);
             });
         }
 
