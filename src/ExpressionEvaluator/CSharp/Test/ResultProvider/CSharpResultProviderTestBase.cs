@@ -29,13 +29,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 
         public static Assembly GetAssembly(string source)
         {
-            var comp = CSharpTestBaseBase.CreateCompilationWithMscorlib45AndCSruntime(source);
+            var comp = CSharpTestBase.CreateCompilationWithMscorlib45AndCSruntime(source);
             return ReflectionUtilities.Load(comp.EmitToArray());
         }
 
         public static Assembly GetUnsafeAssembly(string source)
         {
-            var comp = CSharpTestBaseBase.CreateCompilationWithMscorlib45AndCSruntime(source, options: TestOptions.UnsafeReleaseDll);
+            var comp = CSharpTestBase.CreateCompilationWithMscorlib45AndCSruntime(source, options: TestOptions.UnsafeReleaseDll);
             return ReflectionUtilities.Load(comp.EmitToArray());
         }
 

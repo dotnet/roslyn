@@ -28,7 +28,7 @@ using static TestReferences;
 
 namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 {
-    public abstract class CSharpTestBase : CSharpTestBaseBase
+    public abstract class CSharpTestBase : CommonTestBase
     {
         protected CSharpCompilation GetCSharpCompilationForEmit(
             IEnumerable<string> source,
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             CompilationOptions options,
             ParseOptions parseOptions)
         {
-            return (CSharpCompilation)base.GetCompilationForEmit(source, additionalRefs, options, parseOptions);
+            return (CSharpCompilation)GetCompilationForEmit(source, additionalRefs, options, parseOptions);
         }
 
         private Action<IModuleSymbol> Translate2(Action<ModuleSymbol> action)
@@ -252,10 +252,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 verify: verify);
         }
 
-    }
-
-    public abstract class CSharpTestBaseBase : CommonTestBase
-    {
         public static CSharpCompilation CreateWinRtCompilation(string text, MetadataReference[] additionalRefs = null)
         {
             return CSharpTestBase.CreateCompilation(text,
