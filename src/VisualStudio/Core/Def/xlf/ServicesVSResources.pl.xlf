@@ -1393,7 +1393,7 @@ Funkcja „Uproszczone ładowanie rozwiązania” jest włączona dla bieżąceg
         <note />
       </trans-unit>
       <trans-unit id="Prefer_local_function_over_anonymous_function">
-        <source>Prefere local function over anonymous function</source>
+        <source>Prefer local function over anonymous function</source>
         <target state="translated">Preferuj funkcję lokalną zamiast funkcji anonimowej</target>
         <note />
       </trans-unit>

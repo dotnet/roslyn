@@ -8,18 +8,21 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
 {
     internal partial class AsynchronousOperationListener : IAsynchronousOperationListener, IAsynchronousOperationWaiter
     {
+        [Obsolete("use IAsynchronousOperationListenerProvider")]
         internal static IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> CreateListeners(
             string featureName, IAsynchronousOperationListener listener)
         {
             return CreateListeners(ValueTuple.Create(featureName, listener));
         }
 
+        [Obsolete("use IAsynchronousOperationListenerProvider")]
         internal static IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> CreateListeners<T>(
             params ValueTuple<string, T>[] pairs) where T : IAsynchronousOperationListener
         {
             return pairs.Select(CreateLazy).ToList();
         }
 
+        [Obsolete("use IAsynchronousOperationListenerProvider")]
         private static Lazy<IAsynchronousOperationListener, FeatureMetadata> CreateLazy<T>(
             ValueTuple<string, T> tuple) where T : IAsynchronousOperationListener
         {

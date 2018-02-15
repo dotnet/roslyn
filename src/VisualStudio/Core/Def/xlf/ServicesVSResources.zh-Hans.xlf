@@ -1393,7 +1393,7 @@ Additional information: {1}</source>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_local_function_over_anonymous_function">
-        <source>Prefere local function over anonymous function</source>
+        <source>Prefer local function over anonymous function</source>
         <target state="translated">首选本地函数而不是匿名函数</target>
         <note />
       </trans-unit>

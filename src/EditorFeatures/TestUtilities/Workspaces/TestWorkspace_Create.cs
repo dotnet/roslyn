@@ -58,6 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         private const string AnalyzerFullPathAttributeName = "FullPath";
         private const string AliasAttributeName = "Alias";
         private const string ProjectNameAttribute = "Name";
+        private const string CheckOverflowAttributeName = "CheckOverflow";
 
         /// <summary>
         /// Creates a single buffer in a workspace.

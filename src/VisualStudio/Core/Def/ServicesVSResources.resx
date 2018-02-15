@@ -963,7 +963,7 @@ Additional information: {1}</value>
     <value>Changes are not allowed while code is running.</value>
   </data>
   <data name="Prefer_local_function_over_anonymous_function" xml:space="preserve">
-    <value>Prefere local function over anonymous function</value>
+    <value>Prefer local function over anonymous function</value>
   </data>
   <data name="ModuleHasBeenUnloaded" xml:space="preserve">
     <value>Module has been unloaded.</value>

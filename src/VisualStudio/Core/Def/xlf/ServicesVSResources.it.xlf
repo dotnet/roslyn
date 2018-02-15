@@ -1393,7 +1393,7 @@ L'opzione 'Caricamento leggero soluzioni' è abilitata per la soluzione corrente
         <note />
       </trans-unit>
       <trans-unit id="Prefer_local_function_over_anonymous_function">
-        <source>Prefere local function over anonymous function</source>
+        <source>Prefer local function over anonymous function</source>
         <target state="translated">Preferisci la funzione locale a quella anonima</target>
         <note />
       </trans-unit>
