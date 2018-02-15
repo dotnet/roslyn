@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
         {
             return invocation.ReplaceNodes(invocation.ArgumentList.Arguments, (argumentNode, _) =>
             {
-                if (argumentNode.NameColon == null || argumentNode.NameColon.IsMissing)
+                if (argumentNode.NameColon == null)
                 {
                     return argumentNode;
                 }

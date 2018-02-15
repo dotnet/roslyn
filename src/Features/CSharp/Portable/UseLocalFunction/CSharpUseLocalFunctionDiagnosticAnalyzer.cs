@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                         else if (nodeToCheck.Parent is MemberAccessExpressionSyntax memberAccessExpression)
                         {
                             if (memberAccessExpression.Parent is InvocationExpressionSyntax explicitInvocationExpression &&
-                                memberAccessExpression.Name.Identifier.Text == WellKnownMemberNames.DelegateInvokeName)
+                                memberAccessExpression.Name.Identifier.ValueText == WellKnownMemberNames.DelegateInvokeName)
                             {
                                 invocations.Add(explicitInvocationExpression.GetLocation());
                             }

@@ -2472,6 +2472,31 @@ class C
 
         [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestSimpleInitialization_SingleLine2Async()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class C
+{
+    void Goo()
+    {
+        var buildCancelled = false;
+        Action<int> [||]onUpdateSolutionCancel = async a => { buildCancelled = true; };
+    }
+}",
+@"using System;
+class C
+{
+    void Goo()
+    {
+        var buildCancelled = false;
+        async void onUpdateSolutionCancel(int a) { buildCancelled = true; }
+    }
+}");
+        }
+
+        [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestSimpleInitialization_SingleLine3()
         {
             await TestInRegularAndScriptAsync(
@@ -2491,6 +2516,56 @@ class C
     {
         var buildCancelled = false;
         void onUpdateSolutionCancel(int a) { buildCancelled = true; }
+    }
+}");
+        }
+
+        [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestSimpleInitialization_SingleLine4()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class C
+{
+    void Goo()
+    {
+        var buildCancelled = false;
+        Action<int> [||]onUpdateSolutionCancel = delegate (int a) { buildCancelled = true; };
+    }
+}",
+@"using System;
+class C
+{
+    void Goo()
+    {
+        var buildCancelled = false;
+        void onUpdateSolutionCancel(int a) { buildCancelled = true; }
+    }
+}");
+        }
+
+        [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestSimpleInitialization_SingleLine4Async()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class C
+{
+    void Goo()
+    {
+        var buildCancelled = false;
+        Action<int> [||]onUpdateSolutionCancel = async delegate (int a) { buildCancelled = true; };
+    }
+}",
+@"using System;
+class C
+{
+    void Goo()
+    {
+        var buildCancelled = false;
+        async void onUpdateSolutionCancel(int a) { buildCancelled = true; }
     }
 }");
         }
@@ -2547,6 +2622,31 @@ class C
 
         [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestCastInitialization_SingleLine2Async()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class C
+{
+    void Goo()
+    {
+        var buildCancelled = false;
+        var [||]onUpdateSolutionCancel = (Action<int>)(async a => { buildCancelled = true; });
+    }
+}",
+@"using System;
+class C
+{
+    void Goo()
+    {
+        var buildCancelled = false;
+        async void onUpdateSolutionCancel(int a) { buildCancelled = true; }
+    }
+}");
+        }
+
+        [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestCastInitialization_SingleLine3()
         {
             await TestInRegularAndScriptAsync(
@@ -2566,6 +2666,56 @@ class C
     {
         var buildCancelled = false;
         void onUpdateSolutionCancel(int a) { buildCancelled = true; }
+    }
+}");
+        }
+
+        [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestCastInitialization_SingleLine4()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class C
+{
+    void Goo()
+    {
+        var buildCancelled = false;
+        var [||]onUpdateSolutionCancel = (Action<int>)(delegate (int a) { buildCancelled = true; });
+    }
+}",
+@"using System;
+class C
+{
+    void Goo()
+    {
+        var buildCancelled = false;
+        void onUpdateSolutionCancel(int a) { buildCancelled = true; }
+    }
+}");
+        }
+
+        [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestCastInitialization_SingleLine4Async()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class C
+{
+    void Goo()
+    {
+        var buildCancelled = false;
+        var [||]onUpdateSolutionCancel = (Action<int>)(async delegate (int a) { buildCancelled = true; });
+    }
+}",
+@"using System;
+class C
+{
+    void Goo()
+    {
+        var buildCancelled = false;
+        async void onUpdateSolutionCancel(int a) { buildCancelled = true; }
     }
 }");
         }
@@ -2624,6 +2774,32 @@ class C
 
         [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestSplitInitialization_SingleLine2Async()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class C
+{
+    void Goo()
+    {
+        var buildCancelled = false;
+        Action<int> [||]onUpdateSolutionCancel = null;
+        onUpdateSolutionCancel = async a => { buildCancelled = true; };
+    }
+}",
+@"using System;
+class C
+{
+    void Goo()
+    {
+        var buildCancelled = false;
+        async void onUpdateSolutionCancel(int a) { buildCancelled = true; }
+    }
+}");
+        }
+
+        [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestSplitInitialization_SingleLine3()
         {
             await TestInRegularAndScriptAsync(
@@ -2644,6 +2820,58 @@ class C
     {
         var buildCancelled = false;
         void onUpdateSolutionCancel(int a) { buildCancelled = true; }
+    }
+}");
+        }
+
+        [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestSplitInitialization_SingleLine4()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class C
+{
+    void Goo()
+    {
+        var buildCancelled = false;
+        Action<int> [||]onUpdateSolutionCancel = null;
+        onUpdateSolutionCancel = delegate (int a) { buildCancelled = true; };
+    }
+}",
+@"using System;
+class C
+{
+    void Goo()
+    {
+        var buildCancelled = false;
+        void onUpdateSolutionCancel(int a) { buildCancelled = true; }
+    }
+}");
+        }
+
+        [WorkItem(23872, "https://github.com/dotnet/roslyn/issues/23872")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestSplitInitialization_SingleLine4Async()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class C
+{
+    void Goo()
+    {
+        var buildCancelled = false;
+        Action<int> [||]onUpdateSolutionCancel = null;
+        onUpdateSolutionCancel = async delegate (int a) { buildCancelled = true; };
+    }
+}",
+@"using System;
+class C
+{
+    void Goo()
+    {
+        var buildCancelled = false;
+        async void onUpdateSolutionCancel(int a) { buildCancelled = true; }
     }
 }");
         }
