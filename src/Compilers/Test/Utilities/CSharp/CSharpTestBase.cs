@@ -329,7 +329,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             string ilSource,
             IEnumerable<MetadataReference> references = null,
             CSharpCompilationOptions options = null,
-            bool appendDefaultHeader = true) => CreateCompilationWithCustomILSource(source, ilSource, TargetFramework.NetStandard20, references, options, appendDefaultHeader);
+            bool appendDefaultHeader = true) => CreateCompilationWithCustomILSource(source, ilSource, TargetFramework.Standard, references, options, appendDefaultHeader);
 
         public static CSharpCompilation CreateCompilationWithCustomILSource(
             string source,
@@ -359,11 +359,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             string assemblyName = "") => CreateCompilation(Parse(source, sourceFileName, parseOptions), TargetFramework.Net40, references, options, assemblyName);
 
         public static CSharpCompilation CreateCompilationWithMscorlib40(
-            string[] sources,
+            string[] source,
             IEnumerable<MetadataReference> references = null,
             CSharpCompilationOptions options = null,
             CSharpParseOptions parseOptions = null,
-            string assemblyName = "") => CreateCompilation(sources, TargetFramework.Net40, references, options, parseOptions, assemblyName);
+            string assemblyName = "") => CreateCompilation(source, TargetFramework.Net40, references, options, parseOptions, assemblyName);
 
         public static CSharpCompilation CreateCompilationWithMscorlib45(
             IEnumerable<SyntaxTree> source,

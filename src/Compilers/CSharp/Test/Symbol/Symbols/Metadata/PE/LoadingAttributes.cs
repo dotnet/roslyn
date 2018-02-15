@@ -1504,7 +1504,7 @@ class Class2 : Class1
 } // end of class MyAttribute
 ";
 
-            var c = CreateStandardCompilationWithCustomILSource(@"
+            var c = CreateCompilationWithCustomILSource(@"
 [MyAttribute(typeof(MyAttribute))]
 public class Test
 {

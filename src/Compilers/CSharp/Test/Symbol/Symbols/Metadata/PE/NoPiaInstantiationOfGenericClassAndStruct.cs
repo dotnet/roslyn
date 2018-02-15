@@ -473,7 +473,7 @@ public class DrivedClass
         {
             //Test class that inherits Generic(Of NoPIAType)
 
-            var localConsumer = CreateStandardCompilation(assemblyName: "Dummy", source: (string)null,
+            var localConsumer = CreateCompilationWithMscorlib40(assemblyName: "Dummy", source: (string[])null,
                 references: new[]
                 {
                     TestReferences.SymbolsTests.NoPia.NoPIAGenericsAsm1,
@@ -552,7 +552,7 @@ public class TypeRefs1
             var localType = CreateStandardCompilation(assemblyName: "Dummy", source: localTypeSource,
                 references: new[] { TestReferences.SymbolsTests.NoPia.GeneralPia.WithEmbedInteropTypes(true) });
 
-            var localConsumer = CreateStandardCompilation(assemblyName: "Dummy", source: (string)null,
+            var localConsumer = CreateStandardCompilation(assemblyName: "Dummy", source: (string[])null,
                 references: new MetadataReference[]
                 {
                     TestReferences.SymbolsTests.NoPia.GeneralPiaCopy,

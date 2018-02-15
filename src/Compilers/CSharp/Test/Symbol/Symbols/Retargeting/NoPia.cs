@@ -344,10 +344,10 @@ public class LocalTypes3
         [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
         public void LocalTypeSubstitution1_1()
         {
-            var LocalTypes1 = CreateStandardCompilation(s_sourceLocalTypes1_IL, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes1");
+            var LocalTypes1 = CreateCompilationWithMscorlib40(s_sourceLocalTypes1_IL, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes1");
             CompileAndVerify(LocalTypes1);
 
-            var LocalTypes2 = CreateStandardCompilation(s_sourceLocalTypes2_IL, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes2");
+            var LocalTypes2 = CreateCompilationWithMscorlib40(s_sourceLocalTypes2_IL, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes2");
             CompileAndVerify(LocalTypes2);
 
             var assemblies1 = MetadataTestHelpers.GetSymbolsForReferences(new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
