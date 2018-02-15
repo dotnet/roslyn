@@ -113,6 +113,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         // perf optimization. check whether we want to analyze this project or not.
                         if (!FullAnalysisEnabled(project, forceAnalyzerRun))
                         {
+                            Logger.Log(FunctionId.Diagnostics_ProjectDiagnostic, p => $"FSA off ({p.FilePath ?? p.Name})", project);
+
                             return new ProjectAnalysisData(project.Id, VersionStamp.Default, existingData.Result, ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty);
                         }
 
@@ -154,6 +156,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     // no result from compiler analyzer
                     return result;
                 }
+
+                Logger.Log(FunctionId.Diagnostics_ProjectDiagnostic, p => $"Failed to Load Successfully ({p.FilePath ?? p.Name})", project);
 
                 // get rid of any result except syntax from compiler analyzer result
                 var newCompilerAnalysisResult = new DiagnosticAnalysisResult(
@@ -452,7 +456,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return ImmutableArray<Diagnostic>.Empty;
                 }
 
-                if (!await SemanticAnalysisEnabled(document, analyzer, kind, cancellationToken).ConfigureAwait(false))
+                if (!await AnalysisEnabled(document, analyzer, kind, cancellationToken).ConfigureAwait(false))
                 {
                     return ImmutableArray<Diagnostic>.Empty;
                 }
@@ -479,14 +483,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
             }
 
-            private async Task<bool> SemanticAnalysisEnabled(Document document, DiagnosticAnalyzer analyzer, AnalysisKind kind, CancellationToken cancellationToken)
+            private async Task<bool> AnalysisEnabled(Document document, DiagnosticAnalyzer analyzer, AnalysisKind kind, CancellationToken cancellationToken)
             {
                 // if project is not loaded successfully then, we disable semantic errors for compiler analyzers
-                var disabled = kind != AnalysisKind.Syntax &&
-                               _owner.HostAnalyzerManager.IsCompilerDiagnosticAnalyzer(document.Project.Language, analyzer) &&
-                               !await document.Project.HasSuccessfullyLoadedAsync(cancellationToken).ConfigureAwait(false);
+                if (kind == AnalysisKind.Syntax || !_owner.HostAnalyzerManager.IsCompilerDiagnosticAnalyzer(document.Project.Language, analyzer))
+                {
+                    return true;
+                }
 
-                return !disabled;
+                var enabled = await document.Project.HasSuccessfullyLoadedAsync(cancellationToken).ConfigureAwait(false);
+
+                Logger.Log(FunctionId.Diagnostics_SemanticDiagnostic, (a, d, e) => $"{a.ToString()}, ({d.FilePath ?? d.Name}), Enabled:{e}", analyzer, document, enabled);
+
+                return enabled;
             }
 
             private void UpdateAnalyzerTelemetryData(
