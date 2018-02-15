@@ -303,7 +303,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        protected void SetIntellisenseBuildResultAndNotifyWorkspaceHosts(bool succeeded)
+        protected void SetIntellisenseBuildResultAndNotifyWorkspace(bool succeeded)
         {
             // set intellisense related info
             LastDesignTimeBuildSucceeded = succeeded;
