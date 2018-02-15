@@ -136,10 +136,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
 
             var invokeMethod = delegateType.DelegateInvokeMethod;
 
-            // We add a space directly after the return-type, as the default presence of an elastic 
-            // trivia makes the formatting engine thing it can take a single-line local function and
-            // wrap it over multiple lines.
-            var returnType = invokeMethod.GenerateReturnTypeSyntax().WithTrailingTrivia(SyntaxFactory.Space);
+            // The presence of elastic trivia in the return type will cause the formatting engine 
+            // to wrap a local function that could stay on a single line.  Remove all the elastic
+            // trivia added by default to get good behavior for both single line and multiline
+            // lambdas.
+            var returnType = RemoveAllElasticTrivia(invokeMethod.GenerateReturnTypeSyntax());
             
             var identifier = localDeclaration.Declaration.Variables[0].Identifier;
             var typeParameterList = default(TypeParameterListSyntax);
@@ -158,9 +159,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                 ? localDeclaration.SemicolonToken
                 : default;
 
+            // Remove elastic trivia between the first two tokens.  The formatting engine uses the
+            // presence of this to override the constraint that tries to keep local functions on 
+            // a single line.
             return SyntaxFactory.LocalFunctionStatement(
                 modifiers, returnType, identifier, typeParameterList, parameterList,
                 constraintClauses, body, expressionBody, semicolonToken);
+        }
+
+        private TypeSyntax RemoveAllElasticTrivia(TypeSyntax typeSyntax)
+        {
+            return typeSyntax.ReplaceTrivia(
+                typeSyntax.DescendantTrivia(),
+                (t, _) => t.WithoutAnnotations(SyntaxAnnotation.ElasticAnnotation));
         }
 
         private ParameterListSyntax GenerateParameterList(
