@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             }
         }
 
-        private (double, double) GetMeanAndAdjustedStandardDeviation(List<double> data)
+        private (double mean, double stddev) GetMeanAndAdjustedStandardDeviation(List<double> data)
         {
             var mean = data.Average();
             var stddev = Math.Sqrt(data.Select(ms => Math.Pow(ms - mean, 2)).Average());

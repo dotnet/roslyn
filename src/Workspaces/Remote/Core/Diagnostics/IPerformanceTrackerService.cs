@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
     {
         public readonly bool BuiltIn;
         public readonly string AnalyzerId;
-        public readonly string Hash;
+        public readonly string AnalyzerIdHash;
         public readonly double LOF;
         public readonly double Mean;
         public readonly double Stddev;
@@ -28,12 +28,12 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
         {
             BuiltIn = builtIn;
             AnalyzerId = analyzerId;
-            Hash = analyzerId.GetHashCode().ToString();
+            AnalyzerIdHash = analyzerId.GetHashCode().ToString();
             LOF = lof_value;
             Mean = mean;
             Stddev = stddev;
         }
 
-        public string PIISafeAnalyzerId => BuiltIn ? AnalyzerId : Hash;
+        public string PIISafeAnalyzerId => BuiltIn ? AnalyzerId : AnalyzerIdHash;
     }
 }

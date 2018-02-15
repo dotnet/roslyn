@@ -32,6 +32,8 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal partial class RemoteHostService : ServiceHubServiceBase, IRemoteHostService
     {
+        private readonly static TimeSpan s_reportIntervalInMinutes = TimeSpan.FromMinutes(2);
+
         // it is saved here more on debugging purpose.
         private static Func<FunctionId, bool> s_logChecker = _ => false;
 
@@ -209,8 +211,6 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private void SetGlobalContext(int uiCultureLCID, int cultureLCID, string serializedSession)
         {
-            const int ReportIntervalInMinutes = 2;
-
             // set global telemetry session
             var session = GetTelemetrySession(serializedSession);
             if (session == null)
@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.Remote
             var diagnosticAnalyzerPerformanceTracker = SolutionService.PrimaryWorkspace.Services.GetService<IPerformanceTrackerService>();
             if (diagnosticAnalyzerPerformanceTracker != null)
             {
-                _performanceReporter = new PerformanceReporter(Logger, diagnosticAnalyzerPerformanceTracker, TimeSpan.FromMinutes(ReportIntervalInMinutes), ShutdownCancellationToken);
+                _performanceReporter = new PerformanceReporter(Logger, diagnosticAnalyzerPerformanceTracker, s_reportIntervalInMinutes, ShutdownCancellationToken);
             }
         }
 

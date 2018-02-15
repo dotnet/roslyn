@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         /// <summary>
         /// Check whether current user is microsoft internal or not
         /// </summary>
-        public static bool IsUserMicrosoftInternal => SessionOpt?.IsUserMicrosoftInternal == true;
+        public static bool IsUserMicrosoftInternal => SessionOpt?.IsUserMicrosoftInternal ?? false;
 
         /// <summary>
         /// Report Non-Fatal Watson

@@ -19,7 +19,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             // minimum sample is 100
             var badAnalyzers = GetBadAnalyzers(@"TestFiles\analyzer_input.csv", to: 80);
 
-            Assert.True(badAnalyzers.Count == 0);
+            Assert.Empty(badAnalyzers);
         }
 
         [Fact]
@@ -61,16 +61,16 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             Assert.True(badAnalyzer1.PIISafeAnalyzerId == "test");
 
             var badAnalyzer2 = new ExpensiveAnalyzerInfo(false, "test", 0.1, 0.1, 0.1);
-            Assert.True(badAnalyzer2.PIISafeAnalyzerId == badAnalyzer2.Hash);
+            Assert.True(badAnalyzer2.PIISafeAnalyzerId == badAnalyzer2.AnalyzerIdHash);
             Assert.True(badAnalyzer2.PIISafeAnalyzerId == "test".GetHashCode().ToString());
         }
 
         private void VerifyBadAnalyzer(ExpensiveAnalyzerInfo analyzer, string analyzerId, double lof, double mean, double stddev)
         {
             Assert.True(analyzer.PIISafeAnalyzerId.IndexOf(analyzerId, StringComparison.OrdinalIgnoreCase) >= 0);
-            Assert.True(Math.Abs(analyzer.LOF - lof) < 0.0001D);
-            Assert.True(Math.Abs(analyzer.Mean - mean) < 0.0001D);
-            Assert.True(Math.Abs(analyzer.Stddev - stddev) < 0.0001D);
+            Assert.Equal(analyzer.LOF, lof, precision: 4);
+            Assert.Equal(analyzer.Mean, mean, precision: 4);
+            Assert.Equal(analyzer.Stddev, stddev, precision: 4);
         }
 
         private List<ExpensiveAnalyzerInfo> GetBadAnalyzers(string testFileName, int to)

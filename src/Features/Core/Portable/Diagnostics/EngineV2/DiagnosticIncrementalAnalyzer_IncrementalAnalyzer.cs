@@ -62,56 +62,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     RaiseDocumentDiagnosticsIfNeeded(document, stateSet, kind, result.OldItems, result.Items);
                 }
 
-                await ReportAnalyzerPerformanceAsync(document, analyzerDriverOpt, cancellationToken).ConfigureAwait(false);
+                FireAndForgetReportAnalyzerPerformance(document, analyzerDriverOpt, cancellationToken);
             }
             catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
-            }
-        }
-
-        private async Task ReportAnalyzerPerformanceAsync(Document document, CompilationWithAnalyzers analyzerDriverOpt, CancellationToken cancellationToken)
-        {
-            if (analyzerDriverOpt == null)
-            {
-                return;
-            }
-
-            var client = await document.Project.Solution.Workspace.TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
-            if (client == null)
-            {
-                // no remote support
-                return;
-            }
-
-            cancellationToken.ThrowIfCancellationRequested();
-
-            using (var pooledObject = SharedPools.Default<Dictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo>>().GetPooledObject())
-            {
-                var containsData = false;
-                foreach (var analyzer in analyzerDriverOpt.Analyzers)
-                {
-                    var telemetryInfo = await analyzerDriverOpt.GetAnalyzerTelemetryInfoAsync(analyzer, cancellationToken).ConfigureAwait(false);
-                    if (!containsData && telemetryInfo.ExecutionTime.Ticks > 0)
-                    {
-                        // this is unfortunate tweak due to how GetAnalyzerTelemetryInfoAsync works when analyzers are asked
-                        // one by one rather than in bulk.
-                        containsData = true;
-                    }
-
-                    pooledObject.Object.Add(analyzer, telemetryInfo);
-                }
-
-                if (!containsData)
-                {
-                    // looks like there is no new data from driver. skip reporting.
-                    return;
-                }
-
-                await client.TryRunCodeAnalysisRemoteAsync(
-                    nameof(IRemoteDiagnosticAnalyzerService.ReportAnalyzerPerformance),
-                    new object[] { pooledObject.Object.ToAnalyzerPerformanceInfo(Owner), /* unit count */ 1 },
-                    cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -477,6 +432,58 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
 
             RaiseDiagnosticsRemoved(projectId, nullSolution, stateSet, raiseEvents);
+        }
+
+        private async void FireAndForgetReportAnalyzerPerformance(Document document, CompilationWithAnalyzers analyzerDriverOpt, CancellationToken cancellationToken)
+        {
+            try
+            {
+                if (analyzerDriverOpt == null)
+                {
+                    return;
+                }
+
+                var client = await document.Project.Solution.Workspace.TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
+                if (client == null)
+                {
+                    // no remote support
+                    return;
+                }
+
+                cancellationToken.ThrowIfCancellationRequested();
+
+                using (var pooledObject = SharedPools.Default<Dictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo>>().GetPooledObject())
+                {
+                    var containsData = false;
+                    foreach (var analyzer in analyzerDriverOpt.Analyzers)
+                    {
+                        var telemetryInfo = await analyzerDriverOpt.GetAnalyzerTelemetryInfoAsync(analyzer, cancellationToken).ConfigureAwait(false);
+                        if (!containsData && telemetryInfo.ExecutionTime.Ticks > 0)
+                        {
+                            // this is unfortunate tweak due to how GetAnalyzerTelemetryInfoAsync works when analyzers are asked
+                            // one by one rather than in bulk.
+                            containsData = true;
+                        }
+
+                        pooledObject.Object.Add(analyzer, telemetryInfo);
+                    }
+
+                    if (!containsData)
+                    {
+                        // looks like there is no new data from driver. skip reporting.
+                        return;
+                    }
+
+                    await client.TryRunCodeAnalysisRemoteAsync(
+                        nameof(IRemoteDiagnosticAnalyzerService.ReportAnalyzerPerformance),
+                        new object[] { pooledObject.Object.ToAnalyzerPerformanceInfo(Owner), /* unit count */ 1 },
+                        cancellationToken).ConfigureAwait(false);
+                }
+            }
+            catch (Exception ex) when (FatalError.ReportWithoutCrashUnlessCanceled(ex))
+            {
+                // this is fire and forget method
+            }
         }
     }
 }

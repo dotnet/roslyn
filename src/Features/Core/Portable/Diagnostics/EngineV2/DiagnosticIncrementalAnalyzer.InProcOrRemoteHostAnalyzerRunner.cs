@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
@@ -102,7 +103,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var analysisResult = await analyzerDriver.GetAnalysisResultAsync(cancellationToken).ConfigureAwait(false);
 
                 // if remote host is there, report performance data
-                if (client != null)
+                FireAndForgetReportAnalyzerPerformance(project, client, analysisResult, cancellationToken);
+
+                // get compiler result builder map
+                var builderMap = analysisResult.ToResultBuilderMap(project, version, analyzerDriver.Compilation, analyzerDriver.Analyzers, cancellationToken);
+
+                return DiagnosticAnalysisResultMap.Create(builderMap.ToImmutableDictionary(kv => kv.Key, kv => new DiagnosticAnalysisResult(kv.Value)), analysisResult.AnalyzerTelemetryInfo);
+            }
+
+            private async void FireAndForgetReportAnalyzerPerformance(Project project, RemoteHostClient client, AnalysisResult analysisResult, CancellationToken cancellationToken)
+            {
+                if (client == null)
+                {
+                    return;
+                }
+
+                try
                 {
                     await client.TryRunCodeAnalysisRemoteAsync(
                         nameof(IRemoteDiagnosticAnalyzerService.ReportAnalyzerPerformance),
@@ -114,11 +130,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         },
                         cancellationToken).ConfigureAwait(false);
                 }
-
-                // get compiler result builder map
-                var builderMap = analysisResult.ToResultBuilderMap(project, version, analyzerDriver.Compilation, analyzerDriver.Analyzers, cancellationToken);
-
-                return DiagnosticAnalysisResultMap.Create(builderMap.ToImmutableDictionary(kv => kv.Key, kv => new DiagnosticAnalysisResult(kv.Value)), analysisResult.AnalyzerTelemetryInfo);
+                catch (Exception ex) when (FatalError.ReportWithoutCrashUnlessCanceled(ex))
+                {
+                    // ignore all, this is fire and forget method
+                }
             }
 
             private async Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeOutOfProcAsync(
