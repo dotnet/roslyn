@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.ComponentModelHost;
@@ -37,6 +38,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     internal abstract partial class AbstractProject : ForegroundThreadAffinitizedObject, IVisualStudioHostProject
 #pragma warning restore CS0618 // IVisualStudioHostProject is obsolete
     {
+        private const string ProjectGuidPropertyName = "ProjectGuid";
+
         internal static object RuleSetErrorId = new object();
         private readonly object _gate = new object();
 
@@ -171,6 +174,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             UpdateAssemblyName();
+
+            Logger.Log(FunctionId.AbstractProject_Created,
+                KeyValueLogMessage.Create(LogType.Trace, m =>
+                {
+                    m[ProjectGuidPropertyName] = Guid;
+                }));
         }
 
         internal IServiceProvider ServiceProvider { get; }
@@ -318,8 +327,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         protected void SetIntellisenseBuildResultAndNotifyWorkspaceHosts(bool succeeded)
         {
-            // set intellisense related info
+            // set IntelliSense related info
             LastDesignTimeBuildSucceeded = succeeded;
+
+            Logger.Log(FunctionId.AbstractProject_SetIntelliSenseBuild,
+                KeyValueLogMessage.Create(LogType.Trace, m =>
+                {
+                    m[ProjectGuidPropertyName] = Guid;
+                    m[nameof(LastDesignTimeBuildSucceeded)] = LastDesignTimeBuildSucceeded;
+                    m[nameof(PushingChangesToWorkspaceHosts)] = PushingChangesToWorkspaceHosts;
+                }));
 
             if (PushingChangesToWorkspaceHosts)
             {
@@ -1361,6 +1378,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         internal void StartPushingToWorkspaceHosts()
         {
             _pushingChangesToWorkspaceHosts = true;
+            Logger.Log(FunctionId.AbstractProject_PushedToWorkspace,
+                KeyValueLogMessage.Create(LogType.Trace, m =>
+                {
+                    m[ProjectGuidPropertyName] = Guid;
+                }));
         }
 
         internal void StopPushingToWorkspaceHosts()
