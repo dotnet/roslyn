@@ -69,8 +69,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
         {
             Assert.True(analyzer.PIISafeAnalyzerId.IndexOf(analyzerId, StringComparison.OrdinalIgnoreCase) >= 0);
             Assert.Equal(analyzer.LOF, lof, precision: 4);
-            Assert.Equal(analyzer.Mean, mean, precision: 4);
-            Assert.Equal(analyzer.Stddev, stddev, precision: 4);
+            Assert.Equal(analyzer.Average, mean, precision: 4);
+            Assert.Equal(analyzer.AdjustedStandardDeviation, stddev, precision: 4);
         }
 
         private List<ExpensiveAnalyzerInfo> GetBadAnalyzers(string testFileName, int to)

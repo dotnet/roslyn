@@ -21,8 +21,8 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
         public readonly string AnalyzerId;
         public readonly string AnalyzerIdHash;
         public readonly double LOF;
-        public readonly double Mean;
-        public readonly double Stddev;
+        public readonly double Average;
+        public readonly double AdjustedStandardDeviation;
 
         public ExpensiveAnalyzerInfo(bool builtIn, string analyzerId, double lof_value, double mean, double stddev) : this()
         {
@@ -30,8 +30,8 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             AnalyzerId = analyzerId;
             AnalyzerIdHash = analyzerId.GetHashCode().ToString();
             LOF = lof_value;
-            Mean = mean;
-            Stddev = stddev;
+            Average = mean;
+            AdjustedStandardDeviation = stddev;
         }
 
         public string PIISafeAnalyzerId => BuiltIn ? AnalyzerId : AnalyzerIdHash;
