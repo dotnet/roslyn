@@ -26,7 +26,7 @@ Namespace Roslyn.Diagnostics.VisualBasic.Analyzers
 
             Protected Overrides Sub GetSyntaxAnalyzer(context As CodeBlockStartAnalysisContext(Of SyntaxKind), symbols As ImmutableHashSet(Of ISymbol))
                 Dim analyzer = New SyntaxAnalyzer(symbols)
-                context.RegisterSyntaxNodeAction(AddressOf analyzer.AnalyzeNode, analyzer.SyntaxKindsOfInterest.ToArray())
+                context.RegisterSyntaxNodeAction(AddressOf analyzer.AnalyzeNode, SyntaxAnalyzer.SyntaxKindsOfInterest.ToArray())
             End Sub
         End Class
 
@@ -37,7 +37,7 @@ Namespace Roslyn.Diagnostics.VisualBasic.Analyzers
                 MyBase.New(symbols)
             End Sub
 
-            Public ReadOnly Property SyntaxKindsOfInterest As ImmutableArray(Of SyntaxKind)
+            Public Shared ReadOnly Property SyntaxKindsOfInterest As ImmutableArray(Of SyntaxKind)
                 Get
                     Return ImmutableArray.Create(SyntaxKind.InvocationExpression)
                 End Get

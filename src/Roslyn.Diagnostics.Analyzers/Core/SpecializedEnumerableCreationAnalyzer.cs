@@ -125,7 +125,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 _genericEmptyEnumerableSymbol = genericEmptyEnumerableSymbol;
             }
 
-            public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(UseEmptyEnumerableRule, UseSingletonEnumerableRule);
+            public static ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(UseEmptyEnumerableRule, UseSingletonEnumerableRule);
 
             protected bool ShouldAnalyzeArrayCreationExpression(SyntaxNode expression, SemanticModel semanticModel)
             {

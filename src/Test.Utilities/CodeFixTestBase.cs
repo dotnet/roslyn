@@ -95,7 +95,7 @@ namespace Test.Utilities
             VerifyDocuments(solution, documents, newSources);
         }
 
-        protected void VerifyAdditionalFileFix(
+        protected static void VerifyAdditionalFileFix(
             string language, 
             DiagnosticAnalyzer analyzerOpt, 
             CodeFixProvider codeFixProvider, 

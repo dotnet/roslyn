@@ -16,6 +16,7 @@ Documentation: CA1200-CA1299
 
 # Microsoft CodeAnalysis API rules
 MicrosoftCodeAnalysisCorrectness: RS1000-RS1999
+MicrosoftCodeAnalysisDesign: RS1000-RS1999
 MicrosoftCodeAnalysisDocumentation: RS1000-RS1999
 MicrosoftCodeAnalysisLocalization: RS1000-RS1999
 MicrosoftCodeAnalysisPerformance: RS1000-RS1999
