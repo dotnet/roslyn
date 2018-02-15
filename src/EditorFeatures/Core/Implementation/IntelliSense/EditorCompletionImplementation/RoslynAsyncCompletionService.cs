@@ -382,8 +382,8 @@ namespace RoslynCompletionPrototype
             for (int i = 1, n = chosenItems.Length; i < n; i++)
             {
                 var chosenItem = chosenItems[i];
-                var bestItemPriority = int.Parse(bestItem.Properties.GetValueOrDefault("MatchPriority"));
-                var currentItemPriority = int.Parse(chosenItem.Properties.GetValueOrDefault("MatchPriority"));
+                int.TryParse(bestItem.Properties.GetValueOrDefault("MatchPriority"), out var bestItemPriority);
+                int.TryParse(chosenItem.Properties.GetValueOrDefault("MatchPriority"), out var currentItemPriority);
 
                 if (currentItemPriority > bestItemPriority)
                 {
