@@ -474,10 +474,10 @@ namespace RoslynCompletionPrototype
             if (filterText.Length == 0)
             {
                 // TODO: Need ItemRules.MatchPriority.
-                //if (item.Rules.MatchPriority > MatchPriority.Default)
-                //{
-                //    return true;
-                //}
+                if (item.Properties.GetProperty<int>("MatchPriority") > MatchPriority.Default)
+                {
+                    return true;
+                }
 
                 if (!_recentItems.IsDefault && GetRecentItemIndex(_recentItems, item.DisplayText) <= 0)
                 {
