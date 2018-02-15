@@ -298,11 +298,7 @@ namespace RoslynCompletionPrototype
 
             var matchingItems = filterResults
                 .Where(r => r.MatchedFilterText)
-                .Select(t => RoslynCompletionItem.Create(
-                    t.CompletionItem.DisplayText, 
-                    t.CompletionItem.FilterText, 
-                    t.CompletionItem.SortText,
-                    properties: ImmutableDictionary<string, string>.Empty.Add("MatchPriority", t.CompletionItem.Properties.GetProperty<int>("MatchPriority").ToString())))
+                .Select(t => t.CompletionItem.Properties.GetProperty<RoslynCompletionItem>("RoslynItem"))
                 .AsImmutable();
             var chosenItems = service.FilterItems(snapshot.GetOpenDocumentInCurrentContextWithChanges(), matchingItems, filterText);
 
