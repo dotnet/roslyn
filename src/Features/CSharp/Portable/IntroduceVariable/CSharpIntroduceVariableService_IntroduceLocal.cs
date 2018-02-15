@@ -56,8 +56,10 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                         document, block, expression, newLocalName, declarationStatement, allOccurrences, cancellationToken).ConfigureAwait(false);
 
                 case ArrowExpressionClauseSyntax arrowExpression:
+                    // this will be null for expression-bodied properties & indexer (not for individual getters & setters, those do have a symbol),
+                    // both of which are a shorthand for the getter and always return a value
                     var method = document.SemanticModel.GetDeclaredSymbol(arrowExpression.Parent) as IMethodSymbol;
-                    bool createReturnStatement = !method?.ReturnsVoid ?? true; // this will be null for properties & indexers, both of which return a value
+                    bool createReturnStatement = !method?.ReturnsVoid ?? true;
 
                     return RewriteExpressionBodiedMemberAndIntroduceLocalDeclaration(
                         document, arrowExpression, expression, newLocalName,
@@ -98,16 +100,14 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
 
         private Document IntroduceLocalDeclarationIntoLambda(
             SemanticDocument document,
-            SyntaxNode oldLambda,
+            LambdaExpressionSyntax oldLambda,
             ExpressionSyntax expression,
             IdentifierNameSyntax newLocalName,
             LocalDeclarationStatementSyntax declarationStatement,
             bool allOccurrences,
             CancellationToken cancellationToken)
         {
-            var oldBody = oldLambda is ParenthesizedLambdaExpressionSyntax
-                ? (ExpressionSyntax)((ParenthesizedLambdaExpressionSyntax)oldLambda).Body
-                : (ExpressionSyntax)((SimpleLambdaExpressionSyntax)oldLambda).Body;
+            var oldBody = (ExpressionSyntax)oldLambda.Body;
 
             var rewrittenBody = Rewrite(
                 document, expression, newLocalName, document, oldBody, allOccurrences, cancellationToken);
@@ -118,11 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                 ? SyntaxFactory.Block(declarationStatement)
                 : SyntaxFactory.Block(declarationStatement, SyntaxFactory.ReturnStatement(rewrittenBody));
 
-            newBody = newBody.WithAdditionalAnnotations(Formatter.Annotation);
-
-            var newLambda = oldLambda is ParenthesizedLambdaExpressionSyntax
-                ? ((ParenthesizedLambdaExpressionSyntax)oldLambda).WithBody(newBody)
-                : (SyntaxNode)((SimpleLambdaExpressionSyntax)oldLambda).WithBody(newBody);
+            var newLambda = oldLambda.WithBody(newBody.WithAdditionalAnnotations(Formatter.Annotation));
 
             var newRoot = document.Root.ReplaceNode(oldLambda, newLambda);
             return document.Document.WithSyntaxRoot(newRoot);
@@ -194,46 +190,44 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                                        .WithLeadingTrivia(leadingTrivia)
                                        .WithTrailingTrivia(oldBody.GetTrailingTrivia())
                                        .WithAdditionalAnnotations(Formatter.Annotation);
-
-            SyntaxNode newParentingNode = oldParentingNode; // in case we fail for some reason, at least don't remove it!
             
-            switch (oldParentingNode)
+            var newRoot = document.Root.ReplaceNode(oldParentingNode, WithBlockBody(oldParentingNode, newBody));
+            return document.Document.WithSyntaxRoot(newRoot);
+        }
+
+        private static SyntaxNode WithBlockBody(SyntaxNode node, BlockSyntax body)
+        {
+            switch (node)
             {
                 case BasePropertyDeclarationSyntax baseProperty:
-                    var getAccessor = SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration, newBody);
-                    var accessorList = SyntaxFactory.AccessorList(SyntaxFactory.List(new[] { getAccessor }));
-
-                    newParentingNode = baseProperty
-                        .RemoveNode(oldBody, SyntaxRemoveOptions.KeepNoTrivia)
+                    var accessorList = SyntaxFactory.AccessorList(SyntaxFactory.SingletonList(
+                        SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration, body)));
+                    return baseProperty
+                        .TryWithExpressionBody(null)
                         .WithAccessorList(accessorList)
                         .TryWithSemicolonToken(SyntaxFactory.Token(SyntaxKind.None))
-                        .WithTrailingTrivia(baseProperty.TryGetSemicolonToken().TrailingTrivia);
-                    break;
+                        .WithTriviaFrom(baseProperty);
                 case AccessorDeclarationSyntax accessor:
-                    newParentingNode = accessor
-                        .RemoveNode(oldBody, SyntaxRemoveOptions.KeepNoTrivia)
-                        .WithBody(newBody)
+                    return accessor
+                        .WithExpressionBody(null)
+                        .WithBody(body)
                         .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.None))
-                        .WithTrailingTrivia(accessor.SemicolonToken.TrailingTrivia);
-                    break;
+                        .WithTriviaFrom(accessor);
                 case BaseMethodDeclarationSyntax baseMethod:
-                    newParentingNode = baseMethod
-                        .RemoveNode(oldBody, SyntaxRemoveOptions.KeepNoTrivia)
-                        .WithBody(newBody)
+                    return baseMethod
+                        .WithExpressionBody(null)
+                        .WithBody(body)
                         .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.None))
-                        .WithTrailingTrivia(baseMethod.SemicolonToken.TrailingTrivia);
-                    break;
+                        .WithTriviaFrom(baseMethod);
                 case LocalFunctionStatementSyntax localFunction:
-                    newParentingNode = localFunction
-                        .RemoveNode(oldBody, SyntaxRemoveOptions.KeepNoTrivia)
-                        .WithBody(newBody)
+                    return localFunction
+                        .WithExpressionBody(null)
+                        .WithBody(body)
                         .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.None))
-                        .WithTrailingTrivia(localFunction.SemicolonToken.TrailingTrivia);
-                    break;
+                        .WithTriviaFrom(localFunction);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(node);
             }
-
-            var newRoot = document.Root.ReplaceNode(oldParentingNode, newParentingNode);
-            return document.Document.WithSyntaxRoot(newRoot);
         }
 
         private async Task<Document> IntroduceLocalDeclarationIntoBlockAsync(
