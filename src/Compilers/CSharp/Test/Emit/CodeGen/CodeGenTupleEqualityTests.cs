@@ -250,6 +250,48 @@ class C
         }
 
         [Fact]
+        public void TestILForSimpleEqualOnInTuple()
+        {
+            var source = @"
+class C
+{
+    static bool M(in (int, int) t1, in (int, int) t2)
+    {
+        return t1 == t2;
+    }
+}";
+            var comp = CompileAndVerify(source, additionalRefs: s_valueTupleRefs);
+            comp.VerifyDiagnostics();
+
+            // note: the logic to save variables and side-effects results in copying the inputs
+            comp.VerifyIL("C.M", @"{
+  // Code size       45 (0x2d)
+  .maxstack  2
+  .locals init (System.ValueTuple<int, int> V_0,
+                System.ValueTuple<int, int> V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      ""System.ValueTuple<int, int>""
+  IL_0006:  stloc.0
+  IL_0007:  ldarg.1
+  IL_0008:  ldobj      ""System.ValueTuple<int, int>""
+  IL_000d:  stloc.1
+  IL_000e:  ldloc.0
+  IL_000f:  ldfld      ""int System.ValueTuple<int, int>.Item1""
+  IL_0014:  ldloc.1
+  IL_0015:  ldfld      ""int System.ValueTuple<int, int>.Item1""
+  IL_001a:  bne.un.s   IL_002b
+  IL_001c:  ldloc.0
+  IL_001d:  ldfld      ""int System.ValueTuple<int, int>.Item2""
+  IL_0022:  ldloc.1
+  IL_0023:  ldfld      ""int System.ValueTuple<int, int>.Item2""
+  IL_0028:  ceq
+  IL_002a:  ret
+  IL_002b:  ldc.i4.0
+  IL_002c:  ret
+}");
+        }
+
+        [Fact]
         public void TestILForSimpleEqualOnTupleLiterals()
         {
             var source = @"
@@ -2459,12 +2501,64 @@ class C
             throw null;
         }
     }
+    public bool Unused((int, int, int, int, int, int, int, int?) t)
+    {
+        return t.Rest == t.Rest;
+    }
 }
 ";
 
             var comp = CreateStandardCompilation(source, references: s_valueTupleRefs, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "Success");
+            var verifier = CompileAndVerify(comp, expectedOutput: "Success");
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var comparison = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Last();
+            Assert.Equal("t.Rest == t.Rest", comparison.ToString());
+
+            var left = model.GetTypeInfo(comparison.Left);
+            Assert.Equal("ValueTuple<System.Int32?>", left.Type.ToTestDisplayString());
+            Assert.Equal("ValueTuple<System.Int32?>", left.ConvertedType.ToTestDisplayString());
+            Assert.True(left.Type.IsTupleType);
+            Assert.True(left.ConvertedType.IsTupleType);
+
+            verifier.VerifyIL("C.Unused", @"
+{
+  // Code size       67 (0x43)
+  .maxstack  2
+  .locals init (System.ValueTuple<int?> V_0,
+                int? V_1,
+                int? V_2,
+                bool V_3)
+  IL_0000:  nop
+  IL_0001:  ldarg.1
+  IL_0002:  ldfld      ""ValueTuple<int?> System.ValueTuple<int, int, int, int, int, int, int, ValueTuple<int?>>.Rest""
+  IL_0007:  ldarg.1
+  IL_0008:  ldfld      ""ValueTuple<int?> System.ValueTuple<int, int, int, int, int, int, int, ValueTuple<int?>>.Rest""
+  IL_000d:  stloc.0
+  IL_000e:  ldfld      ""int? System.ValueTuple<int?>.Item1""
+  IL_0013:  stloc.1
+  IL_0014:  ldloc.0
+  IL_0015:  ldfld      ""int? System.ValueTuple<int?>.Item1""
+  IL_001a:  stloc.2
+  IL_001b:  ldloca.s   V_1
+  IL_001d:  call       ""int int?.GetValueOrDefault()""
+  IL_0022:  ldloca.s   V_2
+  IL_0024:  call       ""int int?.GetValueOrDefault()""
+  IL_0029:  beq.s      IL_002e
+  IL_002b:  ldc.i4.0
+  IL_002c:  br.s       IL_003e
+  IL_002e:  ldloca.s   V_1
+  IL_0030:  call       ""bool int?.HasValue.get""
+  IL_0035:  ldloca.s   V_2
+  IL_0037:  call       ""bool int?.HasValue.get""
+  IL_003c:  ceq
+  IL_003e:  stloc.3
+  IL_003f:  br.s       IL_0041
+  IL_0041:  ldloc.3
+  IL_0042:  ret
+}");
         }
 
         [Fact]
