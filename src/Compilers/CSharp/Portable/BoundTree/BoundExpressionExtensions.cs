@@ -196,9 +196,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case BoundKind.SuppressNullableWarningExpression:
                     return null;
-                case BoundKind.ThisReference:
-                case BoundKind.BaseReference:
-                    return false;
                 case BoundKind.Local:
                     {
                         var local = (BoundLocal)expr;
@@ -221,6 +218,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var right = op.RightOperand.IsNullable();
                         return (left == true) ? right : left;
                     }
+                case BoundKind.ThisReference:
+                case BoundKind.BaseReference:
                 case BoundKind.NewT:
                 case BoundKind.ObjectCreationExpression:
                 case BoundKind.DelegateCreationExpression:

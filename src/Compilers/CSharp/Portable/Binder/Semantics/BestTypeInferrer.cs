@@ -14,6 +14,42 @@ namespace Microsoft.CodeAnalysis.CSharp
             return GetBestType(types, conversions, ref useSiteDiagnostics);
         }
 
+        public static TypeSymbolWithAnnotations InferBestType(ImmutableArray<TypeSymbolWithAnnotations> types, Conversions conversions, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            // PROTOTYPE(NullableReferenceTypes): Avoid extra ImmutableArray.
+            var bestType = GetBestType(types.SelectAsArray(t => t?.TypeSymbol), conversions, ref useSiteDiagnostics);
+            return (bestType is null) ? null : TypeSymbolWithAnnotations.Create(bestType, GetIsNullable(types));
+        }
+
+        internal static bool? GetIsNullable(ImmutableArray<TypeSymbolWithAnnotations> types)
+        {
+            bool isNullable = false;
+            foreach (var type in types)
+            {
+                if (type is null)
+                {
+                    // PROTOTYPE(NullableReferenceTypes): Should ignore untyped
+                    // expressions such as unbound lambdas and typeless tuples.
+                    // See StaticNullChecking.LocalVar_Array_02 test.
+                    isNullable = true;
+                    continue;
+                }
+                if (!type.IsReferenceType)
+                {
+                    return null;
+                }
+                switch (type.IsNullable)
+                {
+                    case null:
+                        return null;
+                    case true:
+                        isNullable = true;
+                        break;
+                }
+            }
+            return isNullable;
+        }
+
         /// <remarks>
         /// This method finds the best common type of a set of expressions as per section 7.5.2.14 of the specification.
         /// NOTE: If some or all of the expressions have error types, we return error type as the inference result.

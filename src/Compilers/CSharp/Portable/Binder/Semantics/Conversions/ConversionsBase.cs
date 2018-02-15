@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private const int MaximumRecursionDepth = 50;
 
         protected readonly AssemblySymbol corLibrary;
-        private readonly int _currentRecursionDepth;
+        protected readonly int _currentRecursionDepth;
 
         internal readonly bool IncludeNullability;
 
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public abstract Conversion GetStackAllocConversion(BoundStackAllocArrayCreation sourceExpression, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics);
 
-        protected abstract ConversionsBase CreateInstance(int currentRecursionDepth, bool includeNullability);
+        protected abstract ConversionsBase CreateInstance(int currentRecursionDepth);
 
         protected abstract Conversion GetInterpolatedStringConversion(BoundInterpolatedString source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics);
 
@@ -681,10 +681,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// * this does not check for variance conversions; if a type inherits from
         ///   IEnumerable&lt;string> then IEnumerable&lt;object> is not a base interface.
         /// </summary>
-        public static bool IsBaseInterface(TypeSymbol baseType, TypeSymbol derivedType, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        public bool IsBaseInterface(TypeSymbol baseType, TypeSymbol derivedType, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             Debug.Assert((object)baseType != null);
             Debug.Assert((object)derivedType != null);
+
             if (!baseType.IsInterfaceType())
             {
                 return false;
@@ -698,7 +699,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var iface in d.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics))
             {
-                if (HasIdentityConversionInternal(iface, baseType, includeNullability: false))
+                if (HasIdentityConversionInternal(iface, baseType, IncludeNullability))
                 {
                     return true;
                 }
@@ -1430,7 +1431,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object)sourceType != null)
             {
-                Debug.Assert(!IncludeNullability); // PROTOTYPE(NullableReferenceTypes): Add test.
+                Debug.Assert(!IncludeNullability); // PROTOTYPE(NullableReferenceTypes): Should fail in StaticNullChecking_FlowAnalysis.Conversions_TupleLiteralExtensionThis.
                 var tupleConversion = ClassifyTupleConversion(
                     sourceType,
                     destination,
@@ -1859,7 +1860,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = 0; i < arguments.Length; i++)
             {
                 var argument = arguments[i];
-                Debug.Assert(!IncludeNullability); // PROTOTYPE(NullableReferenceTypes): Add test.
+                Debug.Assert(!IncludeNullability); // PROTOTYPE(NullableReferenceTypes): Should fail in StaticNullChecking_FlowAnalysis.Conversions_TupleLiteral.
                 var result = classifyConversion(this, argument, targetElementTypes[i].TypeSymbol, ref useSiteDiagnostics, arg);
                 if (!result.Exists)
                 {
@@ -1893,7 +1894,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private Conversion ClassifyExplicitTupleConversion(TypeSymbol source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics, bool forCast)
         {
-            Debug.Assert(!IncludeNullability); // PROTOTYPE(NullableReferenceTypes): Add test.
+            Debug.Assert(!IncludeNullability); // PROTOTYPE(NullableReferenceTypes): Should NullableWalker call ClassifyExplicitTupleConversion?
             return ClassifyTupleConversion(
                 source,
                 destination,
@@ -2496,7 +2497,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return quickResult.Value();
             }
 
-            return this.CreateInstance(_currentRecursionDepth + 1, IncludeNullability).
+            return this.CreateInstance(_currentRecursionDepth + 1).
                 HasVariantConversionNoCycleCheck(source, destination, ref useSiteDiagnostics);
         }
 

@@ -77,6 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this._currentMethodOrLambda = member;
             _includeNonNullableWarnings = includeNonNullableWarnings;
             _binder = compilation.GetBinderFactory(node.SyntaxTree).GetBinder(node.Syntax);
+            Debug.Assert(!_binder.Conversions.IncludeNullability);
             _conversions = _binder.Conversions.WithNullability();
         }
 
@@ -102,9 +103,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return pendingReturns;
         }
 
-        /// <summary>
-        /// Perform data flow analysis, reporting all necessary diagnostics.
-        /// </summary>
         public static void Analyze(CSharpCompilation compilation, MethodSymbol member, BoundNode node, DiagnosticBag diagnostics)
         {
             Debug.Assert(diagnostics != null);
@@ -679,15 +677,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public override BoundNode VisitBlock(BoundBlock node)
-        {
-            DeclareVariables(node.Locals);
-
-            VisitStatementsWithLocalFunctions(node);
-
-            return null;
-        }
-
         protected override BoundNode VisitReturnStatementNoAdjust(BoundReturnStatement node)
         {
             Debug.Assert(!IsConditionalState);
@@ -708,19 +697,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             TypeSymbolWithAnnotations returnType = GetReturnType(compilation, _currentMethodOrLambda);
-            var unconvertedType = result.Type;
-            result = ApplyConversion(expr, conversion, returnType.TypeSymbol, result, checkConversion: true, requireIdentity: false, canConvert: out bool canConvert);
+            if ((object)returnType != null)
+            {
+                var unconvertedType = result.Type;
+                result = ApplyConversion(expr, conversion, returnType.TypeSymbol, result, checkConversion: true, requireIdentity: false, canConvert: out bool canConvert);
 
-            if ((object)returnType != null && !ConversionsBase.HasTopLevelNullabilityImplicitConversion(result.Type, returnType))
-            {
-                if (!CheckNullAsNonNullableReference(expr))
+                if ((object)returnType != null && !ConversionsBase.HasTopLevelNullabilityImplicitConversion(result.Type, returnType))
                 {
-                    ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullReferenceReturn, expr.Syntax);
+                    if (!CheckNullAsNonNullableReference(expr))
+                    {
+                        ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullReferenceReturn, expr.Syntax);
+                    }
                 }
-            }
-            else if (!canConvert)
-            {
-                ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullabilityMismatchInAssignment, expr.Syntax, GetTypeAsDiagnosticArgument(unconvertedType?.TypeSymbol), returnType.TypeSymbol);
+                else if (!canConvert)
+                {
+                    ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullabilityMismatchInAssignment, expr.Syntax, GetTypeAsDiagnosticArgument(unconvertedType?.TypeSymbol), returnType.TypeSymbol);
+                }
             }
 
             return null;
@@ -729,89 +721,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static TypeSymbolWithAnnotations GetReturnType(CSharpCompilation compilation, MethodSymbol method)
         {
             var returnType = method.ReturnType;
+            if (returnType is null)
+            {
+                return null;
+            }
             return method.IsGenericTaskReturningAsync(compilation) ?
                 ((NamedTypeSymbol)returnType.TypeSymbol).TypeArgumentsNoUseSiteDiagnostics[0] :
                 returnType;
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Move some of the Visit
-        // methods to the base class, to share with DataFlowPass.
-        public override BoundNode VisitSwitchStatement(BoundSwitchStatement node)
-        {
-            DeclareVariables(node.InnerLocals);
-            var result = base.VisitSwitchStatement(node);
-            return result;
-        }
-
-        public override BoundNode VisitPatternSwitchStatement(BoundPatternSwitchStatement node)
-        {
-            DeclareVariables(node.InnerLocals);
-            var result = base.VisitPatternSwitchStatement(node);
-            return result;
-        }
-
         protected override void VisitPatternSwitchSection(BoundPatternSwitchSection node, BoundExpression switchExpression, bool isLastSection)
         {
-            DeclareVariables(node.Locals);
             base.VisitPatternSwitchSection(node, switchExpression, isLastSection);
-        }
-
-        public override BoundNode VisitForStatement(BoundForStatement node)
-        {
-            DeclareVariables(node.OuterLocals);
-            DeclareVariables(node.InnerLocals);
-            var result = base.VisitForStatement(node);
-            return result;
-        }
-
-        public override BoundNode VisitDoStatement(BoundDoStatement node)
-        {
-            DeclareVariables(node.Locals);
-            var result = base.VisitDoStatement(node);
-            return result;
-        }
-
-        public override BoundNode VisitWhileStatement(BoundWhileStatement node)
-        {
-            DeclareVariables(node.Locals);
-            var result = base.VisitWhileStatement(node);
-            return result;
-        }
-
-        /// <remarks>
-        /// Variables declared in a using statement are always considered used, so this is just an assert.
-        /// </remarks>
-        public override BoundNode VisitUsingStatement(BoundUsingStatement node)
-        {
-            var localsOpt = node.Locals;
-            DeclareVariables(localsOpt);
-            var result = base.VisitUsingStatement(node);
-            return result;
-        }
-
-        public override BoundNode VisitFixedStatement(BoundFixedStatement node)
-        {
-            DeclareVariables(node.Locals);
-            return base.VisitFixedStatement(node);
-        }
-
-        public override BoundNode VisitSequence(BoundSequence node)
-        {
-            DeclareVariables(node.Locals);
-            return base.VisitSequence(node);
-        }
-
-        // PROTOTYPE(NullableReferenceTypes): Remove if not needed.
-        private void DeclareVariables(ImmutableArray<LocalSymbol> locals)
-        {
-            foreach (var symbol in locals)
-            {
-                DeclareVariable(symbol);
-            }
-        }
-
-        private void DeclareVariable(LocalSymbol symbol)
-        {
         }
 
         public override BoundNode VisitLocal(BoundLocal node)
@@ -822,35 +743,36 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitLocalDeclaration(BoundLocalDeclaration node)
         {
+            var initializer = node.InitializerOpt;
+            if (initializer is null)
+            {
+                return node;
+            }
+
             var local = node.LocalSymbol;
             int slot = GetOrCreateSlot(local);
 
-            var initializer = node.InitializerOpt;
-            if (initializer != null)
+            initializer = RemoveImplicitConversion(initializer, out var conversion);
+            var value = VisitRvalue(initializer);
+            TypeSymbolWithAnnotations type = local.Type;
+
+            if (node.DeclaredType.InferredType)
             {
-                initializer = RemoveImplicitConversion(initializer, out var conversion);
-                var value = VisitRvalue(initializer);
-                TypeSymbolWithAnnotations type = local.Type;
-
-                if (node.DeclaredType.InferredType)
+                Debug.Assert(conversion.Kind == ConversionKind.Identity);
+                _variableTypes[local] = value.Type;
+                type = value.Type;
+            }
+            else
+            {
+                var valueType = value.Type;
+                value = ApplyConversion(initializer, conversion, type.TypeSymbol, value, checkConversion: true, requireIdentity: false, canConvert: out bool canConvert);
+                if (!canConvert)
                 {
-                    Debug.Assert(conversion.Kind == ConversionKind.Identity);
-                    _variableTypes[local] = value.Type;
-                    type = value.Type;
+                    ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullabilityMismatchInAssignment, initializer.Syntax, valueType.TypeSymbol, type.TypeSymbol);
                 }
-                else
-                {
-                    var valueType = value.Type;
-                    value = ApplyConversion(initializer, conversion, type.TypeSymbol, value, checkConversion: true, requireIdentity: false, canConvert: out bool canConvert);
-                    if (!canConvert)
-                    {
-                        ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullabilityMismatchInAssignment, initializer.Syntax, valueType.TypeSymbol, type.TypeSymbol);
-                    }
-                }
-
-                TrackNullableStateForAssignment(node, slot, type, initializer, value.Type, value.Slot);
             }
 
+            TrackNullableStateForAssignment(node, slot, type, initializer, value.Type, value.Slot);
             return null;
         }
 
@@ -1108,13 +1030,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node.Syntax.Kind() == SyntaxKind.ImplicitArrayCreationExpression)
             {
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                var bestType = BestTypeInferrer.InferBestType(resultBuilder.SelectAsArray(r => r.Type?.TypeSymbol), _conversions, useSiteDiagnostics: ref useSiteDiagnostics);
-                if (bestType is null)
-                {
-                    bestType = elementType.TypeSymbol;
-                }
-                var isNullable = GetIsNullable(resultBuilder);
-                elementType = TypeSymbolWithAnnotations.Create(bestType, isNullable);
+                var resultTypes = resultBuilder.SelectAsArray(r => r.Type);
+                var bestType = BestTypeInferrer.InferBestType(resultTypes.SelectAsArray(r => r?.TypeSymbol), _conversions, useSiteDiagnostics: ref useSiteDiagnostics);
+                var isNullable = BestTypeInferrer.GetIsNullable(resultTypes);
+                elementType = TypeSymbolWithAnnotations.Create(bestType ?? elementType.TypeSymbol, isNullable);
                 arrayType = arrayType.WithElementType(elementType);
             }
 
@@ -1133,36 +1052,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             elementBuilder.Free();
             _result = _invalidType;
             return arrayType;
-        }
-
-        private static bool? GetIsNullable(ArrayBuilder<Result> results)
-        {
-            bool isNullable = false;
-            foreach (var result in results)
-            {
-                var type = result.Type;
-                if (type is null)
-                {
-                    // PROTOTYPE(NullableReferenceTypes): Should ignore untyped
-                    // expressions such as unbound lambdas and typeless tuples.
-                    // See StaticNullChecking.LocalVar_Array_02 test.
-                    isNullable = true;
-                    continue;
-                }
-                if (!type.IsReferenceType)
-                {
-                    return null;
-                }
-                switch (type.IsNullable)
-                {
-                    case null:
-                        return null;
-                    case true:
-                        isNullable = true;
-                        break;
-                }
-            }
-            return isNullable;
         }
 
         private static void GetArrayElements(BoundArrayInitialization node, ArrayBuilder<BoundExpression> builder)
@@ -1735,36 +1624,50 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     continue;
                 }
-                RefKind refKind = GetRefKind(refKindsOpt, i);
-                var argument = arguments[i];
-                var result = results[i];
-                var parameterType = GetParameterType(parameter, expandedParameter);
-                var conversion = conversionsOpt.IsDefault ? Conversion.Identity : conversionsOpt[i];
-                result = ApplyConversion(
-                    argument,
-                    conversion,
-                    parameterType.TypeSymbol,
-                    result,
-                    checkConversion: true,
-                    requireIdentity: refKind != RefKind.None,
-                    canConvert: out bool canConvert);
-                bool reported = false;
-                if (refKind != RefKind.Out)
-                {
-                    reported = WarnOnNullReferenceArgument(argument, result.Type, parameter, parameterType);
-                }
-                if (!reported &&
-                    (!canConvert ||
-                        (refKind == RefKind.None && !ConversionsBase.HasTopLevelNullabilityImplicitConversion(result.Type, parameterType))))
-                {
-                    ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullabilityMismatchInArgument, argument.Syntax, results[i].Type?.TypeSymbol, parameterType.TypeSymbol,
-                            new FormattedSymbol(parameter, SymbolDisplayFormat.ShortFormat),
-                            new FormattedSymbol(parameter.ContainingSymbol, SymbolDisplayFormat.MinimallyQualifiedFormat));
-                }
-                if (refKind != RefKind.None)
-                {
-                    TrackNullableStateForAssignment(argument, result.Slot, result.Type, null, parameterType, -1);
-                }
+                VisitArgumentWarn(
+                    arguments[i],
+                    conversionsOpt.IsDefault ? Conversion.Identity : conversionsOpt[i],
+                    GetRefKind(refKindsOpt, i),
+                    parameter,
+                    expandedParameter,
+                    results[i]);
+            }
+        }
+
+        private void VisitArgumentWarn(
+            BoundExpression argument,
+            Conversion conversion,
+            RefKind refKind,
+            ParameterSymbol parameter,
+            bool expandedParameter,
+            Result result)
+        {
+            var parameterType = GetParameterType(parameter, expandedParameter);
+            var unconvertedType = result.Type;
+            result = ApplyConversion(
+                argument,
+                conversion,
+                parameterType.TypeSymbol,
+                result,
+                checkConversion: true,
+                requireIdentity: refKind != RefKind.None,
+                canConvert: out bool canConvert);
+            bool reported = false;
+            if (refKind != RefKind.Out)
+            {
+                reported = WarnOnNullReferenceArgument(argument, result.Type, parameter, parameterType);
+            }
+            if (!reported &&
+                (!canConvert ||
+                    (refKind == RefKind.None && !ConversionsBase.HasTopLevelNullabilityImplicitConversion(result.Type, parameterType))))
+            {
+                ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullabilityMismatchInArgument, argument.Syntax, unconvertedType?.TypeSymbol, parameterType.TypeSymbol,
+                        new FormattedSymbol(parameter, SymbolDisplayFormat.ShortFormat),
+                        new FormattedSymbol(parameter.ContainingSymbol, SymbolDisplayFormat.MinimallyQualifiedFormat));
+            }
+            if (refKind != RefKind.None)
+            {
+                TrackNullableStateForAssignment(argument, result.Slot, result.Type, null, parameterType, -1);
             }
         }
 
@@ -1873,6 +1776,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 refKinds.AddRange(node.ArgumentRefKindsOpt);
             }
+            // PROTOTYPE(NullableReferenceTypes): Can we use GetCorrespondingParameter
+            // rather than OverloadResolution.GetEffectiveParameterTypes?
             OverloadResolution.GetEffectiveParameterTypes(
                 definition,
                 node.Arguments.Length,
@@ -2140,17 +2045,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            bool IsNullabilityMismatch(TypeSymbol source, TypeSymbol destination)
+            bool IsNullabilityMismatch(TypeSymbolWithAnnotations source, TypeSymbolWithAnnotations destination, bool requireIdentity)
             {
+                if (!HasTopLevelNullabilityConversion(source, destination, requireIdentity))
+                {
+                    return true;
+                }
+                var sourceType = source.TypeSymbol;
+                var destinationType = destination.TypeSymbol;
+                if (requireIdentity)
+                {
+                    return source.Equals(destination, TypeCompareKind.AllIgnoreOptions) &&
+                        !source.Equals(destination, TypeCompareKind.AllIgnoreOptions | TypeCompareKind.CompareNullableModifiersForReferenceTypes | TypeCompareKind.UnknownNullableModifierMatchesAny);
+                }
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                return !_conversions.ClassifyImplicitConversionFromType(source, destination, ref useSiteDiagnostics).Exists &&
-                    ConversionsBase.HasIdentityConversion(source, destination);
+                return !_conversions.ClassifyImplicitConversionFromType(sourceType, destinationType, ref useSiteDiagnostics).Exists;
             }
 
-            var invokeReturnType = invoke.ReturnType;
-            var methodReturnType = method.ReturnType;
-            if (!HasTopLevelNullabilityConversion(methodReturnType, invokeReturnType, requireIdentity: false) ||
-                IsNullabilityMismatch(methodReturnType.TypeSymbol, invokeReturnType.TypeSymbol))
+            if (IsNullabilityMismatch(method.ReturnType, invoke.ReturnType, requireIdentity: false))
             {
                 ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, syntax,
                     new FormattedSymbol(method, SymbolDisplayFormat.MinimallyQualifiedFormat),
@@ -2158,13 +2070,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             int count = Math.Min(invoke.ParameterCount, method.ParameterCount);
-
             for (int i = 0; i < count; i++)
             {
-                var invokeParameterType = invoke.Parameters[i].Type;
-                var methodParameterType = method.Parameters[i].Type;
-                if (!HasTopLevelNullabilityConversion(invokeParameterType, methodParameterType, requireIdentity: method.MethodKind == MethodKind.LambdaMethod) ||
-                    IsNullabilityMismatch(invokeParameterType.TypeSymbol, methodParameterType.TypeSymbol))
+                if (IsNullabilityMismatch(invoke.Parameters[i].Type, method.Parameters[i].Type, requireIdentity: method.MethodKind == MethodKind.LambdaMethod))
                 {
                     ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, syntax,
                         new FormattedSymbol(method.Parameters[i], SymbolDisplayFormat.ShortFormat),
@@ -3309,12 +3217,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullAsNonNullable, value.Syntax);
             }
             return true;
-        }
-
-        private static bool IsNullabilityMismatch(TypeSymbol type1, TypeSymbol type2)
-        {
-            return type1.Equals(type2, TypeCompareKind.AllIgnoreOptions) &&
-                !type1.Equals(type2, TypeCompareKind.AllIgnoreOptions | TypeCompareKind.CompareNullableModifiersForReferenceTypes | TypeCompareKind.UnknownNullableModifierMatchesAny);
         }
 
         private bool? InferResultNullabilityFromApplicableCandidates(ImmutableArray<Symbol> applicableMembers)

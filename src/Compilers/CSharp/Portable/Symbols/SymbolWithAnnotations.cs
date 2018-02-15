@@ -173,6 +173,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal abstract class TypeSymbolWithAnnotations : NamespaceOrTypeSymbolWithAnnotations
     {
+        // PROTOTYPE(NullableReferenceTypes): Consider naming method to
+        // make it clear the top-level nullability is 'null' for reference types.
         public static TypeSymbolWithAnnotations Create(TypeSymbol typeSymbol)
         {
             if (typeSymbol is null)
