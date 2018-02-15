@@ -496,7 +496,7 @@ function Test-XUnit() {
 # Deploy our core VSIX libraries to Visual Studio via the Roslyn VSIX tool.  This is an alternative to 
 # deploying at build time.
 function Deploy-VsixViaTool() { 
-    $vsixDir = Get-PackageDir "roslyntools.microsoft.vsixexpinstaller"
+    $vsixDir = Get-PackageDir "RoslynTools.Microsoft.VSIXExpInstaller"
     $vsixExe = Join-Path $vsixDir "tools\VsixExpInstaller.exe"
     $both = Get-VisualStudioDirAndId
     $vsDir = $both[0].Trim("\")
