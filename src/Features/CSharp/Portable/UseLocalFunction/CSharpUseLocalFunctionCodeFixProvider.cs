@@ -155,9 +155,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                 ? localDeclaration.SemicolonToken
                 : default;
 
-            // Remove elastic trivia between the first two tokens.  The formatting engine uses the
-            // presence of this to override the constraint that tries to keep local functions on 
-            // a single line.
             return SyntaxFactory.LocalFunctionStatement(
                 modifiers, returnType, identifier, typeParameterList, parameterList,
                 constraintClauses, body, expressionBody, semicolonToken);
