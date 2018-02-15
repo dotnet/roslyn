@@ -365,22 +365,28 @@ public class B
 
             // Duplicate type in namespace, at type scope.
             ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "new N.C1()", ImmutableArray<Alias>.Empty, contextFactory, getMetaDataBytesPtr: null, errorMessage: out errorMessage, testData: out testData);
-            Assert.True(errorMessage.StartsWith("error CS0433: The type 'C1' exists in both "));
+
+            IEnumerable<string> CS0433Messages(string type)
+            {
+                yield return "error CS0433: " + string.Format(CSharpResources.ERR_SameFullNameAggAgg, compilationA.Assembly.Identity, type, compilationB.Assembly.Identity);
+                yield return "error CS0433: " + string.Format(CSharpResources.ERR_SameFullNameAggAgg, compilationB.Assembly.Identity, type, compilationA.Assembly.Identity);
+            }
+            Assert.Contains(errorMessage, CS0433Messages("C1"));
 
             GetContextState(runtime, "B.M", out blocks, out moduleVersionId, out symReader, out methodToken, out localSignatureToken);
             contextFactory = CreateMethodContextFactory(moduleVersionId, symReader, methodToken, localSignatureToken);
 
             // Duplicate type in namespace, at method scope.
             ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "new C1()", ImmutableArray<Alias>.Empty, contextFactory, getMetaDataBytesPtr: null, errorMessage: out errorMessage, testData: out testData);
-            Assert.True(errorMessage.StartsWith("error CS0433: The type 'C1' exists in both "));
+            Assert.Contains(errorMessage, CS0433Messages("C1"));
 
             // Duplicate type in global namespace, at method scope.
             ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "new C2()", ImmutableArray<Alias>.Empty, contextFactory, getMetaDataBytesPtr: null, errorMessage: out errorMessage, testData: out testData);
-            Assert.True(errorMessage.StartsWith("error CS0433: The type 'C2' exists in both "));
+            Assert.Contains(errorMessage, CS0433Messages("C2"));
 
             // Duplicate extension method, at method scope.
             ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "x.F()", ImmutableArray<Alias>.Empty, contextFactory, getMetaDataBytesPtr: null, errorMessage: out errorMessage, testData: out testData);
-            Assert.Equal(errorMessage, "error CS0121: The call is ambiguous between the following methods or properties: 'N.E.F(A)' and 'N.E.F(A)'");
+            Assert.Equal($"error CS0121: { string.Format(CSharpResources.ERR_AmbigCall, "N.E.F(A)", "N.E.F(A)") }", errorMessage);
 
             // Same tests as above but in library that does not directly reference duplicates.
             GetContextState(runtime, "A", out blocks, out moduleVersionId, out symReader, out typeToken, out localSignatureToken);
