@@ -220,22 +220,22 @@ End Class"
             Dim testData As CompilationTestData = Nothing
             Dim errorMessage As String = Nothing
             ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "New N.C1()", ImmutableArray(Of [Alias]).Empty, contextFactory, getMetaDataBytesPtr:=Nothing, errorMessage:=errorMessage, testData:=testData)
-            Assert.Equal(errorMessage, "error BC30560: 'C1' is ambiguous in the namespace 'N'.")
+            Assert.Equal($"error BC30560: { String.Format(VBResources.ERR_AmbiguousInNamespace2, "C1", "N") }", errorMessage)
 
             GetContextState(runtime, "B.Main", blocks, moduleVersionId, symReader, methodToken, localSignatureToken)
             contextFactory = CreateMethodContextFactory(moduleVersionId, symReader, methodToken, localSignatureToken)
 
             ' Duplicate type in namespace, at method scope.
             ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "New C1()", ImmutableArray(Of [Alias]).Empty, contextFactory, getMetaDataBytesPtr:=Nothing, errorMessage:=errorMessage, testData:=testData)
-            Assert.Equal(errorMessage, "error BC30560: 'C1' is ambiguous in the namespace 'N'.")
+            Assert.Equal($"error BC30560: { String.Format(VBResources.ERR_AmbiguousInNamespace2, "C1", "N") }", errorMessage)
 
             ' Duplicate type in global namespace, at method scope.
             ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "New C2()", ImmutableArray(Of [Alias]).Empty, contextFactory, getMetaDataBytesPtr:=Nothing, errorMessage:=errorMessage, testData:=testData)
-            Assert.Equal(errorMessage, "error BC30554: 'C2' is ambiguous.")
+            Assert.Equal($"error BC30554: { String.Format(VBResources.ERR_AmbiguousInUnnamedNamespace1, "C2") }", errorMessage)
 
             ' Duplicate extension method, at method scope.
             ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "x.F()", ImmutableArray(Of [Alias]).Empty, contextFactory, getMetaDataBytesPtr:=Nothing, errorMessage:=errorMessage, testData:=testData)
-            Assert.True(errorMessage.StartsWith("error BC30521: Overload resolution failed because no accessible 'F' is most specific for these arguments:"))
+            Assert.True(errorMessage.StartsWith($"error BC30521: { String.Format(VBResources.ERR_NoMostSpecificOverload2, "F", "") }"))
 
             ' Same tests as above but in library that does not directly reference duplicates.
             GetContextState(runtime, "A", blocks, moduleVersionId, symReader, typeToken, localSignatureToken)
