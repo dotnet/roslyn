@@ -163,13 +163,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                 constraintClauses, body, expressionBody, semicolonToken);
         }
 
-        private TypeSyntax RemoveAllElasticTrivia(TypeSyntax typeSyntax)
-        {
-            return typeSyntax.ReplaceTrivia(
-                typeSyntax.DescendantTrivia(),
-                (t, _) => t.WithoutAnnotations(SyntaxAnnotation.ElasticAnnotation));
-        }
-
         private ParameterListSyntax GenerateParameterList(
             SemanticModel semanticModel, AnonymousFunctionExpressionSyntax anonymousFunction, INamedTypeSymbol delegateType, CancellationToken cancellationToken)
         {
