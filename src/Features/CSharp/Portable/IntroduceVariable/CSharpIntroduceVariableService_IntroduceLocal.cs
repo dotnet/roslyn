@@ -249,98 +249,75 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
 
             // Our original expression should have been one of the matches, which were tracked as part
             // of complexification, so we can retrieve the latest version of the expression here.
-            expression = document.Root.GetCurrentNodes(expression).First();
+            expression = document.Root.GetCurrentNode(expression);
 
-            var innermostStatements = new HashSet<StatementSyntax>(
-                matches.Select(expr => expr.GetAncestorOrThis<StatementSyntax>()));
+            SyntaxNode root = document.Root;
+            ISet<StatementSyntax> allAffectedStatements = new HashSet<StatementSyntax>(matches.SelectMany(expr => expr.GetAncestorsOrThis<StatementSyntax>()));
 
+            SyntaxNode innermostCommonBlock;
+
+            var innermostStatements = new HashSet<StatementSyntax>(matches.Select(expr => expr.GetAncestorOrThis<StatementSyntax>()));
             if (innermostStatements.Count == 1)
             {
-                // If there was only one match, or all the matches came from the same
-                // statement, then we want to place the declaration right above that
-                // statement. Note: we special case this because the statement we are going
-                // to go above might not be in a block and we may have to generate it
-                return IntroduceLocalForSingleOccurrenceIntoBlock(
-                    document, expression, newLocalName, declarationStatement, allOccurrences, cancellationToken);
-            }
+                // if there was only one match, or all the matches came from the same statement
+                var statement = innermostStatements.Single();
 
-            var oldInnerMostCommonBlock = matches.FindInnermostCommonBlock();
-            var allAffectedStatements = new HashSet<StatementSyntax>(matches.SelectMany(expr => expr.GetAncestorsOrThis<StatementSyntax>()));
-            var firstStatementAffectedInBlock = oldInnerMostCommonBlock.Statements.First(allAffectedStatements.Contains);
+                // and the statement is an embedded statement without a block, we want to generate one
+                // around this statement rather than continue going up to find an actual block
+                if (!IsBlockLike(statement.Parent))
+                {
+                    root = root.TrackNodes(allAffectedStatements.Concat(new SyntaxNode[] { expression, statement }));
+                    root = root.ReplaceNode(root.GetCurrentNode(statement),
+                        SyntaxFactory.Block(root.GetCurrentNode(statement)).WithAdditionalAnnotations(Formatter.Annotation));
 
-            var firstStatementAffectedIndex = oldInnerMostCommonBlock.Statements.IndexOf(firstStatementAffectedInBlock);
+                    expression = root.GetCurrentNode(expression);
+                    allAffectedStatements = allAffectedStatements.Select(root.GetCurrentNode).ToSet();
 
-            var newInnerMostBlock = Rewrite(
-                document, expression, newLocalName, document, oldInnerMostCommonBlock, allOccurrences, cancellationToken);
+                    statement = root.GetCurrentNode(statement);
+                }
 
-            var statements = new List<StatementSyntax>();
-            statements.AddRange(newInnerMostBlock.Statements.Take(firstStatementAffectedIndex));
-            statements.Add(declarationStatement);
-            statements.AddRange(newInnerMostBlock.Statements.Skip(firstStatementAffectedIndex));
-
-            var finalInnerMostBlock = newInnerMostBlock.WithStatements(
-                SyntaxFactory.List<StatementSyntax>(statements));
-
-            var newRoot = document.Root.ReplaceNode(oldInnerMostCommonBlock, finalInnerMostBlock);
-            return document.Document.WithSyntaxRoot(newRoot);
-        }
-
-        private Document IntroduceLocalForSingleOccurrenceIntoBlock(
-            SemanticDocument document,
-            ExpressionSyntax expression,
-            NameSyntax localName,
-            LocalDeclarationStatementSyntax localDeclaration,
-            bool allOccurrences,
-            CancellationToken cancellationToken)
-        {
-            var oldStatement = expression.GetAncestorOrThis<StatementSyntax>();
-            var newStatement = Rewrite(
-                document, expression, localName, document, oldStatement, allOccurrences, cancellationToken);
-
-            if (oldStatement.IsParentKind(SyntaxKind.Block))
-            {
-                var oldBlock = oldStatement.Parent as BlockSyntax;
-                var statementIndex = oldBlock.Statements.IndexOf(oldStatement);
-
-                var newBlock = oldBlock.WithStatements(CreateNewStatementList(
-                    oldBlock.Statements, localDeclaration, newStatement, statementIndex));
-
-                var newRoot = document.Root.ReplaceNode(oldBlock, newBlock);
-                return document.Document.WithSyntaxRoot(newRoot);
-            }
-            else if (oldStatement.IsParentKind(SyntaxKind.SwitchSection))
-            {
-                var oldSwitchSection = oldStatement.Parent as SwitchSectionSyntax;
-                var statementIndex = oldSwitchSection.Statements.IndexOf(oldStatement);
-
-                var newSwitchSection = oldSwitchSection.WithStatements(CreateNewStatementList(
-                    oldSwitchSection.Statements, localDeclaration, newStatement, statementIndex));
-
-                var newRoot = document.Root.ReplaceNode(oldSwitchSection, newSwitchSection);
-                return document.Document.WithSyntaxRoot(newRoot);
+                innermostCommonBlock = statement.Parent;
             }
             else
             {
-                // we need to introduce a block to put the original statement, along with
-                // the statement we're generating
-                var newBlock = SyntaxFactory.Block(localDeclaration, newStatement).WithAdditionalAnnotations(Formatter.Annotation);
-
-                var newRoot = document.Root.ReplaceNode(oldStatement, newBlock);
-                return document.Document.WithSyntaxRoot(newRoot);
+                innermostCommonBlock = innermostStatements.FindInnermostCommonNode(IsBlockLike);
             }
+
+            var firstStatementAffectedIndex = GetStatements(innermostCommonBlock).IndexOf(allAffectedStatements.Contains);
+
+            var newInnerMostBlock = Rewrite(
+                document, expression, newLocalName, document, innermostCommonBlock, allOccurrences, cancellationToken);
+
+            var statements = InsertWithinTriviaOfNext(GetStatements(newInnerMostBlock), declarationStatement, firstStatementAffectedIndex);
+            var finalInnerMostBlock = WithStatements(newInnerMostBlock, statements);
+
+            var newRoot = root.ReplaceNode(innermostCommonBlock, finalInnerMostBlock);
+            return document.Document.WithSyntaxRoot(newRoot);
         }
 
-        private static SyntaxList<StatementSyntax> CreateNewStatementList(
+        private static SyntaxList<StatementSyntax> InsertWithinTriviaOfNext(
             SyntaxList<StatementSyntax> oldStatements,
-            LocalDeclarationStatementSyntax localDeclaration,
             StatementSyntax newStatement,
             int statementIndex)
         {
-            return oldStatements.Take(statementIndex)
-                                .Concat(localDeclaration.WithLeadingTrivia(oldStatements.Skip(statementIndex).First().GetLeadingTrivia()))
-                                .Concat(newStatement.WithoutLeadingTrivia())
-                                .Concat(oldStatements.Skip(statementIndex + 1))
-                                .ToSyntaxList();
+            var nextStatement = oldStatements.ElementAtOrDefault(statementIndex);
+            return nextStatement == null
+                ? oldStatements.Insert(statementIndex, newStatement)
+                : oldStatements.ReplaceRange(nextStatement, new[] {
+                    newStatement.WithLeadingTrivia(nextStatement.GetLeadingTrivia()),
+                    nextStatement.WithoutLeadingTrivia() });
         }
+
+        private static bool IsBlockLike(SyntaxNode node) => node is BlockSyntax || node is SwitchSectionSyntax;
+
+        private static SyntaxList<StatementSyntax> GetStatements(SyntaxNode blockLike) =>
+            blockLike is BlockSyntax block ? block.Statements :
+            blockLike is SwitchSectionSyntax switchSection ? switchSection.Statements :
+            throw ExceptionUtilities.UnexpectedValue(blockLike);
+
+        private static SyntaxNode WithStatements(SyntaxNode blockLike, SyntaxList<StatementSyntax> statements) =>
+            blockLike is BlockSyntax block ? block.WithStatements(statements) as SyntaxNode :
+            blockLike is SwitchSectionSyntax switchSection ? switchSection.WithStatements(statements) :
+            throw ExceptionUtilities.UnexpectedValue(blockLike);
     }
 }
