@@ -4,8 +4,15 @@ THIS_DIR=$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 
 echo "Restoring toolset packages"
 
-RESTORE_ARGS="-v Minimal --disable-parallel"
+if [[ "$1" == "--mono" ]] ; then
+    restore_cmd="nuget restore"
+    restore_args="-Verbosity quiet -DisableParallelProcessing"
+else
+    restore_cmd="dotnet restore"
+    restore_args="-v Minimal --disable-parallel"
+fi
+
 echo "Restoring RoslynToolset.csproj"
-dotnet restore ${RESTORE_ARGS} "${THIS_DIR}/../ToolsetPackages/RoslynToolset.csproj"
+$restore_cmd ${restore_args} "${THIS_DIR}/../ToolsetPackages/RoslynToolset.csproj"
 echo "Restoring Compilers.sln"
-dotnet restore ${RESTORE_ARGS} "${THIS_DIR}/../../Compilers.sln"
+$restore_cmd ${restore_args} "${THIS_DIR}/../../Compilers.sln"

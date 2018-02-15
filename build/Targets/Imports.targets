@@ -33,7 +33,14 @@
     <MSBuildTargetsFilePath>$(MSBuildToolsPath)\Microsoft.$(MSBuildTargetsLanguageName).targets</MSBuildTargetsFilePath>
 
     <DisableTransitiveProjectReferences Condition="'$(RoslynProjectType)' == 'Vsix'">true</DisableTransitiveProjectReferences>
+  </PropertyGroup>
 
+  <!-- Mono sets compiler redirects to their own exes. We need to clear the flags so we can use
+       our own toolset compilers. -->
+  <PropertyGroup Condition="'$(MSBuildRuntimeType)' == 'Mono'">
+    <CscToolPath />
+    <VbcToolPath />
+    <VbcToolExe />
   </PropertyGroup>
 
   <!-- Settings for localization -->
