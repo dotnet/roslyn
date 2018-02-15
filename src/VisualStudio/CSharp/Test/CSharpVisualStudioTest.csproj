@@ -68,7 +68,7 @@
     <Reference Include="WindowsBase" />
     <!-- Force a reference to Microsoft.VisualStudio.Text.Internal. This NuGet package includes an empty ref folder so nobody accidentally uses APIs from it,
          but includes the lib folder so it's copied as a dependency of Microsoft.VisualStudio.Platform.VSEditor. Unfortunately we still have test code that
-         does depend on internal APIs, so we need to a force a reference here. -->
+         does depend on internal APIs, so we need to a force a reference here. This hack is tracked by https://devdiv.visualstudio.com/DevDiv/_workitems/edit/567115 -->
     <Reference Include="$(NuGetPackageRoot)\microsoft.visualstudio.text.internal\$(MicrosoftVisualStudioTextInternalVersion)\lib\net46\Microsoft.VisualStudio.Text.Internal.dll" />
     <PackageReference Include="BasicUndo" Version="$(BasicUndoVersion)" />
     <PackageReference Include="EnvDTE" Version="$(EnvDTEVersion)" />
