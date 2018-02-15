@@ -192,11 +192,6 @@
         <target state="translated">디스크에서 폴더의 위치를 찾을 수 없습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Error_while_reading_0_colon_1">
-        <source>Error while reading '{0}': {1}</source>
-        <target state="translated">{0}'을(를) 읽는 동안 오류가 발생했습니다. {1}</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Assembly">
         <source>Assembly </source>
         <target state="translated">어셈블리 </target>
@@ -1433,8 +1428,8 @@ Additional information: {1}</source>
         <note />
       </trans-unit>
       <trans-unit id="ErrorReadingFile">
-        <source>Error while reading a file</source>
-        <target state="translated">파일을 읽는 동안 오류가 발생했습니다.</target>
+        <source>Error while reading file '{0}': {1}</source>
+        <target state="needs-review-translation">파일을 읽는 동안 오류가 발생했습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ModuleHasBeenUnloaded">
@@ -1501,6 +1496,11 @@ I agree to all of the foregoing:</source>
       <trans-unit id="Sync_Class_View">
         <source>Sync Class View</source>
         <target state="new">Sync Class View</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CantApplyChangesUnexpectedError">
+        <source>Can't apply changes -- unexpected error: '{0}'</source>
+        <target state="new">Can't apply changes -- unexpected error: '{0}'</target>
         <note />
       </trans-unit>
     </body>
