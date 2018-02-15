@@ -136,11 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
 
             var invokeMethod = delegateType.DelegateInvokeMethod;
 
-            // The presence of elastic trivia in the return type will cause the formatting engine 
-            // to wrap a local function that could stay on a single line.  Remove all the elastic
-            // trivia added by default to get good behavior for both single line and multiline
-            // lambdas.
-            var returnType = RemoveAllElasticTrivia(invokeMethod.GenerateReturnTypeSyntax());
+            var returnType = invokeMethod.GenerateReturnTypeSyntax();
             
             var identifier = localDeclaration.Declaration.Variables[0].Identifier;
             var typeParameterList = default(TypeParameterListSyntax);
