@@ -127,6 +127,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 GC.SuppressFinalize(this);
             }
 
+#if DEBUG
             ~Connection()
             {
                 // this can happen if someone kills OOP. 
@@ -136,6 +137,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     Contract.Requires(false, $@"Should have been disposed!");
                 }
             }
+#endif
         }
     }
 }
