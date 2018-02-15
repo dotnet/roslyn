@@ -39,11 +39,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
                 workspace.CurrentSolution.Projects.First().Documents.First(),
                 position, cancellationToken:=CancellationToken.None)
 
-            Assert.NotNull(info)
-
             If expectedResults Is Nothing Then
-                Assert.True(info.IsEmpty)
+                Assert.Null(info)
             Else
+                Assert.NotNull(info)
+
                 For Each expected In expectedResults
                     expected(info)
                 Next

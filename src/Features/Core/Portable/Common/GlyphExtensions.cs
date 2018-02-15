@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
-using System.Linq;
 using Microsoft.CodeAnalysis.Tags;
 
 namespace Microsoft.CodeAnalysis
@@ -10,12 +9,27 @@ namespace Microsoft.CodeAnalysis
     {
         public static ImmutableArray<Glyph> GetGlyphs(this ImmutableArray<string> tags)
         {
-            return tags.Select(t => GetGlyph(t, tags)).Where(t => t != default).ToImmutableArray();
+            var builder = ImmutableArray.CreateBuilder<Glyph>(initialCapacity: tags.Length);
+
+            foreach (var tag in tags)
+            {
+                var glyph = GetGlyph(tag, tags);
+                if (glyph != Glyph.None)
+                {
+                    builder.Add(glyph);
+                }
+            }
+
+            return builder.ToImmutable();
         }
 
         public static Glyph GetFirstGlyph(this ImmutableArray<string> tags)
         {
-            return tags.Select(t => GetGlyph(t, tags)).FirstOrDefault(t => t != default);
+            var glyphs = GetGlyphs(tags);
+
+            return !glyphs.IsEmpty
+                ? glyphs[0]
+                : Glyph.None;
         }
 
         private static Glyph GetGlyph(string tag, ImmutableArray<string> allTags)
@@ -232,6 +246,9 @@ namespace Microsoft.CodeAnalysis
                 case WellKnownTags.Reference:
                     return Glyph.Reference;
 
+                case WellKnownTags.NuGet:
+                    return Glyph.NuGet;
+
                 case WellKnownTags.Structure:
                     switch (GetAccessibility(allTags))
                     {
@@ -254,33 +271,32 @@ namespace Microsoft.CodeAnalysis
 
                 case WellKnownTags.Warning:
                     return Glyph.CompletionWarning;
+
+                case WellKnownTags.StatusInformation:
+                    return Glyph.StatusInformation;
             }
 
-            return default;
+            return Glyph.None;
         }
 
         private static Accessibility GetAccessibility(ImmutableArray<string> tags)
         {
-            if (tags.Contains(WellKnownTags.Public))
+            foreach (var tag in tags)
             {
-                return Accessibility.Public;
+                switch (tag)
+                {
+                    case WellKnownTags.Public:
+                        return Accessibility.Public;
+                    case WellKnownTags.Protected:
+                        return Accessibility.Protected;
+                    case WellKnownTags.Internal:
+                        return Accessibility.Internal;
+                    case WellKnownTags.Private:
+                        return Accessibility.Private;
+                }
             }
-            else if (tags.Contains(WellKnownTags.Protected))
-            {
-                return Accessibility.Protected;
-            }
-            else if (tags.Contains(WellKnownTags.Internal))
-            {
-                return Accessibility.Internal;
-            }
-            else if (tags.Contains(WellKnownTags.Private))
-            {
-                return Accessibility.Private;
-            }
-            else
-            {
-                return Accessibility.NotApplicable;
-            }
+
+            return Accessibility.NotApplicable;
         }
     }
 }

@@ -55,14 +55,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
         private async Task TestWithOptionsAsync(Document document, QuickInfoService service, int position, Action<QuickInfoItem>[] expectedResults)
         {
             var info = await service.GetQuickInfoAsync(document, position, cancellationToken: CancellationToken.None);
-            Assert.NotNull(info);
 
             if (expectedResults.Length == 0)
             {
-                Assert.True(info.IsEmpty);
+                Assert.Null(info);
             }
             else
             {
+                Assert.NotNull(info);
+
                 foreach (var expected in expectedResults)
                 {
                     expected(info);
@@ -91,14 +92,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
 
                 var info = await service.GetQuickInfoAsync(document, position, cancellationToken: CancellationToken.None);
 
-                Assert.NotNull(info);
-
                 if (expectedResults.Length == 0)
                 {
-                    Assert.True(info.IsEmpty);
+                    Assert.Null(info);
                 }
                 else
                 {
+                    Assert.NotNull(info);
+
                     foreach (var expected in expectedResults)
                     {
                         expected(info);
@@ -237,14 +238,14 @@ using System.Linq;
 
                 var info = await service.GetQuickInfoAsync(document, position, cancellationToken: CancellationToken.None);
 
-                Assert.NotNull(info);
-
                 if (expectedResults.Length == 0)
                 {
-                    Assert.True(info.IsEmpty);
+                    Assert.Null(info);
                 }
                 else
                 {
+                    Assert.NotNull(info);
+
                     foreach (var expected in expectedResults)
                     {
                         expected(info);

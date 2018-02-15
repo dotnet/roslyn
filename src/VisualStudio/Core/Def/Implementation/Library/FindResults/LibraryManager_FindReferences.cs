@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Roslyn.Utilities;
@@ -52,7 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
         {
             var result = ImmutableArray.CreateBuilder<SourceReferenceTreeItem>();
 
-            var definitionGlyph = definitionItem.Tags.GetGlyph();
+            var definitionGlyph = definitionItem.Tags.GetFirstGlyph();
 
             // Skip the first definition.  We'll present it in the definition item.
             var definitionLocationsAndGlyphs =

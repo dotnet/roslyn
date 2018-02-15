@@ -1,6 +1,5 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Runtime.CompilerServices
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
@@ -14,6 +13,7 @@ Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Utilities
 Imports Moq
+Imports Roslyn.Utilities
 Imports QuickInfoItem = Microsoft.CodeAnalysis.QuickInfo.QuickInfoItem
 
 #Disable Warning BC40000 ' IQuickInfo* is obsolete
@@ -27,29 +27,27 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub InvokeQuickInfoWithoutDocumentShouldNotQueryProviders()
-            Dim emptyProvider = New Mock(Of IDocumentProvider)
-            emptyProvider.Setup(Function(p) p.GetDocumentAsync(It.IsAny(Of ITextSnapshot), It.IsAny(Of CancellationToken))).Returns(Task.FromResult(DirectCast(Nothing, Document)))
-            Dim controller As Controller = CreateController(documentProvider:=emptyProvider, triggerQuickInfo:=True)
-            controller.WaitForController()
+            Dim mocks = CreateMocks(noDocument:=True, triggerQuickInfo:=True)
+            mocks.WaitForController()
 
-            Dim service = TryCast(GetMocks(controller).Service, ServiceMock)
-            Assert.NotNull(service)
-
-            Assert.Equal(0, service.InvokeCount)
+            Assert.Equal(0, mocks.Service.GetQuickInfoAsync_InvokeCount)
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub InvokeQuickInfoWithDocumentShouldStartNewSession()
-            Dim controller = CreateController(triggerQuickInfo:=True)
+            Dim mocks = CreateMocks(triggerQuickInfo:=True)
 
-            GetMocks(controller).Presenter.Verify(Function(p) p.CreateSession(It.IsAny(Of ITextView), It.IsAny(Of ITextBuffer), It.IsAny(Of IQuickInfoSession)), Times.Once)
+            mocks.PresenterMock _
+                .Verify(
+                    Function(p) p.CreateSession(It.IsAny(Of ITextView), It.IsAny(Of ITextBuffer), It.IsAny(Of IQuickInfoSession)),
+                    Times.Once)
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub InactiveQuickInfoShouldNotHandleEscape()
-            Dim controller As Controller = CreateController()
+            Dim mocks = CreateMocks()
 
-            Dim handled = controller.TryHandleEscapeKey()
+            Dim handled = mocks.TryHandleEscapeKey()
 
             Assert.False(handled)
         End Sub
@@ -58,12 +56,18 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Public Sub ActiveQuickInfoShouldHandleEscape()
             Dim presenter = New Mock(Of IIntelliSensePresenter(Of IQuickInfoPresenterSession, IQuickInfoSession))
             Dim presenterSession = New Mock(Of IQuickInfoPresenterSession)
-            presenter.Setup(Function(p) p.CreateSession(It.IsAny(Of ITextView), It.IsAny(Of ITextBuffer), It.IsAny(Of IQuickInfoSession))).Returns(presenterSession.Object)
+            presenter _
+                .Setup(Function(p) p.CreateSession(It.IsAny(Of ITextView), It.IsAny(Of ITextBuffer), It.IsAny(Of IQuickInfoSession))) _
+                .Returns(presenterSession.Object)
 
-            Dim controller As Controller = CreateController(presenter:=presenter, triggerQuickInfo:=True)
-            controller.WaitForController()
+            Dim mocks = CreateMocks(presenter:=presenter, triggerQuickInfo:=True)
 
-            Dim handled = controller.TryHandleEscapeKey()
+            Dim emptyQuickInfoItem = QuickInfoItem.Create(New Text.TextSpan(0, 0))
+            mocks.Service.SetItemToReturn(emptyQuickInfoItem)
+
+            mocks.WaitForController()
+
+            Dim handled = mocks.TryHandleEscapeKey()
 
             Assert.True(handled)
             presenterSession.Verify(Sub(p) p.Dismiss(), Times.Once)
@@ -71,44 +75,35 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub SlowQuickInfoShouldDismissSessionButNotHandleEscape()
-            Dim checkpoint As New Checkpoint
             Dim presenter = New Mock(Of IIntelliSensePresenter(Of IQuickInfoPresenterSession, IQuickInfoSession))
             Dim presenterSession = New Mock(Of IQuickInfoPresenterSession)
-            presenter.Setup(Function(p) p.CreateSession(It.IsAny(Of ITextView), It.IsAny(Of ITextBuffer), It.IsAny(Of IQuickInfoSession))).Returns(presenterSession.Object)
+            presenter _
+                .Setup(Function(p) p.CreateSession(It.IsAny(Of ITextView), It.IsAny(Of ITextBuffer), It.IsAny(Of IQuickInfoSession))) _
+                .Returns(presenterSession.Object)
 
-            Dim service = New MockCheckPointService(checkpoint)
+            Dim mocks = CreateMocks(presenter:=presenter, triggerQuickInfo:=True)
 
-            Dim controller As Controller = CreateController(presenter:=presenter, service:=service, triggerQuickInfo:=True)
+            Dim checkpoint = New Checkpoint()
+            mocks.Service.SetCheckpoint(checkpoint)
 
-            Dim handled = controller.TryHandleEscapeKey()
+            Dim handled = mocks.TryHandleEscapeKey()
 
             Assert.False(handled)
             presenterSession.Verify(Sub(p) p.Dismiss(), Times.Once)
         End Sub
 
-        Private Class MockCheckPointService
-            Inherits QuickInfoService
-
-            Private checkpoint As Checkpoint
-
-            Public Sub New(checkpoint As Checkpoint)
-                Me.checkpoint = checkpoint
-            End Sub
-
-            Public Overrides Async Function GetQuickInfoAsync(document As Document, position As Integer, Optional cancellationToken As CancellationToken = Nothing) As Task(Of QuickInfoItem)
-                Await Me.checkpoint.Task.ConfigureAwait(False)
-                Return QuickInfoItem.Empty
-            End Function
-        End Class
-
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub CaretPositionChangedShouldDismissSession()
             Dim presenter = New Mock(Of IIntelliSensePresenter(Of IQuickInfoPresenterSession, IQuickInfoSession))
             Dim presenterSession = New Mock(Of IQuickInfoPresenterSession)
-            presenter.Setup(Function(p) p.CreateSession(It.IsAny(Of ITextView), It.IsAny(Of ITextBuffer), It.IsAny(Of IQuickInfoSession))).Returns(presenterSession.Object)
-            Dim controller = CreateController(presenter:=presenter, triggerQuickInfo:=True)
+            presenter _
+                .Setup(Function(p) p.CreateSession(It.IsAny(Of ITextView), It.IsAny(Of ITextBuffer), It.IsAny(Of IQuickInfoSession))) _
+                .Returns(presenterSession.Object)
 
-            Mock.Get(GetMocks(controller).View.Object.Caret).Raise(Sub(c) AddHandler c.PositionChanged, Nothing, New CaretPositionChangedEventArgs(Nothing, Nothing, Nothing))
+            Dim mocks = CreateMocks(presenter:=presenter, triggerQuickInfo:=True)
+
+            Mock.Get(mocks.View.Caret) _
+                .Raise(Sub(c) AddHandler c.PositionChanged, Nothing, New CaretPositionChangedEventArgs(Nothing, Nothing, Nothing))
 
             presenterSession.Verify(Sub(p) p.Dismiss(), Times.Once)
         End Sub
@@ -117,10 +112,14 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Public Sub SubjectBufferPostChangedShouldDismissSession()
             Dim presenter = New Mock(Of IIntelliSensePresenter(Of IQuickInfoPresenterSession, IQuickInfoSession))
             Dim presenterSession = New Mock(Of IQuickInfoPresenterSession)
-            presenter.Setup(Function(p) p.CreateSession(It.IsAny(Of ITextView), It.IsAny(Of ITextBuffer), It.IsAny(Of IQuickInfoSession))).Returns(presenterSession.Object)
-            Dim controller = CreateController(presenter:=presenter, triggerQuickInfo:=True)
+            presenter _
+                .Setup(Function(p) p.CreateSession(It.IsAny(Of ITextView), It.IsAny(Of ITextBuffer), It.IsAny(Of IQuickInfoSession))) _
+                .Returns(presenterSession.Object)
 
-            Mock.Get(GetMocks(controller).View.Object.TextBuffer).Raise(Sub(b) AddHandler b.PostChanged, Nothing, New EventArgs())
+            Dim mocks = CreateMocks(presenter:=presenter, triggerQuickInfo:=True)
+
+            Mock.Get(mocks.View.TextBuffer) _
+                .Raise(Sub(b) AddHandler b.PostChanged, Nothing, New EventArgs())
 
             presenterSession.Verify(Sub(p) p.Dismiss(), Times.Once)
         End Sub
@@ -129,37 +128,59 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub PresenterUpdatesExistingSessionIfNotDismissed()
             Dim broker = New Mock(Of IQuickInfoBroker)()
-            Dim presenter As IIntellisensePresenter(Of IQuickInfoPresenterSession, IQuickInfoSession) = New QuickInfoPresenter(broker.Object, Nothing, Nothing, Nothing, Nothing, Nothing)
-            Dim mockEditorSession = New Mock(Of IQuickInfoSession)
-            mockEditorSession.Setup(Function(m) m.IsDismissed).Returns(False)
-            mockEditorSession.Setup(Sub(m) m.Recalculate())
-            mockEditorSession.Setup(Function(m) m.Properties).Returns(New PropertyCollection())
+            Dim presenter As IIntelliSensePresenter(Of IQuickInfoPresenterSession, IQuickInfoSession) =
+                New QuickInfoPresenter(broker.Object, Nothing, Nothing, Nothing, Nothing, Nothing)
 
-            Dim presenterSession = presenter.CreateSession(It.IsAny(Of ITextView), It.IsAny(Of ITextBuffer), mockEditorSession.Object)
+            Dim quickInfoSession = New Mock(Of IQuickInfoSession)
+            With quickInfoSession
+                .Setup(Function(m) m.IsDismissed).Returns(False)
+                .Setup(Sub(m) m.Recalculate())
+                .Setup(Function(m) m.Properties).Returns(New PropertyCollection())
+            End With
+
+            Dim presenterSession = presenter.CreateSession(It.IsAny(Of ITextView), It.IsAny(Of ITextBuffer), quickInfoSession.Object)
             presenterSession.PresentItem(Nothing, Nothing, False)
-            mockEditorSession.Verify(Sub(m) m.Recalculate())
+            quickInfoSession.Verify(Sub(m) m.Recalculate())
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub PresenterDoesNotRecalculateDismissedSession()
-            Dim broker = New Mock(Of IQuickInfoBroker)()
-            Dim brokerSession = New Mock(Of IQuickInfoSession)()
-            brokerSession.Setup(Function(m) m.Properties).Returns(New PropertyCollection())
-            broker.Setup(Function(m) m.CreateQuickInfoSession(It.IsAny(Of ITextView), It.IsAny(Of ITrackingPoint), It.IsAny(Of Boolean))).Returns(brokerSession.Object)
+            Dim quickInfoSession = New Mock(Of IQuickInfoSession)()
+            quickInfoSession _
+                .Setup(Function(m) m.Properties) _
+                .Returns(New PropertyCollection())
 
-            Dim presenter As IIntellisensePresenter(Of IQuickInfoPresenterSession, IQuickInfoSession) = New QuickInfoPresenter(broker.Object, Nothing, Nothing, Nothing, Nothing, Nothing)
+            Dim broker = New Mock(Of IQuickInfoBroker)()
+            broker _
+                .Setup(Function(m) m.CreateQuickInfoSession(It.IsAny(Of ITextView), It.IsAny(Of ITrackingPoint), It.IsAny(Of Boolean))) _
+                .Returns(quickInfoSession.Object)
+
+            Dim presenter As IIntelliSensePresenter(Of IQuickInfoPresenterSession, IQuickInfoSession) =
+                New QuickInfoPresenter(broker.Object, Nothing, Nothing, Nothing, Nothing, Nothing)
+
             Dim mockEditorSession = New Mock(Of IQuickInfoSession)
-            mockEditorSession.Setup(Function(m) m.IsDismissed).Returns(True)
-            mockEditorSession.Setup(Sub(m) m.Recalculate())
-            mockEditorSession.Setup(Function(m) m.Properties).Returns(New PropertyCollection())
+            With mockEditorSession
+                .Setup(Function(m) m.IsDismissed) _
+                    .Returns(True)
+                .Setup(Sub(m) m.Recalculate())
+                .Setup(Function(m) m.Properties) _
+                    .Returns(New PropertyCollection())
+            End With
 
             Dim mockTextBuffer = New Mock(Of ITextBuffer)()
-            mockTextBuffer.Setup(Function(m) m.CurrentSnapshot).Returns(It.IsAny(Of ITextSnapshot))
+            mockTextBuffer _
+                .Setup(Function(m) m.CurrentSnapshot) _
+                .Returns(It.IsAny(Of ITextSnapshot))
 
             Dim mockTrackingSpan = New Mock(Of ITrackingSpan)
-            mockTrackingSpan.Setup(Function(m) m.TextBuffer).Returns(mockTextBuffer.Object)
-            mockTrackingSpan.Setup(Function(m) m.GetSpan(It.IsAny(Of ITextSnapshot))).Returns(New SnapshotSpan())
-            mockTrackingSpan.Setup(Function(m) m.GetStartPoint(It.IsAny(Of ITextSnapshot))).Returns(New SnapshotPoint(New Mock(Of ITextSnapshot)().Object, 0))
+            With mockTrackingSpan
+                .Setup(Function(m) m.TextBuffer) _
+                    .Returns(mockTextBuffer.Object)
+                .Setup(Function(m) m.GetSpan(It.IsAny(Of ITextSnapshot))) _
+                    .Returns(New SnapshotSpan())
+                .Setup(Function(m) m.GetStartPoint(It.IsAny(Of ITextSnapshot))) _
+                    .Returns(New SnapshotPoint(New Mock(Of ITextSnapshot)().Object, 0))
+            End With
 
             Dim presenterSession = presenter.CreateSession(It.IsAny(Of ITextView), It.IsAny(Of ITextBuffer), mockEditorSession.Object)
             presenterSession.PresentItem(mockTrackingSpan.Object, Nothing, False)
@@ -180,31 +201,103 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
              End Function)()
         Private Shared ReadOnly s_bufferFactory As ITextBufferFactoryService = DirectCast(s_document.Project.Solution.Workspace, TestWorkspace).GetService(Of ITextBufferFactoryService)
 
-        Private Shared ReadOnly s_controllerMocksMap As New ConditionalWeakTable(Of Controller, ControllerMocks)
-        Private Shared Function GetMocks(controller As Controller) As ControllerMocks
-            Dim result As ControllerMocks = Nothing
-            Roslyn.Utilities.Contract.ThrowIfFalse(s_controllerMocksMap.TryGetValue(controller, result))
-            Return result
-        End Function
+        Private Class QuickInfoMocks
+            Private ReadOnly _controller As Controller
+            Private ReadOnly _viewMock As Mock(Of ITextView)
 
-        Private Shared Function CreateController(Optional documentProvider As Mock(Of IDocumentProvider) = Nothing,
-                                                 Optional presenter As Mock(Of IIntelliSensePresenter(Of IQuickInfoPresenterSession, IQuickInfoSession)) = Nothing,
-                                                 Optional service As QuickInfoService = Nothing,
-                                                 Optional triggerQuickInfo As Boolean = False,
-                                                 Optional augmentSession As IQuickInfoSession = Nothing) As Controller
-            Dim view = New Mock(Of ITextView) With {.DefaultValue = DefaultValue.Mock}
+            Public ReadOnly Property PresenterMock As Mock(Of IIntelliSensePresenter(Of IQuickInfoPresenterSession, IQuickInfoSession))
+
+            Public ReadOnly Property Service As MockQuickInfoService
+
+            Public ReadOnly Property View As ITextView
+                Get
+                    Return _viewMock.Object
+                End Get
+            End Property
+
+            Public Sub New(
+                controller As Controller,
+                service As MockQuickInfoService,
+                viewMock As Mock(Of ITextView),
+                presenterMock As Mock(Of IIntelliSensePresenter(Of IQuickInfoPresenterSession, IQuickInfoSession)))
+
+                _controller = controller
+                Me.Service = service
+                _viewMock = viewMock
+                Me.PresenterMock = presenterMock
+            End Sub
+
+            Public Sub WaitForController()
+                _controller.WaitForController()
+            End Sub
+
+            Public Function TryHandleEscapeKey() As Boolean
+                Return _controller.TryHandleEscapeKey()
+            End Function
+        End Class
+
+        Private Class MockQuickInfoService
+            Inherits QuickInfoService
+
+            Private _item As QuickInfoItem
+            Private _checkpoint As Checkpoint
+
+            Public GetQuickInfoAsync_InvokeCount As Integer
+
+            Public Sub SetItemToReturn(item As QuickInfoItem)
+                _item = item
+            End Sub
+
+            Public Sub SetCheckpoint(checkpoint As Checkpoint)
+                _checkpoint = checkpoint
+            End Sub
+
+            Public Overrides Async Function GetQuickInfoAsync(
+                document As Document,
+                position As Integer,
+                Optional cancellationToken As CancellationToken = Nothing
+            ) As Task(Of QuickInfoItem)
+
+                If _checkpoint IsNot Nothing Then
+                    Await _checkpoint.Task.ConfigureAwait(False)
+                End If
+
+                GetQuickInfoAsync_InvokeCount += 1
+                Return _item
+            End Function
+        End Class
+
+        Private Shared Function CreateMocks(
+            Optional presenter As Mock(Of IIntelliSensePresenter(Of IQuickInfoPresenterSession, IQuickInfoSession)) = Nothing,
+            Optional noDocument As Boolean = False,
+            Optional triggerQuickInfo As Boolean = False,
+            Optional augmentSession As IQuickInfoSession = Nothing
+        ) As QuickInfoMocks
+
+            Dim view = New Mock(Of ITextView) With {
+                .DefaultValue = DefaultValue.Mock
+            }
+
             Dim asyncListener = New Mock(Of IAsynchronousOperationListener)
             Dim buffer = s_bufferFactory.CreateTextBuffer()
 
-            presenter = If(presenter, New Mock(Of IIntelliSensePresenter(Of IQuickInfoPresenterSession, IQuickInfoSession)) With {.DefaultValue = DefaultValue.Mock})
-            If documentProvider Is Nothing Then
-                documentProvider = New Mock(Of IDocumentProvider)
-                documentProvider.Setup(Function(p) p.GetDocumentAsync(It.IsAny(Of ITextSnapshot), It.IsAny(Of CancellationToken))).Returns(Task.FromResult(s_document))
+            If presenter Is Nothing Then
+                presenter = New Mock(Of IIntelliSensePresenter(Of IQuickInfoPresenterSession, IQuickInfoSession)) With {
+                    .DefaultValue = DefaultValue.Mock
+                }
             End If
 
-            If service Is Nothing Then
-                service = New ServiceMock()
-            End If
+            Dim documentTask = If(
+                noDocument,
+                SpecializedTasks.Default(Of Document),
+                Task.FromResult(s_document))
+
+            Dim documentProvider = New Mock(Of IDocumentProvider)
+            documentProvider _
+                .Setup(Function(p) p.GetDocumentAsync(It.IsAny(Of ITextSnapshot), It.IsAny(Of CancellationToken))) _
+                .Returns(documentTask)
+
+            Dim service = New MockQuickInfoService()
 
             Dim controller = New Controller(
                 view.Object,
@@ -214,59 +307,15 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 documentProvider.Object,
                 service)
 
-            s_controllerMocksMap.Add(controller, New ControllerMocks(
-                      view,
-                      buffer,
-                      presenter,
-                      asyncListener,
-                      documentProvider,
-                      service))
+            Dim mocks = New QuickInfoMocks(controller, service, view, presenter)
 
             If triggerQuickInfo Then
-                controller.InvokeQuickInfo(position:=0, trackMouse:=False, augmentSession:=augmentSession)
+                controller.InvokeQuickInfo(position:=0, trackMouse:=False, augmentSession)
             End If
 
-            Return controller
+            Return mocks
         End Function
 
-        Private Shared Function CreateMock(Of T As Class)() As T
-            Dim mock = New Mock(Of T)
-            Return mock.Object
-        End Function
-
-        Private Class ControllerMocks
-            Public ReadOnly View As Mock(Of ITextView)
-            Public ReadOnly Buffer As ITextBuffer
-            Public ReadOnly Presenter As Mock(Of IIntelliSensePresenter(Of IQuickInfoPresenterSession, IQuickInfoSession))
-            Public ReadOnly AsyncListener As Mock(Of IAsynchronousOperationListener)
-            Public ReadOnly DocumentProvider As Mock(Of IDocumentProvider)
-            Public ReadOnly Service As QuickInfoService
-
-            Public Sub New(view As Mock(Of ITextView),
-                           buffer As ITextBuffer,
-                           presenter As Mock(Of IIntelliSensePresenter(Of IQuickInfoPresenterSession, IQuickInfoSession)),
-                           asyncListener As Mock(Of IAsynchronousOperationListener),
-                           documentProvider As Mock(Of IDocumentProvider),
-                           service As QuickInfoService)
-                Me.View = view
-                Me.Buffer = buffer
-                Me.Presenter = presenter
-                Me.AsyncListener = asyncListener
-                Me.DocumentProvider = documentProvider
-                Me.Service = service
-            End Sub
-        End Class
-
-        Private Class ServiceMock
-            Inherits QuickInfoService
-
-            Public InvokeCount As Integer
-
-            Public Overrides Function GetQuickInfoAsync(document As Document, position As Integer, Optional cancellationToken As CancellationToken = Nothing) As Task(Of QuickInfoItem)
-                InvokeCount = InvokeCount + 1
-                Return Task.FromResult(QuickInfoItem.Empty)
-            End Function
-        End Class
     End Class
 End Namespace
 #Enable Warning BC40000 ' IQuickInfo* is obsolete

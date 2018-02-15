@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
         {
             var (model, symbols, supportedPlatforms) = await ComputeQuickInfoDataAsync(document, token, cancellationToken).ConfigureAwait(false);
 
-            if (symbols.IsDefault || symbols.IsEmpty)
+            if (symbols.IsDefaultOrEmpty)
             {
                 return null;
             }
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             var bestBinding = candidateResults.FirstOrNullable(c => HasNoErrors(c.symbols))
                 ?? candidateResults.First();
 
-            if (bestBinding.symbols.IsDefault || bestBinding.symbols.IsEmpty)
+            if (bestBinding.symbols.IsDefaultOrEmpty)
             {
                 return default;
             }
@@ -176,11 +176,18 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             var showSymbolGlyph = true;
 
             var groups = await descriptionService.ToDescriptionGroupsAsync(workspace, semanticModel, token.SpanStart, symbols.AsImmutable(), cancellationToken).ConfigureAwait(false);
-            var sections = new List<QuickInfoSection>(groups.Count);
 
-            if (groups.ContainsKey(SymbolDescriptionGroups.MainDescription) && !groups[SymbolDescriptionGroups.MainDescription].IsDefaultOrEmpty)
+            bool TryGetGroupText(SymbolDescriptionGroups group, out ImmutableArray<TaggedText> taggedParts)
+                => groups.TryGetValue(group, out taggedParts) && !taggedParts.IsDefaultOrEmpty;
+
+            var sections = ImmutableArray.CreateBuilder<QuickInfoSection>(initialCapacity: groups.Count);
+
+            void AddSection(string kind, ImmutableArray<TaggedText> taggedParts)
+                => sections.Add(QuickInfoSection.Create(kind, taggedParts));
+
+            if (TryGetGroupText(SymbolDescriptionGroups.MainDescription, out var mainDescriptionTaggedParts))
             {
-                sections.Add(QuickInfoSection.Create(QuickInfoSectionKinds.Description, groups[SymbolDescriptionGroups.MainDescription]));
+                AddSection(QuickInfoSectionKinds.Description, mainDescriptionTaggedParts);
             }
 
             var documentationContent = GetDocumentationContent(symbols, groups, semanticModel, token, formatter, syntaxFactsService, cancellationToken);
@@ -193,29 +200,29 @@ namespace Microsoft.CodeAnalysis.QuickInfo
 
             if (!documentationContent.IsDefaultOrEmpty)
             {
-                sections.Add(QuickInfoSection.Create(QuickInfoSectionKinds.DocumentationComments, documentationContent));
+                AddSection(QuickInfoSectionKinds.DocumentationComments, documentationContent);
             }
 
-            if (groups.ContainsKey(SymbolDescriptionGroups.TypeParameterMap) && !groups[SymbolDescriptionGroups.TypeParameterMap].IsDefaultOrEmpty)
+            if (TryGetGroupText(SymbolDescriptionGroups.TypeParameterMap, out var typeParameterMapText))
             {
-                var builder = new List<TaggedText>();
+                var builder = ImmutableArray.CreateBuilder<TaggedText>();
                 builder.AddLineBreak();
-                builder.AddRange(groups[SymbolDescriptionGroups.TypeParameterMap]);
-                sections.Add(QuickInfoSection.Create(QuickInfoSectionKinds.TypeParameters, builder.ToImmutableArray()));
+                builder.AddRange(typeParameterMapText);
+                AddSection(QuickInfoSectionKinds.TypeParameters, builder.ToImmutable());
             }
 
-            if (groups.ContainsKey(SymbolDescriptionGroups.AnonymousTypes) && !groups[SymbolDescriptionGroups.AnonymousTypes].IsDefaultOrEmpty)
+            if (TryGetGroupText(SymbolDescriptionGroups.AnonymousTypes, out var anonymousTypesText))
             {
-                var builder = new List<TaggedText>();
+                var builder = ImmutableArray.CreateBuilder<TaggedText>();
                 builder.AddLineBreak();
-                builder.AddRange(groups[SymbolDescriptionGroups.AnonymousTypes]);
-                sections.Add(QuickInfoSection.Create(QuickInfoSectionKinds.AnonymousTypes, builder.ToImmutableArray()));
+                builder.AddRange(anonymousTypesText);
+                AddSection(QuickInfoSectionKinds.AnonymousTypes, builder.ToImmutable());
             }
 
-            var usageTextBuilder = new List<TaggedText>();
-            if (groups.ContainsKey(SymbolDescriptionGroups.AwaitableUsageText) && !groups[SymbolDescriptionGroups.AwaitableUsageText].IsDefaultOrEmpty)
+            var usageTextBuilder = ImmutableArray.CreateBuilder<TaggedText>();
+            if (TryGetGroupText(SymbolDescriptionGroups.AwaitableUsageText, out var awaitableUsageText))
             {
-                usageTextBuilder.AddRange(groups[SymbolDescriptionGroups.AwaitableUsageText]);
+                usageTextBuilder.AddRange(awaitableUsageText);
             }
 
             if (supportedPlatforms != null)
@@ -225,12 +232,12 @@ namespace Microsoft.CodeAnalysis.QuickInfo
 
             if (usageTextBuilder.Count > 0)
             {
-                sections.Add(QuickInfoSection.Create(QuickInfoSectionKinds.Usage, usageTextBuilder.ToImmutableArray()));
+                AddSection(QuickInfoSectionKinds.Usage, usageTextBuilder.ToImmutable());
             }
 
-            if (groups.ContainsKey(SymbolDescriptionGroups.Exceptions) && !groups[SymbolDescriptionGroups.Exceptions].IsDefaultOrEmpty)
+            if (TryGetGroupText(SymbolDescriptionGroups.Exceptions, out var exceptionsText))
             {
-                sections.Add(QuickInfoSection.Create(QuickInfoSectionKinds.Exception, groups[SymbolDescriptionGroups.Exceptions]));
+                AddSection(QuickInfoSectionKinds.Exception, exceptionsText);
             }
 
             var tags = ImmutableArray<string>.Empty;
@@ -244,7 +251,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
                 tags = tags.Add(WellKnownTags.Warning);
             }
 
-            return QuickInfoItem.Create(token.Span, tags: tags, sections: sections.ToImmutableArray());
+            return QuickInfoItem.Create(token.Span, tags, sections.ToImmutable());
         }
 
         private ImmutableArray<TaggedText> GetDocumentationContent(

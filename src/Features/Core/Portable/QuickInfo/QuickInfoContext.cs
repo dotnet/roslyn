@@ -25,7 +25,6 @@ namespace Microsoft.CodeAnalysis.QuickInfo
         /// </summary>
         public CancellationToken CancellationToken { get; }
 
-
         /// <summary>
         /// Creates a <see cref="QuickInfoContext"/> instance.
         /// </summary>

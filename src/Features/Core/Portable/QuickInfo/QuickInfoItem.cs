@@ -48,19 +48,5 @@ namespace Microsoft.CodeAnalysis.QuickInfo
         {
             return new QuickInfoItem(span, tags, sections, relatedSpans);
         }
-
-        public bool IsEmpty
-        {
-            get
-            {
-                return this == Empty
-                    || (this.Span == default
-                    && this.Tags.Length == 0
-                    && this.Sections.Length == 0
-                    && this.RelatedSpans.Length == 0);
-            }
-        }
-
-        public static readonly QuickInfoItem Empty = Create(default);
     }
 }

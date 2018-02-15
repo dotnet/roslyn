@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
 
         private ImmutableArray<QuickInfoProvider> GetProviders()
         {
-            if (_providers == null)
+            if (_providers.IsDefault)
             {
                 var mefExporter = (IMefHostExportProvider)_workspace.Services.HostServices;
 
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
                         var context = new QuickInfoContext(document, position, cancellationToken);
 
                         var info = await provider.GetQuickInfoAsync(context).ConfigureAwait(false);
-                        if (info != null && !info.IsEmpty)
+                        if (info != null)
                         {
                             return info;
                         }
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
                 }
             }
 
-            return QuickInfoItem.Empty;
+            return null;
         }
     }
 }

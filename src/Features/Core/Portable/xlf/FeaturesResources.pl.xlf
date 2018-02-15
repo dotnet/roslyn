@@ -1985,11 +1985,6 @@ Ta wersja jest używana wersja: {2}</target>
         <target state="translated">indeksator</target>
         <note />
       </trans-unit>
-      <trans-unit id="Mutiple_Types">
-        <source>&lt;Multiple Types&gt;</source>
-        <target state="new">&lt;Multiple Types&gt;</target>
-        <note />
-      </trans-unit>
     </body>
   </file>
 </xliff>

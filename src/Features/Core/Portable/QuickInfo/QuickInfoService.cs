@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             int position,
             CancellationToken cancellationToken = default)
         {
-            return Task.FromResult(QuickInfoItem.Empty);
+            return SpecializedTasks.Default<QuickInfoItem>();
         }
     }
 }
