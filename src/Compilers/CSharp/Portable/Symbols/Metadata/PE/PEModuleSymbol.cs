@@ -536,10 +536,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        /// <summary>
-        /// internal for testing purpose
-        /// </summary>
-        internal NamedTypeSymbol GetTypeSymbolForWellKnownType(WellKnownType type)
+        private NamedTypeSymbol GetTypeSymbolForWellKnownType(WellKnownType type)
         {
             MetadataTypeName emittedName = MetadataTypeName.FromFullName(type.GetMetadataName(), useCLSCompliantNameArityEncoding: true);
             // First, check this module

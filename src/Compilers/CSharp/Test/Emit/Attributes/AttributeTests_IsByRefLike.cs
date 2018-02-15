@@ -38,7 +38,7 @@ class Test
 
                 var peModule = (PEModuleSymbol)module;
                 Assert.True(peModule.Module.HasIsByRefLikeAttribute(((PENamedTypeSymbol)type).Handle));
-                Assert.Equal(Accessibility.Public, peModule.GetTypeSymbolForWellKnownType(WellKnownType.System_Runtime_CompilerServices_IsByRefLikeAttribute).DeclaredAccessibility);
+                AssertHasAttribute(peModule, WellKnownType.System_Runtime_CompilerServices_IsByRefLikeAttribute, Accessibility.Public);
             }
 
             CompileAndVerify(text, verify: Verification.Passes, symbolValidator: validate);
@@ -89,11 +89,10 @@ class Test
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Test+S1`1");
                 AssertReferencedIsByRefLike(type);
-                Assert.Equal(Accessibility.Internal, ((PEModuleSymbol)module).GetTypeSymbolForWellKnownType(WellKnownType.System_Runtime_CompilerServices_IsByRefLikeAttribute).DeclaredAccessibility);
 
                 var peModule = (PEModuleSymbol)module;
                 Assert.True(peModule.Module.HasIsByRefLikeAttribute(((PENamedTypeSymbol)type).Handle));
-                Assert.Equal(Accessibility.Internal, peModule.GetTypeSymbolForWellKnownType(WellKnownType.System_Runtime_CompilerServices_IsByRefLikeAttribute).DeclaredAccessibility);
+                AssertHasAttribute(peModule, WellKnownType.System_Runtime_CompilerServices_IsByRefLikeAttribute, Accessibility.Internal);
             }
 
             CompileAndVerify(text, symbolValidator: validate);
@@ -670,7 +669,7 @@ class Test
                 if (module is PEModuleSymbol peModule)
                 {
                     Assert.True(peModule.Module.HasIsByRefLikeAttribute(((PENamedTypeSymbol)type).Handle));
-                    Assert.Equal(Accessibility.Public, peModule.GetTypeSymbolForWellKnownType(WellKnownType.System_Runtime_CompilerServices_IsByRefLikeAttribute).DeclaredAccessibility);
+                    AssertHasAttribute(peModule, WellKnownType.System_Runtime_CompilerServices_IsByRefLikeAttribute, Accessibility.Public);
                 }
             };
 

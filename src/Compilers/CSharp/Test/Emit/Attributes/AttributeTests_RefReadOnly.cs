@@ -47,7 +47,8 @@ class Test
                 var peModule = (PEModuleSymbol)module;
                 Assert.True(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)method).Signature.ReturnParam.Handle));
                 Assert.True(peModule.Module.HasIsReadOnlyAttribute(((PEParameterSymbol)parameter).Handle));
-                Assert.Equal(Accessibility.Public, peModule.GetTypeSymbolForWellKnownType(WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute).DeclaredAccessibility);
+
+                AssertHasAttribute(peModule, WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute, Accessibility.Public);
             });
         }
 
@@ -70,7 +71,8 @@ class Test
 
                 var peModule = (PEModuleSymbol)module;
                 Assert.True(peModule.Module.HasIsReadOnlyAttribute(((PEParameterSymbol)parameter).Handle));
-                Assert.Equal(Accessibility.Internal, peModule.GetTypeSymbolForWellKnownType(WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute).DeclaredAccessibility);
+
+                AssertHasAttribute(peModule, WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute, Accessibility.Internal);
             });
         }
 

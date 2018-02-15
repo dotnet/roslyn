@@ -824,7 +824,7 @@ class Program
 
                 var peModule = (PEModuleSymbol)module;
                 Assert.True(peModule.Module.HasIsReadOnlyAttribute(((PENamedTypeSymbol)test).Handle));
-                Assert.Equal(Accessibility.Internal, peModule.GetTypeSymbolForWellKnownType(WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute).DeclaredAccessibility);
+                AssertHasAttribute(peModule, WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute, Accessibility.Internal);
             }
             CompileAndVerify(comp, symbolValidator: validate);
 
