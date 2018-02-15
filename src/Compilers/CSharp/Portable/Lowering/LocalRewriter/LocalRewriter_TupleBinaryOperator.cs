@@ -346,8 +346,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                BoundExpression binary = _factory.Binary(single.Kind, single.MethodSymbolOpt?.ReturnType ?? boolType, left, right, single.MethodSymbolOpt);
-
+                BoundExpression binary = MakeBinaryOperator(_factory.Syntax, single.Kind, left, right, single.MethodSymbolOpt?.ReturnType ?? boolType, single.MethodSymbolOpt);
                 UnaryOperatorSignature boolOperator = single.BoolOperator;
                 Conversion boolConversion = single.BoolConversion;
 
@@ -357,12 +356,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Produce
                     // !((left == right).op_false)
                     // (left != right).op_true
+                    BoundExpression convertedBinary = MakeConversionNode(_factory.Syntax, binary, boolConversion, boolOperator.OperandType, @checked: false);
 
-                    BoundExpression convertedBinary = _factory.Convert(boolOperator.OperandType, binary, boolConversion);
                     Debug.Assert(boolOperator.ReturnType.SpecialType == SpecialType.System_Boolean);
-
-                    result = new BoundUnaryOperator(binary.Syntax, boolOperator.Kind, binary, ConstantValue.NotAvailable,
-                        boolOperator.Method, LookupResultKind.Viable, boolType).MakeCompilerGenerated();
+                    result = MakeUnaryOperator(boolOperator.Kind, binary.Syntax, boolOperator.Method, convertedBinary, boolType);
 
                     if (operatorKind == BinaryOperatorKind.Equal)
                     {
@@ -374,14 +371,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Produce
                     // (bool)(left == right)
                     // (bool)(left != right)
-                    result = _factory.Convert(boolType, binary, boolConversion);
+                    result = MakeConversionNode(_factory.Syntax, binary, boolConversion, boolType, @checked: false);
                 }
                 else
                 {
                     result = binary;
                 }
 
-                return VisitExpression(result);
+                return result;
             }
         }
 
