@@ -268,17 +268,15 @@ namespace RoslynCompletionPrototype
                 // But only if it's an item that would have been hard selected.  We don't want
                 // to aggressively select an item that was only going to be softly offered.
 
-                // TODO: We don't have the concept of CompletionItemRules.
+                var item1Priority = item1.Properties.GetProperty<CompletionItemSelectionBehavior>("SelectionBehavior") == CompletionItemSelectionBehavior.HardSelection
+                    ? item1.Properties.GetProperty<int>("MatchPriority") : MatchPriority.Default;
+                var item2Priority = item2.Properties.GetProperty<CompletionItemSelectionBehavior>("SelectionBehavior") == CompletionItemSelectionBehavior.HardSelection
+                    ? item2.Properties.GetProperty<int>("MatchPriority") : MatchPriority.Default;
 
-                //var item1Priority = item1.Rules.SelectionBehavior == CompletionItemSelectionBehavior.HardSelection
-                //    ? item1.Rules.MatchPriority : MatchPriority.Default;
-                //var item2Priority = item2.Rules.SelectionBehavior == CompletionItemSelectionBehavior.HardSelection
-                //    ? item2.Rules.MatchPriority : MatchPriority.Default;
-
-                //if (item1Priority > item2Priority)
-                //{
-                //    return true;
-                //}
+                if (item1Priority > item2Priority)
+                {
+                    return true;
+                }
             }
 
             return false;
@@ -300,7 +298,11 @@ namespace RoslynCompletionPrototype
 
             var matchingItems = filterResults
                 .Where(r => r.MatchedFilterText)
-                .Select(t => RoslynCompletionItem.Create(t.CompletionItem.DisplayText, t.CompletionItem.FilterText, t.CompletionItem.DisplayText))
+                .Select(t => RoslynCompletionItem.Create(
+                    t.CompletionItem.DisplayText, 
+                    t.CompletionItem.FilterText, 
+                    t.CompletionItem.SortText,
+                    properties: ImmutableDictionary<string, string>.Empty.Add("MatchPriority", t.CompletionItem.Properties.GetProperty<int>("MatchPriority").ToString())))
                 .AsImmutable();
             var chosenItems = service.FilterItems(snapshot.GetOpenDocumentInCurrentContextWithChanges(), matchingItems, filterText);
 
@@ -384,8 +386,8 @@ namespace RoslynCompletionPrototype
             for (int i = 1, n = chosenItems.Length; i < n; i++)
             {
                 var chosenItem = chosenItems[i];
-                var bestItemPriority = bestItem.Rules.MatchPriority;
-                var currentItemPriority = chosenItem.Rules.MatchPriority;
+                var bestItemPriority = int.Parse(bestItem.Properties.GetValueOrDefault("MatchPriority"));
+                var currentItemPriority = int.Parse(chosenItem.Properties.GetValueOrDefault("MatchPriority"));
 
                 if (currentItemPriority > bestItemPriority)
                 {

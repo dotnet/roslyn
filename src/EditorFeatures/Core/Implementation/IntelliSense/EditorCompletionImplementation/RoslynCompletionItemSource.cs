@@ -157,6 +157,8 @@ namespace RoslynCompletionPrototype
                 attributeImages);
 
             item.Properties.AddProperty(RoslynItem, roslynItem);
+            item.Properties.AddProperty("MatchPriority", roslynItem.Rules.MatchPriority);
+            item.Properties.AddProperty("SelectionBehavior", roslynItem.Rules.SelectionBehavior);
             return item;
         }
 
