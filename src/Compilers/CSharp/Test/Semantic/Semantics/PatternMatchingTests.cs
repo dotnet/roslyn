@@ -6458,5 +6458,112 @@ False";
             compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/24865")]
+        public void ExhaustiveBoolSwitch00()
+        {
+            // Note that the switches in this code are exhaustive. The idea of a switch
+            // being exhaustive is new with the addition of pattern-matching; this code
+            // used to give errors that are no longer applicable due to the spec change.
+            var source =
+@"
+using System;
+
+public class C
+{
+    public static void Main()
+    {
+        M(true);
+        M(false);
+        Console.WriteLine(M2(true));
+        Console.WriteLine(M2(false));
+    }
+    public static void M(bool e)
+    {
+        bool b;
+        switch (e)
+        {
+            case true:
+                b = true;
+                break;
+            case false:
+                b = true;
+                break;
+        }
+
+        Console.WriteLine(b); // incorrect error CS0165: Use of unassigned local variable 'b'
+    }
+
+    public static bool M2(bool e) // incorrect error CS0161: not all code paths return a value
+    {
+        switch (e)
+        {
+            case true: return true;
+            case false: return false;
+        }
+    }
+}
+";
+            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput:
+@"True
+False
+True
+False");
+        }
+
+        [Fact, WorkItem(24865, "https://github.com/dotnet/roslyn/issues/24865")]
+        public void ExhaustiveBoolSwitch01()
+        {
+            var source =
+@"
+using System;
+
+public class C
+{
+    public static void Main()
+    {
+        M(true);
+        M(false);
+        Console.WriteLine(M2(true));
+        Console.WriteLine(M2(false));
+    }
+    public static void M(bool e)
+    {
+        bool b;
+        switch (e)
+        {
+            case true when true:
+                b = true;
+                break;
+            case false:
+                b = false;
+                break;
+        }
+
+        Console.WriteLine(b);
+    }
+
+    public static bool M2(bool e)
+    {
+        switch (e)
+        {
+            case true when true: return true;
+            case false: return false;
+        }
+    }
+}
+";
+            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput:
+@"True
+False
+True
+False");
+        }
     }
 }

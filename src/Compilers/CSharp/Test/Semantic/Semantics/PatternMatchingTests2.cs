@@ -855,6 +855,52 @@ namespace System
                 );
         }
 
+        [Fact(Skip = "PROTOTYPE(patterns2): lowering and code gen not yet implemented for recursive patterns")]
+        public void Patterns2_10()
+        {
+            var source =
+@"
+using System;
+class Program
+{
+    public static void Main()
+    {
+        Console.Write(M((false, false)));
+        Console.Write(M((false, true)));
+        Console.Write(M((true, false)));
+        Console.Write(M((true, true)));
+    }
+    private static int M((bool, bool) t)
+    {
+        switch (t)
+        {
+            case (false, false): return 0;
+            case (false, _): return 1;
+            case (_, false): return 2;
+            case _: return 3;
+        }
+    }
+}
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+        }
+    }
+}";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: @"0123");
+        }
+
         // PROTOTYPE(patterns2): Need to have tests that exercise:
         // PROTOTYPE(patterns2): Building the decision tree for the var-pattern
         // PROTOTYPE(patterns2): Definite assignment for the var-pattern
