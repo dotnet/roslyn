@@ -966,7 +966,7 @@ Additional information: {1}</value>
     <value>Changes are not allowed while code is running.</value>
   </data>
   <data name="Prefer_local_function_over_anonymous_function" xml:space="preserve">
-    <value>Prefere local function over anonymous function</value>
+    <value>Prefer local function over anonymous function</value>
   </data>
   <data name="ModuleHasBeenUnloaded" xml:space="preserve">
     <value>Module has been unloaded.</value>
@@ -1015,5 +1015,11 @@ I agree to all of the foregoing:</value>
   </data>
   <data name="Code_style_header_use_editor_config" xml:space="preserve">
     <value>The settings configured here only apply to your machine. To configure these settings to travel with your solution, use .editorconfig files.</value>
+  </data>
+  <data name="Analyzing_0" xml:space="preserve">
+    <value>Analyzing '{0}'</value>
+  </data>
+  <data name="Live_code_analysis" xml:space="preserve">
+    <value>Live code analysis</value>
   </data>
 </root>
