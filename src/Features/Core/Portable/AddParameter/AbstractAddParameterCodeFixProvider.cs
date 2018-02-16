@@ -181,6 +181,12 @@ namespace Microsoft.CodeAnalysis.AddParameter
         /// </summary>
         private bool HasCascadingDeclarations(IMethodSymbol method)
         {
+            // Don't cascade constructors
+            if (method.IsConstructor())
+            {
+                return false;
+            }
+
             // Virtual methods of all kinds might have overrides somewhere else that need to be fixed.
             if (method.IsVirtual || method.IsOverride || method.IsAbstract)
             {
