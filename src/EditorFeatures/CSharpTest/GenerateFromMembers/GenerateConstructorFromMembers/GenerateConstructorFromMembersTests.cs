@@ -393,7 +393,7 @@ struct S
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
-        public async Task TestStructInitializingManualProperty()
+        public async Task TestStructNotInitializingAutoProperty()
         {
             await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;

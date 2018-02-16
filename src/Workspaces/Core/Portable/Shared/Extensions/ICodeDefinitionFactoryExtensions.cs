@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             var fields = factory.CreateFieldsForParameters(parameters, parameterToNewFieldMap);
             var statements = factory.CreateAssignmentStatements(
-                compilation, parameters, parameterToExistingFieldMap, parameterToNewFieldMap, 
+                compilation, parameters, parameterToExistingFieldMap, parameterToNewFieldMap,
                 addNullChecks, preferThrowExpression).SelectAsArray(
                     s => s.WithAdditionalAnnotations(Simplifier.Annotation));
 
@@ -102,18 +102,51 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 // Special case.  If we're generating a struct constructor, then we'll need
                 // to initialize all fields in the struct, not just the ones we're creating.  To
                 // do that, we call the default constructor.
-                var realFields = containingTypeOpt.GetMembers()
-                                     .OfType<IFieldSymbol>()
-                                     .Where(f => !f.IsStatic);
-                var initializedFields = parameterToExistingFieldMap.Values
-                                            .OfType<IFieldSymbol>()
-                                            .Where(f => !f.IsImplicitlyDeclared && !f.IsStatic);
-                if (initializedFields.Count() < realFields.Count())
+
+                var numFieldsRequiringInitialization = 0;
+
+                var autoProperties = new List<IPropertySymbol>();
+                foreach (var containingTypeField in containingTypeOpt.GetMembers().OfType<IFieldSymbol>())
                 {
-                    // We have less field assignments than actual fields.  Generate a call to the
-                    // default constructor as well.
-                    return ImmutableArray<SyntaxNode>.Empty;
+                    if (!containingTypeField.IsStatic)
+                    {
+                        numFieldsRequiringInitialization++;
+
+                        if (containingTypeField.AssociatedSymbol is IPropertySymbol autoProperty)
+                        {
+                            autoProperties.Add(autoProperty);
+                        }
+                    }
                 }
+
+                if (numFieldsRequiringInitialization == 0)
+                {
+                    return default;
+                }
+
+                foreach (var initialized in parameterToExistingFieldMap.Values)
+                {
+                    if (initialized.IsImplicitlyDeclared || initialized.IsStatic)
+                    {
+                        continue;
+                    }
+
+                    switch (initialized)
+                    {
+                        case IFieldSymbol _:
+                        case IPropertySymbol property when autoProperties.Contains(property):
+                            numFieldsRequiringInitialization--;
+                            if (numFieldsRequiringInitialization == 0)
+                            {
+                                return default;
+                            }
+                            break;
+                    }
+                }
+
+                // We have fewer field assignments than actual fields.  Generate a call to the
+                // default constructor as well.
+                return ImmutableArray<SyntaxNode>.Empty;
             }
 
             return default;
@@ -133,8 +166,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
                 if (refKind != RefKind.Out)
                 {
-                    // For non-out parameters, create a field and assign the parameter to it. 
-                    // TODO: I'm not sure that's what we really want for ref parameters. 
+                    // For non-out parameters, create a field and assign the parameter to it.
+                    // TODO: I'm not sure that's what we really want for ref parameters.
                     if (TryGetValue(parameterToNewFieldMap, parameterName, out var fieldName))
                     {
                         result.Add(CodeGenerationSymbolFactory.CreateFieldSymbol(
@@ -226,8 +259,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 }
                 else
                 {
-                    // For non-out parameters, create a field and assign the parameter to it. 
-                    // TODO: I'm not sure that's what we really want for ref parameters. 
+                    // For non-out parameters, create a field and assign the parameter to it.
+                    // TODO: I'm not sure that's what we really want for ref parameters.
                     if (TryGetValue(parameterToExistingFieldMap, parameterName, out var fieldName) ||
                         TryGetValue(parameterToNewFieldMap, parameterName, out fieldName))
                     {
