@@ -267,6 +267,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             foreach (var path in commandLineArgs.AnalyzerReferences.Select(r => r.FilePath))
             {
+                var fullPath = Path.GetFullPath(path);
                 if (File.Exists(path))
                 {
                     analyzerLoader.AddDependencyLocation(path);
