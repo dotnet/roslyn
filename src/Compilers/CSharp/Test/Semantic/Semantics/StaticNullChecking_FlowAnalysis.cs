@@ -1518,7 +1518,7 @@ class C
         }
 
         [Fact]
-        public void IdentityConversion_NullCoalescingOperator()
+        public void IdentityConversion_NullCoalescingOperator_01()
         {
             var source =
 @"interface I<T> { }
@@ -1529,17 +1529,17 @@ class C
     static void F(I<object>? x, I<object?> y)
     {
         I<object> z = x ?? y;
-        I<object?> w = x ?? y;
+        I<object?> w = y ?? x;
     }
     static void F(IIn<object>? x, IIn<object?> y)
     {
         IIn<object> z = x ?? y;
-        IIn<object?> w = x ?? y;
+        IIn<object?> w = y ?? x;
     }
     static void F(IOut<object>? x, IOut<object?> y)
     {
         IOut<object> z = x ?? y;
-        IOut<object?> w = x ?? y;
+        IOut<object?> w = y ?? x;
     }
 }";
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
@@ -1547,21 +1547,189 @@ class C
                 // (8,28): warning CS8619: Nullability of reference types in value of type 'I<object?>' doesn't match target type 'I<object>'.
                 //         I<object> z = x ?? y;
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("I<object?>", "I<object>").WithLocation(8, 28),
-                // (9,29): warning CS8619: Nullability of reference types in value of type 'I<object?>' doesn't match target type 'I<object>'.
-                //         I<object?> w = x ?? y;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("I<object?>", "I<object>").WithLocation(9, 29),
-                // (9,24): warning CS8619: Nullability of reference types in value of type 'I<object>' doesn't match target type 'I<object?>'.
-                //         I<object?> w = x ?? y;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x ?? y").WithArguments("I<object>", "I<object?>").WithLocation(9, 24),
-                // (14,26): warning CS8619: Nullability of reference types in value of type 'IIn<object>' doesn't match target type 'IIn<object?>'.
-                //         IIn<object?> w = x ?? y;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x ?? y").WithArguments("IIn<object>", "IIn<object?>").WithLocation(14, 26),
+                // (9,24): hidden CS8607: Expression is probably never null.
+                //         I<object?> w = y ?? x;
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "y").WithLocation(9, 24),
+                // (9,29): warning CS8619: Nullability of reference types in value of type 'I<object>' doesn't match target type 'I<object?>'.
+                //         I<object?> w = y ?? x;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("I<object>", "I<object?>").WithLocation(9, 29),
+                // (14,26): hidden CS8607: Expression is probably never null.
+                //         IIn<object?> w = y ?? x;
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "y").WithLocation(14, 26),
+                // (14,31): warning CS8619: Nullability of reference types in value of type 'IIn<object>' doesn't match target type 'IIn<object?>'.
+                //         IIn<object?> w = y ?? x;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("IIn<object>", "IIn<object?>").WithLocation(14, 31),
                 // (18,31): warning CS8619: Nullability of reference types in value of type 'IOut<object?>' doesn't match target type 'IOut<object>'.
                 //         IOut<object> z = x ?? y;
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("IOut<object?>", "IOut<object>").WithLocation(18, 31),
-                // (19,32): warning CS8619: Nullability of reference types in value of type 'IOut<object?>' doesn't match target type 'IOut<object>'.
-                //         IOut<object?> w = x ?? y;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("IOut<object?>", "IOut<object>").WithLocation(19, 32));
+                // (19,27): hidden CS8607: Expression is probably never null.
+                //         IOut<object?> w = y ?? x;
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "y").WithLocation(19, 27));
+        }
+
+        // PROTOTYPE(NullableReferenceTypes): Should report the same warnings for x ?? y and y ?? x.
+        [Fact]
+        public void IdentityConversion_NullCoalescingOperator_02()
+        {
+            var source =
+@"interface IOut<out T> { }
+class C
+{
+    static T F<T>(IOut<T>? x)
+    {
+        throw new System.Exception();
+    }
+    static void G(IOut<object>? x, IOut<object?>? y)
+    {
+        F(x ?? y).ToString();
+        F(y ?? x).ToString();
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (10,16): warning CS8619: Nullability of reference types in value of type 'IOut<object?>' doesn't match target type 'IOut<object>'.
+                //         F(x ?? y).ToString();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("IOut<object?>", "IOut<object>").WithLocation(10, 16),
+                // (11,9): warning CS8602: Possible dereference of a null reference.
+                //         F(y ?? x).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(y ?? x)").WithLocation(11, 9));
+        }
+
+        [Fact]
+        public void ImplicitConversion_NullCoalescingOperator_01()
+        {
+            var source =
+@"#pragma warning disable 0649
+class A<T>
+{
+    internal T F;
+}
+class B<T> : A<T> { }
+class C
+{
+    static void F(A<object>? x, B<object?> y)
+    {
+        (x ?? y).F.ToString();
+        (y ?? x).F.ToString();
+    }
+    static void G(A<object?> z, B<object>? w)
+    {
+        (z ?? w).F.ToString();
+        (w ?? z).F.ToString();
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (11,15): warning CS8619: Nullability of reference types in value of type 'B<object?>' doesn't match target type 'A<object>'.
+                //         (x ?? y).F.ToString();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("B<object?>", "A<object>").WithLocation(11, 15),
+                // (12,10): hidden CS8607: Expression is probably never null.
+                //         (y ?? x).F.ToString();
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "y").WithLocation(12, 10),
+                // (12,10): warning CS8619: Nullability of reference types in value of type 'B<object?>' doesn't match target type 'A<object>'.
+                //         (y ?? x).F.ToString();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("B<object?>", "A<object>").WithLocation(12, 10),
+                // (16,10): hidden CS8607: Expression is probably never null.
+                //         (z ?? w).F.ToString();
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "z").WithLocation(16, 10),
+                // (16,15): warning CS8619: Nullability of reference types in value of type 'B<object>' doesn't match target type 'A<object?>'.
+                //         (z ?? w).F.ToString();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "w").WithArguments("B<object>", "A<object?>").WithLocation(16, 15),
+                // (16,9): warning CS8602: Possible dereference of a null reference.
+                //         (z ?? w).F.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(z ?? w).F").WithLocation(16, 9),
+                // (17,10): warning CS8619: Nullability of reference types in value of type 'B<object>' doesn't match target type 'A<object?>'.
+                //         (w ?? z).F.ToString();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "w").WithArguments("B<object>", "A<object?>").WithLocation(17, 10),
+                // (17,9): warning CS8602: Possible dereference of a null reference.
+                //         (w ?? z).F.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(w ?? z).F").WithLocation(17, 9));
+        }
+
+        [Fact]
+        public void ImplicitConversion_NullCoalescingOperator_02()
+        {
+            var source =
+@"interface IIn<in T>
+{
+    void F(T x, T y);
+}
+class C
+{
+    static void F(IIn<object>? x, IIn<string?> y)
+    {
+        (x ?? y).F(string.Empty, null);
+        (y ?? x).F(string.Empty, null);
+    }
+    static void G(IIn<object?> z, IIn<string>? w)
+    {
+        (z ?? w).F(string.Empty, null);
+        (w ?? z).F(string.Empty, null);
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (9,10): warning CS8619: Nullability of reference types in value of type 'IIn<object>' doesn't match target type 'IIn<string?>'.
+                //         (x ?? y).F(string.Empty, null);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("IIn<object>", "IIn<string?>").WithLocation(9, 10),
+                // (10,10): hidden CS8607: Expression is probably never null.
+                //         (y ?? x).F(string.Empty, null);
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "y").WithLocation(10, 10),
+                // (10,15): warning CS8619: Nullability of reference types in value of type 'IIn<object>' doesn't match target type 'IIn<string?>'.
+                //         (y ?? x).F(string.Empty, null);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("IIn<object>", "IIn<string?>").WithLocation(10, 15),
+                // (14,10): hidden CS8607: Expression is probably never null.
+                //         (z ?? w).F(string.Empty, null);
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "z").WithLocation(14, 10),
+                // (14,34): warning CS8600: Cannot convert null to non-nullable reference.
+                //         (z ?? w).F(string.Empty, null);
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(14, 34),
+                // (15,34): warning CS8600: Cannot convert null to non-nullable reference.
+                //         (w ?? z).F(string.Empty, null);
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(15, 34));
+        }
+
+        [Fact]
+        public void ImplicitConversion_NullCoalescingOperator_03()
+        {
+            var source =
+@"interface IOut<out T>
+{
+    T P { get; }
+}
+class C
+{
+    static void F(IOut<object>? x, IOut<string?> y)
+    {
+        (x ?? y).P.ToString();
+        (y ?? x).P.ToString();
+    }
+    static void G(IOut<object?> z, IOut<string>? w)
+    {
+        (z ?? w).P.ToString();
+        (w ?? z).P.ToString();
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (9,15): warning CS8619: Nullability of reference types in value of type 'IOut<string?>' doesn't match target type 'IOut<object>'.
+                //         (x ?? y).P.ToString();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("IOut<string?>", "IOut<object>").WithLocation(9, 15),
+                // (10,10): hidden CS8607: Expression is probably never null.
+                //         (y ?? x).P.ToString();
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "y").WithLocation(10, 10),
+                // (10,10): warning CS8619: Nullability of reference types in value of type 'IOut<string?>' doesn't match target type 'IOut<object>'.
+                //         (y ?? x).P.ToString();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("IOut<string?>", "IOut<object>").WithLocation(10, 10),
+                // (14,10): hidden CS8607: Expression is probably never null.
+                //         (z ?? w).P.ToString();
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "z").WithLocation(14, 10),
+                // (14,9): warning CS8602: Possible dereference of a null reference.
+                //         (z ?? w).P.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(z ?? w).P").WithLocation(14, 9),
+                // (15,9): warning CS8602: Possible dereference of a null reference.
+                //         (w ?? z).P.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(w ?? z).P").WithLocation(15, 9));
         }
 
         [Fact]

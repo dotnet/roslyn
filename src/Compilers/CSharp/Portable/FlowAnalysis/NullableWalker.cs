@@ -807,6 +807,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override void VisitStatement(BoundStatement statement)
         {
+            _result = _invalidType;
             base.VisitStatement(statement);
             _result = _invalidType;
         }
@@ -1323,6 +1324,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool? getResultNullable(Result a, Result b) => a.IsNullable & b.IsNullable;
             TypeSymbolWithAnnotations resultType;
 
+            // PROTOTYPE(NullableReferenceTypes): Should re-evaluate whether to use left or right
+            // type based on nullability, rather than simply using the choice from initial binding.
+            // See StaticNullChecking_FlowAnalysis.IdentityConversion_NullCoalescingOperator_02.
             switch (node.OperatorResultKind)
             {
                 case BoundNullCoalescingOperatorResultKind.LeftType:

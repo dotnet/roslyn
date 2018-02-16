@@ -3474,7 +3474,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     diagnostics.Add(node, useSiteDiagnostics);
-                    return new BoundNullCoalescingOperator(node, leftOperand, rightOperand, leftConversion, BoundNullCoalescingOperatorResultKind.LeftType, optRightType);
+                    return new BoundNullCoalescingOperator(node, leftOperand, rightOperand, leftConversion, BoundNullCoalescingOperatorResultKind.RightType, optRightType);
                 }
             }
 

@@ -699,7 +699,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var iface in d.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics))
             {
-                if (HasIdentityConversionInternal(iface, baseType, IncludeNullability))
+                if (HasIdentityConversionInternal(iface, baseType))
                 {
                     return true;
                 }
@@ -729,7 +729,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             for (TypeSymbol b = derivedType.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics); (object)b != null; b = b.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics))
             {
-                if (HasIdentityConversionInternal(b, baseType, IncludeNullability))
+                if (HasIdentityConversionInternal(b, baseType))
                 {
                     return true;
                 }
@@ -2204,7 +2204,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 }
 
-                if (!HasIdentityConversionInternal(source, destination, IncludeNullability) && HasInterfaceVarianceConversion(source, destination, ref useSiteDiagnostics))
+                if (!HasIdentityConversionInternal(source, destination) && HasInterfaceVarianceConversion(source, destination, ref useSiteDiagnostics))
                 {
                     return true;
                 }
