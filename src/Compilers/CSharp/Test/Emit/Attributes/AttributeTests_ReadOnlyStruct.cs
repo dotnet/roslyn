@@ -34,8 +34,11 @@ class Test
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
                 Assert.True(type.IsReadOnly);
+                Assert.Empty(type.GetAttributes());
 
-                AssertReferencedIsReadOnlyAttribute(Accessibility.Public, type.GetAttributes(), module.ContainingAssembly.Name);
+                var peModule = (PEModuleSymbol)module;
+                Assert.True(peModule.Module.HasIsReadOnlyAttribute(((PENamedTypeSymbol)type).Handle));
+                AssertDeclaresType(peModule, WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute, Accessibility.Public);
             });
         }
 
@@ -50,8 +53,7 @@ readonly struct S1{}
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("S1");
                 Assert.True(type.IsReadOnly);
-
-                AssertReferencedIsReadOnlyAttribute(Accessibility.Internal, type.GetAttributes(), module.ContainingAssembly.Name);
+                Assert.Empty(type.GetAttributes());
             });
         }
 
@@ -69,8 +71,7 @@ class Test
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
                 Assert.True(type.IsReadOnly);
-
-                AssertReferencedIsReadOnlyAttribute(Accessibility.Internal, type.GetAttributes(), module.ContainingAssembly.Name);
+                Assert.Empty(type.GetAttributes());
             });
         }
 
@@ -88,8 +89,7 @@ class Test
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Test+S1`1");
                 Assert.True(type.IsReadOnly);
-
-                AssertReferencedIsReadOnlyAttribute(Accessibility.Internal, type.GetAttributes(), module.ContainingAssembly.Name);
+                Assert.Empty(type.GetAttributes());
             });
         }
 
@@ -107,8 +107,7 @@ class Test<T>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Test`1").GetTypeMember("S1");
                 Assert.True(type.IsReadOnly);
-
-                AssertReferencedIsReadOnlyAttribute(Accessibility.Internal, type.GetAttributes(), module.ContainingAssembly.Name);
+                Assert.Empty(type.GetAttributes());
             });
         }
 
@@ -134,8 +133,7 @@ class Test
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
                 Assert.True(type.IsReadOnly);
-
-                AssertReferencedIsReadOnlyAttribute(Accessibility.Public, type.GetAttributes(), referenceA.Compilation.AssemblyName);
+                Assert.Empty(type.GetAttributes());
                 AssertNoIsReadOnlyAttributeExists(module.ContainingAssembly);
             });
         }
@@ -429,8 +427,7 @@ public class Test
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
                 Assert.True(type.IsReadOnly);
-
-                AssertReferencedIsReadOnlyAttribute(Accessibility.Public, type.GetAttributes(), reference.Display);
+                Assert.Empty(type.GetAttributes());
                 AssertNoIsReadOnlyAttributeExists(module.ContainingAssembly);
             });
         }
@@ -580,7 +577,7 @@ public readonly struct S1{}
 
                 var property = type.GetMember<PEPropertySymbol>("Property");
                 Assert.NotNull(property);
-                AssertReferencedIsReadOnlyAttribute(Accessibility.Internal, property.Type.GetAttributes(), module.ContainingAssembly.Name);
+                AssertNotReferencedIsReadOnlyAttribute(type.GetAttributes());
             });
 
             var code = @"
@@ -637,17 +634,9 @@ public class Test
                 );
         }
 
-        private static void AssertReferencedIsReadOnlyAttribute(Accessibility accessibility, ImmutableArray<CSharpAttributeData> attributes, string assemblyName)
-        {
-            var attributeType = attributes.Single().AttributeClass;
-            Assert.Equal("System.Runtime.CompilerServices.IsReadOnlyAttribute", attributeType.ToDisplayString());
-            Assert.Equal(assemblyName, attributeType.ContainingAssembly.Name);
-            Assert.Equal(accessibility, attributeType.DeclaredAccessibility);
-        }
-
         private static void AssertNotReferencedIsReadOnlyAttribute(ImmutableArray<CSharpAttributeData> attributes)
         {
-            foreach(var attr in attributes)
+            foreach (var attr in attributes)
             {
                 Assert.NotEqual("IsReadOnlyAttribute", attr.AttributeClass.Name);
             }

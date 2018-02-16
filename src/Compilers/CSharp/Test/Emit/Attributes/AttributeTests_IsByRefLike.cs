@@ -1,14 +1,16 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
+using System.Linq;
+using System.Reflection;
+using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
-using System.Collections.Immutable;
-using System.Linq;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -29,11 +31,17 @@ class Test
 }
 ";
 
-            CompileAndVerify(text, verify: Verification.Passes, symbolValidator: module =>
+            void validate(ModuleSymbol module)
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
-                AssertReferencedIsByRefLikeAttributes(Accessibility.Public, type, module.ContainingAssembly.Name);
-            });
+                AssertReferencedIsByRefLike(type);
+
+                var peModule = (PEModuleSymbol)module;
+                Assert.True(peModule.Module.HasIsByRefLikeAttribute(((PENamedTypeSymbol)type).Handle));
+                AssertDeclaresType(peModule, WellKnownType.System_Runtime_CompilerServices_IsByRefLikeAttribute, Accessibility.Public);
+            }
+
+            CompileAndVerify(text, verify: Verification.Passes, symbolValidator: validate);
         }
 
         [Fact]
@@ -46,7 +54,7 @@ ref struct S1{}
             CompileAndVerify(text, verify: Verification.Passes, symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("S1");
-                AssertReferencedIsByRefLikeAttributes(Accessibility.Internal, type, module.ContainingAssembly.Name);
+                AssertReferencedIsByRefLike(type);
             });
         }
 
@@ -63,7 +71,7 @@ class Test
             CompileAndVerify(text, verify: Verification.Passes, symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
-                AssertReferencedIsByRefLikeAttributes(Accessibility.Internal, type, module.ContainingAssembly.Name);
+                AssertReferencedIsByRefLike(type);
             });
         }
 
@@ -77,11 +85,17 @@ class Test
 }
 ";
 
-            CompileAndVerify(text, verify: Verification.Passes, symbolValidator: module =>
+            void validate(ModuleSymbol module)
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Test+S1`1");
-                AssertReferencedIsByRefLikeAttributes(Accessibility.Internal, type, module.ContainingAssembly.Name);
-            });
+                AssertReferencedIsByRefLike(type);
+
+                var peModule = (PEModuleSymbol)module;
+                Assert.True(peModule.Module.HasIsByRefLikeAttribute(((PENamedTypeSymbol)type).Handle));
+                AssertDeclaresType(peModule, WellKnownType.System_Runtime_CompilerServices_IsByRefLikeAttribute, Accessibility.Internal);
+            }
+
+            CompileAndVerify(text, symbolValidator: validate);
         }
 
         [Fact]
@@ -97,7 +111,7 @@ class Test<T>
             CompileAndVerify(text, verify: Verification.Passes, symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Test`1").GetTypeMember("S1");
-                AssertReferencedIsByRefLikeAttributes(Accessibility.Internal, type, module.ContainingAssembly.Name);
+                AssertReferencedIsByRefLike(type);
             });
         }
 
@@ -123,7 +137,7 @@ class Test
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
 
-                AssertReferencedIsByRefLikeAttributes(Accessibility.Public, type, referenceA.Compilation.AssemblyName);
+                AssertReferencedIsByRefLike(type);
                 AssertNoIsByRefLikeAttributeExists(module.ContainingAssembly);
             });
         }
@@ -417,7 +431,7 @@ public class Test
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
 
-                AssertReferencedIsByRefLikeAttributes(Accessibility.Public, type, reference.Display);
+                AssertReferencedIsByRefLike(type);
                 AssertNoIsByRefLikeAttributeExists(module.ContainingAssembly);
             });
         }
@@ -567,7 +581,7 @@ public ref struct S1{}
 
                 var property = type.GetMember<PEPropertySymbol>("Property");
                 Assert.NotNull(property);
-                AssertReferencedIsByRefLikeAttributes(Accessibility.Internal, property.Type, module.ContainingAssembly.Name);
+                AssertReferencedIsByRefLike(property.Type);
             });
 
             var code = @"
@@ -640,27 +654,26 @@ class Test
 }
 ";
 
-            CompileAndVerify(text, verify: Verification.Passes, symbolValidator: module =>
+            void validate(ModuleSymbol module)
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
                 Assert.True(type.IsByRefLikeType);
 
-                var accessibility = Accessibility.Public;
-                var attributes = type.GetAttributes();
-                Assert.Equal(2, attributes.Count());
-
                 var assemblyName = module.ContainingAssembly.Name;
 
-                var attributeType = attributes[0].AttributeClass;
-                Assert.Equal("System.Runtime.CompilerServices.IsByRefLikeAttribute", attributeType.ToDisplayString());
-                Assert.Equal(assemblyName, attributeType.ContainingAssembly.Name);
-                Assert.Equal(accessibility, attributeType.DeclaredAccessibility);
-
-                var attribute = attributes[1];
+                var attribute = type.GetAttributes().Single();
                 Assert.Equal("System.ObsoleteAttribute", attribute.AttributeClass.ToDisplayString());
                 Assert.Equal("hello", attribute.ConstructorArguments.ElementAt(0).Value);
                 Assert.Equal(true, attribute.ConstructorArguments.ElementAt(1).Value);
-            });
+
+                if (module is PEModuleSymbol peModule)
+                {
+                    Assert.True(peModule.Module.HasIsByRefLikeAttribute(((PENamedTypeSymbol)type).Handle));
+                    AssertDeclaresType(peModule, WellKnownType.System_Runtime_CompilerServices_IsByRefLikeAttribute, Accessibility.Public);
+                }
+            };
+
+            CompileAndVerify(text, verify: Verification.Passes, symbolValidator: validate, sourceSymbolValidator: validate);
         }
 
         [Fact]
@@ -686,7 +699,7 @@ namespace System
             CompileAndVerify(text, verify: Verification.Passes, symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
-                AssertReferencedIsByRefLikeAttributes(Accessibility.Public, type, module.ContainingAssembly.Name, hasObsolete: false);
+                AssertReferencedIsByRefLike(type, hasObsolete: false);
             });
         }
 
@@ -730,18 +743,7 @@ class Test
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
                 Assert.True(type.IsByRefLikeType);
 
-                var accessibility = Accessibility.Public;
-                var attributes = type.GetAttributes();
-                Assert.Equal(2, attributes.Count());
-
-                var assemblyName = module.ContainingAssembly.Name;
-
-                var attributeType = attributes[0].AttributeClass;
-                Assert.Equal("System.Runtime.CompilerServices.IsByRefLikeAttribute", attributeType.ToDisplayString());
-                Assert.Equal(assemblyName, attributeType.ContainingAssembly.Name);
-                Assert.Equal(accessibility, attributeType.DeclaredAccessibility);
-
-                var attribute = attributes[1];
+                var attribute = type.GetAttributes().Single();
                 Assert.Equal("Windows.Foundation.Metadata.DeprecatedAttribute", attribute.AttributeClass.ToDisplayString());
                 Assert.Equal(42u, attribute.ConstructorArguments.ElementAt(2).Value);
             });
@@ -788,20 +790,12 @@ class Test
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
                 Assert.True(type.IsByRefLikeType);
 
-                var accessibility = Accessibility.Public;
                 var attributes = type.GetAttributes();
 
-                Assert.Equal(3, attributes.Length);
-                Assert.Equal("Windows.Foundation.Metadata.DeprecatedAttribute", attributes[2].AttributeClass.ToDisplayString());
+                Assert.Equal(2, attributes.Length);
+                Assert.Equal("Windows.Foundation.Metadata.DeprecatedAttribute", attributes[1].AttributeClass.ToDisplayString());
 
-                var assemblyName = module.ContainingAssembly.Name;
-
-                var attributeType = attributes[0].AttributeClass;
-                Assert.Equal("System.Runtime.CompilerServices.IsByRefLikeAttribute", attributeType.ToDisplayString());
-                Assert.Equal(assemblyName, attributeType.ContainingAssembly.Name);
-                Assert.Equal(accessibility, attributeType.DeclaredAccessibility);
-
-                var attribute = attributes[1];
+                var attribute = attributes[0];
                 Assert.Equal("System.ObsoleteAttribute", attribute.AttributeClass.ToDisplayString());
                 Assert.Equal(0, attribute.ConstructorArguments.Count());
             });
@@ -855,7 +849,7 @@ class Test
             CompileAndVerify(text, verify: Verification.Passes, symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("S");
-                AssertReferencedIsByRefLikeAttributes(Accessibility.Internal, type, module.ContainingAssembly.Name);
+                AssertReferencedIsByRefLike(type);
             });
         }
 
@@ -962,17 +956,17 @@ namespace System
             CompileAndVerify(compilation1, verify: Verification.Fails, symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("System.TypedReference");
-                AssertReferencedIsByRefLikeAttributes(Accessibility.Internal, type, module.ContainingAssembly.Name, hasObsolete: false);
+                AssertReferencedIsByRefLike(type, hasObsolete: false);
 
                 type = module.ContainingAssembly.GetTypeByMetadataName("System.ArgIterator");
-                AssertReferencedIsByRefLikeAttributes(Accessibility.Internal, type, module.ContainingAssembly.Name, hasObsolete: false);
+                AssertReferencedIsByRefLike(type, hasObsolete: false);
 
                 type = module.ContainingAssembly.GetTypeByMetadataName("System.RuntimeArgumentHandle");
-                AssertReferencedIsByRefLikeAttributes(Accessibility.Internal, type, module.ContainingAssembly.Name, hasObsolete: false);
+                AssertReferencedIsByRefLike(type, hasObsolete: false);
 
                 // control case. Not a special type.
                 type = module.ContainingAssembly.GetTypeByMetadataName("System.NotTypedReference");
-                AssertReferencedIsByRefLikeAttributes(Accessibility.Internal, type, module.ContainingAssembly.Name, hasObsolete: true);
+                AssertReferencedIsByRefLike(type, hasObsolete: true);
             });
         }
 
@@ -990,24 +984,17 @@ namespace System
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("System.TypedReference");
 
-                AssertReferencedIsByRefLikeAttributes(Accessibility.Internal, type, module.ContainingAssembly.Name);
+                AssertReferencedIsByRefLike(type);
             });
         }
 
-        private static void AssertReferencedIsByRefLikeAttributes(
-            Accessibility accessibility, 
-            TypeSymbol type, 
-            string assemblyName,
-            bool hasObsolete = true)
+        private static void AssertReferencedIsByRefLike(TypeSymbol type, bool hasObsolete = true)
         {
             var peType = (PENamedTypeSymbol)type;
             Assert.True(peType.IsByRefLikeType);
 
-            // Single(), as there is no [Obsolete] attribute returned
-            var isByRefLikeAttribute = peType.GetAttributes().Single().AttributeClass;
-            Assert.Equal("System.Runtime.CompilerServices.IsByRefLikeAttribute", isByRefLikeAttribute.ToDisplayString());
-            Assert.Equal(assemblyName, isByRefLikeAttribute.ContainingAssembly.Name);
-            Assert.Equal(accessibility, isByRefLikeAttribute.DeclaredAccessibility);
+            // there is no [Obsolete] or [IsByRef] attribute returned
+            Assert.Empty(peType.GetAttributes());
 
             var peModule = (PEModuleSymbol)peType.ContainingModule;
             var obsoleteAttribute = peModule.Module.TryGetDeprecatedOrExperimentalOrObsoleteAttribute(peType.Handle, ignoreByRefLikeMarker: false);
@@ -1026,7 +1013,7 @@ namespace System
 
         private static void AssertNotReferencedIsByRefLikeAttribute(ImmutableArray<CSharpAttributeData> attributes)
         {
-            foreach(var attr in attributes)
+            foreach (var attr in attributes)
             {
                 Assert.NotEqual("IsByRefLikeAttribute", attr.AttributeClass.Name);
             }
