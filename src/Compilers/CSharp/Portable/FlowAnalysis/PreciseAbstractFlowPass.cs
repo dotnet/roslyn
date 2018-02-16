@@ -2057,11 +2057,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected virtual void AfterLeftChildHasBeenVisited(BoundBinaryOperator binary)
         {
             VisitRvalue(binary.Right);
-            AfterRightChildHasBeenVisited(binary);
-        }
-
-        protected void AfterRightChildHasBeenVisited(BoundBinaryOperator binary)
-        {
             if (_trackExceptions && binary.HasExpressionSymbols())
             {
                 NotePossibleException(binary);
@@ -2795,6 +2790,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static MethodSymbol GetWriteMethod(PropertySymbol property) =>
             property.GetOwnOrInheritedSetMethod() ?? property.GetMethod;
 
-        #endregion visitors
+#endregion visitors
     }
 }

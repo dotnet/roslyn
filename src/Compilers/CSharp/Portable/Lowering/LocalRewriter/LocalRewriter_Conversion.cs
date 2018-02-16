@@ -1003,15 +1003,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol rewrittenType)
         {
             Debug.Assert((object)conversion.Method != null && !conversion.Method.ReturnsVoid && conversion.Method.ParameterCount == 1);
-            if (rewrittenOperand.Type.IsNullableType())
+            if (Binder.RequiresLiftedUserDefinedConversion(conversion.Method, rewrittenOperand.Type))
             {
-                var parameterType = conversion.Method.ParameterTypes[0].TypeSymbol;
-                if (parameterType.Equals(rewrittenOperand.Type.GetNullableUnderlyingType(), TypeCompareKind.AllIgnoreOptions) &&
-                    !parameterType.IsNullableType() &&
-                    parameterType.IsValueType)
-                {
-                    return RewriteLiftedUserDefinedConversion(syntax, rewrittenOperand, conversion, rewrittenType);
-                }
+                return RewriteLiftedUserDefinedConversion(syntax, rewrittenOperand, conversion, rewrittenType);
             }
 
             BoundExpression result =

@@ -349,6 +349,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 NullableWalker.Analyze(compilation, member, node, diagnostics);
             }
+#if DEBUG
+            else
+            {
+                NullableWalker.Analyze(compilation, member, node, new DiagnosticBag());
+            }
+#endif
         }
 
         /// <summary>
