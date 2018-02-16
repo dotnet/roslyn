@@ -185,7 +185,7 @@ class Test
     }
 }";
 
-            CompileStandardAndVerify(code, verify: Verification.Passes, expectedOutput: "3");
+            CompileAndVerify(code, verify: Verification.Passes, expectedOutput: "3");
         }
 
         [Fact]
@@ -282,7 +282,7 @@ class Test
     }
 }";
 
-            CompileStandardAndVerify(code, verify: Verification.Passes, references: new[] { reference }, symbolValidator: module =>
+            CompileAndVerify(code, verify: Verification.Passes, references: new[] { reference }, symbolValidator: module =>
             {
                 var attributeName = AttributeDescription.CodeAnalysisEmbeddedAttribute.FullName;
 

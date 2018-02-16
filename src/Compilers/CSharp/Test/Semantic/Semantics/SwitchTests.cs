@@ -1290,7 +1290,7 @@ class Program
     }
 } 
 ";
-            var comp = CompileStandardAndVerify(text, expectedOutput: "");
+            var comp = CompileAndVerify(text, expectedOutput: "");
 
             // Previous versions of the compiler used to report a warning (CS1691)
             // whenever an unrecognized warning code was supplied in a #pragma directive.
@@ -2359,9 +2359,9 @@ struct A
     }
 }
 ";
-            CompileStandardAndVerify(text, parseOptions: TestOptions.Regular6, expectedOutput: "a1");
-            CompileStandardAndVerify(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder, expectedOutput: "a1");
-            CompileStandardAndVerify(text, expectedOutput: "a1");
+            CompileAndVerify(text, parseOptions: TestOptions.Regular6, expectedOutput: "a1");
+            CompileAndVerify(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder, expectedOutput: "a1");
+            CompileAndVerify(text, expectedOutput: "a1");
         }
 
         [WorkItem(4344, "https://github.com/dotnet/roslyn/issues/4344")]
@@ -2396,9 +2396,9 @@ struct A
     }
 }
 ";
-            CompileStandardAndVerify(text, parseOptions: TestOptions.Regular6, expectedOutput: "a2");
-            CompileStandardAndVerify(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder, expectedOutput: "a2");
-            CompileStandardAndVerify(text, expectedOutput: "a2");
+            CompileAndVerify(text, parseOptions: TestOptions.Regular6, expectedOutput: "a2");
+            CompileAndVerify(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder, expectedOutput: "a2");
+            CompileAndVerify(text, expectedOutput: "a2");
         }
 
         [WorkItem(4344, "https://github.com/dotnet/roslyn/issues/4344")]
@@ -2434,13 +2434,13 @@ struct X
         return 1;
     }
 }";
-            CompileStandardAndVerify(text, parseOptions: TestOptions.Regular6, expectedOutput:
+            CompileAndVerify(text, parseOptions: TestOptions.Regular6, expectedOutput:
 @"1
 null");
-            CompileStandardAndVerify(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder, expectedOutput:
+            CompileAndVerify(text, parseOptions: TestOptions.Regular6WithV7SwitchBinder, expectedOutput:
 @"1
 null");
-            CompileStandardAndVerify(text, expectedOutput:
+            CompileAndVerify(text, expectedOutput:
 @"1
 null");
         }
@@ -3126,7 +3126,7 @@ class C
         }
     }
 }";
-            var comp = CompileStandardAndVerify(source, expectedOutput: @"1001");
+            var comp = CompileAndVerify(source, expectedOutput: @"1001");
             comp.VerifyDiagnostics();
         }
 
@@ -3159,7 +3159,7 @@ class C
         }
     }
 }";
-            var comp = CompileStandardAndVerify(source, expectedOutput: @"1001");
+            var comp = CompileAndVerify(source, expectedOutput: @"1001");
             comp.VerifyDiagnostics();
         }
 

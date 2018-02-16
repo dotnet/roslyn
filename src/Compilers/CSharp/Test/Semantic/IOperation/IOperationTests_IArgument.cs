@@ -1620,7 +1620,7 @@ IPropertyReferenceOperation: System.Int32 Derived.this[[System.Int32 x = 8], [Sy
 
             VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, additionalOperationTreeVerifier: IndexerAccessArgumentVerifier.Verify);
 
-            CompileStandardAndVerify(new[] { source }, new[] { SystemRef }, expectedOutput: expectedOutput);
+            CompileAndVerify(new[] { source }, new[] { SystemRef }, expectedOutput: expectedOutput);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -1814,7 +1814,7 @@ IPropertyReferenceOperation: System.Int32 P.this[[System.Int32 i = 3], [System.I
 
             var ilReference = VerifyOperationTreeAndDiagnosticsForTestWithIL<ElementAccessExpressionSyntax>(csharp, il, expectedOperationTree, expectedDiagnostics, additionalOperationTreeVerifier: IndexerAccessArgumentVerifier.Verify);
 
-            CompileStandardAndVerify(new[] { csharp }, new[] { SystemRef, ilReference }, expectedOutput: expectedOutput);
+            CompileAndVerify(new[] { csharp }, new[] { SystemRef, ilReference }, expectedOutput: expectedOutput);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -1933,7 +1933,7 @@ IPropertyReferenceOperation: System.Int32 P.this[[System.Int32 i = 3], [System.I
 
             var ilReference = VerifyOperationTreeAndDiagnosticsForTestWithIL<ElementAccessExpressionSyntax>(csharp, il, expectedOperationTree, expectedDiagnostics, additionalOperationTreeVerifier: IndexerAccessArgumentVerifier.Verify);
 
-            CompileStandardAndVerify(new[] { csharp }, new[] { SystemRef, ilReference }, expectedOutput: expectedOutput);
+            CompileAndVerify(new[] { csharp }, new[] { SystemRef, ilReference }, expectedOutput: expectedOutput);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -2053,7 +2053,7 @@ IPropertyReferenceOperation: System.Int32 P.this[[System.Int32 i = 3], [System.I
 
             var ilReference = VerifyOperationTreeAndDiagnosticsForTestWithIL<ElementAccessExpressionSyntax>(csharp, il, expectedOperationTree, expectedDiagnostics, additionalOperationTreeVerifier: IndexerAccessArgumentVerifier.Verify);
 
-            CompileStandardAndVerify(new[] { csharp }, new[] { SystemRef, ilReference }, expectedOutput: expectedOutput);
+            CompileAndVerify(new[] { csharp }, new[] { SystemRef, ilReference }, expectedOutput: expectedOutput);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]

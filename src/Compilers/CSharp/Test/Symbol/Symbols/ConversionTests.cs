@@ -1636,7 +1636,7 @@ public struct S
     }
 }
 ";
-            CompileStandardAndVerify(source, expectedOutput: @"1ttt");
+            CompileAndVerify(source, expectedOutput: @"1ttt");
         }
 
         [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
@@ -1760,7 +1760,7 @@ struct BigInteger
     public static explicit operator ushort(BigInteger b) { return 0; }
 }";
 
-            CompileStandardAndVerify(source).VerifyIL("C.Test", @"
+            CompileAndVerify(source).VerifyIL("C.Test", @"
 {
   // Code size       17 (0x11)
   .maxstack  1
@@ -1861,7 +1861,7 @@ public class C
     static void M(In<string> f) { System.Console.WriteLine('B'); } // Actually chosen, since the other isn't applicable.
 }
 ";
-            CompileStandardAndVerify(source, expectedOutput: "B");
+            CompileAndVerify(source, expectedOutput: "B");
         }
 
         [WorkItem(742345, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/742345")]

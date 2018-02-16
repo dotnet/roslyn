@@ -34,7 +34,7 @@ namespace Test
 }
 ";
 
-            CompileStandardAndVerify(
+            CompileAndVerify(
                 source,
                 expectedOutput: "True");
         }
@@ -61,7 +61,7 @@ namespace Test
 }
 ";
 
-            CompileStandardAndVerify(
+            CompileAndVerify(
               source,
               expectedOutput: "True");
         }
@@ -88,7 +88,7 @@ namespace Test
 }
 ";
 
-            CompileStandardAndVerify(
+            CompileAndVerify(
                 source,
                 expectedOutput: "True");
         }
@@ -186,7 +186,7 @@ namespace Test
 }
 ";
 
-            CompileStandardAndVerify(
+            CompileAndVerify(
                 source,
                 expectedOutput: "True");
         }
@@ -217,7 +217,7 @@ namespace Test
 }
 ";
 
-            CompileStandardAndVerify(
+            CompileAndVerify(
                 source,
                 expectedOutput: "True");
         }
@@ -247,7 +247,7 @@ namespace Test
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(
+            var compilation = CompileAndVerify(
                 testSrc,
                 expectedOutput: "True");
         }
@@ -281,7 +281,7 @@ namespace Test
             // the IReadOnlyList<T> and IReadOnlyCollection<T> interfaces. Use the one in v4_0_30316_17626.
 
             var mscorlib17626 = MetadataReference.CreateFromImage(TestResources.NetFX.v4_0_30316_17626.mscorlib);
-            CompileStandardAndVerify(testSrc, new MetadataReference[] { mscorlib17626 }, expectedOutput: "1");
+            CompileAndVerify(testSrc, new MetadataReference[] { mscorlib17626 }, expectedOutput: "1");
         }
 
         [Fact]
@@ -325,7 +325,7 @@ namespace Test
 }
 ";
 
-            CompileStandardAndVerify(
+            CompileAndVerify(
                 source,
                 expectedOutput: "True");
         }
@@ -352,7 +352,7 @@ namespace Test
 }
 ";
 
-            CompileStandardAndVerify(
+            CompileAndVerify(
                 source,
                 expectedOutput: "True");
         }
@@ -395,7 +395,7 @@ namespace Test
 }
 ";
 
-            CompileStandardAndVerify(
+            CompileAndVerify(
                 source,
                 expectedOutput: "True");
         }
@@ -431,7 +431,7 @@ namespace Test
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(
+            var compilation = CompileAndVerify(
                 testSrc,
                 expectedOutput: "True");
         }
@@ -581,7 +581,7 @@ namespace Test
 }
 ";
 
-            CompileStandardAndVerify(
+            CompileAndVerify(
                 source,
                 expectedOutput: "True");
         }
@@ -614,7 +614,7 @@ namespace Test
 }
 ";
 
-            CompileStandardAndVerify(
+            CompileAndVerify(
                 source,
                 expectedOutput: "True");
         }
@@ -641,7 +641,7 @@ namespace Test
 }
 ";
 
-            CompileStandardAndVerify(
+            CompileAndVerify(
                 source,
                 expectedOutput: "True");
         }
@@ -668,7 +668,7 @@ namespace Test
 }
 ";
 
-            CompileStandardAndVerify(
+            CompileAndVerify(
                 source,
                 expectedOutput: "True");
         }
@@ -709,7 +709,7 @@ namespace Test
 }
 ";
 
-            CompileStandardAndVerify(
+            CompileAndVerify(
                 source,
                 expectedOutput: "True");
         }
@@ -745,7 +745,7 @@ namespace Test
 }
 ";
 
-            CompileStandardAndVerify(
+            CompileAndVerify(
                 source,
                 expectedOutput: "True");
         }
@@ -778,7 +778,7 @@ namespace Test
     }
 }";
 
-            CompileStandardAndVerify(testSrc, expectedOutput: "1");
+            CompileAndVerify(testSrc, expectedOutput: "1");
         }
 
         [Fact]
@@ -808,7 +808,7 @@ namespace Test
     }
 }
 ";
-            CompileStandardAndVerify(testSrc, expectedOutput: "1");
+            CompileAndVerify(testSrc, expectedOutput: "1");
         }
 
         [Fact]
@@ -836,7 +836,7 @@ namespace Test
 }
 ";
 
-            CompileStandardAndVerify(
+            CompileAndVerify(
                 source,
                 expectedOutput: "True");
         }
@@ -869,7 +869,7 @@ public class Program
 }
 ";
 
-            CompileStandardAndVerify(
+            CompileAndVerify(
                 source,
                 expectedOutput: "True");
         }
@@ -908,7 +908,7 @@ public class Program
 }
 ";
 
-            CompileStandardAndVerify(
+            CompileAndVerify(
                 source,
                 expectedOutput: "TrueTrueTrueTrueTrueTrueTrueTrueTrue");
         }

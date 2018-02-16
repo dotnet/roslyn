@@ -101,7 +101,7 @@ class C
                 Assert.Equal(ConversionKind.Identity, model.GetConversion(right).Kind);
             };
 
-            var comp = CompileAndVerify(source, expectedOutput: "1 hello", references: s_valueTupleRefs, sourceSymbolValidator: validator);
+            var comp = CompileAndVerifyWithMscorlib40(source, expectedOutput: "1 hello", references: s_valueTupleRefs, sourceSymbolValidator: validator);
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main", @"
 {
@@ -186,7 +186,7 @@ class C
 }
 ";
 
-            var comp = CompileStandardAndVerify(source, expectedOutput: "1 hello");
+            var comp = CompileAndVerify(source, expectedOutput: "1 hello");
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main", @"
 {
@@ -237,7 +237,7 @@ class C
     }
 }";
 
-            var comp = CompileStandardAndVerify(source, expectedOutput: "1 hello");
+            var comp = CompileAndVerify(source, expectedOutput: "1 hello");
             comp.VerifyDiagnostics();
 
             var tree = comp.Compilation.SyntaxTrees.First();
@@ -344,7 +344,7 @@ Conversion2
 setX
 setY
 ";
-            var comp = CompileStandardAndVerify(source, expectedOutput: expected);
+            var comp = CompileAndVerify(source, expectedOutput: expected);
             comp.VerifyDiagnostics();
         }
 
@@ -389,7 +389,7 @@ Conversion2
 setX
 setY
 ";
-            var comp = CompileStandardAndVerify(source, expectedOutput: expected);
+            var comp = CompileAndVerify(source, expectedOutput: expected);
             comp.VerifyDiagnostics();
         }
 
@@ -422,7 +422,7 @@ class C
 }
 ";
 
-            var comp = CompileStandardAndVerify(source, expectedOutput: "1 hello world");
+            var comp = CompileAndVerify(source, expectedOutput: "1 hello world");
             comp.VerifyDiagnostics();
         }
 
@@ -450,7 +450,7 @@ class C
 }
 ";
 
-            var comp = CompileStandardAndVerify(source, expectedOutput: "1 hello", references: new[] { CSharpRef });
+            var comp = CompileAndVerify(source, expectedOutput: "1 hello", references: new[] { CSharpRef });
             comp.VerifyDiagnostics();
         }
 
@@ -489,7 +489,7 @@ struct C : IDeconstructable
 }
 ";
 
-            var comp = CompileStandardAndVerify(source, expectedOutput: "initial modified 1 hello", references: new[] { CSharpRef });
+            var comp = CompileAndVerify(source, expectedOutput: "initial modified 1 hello", references: new[] { CSharpRef });
             comp.VerifyDiagnostics();
         }
 
@@ -522,7 +522,7 @@ class C
 }
 ";
 
-            var comp = CompileStandardAndVerify(source, expectedOutput: "2 hello");
+            var comp = CompileAndVerify(source, expectedOutput: "2 hello");
             comp.VerifyDiagnostics();
         }
 
@@ -577,7 +577,7 @@ class C
 }
 ";
 
-            var comp = CompileStandardAndVerify(source, expectedOutput: "1 hello", references: new[] { CSharpRef });
+            var comp = CompileAndVerify(source, expectedOutput: "1 hello", references: new[] { CSharpRef });
             comp.VerifyDiagnostics();
         }
 
@@ -609,7 +609,7 @@ class C
 }
 ";
 
-            var comp = CompileStandardAndVerify(source, expectedOutput: "1 hello world");
+            var comp = CompileAndVerify(source, expectedOutput: "1 hello world");
             comp.VerifyDiagnostics();
         }
 
@@ -640,7 +640,7 @@ class C
 }
 ";
 
-            var comp = CompileStandardAndVerify(source, expectedOutput: "2 3");
+            var comp = CompileAndVerify(source, expectedOutput: "2 3");
             comp.VerifyDiagnostics();
         }
 
@@ -680,7 +680,7 @@ Deconstruct
 Final i is 43
 ";
 
-            var comp = CompileStandardAndVerify(source, expectedOutput: expected);
+            var comp = CompileAndVerify(source, expectedOutput: expected);
             comp.VerifyDiagnostics();
         }
 
@@ -722,7 +722,7 @@ Deconstruct
 Final i is 43
 ";
 
-            var comp = CompileStandardAndVerify(source, expectedOutput: expected);
+            var comp = CompileAndVerify(source, expectedOutput: expected);
             comp.VerifyDiagnostics();
         }
 
@@ -770,7 +770,7 @@ Deconstruct
 conversion
 conversion";
 
-            var comp = CompileStandardAndVerify(source, expectedOutput: expected);
+            var comp = CompileAndVerify(source, expectedOutput: expected);
             comp.VerifyDiagnostics();
         }
 
@@ -826,7 +826,7 @@ Deconstruct
 indexSet (with value 101)
 Final array values[2] 101
 ";
-            var comp = CompileStandardAndVerify(source, expectedOutput: expected);
+            var comp = CompileAndVerify(source, expectedOutput: expected);
             comp.VerifyDiagnostics();
         }
 
@@ -847,7 +847,7 @@ class C
 }
 ";
 
-            var comp = CompileStandardAndVerify(source, expectedOutput: "1 hello");
+            var comp = CompileAndVerify(source, expectedOutput: "1 hello");
             comp.VerifyDiagnostics();
 
             var tree = comp.Compilation.SyntaxTrees.First();
@@ -897,7 +897,7 @@ class C
     }
 }
 ";
-            var comp = CompileStandardAndVerify(source, expectedOutput: "1 hello");
+            var comp = CompileAndVerify(source, expectedOutput: "1 hello");
             comp.VerifyDiagnostics();
         }
 
@@ -918,7 +918,7 @@ class C
 }
 ";
 
-            var comp = CompileStandardAndVerify(source, expectedOutput: "4 2");
+            var comp = CompileAndVerify(source, expectedOutput: "4 2");
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main", @"
 {
@@ -956,7 +956,7 @@ class C
 }
 ";
 
-            var comp = CompileStandardAndVerify(source, expectedOutput: "9 10");
+            var comp = CompileAndVerify(source, expectedOutput: "9 10");
             comp.VerifyDiagnostics(
                 // (9,43): warning CS8123: The tuple element name 'a' is ignored because a different name is specified by the target type '(long, long, long, long, long, long, long, long, long, int)'.
                 //         (x, x, x, x, x, x, x, x, x, y) = (a: 1, b: 2, c: 3, d: 4, e: 5, f: 6, g: 7, h: 8, i: 9, j: 10);
@@ -1008,7 +1008,7 @@ class C
 }
 ";
 
-            var comp = CompileStandardAndVerify(source, expectedOutput: "4 2");
+            var comp = CompileAndVerify(source, expectedOutput: "4 2");
             comp.VerifyDiagnostics();
         }
 
@@ -1029,7 +1029,7 @@ class C
 }
 ";
 
-            var comp = CompileStandardAndVerify(source, expectedOutput: "hello");
+            var comp = CompileAndVerify(source, expectedOutput: "hello");
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main", @"
 {
@@ -1071,7 +1071,7 @@ class C
     }
 }
 ";
-            var comp = CompileStandardAndVerify(source);
+            var comp = CompileAndVerify(source);
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main",
 @"{
@@ -1119,7 +1119,7 @@ class C
 
                 Assert.Equal("(System.Int32 x, System.Int32 y) z", model.GetDeclaredSymbol(x).ToTestDisplayString());
             };
-            var comp = CompileStandardAndVerify(source, sourceSymbolValidator: validator);
+            var comp = CompileAndVerify(source, sourceSymbolValidator: validator);
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main",
 @"{
@@ -1176,7 +1176,7 @@ class C
 
                 Assert.Equal("(System.Int32 x, System.Int32 y) z", model.GetDeclaredSymbol(x).ToTestDisplayString());
             };
-            var comp = CompileStandardAndVerify(source,
+            var comp = CompileAndVerify(source,
                 sourceSymbolValidator: validator, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics();
         }
@@ -1372,7 +1372,7 @@ class C
                 Assert.Empty(names.Where(name => name.Contains("ValueTuple")));
             };
 
-            CompileAndVerify(comp, assemblyValidator: assemblyValidator);
+            CompileAndVerifyCommon(comp, assemblyValidator: assemblyValidator);
         }
 
         [Fact]
@@ -1439,7 +1439,7 @@ class C
                     model.GetDeclaredSymbol(declarations.ElementAt(8)).ToTestDisplayString());
             };
 
-            var comp = CompileStandardAndVerify(source,
+            var comp = CompileAndVerify(source,
                 sourceSymbolValidator: validator, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
             comp.VerifyDiagnostics();
         }
@@ -1679,7 +1679,7 @@ class C
     }
 }
 ";
-            var comp = CompileStandardAndVerify(source, expectedOutput: "(1, 2)");
+            var comp = CompileAndVerify(source, expectedOutput: "(1, 2)");
             comp.VerifyDiagnostics();
         }
 
@@ -1714,7 +1714,7 @@ class C
 hello
 field: 2
 ";
-            var comp = CompileStandardAndVerify(source, expectedOutput: expected);
+            var comp = CompileAndVerify(source, expectedOutput: expected);
             comp.VerifyDiagnostics();
         }
 
@@ -1742,7 +1742,7 @@ class C
 hello
 field: 2
 ";
-            var comp = CompileStandardAndVerify(source, expectedOutput: expected);
+            var comp = CompileAndVerify(source, expectedOutput: expected);
             comp.VerifyDiagnostics();
         }
 
@@ -1809,7 +1809,7 @@ this.set(2)
 field: 1
 ";
 
-            var comp = CompileStandardAndVerify(source, expectedOutput: expectedOutput);
+            var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
             comp.VerifyDiagnostics();
         }
 
@@ -1867,7 +1867,7 @@ M(4)
 this.set(2)
 field: 1
 ";
-            var comp = CompileStandardAndVerify(source, expectedOutput: expectedOutput);
+            var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
             comp.VerifyDiagnostics();
         }
 
@@ -1958,7 +1958,7 @@ class C
 }
 ";
 
-            var comp = CompileStandardAndVerify(source, expectedOutput: "4 2");
+            var comp = CompileAndVerify(source, expectedOutput: "4 2");
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Swap", @"
 {
@@ -1993,7 +1993,7 @@ class C
 }
 ";
 
-            var comp = CompileStandardAndVerify(source, expectedOutput: "(1, 1) 2");
+            var comp = CompileAndVerify(source, expectedOutput: "(1, 1) 2");
             comp.VerifyDiagnostics();
         }
 
@@ -2017,7 +2017,7 @@ class C
 }
 ";
 
-            var comp = CompileStandardAndVerify(source, expectedOutput: "(1, 1) 2", parseOptions: TestOptions.Regular.WithRefsFeature());
+            var comp = CompileAndVerify(source, expectedOutput: "(1, 1) 2", parseOptions: TestOptions.Regular.WithRefsFeature());
             comp.VerifyDiagnostics();
         }
 
@@ -2043,7 +2043,7 @@ class C : Base
 }
 ";
 
-            var comp = CompileStandardAndVerify(source, expectedOutput: "1 2", parseOptions: TestOptions.Regular.WithRefsFeature());
+            var comp = CompileAndVerify(source, expectedOutput: "1 2", parseOptions: TestOptions.Regular.WithRefsFeature());
             comp.VerifyDiagnostics();
         }
 
@@ -2065,7 +2065,7 @@ class C
 }
 ";
 
-            var comp = CompileStandardAndVerify(source, expectedOutput: "1 hello world", parseOptions: TestOptions.Regular.WithRefsFeature());
+            var comp = CompileAndVerify(source, expectedOutput: "1 hello world", parseOptions: TestOptions.Regular.WithRefsFeature());
             comp.VerifyDiagnostics();
         
             var tree = comp.Compilation.SyntaxTrees.First();
@@ -2157,7 +2157,7 @@ class C : Base
 }
 ";
 
-            var comp = CompileStandardAndVerify(source, expectedOutput: "override", parseOptions: TestOptions.Regular.WithRefsFeature());
+            var comp = CompileAndVerify(source, expectedOutput: "override", parseOptions: TestOptions.Regular.WithRefsFeature());
             comp.VerifyDiagnostics();
         }
 
@@ -2185,7 +2185,7 @@ class C
                 var expected = String.Join(" ", Enumerable.Range(1, i).Select(n => n));
 
                 var source = template.Replace("VARIABLES", variables).Replace("TUPLE", tuple).Replace("OUTPUT", output);
-                var comp = CompileStandardAndVerify(source, expectedOutput: expected, parseOptions: TestOptions.Regular.WithRefsFeature());
+                var comp = CompileAndVerify(source, expectedOutput: expected, parseOptions: TestOptions.Regular.WithRefsFeature());
                 comp.VerifyDiagnostics();
             }
         }
@@ -2215,7 +2215,7 @@ static class D
 }
 ";
 
-            var comp = CompileStandardAndVerify(source, expectedOutput: "1 hello");
+            var comp = CompileAndVerify(source, expectedOutput: "1 hello");
             comp.VerifyDiagnostics();
         }
 
@@ -2280,7 +2280,7 @@ static class Extension
     }
 }";
 
-            var comp = CompileStandardAndVerify(source, expectedOutput: "Deconstructed");
+            var comp = CompileAndVerify(source, expectedOutput: "Deconstructed");
             comp.VerifyDiagnostics();
         }
 
@@ -2312,7 +2312,7 @@ static class Extension
 }
 ";
 
-            var comp = CompileStandardAndVerify(source, expectedOutput: "Deconstructed");
+            var comp = CompileAndVerify(source, expectedOutput: "Deconstructed");
             comp.VerifyDiagnostics();
         }
 
@@ -2381,7 +2381,7 @@ class C1
 }
 ";
 
-            var comp = CompileStandardAndVerify(source, expectedOutput: "2 hello");
+            var comp = CompileAndVerify(source, expectedOutput: "2 hello");
             comp.VerifyDiagnostics();
         }
 
@@ -2414,7 +2414,7 @@ class C
                 Assert.Equal("(System.Int64 x, (System.String y, System.String z))", model.GetTypeInfo(lhs).ConvertedType.ToTestDisplayString());
             };
 
-            var comp = CompileStandardAndVerify(source, expectedOutput: "1 a b", sourceSymbolValidator: validator);
+            var comp = CompileAndVerify(source, expectedOutput: "1 a b", sourceSymbolValidator: validator);
             comp.VerifyDiagnostics();
         }
 
@@ -2433,7 +2433,7 @@ class C
     }
 }
 ";
-            var comp = CompileStandardAndVerify(source, expectedOutput: "nothing");
+            var comp = CompileAndVerify(source, expectedOutput: "nothing");
             comp.VerifyDiagnostics();
         }
 
@@ -2469,7 +2469,7 @@ class D2
     }
 }
 ";
-            var comp = CompileStandardAndVerify(source, expectedOutput: "1 a b");
+            var comp = CompileAndVerify(source, expectedOutput: "1 a b");
             comp.VerifyDiagnostics();
         }
 
@@ -2496,7 +2496,7 @@ class D1
     }
 }
 ";
-            var comp = CompileStandardAndVerify(source, expectedOutput: "1 2 3");
+            var comp = CompileAndVerify(source, expectedOutput: "1 2 3");
             comp.VerifyDiagnostics();
         }
 
@@ -2524,7 +2524,7 @@ class D1
     }
 }
 ";
-            var comp = CompileStandardAndVerify(source, expectedOutput: "1 a b");
+            var comp = CompileAndVerify(source, expectedOutput: "1 a b");
             comp.VerifyDiagnostics();
         }
 
@@ -2583,7 +2583,7 @@ setX
 setY
 setZ
 ";
-            var comp = CompileStandardAndVerify(source, expectedOutput: expected);
+            var comp = CompileAndVerify(source, expectedOutput: expected);
             comp.VerifyDiagnostics();
         }
 
@@ -2631,7 +2631,7 @@ setX4 4
 setX5 5
 setX6 6
 setX7 7";
-            var comp = CompileStandardAndVerify(source, expectedOutput: expected);
+            var comp = CompileAndVerify(source, expectedOutput: expected);
             comp.VerifyDiagnostics();
         }
 
@@ -2660,7 +2660,7 @@ class C
 }
 ";
 
-            var comp = CompileStandardAndVerify(source, expectedOutput: "1 hello");
+            var comp = CompileAndVerify(source, expectedOutput: "1 hello");
             comp.VerifyDiagnostics();
         }
 
@@ -2696,7 +2696,7 @@ class C
 ";
             // https://github.com/dotnet/roslyn/issues/12400
             // we expect "2 hello" instead, which means the evaluation order is wrong
-            var comp = CompileStandardAndVerify(source, expectedOutput: "1 hello");
+            var comp = CompileAndVerify(source, expectedOutput: "1 hello");
             comp.VerifyDiagnostics();
         }
 
@@ -2715,7 +2715,7 @@ class C
 }
 ";
 
-            var comp = CompileStandardAndVerify(source, expectedOutput: "1 hello");
+            var comp = CompileAndVerify(source, expectedOutput: "1 hello");
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main", @"
 {
@@ -2778,7 +2778,7 @@ class C
                 VerifyModelForDeconstructionLocal(model, x3, x3Ref);
             };
 
-            var comp = CompileStandardAndVerify(source, expectedOutput: "1 2 hello", sourceSymbolValidator: validator);
+            var comp = CompileAndVerify(source, expectedOutput: "1 2 hello", sourceSymbolValidator: validator);
             comp.VerifyDiagnostics();
         }
 
@@ -2840,7 +2840,7 @@ class C
                 VerifyModelForDeconstructionLocal(model, x5, x5Ref);
             };
 
-            var comp = CompileStandardAndVerify(source, expectedOutput: "1 2 3 hello 5",
+            var comp = CompileAndVerify(source, expectedOutput: "1 2 3 hello 5",
                 sourceSymbolValidator: validator, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics();
         }
@@ -2879,7 +2879,7 @@ class C
                 Assert.Null(model.GetSymbolInfo(x23).Symbol);
             };
 
-            var comp = CompileStandardAndVerify(source, expectedOutput: "1 2 3",
+            var comp = CompileAndVerify(source, expectedOutput: "1 2 3",
                 sourceSymbolValidator: validator, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics();
         }
@@ -2930,7 +2930,7 @@ class C
                 VerifyModelForDeconstructionLocal(model, x3, x3Ref);
             };
 
-            var comp = CompileStandardAndVerify(source, expectedOutput: "1 2 hello", sourceSymbolValidator: validator);
+            var comp = CompileAndVerify(source, expectedOutput: "1 2 hello", sourceSymbolValidator: validator);
             comp.VerifyDiagnostics();
         }
 
@@ -2967,7 +2967,7 @@ class C
                 Assert.Null(model.GetSymbolInfo(lhsNested).Symbol);
             };
 
-            var comp = CompileStandardAndVerify(source, sourceSymbolValidator: validator,
+            var comp = CompileAndVerify(source, sourceSymbolValidator: validator,
                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
             comp.VerifyDiagnostics();
         }
@@ -3006,7 +3006,7 @@ class C
                 VerifyModelForDeconstructionLocal(model, x3, x3Ref);
             };
 
-            var comp = CompileStandardAndVerify(source, expectedOutput: "1 2 hello", sourceSymbolValidator: validator);
+            var comp = CompileAndVerify(source, expectedOutput: "1 2 hello", sourceSymbolValidator: validator);
             comp.VerifyDiagnostics();
         }
 
@@ -3026,7 +3026,7 @@ class C
 }
 ";
 
-            var comp = CompileStandardAndVerify(source, expectedOutput: "var");
+            var comp = CompileAndVerify(source, expectedOutput: "var");
             comp.VerifyDiagnostics();
         }
 
@@ -3043,7 +3043,7 @@ class C
     }
 }
 ";
-            var comp = CompileStandardAndVerify(source, expectedOutput: " 1 2");
+            var comp = CompileAndVerify(source, expectedOutput: " 1 2");
             comp.VerifyDiagnostics();
         }
 
@@ -3079,7 +3079,7 @@ class C
                 Assert.Equal(ConversionKind.ImplicitTupleLiteral, model.GetConversion(literal).Kind);
             };
 
-            var comp = CompileStandardAndVerify(source, expectedOutput: " 2 3", sourceSymbolValidator: validator);
+            var comp = CompileAndVerify(source, expectedOutput: " 2 3", sourceSymbolValidator: validator);
             comp.VerifyDiagnostics();
         }
 
@@ -3121,7 +3121,7 @@ class C
                 Assert.Equal(ConversionKind.Identity, model.GetConversion(nestedLiteral).Kind);
             };
 
-            var comp = CompileStandardAndVerify(source, expectedOutput: " (1, 2)", sourceSymbolValidator: validator);
+            var comp = CompileAndVerify(source, expectedOutput: " (1, 2)", sourceSymbolValidator: validator);
             comp.VerifyDiagnostics();
         }
 
@@ -3139,7 +3139,7 @@ class C
     static (string, byte, int) M() { return (null, 2, 3); }
 }
 ";
-            var comp = CompileStandardAndVerify(source, expectedOutput: " 2 3 4");
+            var comp = CompileAndVerify(source, expectedOutput: " 2 3 4");
             comp.VerifyDiagnostics();
         }
 
@@ -3182,7 +3182,7 @@ Deconstructing (1, hello)
                 VerifyModelForDeconstructionLocal(model, x3, x3Ref);
             };
 
-            var comp = CompileStandardAndVerify(source, expectedOutput: expected, parseOptions: TestOptions.Regular,
+            var comp = CompileAndVerify(source, expectedOutput: expected, parseOptions: TestOptions.Regular,
                             sourceSymbolValidator: validator);
             comp.VerifyDiagnostics();
         }
@@ -3334,7 +3334,7 @@ class var
                 Assert.Equal("int", model.GetSymbolInfo(x2Type).Symbol.ToDisplayString());
             };
 
-            var comp = CompileStandardAndVerify(source, expectedOutput: "var 2", sourceSymbolValidator: validator);
+            var comp = CompileAndVerify(source, expectedOutput: "var 2", sourceSymbolValidator: validator);
             comp.VerifyDiagnostics();
         }
 
@@ -3387,7 +3387,7 @@ class C
                 Assert.Null(model.GetSymbolInfo(x34Var.Type).Symbol); // The var in `var (x3, x4)` has no symbol
             };
 
-            var comp = CompileStandardAndVerify(source, expectedOutput: "1 2 3 4", sourceSymbolValidator: validator);
+            var comp = CompileAndVerify(source, expectedOutput: "1 2 3 4", sourceSymbolValidator: validator);
             comp.VerifyDiagnostics();
         }
 
@@ -3440,7 +3440,7 @@ class D
                 Assert.Null(model.GetAliasInfo(x2Type));
             };
 
-            var comp = CompileStandardAndVerify(source, expectedOutput: "var 2", sourceSymbolValidator: validator);
+            var comp = CompileAndVerify(source, expectedOutput: "var 2", sourceSymbolValidator: validator);
             comp.VerifyDiagnostics();
         }
 
@@ -3481,7 +3481,7 @@ class C
                 Assert.Null(model.GetSymbolInfo(x12Var.Type).Symbol); // The var in `var (x1, x2)` has no symbol
             };
 
-            var comp = CompileStandardAndVerify(source, expectedOutput: "1 2", sourceSymbolValidator: validator);
+            var comp = CompileAndVerify(source, expectedOutput: "1 2", sourceSymbolValidator: validator);
             comp.VerifyDiagnostics();
         }
 
@@ -3522,7 +3522,7 @@ class C
                 VerifyModelForDeconstructionLocal(model, x2, x2Ref);
             };
 
-            var comp = CompileStandardAndVerify(source, expectedOutput: @"1
+            var comp = CompileAndVerify(source, expectedOutput: @"1
 2
 3", sourceSymbolValidator: validator);
             comp.VerifyDiagnostics(
@@ -3576,7 +3576,7 @@ class var
                 Assert.Equal("var", model.GetSymbolInfo(x2Type).Symbol.ToDisplayString());
             };
 
-            var comp = CompileStandardAndVerify(source, expectedOutput: "1 var", sourceSymbolValidator: validator);
+            var comp = CompileAndVerify(source, expectedOutput: "1 var", sourceSymbolValidator: validator);
             comp.VerifyDiagnostics();
         }
 
@@ -3622,7 +3622,7 @@ class C
                 Assert.Equal("int", model.GetSymbolInfo(x2Type).Symbol.ToDisplayString());
             };
 
-            var comp = CompileStandardAndVerify(source, expectedOutput: "1 2", sourceSymbolValidator: validator);
+            var comp = CompileAndVerify(source, expectedOutput: "1 2", sourceSymbolValidator: validator);
             comp.VerifyDiagnostics();
         }
 
@@ -3685,10 +3685,10 @@ class C
                 Assert.Empty(nested[1].Nested);
             };
 
-            var comp = CompileStandardAndVerify(source, expectedOutput: "1 2", sourceSymbolValidator: validator);
+            var comp = CompileAndVerify(source, expectedOutput: "1 2", sourceSymbolValidator: validator);
             comp.VerifyDiagnostics();
 
-            var comp7_1 = CompileStandardAndVerify(source, expectedOutput: "1 2",
+            var comp7_1 = CompileAndVerify(source, expectedOutput: "1 2",
                 sourceSymbolValidator: validator, parseOptions: TestOptions.Regular7_1);
             comp7_1.VerifyDiagnostics();
 
@@ -3774,7 +3774,7 @@ class C
                 Assert.Null(model.GetSymbolInfo(x12Var.Type).Symbol); // The var in `var (x1, x2)` has no symbol
             };
 
-            var comp = CompileStandardAndVerify(source, expectedOutput: "1 2 - 3 4 -", sourceSymbolValidator: validator);
+            var comp = CompileAndVerify(source, expectedOutput: "1 2 - 3 4 -", sourceSymbolValidator: validator);
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main",
 @"{
@@ -3871,7 +3871,7 @@ class C
                 Assert.Null(model.GetSymbolInfo(x12Var.Type).Symbol); // The var in `var (x1, x2)` has no symbol
             };
 
-            var comp = CompileStandardAndVerify(source, expectedOutput: "1 2 - 3 4 - 5 6 - 7 8 -", sourceSymbolValidator: validator);
+            var comp = CompileAndVerify(source, expectedOutput: "1 2 - 3 4 - 5 6 - 7 8 -", sourceSymbolValidator: validator);
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main",
 @"{
@@ -3982,7 +3982,7 @@ static class Extension
                 Assert.Null(model.GetSymbolInfo(x12Var.Type).Symbol); // The var in `var (x1, x2)` has no symbol
             };
 
-            var comp = CompileStandardAndVerify(source, expectedOutput: "1 1 - 2 2 - 3 3 - ", sourceSymbolValidator: validator);
+            var comp = CompileAndVerify(source, expectedOutput: "1 1 - 2 2 - 3 3 - ", sourceSymbolValidator: validator);
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main",
 @"{
@@ -4103,7 +4103,7 @@ class C
                 Assert.Null(model.GetSymbolInfo(x23Var.Type).Symbol); // The var in `var (x2, x3)` has no symbol
             };
 
-            var comp = CompileStandardAndVerify(source, expectedOutput: "1 2 3 4 5 - 6 7 8 9 10 -", sourceSymbolValidator: validator);
+            var comp = CompileAndVerify(source, expectedOutput: "1 2 3 4 5 - 6 7 8 9 10 -", sourceSymbolValidator: validator);
             comp.VerifyDiagnostics();
         }
 
@@ -4124,7 +4124,7 @@ class C
 }
 ";
 
-            var comp = CompileStandardAndVerify(source, expectedOutput: "1 2 3 4 5 - 6 7 8 9 10 -");
+            var comp = CompileAndVerify(source, expectedOutput: "1 2 3 4 5 - 6 7 8 9 10 -");
             comp.VerifyDiagnostics();
         }
 
@@ -4145,7 +4145,7 @@ class C
 }
 ";
 
-            var comp = CompileStandardAndVerify(source, expectedOutput: "1 2 3 4 5 - 6 7 8 9 10 -");
+            var comp = CompileAndVerify(source, expectedOutput: "1 2 3 4 5 - 6 7 8 9 10 -");
             comp.VerifyDiagnostics();
         }
 
@@ -4174,7 +4174,7 @@ static class Extension
 }
 ";
 
-            var comp = CompileStandardAndVerify(source, expectedOutput: "1 1 1 - 2 2 2 - ");
+            var comp = CompileAndVerify(source, expectedOutput: "1 1 1 - 2 2 2 - ");
             comp.VerifyDiagnostics();
         }
 
@@ -4201,7 +4201,7 @@ static class Extension
 }
 ";
 
-            var comp = CompileStandardAndVerify(source, expectedOutput: "42 hello");
+            var comp = CompileAndVerify(source, expectedOutput: "42 hello");
             comp.VerifyDiagnostics();
         }
 
@@ -4257,7 +4257,7 @@ Deconstructing (4, (5, 6))
 Deconstructing (5, 6)
 4 5 6";
 
-            var comp = CompileStandardAndVerify(source, expectedOutput: expected, sourceSymbolValidator: validator);
+            var comp = CompileAndVerify(source, expectedOutput: expected, sourceSymbolValidator: validator);
             comp.VerifyDiagnostics();
 
             comp.VerifyIL("C.Main",
@@ -4341,7 +4341,7 @@ Deconstructing (4, (5, 6))
 Deconstructing (5, 6)
 4 5 6";
 
-            var comp = CompileStandardAndVerify(source, expectedOutput: expected);
+            var comp = CompileAndVerify(source, expectedOutput: expected);
             comp.VerifyDiagnostics();
         }
 
@@ -4370,7 +4370,7 @@ Deconstructing (4, (5, 6))
 Deconstructing (5, 6)
 4 5 6";
 
-            var comp = CompileStandardAndVerify(source, expectedOutput: expected);
+            var comp = CompileAndVerify(source, expectedOutput: expected);
             comp.VerifyDiagnostics();
         }
 
@@ -4388,7 +4388,7 @@ class C
 }
 ";
 
-            var comp = CompileStandardAndVerify(source, expectedOutput: "1 2 - 3 4 -");
+            var comp = CompileAndVerify(source, expectedOutput: "1 2 - 3 4 -");
             comp.VerifyDiagnostics();
         }
 
@@ -4413,7 +4413,7 @@ class C
     static (int, int)[] M() { return new[] { (0, 0), (10, 10) }; }
 }
 ";
-            var comp = CompileStandardAndVerify(source, expectedOutput: "0 10 ");
+            var comp = CompileAndVerify(source, expectedOutput: "0 10 ");
             comp.VerifyDiagnostics();
         }
 
@@ -4436,7 +4436,7 @@ class C
     }
 }
 ";
-            var comp = CompileStandardAndVerify(source, expectedOutput: "hello world", references: new[] { CSharpRef });
+            var comp = CompileAndVerify(source, expectedOutput: "hello world", references: new[] { CSharpRef });
             comp.VerifyDiagnostics();
         }
 
@@ -4459,7 +4459,7 @@ class C
     }
 }
 ";
-            var comp = CompileStandardAndVerify(source, expectedOutput: "3 4", references: new[] { CSharpRef });
+            var comp = CompileAndVerify(source, expectedOutput: "3 4", references: new[] { CSharpRef });
             comp.VerifyDiagnostics();
         }
 
@@ -4488,7 +4488,7 @@ class C
     }
 }
 ";
-            var comp = CompileStandardAndVerify(source, expectedOutput: "hello world", references: new[] { CSharpRef });
+            var comp = CompileAndVerify(source, expectedOutput: "hello world", references: new[] { CSharpRef });
             comp.VerifyDiagnostics();
         }
 
@@ -4511,7 +4511,7 @@ class C
     }
 }
 ";
-            var comp = CompileStandardAndVerify(source, expectedOutput: "hello world", references: new[] { CSharpRef });
+            var comp = CompileAndVerify(source, expectedOutput: "hello world", references: new[] { CSharpRef });
             comp.VerifyDiagnostics();
         }
 
@@ -4540,7 +4540,7 @@ class C
     }
 }
 ";
-            var comp = CompileStandardAndVerify(source, expectedOutput: "hello world", references: new[] { CSharpRef });
+            var comp = CompileAndVerify(source, expectedOutput: "hello world", references: new[] { CSharpRef });
             comp.VerifyDiagnostics();
         }
 
@@ -4564,7 +4564,7 @@ class C
     }
 }
 ";
-            var comp = CompileStandardAndVerify(source, expectedOutput: "3 4", references: new[] { CSharpRef });
+            var comp = CompileAndVerify(source, expectedOutput: "3 4", references: new[] { CSharpRef });
             comp.VerifyDiagnostics();
         }
 
@@ -4586,7 +4586,7 @@ class C
     }
 }
 ";
-            var comp = CompileStandardAndVerify(source, expectedOutput: "1 2 3");
+            var comp = CompileAndVerify(source, expectedOutput: "1 2 3");
             comp.VerifyDiagnostics();
         }
 
@@ -5925,7 +5925,7 @@ class C
                 Assert.Equal("(System.Int32, System.String)", model.GetTypeInfo(tuple).Type.ToTestDisplayString());
             };
 
-            var comp = CompileStandardAndVerify(source, expectedOutput: @"2", sourceSymbolValidator: validator);
+            var comp = CompileAndVerify(source, expectedOutput: @"2", sourceSymbolValidator: validator);
             comp.VerifyDiagnostics(
                 // this is permitted now, as it is just an assignment expression
                 );
@@ -6003,7 +6003,7 @@ class C
 }
 ";
 
-            var comp = CompileStandardAndVerify(source, expectedOutput: "ctor");
+            var comp = CompileAndVerify(source, expectedOutput: "ctor");
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main()", @"
 {
@@ -6914,7 +6914,7 @@ class C
     }
 }
 ";
-            var comp = CompileStandardAndVerify(source, expectedOutput: "5 (Goo, 34983490)");
+            var comp = CompileAndVerify(source, expectedOutput: "5 (Goo, 34983490)");
             comp.VerifyDiagnostics();
         }
 
@@ -6936,7 +6936,7 @@ class C
     static ref int var(int a, int b) { return ref i; }
 }
 ";
-            var comp = CompileStandardAndVerify(source, expectedOutput: "42", verify: Verification.Passes);
+            var comp = CompileAndVerify(source, expectedOutput: "42", verify: Verification.Passes);
             comp.VerifyDiagnostics();
         }
 
@@ -7079,7 +7079,7 @@ class C
 }
 ";
 
-            var comp = CompileStandardAndVerify(source, expectedOutput:
+            var comp = CompileAndVerify(source, expectedOutput:
 @"True
 Handler");
             comp.VerifyDiagnostics();
@@ -7113,7 +7113,7 @@ struct S
 }
 ";
 
-            var comp = CompileStandardAndVerify(source, expectedOutput:
+            var comp = CompileAndVerify(source, expectedOutput:
 @"True
 Handler");
             comp.VerifyDiagnostics();
@@ -7158,7 +7158,7 @@ class C : EventInterface
 }
 ";
 
-            var comp2 = CompileAndVerify(source2, expectedOutput:
+            var comp2 = CompileAndVerifyWithMscorlib40(source2, expectedOutput:
 @"True
 Handler", references: WinRtRefs.Concat(new[] { SystemRuntimeFacadeRef, ValueTupleRef, comp1.ToMetadataReference() }));
             comp2.VerifyDiagnostics();
@@ -7217,7 +7217,7 @@ struct S : EventInterface
 }
 ";
 
-            var comp2 = CompileAndVerify(source2, expectedOutput:
+            var comp2 = CompileAndVerifyWithMscorlib40(source2, expectedOutput:
 @"GetC
 1
 True
@@ -7303,7 +7303,7 @@ public class C
 }
 ";
 
-            var comp = CompileStandardAndVerify(source, expectedOutput: "1 hello");
+            var comp = CompileAndVerify(source, expectedOutput: "1 hello");
             comp.VerifyDiagnostics();
             comp.VerifyIL("C..ctor(int, string)", @"
 {
@@ -7355,7 +7355,7 @@ public class C
 }
 ";
 
-            var comp = CompileStandardAndVerify(source, expectedOutput: "1 hello");
+            var comp = CompileAndVerify(source, expectedOutput: "1 hello");
             comp.VerifyDiagnostics();
             comp.VerifyIL("C..ctor(C)", @"
 {
@@ -7405,7 +7405,7 @@ public class C
 }
 ";
 
-            var comp = CompileStandardAndVerify(source, expectedOutput: "1 hello 2");
+            var comp = CompileAndVerify(source, expectedOutput: "1 hello 2");
             comp.VerifyDiagnostics();
             comp.VerifyIL("C..ctor(int, string, ref int)", @"
 {
@@ -7776,7 +7776,7 @@ class Program
 }
 ";
             string expectedOutput = @"1";
-            CompileStandardAndVerify(source, expectedOutput: expectedOutput);
+            CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
         [Fact, WorkItem(19398, "https://github.com/dotnet/roslyn/issues/19398")]
@@ -7792,7 +7792,7 @@ class C
         System.Console.Write($""{a} {b}"");
     }
 }";
-            CompileStandardAndVerify(source, expectedOutput: @"1 2");
+            CompileAndVerify(source, expectedOutput: @"1 2");
         }
 
         [Fact, WorkItem(19398, "https://github.com/dotnet/roslyn/issues/19398")]
@@ -7813,7 +7813,7 @@ class D
 {
     public static explicit operator byte(D c) { System.Console.Write(""Convert2 ""); return 2; }
 }";
-            CompileStandardAndVerify(source, expectedOutput: @"Convert Convert2 1");
+            CompileAndVerify(source, expectedOutput: @"Convert Convert2 1");
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -7837,7 +7837,7 @@ class D
     public static explicit operator byte(D c) { System.Console.Write(""Convert2 ""); return 2; }
     public D() { System.Console.Write(""D ""); }
 }";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"C Convert D Convert2 A B").Compilation;
+            var compilation = CompileAndVerify(source, expectedOutput: @"C Convert D Convert2 A B").Compilation;
             var tree = compilation.SyntaxTrees.Single();
             var node = tree.GetRoot().DescendantNodes().OfType<CastExpressionSyntax>().Single();
 
@@ -7881,7 +7881,7 @@ class C
         System.Console.Write($""{a}"");
     }
 }";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"1").Compilation;
+            var compilation = CompileAndVerify(source, expectedOutput: @"1").Compilation;
             var tree = compilation.SyntaxTrees.Single();
             var node = tree.GetRoot().DescendantNodes().OfType<CastExpressionSyntax>().ElementAt(1);
 
@@ -7946,7 +7946,7 @@ class C
         return (3, 4);
     }
 }";
-            CompileStandardAndVerify(source, expectedOutput: @"3 4");
+            CompileAndVerify(source, expectedOutput: @"3 4");
         }
 
         [Fact, WorkItem(19398, "https://github.com/dotnet/roslyn/issues/19398")]

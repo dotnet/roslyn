@@ -2678,7 +2678,7 @@ class Program
     static void Goo<T>(ref T x) { }
 }
 ";
-            CompileStandardAndVerify(source, new[] { SystemCoreRef, CSharpRef });
+            CompileAndVerify(source, new[] { SystemCoreRef, CSharpRef });
         }
 
         #endregion
@@ -3338,7 +3338,7 @@ class Test
         System.Console.WriteLine(typeof(T));
     }
 }";
-            var verifier = CompileStandardAndVerify(source, new[] { CSharpRef }, expectedOutput: "System.Object").VerifyDiagnostics();
+            var verifier = CompileAndVerify(source, new[] { CSharpRef }, expectedOutput: "System.Object").VerifyDiagnostics();
 
             var tree = verifier.Compilation.SyntaxTrees.Single();
             var model = verifier.Compilation.GetSemanticModel(tree);
@@ -3369,9 +3369,9 @@ class Test
         System.Console.WriteLine(typeof(T));
     }
 }";
-            CompileStandardAndVerify(source, new[] { CSharpRef }, expectedOutput: "System.Object").VerifyDiagnostics();
+            CompileAndVerify(source, new[] { CSharpRef }, expectedOutput: "System.Object").VerifyDiagnostics();
 
-            var verifier = CompileStandardAndVerify(source, new[] { CSharpRef }, expectedOutput: "System.Object").VerifyDiagnostics();
+            var verifier = CompileAndVerify(source, new[] { CSharpRef }, expectedOutput: "System.Object").VerifyDiagnostics();
 
             var tree = verifier.Compilation.SyntaxTrees.Single();
             var model = verifier.Compilation.GetSemanticModel(tree);
@@ -3398,7 +3398,7 @@ class Program
     static T Goo<T>(Action<T, T> x) { throw null; }
 }
 ";
-            var verifier = CompileStandardAndVerify(source, options: TestOptions.DebugDll.WithAllowUnsafe(true), verify: Verification.Fails).VerifyDiagnostics();
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll.WithAllowUnsafe(true), verify: Verification.Fails).VerifyDiagnostics();
 
             var tree = verifier.Compilation.SyntaxTrees.Single();
             var model = verifier.Compilation.GetSemanticModel(tree);
@@ -3425,7 +3425,7 @@ class Program
     static T Goo<T>(Action<T, T> x) { throw null; }
 }
 ";
-            var verifier = CompileStandardAndVerify(source, options: TestOptions.DebugDll.WithAllowUnsafe(true), verify: Verification.Fails).VerifyDiagnostics();
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll.WithAllowUnsafe(true), verify: Verification.Fails).VerifyDiagnostics();
 
             var tree = verifier.Compilation.SyntaxTrees.Single();
             var model = verifier.Compilation.GetSemanticModel(tree);
@@ -3476,7 +3476,7 @@ class Program
     static T Goo<T>(Func<T, T> x) { throw null; }
 }
 ";
-            var verifier = CompileStandardAndVerify(source, new[] { CSharpRef, SystemCoreRef }, options: TestOptions.DebugDll).VerifyDiagnostics();
+            var verifier = CompileAndVerify(source, new[] { CSharpRef, SystemCoreRef }, options: TestOptions.DebugDll).VerifyDiagnostics();
 
             var tree = verifier.Compilation.SyntaxTrees.Single();
             var model = verifier.Compilation.GetSemanticModel(tree);

@@ -105,7 +105,7 @@ class B
 
             // However, once the alias is introduced, the local becomes implicitly typed
             // and everything works.
-            var verifier = CompileStandardAndVerify(alias + text, expectedOutput: "1");
+            var verifier = CompileAndVerify(alias + text, expectedOutput: "1");
             verifier.VerifyIL("B.Main", @"
 {
   // Code size        7 (0x7)

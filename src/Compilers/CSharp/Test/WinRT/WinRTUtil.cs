@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             string expectedOutput = null)
         {
             var isWin8 = OSVersion.IsWin8;
-            return testBase.CompileAndVerifyWinRt(
+            return testBase.CompileAndVerifyWithWinRt(
                 source,
                 references: additionalRefs,
                 expectedOutput: isWin8 ? expectedOutput : null,

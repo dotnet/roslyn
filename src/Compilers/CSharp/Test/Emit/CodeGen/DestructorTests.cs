@@ -45,7 +45,7 @@ public class Program
 }
 ";
             var validator = GetDestructorValidator("Base");
-            var compVerifier = CompileStandardAndVerify(text,
+            var compVerifier = CompileAndVerify(text,
                 sourceSymbolValidator: validator,
                 symbolValidator: validator,
                 expectedOutput: @"~Base",
@@ -99,7 +99,7 @@ public class Program
 }
 ";
             var validator = GetDestructorValidator("Base");
-            var compVerifier = CompileStandardAndVerify(text,
+            var compVerifier = CompileAndVerify(text,
                 sourceSymbolValidator: validator,
                 symbolValidator: validator,
                 expectedOutput: @"~Base",
@@ -158,7 +158,7 @@ public class Program
 }
 ";
             var validator = GetDestructorValidator("Derived");
-            var compVerifier = CompileStandardAndVerify(text,
+            var compVerifier = CompileAndVerify(text,
                 sourceSymbolValidator: validator,
                 symbolValidator: validator,
                 expectedOutput: @"~Derived
@@ -244,7 +244,7 @@ public class Program
 }
 ";
             var validator = GetDestructorValidator("Derived");
-            var compVerifier = CompileStandardAndVerify(text,
+            var compVerifier = CompileAndVerify(text,
                 sourceSymbolValidator: validator,
                 symbolValidator: validator,
                 expectedOutput: @"~Derived
@@ -345,7 +345,7 @@ public class Program
             // destructors explicitly override System.Object.Finalize).
             var validator = GetDestructorValidator("Derived");
 
-            var compVerifier = CompileStandardAndVerify(text,
+            var compVerifier = CompileAndVerify(text,
                 sourceSymbolValidator: validator,
                 symbolValidator: validator,
                 expectedOutput: expectedOutput,
@@ -400,7 +400,7 @@ public class Program
 }
 ";
             var validator = GetDestructorValidator("Derived");
-            var compVerifier = CompileStandardAndVerify(text,
+            var compVerifier = CompileAndVerify(text,
                 sourceSymbolValidator: validator,
                 symbolValidator: validator,
                 expectedOutput: @"~Derived
@@ -456,7 +456,7 @@ public class Program
 }
 ";
             var validator = GetDestructorValidator("Derived");
-            var compVerifier = CompileStandardAndVerify(text,
+            var compVerifier = CompileAndVerify(text,
                 sourceSymbolValidator: validator,
                 symbolValidator: validator,
                 expectedOutput: @"~Derived
@@ -491,7 +491,7 @@ class C
     private string Finalize;
 }
 ";
-            var compVerifier = CompileStandardAndVerify(text);
+            var compVerifier = CompileAndVerify(text);
 
             compVerifier.VerifyDiagnostics(
                 // (4,10): warning CS0465: Introducing a 'Finalize' method can interfere with destructor invocation. Did you intend to declare a destructor?
@@ -617,7 +617,7 @@ public class M<T> : L<T>
                 Assert.True(classMInt.GetMember<MethodSymbol>("Finalize").IsRuntimeFinalizer());
             };
 
-            CompileStandardAndVerify(text, sourceSymbolValidator: validator, symbolValidator: validator);
+            CompileAndVerify(text, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
@@ -733,7 +733,7 @@ public class B : A
             // NOTE: calling object.Finalize, since A.Finalize has the wrong arity.
             // (Dev11 called A.Finalize and failed at runtime, since it wasn't providing
             // a type argument.)
-            CompileStandardAndVerify(text).VerifyIL("B.Finalize", @"
+            CompileAndVerify(text).VerifyIL("B.Finalize", @"
 {
   // Code size       10 (0xa)
   .maxstack  1
@@ -762,7 +762,7 @@ public class A
     ~A() { }
 }
 ";
-            CompileStandardAndVerify(text, assemblyValidator: (assembly) =>
+            CompileAndVerify(text, assemblyValidator: (assembly) =>
             {
                 var peFileReader = assembly.GetMetadataReader();
 

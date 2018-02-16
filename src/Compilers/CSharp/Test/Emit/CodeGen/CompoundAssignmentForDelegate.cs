@@ -62,7 +62,7 @@ class C
             //var method = from item in cla.Members where (MethodDeclarationSyntax)item != null select item as MethodDeclarationSyntax ;
             //var block = method.Last().Body;
             //var statement = block.Statements;
-            CompileStandardAndVerify(text, expectedOutput: "5").VerifyIL("C.Main", expectedIL);
+            CompileAndVerify(text, expectedOutput: "5").VerifyIL("C.Main", expectedIL);
         }
 
         // The object to removal or concatenation could be create a new instance of a method  or an method name
@@ -93,7 +93,7 @@ class C
 ";
             var expectedOutput = @"bar
 bar";
-            CompileStandardAndVerify(text, expectedOutput: expectedOutput);
+            CompileAndVerify(text, expectedOutput: expectedOutput);
         }
 
         // The object to removal or concatenation could be null
@@ -134,7 +134,7 @@ class C
   IL_002d:  pop
   IL_002e:  ret
 }";
-            CompileStandardAndVerify(text).VerifyIL("C.Main", expectedIL);
+            CompileAndVerify(text).VerifyIL("C.Main", expectedIL);
         }
 
         // The object to removal or concatenation could be an object of delegate
@@ -174,7 +174,7 @@ far
 bar
 far
 far";
-            CompileStandardAndVerify(text, expectedOutput: expectedOutput);
+            CompileAndVerify(text, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -198,7 +198,7 @@ class C
     }
 }
 ";
-            CompileStandardAndVerify(text, expectedOutput: "10").VerifyIL("C.Main", @"
+            CompileAndVerify(text, expectedOutput: "10").VerifyIL("C.Main", @"
 {
   // Code size       77 (0x4d)
   .maxstack  3
@@ -254,7 +254,7 @@ class C
     }
 }
 ";
-            CompileStandardAndVerify(text, expectedOutput: "Hello").VerifyIL("C.Main()", @"
+            CompileAndVerify(text, expectedOutput: "Hello").VerifyIL("C.Main()", @"
 {
   // Code size       80 (0x50)
   .maxstack  3
@@ -315,7 +315,7 @@ class C
             var expectedOutPut = @"far:10
 lambda:10
 lambda:20";
-            CompileStandardAndVerify(text, expectedOutput: expectedOutPut);
+            CompileAndVerify(text, expectedOutput: expectedOutPut);
         }
 
         // Mixed named method and Anonymous  method  to removal or concatenation
@@ -346,7 +346,7 @@ class C
             var expectedOutPut = @"far:10
 Anonymous:10
 Anonymous:20";
-            CompileStandardAndVerify(text, expectedOutput: expectedOutPut);
+            CompileAndVerify(text, expectedOutput: expectedOutPut);
         }
 
         // Mixed Lambda expression and Anonymous  method  to removal or concatenation
@@ -383,7 +383,7 @@ Lambda:10
 Anonymous:10
 Lambda:20
 Anonymous:20";
-            CompileStandardAndVerify(text, expectedOutput: expectedOutPut);
+            CompileAndVerify(text, expectedOutput: expectedOutPut);
         }
 
         // To removal or concatenation same method multi- times
@@ -429,7 +429,7 @@ M1: 1
 M2: 1
 M2: 2
 ";
-            CompileStandardAndVerify(text, expectedOutput: expectedOutPut);
+            CompileAndVerify(text, expectedOutput: expectedOutPut);
         }
 
         // Remove Non existed method
@@ -464,7 +464,7 @@ class C
 }
 ";
             var expectedOutPut = @"M1: 0";
-            CompileStandardAndVerify(text, expectedOutput: expectedOutPut);
+            CompileAndVerify(text, expectedOutput: expectedOutPut);
         }
 
         // Removal and concatenation works on both static and instance methods 
@@ -501,7 +501,7 @@ class C
 far
 bar
 far";
-            CompileStandardAndVerify(text, expectedOutput: expectedOutPut);
+            CompileAndVerify(text, expectedOutput: expectedOutPut);
         }
 
         // Removal or concatenation for the delegate that is member of classes
@@ -535,7 +535,7 @@ class C
             var expectedOutPut = @"far
 bar
 ";
-            CompileStandardAndVerify(text, expectedOutput: expectedOutPut);
+            CompileAndVerify(text, expectedOutput: expectedOutPut);
         }
 
         // Removal or concatenation for the delegate works on ternary operator
@@ -576,7 +576,7 @@ class C
             var expectedOutPut = @"bar
 bar
 ";
-            CompileStandardAndVerify(text, expectedOutput: expectedOutPut);
+            CompileAndVerify(text, expectedOutput: expectedOutPut);
         }
 
         // Removal or concatenation for the delegate that with 9 args
@@ -606,7 +606,7 @@ class C
 ";
             var expectedOutPut = @"Hello
 ";
-            CompileStandardAndVerify(text, expectedOutput: expectedOutPut);
+            CompileAndVerify(text, expectedOutput: expectedOutPut);
         }
 
         // Removal or concatenation for the delegate that is virtual struct methods
@@ -660,7 +660,7 @@ class C
   IL_002b:  ret
 }
 ";
-            CompileStandardAndVerify(text, expectedOutput: expectedOutPut).VerifyIL("C.Main", expectedIL);
+            CompileAndVerify(text, expectedOutput: expectedOutPut).VerifyIL("C.Main", expectedIL);
         }
 
         // Removal or concatenation for the delegate that the method is in base class
@@ -707,7 +707,7 @@ Base
 Derived
 ";
 
-            CompileStandardAndVerify(text, expectedOutput: expectedOutPut);
+            CompileAndVerify(text, expectedOutput: expectedOutPut);
         }
 
         // delegate-in-a-generic-class (C<t>.goo(…)) += methodgroup-in-a-generic-class (C<T>.bar(…))
@@ -741,7 +741,7 @@ class D
 par
 far
 ";
-            CompileStandardAndVerify(text, expectedOutput: expectedOutPut);
+            CompileAndVerify(text, expectedOutput: expectedOutPut);
         }
 
         // Compound assignment for the method with derived return type
@@ -787,7 +787,7 @@ Base
 Base
 Derived
 ";
-            CompileStandardAndVerify(text, expectedOutput: expectedOutPut);
+            CompileAndVerify(text, expectedOutput: expectedOutPut);
         }
 
         // Compound assignment for the method with derived return type
@@ -844,7 +844,7 @@ Derived2
 Base2
 Derived1
 ";
-            CompileStandardAndVerify(text, expectedOutput: expectedOutPut);
+            CompileAndVerify(text, expectedOutput: expectedOutPut);
         }
 
         // Compound assignment for the method with derived return type
@@ -906,7 +906,7 @@ Base
 double
 Derived
 ";
-            CompileStandardAndVerify(text, expectedOutput: expectedOutPut);
+            CompileAndVerify(text, expectedOutput: expectedOutPut);
         }
 
         // Compound assignment for the method with derived return type
@@ -963,7 +963,7 @@ Base
 double
 Derived
 ";
-            CompileStandardAndVerify(text, expectedOutput: expectedOutPut);
+            CompileAndVerify(text, expectedOutput: expectedOutPut);
         }
     }
 }

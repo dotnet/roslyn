@@ -56,7 +56,7 @@ class E
     }
 }
 ";
-            CompileStandardAndVerify(source, expectedOutput: @"
+            CompileAndVerify(source, expectedOutput: @"
 Class.Method(1)
 Class.Method(2)
 Class.Property.set(3)
@@ -105,7 +105,7 @@ class E
     }
 }
 ";
-            CompileStandardAndVerify(source, expectedOutput: @"
+            CompileAndVerify(source, expectedOutput: @"
 Class.Method(1)
 Class.Method(2)
 Class.Property.set(3)
@@ -142,7 +142,7 @@ class E
     }
 }
 ";
-            CompileStandardAndVerify(source, expectedOutput: @"
+            CompileAndVerify(source, expectedOutput: @"
 Class.Method(1)
 Class.Method(2)
 ");
@@ -184,7 +184,7 @@ class E
     }
 }
 ";
-            CompileStandardAndVerify(source, expectedOutput: @"
+            CompileAndVerify(source, expectedOutput: @"
 Class.Method(1, 2)
 Class.Method(3)
 Class.Method(4, 5)
@@ -240,7 +240,7 @@ class E
     }
 }
 ";
-            CompileStandardAndVerify(source, expectedOutput: @"
+            CompileAndVerify(source, expectedOutput: @"
 Base.Method(1)
 Base.Method(2)
 Base.Method(3)
@@ -298,7 +298,7 @@ class E
     }
 }
 ";
-            CompileStandardAndVerify(source, expectedOutput: @"
+            CompileAndVerify(source, expectedOutput: @"
 Base.Method(1)
 Base.Method(2)
 Base.Method(3)
@@ -343,7 +343,7 @@ class E
     }
 }
 ";
-            CompileStandardAndVerify(source, expectedOutput: @"
+            CompileAndVerify(source, expectedOutput: @"
 Base.Method(1)
 Base.Method(2)
 Base.Method(3)
@@ -393,7 +393,7 @@ class E
     }
 }
 ";
-            CompileStandardAndVerify(source, expectedOutput: @"
+            CompileAndVerify(source, expectedOutput: @"
 Base.Method(1, 2)
 Base.Method(3)
 Base.Method(4, 5)
@@ -682,7 +682,7 @@ class Program
     }
 }
 ";
-            CompileStandardAndVerify(source, expectedOutput: "Y.goo");
+            CompileAndVerify(source, expectedOutput: "Y.goo");
         }
 
         /// <summary>
@@ -741,7 +741,7 @@ class Program
 Derived1.P.get
 Derived2.P.set";
 
-            CompileStandardAndVerify(source, expectedOutput: expectedOutput);
+            CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
         [WorkItem(540410, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540410")]
@@ -774,7 +774,7 @@ class C1 : IBase1, IBase2
                 Assert.True(typeSymbol.Interfaces().All(iface => iface.Name == "IBase" || iface.Name == "IBase1" || iface.Name == "IBase2"));
             };
 
-            CompileStandardAndVerify(source, sourceSymbolValidator: validator, symbolValidator: validator, expectedSignatures: new[]
+            CompileAndVerify(source, sourceSymbolValidator: validator, symbolValidator: validator, expectedSignatures: new[]
             {
                 Signature("C1", "IBase1.PBase1", ".method private hidebysig newslot virtual final instance System.Void IBase1.PBase1() cil managed"),
                 Signature("C1", "IBase.PBase", ".method private hidebysig newslot virtual final instance System.Void IBase.PBase() cil managed"),
@@ -863,7 +863,7 @@ public static class MainClass
     }
 }
 ";
-            CompileStandardAndVerify(source, expectedOutput: "ILeft IBase ILeft IBase")
+            CompileAndVerify(source, expectedOutput: "ILeft IBase ILeft IBase")
                 .VerifyIL("MainClass.Test", @"
 {
   // Code size       25 (0x19)
@@ -952,7 +952,7 @@ class Test
     }
 }";
 
-            var comp = CompileStandardAndVerify(source,
+            var comp = CompileAndVerify(source,
                 expectedOutput: @"
 Base.Method(1, 2, b)
 Class.Method(2, 3, c)
@@ -999,7 +999,7 @@ static class Program
     }
 }
 ";
-            CompileStandardAndVerify(source, expectedOutput: "C3C3C3C3");
+            CompileAndVerify(source, expectedOutput: "C3C3C3C3");
         }
 
         [Fact]
@@ -1031,7 +1031,7 @@ static class Program
     }
 }
 ";
-            CompileStandardAndVerify(source, expectedOutput: "C3");
+            CompileAndVerify(source, expectedOutput: "C3");
         }
 
         [Fact]
@@ -1208,7 +1208,7 @@ class Test
         i.Property = x;
     }
 }";
-            var comp = CompileStandardAndVerify(source, expectedOutput: @"
+            var comp = CompileAndVerify(source, expectedOutput: @"
 Base2.Method()
 Derived2.Method(1)
 Derived4.Method<U>(1, 0)
@@ -1352,7 +1352,7 @@ class Test
         i.Property = x;
     }
 }";
-            var comp = CompileStandardAndVerify(source, expectedOutput: @"
+            var comp = CompileAndVerify(source, expectedOutput: @"
 Derived2.Method()
 Derived2.Method(1)
 Base2.Method<U>(1, 0)
@@ -1425,7 +1425,7 @@ public class Test
     }
 }";
 
-            var comp = CompileStandardAndVerify(source,
+            var comp = CompileAndVerify(source,
                 expectedOutput: @"
 Derived1.set_Property
 Derived1.Method
@@ -1485,7 +1485,7 @@ class Test
     }
 }";
 
-            var comp = CompileStandardAndVerify(source,
+            var comp = CompileAndVerify(source,
                 expectedOutput: @"
 Derived1.Method`1
 Derived1.Method`2",
@@ -1546,7 +1546,7 @@ class Test
     }
 }";
 
-            var comp = CompileStandardAndVerify(source, expectedOutput: @"
+            var comp = CompileAndVerify(source, expectedOutput: @"
 Base.Method(T)
 Base.Method()");
 
@@ -1608,7 +1608,7 @@ class Test
     }
 }";
 
-            var comp = CompileStandardAndVerify(source, expectedOutput: @"
+            var comp = CompileAndVerify(source, expectedOutput: @"
 Derived`2.Method(U)
 Derived`2.Method()
 Base.Method(T)
@@ -1673,7 +1673,7 @@ class Test
     }
 }";
 
-            var comp = CompileStandardAndVerify(source, expectedOutput: @"
+            var comp = CompileAndVerify(source, expectedOutput: @"
 Derived`2.Method(U)
 Derived`2.Method()
 Derived`2.Method(int)
@@ -1738,7 +1738,7 @@ class Test
     }
 }";
 
-            var comp = CompileStandardAndVerify(source, expectedOutput: @"
+            var comp = CompileAndVerify(source, expectedOutput: @"
 Derived`2.Method(U)
 Derived`2.Method()
 Base.Method(T)
@@ -1806,7 +1806,7 @@ class Test
     }
 }";
 
-            var comp = CompileStandardAndVerify(source, expectedOutput: @"
+            var comp = CompileAndVerify(source, expectedOutput: @"
 Derived`2.Method(U)
 Derived`2.Method()
 Base.Method(T)
@@ -1852,7 +1852,7 @@ class Test
 }
 ";
             // TODO: Will need to update once CompilerGeneratedAttribute is emitted on synthesized accessor
-            var comp = CompileStandardAndVerify(text,
+            var comp = CompileAndVerify(text,
                 expectedOutput: "23123",
                 expectedSignatures: new[]
                 {
@@ -1936,7 +1936,7 @@ class Test : I3
     }
 }";
 
-            CompileStandardAndVerify(source, expectedOutput: @"
+            CompileAndVerify(source, expectedOutput: @"
 I3.M1
 I1.M2
 I3.M2
@@ -2049,7 +2049,7 @@ class Test : Base, I3
     }
 }";
 
-            var comp = CompileStandardAndVerify(source, expectedOutput: @"
+            var comp = CompileAndVerify(source, expectedOutput: @"
 I3.M1
 I1.M2
 I3.M2
@@ -2109,7 +2109,7 @@ class Test
     }
 }";
 
-            CompileStandardAndVerify(source, expectedOutput: "Base.ToString").VerifyDiagnostics(); // No errors
+            CompileAndVerify(source, expectedOutput: "Base.ToString").VerifyDiagnostics(); // No errors
         }
 
         [Fact]
@@ -2146,7 +2146,7 @@ class Test
     }
 }";
 
-            CompileStandardAndVerify(source, expectedOutput: @"
+            CompileAndVerify(source, expectedOutput: @"
 C.Method
 B.set_Property
 C.Method
@@ -2189,7 +2189,7 @@ class Test
     }
 }";
 
-            CompileStandardAndVerify(source, expectedOutput: @"
+            CompileAndVerify(source, expectedOutput: @"
 B.Method
 B.set_Property
 C.Method
@@ -2233,7 +2233,7 @@ class Test
     }
 }";
 
-            CompileStandardAndVerify(source, expectedOutput: @"
+            CompileAndVerify(source, expectedOutput: @"
 B3.Method
 D.set_Property").VerifyDiagnostics(); // No errors
         }
@@ -2276,7 +2276,7 @@ class Test
     }
 }";
 
-            CompileStandardAndVerify(source, expectedOutput: @"
+            CompileAndVerify(source, expectedOutput: @"
 B1.Method
 B1.set_Property
 D.M").VerifyDiagnostics(); // No errors

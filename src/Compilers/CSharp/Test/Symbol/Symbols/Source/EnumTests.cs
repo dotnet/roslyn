@@ -345,7 +345,7 @@ class c1
 ";
             VerifyEnumsValue(source, "c1.Suits", 1, 2, 4, 2, 2);
 
-            CompileStandardAndVerify(source, expectedOutput: @"
+            CompileAndVerify(source, expectedOutput: @"
 ValueE
 -1
 ");
@@ -436,7 +436,7 @@ class c1
     }
 }
 ";
-            CompileStandardAndVerify(source, expectedOutput: @"
+            CompileAndVerify(source, expectedOutput: @"
 0
 0
 0
@@ -653,7 +653,7 @@ class c1
 }
 public enum E { one = 1, two = 2, three = 3 };
 ";
-            CompileStandardAndVerify(source, expectedOutput: @"
+            CompileAndVerify(source, expectedOutput: @"
 True
 False
 False

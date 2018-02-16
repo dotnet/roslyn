@@ -25,7 +25,7 @@ unsafe class C
     }
 }
 ";
-            var compVerifier = CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Passes);
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Passes);
             compVerifier.VerifyIL("C.M", @"
 {
   // Code size        4 (0x4)
@@ -52,7 +52,7 @@ unsafe class C
     }
 }
 ";
-            var compVerifier = CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
             compVerifier.VerifyIL("C.M", @"
 {
   // Code size       12 (0xc)
@@ -82,7 +82,7 @@ unsafe class C
     }
 }
 ";
-            var compVerifier = CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Passes);
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Passes);
             compVerifier.VerifyIL("C.M", @"
 {
   // Code size        4 (0x4)
@@ -107,7 +107,7 @@ unsafe class C
     }
 }
 ";
-            var compVerifier = CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
             compVerifier.VerifyIL("C.M", @"
 {
   // Code size       13 (0xd)
@@ -154,7 +154,7 @@ struct S2
     public int x;
 }
 ";
-            var compVerifier = CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
             compVerifier.VerifyIL("C.M", @"
 {
   // Code size       38 (0x26)
@@ -201,7 +201,7 @@ unsafe class C
     static void Goo(int* p) { }
 }
 ";
-            var compVerifier = CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
             compVerifier.VerifyIL("C.M", @"
 {
   // Code size       12 (0xc)
@@ -235,7 +235,7 @@ unsafe class C
     }
 }
 ";
-            var compVerifier = CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "123", verify: Verification.Fails);
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "123", verify: Verification.Fails);
 
             // NOTE: p is optimized away, but & and * aren't.
             compVerifier.VerifyIL("C.Main", @"
@@ -272,7 +272,7 @@ unsafe class C
     }
 }
 ";
-            var compVerifier = CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "456", verify: Verification.Fails);
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "456", verify: Verification.Fails);
 
             compVerifier.VerifyIL("C.Dereference", @"
 {
@@ -300,7 +300,7 @@ unsafe class C
     }
 }
 ";
-            var compVerifierOptimized = CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "2", verify: Verification.Fails);
+            var compVerifierOptimized = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "2", verify: Verification.Fails);
 
             // NOTE: p is optimized away, but & and * aren't.
             compVerifierOptimized.VerifyIL("C.Main", @"
@@ -319,7 +319,7 @@ unsafe class C
   IL_000d:  ret
 }
 ");
-            var compVerifierUnoptimized = CompileStandardAndVerify(text, options: TestOptions.UnsafeDebugExe, expectedOutput: "2", verify: Verification.Fails);
+            var compVerifierUnoptimized = CompileAndVerify(text, options: TestOptions.UnsafeDebugExe, expectedOutput: "2", verify: Verification.Fails);
 
             compVerifierUnoptimized.VerifyIL("C.Main", @"
 {
@@ -363,7 +363,7 @@ unsafe struct S
     }
 }
 ";
-            var compVerifier = CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "1", verify: Verification.Fails);
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "1", verify: Verification.Fails);
 
             compVerifier.VerifyIL("S.Main", @"
 {
@@ -415,7 +415,7 @@ unsafe class C
     }
 }
 ";
-            var compVerifier = CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"Before: 2 7
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"Before: 2 7
 After: 7 2", verify: Verification.Fails);
 
             compVerifier.VerifyIL("C.Swap", @"
@@ -462,7 +462,7 @@ unsafe class C
     }
 }
 ";
-            var compVerifier = CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"ab", verify: Verification.Fails);
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"ab", verify: Verification.Fails);
 
             compVerifier.VerifyIL("C.Main", @"
 {
@@ -510,7 +510,7 @@ unsafe struct S
     }
 }
 ";
-            var compVerifier = CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"12", verify: Verification.Fails);
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"12", verify: Verification.Fails);
 
             compVerifier.VerifyIL("S.Main", @"
 {
@@ -557,7 +557,7 @@ unsafe struct S
     }
 }
 ";
-            var compVerifier = CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"3", verify: Verification.Fails);
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"3", verify: Verification.Fails);
 
             compVerifier.VerifyIL("S.Main", @"
 {
@@ -575,7 +575,7 @@ unsafe struct S
 }
 ");
 
-            compVerifier = CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"3", verify: Verification.Fails);
+            compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"3", verify: Verification.Fails);
 
             compVerifier.VerifyIL("S.Main", @"
 {
@@ -615,7 +615,7 @@ unsafe struct S
     }
 }
 ";
-            var compVerifier = CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"34", verify: Verification.Fails);
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"34", verify: Verification.Fails);
 
             compVerifier.VerifyIL("S.Main", @"
 {
@@ -639,7 +639,7 @@ unsafe struct S
 }
 ");
 
-            compVerifier = CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"34", verify: Verification.Fails);
+            compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"34", verify: Verification.Fails);
 
             compVerifier.VerifyIL("S.Main", @"
 {
@@ -690,7 +690,7 @@ static class Extensions
     public static void M(this S s, int x, int y) { Console.Write(3); }
 }
 ";
-            var compVerifier = CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"123", verify: Verification.Fails);
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"123", verify: Verification.Fails);
 
             compVerifier.VerifyIL("S.Main", @"
 {
@@ -712,7 +712,7 @@ static class Extensions
 }
 ");
 
-            compVerifier = CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"123", verify: Verification.Fails);
+            compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"123", verify: Verification.Fails);
 
             compVerifier.VerifyIL("S.Main", @"
 {
@@ -766,7 +766,7 @@ static class Extensions
     public static void M(this S s, int x, int y) { Console.Write(3); }
 }
 ";
-            var compVerifier = CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"123", verify: Verification.Fails);
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"123", verify: Verification.Fails);
 
             compVerifier.VerifyIL("S.Test(ref S*)", @"
 {
@@ -789,7 +789,7 @@ static class Extensions
 }
 ");
 
-            compVerifier = CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"123", verify: Verification.Fails);
+            compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"123", verify: Verification.Fails);
 
             compVerifier.VerifyIL("S.Test(ref S*)", @"
 {
@@ -833,7 +833,7 @@ unsafe struct S
     }
 }
 ";
-            var compVerifier = CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"34", verify: Verification.Fails);
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"34", verify: Verification.Fails);
 
             compVerifier.VerifyIL("S.Main", @"
 {
@@ -871,7 +871,7 @@ unsafe struct S
 }
 ");
 
-            compVerifier = CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"34", verify: Verification.Fails);
+            compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"34", verify: Verification.Fails);
 
             compVerifier.VerifyIL("S.Main", @"
 {
@@ -947,7 +947,7 @@ unsafe struct S
     }
 }
 ";
-            var compVerifier = CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails);
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails);
 
             // The conversions differ from dev10 in the same way as for numeric addition.
             // Note that, unlike for numeric addition, the add operation is never checked.
@@ -1067,7 +1067,7 @@ unsafe struct S
     }
 }
 ";
-            var compVerifier = CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails);
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails);
 
             compVerifier.VerifyIL("S.Main", @"
 {
@@ -1111,7 +1111,7 @@ unsafe struct S
     }
 }
 ";
-            var compVerifier = CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"
 1
 0
 -1", verify: Verification.Fails);
@@ -1140,7 +1140,7 @@ unsafe class C
     }
 }
 ";
-            var compVerifier = CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "210", verify: Verification.Fails);
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "210", verify: Verification.Fails);
         }
 
         [Fact]
@@ -1160,7 +1160,7 @@ unsafe class C
 }
 ";
             // NOTE: no pointer arithmetic - just dereference p.
-            var compVerifier = CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "1", verify: Verification.Fails).VerifyIL("C.Main", @"
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "1", verify: Verification.Fails).VerifyIL("C.Main", @"
 {
   // Code size       12 (0xc)
   .maxstack  1
@@ -1201,7 +1201,7 @@ unsafe class C
     }
 }
 ";
-            var compVerifier = CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"1", verify: Verification.Fails);
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"1", verify: Verification.Fails);
 
             compVerifier.VerifyIL("C.Main", @"
 {
@@ -1259,7 +1259,7 @@ public class Program
     }
 }
 ";
-            var compVerifier = CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"123", verify: Verification.Fails);
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"123", verify: Verification.Fails);
 
             compVerifier.VerifyIL("Program.S1.Test()", @"
 {
@@ -1317,7 +1317,7 @@ unsafe class C
     }
 }
 ";
-            var compVerifier = CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"12", verify: Verification.Fails);
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"12", verify: Verification.Fails);
 
             compVerifier.VerifyIL("C.Main", @"
 {
@@ -1387,7 +1387,7 @@ unsafe class C
     }
 }
 ";
-            var compVerifier = CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"12", verify: Verification.Fails);
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"12", verify: Verification.Fails);
 
             compVerifier.VerifyIL("C.Main", @"
 {
@@ -1449,7 +1449,7 @@ unsafe class C
         }
     }
 }";
-            var compVerifier = CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
             compVerifier.VerifyIL("C.M(C)",
 @"
 {
@@ -1522,7 +1522,7 @@ unsafe class C
     }
 }
 ";
-            var compVerifier = CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"12", verify: Verification.Fails);
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"12", verify: Verification.Fails);
 
             compVerifier.VerifyIL("C.Main", @"
 {
@@ -1588,7 +1588,7 @@ class C
     }
 }
 ";
-            var compVerifier = CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"a", verify: Verification.Fails);
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"a", verify: Verification.Fails);
 
             compVerifier.VerifyIL("C.M", @"
 {
@@ -1633,7 +1633,7 @@ class C
     }
 }
 ";
-            var compVerifier = CompileStandardAndVerify(text, options: TestOptions.UnsafeDebugExe, expectedOutput: @"a", verify: Verification.Fails);
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeDebugExe, expectedOutput: @"a", verify: Verification.Fails);
 
             compVerifier.VerifyIL("C.M", @"
 {
@@ -1677,7 +1677,7 @@ unsafe class C
     }
 }
 ";
-            var compVerifier = CompileStandardAndVerify(text, options: TestOptions.UnsafeDebugExe, expectedOutput: @"h", verify: Verification.Fails);
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeDebugExe, expectedOutput: @"h", verify: Verification.Fails);
 
             compVerifier.VerifyIL("C.Main", @"
 {
@@ -1734,7 +1734,7 @@ unsafe class C
     }
 }
 ";
-            var compVerifier = CompileStandardAndVerify(text, options: TestOptions.UnsafeDebugExe, expectedOutput: @"hTrue", verify: Verification.Fails);
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeDebugExe, expectedOutput: @"hTrue", verify: Verification.Fails);
 
             compVerifier.VerifyIL("C.Main", @"
 {
@@ -1819,7 +1819,7 @@ unsafe class C
     }
 }
 ";
-            var compVerifier = CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"hTrue", verify: Verification.Fails);
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"hTrue", verify: Verification.Fails);
 
             // Null checks and branches are much simpler, but string temps are NOT optimized away.
             compVerifier.VerifyIL("C.Main", @"
@@ -1890,7 +1890,7 @@ unsafe class C
     }
 }
 ";
-            var compVerifier = CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"01", verify: Verification.Fails);
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"01", verify: Verification.Fails);
 
             compVerifier.VerifyIL("C.Main", @"
 {
@@ -1958,7 +1958,7 @@ unsafe class C
     }
 }
 ";
-            var compVerifier = CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"01", verify: Verification.Fails);
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"01", verify: Verification.Fails);
 
             compVerifier.VerifyIL("C.Main", @"
 {
@@ -2026,7 +2026,7 @@ unsafe class C
     }
 }
 ";
-            var compVerifier = CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"01", verify: Verification.Fails);
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"01", verify: Verification.Fails);
 
             compVerifier.VerifyIL("C.Main", @"
 {
@@ -2097,7 +2097,7 @@ unsafe class C
     }
 }
 ";
-            var compVerifier = CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"970104", verify: Verification.Fails);
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"970104", verify: Verification.Fails);
 
             compVerifier.VerifyIL("C.Main", @"
 {
@@ -2188,7 +2188,7 @@ unsafe class C
 }
 ";
             // Cleanup in finally.
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).
                 VerifyIL("C.Test", @"
 {
   // Code size       32 (0x20)
@@ -2250,7 +2250,7 @@ unsafe class C
 }
 ";
             // Cleanup in finally.
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).
                 VerifyIL("C.Test", @"
 {
   // Code size       31 (0x1f)
@@ -2313,7 +2313,7 @@ unsafe class C
 }
 ";
             // Cleanup not in finally.
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).
                 VerifyIL("C.Test", @"
 {
   // Code size       26 (0x1a)
@@ -2369,7 +2369,7 @@ unsafe class C
 }
 ";
             // Cleanup not in finally.
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).
                 VerifyIL("C.Test",
 @"{
   // Code size       34 (0x22)
@@ -2430,7 +2430,7 @@ unsafe class C
 }
 ";
             // Cleanup in finally.
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).
                 VerifyIL("C.Test", @"
 {
   // Code size       36 (0x24)
@@ -2491,7 +2491,7 @@ unsafe class C
 }
 ";
             // Neither inner nor outer has finally.
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).
                 VerifyIL("C.Test", @"
 {
   // Code size       45 (0x2d)
@@ -2551,7 +2551,7 @@ unsafe class C
 }
 ";
             // Inner and outer both have finally blocks.
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).
                 VerifyIL("C.Test", @"
 {
   // Code size       50 (0x32)
@@ -2627,7 +2627,7 @@ unsafe class C
 }
 ";
             // Outer has finally, inner does not.
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).
                 VerifyIL("C.Test", @"
 {
   // Code size       48 (0x30)
@@ -2711,7 +2711,7 @@ unsafe class C
             //   1) nothing blows up with triple-nesting, and
             //   2) none of the fixed statements has a try-finally.
             // CONSIDER: Shorter test that performs the same checks.
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).
                 VerifyIL("C.Test", @"
 {
   // Code size      187 (0xbb)
@@ -2841,7 +2841,7 @@ unsafe class C
 ";
             // CONSIDER: This is sort of silly since the using is optimized away.
             // Cleanup in finally.
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).
                 VerifyIL("C.Test", @"
 {
   // Code size       26 (0x1a)
@@ -2892,7 +2892,7 @@ unsafe class C
 }
 ";
             // Cleanup not in finally (matches dev11, but not clear why).
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).
                 VerifyIL("C.Test", @"
 {
   // Code size       47 (0x2f)
@@ -2957,7 +2957,7 @@ unsafe class C
 ";
             // Cleanup in finally.
             // CONSIDER: dev11 is smarter and skips the try-finally.
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).
                 VerifyIL("C.Test", @"
 {
   // Code size       46 (0x2e)
@@ -3041,7 +3041,7 @@ class Enumerator : System.IDisposable
 }
 ";
             // Cleanup in finally.
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).
                 VerifyIL("C.Test", @"
 {
   // Code size       62 (0x3e)
@@ -3121,7 +3121,7 @@ unsafe class C
 }
 ";
             // Cleanup in finally.
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).
                 VerifyIL("C.<>c.<Test>b__0_0()", @"
 {
   // Code size       26 (0x1a)
@@ -3177,7 +3177,7 @@ unsafe class C
 }
 ";
             // Cleanup not in finally.
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).
                 VerifyIL("C.<>c.<Test>b__0_0()", @"
 {
   // Code size       23 (0x17)
@@ -3222,7 +3222,7 @@ unsafe class C
 }
 ";
             // Cleanup in finally.
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).
                 VerifyIL("C.<>c.<Test>b__0_0()", @"
 {
   // Code size       26 (0x1a)
@@ -3276,7 +3276,7 @@ unsafe class C
 }
 ";
             // Cleanup in finally.
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).
                 VerifyIL("C.<>c.<.ctor>b__1_0()", @"
 {
   // Code size       26 (0x1a)
@@ -3326,7 +3326,7 @@ unsafe class C
 }
 ";
             // Cleanup in finally.
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).
                 VerifyIL("C.<>c.<.ctor>b__1_0()", @"
 {
   // Code size       26 (0x1a)
@@ -3378,7 +3378,7 @@ unsafe class C
 }
 ";
             // Cleanup in finally.
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).
                 VerifyIL("C.Test", @"
 {
   // Code size       27 (0x1b)
@@ -3432,7 +3432,7 @@ unsafe class C
 ";
             // Cleanup in finally.
             // CONSIDER: dev11 doesn't have a finally here, but that seems incorrect.
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).
                 VerifyIL("C.Test", @"
 {
   // Code size       26 (0x1a)
@@ -3485,7 +3485,7 @@ unsafe class C
 }
 ";
             // Cleanup in finally.
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).
                 VerifyIL("C.Test", @"
 {
   // Code size       27 (0x1b)
@@ -3539,7 +3539,7 @@ unsafe class C
 }
 ";
             // Cleanup in finally.
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).
                 VerifyIL("C.Test", @"
 {
   // Code size       26 (0x1a)
@@ -3589,7 +3589,7 @@ unsafe class C
 }
 ";
             // Cleanup in finally.
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).
                 VerifyIL("C.Test", @"
 {
   // Code size       26 (0x1a)
@@ -3639,7 +3639,7 @@ unsafe class C
 }
 ";
             // Cleanup in finally.
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).
                 VerifyIL("C.Test", @"
 {
   // Code size       26 (0x1a)
@@ -3688,7 +3688,7 @@ unsafe class C
 }
 ";
             // Cleanup not in finally.
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).
                 VerifyIL("C.Test", @"
 {
   // Code size       22 (0x16)
@@ -3728,7 +3728,7 @@ unsafe class C
 }
 ";
             // Cleanup not in finally.
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).
                 VerifyIL("C.Test", @"
 {
   // Code size       21 (0x15)
@@ -3769,7 +3769,7 @@ unsafe class C
 }
 ";
             // Cleanup not in finally.
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).
                 VerifyIL("C.Test", @"
 {
   // Code size       36 (0x24)
@@ -3827,7 +3827,7 @@ unsafe class C
             //      branches out or not.  We should be conservative and assume that
             //      it does.
             // Cleanup not in finally.
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).
                 VerifyIL("C.Test", @"
 {
   // Code size       23 (0x17)
@@ -3891,7 +3891,7 @@ unsafe class C
 }
 ";
             // Cleanup not in finally.
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).
                 VerifyIL("C.Test", @"
 {
   // Code size      103 (0x67)
@@ -3958,7 +3958,7 @@ unsafe class C
         }
     }
 }";
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).
                 VerifyIL("C.Test", @"
 {
   // Code size       23 (0x17)
@@ -4040,8 +4040,8 @@ unsafe class C
             var expectedOutput = @"False
 True";
 
-            CompileStandardAndVerify(string.Format(template, "unchecked"), options: TestOptions.UnsafeReleaseExe, expectedOutput: expectedOutput, verify: Verification.Fails).VerifyIL("C.Main", expectedIL);
-            CompileStandardAndVerify(string.Format(template, "checked"), options: TestOptions.UnsafeReleaseExe, expectedOutput: expectedOutput, verify: Verification.Fails).VerifyIL("C.Main", expectedIL);
+            CompileAndVerify(string.Format(template, "unchecked"), options: TestOptions.UnsafeReleaseExe, expectedOutput: expectedOutput, verify: Verification.Fails).VerifyIL("C.Main", expectedIL);
+            CompileAndVerify(string.Format(template, "checked"), options: TestOptions.UnsafeReleaseExe, expectedOutput: expectedOutput, verify: Verification.Fails).VerifyIL("C.Main", expectedIL);
         }
 
         [Fact]
@@ -4091,8 +4091,8 @@ unsafe class C
 ";
             var expectedOutput = @"a";
 
-            CompileStandardAndVerify(string.Format(template, "unchecked"), options: TestOptions.UnsafeReleaseExe, expectedOutput: expectedOutput, verify: Verification.Fails).VerifyIL("C.Main", expectedIL);
-            CompileStandardAndVerify(string.Format(template, "checked"), options: TestOptions.UnsafeReleaseExe, expectedOutput: expectedOutput, verify: Verification.Fails).VerifyIL("C.Main", expectedIL);
+            CompileAndVerify(string.Format(template, "unchecked"), options: TestOptions.UnsafeReleaseExe, expectedOutput: expectedOutput, verify: Verification.Fails).VerifyIL("C.Main", expectedIL);
+            CompileAndVerify(string.Format(template, "checked"), options: TestOptions.UnsafeReleaseExe, expectedOutput: expectedOutput, verify: Verification.Fails).VerifyIL("C.Main", expectedIL);
         }
 
         [Fact]
@@ -4128,7 +4128,7 @@ unsafe class C
     }
 }
 ";
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).VerifyIL("C.M", @"
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).VerifyIL("C.M", @"
 {
   // Code size       65 (0x41)
   .maxstack  1
@@ -4218,7 +4218,7 @@ unsafe class C
     }
 }
 ";
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).VerifyIL("C.M", @"
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).VerifyIL("C.M", @"
 {
   // Code size       65 (0x41)
   .maxstack  1
@@ -4308,7 +4308,7 @@ unsafe class C
     }
 }
 ";
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).VerifyIL("C.M", @"
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).VerifyIL("C.M", @"
 {
   // Code size       79 (0x4f)
   .maxstack  1
@@ -4398,7 +4398,7 @@ unsafe class C
     }
 }
 ";
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).VerifyIL("C.M", @"
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).VerifyIL("C.M", @"
 {
   // Code size       79 (0x4f)
   .maxstack  1
@@ -4539,8 +4539,8 @@ unsafe class Implicit
   IL_0042:  ret
 }
 ";
-            CompileStandardAndVerify(string.Format(template, "unchecked"), options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).VerifyIL("C.M", expectedIL);
-            CompileStandardAndVerify(string.Format(template, "checked"), options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).VerifyIL("C.M", expectedIL);
+            CompileAndVerify(string.Format(template, "unchecked"), options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).VerifyIL("C.M", expectedIL);
+            CompileAndVerify(string.Format(template, "checked"), options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).VerifyIL("C.M", expectedIL);
         }
 
         [Fact]
@@ -4602,8 +4602,8 @@ unsafe class C
   IL_0042:  ret
 }
 ";
-            CompileStandardAndVerify(string.Format(template, "unchecked"), options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).VerifyIL("C.M", expectedIL);
-            CompileStandardAndVerify(string.Format(template, "checked"), options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).VerifyIL("C.M", expectedIL);
+            CompileAndVerify(string.Format(template, "unchecked"), options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).VerifyIL("C.M", expectedIL);
+            CompileAndVerify(string.Format(template, "checked"), options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).VerifyIL("C.M", expectedIL);
         }
 
         [Fact]
@@ -4709,8 +4709,8 @@ unsafe class C
 }
 ";
             var expectedOutput = @"970104";
-            CompileStandardAndVerify(string.Format(template, "unchecked"), options: TestOptions.UnsafeDebugExe, expectedOutput: expectedOutput, verify: Verification.Fails).VerifyIL("C.Main", expectedIL, sequencePoints: "C.Main");
-            CompileStandardAndVerify(string.Format(template, "checked  "), options: TestOptions.UnsafeDebugExe, expectedOutput: expectedOutput, verify: Verification.Fails).VerifyIL("C.Main", expectedIL, sequencePoints: "C.Main");
+            CompileAndVerify(string.Format(template, "unchecked"), options: TestOptions.UnsafeDebugExe, expectedOutput: expectedOutput, verify: Verification.Fails).VerifyIL("C.Main", expectedIL, sequencePoints: "C.Main");
+            CompileAndVerify(string.Format(template, "checked  "), options: TestOptions.UnsafeDebugExe, expectedOutput: expectedOutput, verify: Verification.Fails).VerifyIL("C.Main", expectedIL, sequencePoints: "C.Main");
         }
 
         [Fact]
@@ -4766,8 +4766,8 @@ unsafe class C
 }
 ";
             var expectedOutput = @"a";
-            CompileStandardAndVerify(string.Format(template, "unchecked"), options: TestOptions.UnsafeReleaseExe, expectedOutput: expectedOutput, verify: Verification.Fails).VerifyIL("C.Main", expectedIL);
-            CompileStandardAndVerify(string.Format(template, "checked"), options: TestOptions.UnsafeReleaseExe, expectedOutput: expectedOutput, verify: Verification.Fails).VerifyIL("C.Main", expectedIL);
+            CompileAndVerify(string.Format(template, "unchecked"), options: TestOptions.UnsafeReleaseExe, expectedOutput: expectedOutput, verify: Verification.Fails).VerifyIL("C.Main", expectedIL);
+            CompileAndVerify(string.Format(template, "checked"), options: TestOptions.UnsafeReleaseExe, expectedOutput: expectedOutput, verify: Verification.Fails).VerifyIL("C.Main", expectedIL);
         }
 
         [Fact]
@@ -4808,8 +4808,8 @@ unsafe class C
   IL_0016:  ret
 }
 ";
-            CompileStandardAndVerify(string.Format(template, "unchecked"), options: TestOptions.UnsafeReleaseDll, verify: Verification.Passes).VerifyIL("C.M", expectedIL);
-            CompileStandardAndVerify(string.Format(template, "checked"), options: TestOptions.UnsafeReleaseDll, verify: Verification.Passes).VerifyIL("C.M", expectedIL);
+            CompileAndVerify(string.Format(template, "unchecked"), options: TestOptions.UnsafeReleaseDll, verify: Verification.Passes).VerifyIL("C.M", expectedIL);
+            CompileAndVerify(string.Format(template, "checked"), options: TestOptions.UnsafeReleaseDll, verify: Verification.Passes).VerifyIL("C.M", expectedIL);
         }
 
         [Fact]
@@ -4877,8 +4877,8 @@ unsafe class C
   IL_0016:  ret
 }
 ";
-            CompileStandardAndVerify(string.Format(template, "unchecked"), options: TestOptions.UnsafeReleaseDll, verify: Verification.Passes).VerifyIL("C.M", expectedIL);
-            CompileStandardAndVerify(string.Format(template, "checked"), options: TestOptions.UnsafeReleaseDll, verify: Verification.Passes).VerifyIL("C.M", expectedIL);
+            CompileAndVerify(string.Format(template, "unchecked"), options: TestOptions.UnsafeReleaseDll, verify: Verification.Passes).VerifyIL("C.M", expectedIL);
+            CompileAndVerify(string.Format(template, "checked"), options: TestOptions.UnsafeReleaseDll, verify: Verification.Passes).VerifyIL("C.M", expectedIL);
         }
 
         [Fact]
@@ -4932,7 +4932,7 @@ unsafe class C
     }
 }
 ";
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "12", verify: Verification.Fails).VerifyIL("C.Main", @"
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "12", verify: Verification.Fails).VerifyIL("C.Main", @"
 {
   // Code size       41 (0x29)
   .maxstack  4
@@ -4995,7 +4995,7 @@ unsafe class C
     }
 }
 ";
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "1234", verify: Verification.Fails).VerifyIL("C.Main", @"
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "1234", verify: Verification.Fails).VerifyIL("C.Main", @"
 {
   // Code size      120 (0x78)
   .maxstack  5
@@ -5156,7 +5156,7 @@ class C
 1
 16
 ".Trim();
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: expectedOutput, verify: Verification.Passes).VerifyIL("C.Main", @"
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: expectedOutput, verify: Verification.Passes).VerifyIL("C.Main", @"
 {
   // Code size       80 (0x50)
   .maxstack  1
@@ -5243,7 +5243,7 @@ class Outer
 ".Trim();
             }
 
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: expectedOutput, verify: Verification.Passes).VerifyIL("C.Main", @"
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: expectedOutput, verify: Verification.Passes).VerifyIL("C.Main", @"
 {
   // Code size       45 (0x2d)
   .maxstack  1
@@ -5285,7 +5285,7 @@ enum E3 : long { A }
 1
 8
 ".Trim();
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: expectedOutput, verify: Verification.Passes).VerifyIL("C.Main", @"
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: expectedOutput, verify: Verification.Passes).VerifyIL("C.Main", @"
 {
   // Code size       19 (0x13)
   .maxstack  1
@@ -5328,7 +5328,7 @@ unsafe struct S
 ";
 
             // Dev10 has conv.u after IL_000d and conv.i8 in place of conv.u8 at IL_0017.
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).VerifyIL("S.Main", @"
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).VerifyIL("S.Main", @"
 {
   // Code size       59 (0x3b)
   .maxstack  3
@@ -5393,7 +5393,7 @@ unsafe struct S
 ";
 
             // Dev10 has conv.u after IL_000d and conv.i8 in place of conv.u8 at IL_0017.
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).VerifyIL("S.Main", @"
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).VerifyIL("S.Main", @"
 {
   // Code size       59 (0x3b)
   .maxstack  3
@@ -5458,7 +5458,7 @@ unsafe struct S
 ";
 
             // Dev10 has conv.u after IL_000d and conv.i8 in place of conv.u8 at IL_0017.
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).VerifyIL("S.Main", @"
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).VerifyIL("S.Main", @"
 {
   // Code size       59 (0x3b)
   .maxstack  3
@@ -5523,7 +5523,7 @@ unsafe struct S
 ";
 
             // Dev10 has conv.u after IL_000d and conv.i8 in place of conv.u8 at IL_0017.
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).VerifyIL("S.Main", @"
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).VerifyIL("S.Main", @"
 {
   // Code size       59 (0x3b)
   .maxstack  3
@@ -5593,7 +5593,7 @@ unsafe class C
 ";
             // NOTE: even when not optimized.
             // NOTE: additional conversions applied to constants of type int and uint.
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeDebugDll, verify: Verification.Fails).VerifyIL("C.Test", @"
+            CompileAndVerify(text, options: TestOptions.UnsafeDebugDll, verify: Verification.Fails).VerifyIL("C.Test", @"
 {
   // Code size       50 (0x32)
   .maxstack  2
@@ -5701,7 +5701,7 @@ unsafe class C
             // NOTE: even when not optimized.
             // NOTE: additional conversions applied to constants of type int and uint.
             // NOTE: identical to unchecked except "add" becomes "add.ovf.un".
-            var comp = CompileStandardAndVerify(text, options: TestOptions.UnsafeDebugDll, verify: Verification.Fails);
+            var comp = CompileAndVerify(text, options: TestOptions.UnsafeDebugDll, verify: Verification.Fails);
 
             comp.VerifyIL("C.Test", @"
 {
@@ -5869,7 +5869,7 @@ unsafe struct S
 }
 ";
 
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"2147483651
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"2147483651
 overflow
 2", verify: Verification.Fails).VerifyIL("S.Main", @"
 {
@@ -5955,7 +5955,7 @@ unsafe struct S
 }
 ";
 
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "4", verify: Verification.Fails).VerifyIL("S.Main", @"
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "4", verify: Verification.Fails).VerifyIL("S.Main", @"
 {
   // Code size       47 (0x2f)
   .maxstack  2
@@ -6019,7 +6019,7 @@ unsafe struct S
 }
 ";
 
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "4", verify: Verification.Fails).VerifyIL("S.Main", @"
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "4", verify: Verification.Fails).VerifyIL("S.Main", @"
 {
   // Code size       47 (0x2f)
   .maxstack  2
@@ -6078,7 +6078,7 @@ unsafe struct S
 }
 ";
 
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "I0", verify: Verification.Fails).VerifyIL("S.Main", @"
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "I0", verify: Verification.Fails).VerifyIL("S.Main", @"
 {
   // Code size       74 (0x4a)
   .maxstack  3
@@ -6146,7 +6146,7 @@ unsafe struct S
 }
 ";
 
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "8", verify: Verification.Fails).VerifyIL("S.Main", @"
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "8", verify: Verification.Fails).VerifyIL("S.Main", @"
 {
   // Code size      103 (0x67)
   .maxstack  3
@@ -6253,7 +6253,7 @@ unsafe struct S
                 expectedOutput = @"I8";
             }
 
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: expectedOutput, verify: Verification.Fails).VerifyIL("S.Main", @"
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: expectedOutput, verify: Verification.Fails).VerifyIL("S.Main", @"
 {
   // Code size       78 (0x4e)
   .maxstack  5
@@ -6320,7 +6320,7 @@ unsafe struct S
 ";
 
             // NOTE: don't use checked subtraction or division in either case (matches dev10).
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "44", verify: Verification.Fails).VerifyIL("S.Main", @"
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "44", verify: Verification.Fails).VerifyIL("S.Main", @"
 {
   // Code size       39 (0x27)
   .maxstack  2
@@ -6378,7 +6378,7 @@ unsafe struct S
 ";
 
             // NOTE: don't use checked subtraction or division in either case (matches dev10).
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "11", verify: Verification.Fails).VerifyIL("S.Main", @"
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "11", verify: Verification.Fails).VerifyIL("S.Main", @"
 {
   // Code size       39 (0x27)
   .maxstack  2
@@ -6434,7 +6434,7 @@ unsafe struct S
 ";
 
             // NOTE: don't use checked subtraction or division in either case (matches dev10).
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "11", verify: Verification.Fails).VerifyIL("S.Main", @"
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "11", verify: Verification.Fails).VerifyIL("S.Main", @"
 {
   // Code size       29 (0x1d)
   .maxstack  2
@@ -6493,7 +6493,7 @@ unsafe struct S
 ";
 
             // NOTE: don't use checked subtraction or division in either case (matches dev10).
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "01", verify: Verification.Fails).VerifyIL("S.Main", @"
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "01", verify: Verification.Fails).VerifyIL("S.Main", @"
 {
   // Code size       43 (0x2b)
   .maxstack  2
@@ -6548,7 +6548,7 @@ class PointerArithmetic
     }
 }
 ";
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "2", verify: Verification.Fails);
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "2", verify: Verification.Fails);
         }
 
 
@@ -6948,7 +6948,7 @@ AddULong: Exception at 1 + ulong.MaxValue
 ";
             }
 
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: expectedOutput, verify: Verification.Fails);
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: expectedOutput, verify: Verification.Fails);
         }
 
         // Positive numbers, size = 4
@@ -7049,7 +7049,7 @@ AddULong: Exception at 1 + ulong.MaxValue
 ";
             }
 
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: expectedOutput, verify: Verification.Fails);
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: expectedOutput, verify: Verification.Fails);
         }
 
         // Negative numbers, size = 1
@@ -7084,7 +7084,7 @@ AddLong: No exception at 0 + long.MinValue (value = 9223372036854775808)
 ";
             }
 
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails, expectedOutput: expectedOutput);
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails, expectedOutput: expectedOutput);
         }
 
         // Negative numbers, size = 4
@@ -7119,7 +7119,7 @@ AddLong: Exception at 0 + long.MinValue
 ";
             }
 
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: expectedOutput, verify: Verification.Fails);
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: expectedOutput, verify: Verification.Fails);
         }
 
         // Positive numbers, size = 1
@@ -7128,7 +7128,7 @@ AddLong: Exception at 0 + long.MinValue
         {
             var text = MakeNumericOverflowTest(PositiveNumericSubtractionCasesTemplate, "S00", "Sub", "-", "checked");
 
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails, expectedOutput: @"
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails, expectedOutput: @"
 SubInt: Exception at 0 - 1
 SubInt: Exception at 0 - int.MaxValue
 
@@ -7155,7 +7155,7 @@ SubULong: Exception at 0 - ulong.MaxValue
         {
             var text = MakeNumericOverflowTest(PositiveNumericSubtractionCasesTemplate, "S02", "Sub", "-", "checked");
 
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails, expectedOutput: @"
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails, expectedOutput: @"
 SubInt: Exception at 0 - 1
 SubInt: Exception at 0 - int.MaxValue
 
@@ -7219,7 +7219,7 @@ SubLong: Exception at 0 - -int.MinValue
 ";
             }
 
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: expectedOutput, verify: Verification.Fails);
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: expectedOutput, verify: Verification.Fails);
         }
 
         // Negative numbers, size = 4
@@ -7266,7 +7266,7 @@ SubLong: Exception at 0 - -int.MinValue
 ";
             }
 
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: expectedOutput, verify: Verification.Fails);
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: expectedOutput, verify: Verification.Fails);
         }
 
         [Fact]
@@ -7296,7 +7296,7 @@ unsafe struct S
     }
 }
 ";
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, verify: Verification.Passes, expectedOutput: @"
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, verify: Verification.Passes, expectedOutput: @"
 No exception from addition
 Exception from subtraction
 ");
@@ -7346,7 +7346,7 @@ No exception for pointer + int
 ";
             }
 
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: expectedOutput, verify: Verification.Passes);
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: expectedOutput, verify: Verification.Passes);
         }
 
         [Fact]
@@ -7384,7 +7384,7 @@ unsafe struct S
                 expectedOutput = @"-4294967295-4294967295";
             }
 
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: expectedOutput, verify: Verification.Fails);
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: expectedOutput, verify: Verification.Fails);
         }
 
         [Fact]
@@ -7425,7 +7425,7 @@ unsafe struct S
     }
 }
 ";
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails, expectedOutput: @"
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails, expectedOutput: @"
 12
 No exception for element access
 Exception for add-then-dereference
@@ -7534,7 +7534,7 @@ AddULong: No exception at 1 + ulong.MaxValue (value = 0)
 ";
             }
 
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: expectedOutput, verify: Verification.Fails);
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: expectedOutput, verify: Verification.Fails);
         }
 
         // Positive numbers, size = 4
@@ -7635,7 +7635,7 @@ AddULong: No exception at 1 + ulong.MaxValue (value = 18446744073709551613)
 ";
             }
 
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: expectedOutput, verify: Verification.Fails);
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: expectedOutput, verify: Verification.Fails);
         }
 
         // Negative numbers, size = 1
@@ -7670,7 +7670,7 @@ AddLong: No exception at 0 + long.MinValue (value = 9223372036854775808)
 ";
             }
 
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: expectedOutput, verify: Verification.Fails);
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: expectedOutput, verify: Verification.Fails);
         }
 
         // Negative numbers, size = 4
@@ -7705,7 +7705,7 @@ AddLong: No exception at 0 + long.MinValue (value = 0)
 ";
             }
 
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: expectedOutput, verify: Verification.Fails);
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: expectedOutput, verify: Verification.Fails);
         }
 
         // Positive numbers, size = 1
@@ -7762,7 +7762,7 @@ SubULong: No exception at 0 - ulong.MaxValue (value = 1)
 ";
             }
 
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: expectedOutput, verify: Verification.Fails);
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: expectedOutput, verify: Verification.Fails);
         }
 
         // Positive numbers, size = 4
@@ -7819,7 +7819,7 @@ SubULong: No exception at 0 - ulong.MaxValue (value = 4)
 ";
             }
 
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: expectedOutput, verify: Verification.Fails);
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: expectedOutput, verify: Verification.Fails);
         }
 
         // Negative numbers, size = 1
@@ -7866,7 +7866,7 @@ SubLong: No exception at 0 - -int.MinValue (value = 18446744071562067968)
 ";
             }
 
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: expectedOutput, verify: Verification.Fails);
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: expectedOutput, verify: Verification.Fails);
         }
 
         // Negative numbers, size = 4
@@ -7910,7 +7910,7 @@ SubLong: No exception at 0 - -ulong.MaxValue (value = 18446744073709551612)
 SubLong: No exception at 0 - -int.MinValue (value = 18446744065119617024)";
             }
 
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: expectedOutput, verify: Verification.Fails);
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: expectedOutput, verify: Verification.Fails);
         }
 
         #endregion Unchecked pointer arithmetic overflow tests
@@ -7958,7 +7958,7 @@ unsafe struct S
 }
 ";
             // NOTE: all comparisons unsigned.
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "011010011010", verify: Verification.Fails).VerifyIL("S.Main", @"
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "011010011010", verify: Verification.Fails).VerifyIL("S.Main", @"
 {
   // Code size      133 (0x85)
   .maxstack  2
@@ -8076,7 +8076,7 @@ unsafe class C
 }
 ";
             // NOTE: conversion is always unchecked, multiplication is always checked.
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).VerifyIL("C.M", @"
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).VerifyIL("C.M", @"
 {
   // Code size       47 (0x2f)
   .maxstack  2
@@ -8133,7 +8133,7 @@ unsafe class C
     }
 }
 ";
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).VerifyIL("C.M", @"
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).VerifyIL("C.M", @"
 {
   // Code size       16 (0x10)
   .maxstack  1
@@ -8170,7 +8170,7 @@ unsafe class C
     }
 }
 ";
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).VerifyIL("C.M", @"
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).VerifyIL("C.M", @"
 {
   // Code size       12 (0xc)
   .maxstack  1
@@ -8216,7 +8216,7 @@ unsafe class C
 	}
 }
 ";
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails, expectedOutput: @"123
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails, expectedOutput: @"123
 -456
 ");
         }
@@ -8257,7 +8257,7 @@ unsafe class C
     }
 }
 ";
-            var verifier = CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails);
+            var verifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails);
 
             // Note that the stackalloc for p is written into a temp *before* the receiver (i.e. "this")
             // for C.<>c__DisplayClass0.p is pushed onto the stack.
@@ -8330,7 +8330,7 @@ unsafe class T
     } 
 } 
 ";
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "0", verify: Verification.Fails).VerifyIL("T.Main", @"
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "0", verify: Verification.Fails).VerifyIL("T.Main", @"
 {
   // Code size       41 (0x29)
   .maxstack  2
@@ -8353,7 +8353,7 @@ unsafe class T
   IL_0028:  ret
 }
 ");
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "0", verify: Verification.Fails).VerifyIL("T.Main", @"
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "0", verify: Verification.Fails).VerifyIL("T.Main", @"
 {
   // Code size       41 (0x29)
   .maxstack  2
@@ -8403,7 +8403,7 @@ public class C
     }
 }
 ";
-            var compVerifier = CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
             compVerifier.VerifyIL("C.Main", @"
 {
   // Code size       13 (0xd)
@@ -8478,7 +8478,7 @@ unsafe class C
     }
 }
 ";
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails, expectedOutput: @"
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails, expectedOutput: @"
 1
 1, 2
 1, 2, 3
@@ -8533,7 +8533,7 @@ No overflow from (S15*)0 + sizeof(S16)
 No overflow from (S16*)0 + sizeof(S15)";
             }
 
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: expectedOutput, verify: Verification.Fails);
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: expectedOutput, verify: Verification.Fails);
         }
 
         [Fact]
@@ -8557,7 +8557,7 @@ unsafe delegate void F1(int* x);
 delegate void F2(int x);
 ";
 
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"2", verify: Verification.Passes);
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"2", verify: Verification.Passes);
         }
 
         [Fact]
@@ -8591,7 +8591,7 @@ unsafe class C
             // NOTE: one pinned string temp and one unpinned string temp.
             // That is, pinned temps are reused in by other pinned temps
             // but not by unpinned temps and vice versa.
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).VerifyIL("C.Test", @"
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).VerifyIL("C.Test", @"
 {
   // Code size       99 (0x63)
   .maxstack  4
@@ -8675,12 +8675,12 @@ class A : Attribute
     }}
 }}
 ";
-            CompileStandardAndVerify(string.Format(template, "int"), options: TestOptions.UnsafeReleaseExe, expectedOutput: @"True", verify: Verification.Passes);
-            CompileStandardAndVerify(string.Format(template, "int*"), options: TestOptions.UnsafeReleaseExe, expectedOutput: @"True", verify: Verification.Passes);
-            CompileStandardAndVerify(string.Format(template, "int**"), options: TestOptions.UnsafeReleaseExe, expectedOutput: @"True", verify: Verification.Passes);
-            CompileStandardAndVerify(string.Format(template, "int[]"), options: TestOptions.UnsafeReleaseExe, expectedOutput: @"True", verify: Verification.Passes);
-            CompileStandardAndVerify(string.Format(template, "int[][]"), options: TestOptions.UnsafeReleaseExe, expectedOutput: @"True", verify: Verification.Passes);
-            CompileStandardAndVerify(string.Format(template, "int*[]"), options: TestOptions.UnsafeReleaseExe, expectedOutput: @"True", verify: Verification.Passes);
+            CompileAndVerify(string.Format(template, "int"), options: TestOptions.UnsafeReleaseExe, expectedOutput: @"True", verify: Verification.Passes);
+            CompileAndVerify(string.Format(template, "int*"), options: TestOptions.UnsafeReleaseExe, expectedOutput: @"True", verify: Verification.Passes);
+            CompileAndVerify(string.Format(template, "int**"), options: TestOptions.UnsafeReleaseExe, expectedOutput: @"True", verify: Verification.Passes);
+            CompileAndVerify(string.Format(template, "int[]"), options: TestOptions.UnsafeReleaseExe, expectedOutput: @"True", verify: Verification.Passes);
+            CompileAndVerify(string.Format(template, "int[][]"), options: TestOptions.UnsafeReleaseExe, expectedOutput: @"True", verify: Verification.Passes);
+            CompileAndVerify(string.Format(template, "int*[]"), options: TestOptions.UnsafeReleaseExe, expectedOutput: @"True", verify: Verification.Passes);
         }
 
         #endregion Functional tests
@@ -8714,7 +8714,7 @@ public class Test
     }
 }
 ";
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails).VerifyDiagnostics();
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails).VerifyDiagnostics();
         }
 
         [WorkItem(545026, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545026")]
@@ -8728,7 +8728,7 @@ class C
     unsafe int* p = (int*)2;
 }
 ";
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).VerifyDiagnostics(
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).VerifyDiagnostics(
                 // (4,9): warning CS0414: The field 'C.x' is assigned but its value is never used
                 //     int x = 1;
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "x").WithArguments("C.x"));
@@ -8745,7 +8745,7 @@ class C
     int x = 1;
 }
 ";
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).VerifyDiagnostics(
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).VerifyDiagnostics(
                 // (5,9): warning CS0414: The field 'C.x' is assigned but its value is never used
                 //     int x = 1;
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "x").WithArguments("C.x"));
@@ -8818,7 +8818,7 @@ public struct OuterStruct
     override public string ToString() { return (ES.ToString() + FS.ToString()); }
 }
 ";
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Passes).VerifyDiagnostics(
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Passes).VerifyDiagnostics(
                 // (8,17): warning CS0649: Field 'OuterStruct.FS' is never assigned to, and will always have its default value 
                 //     FixedStruct FS;
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "FS").WithArguments("OuterStruct.FS", "").WithLocation(8, 17),
@@ -8841,7 +8841,7 @@ unsafe public struct FixedStruct
     }
 }
 ";
-            var comp = CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).VerifyDiagnostics();
+            var comp = CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).VerifyDiagnostics();
 
             comp.VerifyIL("FixedStruct.ToString", @"
 {
@@ -8894,7 +8894,7 @@ unsafe public struct FixedStruct
             }
         }
     }";
-            var comp = CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput:"ABC", verify: Verification.Fails).VerifyDiagnostics();
+            var comp = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput:"ABC", verify: Verification.Fails).VerifyDiagnostics();
 
             comp.VerifyIL("FixedStruct.ToString", @"
 {
@@ -8961,7 +8961,7 @@ class A
     }
 }
 ";
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "b", verify: Verification.Fails);
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "b", verify: Verification.Fails);
         }
 
         [Fact, WorkItem(546865, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546865")]
@@ -9005,7 +9005,7 @@ unsafe class Test
 }
 ";
 
-            var verifier = CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "hello", verify: Verification.Fails);
+            var verifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "hello", verify: Verification.Fails);
 
             // Note that the pointer local is not scheduled on the stack.
             verifier.VerifyIL("Test.Test1", @"
@@ -9074,7 +9074,7 @@ unsafe class Test
 }
 ";
 
-            var verifier = CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails, expectedOutput: @"
+            var verifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails, expectedOutput: @"
 True
 True");
 
@@ -9154,7 +9154,7 @@ unsafe class Test
 }
 ";
 
-            var verifier = CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails, expectedOutput: @"
+            var verifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails, expectedOutput: @"
 2
 2");
 
@@ -9206,7 +9206,7 @@ namespace N
 }
 ";
 
-            var verifier = CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseDll.WithConcurrentBuild(false), verify: Verification.Passes);
+            var verifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll.WithConcurrentBuild(false), verify: Verification.Passes);
         }
 
         [Fact, WorkItem(531327, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531327")]
@@ -9230,7 +9230,7 @@ unsafe struct S1
 
 ";
 
-            var verifier = CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseDll.WithConcurrentBuild(false), verify: Verification.Fails);
+            var verifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll.WithConcurrentBuild(false), verify: Verification.Fails);
         }
 
         [Fact, WorkItem(748530, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/748530")]
@@ -9270,7 +9270,7 @@ unsafe class C
     }
 }
 ";
-            var compVerifier = CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "F6543210", verify: Verification.Fails);
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "F6543210", verify: Verification.Fails);
             compVerifier.VerifyIL("C.Main", @"
 {
   // Code size       36 (0x24)
@@ -9316,7 +9316,7 @@ unsafe class C
     }
 }
 ";
-            var compVerifier = CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "F6543210", verify: Verification.Fails);
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "F6543210", verify: Verification.Fails);
             compVerifier.VerifyIL("C.Main", @"
 {
   // Code size       40 (0x28)
@@ -9365,7 +9365,7 @@ unsafe class C
     }
 }
 ";
-            var compVerifier = CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "F6543210", verify: Verification.Fails);
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "F6543210", verify: Verification.Fails);
             compVerifier.VerifyIL("C.Main", @"
 {
   // Code size       34 (0x22)
@@ -9407,7 +9407,7 @@ unsafe class C
     }
 }
 ";
-            var compVerifier = CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "F654320F", verify: Verification.Fails);
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "F654320F", verify: Verification.Fails);
             compVerifier.VerifyIL("C.Main", @"
 {
   // Code size       33 (0x21)
@@ -9450,7 +9450,7 @@ class c1
 	}
 }
 ";
-            var compVerifier = CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "0", verify: Verification.Passes);
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "0", verify: Verification.Passes);
             compVerifier.VerifyIL("C..ctor", @"
 {
   // Code size       21 (0x15)
@@ -9504,7 +9504,7 @@ public unsafe class C
 }
 
 ";
-            var compVerifier = CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "System.Byte[]", verify: Verification.Fails);
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "System.Byte[]", verify: Verification.Fails);
             compVerifier.VerifyIL("C.ToManagedByteArray", @"
 {
   // Code size       42 (0x2a)
@@ -9577,7 +9577,7 @@ public unsafe class C
 }
 
 ";
-            var v = CompileStandardAndVerify(text, options: TestOptions.UnsafeDebugExe, expectedOutput: "System.Byte[]", verify: Verification.Fails);
+            var v = CompileAndVerify(text, options: TestOptions.UnsafeDebugExe, expectedOutput: "System.Byte[]", verify: Verification.Fails);
             v.VerifyIL("C.ToManagedByteArray", @"
 {
   // Code size       64 (0x40)
@@ -9724,7 +9724,7 @@ public class A
     }
 }
 ";
-            CompileStandardAndVerify(source, options: TestOptions.UnsafeReleaseExe, expectedOutput: "OK", verify: Verification.Passes);
+            CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, expectedOutput: "OK", verify: Verification.Passes);
         }
 
         #endregion

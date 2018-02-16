@@ -304,7 +304,7 @@ class C
 }
 ";
             // the delegate is generated, no error is reported
-            var c = CompileAndVerify(source, new[] { systemCoreRef, csrtRef, funcRef });
+            var c = CompileAndVerifyWithMscorlib40(source, new[] { systemCoreRef, csrtRef, funcRef });
             Assert.Equal(1, ((CSharpCompilation)c.Compilation).GlobalNamespace.GetMember<NamespaceSymbol>("System").GetMember<NamedTypeSymbol>("Func`13").Arity);
         }
 
@@ -331,7 +331,7 @@ class C
 ";
             // Desired: the delegate is generated, no error is reported.
             // Actual: use the malformed Func`13 time and failed to PEVerify.  Not presently worthwhile to fix.
-            CompileAndVerify(source, new[] { systemCoreRef, csrtRef }, verify: Verification.Fails).VerifyIL("C.F", @"
+            CompileAndVerifyWithMscorlib40(source, new[] { systemCoreRef, csrtRef }, verify: Verification.Fails).VerifyIL("C.F", @"
 {
   // Code size      189 (0xbd)
   .maxstack  13
@@ -578,7 +578,7 @@ public class C
         d.m(1,2,3);
     }
 }";
-            var verifier = CompileStandardAndVerify(source, references: new[] { SystemCoreRef, CSharpRef }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: peModule =>
+            var verifier = CompileAndVerify(source, references: new[] { SystemCoreRef, CSharpRef }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: peModule =>
             {
                 var c = peModule.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
                 var containers = c.GetMembers().OfType<NamedTypeSymbol>().ToArray();
@@ -634,7 +634,7 @@ public class C
         var x = new System.Action(() => d.m());
     }
 }";
-            var verifier = CompileStandardAndVerify(source, references: new[] { SystemCoreRef, CSharpRef }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: peModule =>
+            var verifier = CompileAndVerify(source, references: new[] { SystemCoreRef, CSharpRef }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: peModule =>
             {
                 var c = peModule.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
                 Assert.Equal(2, c.GetMembers().OfType<NamedTypeSymbol>().Count());
@@ -669,7 +669,7 @@ public class C
         yield return d;        
     }
 }";
-            var verifier = CompileStandardAndVerify(source, references: new[] { SystemCoreRef, CSharpRef }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: peModule =>
+            var verifier = CompileAndVerify(source, references: new[] { SystemCoreRef, CSharpRef }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: peModule =>
             {
                 var c = peModule.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
                 var iteratorClass = c.GetMember<NamedTypeSymbol>("<M1>d__0");
@@ -795,7 +795,7 @@ public class C
         return d(a, b);
     }
 }";
-            var verifier = CompileStandardAndVerify(source, references: new[] { SystemCoreRef, CSharpRef }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: peModule =>
+            var verifier = CompileAndVerify(source, references: new[] { SystemCoreRef, CSharpRef }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: peModule =>
             {
                 var container = peModule.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<NamedTypeSymbol>("<>o__0");
                 Assert.Equal(0, container.GetMembers().Single().GetAttributes().Length);
@@ -815,7 +815,7 @@ public class C
         return d(ref d);
     }
 }";
-            var verifier = CompileStandardAndVerify(source, references: new[] { SystemCoreRef, CSharpRef }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: peModule =>
+            var verifier = CompileAndVerify(source, references: new[] { SystemCoreRef, CSharpRef }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: peModule =>
             {
                 var d = peModule.GlobalNamespace.GetMember<NamedTypeSymbol>("<>F{00000004}");
 
@@ -1008,7 +1008,7 @@ class C
     }
 }
 ";
-            CompileStandardAndVerify(source, new[] { CSharpRef, SystemCoreRef });
+            CompileAndVerify(source, new[] { CSharpRef, SystemCoreRef });
         }
 
         [Fact]
@@ -1087,7 +1087,7 @@ public class C
     }
 }
 ";
-            CompileStandardAndVerify(source, new[] { SystemCoreRef });
+            CompileAndVerify(source, new[] { SystemCoreRef });
         }
 
         [Fact, WorkItem(16, "http://roslyn.codeplex.com/workitem/16")]
@@ -1531,7 +1531,7 @@ public class C
         l3(d);
     }
 }";
-            CompileStandardAndVerify(src,
+            CompileAndVerify(src,
                 expectedOutput: "2024",
                 parseOptions: _localFunctionParseOptions,
                 references: new[] { SystemCoreRef, CSharpRef }).VerifyDiagnostics();
@@ -2268,7 +2268,7 @@ public class C
     }
 }";
             // TODO: Why does RefEmit use fat header with maxstack = 2?
-            var verifier = CompileStandardAndVerify(source, references: new[] { SystemCoreRef, CSharpRef }, symbolValidator: module =>
+            var verifier = CompileAndVerify(source, references: new[] { SystemCoreRef, CSharpRef }, symbolValidator: module =>
             {
                 var pe = (PEModuleSymbol)module;
 
@@ -5011,7 +5011,7 @@ class C
 1:t
 1:t";
 
-            CompileStandardAndVerify(source: source, expectedOutput: output, references: new[] { SystemCoreRef, CSharpRef });
+            CompileAndVerify(source: source, expectedOutput: output, references: new[] { SystemCoreRef, CSharpRef });
         }
 
 
@@ -5114,7 +5114,7 @@ class C
 00011111-
 01111111";
 
-            CompileStandardAndVerify(source: source, expectedOutput: output, references: new[] { SystemCoreRef, CSharpRef });
+            CompileAndVerify(source: source, expectedOutput: output, references: new[] { SystemCoreRef, CSharpRef });
         }
 
         [Fact]
@@ -5144,7 +5144,7 @@ public class C
     }
 }
 ";
-            CompileStandardAndVerify(source, expectedOutput: "", references: new[] { SystemCoreRef, CSharpRef });
+            CompileAndVerify(source, expectedOutput: "", references: new[] { SystemCoreRef, CSharpRef });
         }
 
         [Fact]
@@ -6570,7 +6570,7 @@ public class A
   IL_0067:  ret
 }");
 
-            CompileStandardAndVerify(source,
+            CompileAndVerify(source,
                 new[] { SystemCoreRef, CSharpRef },
                 expectedOutput: "The call is ambiguous between the following methods or properties: 'A.M(A)' and 'A.M(string)'");
         }
@@ -8044,7 +8044,7 @@ partial class C
     }
 }
 ";
-            CompileStandardAndVerify(source, references: new[] { CSharpRef, SystemCoreRef }, expectedOutput: "2");
+            CompileAndVerify(source, references: new[] { CSharpRef, SystemCoreRef }, expectedOutput: "2");
         }
 
         [Fact]
@@ -8708,7 +8708,7 @@ public class C
     public void m(ref object a, out object b) { b = null; }
 }
 ";
-            CompileStandardAndVerify(source, expectedOutput: "", references: new[] { SystemCoreRef, CSharpRef });
+            CompileAndVerify(source, expectedOutput: "", references: new[] { SystemCoreRef, CSharpRef });
         }
 
         /// <summary>
@@ -13993,7 +13993,7 @@ class C
     }
 }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: "hello!", references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef, SystemCoreRef });
+            var comp = CompileAndVerifyWithMscorlib40(source, expectedOutput: "hello!", references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef, SystemCoreRef });
             comp.VerifyDiagnostics();
             // No runtime failure (System.ArrayTypeMismatchException: Attempted to access an element as a type incompatible with the array.)
             // because of the special handling for dynamic in LocalRewriter.TransformCompoundAssignmentLHS

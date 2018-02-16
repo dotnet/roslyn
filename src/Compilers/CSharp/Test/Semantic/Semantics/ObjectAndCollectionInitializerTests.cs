@@ -59,7 +59,7 @@ IObjectCreationOperation (Constructor: MemberInitializerTest..ctor()) (Operation
 
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
 
-            CompileStandardAndVerify(source, expectedOutput: "");
+            CompileAndVerify(source, expectedOutput: "");
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -103,7 +103,7 @@ IObjectCreationOperation (Constructor: MemberInitializerTest..ctor()) (Operation
 
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
 
-            CompileStandardAndVerify(source, expectedOutput: "");
+            CompileAndVerify(source, expectedOutput: "");
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -153,7 +153,7 @@ ITypeParameterObjectCreationOperation (OperationKind.TypeParameterObjectCreation
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-            CompileStandardAndVerify(source, expectedOutput: "");
+            CompileAndVerify(source, expectedOutput: "");
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -181,7 +181,7 @@ IObjectCreationOperation (Constructor: X..ctor()) (OperationKind.ObjectCreation,
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-            CompileStandardAndVerify(source, expectedOutput: "");
+            CompileAndVerify(source, expectedOutput: "");
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -208,7 +208,7 @@ IObjectCreationOperation (Constructor: System.Int32..ctor()) (OperationKind.Obje
 
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
 
-            CompileStandardAndVerify(source, expectedOutput: "");
+            CompileAndVerify(source, expectedOutput: "");
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -293,7 +293,7 @@ class MyList : List<int>
     public MyList(List<int> list){}    
 }
 ";
-            CompileStandardAndVerify(source, expectedOutput: "");
+            CompileAndVerify(source, expectedOutput: "");
         }
 
         #endregion
@@ -375,7 +375,7 @@ IBlockOperation (3 statements, 3 locals) (OperationKind.Block, Type: null) (Synt
 
             VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);
 
-            CompileStandardAndVerify(source, expectedOutput: "");
+            CompileAndVerify(source, expectedOutput: "");
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -431,7 +431,7 @@ IObjectCreationOperation (Constructor: Test..ctor()) (OperationKind.ObjectCreati
 
             // TODO: This should produce no diagnostics.
             // The 'info' message is ONLY used for IDE (NOT show up in console)
-            CompileStandardAndVerify(source, references: new MetadataReference[] { CSharpRef }).
+            CompileAndVerify(source, references: new MetadataReference[] { CSharpRef }).
                 VerifyDiagnostics(
                 // (4,1): info CS8019: Unnecessary using directive.
                 // using System.Collections;
@@ -527,7 +527,7 @@ IObjectCreationOperation (Constructor: B..ctor()) (OperationKind.ObjectCreation,
 3
 4
 5";
-            CompileStandardAndVerify(source, expectedOutput: expectedOutput);
+            CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -625,7 +625,7 @@ IObjectCreationOperation (Constructor: B<System.Int64>..ctor()) (OperationKind.O
 3
 4
 5";
-            CompileStandardAndVerify(source, expectedOutput: expectedOutput);
+            CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -729,7 +729,7 @@ IObjectCreationOperation (Constructor: MyList<System.String>..ctor()) (Operation
 
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
 
-            CompileStandardAndVerify(source, expectedOutput: "str");
+            CompileAndVerify(source, expectedOutput: "str");
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -3787,7 +3787,7 @@ public class Cc{
     }
 }
 ";
-            CompileStandardAndVerify(source, new[] { CSharpRef }, expectedOutput: "Initialized");
+            CompileAndVerify(source, new[] { CSharpRef }, expectedOutput: "Initialized");
         }
 
         [WorkItem(12983, "https://github.com/dotnet/roslyn/issues/12983")]

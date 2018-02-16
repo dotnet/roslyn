@@ -93,7 +93,7 @@ Class.Method2(4)
 
             var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.CppCli.dll;
 
-            CompileStandardAndVerify(
+            CompileAndVerify(
                 source: text,
                 references: new MetadataReference[] { ilAssemblyReference },
                 expectedOutput: expectedOutput);
@@ -152,7 +152,7 @@ Class.Method2(6)
 
             var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.CppCli.dll;
 
-            CompileStandardAndVerify(
+            CompileAndVerify(
                 source: text,
                 references: new MetadataReference[] { ilAssemblyReference },
                 expectedOutput: expectedOutput);
@@ -204,7 +204,7 @@ CppBase1::NonVirtualMethod(4)
 
             var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.CppCli.dll;
 
-            CompileStandardAndVerify(
+            CompileAndVerify(
                 source: text,
                 references: new MetadataReference[] { ilAssemblyReference },
                 expectedOutput: expectedOutput);
@@ -275,7 +275,7 @@ CppBase1::NonVirtualMethod(6)
 
             var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.CppCli.dll;
 
-            CompileStandardAndVerify(
+            CompileAndVerify(
                 source: text,
                 references: new MetadataReference[] { ilAssemblyReference },
                 expectedOutput: expectedOutput);
@@ -368,7 +368,7 @@ CppBase2::Method2(12)
 
             var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.CppCli.dll;
 
-            CompileStandardAndVerify(
+            CompileAndVerify(
                 source: text,
                 references: new MetadataReference[] { ilAssemblyReference },
                 expectedOutput: expectedOutput);
@@ -450,7 +450,7 @@ Class2.Method(23,24)
 
             var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.CppCli.dll;
 
-            CompileStandardAndVerify(
+            CompileAndVerify(
                 source: text,
                 references: new MetadataReference[] { ilAssemblyReference },
                 expectedOutput: expectedOutput);
@@ -502,7 +502,7 @@ Derived2.Method(Int64[], Int16[], Single[])
 
             var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll;
 
-            CompileStandardAndVerify(
+            CompileAndVerify(
                 source: text,
                 references: new MetadataReference[] { ilAssemblyReference },
                 expectedOutput: expectedOutput);
@@ -545,7 +545,7 @@ System.Int32[]
 
             var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll;
 
-            CompileStandardAndVerify(
+            CompileAndVerify(
                 source: text,
                 references: new MetadataReference[] { ilAssemblyReference },
                 expectedOutput: expectedOutput);

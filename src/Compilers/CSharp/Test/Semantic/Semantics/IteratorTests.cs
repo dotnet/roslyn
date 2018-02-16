@@ -164,7 +164,7 @@ public class Program
     {
     }
 }";
-            CompileStandardAndVerify(text).VerifyDiagnostics();
+            CompileAndVerify(text).VerifyDiagnostics();
         }
 
         [WorkItem(813557, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/813557")]
@@ -189,7 +189,7 @@ public class Program
     {
     }
 }";
-            CompileStandardAndVerify(text).VerifyDiagnostics();
+            CompileAndVerify(text).VerifyDiagnostics();
         }
 
         [WorkItem(888254, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/888254")]
@@ -229,7 +229,7 @@ namespace RoslynYield
         }
     }
 }";
-            CompileStandardAndVerify(text).VerifyDiagnostics();
+            CompileAndVerify(text).VerifyDiagnostics();
         }
 
         [WorkItem(888254, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/888254")]
@@ -287,7 +287,7 @@ namespace RoslynYield
         }
     }
 }";
-            CompileStandardAndVerify(text).VerifyDiagnostics();
+            CompileAndVerify(text).VerifyDiagnostics();
         }
 
         [Fact]
@@ -405,7 +405,7 @@ class Base
         }
     }
 }";
-            var comp = CompileStandardAndVerify(source, expectedOutput: "0,1,2,3", options: TestOptions.DebugExe);
+            var comp = CompileAndVerify(source, expectedOutput: "0,1,2,3", options: TestOptions.DebugExe);
             comp.Compilation.VerifyDiagnostics();
         }
 

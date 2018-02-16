@@ -99,7 +99,7 @@ class C
         }
     }
 }";
-            var compilation = CompileStandardAndVerify(source);
+            var compilation = CompileAndVerify(source);
 
             compilation.VerifyIL("C.Main", @"{
   // Code size       11 (0xb)
@@ -136,7 +136,7 @@ class C
         }
     }
 }";
-            var compilation = CompileStandardAndVerify(source);
+            var compilation = CompileAndVerify(source);
 
             compilation.VerifyIL("C.Main", @"{
  // Code size        1 (0x1)
@@ -164,7 +164,7 @@ class C
         }
     }
 }";
-            var compilation = CompileStandardAndVerify(source);
+            var compilation = CompileAndVerify(source);
 
             compilation.VerifyIL("C.Main", @"{
   // Code size       11 (0xb)
@@ -201,7 +201,7 @@ class C
         }
     }
 }";
-            var compilation = CompileStandardAndVerify(source);
+            var compilation = CompileAndVerify(source);
 
             compilation.VerifyIL("C.Main", @"{
   // Code size        1 (0x1)
@@ -229,7 +229,7 @@ class C
         }
     }
 }";
-            var compilation = CompileStandardAndVerify(source);
+            var compilation = CompileAndVerify(source);
 
             compilation.VerifyIL("C.Main", @"{
   // Code size       11 (0xb)
@@ -280,7 +280,7 @@ class C
         }
     }
 }";
-            CompileStandardAndVerify(source, expectedOutput: "B");
+            CompileAndVerify(source, expectedOutput: "B");
         }
 
         [Fact]
@@ -312,7 +312,7 @@ class C
         }
     }
 }";
-            CompileStandardAndVerify(source, expectedOutput: "A");
+            CompileAndVerify(source, expectedOutput: "A");
         }
     }
 }

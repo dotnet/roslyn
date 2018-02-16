@@ -47,7 +47,7 @@ class D<T> where T : A<int>, new() { }";
                 CheckConstraints(type.TypeParameters[0], TypeParameterConstraintKind.Constructor, false, true, "A<int>", "A<int>", "A<int>");
             };
 
-            CompileStandardAndVerify(
+            CompileAndVerify(
                 source: source,
                 sourceSymbolValidator: validator,
                 symbolValidator: validator);
@@ -85,7 +85,7 @@ class B1 : A<int>
                 CheckConstraints(method.TypeParameters[0], TypeParameterConstraintKind.None, true, false, "ValueType", "int", "int");
             };
 
-            CompileStandardAndVerify(
+            CompileAndVerify(
                 source: source,
                 sourceSymbolValidator: validator,
                 symbolValidator: validator);
@@ -111,7 +111,7 @@ class C : I<C, object>
                 CheckConstraints(method.TypeParameters[0], TypeParameterConstraintKind.None, false, true, "C", "C", "C");
             };
 
-            CompileStandardAndVerify(
+            CompileAndVerify(
                 source: source,
                 sourceSymbolValidator: validator,
                 symbolValidator: validator);
@@ -167,7 +167,7 @@ partial class B<T> : A<T>
                 Utils.CheckSymbol(method.OverriddenMethod, "void A<T>.M2<U>(U u)");
             };
 
-            CompileStandardAndVerify(
+            CompileAndVerify(
                 source: source,
                 sourceSymbolValidator: validator,
                 symbolValidator: validator);
@@ -187,7 +187,7 @@ struct S<T> where T : I<T>
     }
 }
 delegate void D<T>() where T : I<T>;";
-            CompileStandardAndVerify(source);
+            CompileAndVerify(source);
         }
 
         [ClrOnlyFact]
@@ -197,7 +197,7 @@ delegate void D<T>() where T : I<T>;";
 @"interface IA<T> { }
 class C<T> where T : IA<C<T>> { }
 interface IB<T> where T : IB<T> { }";
-            CompileStandardAndVerify(source);
+            CompileAndVerify(source);
         }
 
         [ClrOnlyFact]
@@ -206,7 +206,7 @@ interface IB<T> where T : IB<T> { }";
             var source =
 @"interface I<T> where T : I<T> { }
 class C<T, U> where T : C<T, U> { }";
-            CompileStandardAndVerify(source);
+            CompileAndVerify(source);
         }
 
         [ClrOnlyFact]
@@ -217,7 +217,7 @@ class C<T, U> where T : C<T, U> { }";
 interface IB<T> : IA<IB<T>> where T : IA<T> { }
 class A<T> { }
 class B<T> : A<B<T>> where T : A<T> { }";
-            CompileStandardAndVerify(source);
+            CompileAndVerify(source);
         }
 
         [Fact]
@@ -396,7 +396,7 @@ class B : I<object>
     public void M3<T>() where T : I<object> { }
 }";
             // TODO: Verify constraints for implementations are emitted correctly.
-            CompileStandardAndVerify(source);
+            CompileAndVerify(source);
         }
 
         /// <summary>
@@ -435,7 +435,7 @@ class C : I<object>
     void I<object>.M4<T, U>() { }
 }";
             // TODO: Verify constraints for implementations are emitted correctly.
-            CompileStandardAndVerify(source);
+            CompileAndVerify(source);
         }
 
         /// <summary>
@@ -687,7 +687,7 @@ partial class B<T> where T : struct
     where U : struct, T
 {
 }";
-            CompileStandardAndVerify(source);
+            CompileAndVerify(source);
         }
 
         [ClrOnlyFact]
@@ -696,7 +696,7 @@ partial class B<T> where T : struct
             var source =
 @"interface I<T> { }
 class C<where> where where : I<where> { }";
-            CompileStandardAndVerify(source);
+            CompileAndVerify(source);
         }
 
         [ClrOnlyFact]
@@ -712,7 +712,7 @@ class C<T> where T : new()
         M(new S());
     }
 }";
-            CompileStandardAndVerify(source);
+            CompileAndVerify(source);
         }
 
         [Fact]
@@ -746,7 +746,7 @@ class B<T> where T : A
         class D<V> where V : A, U { }
     }
 }";
-            CompileStandardAndVerify(source);
+            CompileAndVerify(source);
         }
 
         /// <summary>
@@ -1007,7 +1007,7 @@ interface IB { }
 partial class C<T> where T : struct, IA<T>, IB { }
 partial class C<T> where T : struct, IB, IA<T> { }
 partial class C<T> { }";
-            CompileStandardAndVerify(source);
+            CompileAndVerify(source);
         }
 
         [ClrOnlyFact]
@@ -1037,7 +1037,7 @@ struct S
         a = S.M<A>();
     }
 }";
-            CompileStandardAndVerify(source);
+            CompileAndVerify(source);
         }
 
         [WorkItem(528571, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528571")]
@@ -1055,7 +1055,7 @@ struct S
     }
     class A : I<A> { }
 }";
-            CompileStandardAndVerify(source);
+            CompileAndVerify(source);
         }
 
         [Fact]
@@ -1120,7 +1120,7 @@ class C
         M(F3<S>());
     }
 }";
-            var compilation = CompileStandardAndVerify(source, expectedOutput:
+            var compilation = CompileAndVerify(source, expectedOutput:
 @"null
 S
 null
@@ -1183,7 +1183,7 @@ S");
         b = (null is T);
     }
 }";
-            var compilation = CompileStandardAndVerify(source);
+            var compilation = CompileAndVerify(source);
             var expectedIL =
 @"{
   // Code size       10 (0xa)
@@ -1223,7 +1223,7 @@ class B2<T>
     static T F3<U>(U u) where U : class { return u as T; }
     static T F4<U>(U u) where U : struct { return u as T; }
 }";
-            var compilation = CompileStandardAndVerify(source);
+            var compilation = CompileAndVerify(source);
             var expectedIL =
 @"{
   // Code size       17 (0x11)
@@ -1275,7 +1275,7 @@ class C
         M(F3<S>());
     }
 }";
-            var compilation = CompileStandardAndVerify(source, expectedOutput:
+            var compilation = CompileAndVerify(source, expectedOutput:
 @"C
 S
 C
@@ -1331,7 +1331,7 @@ class C
         new V();
     }
 }";
-            var compilation = CompileStandardAndVerify(source);
+            var compilation = CompileAndVerify(source);
             compilation.VerifyIL("C.M<T, U, V>()",
 @"
 {
@@ -1447,7 +1447,7 @@ class C
         C<I, A>.M(s, b, s, b);
     }
 }";
-            var compilation = CompileStandardAndVerify(source, expectedOutput:
+            var compilation = CompileAndVerify(source, expectedOutput:
 @"S.get_P
 S.set_P
 S.M
@@ -1548,7 +1548,7 @@ class C
         M(new S(), new A());
     }
 }";
-            var compilation = CompileStandardAndVerify(source, expectedOutput:
+            var compilation = CompileAndVerify(source, expectedOutput:
 @"A[1]
 S[0]");
             compilation.VerifyIL("C.M<T, U>(T, U)",
@@ -1606,7 +1606,7 @@ class C
         System.Console.WriteLine(""{0}, {1}"", a1.F, a2.F);
     }
 }";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: "2, 1");
+            var compilation = CompileAndVerify(source, expectedOutput: "2, 1");
             compilation.VerifyIL("B<T>.Swap<U>(T, U)",
 @"{
   // Code size       49 (0x31)
@@ -1666,7 +1666,7 @@ class A
         System.Console.WriteLine(""{0}, {1}"", a1.E.GetInvocationList().Length, a2.E.GetInvocationList().Length);
     }
 }";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: "1, 2");
+            var compilation = CompileAndVerify(source, expectedOutput: "1, 2");
             compilation.VerifyIL("A.Swap<T, U>(T, U)",
 @"{
   // Code size       49 (0x31)
@@ -1784,7 +1784,7 @@ class A<X, Y> : IA<X, Y> where X : I where Y : X { }
 interface IB<T, U> where U : C, T { }
 class B<X> : IB<C, X> where X : C { }
 class B<X, Y> : IB<X, Y> where X : C where Y : X { }";
-            CompileStandardAndVerify(source);
+            CompileAndVerify(source);
         }
 
         /// <summary>
@@ -2330,7 +2330,7 @@ class C
         M(b, b, b, b, b, b);
     }
 }";
-            var compilation = CompileStandardAndVerify(source, expectedOutput:
+            var compilation = CompileAndVerify(source, expectedOutput:
 @"B.M
 A.M
 A.M
@@ -2391,7 +2391,7 @@ class C
         }
     }
 }";
-            var compilation = CompileStandardAndVerify(source);
+            var compilation = CompileAndVerify(source);
             compilation.VerifyIL("C<T>.ThrowT(T)",
 @"{
   // Code size        7 (0x7)
@@ -2416,7 +2416,7 @@ class C
         catch (U) { }
     }
 }";
-            CompileStandardAndVerify(source);
+            CompileAndVerify(source);
         }
 
         [ClrOnlyFact]
@@ -2448,7 +2448,7 @@ class Test
         C<System.Exception>.M<System.ArgumentException>();
     }
 }";
-            CompileStandardAndVerify(source);
+            CompileAndVerify(source);
         }
 
         [Fact]
@@ -2565,7 +2565,7 @@ class C<T> where T : IA, IB
         return u.ToString() + v.GetHashCode();
     }
 }";
-            CompileStandardAndVerify(source);
+            CompileAndVerify(source);
         }
 
         /// <summary>
@@ -3092,7 +3092,7 @@ class B: A
 {
     public override I<T> F<T>() { return null; }
 }";
-            CompileStandardAndVerify(source);
+            CompileAndVerify(source);
         }
 
         [WorkItem(542264, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542264")]
@@ -4189,7 +4189,7 @@ class C : I
                     Assert.Equal(2, t.Arity);
                 };
 
-            CompileWithCustomILSource(csharpSource, ilSource, compilationVerifier: compilationVerifier);
+            CompileWithCustomILSource(csharpSource, ilSource, compilationVerifier: compilationVerifier, targetFramework: TargetFramework.Net40);
         }
 
         [WorkItem(542358, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542358")]
@@ -4413,7 +4413,7 @@ class B
         M3(s);
     }
 }";
-            var compilation = CompileStandardAndVerify(source, expectedOutput:
+            var compilation = CompileAndVerify(source, expectedOutput:
 @"3, 3
 3, 3
 6, 6
@@ -4651,7 +4651,7 @@ class C : A<string>
         c.M3<string>();
     }
 }";
-            CompileStandardAndVerify(source, expectedOutput:
+            CompileAndVerify(source, expectedOutput:
 @"System.String
 System.String
 System.String");
@@ -4715,7 +4715,7 @@ abstract class E : D, IB
                 CheckTypeParameterContainingSymbols(method, typeParameter.EffectiveBaseClassNoUseSiteDiagnostics, 2);
                 CheckTypeParameterContainingSymbols(method, typeParameter.ConstraintTypes()[0], 2);
             };
-            CompileStandardAndVerify(
+            CompileAndVerify(
                 source: source,
                 sourceSymbolValidator: validator,
                 symbolValidator: validator);
@@ -4747,7 +4747,7 @@ class P
     }
 }
 ";
-            CompileStandardAndVerify(source, expectedOutput:
+            CompileAndVerify(source, expectedOutput:
 @"System.String
 System.Int32");
         }
@@ -4771,7 +4771,7 @@ class C : I<object>, I<C>
         new A<object>.B<C>();
     }
 }";
-            CompileStandardAndVerify(source);
+            CompileAndVerify(source);
         }
 
         /// <summary>
@@ -4826,7 +4826,7 @@ class Program
         (new C()).M<int, A<int>>();
     }
 }";
-            CompileStandardAndVerify(source, expectedOutput:
+            CompileAndVerify(source, expectedOutput:
 @"0
 M1<T, U>");
         }
@@ -4864,7 +4864,7 @@ class S
     public int X;
 }
 ";
-            CompileStandardAndVerify(source, expectedOutput: "5");
+            CompileAndVerify(source, expectedOutput: "5");
         }
 
         [WorkItem(542564, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542564")]
@@ -4940,7 +4940,7 @@ class B<T>
         return x;
     }
 }";
-            var compilation = CompileStandardAndVerify(source);
+            var compilation = CompileAndVerify(source);
             compilation.VerifyIL("C<T, U>.F1(T)",
 @"{
   // Code size       12 (0xc)
@@ -5002,7 +5002,7 @@ interface I6<U> : I3<I<U>, I<U>> { }";
                 method = module.GlobalNamespace.GetMember<NamedTypeSymbol>("I6").Interfaces()[0].GetMember<MethodSymbol>("M");
                 CheckConstraints(method.TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object", "I<I<U>>");
             };
-            CompileStandardAndVerify(
+            CompileAndVerify(
                 source: source,
                 sourceSymbolValidator: validator,
                 symbolValidator: validator);
@@ -5065,7 +5065,7 @@ class C
     }
 }
 ";
-            CompileStandardAndVerify(source, expectedOutput: "");
+            CompileAndVerify(source, expectedOutput: "");
         }
 
         /// <summary>
@@ -5377,7 +5377,7 @@ class A1 : A<C>
                 method = module.GlobalNamespace.GetMember<NamedTypeSymbol>("A1").GetMember<MethodSymbol>("M");
                 CheckConstraints(method.TypeParameters[0], TypeParameterConstraintKind.None, false, true, "C", "C", "C");
             };
-            CompileStandardAndVerify(
+            CompileAndVerify(
                 source: source,
                 sourceSymbolValidator: validator,
                 symbolValidator: validator);
@@ -6654,7 +6654,7 @@ class B : A<ValueType>, I<ValueType>
     internal override void M<T>() { }
     void I<ValueType>.M<T>() { }
 }";
-            CompileStandardAndVerify(source);
+            CompileAndVerify(source);
         }
 
         [WorkItem(4097, "https://github.com/dotnet/roslyn/issues/4097")]
@@ -6694,7 +6694,7 @@ partial class Class4
     partial void M4<S>() where S : Class2;
 }
 ";
-            CompileStandardAndVerify(source, options: TestOptions.DebugDll).VerifyDiagnostics(
+            CompileAndVerify(source, options: TestOptions.DebugDll).VerifyDiagnostics(
     // (12,27): warning CS0612: 'Class2' is obsolete
     // class Class3<T> where T : Class2
     Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "Class2").WithArguments("Class2").WithLocation(12, 27),

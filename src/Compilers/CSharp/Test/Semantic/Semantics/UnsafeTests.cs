@@ -8129,7 +8129,7 @@ class Program
 
 }
 ";
-            var compilation = CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails);
+            var compilation = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails);
 
             compilation.VerifyIL("Program.Store", @"
 {
@@ -8246,7 +8246,7 @@ class Program
             //IL Baseline rather than execute because I'm intentionally writing outside of bounds of buffer
             // This will compile without warning but runtime behavior is unpredictable.
 
-            var compilation = CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails);
+            var compilation = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails);
             compilation.VerifyIL("Program.Load", @"
 {
   // Code size       47 (0x2f)
@@ -8325,7 +8325,7 @@ unsafe struct s
         
     }
 ";
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
         }
 
         [Fact]
@@ -8406,9 +8406,9 @@ namespace ConsoleApplication30
 
     }
 }";
-            var comp1 = CompileStandardAndVerify(s1, options: TestOptions.UnsafeReleaseDll, verify: Verification.Passes).Compilation;
+            var comp1 = CompileAndVerify(s1, options: TestOptions.UnsafeReleaseDll, verify: Verification.Passes).Compilation;
 
-            var comp2 = CompileStandardAndVerify(s2,
+            var comp2 = CompileAndVerify(s2,
                 options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails, 
                 references: new MetadataReference[] { MetadataReference.CreateFromImage(comp1.EmitToArray()) },
                 expectedOutput: "TrueFalse").Compilation;
@@ -8460,7 +8460,7 @@ namespace ConsoleApplication30
 
             // Only compile this as its intentionally writing outside of fixed buffer boundaries and 
             // this doesn't warn but causes flakiness when executed.
-            var comp3 = CompileStandardAndVerify(s3,
+            var comp3 = CompileAndVerify(s3,
                 options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails,
                 references: new MetadataReference[] { MetadataReference.CreateFromImage(comp1.EmitToArray()) }).Compilation;
         }
@@ -8506,7 +8506,7 @@ class Program
     }   
 }
 ";
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"246");
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"246");
         }
 
         [Fact]
@@ -8550,7 +8550,7 @@ class Program
     }   
 }
 ";
-            CompileStandardAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"4812");
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"4812");
         }
 
         [Fact]

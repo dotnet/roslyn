@@ -31,7 +31,7 @@ class C
         }
     }
 }";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"
+            var compilation = CompileAndVerify(source, expectedOutput: @"
 1
 2
 3");
@@ -98,7 +98,7 @@ class C
         }
     }
 }";
-            var compilation = CompileStandardAndVerify(source, options: TestOptions.ReleaseExe.WithModuleName("MODULE"), expectedOutput: @"
+            var compilation = CompileAndVerify(source, options: TestOptions.ReleaseExe.WithModuleName("MODULE"), expectedOutput: @"
 1.2
 2.3
 3.4
@@ -201,7 +201,7 @@ class C
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"
+            var compilation = CompileAndVerify(source, expectedOutput: @"
 2
 4
 6
@@ -366,7 +366,7 @@ class C
         }
     }
 }";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"
+            var compilation = CompileAndVerify(source, expectedOutput: @"
 h
 e
 l
@@ -427,7 +427,7 @@ class Enumerator
     public int Current { get { return x; } }
     public bool MoveNext() { return ++x < 4; }
 }";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"
+            var compilation = CompileAndVerify(source, expectedOutput: @"
 1
 2
 3");
@@ -495,7 +495,7 @@ class Enumerable : System.Collections.IEnumerable
         return list.GetEnumerator(); 
     }
 }";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"
+            var compilation = CompileAndVerify(source, expectedOutput: @"
 3
 2
 1");
@@ -562,7 +562,7 @@ struct Enumerator : System.IDisposable
     public bool MoveNext() { return ++x < 4; }
     void System.IDisposable.Dispose() { }
 }";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"
+            var compilation = CompileAndVerify(source, expectedOutput: @"
 1
 2
 3");
@@ -625,7 +625,7 @@ struct Enumerator : System.IDisposable
     public bool MoveNext() { return ++x < 4; }
     public void Dispose() { }
 }";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"
+            var compilation = CompileAndVerify(source, expectedOutput: @"
 1
 2
 3");
@@ -687,7 +687,7 @@ struct Enumerator
     public void Dispose() { }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"
+            var compilation = CompileAndVerify(source, expectedOutput: @"
 1
 2
 3");
@@ -829,7 +829,7 @@ struct Enumerator
     public int Current { get { return x; } }
     public bool MoveNext() { return ++x < 4; }
 }";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"
+            var compilation = CompileAndVerify(source, expectedOutput: @"
 1
 2
 3");
@@ -874,7 +874,7 @@ struct Enumerable : IEnumerable
 {
     IEnumerator IEnumerable.GetEnumerator() { return new int[]{1,2,3}.GetEnumerator(); }
 }";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"
+            var compilation = CompileAndVerify(source, expectedOutput: @"
 1
 2
 3");
@@ -939,7 +939,7 @@ struct Enumerable : IEnumerable
     public IEnumerator GetEnumerator() { return new int[]{1,2,3}.GetEnumerator(); }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"
+            var compilation = CompileAndVerify(source, expectedOutput: @"
 1
 2
 3");
@@ -1003,7 +1003,7 @@ struct Enumerable
     public IEnumerator GetEnumerator() { return new int[]{1,2,3}.GetEnumerator(); }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"
+            var compilation = CompileAndVerify(source, expectedOutput: @"
 1
 2
 3");
@@ -1073,7 +1073,7 @@ struct Enumerable : IEnumerable<int>
     IEnumerator IEnumerable.GetEnumerator() { throw null; }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"
+            var compilation = CompileAndVerify(source, expectedOutput: @"
 1
 2
 3");
@@ -1134,7 +1134,7 @@ struct Enumerable : IEnumerable
     public IEnumerator GetEnumerator() { return new int[]{1,2,3}.GetEnumerator(); }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"
+            var compilation = CompileAndVerify(source, expectedOutput: @"
 1
 2
 3");
@@ -1204,7 +1204,7 @@ sealed class Enumerator : System.IDisposable
     public bool MoveNext() { return ++x < 4; }
     void System.IDisposable.Dispose() { }
 }";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"
+            var compilation = CompileAndVerify(source, expectedOutput: @"
 1
 2
 3");
@@ -1266,7 +1266,7 @@ sealed class Enumerator
     public int Current { get { return x; } }
     public bool MoveNext() { return ++x < 4; }
 }";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"
+            var compilation = CompileAndVerify(source, expectedOutput: @"
 1
 2
 3");
@@ -1342,7 +1342,7 @@ class NonDisposableEnumerator : AbstractEnumerator
 }";
             // Both loops generate the same disposal code, but one calls dispose and
             // the other doesn't.
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"
+            var compilation = CompileAndVerify(source, expectedOutput: @"
 1
 2
 3
@@ -1381,7 +1381,7 @@ class Enumerator
     public int Current { get { return x; } }
     public bool MoveNext() { return ++x < 4; }
 }";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"
+            var compilation = CompileAndVerify(source, expectedOutput: @"
 (1, 1)
 (1, 2)
 (1, 3)
@@ -1487,7 +1487,7 @@ class C
     }
 }";
             // NOTE: this is specifically not the dev10 behavior.  In dev10, the output is 3, 3, 3.
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"
+            var compilation = CompileAndVerify(source, expectedOutput: @"
 1
 2
 3");
@@ -1531,7 +1531,7 @@ class B : A
         return new List<int>.Enumerator();
     }
 }";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"
+            var compilation = CompileAndVerify(source, expectedOutput: @"
 a
 b
 c");
@@ -1573,7 +1573,7 @@ class E<T>
     public int Current { get; set; }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: "1");
+            var compilation = CompileAndVerify(source, expectedOutput: "1");
         }
 
         [WorkItem(540958, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540958")]
@@ -1599,7 +1599,7 @@ class Program
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: "1");
+            var compilation = CompileAndVerify(source, expectedOutput: "1");
         }
 
         [WorkItem(9229, "DevDiv_Projects/Roslyn")]
@@ -1623,7 +1623,7 @@ struct Enumerable : IEnumerable
     IEnumerator IEnumerable.GetEnumerator() { return new int[]{1,2,3}.GetEnumerator(); }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"
+            var compilation = CompileAndVerify(source, expectedOutput: @"
 1
 2
 3");
@@ -1696,7 +1696,7 @@ struct Enumerator
     public bool MoveNext() { return ++x < 4; }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"
+            var compilation = CompileAndVerify(source, expectedOutput: @"
 0
 1");
 
@@ -1761,7 +1761,7 @@ struct Enumerator : IEnumerator
     public void Reset() { x = 0; }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"
+            var compilation = CompileAndVerify(source, expectedOutput: @"
 0
 1");
 
@@ -1831,7 +1831,7 @@ class C<T> where T : IEnumerator<T>
     }
 }
 ";
-            CompileStandardAndVerify(source).VerifyIL("C<T>.M", @"
+            CompileAndVerify(source).VerifyIL("C<T>.M", @"
 {
   // Code size       63 (0x3f)
   .maxstack  1
@@ -1888,7 +1888,7 @@ class C<T> where T : struct, IEnumerator<T>
 ";
             // Note that there's no null check before the dispose call.
             // CONSIDER: Dev10 does have a null check, but it seems unnecessary.
-            CompileStandardAndVerify(source).VerifyIL("C<T>.M", @"
+            CompileAndVerify(source).VerifyIL("C<T>.M", @"
 {
   // Code size       55 (0x37)
   .maxstack  1
@@ -1948,7 +1948,7 @@ class C
         foreach (var o in e) { }
     }
 }";
-            var compilation = CompileStandardAndVerify(source);
+            var compilation = CompileAndVerify(source);
             compilation.VerifyIL("C.M<T>",
 @"
 {

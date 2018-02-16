@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
             // as opposed to 'fixing' the test by updating the benchmark code.
 
             //GNAMBOO: Changing this code has implications for perf tests.
-            CompileStandardAndVerify(TestResources.PerfTests.CSPerfTest).
+            CompileAndVerify(TestResources.PerfTests.CSPerfTest).
                              VerifyDiagnostics(
                                 // (2416,9): info CS8019: Unnecessary using directive.
                                 //         using nested;

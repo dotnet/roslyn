@@ -540,7 +540,7 @@ public class C
                     attributes.Select(a => MetadataReaderUtils.Dump(reader, reader.GetCustomAttribute(a).Constructor)));
             };
 
-            CompileStandardAndVerify("", emitOptions: emitRefAssembly, assemblyValidator: assemblyValidator);
+            CompileAndVerify("", emitOptions: emitRefAssembly, assemblyValidator: assemblyValidator);
         }
 
         [Fact]
@@ -562,7 +562,7 @@ public class C
 
             var comp = CreateStandardCompilation("");
             comp.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_ReferenceAssemblyAttribute__ctor);
-            CompileAndVerify(compilation: comp, emitOptions: emitRefAssembly, assemblyValidator: assemblyValidator);
+            CompileAndVerifyCommon(compilation: comp, emitOptions: emitRefAssembly, assemblyValidator: assemblyValidator);
         }
 
         [Fact]
@@ -583,7 +583,7 @@ public class C
                     attributes.Select(a => MetadataReaderUtils.Dump(reader, reader.GetCustomAttribute(a).Constructor)));
             };
             string source = @"[assembly:System.Runtime.CompilerServices.ReferenceAssembly()]";
-            CompileStandardAndVerify(source, emitOptions: emitRefAssembly, assemblyValidator: assemblyValidator);
+            CompileAndVerify(source, emitOptions: emitRefAssembly, assemblyValidator: assemblyValidator);
         }
 
         [Theory]
@@ -2250,7 +2250,7 @@ class Class2
         [Fact]
         public void EmitNestedLambdaWithAddPlusOperator()
         {
-            CompileStandardAndVerify(@"
+            CompileAndVerify(@"
 public class C
 {
     delegate int D(int i);
@@ -2268,7 +2268,7 @@ public class C
         [Fact, WorkItem(539983, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539983")]
         public void EmitAlwaysFalseExpression()
         {
-            CompileStandardAndVerify(@"
+            CompileAndVerify(@"
 class C
 {
     static bool Goo(int i)
@@ -2300,7 +2300,7 @@ public class A
         A a = new A(""Hello"");
     }
 }";
-            CompileStandardAndVerify(source, expectedOutput: "Hello");
+            CompileAndVerify(source, expectedOutput: "Hello");
         }
 
         [WorkItem(540146, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540146")]
@@ -2328,7 +2328,7 @@ public void func(Func<string> x)
         A a = new A(""Hello"");
     }
 }";
-            CompileStandardAndVerify(source, expectedOutput: "Hello!");
+            CompileAndVerify(source, expectedOutput: "Hello!");
         }
 
         [WorkItem(540146, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540146")]
@@ -2355,7 +2355,7 @@ public class A
         A a = new A(""Hello"");
     }
 }";
-            CompileStandardAndVerify(source, expectedOutput: @"
+            CompileAndVerify(source, expectedOutput: @"
 Hello
 Hello!
 ");
@@ -2384,7 +2384,7 @@ static class Test
         System.Console.WriteLine(i1);
     }
 }";
-            CompileStandardAndVerify(source, expectedOutput: "45");
+            CompileAndVerify(source, expectedOutput: "45");
         }
 
         [WorkItem(541822, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541822")]
@@ -2413,7 +2413,7 @@ public class Test
     }
 }
 ";
-            CompileStandardAndVerify(source, expectedOutput: "0");
+            CompileAndVerify(source, expectedOutput: "0");
         }
 
         [WorkItem(541823, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541823")]
@@ -2450,7 +2450,7 @@ public class Test
     }
 }
 ";
-            CompileStandardAndVerify(source, expectedOutput: "-1");
+            CompileAndVerify(source, expectedOutput: "-1");
         }
 
         [WorkItem(541824, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541824")]
@@ -2496,7 +2496,7 @@ public class Test
     }
 }
 ";
-            CompileStandardAndVerify(source, expectedOutput: "0");
+            CompileAndVerify(source, expectedOutput: "0");
         }
 
         [WorkItem(541840, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541840")]
@@ -2541,7 +2541,7 @@ public class Test
     }
 }
 ";
-            CompileStandardAndVerify(source, expectedOutput: "0");
+            CompileAndVerify(source, expectedOutput: "0");
         }
 
         [WorkItem(541840, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541840")]
@@ -2613,7 +2613,7 @@ public class Test
     }
 }
 ";
-            CompileStandardAndVerify(source, expectedOutput: "True");
+            CompileAndVerify(source, expectedOutput: "True");
         }
 
 
@@ -2658,7 +2658,7 @@ public class Test
     }
 }
 ";
-            CompileStandardAndVerify(source, expectedOutput: "True");
+            CompileAndVerify(source, expectedOutput: "True");
         }
 
         [WorkItem(541840, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541840")]
@@ -2711,7 +2711,7 @@ public class Test
 }
 
 ";
-            CompileStandardAndVerify(source, expectedOutput: "True");
+            CompileAndVerify(source, expectedOutput: "True");
         }
 
         [WorkItem(541824, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541824")]
@@ -2736,7 +2736,7 @@ public class Test
     }
 }
 ";
-            CompileStandardAndVerify(source, expectedOutput: "0");
+            CompileAndVerify(source, expectedOutput: "0");
         }
 
         [WorkItem(541847, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541847")]
@@ -2795,7 +2795,7 @@ public class Test
     }
 }
 ";
-            CompileStandardAndVerify(source, expectedOutput: "True");
+            CompileAndVerify(source, expectedOutput: "True");
         }
 
         [WorkItem(541839, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541839")]
@@ -2830,7 +2830,7 @@ public class Test
     }
 }
 ";
-            CompileStandardAndVerify(source, expectedOutput: "1");
+            CompileAndVerify(source, expectedOutput: "1");
         }
 
         [WorkItem(542563, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542563")]
@@ -3351,7 +3351,7 @@ using System;
     namespace D{}
 ";
 
-            CompileStandardAndVerify(source,
+            CompileAndVerify(source,
                              sourceSymbolValidator: delegate (ModuleSymbol m)
                              {
                                  string[] expectedGlobalMembers = { "C1", "B", "A1", "F", "G", "E", "D" };
@@ -3452,7 +3452,7 @@ public class Test
     }
 }
 ";
-            CompileStandardAndVerify(source, expectedOutput: "0");
+            CompileAndVerify(source, expectedOutput: "0");
         }
 
         [WorkItem(543932, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543932")]
@@ -3476,7 +3476,7 @@ public class Test
 
             var compilation = CreateStandardCompilation(source);
 
-            CompileStandardAndVerify(source, expectedOutput: "CheckPoint-2");
+            CompileAndVerify(source, expectedOutput: "CheckPoint-2");
         }
 
         [Fact]
@@ -4080,7 +4080,7 @@ public class Test
     }
 }";
             var c1 = CreateStandardCompilation(p1, options: TestOptions.ReleaseDll, assemblyName: Guid.NewGuid().ToString());
-            CompileStandardAndVerify(p2, new[] { MetadataReference.CreateFromStream(c1.EmitToStream()) }, expectedOutput: "0");
+            CompileAndVerify(p2, new[] { MetadataReference.CreateFromStream(c1.EmitToStream()) }, expectedOutput: "0");
         }
 
         [WorkItem(546450, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546450")]
@@ -4091,7 +4091,7 @@ public class Test
             string source2 = @"public class B: A {}";
             var comp = CreateStandardCompilation(source1, options: TestOptions.ReleaseModule);
             var metadataRef = ModuleMetadata.CreateFromStream(comp.EmitToStream()).GetReference();
-            CompileStandardAndVerify(source2, references: new[] { metadataRef }, options: TestOptions.ReleaseModule, verify: Verification.Fails);
+            CompileAndVerify(source2, references: new[] { metadataRef }, options: TestOptions.ReleaseModule, verify: Verification.Fails);
         }
 
         [Fact]

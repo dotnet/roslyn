@@ -56,7 +56,7 @@ class C : I1, I2
     }
 }
 ";
-            CompileStandardAndVerify(source, expectedOutput: @"
+            CompileAndVerify(source, expectedOutput: @"
 C.Method
 I1.Method
 I2.Method
@@ -428,7 +428,7 @@ class Test
         i1.Method(4, 5, ""c"", l1);
     }
 }";
-            var comp = CompileStandardAndVerify(source,
+            var comp = CompileAndVerify(source,
                 expectedOutput: @"
 Base.Method(1, 2, b)
 Class.Method(3, 4, c)
@@ -582,7 +582,7 @@ class Test
         i4.Method<List<long>>(new List<int>(), new List<string>[]{}, new List<List<List<string>>>(), new Dictionary<int, List<long>>());
     }
 }";
-            var comp = CompileStandardAndVerify(source,
+            var comp = CompileAndVerify(source,
                 expectedOutput: @"
 Derived1.set_Property
 Derived1.Method
@@ -663,7 +663,7 @@ class Test
     }
 }";
 
-            var comp = CompileStandardAndVerify(source,
+            var comp = CompileAndVerify(source,
                 expectedOutput: @"
 Derived1.Method`1
 Derived1.Method`2",
@@ -741,7 +741,7 @@ class Test
     }
 }";
 
-            var comp = CompileStandardAndVerify(source, expectedOutput: @"
+            var comp = CompileAndVerify(source, expectedOutput: @"
 Derived`2.Method(U)
 Derived`2.Method()
 Base.Method(T)
@@ -806,7 +806,7 @@ class Test
     }
 }";
 
-            var comp = CompileStandardAndVerify(source, expectedOutput: @"
+            var comp = CompileAndVerify(source, expectedOutput: @"
 Derived`2.Method(U)
 Derived`2.Method()
 Base.Method(T)
@@ -899,7 +899,7 @@ class Test : I3
         j.P = 1;
     }
 }";
-            CompileStandardAndVerify(source, expectedOutput: @"
+            CompileAndVerify(source, expectedOutput: @"
 I3.M1
 I1.M2
 I3.M2
@@ -953,7 +953,7 @@ class Outer<T>
 }
 ";
 
-            var comp = CompileStandardAndVerify(source, expectedSignatures: new[]
+            var comp = CompileAndVerify(source, expectedSignatures: new[]
             {
                 Signature("Outer`1+IInner", "M", ".method public hidebysig newslot abstract virtual instance System.Void M(T t) cil managed"),
                 Signature("Outer`1+Inner", "Outer<T>.IInner.M", ".method private hidebysig newslot virtual final instance System.Void Outer<T>.IInner.M(T t) cil managed"),

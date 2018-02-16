@@ -470,7 +470,7 @@ class Program
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, new[] { s_propertiesDll }, expectedOutput: "0");
+            var compilation = CompileAndVerify(source, new[] { s_propertiesDll }, expectedOutput: "0");
 
             compilation.VerifyIL("Program.Main",
 @"{
@@ -579,7 +579,7 @@ class C : B<string>
                 VerifyMethodsAndAccessorsSame(type, type.GetMember<PropertySymbol>("P"));
                 VerifyMethodsAndAccessorsSame(type, type.GetMember<PropertySymbol>("Q"));
             };
-            CompileStandardAndVerify(source: source, sourceSymbolValidator: validator, symbolValidator: validator);
+            CompileAndVerify(source: source, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         private void VerifyMethodsAndAccessorsSame(NamedTypeSymbol type, PropertySymbol property)
@@ -656,7 +656,7 @@ class Program
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, new[] { s_propertiesDll }, expectedOutput: "0");
+            var compilation = CompileAndVerify(source, new[] { s_propertiesDll }, expectedOutput: "0");
 
             compilation.VerifyIL("Program.Main",
 @"{
@@ -691,7 +691,7 @@ class Program
     }
 }
 ";
-            var verifier = CompileStandardAndVerify(source, new[] { s_propertiesDll }, expectedOutput: "0");
+            var verifier = CompileAndVerify(source, new[] { s_propertiesDll }, expectedOutput: "0");
 
             verifier.VerifyIL("Program.Main",
 @"{
@@ -1885,7 +1885,7 @@ class C
 {
     object P { get; set; }
 }";
-            CompileStandardAndVerify(text).VerifyDiagnostics();
+            CompileAndVerify(text).VerifyDiagnostics();
         }
 
         [WorkItem(541688, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541688")]
@@ -1998,7 +1998,7 @@ End Class";
         o = b.Q();
     }
 }";
-            var compilation2 = CompileStandardAndVerify(source2, new[] { reference1 });
+            var compilation2 = CompileAndVerify(source2, new[] { reference1 });
             compilation2.VerifyDiagnostics();
             compilation2.VerifyIL("C.M(B1)",
 @"{
@@ -2753,7 +2753,7 @@ public interface IA
                  var validator = getValidator(expected);
 
                  // We should see the same members from both source and metadata
-                 var verifier = CompileStandardAndVerify(
+                 var verifier = CompileAndVerify(
                       libSrc,
                       sourceSymbolValidator: validator,
                       symbolValidator: validator,
@@ -2856,7 +2856,7 @@ class Test
     }
 }
 ";
-            CompileStandardAndVerify(text, expectedOutput: "123").VerifyDiagnostics();
+            CompileAndVerify(text, expectedOutput: "123").VerifyDiagnostics();
         }
 
         [WorkItem(1073332, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073332")]

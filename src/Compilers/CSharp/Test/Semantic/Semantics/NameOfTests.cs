@@ -142,7 +142,7 @@ interface I3 : I1, I2
     int Test(string arg = nameof(M), string arg2 = ""N"" /* nameof(N) */);
 }
 ";
-            var comp = CompileStandardAndVerify(source, expectedOutput: @"
+            var comp = CompileAndVerify(source, expectedOutput: @"
 var2
 nameof
 var1
@@ -523,7 +523,7 @@ class Program
     [Obsolete(""Please do not use this method: "" + nameof(Program.Old), true)]
     static void Old() { }
 }";
-            CompileStandardAndVerify(source, new[] { LinqAssemblyRef }, expectedOutput: @"
+            CompileAndVerify(source, new[] { LinqAssemblyRef }, expectedOutput: @"
 EntryMethodName
 Correct
 Correct");
@@ -568,7 +568,7 @@ class C
         get { return 0; }
     }
 }";
-            CompileStandardAndVerify(source, expectedOutput: @"Main
+            CompileAndVerify(source, expectedOutput: @"Main
 Other
 get__Other
 ToString
@@ -590,7 +590,7 @@ class C
         System.Console.WriteLine(nameof(SCGL.Contains));
     }
 }";
-            CompileStandardAndVerify(source, expectedOutput: @"Contains");
+            CompileAndVerify(source, expectedOutput: @"Contains");
         }
 
         [Fact, WorkItem(1013334, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1013334")]
@@ -1330,7 +1330,7 @@ class EntryPoint
         [Fact]
         public void PassingNameOfToInShouldCopy()
         {
-            CompileStandardAndVerify(@"
+            CompileAndVerify(@"
 class Program
 {
     public static void Main()

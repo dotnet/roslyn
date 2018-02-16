@@ -1817,7 +1817,7 @@ class CL3 : CL2
         }
     }
 ";
-            var compilation = CreateStandardCompilationWithCustomILSource(source, ilSource, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithCustomILSource(source, ilSource, options: TestOptions.ReleaseExe);
 
             System.Action<IModuleSymbol> validator = (m) =>
             {
@@ -2376,7 +2376,7 @@ internal class Program
 }";
             var compilation = CreateStandardCompilationWithCustomILSource(source, ilSource, options: TestOptions.ReleaseExe);
 
-            CompileAndVerify(compilation, expectedOutput: @"Implemented A
+            CompileAndVerifyCommon(compilation, expectedOutput: @"Implemented A
 Implemented B",
                 assemblyValidator: assembly =>
                 {
@@ -2413,7 +2413,7 @@ Implemented B",
     }
 }";
             var compilation = CreateStandardCompilationWithCustomILSource(source, ilSource, options: TestOptions.ReleaseExe);
-            CompileAndVerify(compilation, expectedOutput: "2",
+            CompileAndVerifyCommon(compilation, expectedOutput: "2",
                 assemblyValidator: assembly =>
                 {
                     var reader = assembly.GetMetadataReader();

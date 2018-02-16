@@ -424,7 +424,7 @@ class AllMembers
         return FailedCount;
     }
 }";
-            var verifier = CompileAndVerifyWinRt(source,
+            var verifier = CompileAndVerifyWithWinRt(source,
                 references: LegacyRefs,
                 verify: Verification.Fails);
             verifier.VerifyDiagnostics(
@@ -1821,7 +1821,7 @@ class AllMembers
         return FailedCount;
     }
 }";
-            var verifier = CompileAndVerifyWinRt(source,
+            var verifier = CompileAndVerifyWithWinRt(source,
                 references: LegacyRefs,
                 //FIXME: Can't verify because the metadata adapter isn't implemented yet
                 verify: Verification.Fails);
@@ -3182,7 +3182,7 @@ class AllMembers
         return FailedCount;
     }
 }";
-            var verifier = CompileAndVerifyWinRt(source,
+            var verifier = CompileAndVerifyWithWinRt(source,
                 references: LegacyRefs,
                 verify: Verification.Fails);
             verifier.VerifyDiagnostics(
@@ -4425,7 +4425,7 @@ class AllMembers
         return FailedCount;
     }
 }";
-            var verifier = CompileAndVerifyWinRt(source,
+            var verifier = CompileAndVerifyWithWinRt(source,
                 references: LegacyRefs,
                 verify: Verification.Fails);
             verifier.VerifyDiagnostics(
@@ -4791,7 +4791,7 @@ class AllMembers
         return FailedCount;
     }
 }";
-            var verifier = CompileAndVerifyWinRt(source,
+            var verifier = CompileAndVerifyWithWinRt(source,
                 references: LegacyRefs,
                 verify: Verification.Fails);
             verifier.VerifyDiagnostics(
@@ -4977,7 +4977,7 @@ class AllMembers
         return FailedCount;
     }
 }";
-            var verifier = CompileAndVerifyWinRt(source,
+            var verifier = CompileAndVerifyWithWinRt(source,
                 references: LegacyRefs,
                 verify: Verification.Fails);
 
@@ -5174,7 +5174,7 @@ class AllMembers
         return FailedCount;
     }
 }";
-            var verifier = CompileAndVerifyWinRt(source,
+            var verifier = CompileAndVerifyWithWinRt(source,
                 references: LegacyRefs,
                 verify: Verification.Fails,
                 options: TestOptions.ReleaseExe.WithModuleName("MODULE"));
@@ -5395,7 +5395,7 @@ class AllMembers
         return FailedCount;
     }
 }";
-            var verifier = CompileAndVerifyWinRt(source,
+            var verifier = CompileAndVerifyWithWinRt(source,
                 references: LegacyRefs,
                 verify: Verification.Fails);
             verifier.VerifyDiagnostics(
@@ -5532,7 +5532,7 @@ class AllMembers
         return FailedCount;
     }
 }";
-            var verifier = CompileAndVerifyWinRt(source,
+            var verifier = CompileAndVerifyWithWinRt(source,
                 references: LegacyRefs,
                 verify: Verification.Fails);
             verifier.VerifyDiagnostics(
@@ -5802,7 +5802,7 @@ class AllMembers
         return FailedCount;
     }
 }";
-            var verifier = CompileAndVerifyWinRt(source,
+            var verifier = CompileAndVerifyWithWinRt(source,
                 references: LegacyRefs,
                 verify: Verification.Fails);
             verifier.VerifyDiagnostics(
@@ -6029,7 +6029,7 @@ class AllMembers
         return FailedCount;
     }
 }";
-            var verifier = CompileAndVerifyWinRt(source,
+            var verifier = CompileAndVerifyWithWinRt(source,
                 references: LegacyRefs,
                 verify: Verification.Fails);
             verifier.VerifyDiagnostics(
@@ -6228,7 +6228,7 @@ class AllMembers
         return FailedCount;
     }
 }";
-            var verifier = CompileAndVerifyWinRt(source,
+            var verifier = CompileAndVerifyWithWinRt(source,
                 references: LegacyRefs,
                 verify: Verification.Fails);
             verifier.VerifyDiagnostics(
@@ -6587,7 +6587,7 @@ class AllMembers
         return FailedCount;
     }
 }";
-            var verifier = CompileAndVerifyWinRt(source,
+            var verifier = CompileAndVerifyWithWinRt(source,
                 references: LegacyRefs,
                 verify: Verification.Fails);
             verifier.VerifyDiagnostics(
@@ -6747,7 +6747,7 @@ class AllMembers
         return FailedCount;
     }
 }";
-            var verifier = CompileAndVerifyWinRt(
+            var verifier = CompileAndVerifyWithWinRt(
                 source,
                 references: LegacyRefs,
                 verify: Verification.Fails);
@@ -7019,7 +7019,7 @@ class AllMembers
         return FailedCount;
     }
 }";
-            var verifier = CompileAndVerifyWinRt(
+            var verifier = CompileAndVerifyWithWinRt(
                 source,
                 references: LegacyRefs,
                 verify: Verification.Fails);
@@ -7146,7 +7146,7 @@ class AllMembers
         return FailedCount;
     }
 }";
-            var verifier = CompileAndVerifyWinRt(
+            var verifier = CompileAndVerifyWithWinRt(
                 source,
                 references: LegacyRefs,
                 verify: Verification.Fails);
@@ -7267,7 +7267,7 @@ class AllMembers
         return FailedCount;
     }
 }";
-            var verifier = CompileAndVerifyWinRt(
+            var verifier = CompileAndVerifyWithWinRt(
                 source,
                 references: LegacyRefs,
                 verify: Verification.Fails);
@@ -7346,7 +7346,7 @@ namespace Test
         }   
     }
 }";
-            var verifier = CompileAndVerifyWinRt(source, options: TestOptions.ReleaseWinMD);
+            var verifier = CompileAndVerifyWithWinRt(source, options: TestOptions.ReleaseWinMD);
 
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("Test.C.GetEnumerator()",
@@ -7373,7 +7373,7 @@ namespace Test2
         }
     }
 }";
-            verifier = CompileAndVerifyWinRt(source,
+            verifier = CompileAndVerifyWithWinRt(source,
                 references: new[] { compRef });
             verifier.VerifyDiagnostics(
                 // (1,1): info CS8019: Unnecessary using directive.

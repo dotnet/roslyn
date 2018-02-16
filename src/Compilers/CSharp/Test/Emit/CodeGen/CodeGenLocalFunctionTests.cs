@@ -103,7 +103,7 @@ class Program
         [WorkItem(22027, "https://github.com/dotnet/roslyn/issues/22027")]
         public void Repro22027()
         {
-            CompileStandardAndVerify(@"
+            CompileAndVerify(@"
 class Program
 {
 static void Main(string[] args)
@@ -203,7 +203,7 @@ class Program
         [WorkItem(21645, "https://github.com/dotnet/roslyn/issues/21645")]
         public void Repro21645()
         {
-            CompileStandardAndVerify(@"
+            CompileAndVerify(@"
 public class Class1
 {
     private void Test()
@@ -231,7 +231,7 @@ public class Class1
         [WorkItem(21543, "https://github.com/dotnet/roslyn/issues/21543")]
         public void Repro21543()
         {
-            CompileStandardAndVerify(@"
+            CompileAndVerify(@"
 using System;
 
 class Program
@@ -390,7 +390,7 @@ class C
         [Fact]
         public void IteratorStructClosure()
         {
-            var verifier = CompileStandardAndVerify(@"
+            var verifier = CompileAndVerify(@"
 using System;
 using System.Collections.Generic;
 
@@ -418,7 +418,7 @@ class C
                 "int <>2__current",
                 "int <>l__initialThreadId");
 
-            verifier = CompileStandardAndVerify(@"
+            verifier = CompileAndVerify(@"
 using System;
 using System.Collections.Generic;
 
@@ -454,7 +454,7 @@ class C
                 "int x",
                 "int y");
 
-            verifier = CompileStandardAndVerify(@"
+            verifier = CompileAndVerify(@"
 using System;
 using System.Collections.Generic;
 
@@ -491,7 +491,7 @@ class C
         [WorkItem(21409, "https://github.com/dotnet/roslyn/issues/21409")]
         public void Repro21409()
         {
-            CompileStandardAndVerify(
+            CompileAndVerify(
 @"
 using System;
 using System.Collections.Generic;
@@ -561,7 +561,7 @@ namespace Buggles
         [WorkItem(294554, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=294554")]
         public void ThisOnlyClosureBetweenStructCaptures()
         {
-            CompileStandardAndVerify(@"
+            CompileAndVerify(@"
 using System;
 class C
 {
@@ -596,7 +596,7 @@ class C
         [Fact]
         public void CaptureThisInDifferentScopes()
         {
-            CompileStandardAndVerify(@"
+            CompileAndVerify(@"
 using System;
 class C
 {
@@ -618,7 +618,7 @@ class C
         [Fact]
         public void CaptureThisInDifferentScopes2()
         {
-            CompileStandardAndVerify(@"
+            CompileAndVerify(@"
 using System;
 class C
 {
@@ -640,7 +640,7 @@ class C
         [Fact]
         public void CaptureFramePointerInDifferentScopes()
         {
-            CompileStandardAndVerify(@"
+            CompileAndVerify(@"
 using System;
 class C
 {
@@ -662,7 +662,7 @@ class C
         [Fact]
         public void EnvironmentChainContainsStructEnvironment()
         {
-            CompileStandardAndVerify(@"
+            CompileAndVerify(@"
 using System;
 class C
 {
@@ -710,7 +710,7 @@ public class Program {
         [Fact]
         public void Repro19033()
         {
-            CompileStandardAndVerify(@"
+            CompileAndVerify(@"
 using System;
 
 class Program
@@ -733,7 +733,7 @@ class Program
         [Fact]
         public void Repro19033_2()
         {
-            CompileStandardAndVerify(@"
+            CompileAndVerify(@"
 using System;
 class C
 {
@@ -756,7 +756,7 @@ class C
         [WorkItem(18918, "https://github.com/dotnet/roslyn/issues/18918")]
         public void IntermediateStructClosures1()
         {
-            var verifier = CompileStandardAndVerify(@"
+            var verifier = CompileAndVerify(@"
 using System;
 class C
 {
@@ -879,7 +879,7 @@ class C
         [WorkItem(18918, "https://github.com/dotnet/roslyn/issues/18918")]
         public void IntermediateStructClosures2()
         {
-            CompileStandardAndVerify(@"
+            CompileAndVerify(@"
 class C
 {
     int _x;
@@ -903,7 +903,7 @@ class C
         [WorkItem(18814, "https://github.com/dotnet/roslyn/issues/18814")]
         public void Repro18814()
         {
-            CompileStandardAndVerify(@"
+            CompileAndVerify(@"
 class Program
 {
     private void ResolvingPackages()
@@ -927,7 +927,7 @@ class Program
         [WorkItem(18918, "https://github.com/dotnet/roslyn/issues/18918")]
         public void Repro18918()
         {
-            CompileStandardAndVerify(@"
+            CompileAndVerify(@"
 public class Test
 {
     private int _field;
@@ -959,7 +959,7 @@ public class Test
         [WorkItem(17719, "https://github.com/dotnet/roslyn/issues/17719")]
         public void Repro17719()
         {
-            var comp = CompileStandardAndVerify(@"
+            var comp = CompileAndVerify(@"
 using System;
 class C
 {
@@ -1026,7 +1026,7 @@ public class Class
         [WorkItem(16783, "https://github.com/dotnet/roslyn/issues/16783")]
         public void GenericDefaultParams()
         {
-            CompileStandardAndVerify(@"
+            CompileAndVerify(@"
 using System;
 class C
 {
@@ -1052,7 +1052,7 @@ class C2
         [Fact]
         public void GenericCaptureDefaultParams()
         {
-            CompileStandardAndVerify(@"
+            CompileAndVerify(@"
 using System;
 class C<T>
 {
@@ -1123,7 +1123,7 @@ class C
         }
     }
 }";
-            CompileStandardAndVerify(src, expectedOutput: "1");
+            CompileAndVerify(src, expectedOutput: "1");
         }
 
         [Fact]
@@ -1154,7 +1154,7 @@ class C
         }
     }
 }";
-            CompileStandardAndVerify(src, expectedOutput: "1");
+            CompileAndVerify(src, expectedOutput: "1");
         }
 
         [Fact]
@@ -1185,7 +1185,7 @@ class C
         }
     }
 }";
-            CompileStandardAndVerify(src, expectedOutput: "1");
+            CompileAndVerify(src, expectedOutput: "1");
         }
 
         [Fact]
@@ -1219,7 +1219,7 @@ class C
         }
     }
 }";
-            CompileStandardAndVerify(src, expectedOutput: "1");
+            CompileAndVerify(src, expectedOutput: "1");
         }
 
         [Fact]
@@ -1254,7 +1254,7 @@ class C
         }
     }
 }";
-            CompileStandardAndVerify(src, expectedOutput: "1");
+            CompileAndVerify(src, expectedOutput: "1");
         }
 
         [Fact]
@@ -1293,7 +1293,7 @@ class C
         Console.WriteLine(x);
     }
 }";
-            CompileStandardAndVerify(src, expectedOutput: @"1
+            CompileAndVerify(src, expectedOutput: @"1
 1
 1");
         }
@@ -1331,7 +1331,7 @@ class C
         Console.WriteLine(x);
     }
 }";
-            CompileAndVerify(src,
+            CompileAndVerifyWithMscorlib40(src,
                 targetFramework: TargetFramework.Net46,
                 expectedOutput: @"1
 0");
@@ -1370,7 +1370,7 @@ class C
         Console.WriteLine(x);
     }
 }";
-            CompileAndVerify(src,
+            CompileAndVerifyWithMscorlib40(src,
                 targetFramework: TargetFramework.Net46,
                 expectedOutput: @"1
 0");
@@ -1398,7 +1398,7 @@ class C
         }
     }
 }";
-            CompileStandardAndVerify(src);
+            CompileAndVerify(src);
         }
 
 
@@ -1476,7 +1476,7 @@ class Test<T>
     }
 }
 ";
-            var comp = CompileStandardAndVerify(src);
+            var comp = CompileAndVerify(src);
         }
 
         [Fact]
@@ -5027,14 +5027,14 @@ class Program
         c.M(""D"");
     }
 }";
-            CompileStandardAndVerify(src, expectedOutput: "CDBACDBACDBACDBACDBA");
+            CompileAndVerify(src, expectedOutput: "CDBACDBACDBACDBACDBA");
         }
 
         [Fact]
         [WorkItem(19119, "https://github.com/dotnet/roslyn/issues/19119")]
         public void StructFrameInitUnnecessary()
         {
-            var c = CompileStandardAndVerify(@"
+            var c = CompileAndVerify(@"
     class Program
     {
         static void Main(string[] args)

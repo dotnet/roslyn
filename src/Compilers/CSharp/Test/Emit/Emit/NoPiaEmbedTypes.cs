@@ -5678,7 +5678,7 @@ class B : IA
     }
 }
 ";
-            CompileStandardAndVerify(csharp, references: new MetadataReference[] { piaReference }, symbolValidator: module =>
+            CompileAndVerify(csharp, references: new MetadataReference[] { piaReference }, symbolValidator: module =>
             {
                 ((PEModuleSymbol)module).Module.PretendThereArentNoPiaLocalTypes();
                 var ia = module.GlobalNamespace.GetMember<NamedTypeSymbol>("IA");
@@ -5746,7 +5746,7 @@ class B : IA
     }
 }
 ";
-            CompileStandardAndVerify(csharp, references: new MetadataReference[] { piaReference }, symbolValidator: module =>
+            CompileAndVerify(csharp, references: new MetadataReference[] { piaReference }, symbolValidator: module =>
             {
                 ((PEModuleSymbol)module).Module.PretendThereArentNoPiaLocalTypes();
                 var ia = module.GlobalNamespace.GetMember<NamedTypeSymbol>("IA");

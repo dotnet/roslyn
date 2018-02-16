@@ -18663,7 +18663,7 @@ public class Cls
     }
 }";
             // the C# dynamic binder does not support ref or out indexers, so we don't run this
-            CompileStandardAndVerify(text, references: new[] { SystemCoreRef, CSharpRef }).VerifyIL("Cls.Main()",
+            CompileAndVerify(text, references: new[] { SystemCoreRef, CSharpRef }).VerifyIL("Cls.Main()",
 @"{
   // Code size       87 (0x57)
   .maxstack  7
@@ -18717,7 +18717,7 @@ public class Cls
     }
 }";
             // the C# dynamic binder does not support ref or out indexers, so we don't run this
-            CompileStandardAndVerify(text, references: new[] { SystemCoreRef, CSharpRef }).VerifyIL("Cls.Main()",
+            CompileAndVerify(text, references: new[] { SystemCoreRef, CSharpRef }).VerifyIL("Cls.Main()",
 @"
 {
   // Code size       87 (0x57)
@@ -18977,7 +18977,7 @@ class B
                 VerifyModelForOutVar(model, x4Decl, x4Ref);
                 Assert.Equal("System.Int32", compilation.GetSemanticModel(tree).GetTypeInfo(x4Ref[0]).Type.ToTestDisplayString());
 
-                CompileStandardAndVerify(source2, references: new[] { reference1 }, expectedOutput:
+                CompileAndVerify(source2, references: new[] { reference1 }, expectedOutput:
     @"2 1
 3
 5 4
@@ -30675,7 +30675,7 @@ public class C
     static void M(out int x) { x = 1; System.Console.Write(""M""); }
 }
 ";
-            var comp = CompileStandardAndVerify(source, expectedOutput: "MMM");
+            var comp = CompileAndVerify(source, expectedOutput: "MMM");
             comp.VerifyDiagnostics();
 
             var tree = comp.Compilation.SyntaxTrees.Single();
@@ -30738,7 +30738,7 @@ public class C
     static void M(out int x, out string y) { x = 1; y = ""hello""; System.Console.Write(""M""); }
 }
 ";
-            var comp = CompileStandardAndVerify(source, expectedOutput: "MMM");
+            var comp = CompileAndVerify(source, expectedOutput: "MMM");
             comp.VerifyDiagnostics();
         }
 

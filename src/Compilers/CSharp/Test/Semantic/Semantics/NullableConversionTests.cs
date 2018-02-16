@@ -29,7 +29,7 @@ class Program
     }
 }
 ";
-            var verifier = CompileStandardAndVerify(source: source, expectedOutput: "AB");
+            var verifier = CompileAndVerify(source: source, expectedOutput: "AB");
         }
 
         [Fact]
@@ -78,7 +78,7 @@ class P
 ";
 
             string expectedOutput = @"tttttttfft";
-            var verifier = CompileStandardAndVerify(source: source, expectedOutput: expectedOutput);
+            var verifier = CompileAndVerify(source: source, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -141,7 +141,7 @@ struct Conv
 ";
 
             string expectedOutput = @"tttttttttt";
-            var verifier = CompileStandardAndVerify(source: source, expectedOutput: expectedOutput);
+            var verifier = CompileAndVerify(source: source, expectedOutput: expectedOutput);
         }
 
         [Fact, WorkItem(529279, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529279")]
@@ -166,7 +166,7 @@ static class Program
         (new GenC<S1, I1>()).Test(default(S1));
     }
 }";
-            CompileStandardAndVerify(source, expectedOutput: "Hola");
+            CompileAndVerify(source, expectedOutput: "Hola");
         }
 
         [Fact, WorkItem(543996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543996")]
@@ -210,7 +210,7 @@ public class Test
 }
 ";
 
-            CompileStandardAndVerify(source, expectedOutput: "TrueTrue");
+            CompileAndVerify(source, expectedOutput: "TrueTrue");
         }
 
         [Fact, WorkItem(543997, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543997")]
@@ -245,7 +245,7 @@ namespace Test
 }
 ";
 
-            CompileStandardAndVerify(source, expectedOutput: "Imp S::int? -> S True");
+            CompileAndVerify(source, expectedOutput: "Imp S::int? -> S True");
         }
 
         [Fact]
@@ -277,7 +277,7 @@ namespace Test
     }
 }
 ";
-            CompileStandardAndVerify(source, expectedOutput: "123t");
+            CompileAndVerify(source, expectedOutput: "123t");
         }
 
         [Fact, WorkItem(545091, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545091")]
@@ -305,7 +305,7 @@ class A
 }
 ";
 
-            CompileStandardAndVerify(source, expectedOutput: "implicit C");
+            CompileAndVerify(source, expectedOutput: "implicit C");
         }
 
         [WorkItem(545377, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545377")]
@@ -356,7 +356,7 @@ public struct S
 }
 ";
 
-            CompileStandardAndVerify(source, expectedOutput: "2");
+            CompileAndVerify(source, expectedOutput: "2");
         }
 
         [WorkItem(545377, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545377")]

@@ -41,13 +41,13 @@ public class Test
 two
 three
 four";
-            CompileStandardAndVerify(text, expectedOutput: expectedOutput);
+            CompileAndVerify(text, expectedOutput: expectedOutput);
         }
 
         [Fact]
         public void TestIteration()
         {
-            CompileStandardAndVerify(@"
+            CompileAndVerify(@"
 using System;
 public class Test
 {
@@ -116,7 +116,7 @@ public class Test
             string expectedOutput = @"97
 98
 99";
-            CompileStandardAndVerify(text, expectedOutput: expectedOutput);
+            CompileAndVerify(text, expectedOutput: expectedOutput);
         }
 
         // Empty foreach statement
@@ -155,7 +155,7 @@ public class Test
   IL_001d:  blt.s      IL_000a
   IL_001f:  ret
 }";
-            CompileStandardAndVerify(text).VerifyIL("C.Main", expectedIL);
+            CompileAndVerify(text).VerifyIL("C.Main", expectedIL);
         }
 
         // Foreach value can't be deleted in a loop
@@ -217,7 +217,7 @@ class C
   }
   IL_003f:  ret       
 }";
-            CompileStandardAndVerify(text).VerifyIL("C.Main", expectedIL);
+            CompileAndVerify(text).VerifyIL("C.Main", expectedIL);
         }
 
         // With multidimensional arrays, you can use one loop to iterate through the elements
@@ -243,7 +243,7 @@ class C
 33
 5
 55";
-            CompileStandardAndVerify(text, expectedOutput: expectedOutput);
+            CompileAndVerify(text, expectedOutput: expectedOutput);
         }
 
         [WorkItem(540917, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540917")]
@@ -301,7 +301,7 @@ public class Test
   IL_002b:  blt.s      IL_001b
   IL_002d:  ret
 }";
-            CompileStandardAndVerify(text).VerifyIL("Test.Main", expectedIL);
+            CompileAndVerify(text).VerifyIL("Test.Main", expectedIL);
         }
 
         [Fact]
@@ -837,7 +837,7 @@ public class Test
 4
 5
 6";
-            CompileStandardAndVerify(text, expectedOutput: expectedOutput);
+            CompileAndVerify(text, expectedOutput: expectedOutput);
         }
 
         // Optimization to foreach (char c in String) by treating String as a char array 
@@ -856,7 +856,7 @@ public class Test
 }
 ";
             string expectedOutput = @"";
-            CompileStandardAndVerify(text, expectedOutput: expectedOutput);
+            CompileAndVerify(text, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -881,7 +881,7 @@ public class Test
 }
 ";
             string expectedOutput = @"";
-            CompileStandardAndVerify(text, expectedOutput: expectedOutput);
+            CompileAndVerify(text, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -922,7 +922,7 @@ public class Test
   IL_0019:  blt.s      IL_0006
   IL_001b:  ret
 }";
-            CompileStandardAndVerify(text).VerifyIL("Test.Main", expectedIL);
+            CompileAndVerify(text).VerifyIL("Test.Main", expectedIL);
         }
 
         // Traversing items in 'Dictionary'
@@ -951,7 +951,7 @@ public class Test
 2
 3
 4";
-            CompileStandardAndVerify(text, expectedOutput: expectedOutput);
+            CompileAndVerify(text, expectedOutput: expectedOutput);
         }
 
         // Inner foreach loop referencing the outer foreach loop iteration variable
@@ -980,7 +980,7 @@ C
 X
 Y
 Z";
-            CompileStandardAndVerify(text, expectedOutput: expectedOutput);
+            CompileAndVerify(text, expectedOutput: expectedOutput);
         }
 
         // Breaking from nested Loops
@@ -1012,7 +1012,7 @@ X
 Y
 Z
 XYZ";
-            CompileStandardAndVerify(text, expectedOutput: expectedOutput);
+            CompileAndVerify(text, expectedOutput: expectedOutput);
         }
 
         // Continuing  from nested Loops
@@ -1042,7 +1042,7 @@ B
 X
 Y
 Z";
-            CompileStandardAndVerify(text, expectedOutput: expectedOutput);
+            CompileAndVerify(text, expectedOutput: expectedOutput);
         }
 
         // Goto in foreach loops
@@ -1069,7 +1069,7 @@ Z";
 }
 ";
             string expectedOutput = @"A";
-            CompileStandardAndVerify(text, expectedOutput: expectedOutput);
+            CompileAndVerify(text, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -1095,7 +1095,7 @@ Z";
 }
 ";
             string expectedOutput = @"A";
-            CompileStandardAndVerify(text, expectedOutput: expectedOutput);
+            CompileAndVerify(text, expectedOutput: expectedOutput);
         }
 
         // 'Return' in foreach
@@ -1147,7 +1147,7 @@ Z";
   IL_0026:  ret
 }
 ";
-            CompileStandardAndVerify(text).VerifyIL("Test.Main", expectedIL);
+            CompileAndVerify(text).VerifyIL("Test.Main", expectedIL);
         }
 
         // Dynamic works in foreach 
@@ -1169,7 +1169,7 @@ Z";
 ";
             string expectedOutput = @"abc
 xyz";
-            CompileStandardAndVerify(text, new[] { CSharpRef }, expectedOutput: expectedOutput);
+            CompileAndVerify(text, new[] { CSharpRef }, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -1194,7 +1194,7 @@ public class Test
             string expectedOutput = @"True
 True
 True";
-            CompileStandardAndVerify(text, expectedOutput: expectedOutput);
+            CompileAndVerify(text, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -1219,7 +1219,7 @@ public class Test
             string expectedOutput = @"False
 False
 False";
-            CompileStandardAndVerify(text, expectedOutput: expectedOutput);
+            CompileAndVerify(text, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -1267,7 +1267,7 @@ class MyEnumerator
             string expectedOutput = @"True
 True
 True";
-            CompileStandardAndVerify(text, expectedOutput: expectedOutput);
+            CompileAndVerify(text, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -1339,7 +1339,7 @@ public class myClass
 128
 256
 ";
-            CompileStandardAndVerify(text, expectedOutput: expectedOutput);
+            CompileAndVerify(text, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -1367,7 +1367,7 @@ public class Test
 3
 4
 ";
-            CompileStandardAndVerify(text, expectedOutput: expectedOutput);
+            CompileAndVerify(text, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -1392,7 +1392,7 @@ public class Test
 }
 ";
             string expectedOutput = @"abc";
-            CompileStandardAndVerify(text, expectedOutput: expectedOutput);
+            CompileAndVerify(text, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -1424,7 +1424,7 @@ public class Test
             string expectedOutput = @"3
 4
 5";
-            CompileStandardAndVerify(text, expectedOutput: expectedOutput);
+            CompileAndVerify(text, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -1453,7 +1453,7 @@ public class Gen<T> where T : new()
             string expectedOutput = @"0
 0
 0";
-            CompileStandardAndVerify(text, expectedOutput: expectedOutput);
+            CompileAndVerify(text, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -1479,7 +1479,7 @@ struct A
     }  
 }";
 
-            CompileStandardAndVerify(source, expectedOutput: "5");
+            CompileAndVerify(source, expectedOutput: "5");
         }
 
 
@@ -1515,7 +1515,7 @@ struct B
     }
 }";
 
-            CompileStandardAndVerify(source, expectedOutput: "0");
+            CompileAndVerify(source, expectedOutput: "0");
         }
 
         [Fact]
@@ -1551,7 +1551,7 @@ struct A
     }
 }";
 
-            CompileStandardAndVerify(source, expectedOutput: "0");
+            CompileAndVerify(source, expectedOutput: "0");
         }
     }
 }

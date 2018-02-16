@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             var compilation = GetCompilationForEmit(sources, additionalRefs, options, parseOptions);
 
-            return this.CompileAndVerify(
+            return this.CompileAndVerifyCommon(
                 compilation,
                 null,
                 dependencies,
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 verify);
         }
 
-        internal CompilationVerifier CompileAndVerify(
+        internal CompilationVerifier CompileAndVerifyCommon(
             Compilation compilation,
             IEnumerable<ResourceDescription> manifestResources = null,
             IEnumerable<ModuleData> dependencies = null,

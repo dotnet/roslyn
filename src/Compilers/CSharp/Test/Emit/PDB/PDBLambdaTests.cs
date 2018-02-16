@@ -1396,7 +1396,7 @@ class C
     }
 }
 ";
-            var v = CompileStandardAndVerify(source, options: TestOptions.DebugDll);
+            var v = CompileAndVerify(source, options: TestOptions.DebugDll);
 
             v.VerifyIL("C.<>c.<F>b__0_0", @"
 {
@@ -1438,7 +1438,7 @@ class C
     }
 }
 ";
-            var v = CompileStandardAndVerify(source, options: TestOptions.DebugDll);
+            var v = CompileAndVerify(source, options: TestOptions.DebugDll);
 
             v.VerifyIL("C.<>c.<F>b__0_0", @"
 {

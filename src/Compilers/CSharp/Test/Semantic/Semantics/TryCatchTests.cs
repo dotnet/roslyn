@@ -103,7 +103,7 @@ class C
     }
 }";
 
-            CompileStandardAndVerify(source, expectedOutput: "hhhe");
+            CompileAndVerify(source, expectedOutput: "hhhe");
         }
     }
 }

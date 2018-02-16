@@ -51,7 +51,7 @@ class Test
 ref struct S1{}
 ";
 
-            CompileStandardAndVerify(text, verify: Verification.Passes, symbolValidator: module =>
+            CompileAndVerify(text, verify: Verification.Passes, symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("S1");
                 AssertReferencedIsByRefLike(type);
@@ -68,7 +68,7 @@ class Test
 }
 ";
 
-            CompileStandardAndVerify(text, verify: Verification.Passes, symbolValidator: module =>
+            CompileAndVerify(text, verify: Verification.Passes, symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
                 AssertReferencedIsByRefLike(type);
@@ -108,7 +108,7 @@ class Test<T>
 }
 ";
 
-            CompileStandardAndVerify(text, verify: Verification.Passes, symbolValidator: module =>
+            CompileAndVerify(text, verify: Verification.Passes, symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Test`1").GetTypeMember("S1");
                 AssertReferencedIsByRefLike(type);
@@ -133,7 +133,7 @@ class Test
 }
 ";
 
-            CompileStandardAndVerify(codeB, verify: Verification.Passes, references: new[] { referenceA }, symbolValidator: module =>
+            CompileAndVerify(codeB, verify: Verification.Passes, references: new[] { referenceA }, symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
 
@@ -427,7 +427,7 @@ public class Test
     public ref struct S1{}
 }";
 
-            CompileStandardAndVerify(code, verify: Verification.Fails, references: new[] { reference }, options: TestOptions.ReleaseModule, symbolValidator: module =>
+            CompileAndVerify(code, verify: Verification.Fails, references: new[] { reference }, options: TestOptions.ReleaseModule, symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
 
@@ -448,7 +448,7 @@ public class Test1
 	public ref struct S1{}
 }";
 
-            var comp1 = CompileStandardAndVerify(code1, options: options, verify: Verification.Passes, symbolValidator: module =>
+            var comp1 = CompileAndVerify(code1, options: options, verify: Verification.Passes, symbolValidator: module =>
             {
                 AssertGeneratedEmbeddedAttribute(module.ContainingAssembly, AttributeDescription.CodeAnalysisEmbeddedAttribute.FullName);
                 AssertGeneratedEmbeddedAttribute(module.ContainingAssembly, AttributeDescription.IsByRefLikeAttribute.FullName);
@@ -460,7 +460,7 @@ public class Test2
 	public ref struct S1{}
 }";
 
-            CompileStandardAndVerify(code2, options: options.WithModuleName("Assembly2"), references: new[] { comp1.Compilation.ToMetadataReference() }, symbolValidator: module =>
+            CompileAndVerify(code2, options: options.WithModuleName("Assembly2"), references: new[] { comp1.Compilation.ToMetadataReference() }, symbolValidator: module =>
             {
                 AssertGeneratedEmbeddedAttribute(module.ContainingAssembly, AttributeDescription.CodeAnalysisEmbeddedAttribute.FullName);
                 AssertGeneratedEmbeddedAttribute(module.ContainingAssembly, AttributeDescription.IsByRefLikeAttribute.FullName);
@@ -481,7 +481,7 @@ class Test
 }
 ";
 
-            CompileStandardAndVerify(text, verify: Verification.Passes, symbolValidator: module =>
+            CompileAndVerify(text, verify: Verification.Passes, symbolValidator: module =>
             {
                 Assert.Null(module.ContainingAssembly.GetTypeByMetadataName(AttributeDescription.CodeAnalysisEmbeddedAttribute.FullName));
             });
@@ -696,7 +696,7 @@ namespace System
 }
 ";
 
-            CompileStandardAndVerify(text, verify: Verification.Passes, symbolValidator: module =>
+            CompileAndVerify(text, verify: Verification.Passes, symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
                 AssertReferencedIsByRefLike(type, hasObsolete: false);
@@ -738,7 +738,7 @@ class Test
 }
 ";
 
-            CompileStandardAndVerify(text, verify: Verification.Passes, symbolValidator: module =>
+            CompileAndVerify(text, verify: Verification.Passes, symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
                 Assert.True(type.IsByRefLikeType);
@@ -785,7 +785,7 @@ class Test
 }
 ";
 
-            CompileStandardAndVerify(text, verify: Verification.Passes, symbolValidator: module =>
+            CompileAndVerify(text, verify: Verification.Passes, symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
                 Assert.True(type.IsByRefLikeType);
@@ -846,7 +846,7 @@ class Test
         {
             var text = @"public ref struct S {}";
 
-            CompileStandardAndVerify(text, verify: Verification.Passes, symbolValidator: module =>
+            CompileAndVerify(text, verify: Verification.Passes, symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("S");
                 AssertReferencedIsByRefLike(type);
@@ -980,7 +980,7 @@ namespace System
 }
 ";
 
-            CompileStandardAndVerify(text, verify: Verification.Passes, symbolValidator: module =>
+            CompileAndVerify(text, verify: Verification.Passes, symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("System.TypedReference");
 

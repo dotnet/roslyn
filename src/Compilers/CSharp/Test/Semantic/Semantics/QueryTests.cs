@@ -30,7 +30,7 @@ class Query
         Console.WriteLine(r);
     }
 }";
-            CompileStandardAndVerify(csSource, expectedOutput: "[1, 2, 3, 4, 5, 6, 7]");
+            CompileAndVerify(csSource, expectedOutput: "[1, 2, 3, 4, 5, 6, 7]");
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -96,7 +96,7 @@ class Query
         Console.WriteLine(r);
     }
 }";
-            CompileStandardAndVerify(csSource, expectedOutput: "[1, 2, 3, 4, 5, 6, 7]");
+            CompileAndVerify(csSource, expectedOutput: "[1, 2, 3, 4, 5, 6, 7]");
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -177,7 +177,7 @@ class Query
         Console.WriteLine(r);
     }
 }";
-            CompileStandardAndVerify(csSource, expectedOutput: "[2, 3, 4, 5, 6, 7, 8]");
+            CompileAndVerify(csSource, expectedOutput: "[2, 3, 4, 5, 6, 7, 8]");
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -245,7 +245,7 @@ class Query
         Console.WriteLine(r);
     }
 }";
-            CompileStandardAndVerify(csSource, expectedOutput: "[1:[1, 3, 5, 7], 0:[2, 4, 6]]");
+            CompileAndVerify(csSource, expectedOutput: "[1:[1, 3, 5, 7], 0:[2, 4, 6]]");
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -313,7 +313,7 @@ class Query
         Console.WriteLine(r);
     }
 }";
-            CompileStandardAndVerify(csSource, expectedOutput: "[1:[11, 13, 15, 17], 0:[12, 14, 16]]");
+            CompileAndVerify(csSource, expectedOutput: "[1:[11, 13, 15, 17], 0:[12, 14, 16]]");
         }
 
         [Fact]
@@ -329,7 +329,7 @@ class Query
         Console.WriteLine(r);
     }
 }";
-            CompileStandardAndVerify(csSource, expectedOutput: "[1, 2, 3, 4, 5, 6, 7]");
+            CompileAndVerify(csSource, expectedOutput: "[1, 2, 3, 4, 5, 6, 7]");
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -399,7 +399,7 @@ class Query
         Console.WriteLine(r);
     }
 }";
-            CompileStandardAndVerify(csSource, expectedOutput: "[1, 2, 3, 4]");
+            CompileAndVerify(csSource, expectedOutput: "[1, 2, 3, 4]");
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -477,7 +477,7 @@ class Query
         Console.WriteLine(r);
     }
 }";
-            CompileStandardAndVerify(csSource, expectedOutput: "[11, 33, 44, 55, 77]");
+            CompileAndVerify(csSource, expectedOutput: "[11, 33, 44, 55, 77]");
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -582,7 +582,7 @@ class Query
         Console.WriteLine(r);
     }
 }";
-            CompileStandardAndVerify(csSource, expectedOutput: "[84, 72, 64, 51, 55, 46, 39, 27, 27, 27, 28]");
+            CompileAndVerify(csSource, expectedOutput: "[84, 72, 64, 51, 55, 46, 39, 27, 27, 27, 28]");
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -677,7 +677,7 @@ class Query
         Console.WriteLine(r);
     }
 }";
-            CompileStandardAndVerify(csSource, expectedOutput: "[1:[12], 2:[], 3:[34], 4:[42], 5:[51, 52], 7:[75]]");
+            CompileAndVerify(csSource, expectedOutput: "[1:[12], 2:[], 3:[34], 4:[42], 5:[51, 52], 7:[75]]");
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -791,7 +791,7 @@ class Query
         Console.WriteLine(r);
     }
 }";
-            CompileStandardAndVerify(csSource, expectedOutput: "[11, 21, 31, 12, 22, 32, 13, 23, 33]");
+            CompileAndVerify(csSource, expectedOutput: "[11, 21, 31, 12, 22, 32, 13, 23, 33]");
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -874,7 +874,7 @@ class Query
         Console.WriteLine(r);
     }
 }";
-            CompileStandardAndVerify(csSource, expectedOutput: "[11, 21, 31, 12, 22, 32, 13, 23, 33]");
+            CompileAndVerify(csSource, expectedOutput: "[11, 21, 31, 12, 22, 32, 13, 23, 33]");
         }
 
         [WorkItem(9229, "DevDiv_Projects/Roslyn")]
@@ -895,7 +895,7 @@ class Query
         System.Console.WriteLine(r1);
     }
 }";
-            CompileStandardAndVerify(csSource, expectedOutput: "[111, 222, 333]");
+            CompileAndVerify(csSource, expectedOutput: "[111, 222, 333]");
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -1060,7 +1060,7 @@ class Query
        Console.WriteLine(r1);
     }
 }";
-            CompileStandardAndVerify(csSource, expectedOutput: "[111, 211, 311, 121, 221, 131, 112, 212, 122, 113]");
+            CompileAndVerify(csSource, expectedOutput: "[111, 211, 311, 121, 221, 131, 112, 212, 122, 113]");
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -1343,7 +1343,7 @@ class Query
         Console.WriteLine(r1);
     }
 }";
-            CompileStandardAndVerify(csSource, expectedOutput: "[11, 22, 33]");
+            CompileAndVerify(csSource, expectedOutput: "[11, 22, 33]");
         }
 
         [WorkItem(9229, "DevDiv_Projects/Roslyn")]
@@ -1364,7 +1364,7 @@ class Query
         Console.WriteLine(r1);
     }
 }";
-            CompileStandardAndVerify(csSource, expectedOutput: "[1:[12], 2:[], 3:[34], 4:[42], 5:[51, 52]]");
+            CompileAndVerify(csSource, expectedOutput: "[1:[12], 2:[], 3:[34], 4:[42], 5:[51, 52]]");
         }
 
         [Fact]
@@ -1399,7 +1399,7 @@ class Query
         return;
     }
 }";
-            CompileStandardAndVerify(csSource, expectedOutput: "[1:[12], 2:[], 3:[34], 4:[42], 5:[51, 52]]");
+            CompileAndVerify(csSource, expectedOutput: "[1:[12], 2:[], 3:[34], 4:[42], 5:[51, 52]]");
         }
 
         [Fact]
@@ -1902,7 +1902,7 @@ class Program
     }
 }";
 
-            CompileStandardAndVerify(csSource, references: new[] { LinqAssemblyRef }, expectedOutput: "3 3 4 4");
+            CompileAndVerify(csSource, references: new[] { LinqAssemblyRef }, expectedOutput: "3 3 4 4");
         }
 
         [WorkItem(541782, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541782")]
@@ -1929,7 +1929,7 @@ class Program
         System.Console.Write(serializer.Trim());
     }
 }";
-            CompileStandardAndVerify(csSource, references: new[] { LinqAssemblyRef }, expectedOutput: "3 4");
+            CompileAndVerify(csSource, references: new[] { LinqAssemblyRef }, expectedOutput: "3 4");
         }
 
 
@@ -1959,7 +1959,7 @@ class Program
     }
 }";
 
-            CompileStandardAndVerify(csSource, references: new[] { LinqAssemblyRef }, expectedOutput: "1 2 3");
+            CompileAndVerify(csSource, references: new[] { LinqAssemblyRef }, expectedOutput: "1 2 3");
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -2093,7 +2093,7 @@ class Program
     }
 }";
 
-            CompileStandardAndVerify(csSource, references: new[] { LinqAssemblyRef }, expectedOutput: "3 4");
+            CompileAndVerify(csSource, references: new[] { LinqAssemblyRef }, expectedOutput: "3 4");
         }
 
         [WorkItem(541942, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541942")]
@@ -2124,7 +2124,7 @@ class P
     }
 }";
 
-            CompileStandardAndVerify(csSource, references: new[] { LinqAssemblyRef }, expectedOutput: "45");
+            CompileAndVerify(csSource, references: new[] { LinqAssemblyRef }, expectedOutput: "45");
         }
 
         [Fact]

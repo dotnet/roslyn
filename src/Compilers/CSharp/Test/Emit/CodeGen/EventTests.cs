@@ -29,7 +29,7 @@ class C
     }
 }
 ";
-            var compVerifier = CompileStandardAndVerify(text,
+            var compVerifier = CompileAndVerify(text,
                 symbolValidator: module => ValidateEvent(module, isFromSource: false, isStatic: false, isFieldLike: false),
                 expectedSignatures: new[]
                 {
@@ -63,7 +63,7 @@ class C
     }
 }
 ";
-            var compVerifier = CompileStandardAndVerify(text,
+            var compVerifier = CompileAndVerify(text,
                 symbolValidator: module => ValidateEvent(module, isFromSource: false, isStatic: true, isFieldLike: false),
                 expectedSignatures: new[]
                 {
@@ -93,7 +93,7 @@ class C
     public event System.Action E;
 }
 ";
-            var compVerifier = CompileStandardAndVerify(text,
+            var compVerifier = CompileAndVerify(text,
                 symbolValidator: module => ValidateEvent(module, isFromSource: false, isStatic: false, isFieldLike: true),
                 expectedSignatures: new[]
                 {
@@ -156,7 +156,7 @@ class C
     public static event System.Action E;
 }
 ";
-            var compVerifier = CompileStandardAndVerify(text,
+            var compVerifier = CompileAndVerify(text,
                 symbolValidator: module => ValidateEvent(module, isFromSource: false, isStatic: true, isFieldLike: true),
                 expectedSignatures: new[]
                 {
@@ -261,7 +261,7 @@ class C
     }
 }
 ";
-            CompileStandardAndVerify(text).VerifyIL("C.M", @"
+            CompileAndVerify(text).VerifyIL("C.M", @"
 {
   // Code size       85 (0x55)
   .maxstack  2
@@ -329,7 +329,7 @@ class C
     }
 }
 ";
-            CompileStandardAndVerify(text).VerifyIL("C.M", @"
+            CompileAndVerify(text).VerifyIL("C.M", @"
 {
   // Code size       74 (0x4a)
   .maxstack  2
@@ -389,7 +389,7 @@ class D
     }
 }
 ";
-            CompileStandardAndVerify(text).VerifyIL("D.M", @"
+            CompileAndVerify(text).VerifyIL("D.M", @"
 {
   // Code size       53 (0x35)
   .maxstack  2
@@ -427,7 +427,7 @@ interface C
     event System.Action E;
 }
 ";
-            var compVerifier = CompileStandardAndVerify(text,
+            var compVerifier = CompileAndVerify(text,
                 symbolValidator: module => ValidateEvent(module, isFromSource: false, isStatic: false, isFieldLike: true),
                 expectedSignatures: new[]
                 {
@@ -508,7 +508,7 @@ class C
     }
 }";
 
-            CompileStandardAndVerify(text, expectedOutput: @"
+            CompileAndVerify(text, expectedOutput: @"
 No handlers
 Adding Handler1 
 Invoking Handler1 
@@ -571,7 +571,7 @@ class C
     }
 }";
 
-            CompileStandardAndVerify(text, expectedOutput: @"
+            CompileAndVerify(text, expectedOutput: @"
 No handlers
 Invoking Handler1 
 Invoking Handler1 Handler2 

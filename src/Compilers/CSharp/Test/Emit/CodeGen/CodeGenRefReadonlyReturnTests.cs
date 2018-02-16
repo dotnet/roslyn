@@ -55,7 +55,7 @@ class C
 }";
 
             // WithPEVerifyCompatFeature should not cause us to get a ref of a temp in ref assignments
-            var comp = CompileStandardAndVerify(source, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature(), verify: Verification.Fails);
+            var comp = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature(), verify: Verification.Fails);
             comp.VerifyIL("C.M", @"
 {
   // Code size       59 (0x3b)
@@ -80,7 +80,7 @@ class C
   IL_003a:  ret
 }");
 
-            comp = CompileStandardAndVerify(source, verify: Verification.Fails);
+            comp = CompileAndVerify(source, verify: Verification.Fails);
             comp.VerifyIL("C.M", @"
 {
   // Code size       59 (0x3b)
@@ -109,7 +109,7 @@ class C
         [Fact]
         public void CallsOnRefReadonlyCopyReceiver()
         {
-            var comp = CompileStandardAndVerify(@"
+            var comp = CompileAndVerify(@"
 using System;
 
 struct S
@@ -173,7 +173,7 @@ class C
   IL_0057:  ret
 }");
             // This should generate similar IL to the previous
-            comp = CompileStandardAndVerify(@"
+            comp = CompileAndVerify(@"
 using System;
 
 struct S
@@ -231,7 +231,7 @@ class C
         [Fact]
         public void RefReadOnlyParamCopyReceiver()
         {
-            var comp = CompileStandardAndVerify(@"
+            var comp = CompileAndVerify(@"
 using System;
 
 struct S
@@ -279,7 +279,7 @@ class C
         [Fact]
         public void CarryThroughLifetime()
         {
-            var comp = CompileStandardAndVerify(@"
+            var comp = CompileAndVerify(@"
 class C
 {
     static ref readonly int M(ref int p)
@@ -300,7 +300,7 @@ class C
         [Fact]
         public void TempForReadonly()
         {
-            var comp = CompileStandardAndVerify(@"
+            var comp = CompileAndVerify(@"
 using System;
 class C
 {
@@ -351,7 +351,7 @@ class C
         [Fact]
         public void RefReturnAssign()
         {
-            var verifier = CompileStandardAndVerify(@"
+            var verifier = CompileAndVerify(@"
 class C
 {
     static void M()
@@ -376,7 +376,7 @@ class C
         [Fact]
         public void RefReturnAssign2()
         {
-            var verifier = CompileStandardAndVerify(@"
+            var verifier = CompileAndVerify(@"
 class C
 {
     static void M()
@@ -412,7 +412,7 @@ class Program
 }
 ";
 
-            var comp = CompileStandardAndVerify(text, parseOptions: TestOptions.Regular);
+            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular);
 
             comp.VerifyIL("Program.M()", @"
 {
@@ -751,7 +751,7 @@ class Program
 
 ";
 
-            var comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular, verify: Verification.Passes);
+            var comp = CompileAndVerifyWithMscorlib40(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular, verify: Verification.Passes);
 
             comp.VerifyIL("Program.Test", @"
 {
@@ -829,7 +829,7 @@ class Program
 
 ";
 
-            var comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular, verify: Verification.Fails);
+            var comp = CompileAndVerifyWithMscorlib40(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular, verify: Verification.Fails);
 
             comp.VerifyIL("Program.Test", @"
 {
@@ -861,7 +861,7 @@ class Program
 }");
 
             // WithPEVerifyCompatFeature should not cause us to get a ref of a temp in ref returns
-            comp = CompileStandardAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature(), verify: Verification.Fails);
+            comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature(), verify: Verification.Fails);
             comp.VerifyIL("Program.Test", @"
 {
   // Code size       57 (0x39)
@@ -1135,7 +1135,7 @@ class Program
 }
 ";
 
-            var comp = CompileStandardAndVerify(text, parseOptions: TestOptions.Regular);
+            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular);
 
             comp.VerifyIL("Program.M1()", @"
 {
@@ -1157,7 +1157,7 @@ class Program
         [Fact]
         public void RefExtensionMethod_PassThrough_LocalNoCopying()
         {
-            CompileStandardAndVerify(@"
+            CompileAndVerify(@"
 public static class Ext
 {
     public static ref int M(ref this int p) => ref p;
@@ -1186,7 +1186,7 @@ class Test
         [Fact]
         public void RefExtensionMethod_PassThrough_FieldNoCopying()
         {
-            CompileStandardAndVerify(@"
+            CompileAndVerify(@"
 public static class Ext
 {
     public static ref int M(ref this int p) => ref p;
@@ -1213,7 +1213,7 @@ class Test
         [Fact]
         public void RefExtensionMethod_PassThrough_ChainNoCopying()
         {
-            CompileStandardAndVerify(@"
+            CompileAndVerify(@"
 public static class Ext
 {
     public static ref int M(ref this int p) => ref p;
@@ -1242,7 +1242,7 @@ class Test
         [Fact]
         public void RefReadOnlyExtensionMethod_PassThrough_TempCopying()
         {
-            CompileStandardAndVerify(@"
+            CompileAndVerify(@"
 public static class Ext
 {
     public static ref readonly int M(in this int p) => ref p;
@@ -1270,7 +1270,7 @@ class Test
         [Fact]
         public void RefReadOnlyExtensionMethod_PassThrough_LocalNoCopying()
         {
-            CompileStandardAndVerify(@"
+            CompileAndVerify(@"
 public static class Ext
 {
     public static ref readonly int M(in this int p) => ref p;
@@ -1299,7 +1299,7 @@ class Test
         [Fact]
         public void RefReadOnlyExtensionMethod_PassThrough_FieldNoCopying()
         {
-            CompileStandardAndVerify(@"
+            CompileAndVerify(@"
 public static class Ext
 {
     public static ref readonly int M(in this int p) => ref p;
@@ -1326,7 +1326,7 @@ class Test
         [Fact]
         public void RefReadOnlyExtensionMethod_PassThrough_ChainNoCopying()
         {
-            CompileStandardAndVerify(@"
+            CompileAndVerify(@"
 public static class Ext
 {
     public static ref readonly int M(in this int p) => ref p;
@@ -1355,7 +1355,7 @@ class Test
         [Fact]
         public void RefReadOnlyReturnOptionalValue()
         {
-            CompileStandardAndVerify(@"
+            CompileAndVerify(@"
 class Program
 {
     static ref readonly string M(in string s = ""optional"") => ref s;

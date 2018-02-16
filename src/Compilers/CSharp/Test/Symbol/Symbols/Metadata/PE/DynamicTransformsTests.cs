@@ -395,7 +395,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 }
 ";
 
-            var compilation = CreateCompilationWithCustomILSource(String.Empty, il, references: new[] { MscorlibRef, SystemCoreRef });
+            var compilation = CreateStandardCompilationWithCustomILSource(String.Empty, il);
             var classA = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
             var classB = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("B");
 

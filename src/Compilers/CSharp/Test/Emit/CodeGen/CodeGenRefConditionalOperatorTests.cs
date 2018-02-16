@@ -33,7 +33,7 @@ class C
     static ref int Test2(bool b) => ref b ? ref val1 : ref val2;
 
 }";
-            var comp = CompileStandardAndVerify(source, expectedOutput: "3344");
+            var comp = CompileAndVerify(source, expectedOutput: "3344");
             comp.VerifyDiagnostics();
 
             comp.VerifyIL("C.Test1", @"
@@ -85,7 +85,7 @@ class C
     static ref int M1(ref int arg) => ref arg;
 
 }";
-            var comp = CompileStandardAndVerify(source, expectedOutput: "44", verify: Verification.Fails);
+            var comp = CompileAndVerify(source, expectedOutput: "44", verify: Verification.Fails);
             comp.VerifyDiagnostics();
 
             comp.VerifyIL("C.Main", @"
@@ -121,7 +121,7 @@ class C
     static int val1 = 33;
     static int val2 = 44;
 }";
-            var comp = CompileStandardAndVerify(source, expectedOutput: "44", verify: Verification.Passes);
+            var comp = CompileAndVerify(source, expectedOutput: "44", verify: Verification.Passes);
             comp.VerifyDiagnostics();
 
             comp.VerifyIL("C.Main", @"
@@ -157,7 +157,7 @@ class C
     static int val1 = 33;
     static int val2 = 44;
 }";
-            var comp = CompileStandardAndVerify(source, expectedOutput: "55", verify: Verification.Passes);
+            var comp = CompileAndVerify(source, expectedOutput: "55", verify: Verification.Passes);
             comp.VerifyDiagnostics();
 
             comp.VerifyIL("C.Main", @"
@@ -195,7 +195,7 @@ class C
     static int val1 = 33;
     static int val2 = 44;
 }";
-            var comp = CompileStandardAndVerify(source, expectedOutput: "5555", verify: Verification.Passes);
+            var comp = CompileAndVerify(source, expectedOutput: "5555", verify: Verification.Passes);
             comp.VerifyDiagnostics();
 
             comp.VerifyIL("C.Main", @"
@@ -242,7 +242,7 @@ class C
     static ref int M1(ref int arg) => ref arg;
 
 }";
-            var comp = CompileStandardAndVerify(source, expectedOutput: "67", verify: Verification.Fails);
+            var comp = CompileAndVerify(source, expectedOutput: "67", verify: Verification.Fails);
             comp.VerifyDiagnostics();
 
             comp.VerifyIL("C.Main", @"
@@ -296,7 +296,7 @@ class C
     static int val1 = 33;
     static int val2 = 44;
 }";
-            var comp = CompileStandardAndVerify(source, expectedOutput: "446767", verify: Verification.Passes);
+            var comp = CompileAndVerify(source, expectedOutput: "446767", verify: Verification.Passes);
             comp.VerifyDiagnostics();
 
             comp.VerifyIL("C.Main", @"
@@ -356,7 +356,7 @@ class C
         System.Console.WriteLine(local);
     }
 }";
-            var comp = CompileStandardAndVerify(source, expectedOutput: "1");
+            var comp = CompileAndVerify(source, expectedOutput: "1");
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main", @"
 {
@@ -430,7 +430,7 @@ class Program
         (!b? ref x: ref y)?.Dispose();
     }
 }";
-            var comp = CompileStandardAndVerify(source, expectedOutput: @"False
+            var comp = CompileAndVerify(source, expectedOutput: @"False
 True
 False
 True");
@@ -829,7 +829,7 @@ class C
     }
 }
 ";
-            var comp = CompileStandardAndVerify(source, expectedOutput: "1", verify: Verification.Passes);
+            var comp = CompileAndVerify(source, expectedOutput: "1", verify: Verification.Passes);
             comp.VerifyDiagnostics();
 
             comp.VerifyIL("C.Test", @"
@@ -873,7 +873,7 @@ class C
     }
 }
 ";
-            var comp = CompileStandardAndVerify(source, expectedOutput: "1", verify: Verification.Passes);
+            var comp = CompileAndVerify(source, expectedOutput: "1", verify: Verification.Passes);
             comp.VerifyDiagnostics();
 
             comp.VerifyIL("C.Test", @"
@@ -904,7 +904,7 @@ class C
     static int val2;
 }
 ";
-            var comp = CompileStandardAndVerify(source, expectedOutput: "1", verify: Verification.Passes);
+            var comp = CompileAndVerify(source, expectedOutput: "1", verify: Verification.Passes);
             comp.VerifyDiagnostics();
 
             comp.VerifyIL("C.Main()", @"
@@ -992,7 +992,7 @@ class C
 }
 ";
 
-            var comp = CompileStandardAndVerify(source, expectedOutput: "1");
+            var comp = CompileAndVerify(source, expectedOutput: "1");
             comp.VerifyDiagnostics();
 
             comp.VerifyIL("C.Main", @"
@@ -1056,7 +1056,7 @@ class C
     }
 ";
 
-            var comp = CompileAndVerify(source, references: new[] { SystemRuntimeFacadeRef, ValueTupleRef, SystemCoreRef }, expectedOutput: "00", verify: Verification.Fails);
+            var comp = CompileAndVerifyWithMscorlib40(source, references: new[] { SystemRuntimeFacadeRef, ValueTupleRef, SystemCoreRef }, expectedOutput: "00", verify: Verification.Fails);
             comp.VerifyDiagnostics();
 
             comp.VerifyIL("Program.Main", @"
@@ -1144,7 +1144,7 @@ class C
     }
 ";
 
-            var comp = CompileStandardAndVerify(source, expectedOutput: "00", verify: Verification.Fails);
+            var comp = CompileAndVerify(source, expectedOutput: "00", verify: Verification.Fails);
             comp.VerifyDiagnostics();
 
             comp.VerifyIL("Program.Test", @"

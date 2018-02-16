@@ -34,7 +34,7 @@ public class MemberInitializerTest
 ";
             string expectedOutput = @"1
 2";
-            var compVerifier = CompileStandardAndVerify(source, expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("MemberInitializerTest.Main", @"
 {
   // Code size       41 (0x29)
@@ -75,7 +75,7 @@ public struct MemberInitializerTest
 ";
             string expectedOutput = @"1
 2";
-            var compVerifier = CompileStandardAndVerify(source, expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("MemberInitializerTest.Main", @"
 {
   // Code size       50 (0x32)
@@ -130,7 +130,7 @@ public class MemberInitializerTest<T> where T: Base, new()
 ";
             string expectedOutput = @"1
 2";
-            var compVerifier = CompileStandardAndVerify(source, expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("MemberInitializerTest<T>.Goo", @"
 {
   // Code size       61 (0x3d)
@@ -187,7 +187,7 @@ struct S : I
 }
 ";
             string expectedOutput = "1";
-            var compVerifier = CompileStandardAndVerify(source, expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("MemberInitializerTest.Goo<T>", @"
 {
   // Code size       36 (0x24)
@@ -240,7 +240,7 @@ struct S : I
     public Decimal? X { get; set; }
 }";
             string expectedOutput = "1.1";
-            var compVerifier = CompileStandardAndVerify(source, expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("MemberInitializerTest.Goo<T>", @"
 {
   // Code size       51 (0x33)
@@ -285,7 +285,7 @@ public class MemberInitializerTest
 }
 ";
             string expectedOutput = "1";
-            var compVerifier = CompileStandardAndVerify(source, expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("MemberInitializerTest.Main", @"
 {
   // Code size       23 (0x17)
@@ -324,7 +324,7 @@ public class Test
 ";
             string expectedOutput = @"1
 2";
-            var compVerifier = CompileStandardAndVerify(source, expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("Test.Main", @"
 {
   // Code size       61 (0x3d)
@@ -367,7 +367,7 @@ public class MemberInitializerTest
 ";
             string expectedOutput = @"1
 2";
-            var compVerifier = CompileStandardAndVerify(source, expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("MemberInitializerTest.Main", @"
 {
   // Code size       33 (0x21)
@@ -430,7 +430,7 @@ public class MemberInitializerTest
 -1
 -1
 -1";
-            var compVerifier = CompileStandardAndVerify(source, expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("MemberInitializerTest.Goo", @"
 {
   // Code size      108 (0x6c)
@@ -513,7 +513,7 @@ public class Test
 2
 3
 4";
-            var compVerifier = CompileStandardAndVerify(source, expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("Test.Main", @"
 {
   // Code size       98 (0x62)
@@ -581,7 +581,7 @@ public class Test
 2
 3
 4";
-            var compVerifier = CompileStandardAndVerify(source, expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("Test.Main", @"
 {
   // Code size       97 (0x61)
@@ -664,7 +664,7 @@ public class Test
 4
 3
 4";
-            var compVerifier = CompileStandardAndVerify(source, expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("Test.Main", @"
 {
   // Code size      118 (0x76)
@@ -752,7 +752,7 @@ public class Test
 4
 3
 4";
-            var compVerifier = CompileStandardAndVerify(source, expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("Test.Main", @"
 {
   // Code size      117 (0x75)
@@ -809,7 +809,7 @@ public struct MemberInitializerTest
         var i = new MemberInitializerTest() { z = null };
     }
 }";
-            var compVerifier = CompileStandardAndVerify(source, expectedOutput: "");
+            var compVerifier = CompileAndVerify(source, expectedOutput: "");
             compVerifier.VerifyIL("MemberInitializerTest.Main", @"
 {
   // Code size       17 (0x11)
@@ -847,7 +847,7 @@ public class Test
 ";
             string expectedOutput = @"1
 0";
-            var compVerifier = CompileStandardAndVerify(source, expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("Test.Main", @"
 {
   // Code size       54 (0x36)
@@ -890,7 +890,7 @@ class Program
 ";
             string expectedOutput = @"3";
 
-            var compVerifier = CompileStandardAndVerify(source, expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("Program.Main", @"
 {
   // Code size       33 (0x21)
@@ -947,7 +947,7 @@ class A
 -
 3";
 
-            var compVerifier = CompileStandardAndVerify(source, expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("A.Main()", @"
 {
   // Code size       86 (0x56)
@@ -1039,7 +1039,7 @@ class A
 -
 3";
 
-            var compVerifier = CompileStandardAndVerify(source, expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("A.Main()", @"
 {
   // Code size      113 (0x71)
@@ -1149,7 +1149,7 @@ class A
 -
 5";
 
-            var compVerifier = CompileStandardAndVerify(source, expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -1253,7 +1253,7 @@ class A
 -
 3";
 
-            var compVerifier = CompileStandardAndVerify(source, references: new[] { SystemCoreRef, CSharpRef }, expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerify(source, references: new[] { SystemCoreRef, CSharpRef }, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -1347,7 +1347,7 @@ struct A
 2
 3";
 
-            var compVerifier = CompileStandardAndVerify(source, references: new[] { SystemCoreRef, CSharpRef }, expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerify(source, references: new[] { SystemCoreRef, CSharpRef }, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("A.Main()", @"
 {
   // Code size      194 (0xc2)
@@ -1485,7 +1485,7 @@ get
 get
 3";
 
-            var compVerifier = CompileStandardAndVerify(source, references: new[] { SystemCoreRef, CSharpRef }, expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerify(source, references: new[] { SystemCoreRef, CSharpRef }, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("A.Main()", @"
 {
   // Code size      222 (0xde)
@@ -1699,7 +1699,7 @@ class A
 273
 4";
 
-            var compVerifier = CompileStandardAndVerify(source, expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("A.Main()", @"
 {
   // Code size      118 (0x76)
@@ -1815,7 +1815,7 @@ class Program
 ";
             string expectedOutput = @"422";
 
-            var compVerifier = CompileStandardAndVerify(source, references: new[] { SystemCoreRef, CSharpRef }, expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerify(source, references: new[] { SystemCoreRef, CSharpRef }, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -1871,7 +1871,7 @@ class Program
 ";
             string expectedOutput = @"422";
 
-            var compVerifier = CompileStandardAndVerify(source, references: new[] { SystemCoreRef, CSharpRef }, expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerify(source, references: new[] { SystemCoreRef, CSharpRef }, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -1927,7 +1927,7 @@ class Program
 ";
             string expectedOutput = @"422";
 
-            var compVerifier = CompileStandardAndVerify(source, references: new[] { SystemCoreRef, CSharpRef }, expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerify(source, references: new[] { SystemCoreRef, CSharpRef }, expectedOutput: expectedOutput);
         }
 
         [Fact, WorkItem(1073330, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073330")]
@@ -1946,7 +1946,7 @@ class C
 }
 ";
 
-            CompileStandardAndVerify(source, expectedOutput: "1 2").VerifyIL("C.Main", @"
+            CompileAndVerify(source, expectedOutput: "1 2").VerifyIL("C.Main", @"
 {
   // Code size       61 (0x3d)
   .maxstack  4
@@ -1995,7 +1995,7 @@ class C
 }
 ";
 
-            CompileStandardAndVerify(source, expectedOutput: "1 2 3 4").VerifyIL("C.Main", @"
+            CompileAndVerify(source, expectedOutput: "1 2 3 4").VerifyIL("C.Main", @"
 {
   // Code size      163 (0xa3)
   .maxstack  7
@@ -2087,7 +2087,7 @@ class C
 }
 ";
 
-            CompileStandardAndVerify(source, expectedOutput: "1 2").VerifyIL("C.Main", @"
+            CompileAndVerify(source, expectedOutput: "1 2").VerifyIL("C.Main", @"
 {
   // Code size       69 (0x45)
   .maxstack  4
@@ -2152,7 +2152,7 @@ class C
 }
 ";
 
-            CompileStandardAndVerify(source, expectedOutput: "1 2").VerifyIL("C.Main", @"
+            CompileAndVerify(source, expectedOutput: "1 2").VerifyIL("C.Main", @"
 {
   // Code size       82 (0x52)
   .maxstack  4
@@ -2225,7 +2225,7 @@ class Test
 3
 4
 5";
-            var compVerifier = CompileStandardAndVerify(source, expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("Test.Main", @"
 {
   // Code size       47 (0x2f)
@@ -2283,7 +2283,7 @@ class Test
 4
 9
 3";
-            var compVerifier = CompileStandardAndVerify(source, expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("Test.Main", @"
 {
   // Code size       53 (0x35)
@@ -2365,7 +2365,7 @@ class Test
 3
 4
 5";
-            var compVerifier = CompileStandardAndVerify(source, expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("C<T>.M", @"
 {
   // Code size      117 (0x75)
@@ -2469,7 +2469,7 @@ public class B : IEnumerable
 4
 9
 3";
-            var compVerifier = CompileStandardAndVerify(source, expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("Test.Main", @"
 {
   // Code size       58 (0x3a)
@@ -2555,7 +2555,7 @@ public struct B : IEnumerable
 4
 9
 3";
-            var compVerifier = CompileStandardAndVerify(source, expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("Test.Main", @"
 {
   // Code size       62 (0x3e)
@@ -2652,7 +2652,7 @@ public class B : IEnumerable
 4
 9
 3";
-            var compVerifier = CompileStandardAndVerify(source, expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("Test.Main", @"
 {
   // Code size       55 (0x37)
@@ -2737,7 +2737,7 @@ public class D : IEnumerable
 2
 3
 4.4";
-            var compVerifier = CompileStandardAndVerify(source, expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("Test.Main", @"
 {
   // Code size       66 (0x42)
@@ -2830,7 +2830,7 @@ public class D : IEnumerable
 6
 7.7
 8.8";
-            var compVerifier = CompileStandardAndVerify(source, expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("Test.Main", @"
 {
   // Code size      184 (0xb8)
@@ -2943,7 +2943,7 @@ class Test
 8
 9
 10";
-            var compVerifier = CompileStandardAndVerify(source, expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("Test.Main", @"
 {
   // Code size      106 (0x6a)
@@ -3038,7 +3038,7 @@ public class B
 1
 2
 3";
-            var compVerifier = CompileStandardAndVerify(source, expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("Test.Main", @"
 {
   // Code size       92 (0x5c)
@@ -3131,7 +3131,7 @@ public class B : IEnumerable
 ";
             string expectedOutput = @"1
 2";
-            var compVerifier = CompileStandardAndVerify(source, expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("Test.Main", @"
 {
   // Code size       26 (0x1a)
@@ -3253,7 +3253,7 @@ Name:Bob Harris
 PH:
 650-555-0199";
 
-            var compVerifier = CompileStandardAndVerify(source, expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("Test.Main", @"
 {
   // Code size      103 (0x67)
@@ -3311,7 +3311,7 @@ partial class C : IEnumerable
         Console.WriteLine(new C { 'a', 'b', 'c' }); // none removed
     }
 }";
-            CompileStandardAndVerify(source).VerifyIL("C.Main", @"
+            CompileAndVerify(source).VerifyIL("C.Main", @"
 {
   // Code size       63 (0x3f)
   .maxstack  3
@@ -3362,7 +3362,7 @@ unsafe class C
         X = x;
     }
 }";
-            CompileStandardAndVerify(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), expectedOutput: "1", verify: Verification.Fails);
+            CompileAndVerify(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), expectedOutput: "1", verify: Verification.Fails);
         }
 
         [Fact, WorkItem(1089276, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1089276")]
@@ -3404,7 +3404,7 @@ unsafe class C
         X = x;
     }
 }";
-            CompileStandardAndVerify(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), verify: Verification.Fails, expectedOutput:
+            CompileAndVerify(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), verify: Verification.Fails, expectedOutput:
 @"get_Index
 2
 3");

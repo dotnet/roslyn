@@ -1505,7 +1505,7 @@ class C
         Console.WriteLine(""1 / (double)(-1m * -0m) = {0}"", (1 / (double)(-1m * -0m)).ToString(CultureInfo.InvariantCulture));  // Dev11: Infinity
     }
 }";
-            CompileStandardAndVerify(source, expectedOutput:
+            CompileAndVerify(source, expectedOutput:
 @"1 / (double)(0m + 0m) = Infinity
 1 / (double)(0m + -0m) = Infinity
 1 / (double)(-0m + 0m) = -Infinity
@@ -2822,7 +2822,7 @@ class Program
             string expectedOutput = @"As local: -1
 Inline  : -1";
 
-            CompileStandardAndVerify(source, expectedOutput: expectedOutput);
+            CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
         [Fact, WorkItem(1098197, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1098197")]

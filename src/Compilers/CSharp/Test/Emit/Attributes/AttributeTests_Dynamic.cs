@@ -1043,7 +1043,7 @@ class C
     }
 }
 ";
-            CompileStandardAndVerify(source, references: new[] { CSharpRef }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            CompileAndVerify(source, references: new[] { CSharpRef }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 var c = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
                 var iterator = c.GetMember<NamedTypeSymbol>("<Goo>d__0");
@@ -1087,7 +1087,7 @@ class C
 }";
 
             // Make sure we emit without errors when dynamic attributes are not present. 
-            CompileAndVerify(source, new[] { CSharpRef }, expectedSignatures: new[]
+            CompileAndVerifyWithMscorlib40(source, new[] { CSharpRef }, expectedSignatures: new[]
             {
                 Signature(
                     "C+<>c",
@@ -1112,7 +1112,7 @@ class C
     }
 }";
 
-            CompileStandardAndVerify(source, references: new[] { CSharpRef }, expectedSignatures: new[]
+            CompileAndVerify(source, references: new[] { CSharpRef }, expectedSignatures: new[]
             {
                 Signature(
                     "C+<>c",
@@ -1195,7 +1195,7 @@ class C
 {
     static dynamic[] P { get; set; }
 }";
-            CompileStandardAndVerify(source, references: new[] { CSharpRef }, expectedSignatures: new[]
+            CompileAndVerify(source, references: new[] { CSharpRef }, expectedSignatures: new[]
             {
                 Signature(
                     "C",
@@ -1229,7 +1229,7 @@ class C
         F(new object[0]);
     }
 }";
-            CompileStandardAndVerify(source, references: new[] { CSharpRef }, expectedSignatures: new[]
+            CompileAndVerify(source, references: new[] { CSharpRef }, expectedSignatures: new[]
             {
                 Signature(
                     "C+<>c__DisplayClass0_0",

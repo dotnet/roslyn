@@ -168,7 +168,7 @@ class Test
                 .WithOptimizationLevel(optimizationLevel)
                 .WithMetadataImportOptions(MetadataImportOptions.All);
 
-            CompileStandardAndVerify(source, options: options, symbolValidator: module =>
+            CompileAndVerify(source, options: options, symbolValidator: module =>
             {
                 var peModule = (PEModuleSymbol)module;
                 var type = peModule.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
@@ -218,7 +218,7 @@ abstract class C
                 .WithOptimizationLevel(optimizationLevel)
                 .WithMetadataImportOptions(MetadataImportOptions.All);
 
-            CompileStandardAndVerify(source, options: options, symbolValidator: module =>
+            CompileAndVerify(source, options: options, symbolValidator: module =>
             {
                 var peModule = (PEModuleSymbol)module;
                 var c = peModule.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
@@ -563,7 +563,7 @@ public class Test
     }
 }";
             var options = new CSharpCompilationOptions(outputKind, optimizationLevel: optimizationLevel);
-            CompileStandardAndVerify(source, options: options, verify: outputKind.IsNetModule() ? Verification.Skipped : Verification.Passes, symbolValidator: module =>
+            CompileAndVerify(source, options: options, verify: outputKind.IsNetModule() ? Verification.Skipped : Verification.Passes, symbolValidator: module =>
             {
                 var attributes = module.ContainingAssembly.GetAttributes();
 
@@ -598,7 +598,7 @@ public class Test
     }
 }";
             var options = new CSharpCompilationOptions(outputKind, optimizationLevel: optimizationLevel);
-            CompileStandardAndVerify(source, options: options, verify: outputKind.IsNetModule() ? Verification.Skipped : Verification.Passes, symbolValidator: module =>
+            CompileAndVerify(source, options: options, verify: outputKind.IsNetModule() ? Verification.Skipped : Verification.Passes, symbolValidator: module =>
             {
                 var attributes = module.ContainingAssembly.GetAttributes();
 
@@ -633,7 +633,7 @@ public class Test
     }
 }";
             var options = new CSharpCompilationOptions(outputKind, optimizationLevel: optimizationLevel);
-            CompileStandardAndVerify(source, options: options, verify: outputKind.IsNetModule() ? Verification.Skipped : Verification.Passes, symbolValidator: module =>
+            CompileAndVerify(source, options: options, verify: outputKind.IsNetModule() ? Verification.Skipped : Verification.Passes, symbolValidator: module =>
             {
                 var attributes = module.ContainingAssembly.GetAttributes();
 
@@ -668,7 +668,7 @@ public class Test
     }
 }";
             var options = new CSharpCompilationOptions(outputKind, optimizationLevel: optimizationLevel);
-            CompileStandardAndVerify(source, options: options, verify: outputKind.IsNetModule() ? Verification.Skipped : Verification.Passes, symbolValidator: module =>
+            CompileAndVerify(source, options: options, verify: outputKind.IsNetModule() ? Verification.Skipped : Verification.Passes, symbolValidator: module =>
             {
                 var attributes = module.ContainingAssembly.GetAttributes();
 
@@ -704,7 +704,7 @@ public class Test
     }
 }";
             var options = new CSharpCompilationOptions(outputKind, optimizationLevel: optimizationLevel);
-            CompileStandardAndVerify(source, options: options, verify: outputKind.IsNetModule() ? Verification.Skipped : Verification.Passes, symbolValidator: module =>
+            CompileAndVerify(source, options: options, verify: outputKind.IsNetModule() ? Verification.Skipped : Verification.Passes, symbolValidator: module =>
             {
                 VerifyDebuggableAttribute(module.GetAttributes().Single(), optimizationLevel, isSynthesized: false);
 
@@ -742,7 +742,7 @@ public class Test
     }
 }";
             var options = new CSharpCompilationOptions(outputKind, optimizationLevel: optimizationLevel);
-            CompileStandardAndVerify(source, options: options, verify: outputKind.IsNetModule() ? Verification.Skipped : Verification.Passes, symbolValidator: module =>
+            CompileAndVerify(source, options: options, verify: outputKind.IsNetModule() ? Verification.Skipped : Verification.Passes, symbolValidator: module =>
             {
                 var attributes = module.ContainingAssembly.GetAttributes();
 
@@ -777,7 +777,7 @@ public class Test
     }
 }";
             var options = new CSharpCompilationOptions(outputKind, optimizationLevel: optimizationLevel);
-            CompileStandardAndVerify(source, options: options, verify: outputKind.IsNetModule() ? Verification.Skipped : Verification.Passes, symbolValidator: module =>
+            CompileAndVerify(source, options: options, verify: outputKind.IsNetModule() ? Verification.Skipped : Verification.Passes, symbolValidator: module =>
             {
                 VerifyCompilationRelaxationsAttribute(module.GetAttributes().Single(), isSynthesized: false);
 
@@ -814,7 +814,7 @@ public class Test
     }
 }";
             var options = new CSharpCompilationOptions(outputKind, optimizationLevel: optimizationLevel);
-            CompileStandardAndVerify(source, options: options, verify: outputKind.IsNetModule() ? Verification.Skipped : Verification.Passes, symbolValidator: module =>
+            CompileAndVerify(source, options: options, verify: outputKind.IsNetModule() ? Verification.Skipped : Verification.Passes, symbolValidator: module =>
             {
                 VerifyDebuggableAttribute(module.GetAttributes().Single(), options.OptimizationLevel, isSynthesized: false);
 
@@ -1105,7 +1105,7 @@ public class Test
 }";
 
             var options = new CSharpCompilationOptions(outputKind, optimizationLevel: optimizationLevel);
-            CompileStandardAndVerify(source, references: new[] { reference }, options: options, verify: outputKind.IsNetModule() ? Verification.Skipped : Verification.Passes, symbolValidator: module =>
+            CompileAndVerify(source, references: new[] { reference }, options: options, verify: outputKind.IsNetModule() ? Verification.Skipped : Verification.Passes, symbolValidator: module =>
             {
                 var attributes = module.ContainingAssembly.GetAttributes();
 
@@ -1146,7 +1146,7 @@ public class Test
 }";
 
             var options = new CSharpCompilationOptions(outputKind, optimizationLevel: optimizationLevel);
-            CompileStandardAndVerify(source, references: new[] { reference }, options: options, verify: outputKind.IsNetModule() ? Verification.Skipped : Verification.Passes, symbolValidator: module =>
+            CompileAndVerify(source, references: new[] { reference }, options: options, verify: outputKind.IsNetModule() ? Verification.Skipped : Verification.Passes, symbolValidator: module =>
             {
                 var attributes = module.ContainingAssembly.GetAttributes();
 
@@ -1199,7 +1199,7 @@ unsafe class C
                 {
                     // Modules security attributes are copied to assemblies they're included in
                     var moduleReference = ModuleMetadata.CreateFromImage(compilation.EmitToArray()).GetReference();
-                    CompileStandardAndVerify("", references: new[] { moduleReference }, symbolValidator: validateSecurity, verify: Verification.Skipped);
+                    CompileAndVerify("", references: new[] { moduleReference }, symbolValidator: validateSecurity, verify: Verification.Skipped);
                 }
                 else
                 {

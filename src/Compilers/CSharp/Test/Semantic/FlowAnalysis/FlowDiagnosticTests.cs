@@ -2231,7 +2231,7 @@ public class C
         }
     }
 }";
-            CompileStandardAndVerify(source, options: TestOptions.UnsafeReleaseExe, expectedOutput: "");
+            CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, expectedOutput: "");
         }
 
         [WorkItem(611904, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611904")]

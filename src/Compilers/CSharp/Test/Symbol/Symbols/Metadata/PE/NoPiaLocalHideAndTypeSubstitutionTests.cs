@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         {
             // Verify type equivalence between PIA type in external assembly and local assembly
 
-            var localConsumer = CreateStandardCompilation(assemblyName: "Dummy", source: (string)null,
+            var localConsumer = CreateStandardCompilation(assemblyName: "Dummy", source: (string[])null,
                          references: new MetadataReference[] {
                                                                 TestReferences.SymbolsTests.NoPia.Pia1,
                                                                 TestReferences.SymbolsTests.NoPia.LocalTypes1

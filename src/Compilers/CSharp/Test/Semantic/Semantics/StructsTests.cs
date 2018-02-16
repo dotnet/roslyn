@@ -106,7 +106,7 @@ struct  Goo
     { }
 }
 ";
-            CompileStandardAndVerify(text).VerifyDiagnostics();
+            CompileAndVerify(text).VerifyDiagnostics();
         }
 
         // Calling struct default constructor in another constructor
@@ -127,7 +127,7 @@ public struct Struct
     }
 }
 ";
-            CompileStandardAndVerify(text).VerifyDiagnostics();
+            CompileAndVerify(text).VerifyDiagnostics();
         }
 
         // Test constructor forwarding works for structs
@@ -178,7 +178,7 @@ class Program
     }
 }
 ";
-            CompileStandardAndVerify(text, expectedOutput: "22").VerifyDiagnostics();
+            CompileAndVerify(text, expectedOutput: "22").VerifyDiagnostics();
         }
 
         // Overriding base System.Object methods on struct
@@ -267,7 +267,7 @@ S::Equals
 S::GetHashCode
 S::GetHashCode
 S::ToString";
-            CompileStandardAndVerify(text, expectedOutput: expectedOutput);
+            CompileAndVerify(text, expectedOutput: expectedOutput);
         }
 
         // Test constructor for generic struct
@@ -297,7 +297,7 @@ class Test
 }
 ";
             var expectedOutput = @"True";
-            CompileStandardAndVerify(text, expectedOutput: expectedOutput);
+            CompileAndVerify(text, expectedOutput: expectedOutput);
         }
 
         // Assign to decimal in struct constructor
@@ -330,7 +330,7 @@ class Test
   IL_0002:  stfld      ""decimal Struct.Price""
   IL_0007:  ret
 }";
-            CompileStandardAndVerify(text).VerifyIL("Struct..ctor(decimal)", expectedIL);
+            CompileAndVerify(text).VerifyIL("Struct..ctor(decimal)", expectedIL);
         }
 
         [Fact]
@@ -394,7 +394,7 @@ public class C
 }
 ";
 
-            CompileStandardAndVerify(text).VerifyIL("C.M", @"
+            CompileAndVerify(text).VerifyIL("C.M", @"
 {
   // Code size       20 (0x14)
   .maxstack  1

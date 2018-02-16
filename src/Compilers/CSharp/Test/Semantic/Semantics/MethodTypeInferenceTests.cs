@@ -531,7 +531,7 @@ class Test
         void method<U>(T x, List<U> y);
     }
 }";
-            CompileStandardAndVerify(source).VerifyDiagnostics();
+            CompileAndVerify(source).VerifyDiagnostics();
         }
 
         [WorkItem(541811, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541811")]
@@ -597,7 +597,7 @@ class Test
         C<string>.M<double>(null, 1.0);
     }
 }";
-            CompileStandardAndVerify(source).VerifyDiagnostics();
+            CompileAndVerify(source).VerifyDiagnostics();
         }
 
         [WorkItem(541887, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541887")]

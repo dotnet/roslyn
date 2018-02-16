@@ -113,7 +113,7 @@ class P
   }
 }";
 
-            CompileStandardAndVerify(source1, expectedOutput: @"232579D");
+            CompileAndVerify(source1, expectedOutput: @"232579D");
 
             // Now let's look at some ambiguity errors:
             //
@@ -228,7 +228,7 @@ static class P
     }
 }";
 
-            CompileStandardAndVerify(source3, references: new[] { SystemCoreRef }, expectedOutput: @"BB");
+            CompileAndVerify(source3, references: new[] { SystemCoreRef }, expectedOutput: @"BB");
         }
 
         [Fact]
@@ -275,7 +275,7 @@ class P
   }
 }";
 
-            CompileStandardAndVerify(source1, expectedOutput: @"21 221 123334 3333");
+            CompileAndVerify(source1, expectedOutput: @"21 221 123334 3333");
 
             string source2 = @"
 using System;
@@ -360,7 +360,7 @@ class P
   }
 }";
 
-            CompileStandardAndVerify(source1, expectedOutput: @"1");
+            CompileAndVerify(source1, expectedOutput: @"1");
 
             string source2 = @"
 using System;
@@ -380,7 +380,7 @@ class P
   }
 }";
 
-            CompileStandardAndVerify(source2, expectedOutput: @"2");
+            CompileAndVerify(source2, expectedOutput: @"2");
         }
 
         [Fact]
@@ -449,7 +449,7 @@ class P
   }
 }";
 
-            CompileStandardAndVerify(source1, expectedOutput: @"1");
+            CompileAndVerify(source1, expectedOutput: @"1");
 
             string source2 = @"
 using System;
@@ -1047,7 +1047,7 @@ class P
   }
 }";
 
-            CompileStandardAndVerify(source1, expectedOutput: @"13");
+            CompileAndVerify(source1, expectedOutput: @"13");
 
             string source2 = @"
 using System;
@@ -1124,7 +1124,7 @@ class C
 }
 ";
 
-            CompileStandardAndVerify(source1, expectedOutput:
+            CompileAndVerify(source1, expectedOutput:
 @"Run1(Action action)
 Run1(Action action)
 Run2(Action action)
@@ -1993,7 +1993,7 @@ public class B
 }
 ";
 
-            CompileStandardAndVerify(source, expectedOutput: @"int
+            CompileAndVerify(source, expectedOutput: @"int
 int
 long
 ");
@@ -2030,7 +2030,7 @@ public class B
 }
 ";
 
-            CompileStandardAndVerify(source, expectedOutput: @"int
+            CompileAndVerify(source, expectedOutput: @"int
 int
 long
 ");
@@ -2070,7 +2070,7 @@ class B: A
     }
 }
 ";
-            CompileStandardAndVerify(source, expectedOutput: @"PASS
+            CompileAndVerify(source, expectedOutput: @"PASS
 PASS");
         }
 
@@ -2134,7 +2134,7 @@ public class B
 }
 
 ";
-            CompileStandardAndVerify(source, expectedOutput: @"int
+            CompileAndVerify(source, expectedOutput: @"int
 long
 ");
         }
@@ -2246,7 +2246,7 @@ class Test
    }
 }
 ";
-            CompileStandardAndVerify(source, expectedOutput: @"20");
+            CompileAndVerify(source, expectedOutput: @"20");
         }
 
         [WorkItem(546733, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546733")]
@@ -2284,7 +2284,7 @@ class Test
         Console.WriteLine(M().First());
     }
 }";
-            CompileStandardAndVerify(source, references: new[] { LinqAssemblyRef }, expectedOutput: @"12");
+            CompileAndVerify(source, references: new[] { LinqAssemblyRef }, expectedOutput: @"12");
         }
 
         [Fact]
@@ -2326,7 +2326,7 @@ class Test
    }
 }
 ";
-            CompileStandardAndVerify(source, expectedOutput: @"10
+            CompileAndVerify(source, expectedOutput: @"10
 0
 20");
         }
@@ -2369,7 +2369,7 @@ class Test
    }
 }
 ";
-            CompileStandardAndVerify(source, expectedOutput: @"10
+            CompileAndVerify(source, expectedOutput: @"10
 10
 20");
         }
@@ -2412,7 +2412,7 @@ class Test
    }
 }
 ";
-            CompileStandardAndVerify(source, expectedOutput: @"0
+            CompileAndVerify(source, expectedOutput: @"0
 20");
         }
 
@@ -2474,7 +2474,7 @@ class Test
     }
 }
 ";
-            CompileStandardAndVerify(source, expectedOutput: @"10
+            CompileAndVerify(source, expectedOutput: @"10
 -3
 -2
 42
@@ -2528,7 +2528,7 @@ class Test
     }
 }
 ";
-            CompileStandardAndVerify(source, expectedOutput: @"6");
+            CompileAndVerify(source, expectedOutput: @"6");
         }
 
         [Fact]
@@ -2622,7 +2622,7 @@ unsafe class Test
     }
 }
 ";
-            CompileStandardAndVerify(source, options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails, expectedOutput: @"2
+            CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails, expectedOutput: @"2
 True
 3
 3
@@ -3152,7 +3152,7 @@ class X
     }
 }
 ";
-            CompileStandardAndVerify(source, references: new[] { SystemCoreRef });
+            CompileAndVerify(source, references: new[] { SystemCoreRef });
         }
 
         [Fact]
@@ -3369,7 +3369,7 @@ class Test
    }
 }
 ";
-            CompileStandardAndVerify(source, expectedOutput: @"1
+            CompileAndVerify(source, expectedOutput: @"1
 1
 1
 1
@@ -5471,7 +5471,7 @@ class Test
    }
 }
 ";
-            CompileStandardAndVerify(source, expectedOutput: @"1
+            CompileAndVerify(source, expectedOutput: @"1
 1
 1
 1
@@ -6722,7 +6722,7 @@ public class Test
         [Fact]
         public void TestNamedParamsParam()
         {
-            CompileStandardAndVerify(@"
+            CompileAndVerify(@"
 class C
 {
     static void M(
@@ -7526,7 +7526,7 @@ class C
 }
 ";
 
-            CompileStandardAndVerify(source1, expectedOutput: @"2
+            CompileAndVerify(source1, expectedOutput: @"2
 2");
         }
 
@@ -7552,7 +7552,7 @@ class C
 }
 ";
 
-            CompileStandardAndVerify(source1, expectedOutput: @"1
+            CompileAndVerify(source1, expectedOutput: @"1
 1");
         }
 
@@ -7577,7 +7577,7 @@ class C
 }
 ";
 
-            CompileStandardAndVerify(source1, expectedOutput: @"2");
+            CompileAndVerify(source1, expectedOutput: @"2");
         }
 
         [Fact]
@@ -8289,7 +8289,7 @@ class Program
         a2();
     }
 }";
-            CompileStandardAndVerify(source, expectedOutput: @"pass
+            CompileAndVerify(source, expectedOutput: @"pass
 pass").VerifyDiagnostics();
             CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithStrictFeature()).VerifyDiagnostics(
     // (12,36): error CS1657: Cannot use 'M' as a ref or out value because it is a 'method group'
@@ -9091,7 +9091,7 @@ public enum Something
     Bad
 }";
             // should be NO errors.
-            CompileStandardAndVerify(source, expectedOutput: @"False");
+            CompileAndVerify(source, expectedOutput: @"False");
         }
 
         [Fact, WorkItem(16478, "https://github.com/dotnet/roslyn/issues/16478")]
@@ -9136,7 +9136,7 @@ public class Test
         }
     }
 }";
-            CompileStandardAndVerify(source, expectedOutput:
+            CompileAndVerify(source, expectedOutput:
 @"Collection
 Collection");
         }
@@ -9332,7 +9332,7 @@ public static class Program
     }
 }";
 
-            CompileStandardAndVerify(code, expectedOutput: "5");
+            CompileAndVerify(code, expectedOutput: "5");
         }
 
         [Fact]
@@ -9398,7 +9398,7 @@ public static class Program
     }
 }";
 
-            CompileStandardAndVerify(code, expectedOutput: "5");
+            CompileAndVerify(code, expectedOutput: "5");
         }
 
         [WorkItem(20799, "https://github.com/dotnet/roslyn/issues/20799")]
@@ -9476,7 +9476,7 @@ public static class Program
     }
 }";
 
-            CompileStandardAndVerify(code, expectedOutput: @"
+            CompileAndVerify(code, expectedOutput: @"
 in: 5
 val: 5
 val: 5
@@ -9508,7 +9508,7 @@ public static class Program
     }
 }";
 
-            CompileStandardAndVerify(code, expectedOutput: @"
+            CompileAndVerify(code, expectedOutput: @"
 in: 5
 val: 5
 val: 5
@@ -9518,7 +9518,7 @@ val: 5
         [Fact]
         public void PassingInArgumentsOverloadedOnIn_BinaryOperators()
         {
-            CompileStandardAndVerify(@"
+            CompileAndVerify(@"
 using System;
 class Test
 {
@@ -9541,7 +9541,7 @@ class Program
         [Fact]
         public void PassingInArgumentsOverloadedOnIn_BinaryOperators_Inverse()
         {
-            CompileStandardAndVerify(@"
+            CompileAndVerify(@"
 using System;
 class Test
 {
@@ -9564,7 +9564,7 @@ class Program
         [Fact]
         public void PassingInArgumentsOverloadedOnIn_UnaryOperators()
         {
-            CompileStandardAndVerify(@"
+            CompileAndVerify(@"
 using System;
 class Test
 {
@@ -9586,7 +9586,7 @@ class Program
         [Fact]
         public void PassingInArgumentsOverloadedOnIn_UnaryOperators_Inverse()
         {
-            CompileStandardAndVerify(@"
+            CompileAndVerify(@"
 using System;
 class Test
 {
@@ -9630,7 +9630,7 @@ public static class Program
     }
 }";
 
-            CompileStandardAndVerify(code, expectedOutput: @"
+            CompileAndVerify(code, expectedOutput: @"
 in: 5
 val: 5
 val: 5
@@ -9662,7 +9662,7 @@ public static class Program
     }
 }";
 
-            CompileStandardAndVerify(code, expectedOutput: @"
+            CompileAndVerify(code, expectedOutput: @"
 in: 5
 val: 5
 val: 5
@@ -9672,7 +9672,7 @@ val: 5
         [Fact]
         public void PassingInArgumentsOverloadedOnIn_FirstArgument_BinaryOperators()
         {
-            CompileStandardAndVerify(@"
+            CompileAndVerify(@"
 using System;
 class Test
 {
@@ -9695,7 +9695,7 @@ class Program
         [Fact]
         public void PassingInArgumentsOverloadedOnIn_FirstArgument_BinaryOperators_Inverse()
         {
-            CompileStandardAndVerify(@"
+            CompileAndVerify(@"
 using System;
 class Test
 {
@@ -9740,7 +9740,7 @@ public static class Program
     }
 }";
 
-            CompileStandardAndVerify(code, expectedOutput: @"
+            CompileAndVerify(code, expectedOutput: @"
 in: 5
 val: 5
 val: 5
@@ -9772,7 +9772,7 @@ public static class Program
     }
 }";
 
-            CompileStandardAndVerify(code, expectedOutput: @"
+            CompileAndVerify(code, expectedOutput: @"
 in: 5
 val: 5
 val: 5
@@ -9782,7 +9782,7 @@ val: 5
         [Fact]
         public void PassingInArgumentsOverloadedOnIn_SecondArgument_BinaryOperators()
         {
-            CompileStandardAndVerify(@"
+            CompileAndVerify(@"
 using System;
 class Test
 {
@@ -9805,7 +9805,7 @@ class Program
         [Fact]
         public void PassingInArgumentsOverloadedOnIn_SecondArgument_BinaryOperators_Inverse()
         {
-            CompileStandardAndVerify(@"
+            CompileAndVerify(@"
 using System;
 class Test
 {
@@ -9850,7 +9850,7 @@ public static class Program
     }
 }";
 
-            CompileStandardAndVerify(code, expectedOutput: @"
+            CompileAndVerify(code, expectedOutput: @"
 val 1 | in 2
 in 1 | val 2
 ");
@@ -9881,7 +9881,7 @@ public static class Program
     }
 }";
 
-            CompileStandardAndVerify(code, expectedOutput: @"
+            CompileAndVerify(code, expectedOutput: @"
 val 1 | in 2
 in 1 | val 2
 ");
@@ -10099,7 +10099,7 @@ public static class Program
     }
 }";
 
-            CompileStandardAndVerify(code, expectedOutput: @"
+            CompileAndVerify(code, expectedOutput: @"
 val: 1
 in: 1
 val: 2");
@@ -10129,7 +10129,7 @@ public static class Program
     }
 }";
 
-            CompileStandardAndVerify(code, expectedOutput: @"
+            CompileAndVerify(code, expectedOutput: @"
 val a: 1 | val b: 2
 in b: 2 | val a: 1");
         }
@@ -10170,7 +10170,7 @@ public static class Program
     }
 }";
 
-            CompileStandardAndVerify(code, expectedOutput: @"
+            CompileAndVerify(code, expectedOutput: @"
 val: 1
 in: 1
 val: 1
@@ -10235,7 +10235,7 @@ public static class Program
     }
 }";
 
-            CompileStandardAndVerify(code, expectedOutput: @"
+            CompileAndVerify(code, expectedOutput: @"
 in: 5
 val: 3
 in: 2
@@ -10320,7 +10320,7 @@ public class Program
 }
 ";
 
-            CompileStandardAndVerify(code, expectedOutput: @"
+            CompileAndVerify(code, expectedOutput: @"
 val: 0
 val: 5
 in: 5
@@ -10404,7 +10404,7 @@ public static class Program
     }
 }";
 
-            CompileStandardAndVerify(code, expectedOutput: @"
+            CompileAndVerify(code, expectedOutput: @"
 val: 1
 in: 2
 in: 3
@@ -10434,7 +10434,7 @@ class Program
     }
 }";
 
-            CompileStandardAndVerify(code, expectedOutput: 
+            CompileAndVerify(code, expectedOutput: 
 @"params: 0
 in: 1
 params: 2
@@ -10471,7 +10471,7 @@ class Program
     }
 }";
 
-            CompileStandardAndVerify(code, expectedOutput:
+            CompileAndVerify(code, expectedOutput:
 @"params: 0
 params: 1
 params: 2
@@ -10486,7 +10486,7 @@ params: 1");
         [Fact]
         public void PassingArgumentsToOverloadsOfByValAndInParameters_ExtensionMethods()
         {
-            CompileStandardAndVerify(@"
+            CompileAndVerify(@"
 using System;
 static class Extensions
 {
@@ -10519,7 +10519,7 @@ val: 3");
         [Fact]
         public void PassingArgumentsToOverloadsOfByValAndInParameters_Indexers()
         {
-            CompileStandardAndVerify(@"
+            CompileAndVerify(@"
 using System;
 class Program
 {
@@ -10548,7 +10548,7 @@ val: 3");
         [Fact]
         public void PassingArgumentsToOverloadsOfByValAndInParameters_TypeConversions_In()
         {
-            CompileStandardAndVerify(@"
+            CompileAndVerify(@"
 using System;
 class Program
 {
@@ -10580,7 +10580,7 @@ in: 2");
         [Fact]
         public void PassingArgumentsToOverloadsOfByValAndInParameters_TypeConversions_Val()
         {
-            CompileStandardAndVerify(@"
+            CompileAndVerify(@"
 using System;
 class Program
 {
@@ -10612,7 +10612,7 @@ val: 2");
         [Fact]
         public void PassingArgumentsToOverloadsOfByValAndInParameters_TypeConversions_BinaryOperators()
         {
-            CompileStandardAndVerify(@"
+            CompileAndVerify(@"
 using System;
 class Test
 {
@@ -10644,7 +10644,7 @@ in");
         [Fact]
         public void PassingArgumentsToOverloadsOfByValAndInParameters_TypeConversions_NonConvertible()
         {
-            CompileStandardAndVerify(@"
+            CompileAndVerify(@"
 using System;
 using System.Text;
 class Program
@@ -10710,7 +10710,7 @@ class Program
 }
 ";
 
-            CompileStandardAndVerify(code, expectedOutput: @"
+            CompileAndVerify(code, expectedOutput: @"
 System.String
 System.Int32
 System.Object
@@ -10806,7 +10806,7 @@ class Program
 }
 ";
 
-            CompileAndVerify(code, references: new[] { SystemRuntimeFacadeRef, ValueTupleRef }, expectedOutput: @"
+            CompileAndVerifyWithMscorlib40(code, references: new[] { SystemRuntimeFacadeRef, ValueTupleRef }, expectedOutput: @"
 System.String
 System.Int32
 System.Object
@@ -11027,7 +11027,7 @@ class Program
 }
 ";
 
-            CompileStandardAndVerify(code, expectedOutput: @"2");
+            CompileAndVerify(code, expectedOutput: @"2");
         }
 
         [Fact]
@@ -11058,7 +11058,7 @@ class Program
 }
 ";
 
-            CompileStandardAndVerify(code, expectedOutput: @"1", verify: Verification.Fails);
+            CompileAndVerify(code, expectedOutput: @"1", verify: Verification.Fails);
 
         }
 

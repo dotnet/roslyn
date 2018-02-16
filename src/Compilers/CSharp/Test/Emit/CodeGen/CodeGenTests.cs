@@ -53,7 +53,7 @@ class Program
         Console.WriteLine((((DoubleAndStruct)args[0]).y).x);
     }
 }";
-            var result = CompileStandardAndVerify(source, options: TestOptions.DebugDll);
+            var result = CompileAndVerify(source, options: TestOptions.DebugDll);
 
             result.VerifyIL("Program.Main(object[])",
 @"
@@ -140,7 +140,7 @@ class Program
         Console.WriteLine(((((OuterStruct)args[0]).z).y).x);
     }
 }";
-            var result = CompileStandardAndVerify(source, options: TestOptions.DebugDll);
+            var result = CompileAndVerify(source, options: TestOptions.DebugDll);
 
             result.VerifyIL("Program.Main(object[])",
 @"
@@ -210,7 +210,7 @@ class Program
         Console.WriteLine(((((OuterStruct)args[0]).z).y).x);
     }
 }";
-            var result = CompileStandardAndVerify(source, options: TestOptions.DebugDll);
+            var result = CompileAndVerify(source, options: TestOptions.DebugDll);
 
             result.VerifyIL("Program.Main(object[])",
 @"
@@ -271,7 +271,7 @@ class Program
         Console.WriteLine(((OuterStruct.z).y).x);
     }
 }";
-            var result = CompileStandardAndVerify(source, options: TestOptions.DebugDll);
+            var result = CompileAndVerify(source, options: TestOptions.DebugDll);
 
             result.VerifyIL("Program.Main(object[])",
 @"
@@ -306,7 +306,7 @@ class P
 }
 public class C { }
 ";
-            var result = CompileStandardAndVerify(source, options: TestOptions.ReleaseDll);
+            var result = CompileAndVerify(source, options: TestOptions.ReleaseDll);
 
             result.VerifyIL("P.M<T>(T)",
 @"
@@ -354,7 +354,7 @@ public class C
 		return success;
 	}
 }";
-            var result = CompileStandardAndVerify(source, options: TestOptions.ReleaseDll);
+            var result = CompileAndVerify(source, options: TestOptions.ReleaseDll);
 
             result.VerifyIL("C.M",
 @"
@@ -407,7 +407,7 @@ public class C
     }
 }
 ";
-            var result = CompileStandardAndVerify(source, options: TestOptions.ReleaseDll);
+            var result = CompileAndVerify(source, options: TestOptions.ReleaseDll);
 
             result.VerifyIL("C.M",
 @"
@@ -674,7 +674,7 @@ class M
     System.Console.WriteLine(x);
   }
 }";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"
+            var compilation = CompileAndVerify(source, expectedOutput: @"
 1111
 111
 11
@@ -713,7 +713,7 @@ class C
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"
+            var compilation = CompileAndVerify(source, expectedOutput: @"
 0
 2147483647
 -10
@@ -859,7 +859,7 @@ public class H
    }
 }
 ";
-            var compilation = CompileStandardAndVerify(source);
+            var compilation = CompileAndVerify(source);
 
             compilation.VerifyIL("H..ctor",
 @"{
@@ -885,7 +885,7 @@ public class H
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source);
+            var compilation = CompileAndVerify(source);
 
             compilation.VerifyIL("H..cctor",
 @"{
@@ -909,7 +909,7 @@ class C
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source);
+            var compilation = CompileAndVerify(source);
 
             compilation.VerifyIL("C.M",
 @"{
@@ -1065,7 +1065,7 @@ class C
   }
 }
 ";
-            var compilation = CompileStandardAndVerify(source);
+            var compilation = CompileAndVerify(source);
 
             // TODO: There is unusual behavior here in the loading of constants, e.g. that they load
             // the int 0 and then do a conversion if appropriate, rather than say just loading a float
@@ -1466,7 +1466,7 @@ class C
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source);
+            var compilation = CompileAndVerify(source);
 
             compilation.VerifyIL("C.M",
 @"{
@@ -1493,7 +1493,7 @@ class C
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source);
+            var compilation = CompileAndVerify(source);
 
             compilation.VerifyIL("C.M",
 @"{
@@ -1538,7 +1538,7 @@ class C
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source);
+            var compilation = CompileAndVerify(source);
 
             compilation.VerifyIL("C.M",
 @"{
@@ -1577,7 +1577,7 @@ class C
     } 
 }
 ";
-            var compilation = CompileStandardAndVerify(source);
+            var compilation = CompileAndVerify(source);
 
             compilation.VerifyIL("C.M",
 @"{
@@ -1622,7 +1622,7 @@ public class D
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: "42");
+            var compilation = CompileAndVerify(source, expectedOutput: "42");
 
             compilation.VerifyIL("D.M",
 @"{
@@ -1651,7 +1651,7 @@ public class D
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: "42");
+            var compilation = CompileAndVerify(source, expectedOutput: "42");
 
             compilation.VerifyIL("D.M",
 @"{
@@ -1680,7 +1680,7 @@ public class C
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: "42");
+            var compilation = CompileAndVerify(source, expectedOutput: "42");
 
             compilation.VerifyIL("C.M",
 @"{
@@ -1712,7 +1712,7 @@ public class C
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: "123");
+            var compilation = CompileAndVerify(source, expectedOutput: "123");
 
             compilation.VerifyIL("C.M",
 @"{
@@ -1753,7 +1753,7 @@ public class D
     }
 }
 ";
-            CompileStandardAndVerify(source, expectedOutput: "42123").
+            CompileAndVerify(source, expectedOutput: "42123").
                 VerifyIL("D.M",
 @"{
   // Code size       10 (0xa)
@@ -1770,7 +1770,7 @@ public class D
 }
 ");
 
-            var v = CompileStandardAndVerify(source, options: TestOptions.DebugExe, expectedOutput: "42123");
+            var v = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: "42123");
 
             v.VerifyIL("D.M",
 @"{
@@ -1821,7 +1821,7 @@ public class D
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: "");
+            var compilation = CompileAndVerify(source, expectedOutput: "");
 
             compilation.VerifyIL("D.M",
 @"{
@@ -1863,7 +1863,7 @@ public class D
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"
+            var compilation = CompileAndVerify(source, expectedOutput: @"
 Name:qq
 There are no context policies.
 ");
@@ -1910,7 +1910,7 @@ public class D
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"
+            var compilation = CompileAndVerify(source, expectedOutput: @"
 Name:qq
 There are no context policies.
 ");
@@ -1946,7 +1946,7 @@ public class D
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"System.Exception: hello");
+            var compilation = CompileAndVerify(source, expectedOutput: @"System.Exception: hello");
 
             compilation.VerifyIL("D.M",
 @"{
@@ -1984,7 +1984,7 @@ public class D
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"hi");
+            var compilation = CompileAndVerify(source, expectedOutput: @"hi");
 
             compilation.VerifyIL("D.Moo.Boo",
 @"{
@@ -2009,7 +2009,7 @@ class C
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source);
+            var compilation = CompileAndVerify(source);
 
             compilation.VerifyIL("C.M",
 @"{
@@ -2043,7 +2043,7 @@ class C
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source);
+            var compilation = CompileAndVerify(source);
 
             compilation.VerifyIL("C.M",
 @"{
@@ -2081,7 +2081,7 @@ class C
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: "S");
+            var compilation = CompileAndVerify(source, expectedOutput: "S");
 
             compilation.VerifyIL("C.Main",
 @"{
@@ -2111,7 +2111,7 @@ class C
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: "2");
+            var compilation = CompileAndVerify(source, expectedOutput: "2");
 
             compilation.VerifyIL("C.P.set",
 @"{
@@ -2139,7 +2139,7 @@ class C
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: "S");
+            var compilation = CompileAndVerify(source, expectedOutput: "S");
 
             compilation.VerifyIL("C.S.set",
 @"{
@@ -2175,7 +2175,7 @@ class P
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: "T2");
+            var compilation = CompileAndVerify(source, expectedOutput: "T2");
 
             compilation.VerifyIL("P.Main",
 @"{
@@ -2212,7 +2212,7 @@ class P
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: "C<int>.S;C<string>.S;C<string>.T2");
+            var compilation = CompileAndVerify(source, expectedOutput: "C<int>.S;C<string>.S;C<string>.T2");
 
             compilation.VerifyIL("C<T>.S.set",
 @"{
@@ -2243,7 +2243,7 @@ class C
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: "p, q");
+            var compilation = CompileAndVerify(source, expectedOutput: "p, q");
 
             compilation.VerifyIL("C.Main",
 @"{
@@ -2303,7 +2303,7 @@ class Program
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source);
+            var compilation = CompileAndVerify(source);
 
             compilation.VerifyIL("Program.M",
 @"{
@@ -2353,7 +2353,7 @@ class Program
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source);
+            var compilation = CompileAndVerify(source);
 
             compilation.VerifyIL("Program.M",
 @"
@@ -2423,7 +2423,7 @@ class Program
     }
 }
 ";
-            CompileStandardAndVerify(source, expectedOutput: "B.M, B.P, A.M, A.P, ").
+            CompileAndVerify(source, expectedOutput: "B.M, B.P, A.M, A.P, ").
                 VerifyIL("B.N",
 @"{
   // Code size       37 (0x25)
@@ -2492,7 +2492,7 @@ class Program
         Console.WriteLine(new D().Test());
     }
 }";
-            CompileStandardAndVerify(source, expectedOutput: "B.M():B.M(), D.M():B.M()").
+            CompileAndVerify(source, expectedOutput: "B.M():B.M(), D.M():B.M()").
                 VerifyIL("C.Test",
 @"
 {
@@ -2575,7 +2575,7 @@ class Program
         new D().Test();
     }
 }";
-            CompileStandardAndVerify(source, expectedOutput: "A.P.get;B.P.set;A.P.get;B.P.set;\r\nA.P.get;B.P.set;D.P.get;B.P.set;").
+            CompileAndVerify(source, expectedOutput: "A.P.get;B.P.set;A.P.get;B.P.set;\r\nA.P.get;B.P.set;D.P.get;B.P.set;").
                 VerifyIL("C.Test",
 @"{
   // Code size       25 (0x19)
@@ -2658,7 +2658,7 @@ class Program
         Console.WriteLine(new D().Test());
     }
 }";
-            CompileStandardAndVerify(source, expectedOutput: "C.M():B.M(), D.M():B.M()").
+            CompileAndVerify(source, expectedOutput: "C.M():B.M(), D.M():B.M()").
                 VerifyIL("C.Test",
 @"
 {
@@ -2746,7 +2746,7 @@ class Program
         new D().Test();
     }
 }";
-            CompileStandardAndVerify(source, expectedOutput: "A.P.get;C.P.set;C.P.get;B.P.set;\r\nA.P.get;B.P.set;D.P.get;B.P.set;").
+            CompileAndVerify(source, expectedOutput: "A.P.get;C.P.set;C.P.get;B.P.set;\r\nA.P.get;B.P.set;D.P.get;B.P.set;").
                 VerifyIL("C.Test",
 @"{
   // Code size       25 (0x19)
@@ -2829,7 +2829,7 @@ class Program
         Console.WriteLine(new D().Test());
     }
 }";
-            CompileStandardAndVerify(source, expectedOutput: "C.M():B.M(), D.M():B.M()").
+            CompileAndVerify(source, expectedOutput: "C.M():B.M(), D.M():B.M()").
                 VerifyIL("C.Test",
 @"
 {
@@ -2917,7 +2917,7 @@ class Program
         new D().Test();
     }
 }";
-            CompileStandardAndVerify(source, expectedOutput: "B.P.get;C.P.set;C.P.get;B.P.set;\r\nB.P.get;D.P.set;D.P.get;B.P.set;").
+            CompileAndVerify(source, expectedOutput: "B.P.get;C.P.set;C.P.get;B.P.set;\r\nB.P.get;D.P.set;D.P.get;B.P.set;").
                 VerifyIL("C.Test",
 @"{
   // Code size       25 (0x19)
@@ -2962,7 +2962,7 @@ public class D
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: "1System.Reflection.Missing");
+            var compilation = CompileAndVerify(source, expectedOutput: "1System.Reflection.Missing");
 
             compilation.VerifyIL("D.Main",
 @"
@@ -2989,7 +2989,7 @@ public class D
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: "2147483647");
+            var compilation = CompileAndVerify(source, expectedOutput: "2147483647");
 
             compilation.VerifyIL("D.Main",
 @"{
@@ -3026,7 +3026,7 @@ public class D
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: "42");
+            var compilation = CompileAndVerify(source, expectedOutput: "42");
 
             compilation.VerifyIL("D.Goo",
 @"{
@@ -3067,7 +3067,7 @@ public class D
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: "0427");
+            var compilation = CompileAndVerify(source, expectedOutput: "0427");
 
             compilation.VerifyIL("D.Main",
 @"{
@@ -3121,7 +3121,7 @@ public class D
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, options: TestOptions.ReleaseDebugExe, expectedOutput: "0427");
+            var compilation = CompileAndVerify(source, options: TestOptions.ReleaseDebugExe, expectedOutput: "0427");
 
             compilation.VerifyIL("D.Main",
 @"
@@ -3176,7 +3176,7 @@ public class D
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: "042");
+            var compilation = CompileAndVerify(source, expectedOutput: "042");
 
             compilation.VerifyIL("D.Main",
 @"{
@@ -3227,7 +3227,7 @@ public class D
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: "123123123123123");
+            var compilation = CompileAndVerify(source, expectedOutput: "123123123123123");
 
             compilation.VerifyIL("D.Main",
 @"{
@@ -3292,7 +3292,7 @@ public class D
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, options: TestOptions.ReleaseExe.WithModuleName("ＭＯＤＵＬＥ"), expectedOutput: "222333");
+            var compilation = CompileAndVerify(source, options: TestOptions.ReleaseExe.WithModuleName("ＭＯＤＵＬＥ"), expectedOutput: "222333");
 
             compilation.VerifyIL("D.Main",
 @"{
@@ -3346,7 +3346,7 @@ public class D
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: "222333");
+            var compilation = CompileAndVerify(source, expectedOutput: "222333");
 
             compilation.VerifyIL("D.Main",
 @"{
@@ -3439,7 +3439,7 @@ public class D
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: "03450");
+            var compilation = CompileAndVerify(source, expectedOutput: "03450");
 
             compilation.VerifyIL("D.Main",
 @"
@@ -3523,7 +3523,7 @@ public class D
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: "03450");
+            var compilation = CompileAndVerify(source, expectedOutput: "03450");
 
             compilation.VerifyIL("D.Main",
 @"{
@@ -3613,7 +3613,7 @@ public class MyArray
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"
+            var compilation = CompileAndVerify(source, expectedOutput: @"
 123
 127
 -32768
@@ -3794,7 +3794,7 @@ public class D
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: "hihi4242123123");
+            var compilation = CompileAndVerify(source, expectedOutput: "hihi4242123123");
 
             compilation.VerifyIL("D.Outer<K>.Boo<T, R, U>.Goo",
 @"
@@ -3913,7 +3913,7 @@ public class D
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: "D+BooSystem.Int32123");
+            var compilation = CompileAndVerify(source, expectedOutput: "D+BooSystem.Int32123");
 
             compilation.VerifyIL("D.Boo<T>.Moo",
 @"{
@@ -4001,7 +4001,7 @@ public class P
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: "B ctor-D ctor");
+            var compilation = CompileAndVerify(source, expectedOutput: "B ctor-D ctor");
 
             compilation.VerifyIL("P.D..ctor",
 @"{
@@ -4068,7 +4068,7 @@ public class D
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"
+            var compilation = CompileAndVerify(source, expectedOutput: @"
 [2][3][32] [1][2][3][32][18] [1][2][3][32][81]
 ");
 
@@ -4171,7 +4171,7 @@ public class D
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"
+            var compilation = CompileAndVerify(source, expectedOutput: @"
 [1][1][2][3][32][81][3][38][81]
 ");
 
@@ -4229,7 +4229,7 @@ public class D
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"abcdef");
+            var compilation = CompileAndVerify(source, expectedOutput: @"abcdef");
 
             compilation.VerifyIL("D.Main",
 @"{
@@ -4272,7 +4272,7 @@ public class D
         [Fact]
         public void ParamCallUsesCachedArray()
         {
-            var verifier = CompileStandardAndVerify(@"
+            var verifier = CompileAndVerify(@"
 namespace System
 {
     public class Object { }
@@ -4431,7 +4431,7 @@ public class Program
 }
 ");
 
-            verifier = CompileStandardAndVerify(@"
+            verifier = CompileAndVerify(@"
 namespace System
 {
     public class Object { }
@@ -4492,7 +4492,7 @@ public class D
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"123");
+            var compilation = CompileAndVerify(source, expectedOutput: @"123");
 
             compilation.VerifyIL("D.Main",
 @"{
@@ -4548,7 +4548,7 @@ public class D
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"0123401234");
+            var compilation = CompileAndVerify(source, expectedOutput: @"0123401234");
 
             compilation.VerifyIL("D.Goo.Bar",
 @"{
@@ -4656,7 +4656,7 @@ public static void Main()
 }}";
 
             // If we ever stop verifying the execution of this, we need to add IL verification for some of the method bodies.
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"
+            var compilation = CompileAndVerify(source, expectedOutput: @"
 aaaaSystem.ApplicationException: hellobyeSystem.ApplicationException: ccccaaaaSystem.ApplicationException: hellobyeSystem.ApplicationException: cccc
 ");
         }
@@ -4698,7 +4698,7 @@ public class D
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"012344321");
+            var compilation = CompileAndVerify(source, expectedOutput: @"012344321");
 
             compilation.VerifyIL("D.GooD.Baz",
 @"{
@@ -4741,7 +4741,7 @@ public class D
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"-100-11-1");
+            var compilation = CompileAndVerify(source, expectedOutput: @"-100-11-1");
 
             compilation.VerifyIL("D.Main",
 @"{
@@ -4808,7 +4808,7 @@ public class D
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"2 8 16 24 576 288");
+            var compilation = CompileAndVerify(source, expectedOutput: @"2 8 16 24 576 288");
 
             compilation.VerifyIL("D.Main",
 @"
@@ -4893,7 +4893,7 @@ public class D
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"True False True True");
+            var compilation = CompileAndVerify(source, expectedOutput: @"True False True True");
 
             compilation.VerifyIL("D.Main",
 @"{
@@ -4960,7 +4960,7 @@ public class D
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"-25 4294967295 1073741823");
+            var compilation = CompileAndVerify(source, expectedOutput: @"-25 4294967295 1073741823");
 
             compilation.VerifyIL("D.Main",
 @"
@@ -5026,7 +5026,7 @@ public class D
         obj.Goo(new System.ApplicationException[]{new System.ApplicationException(""hello"")});
     }
 }";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"
+            var compilation = CompileAndVerify(source, expectedOutput: @"
 System.ApplicationException[]System.ApplicationException: helloSystem.ApplicationException: hello
 ");
 
@@ -5079,7 +5079,7 @@ System.ApplicationException[]System.ApplicationException: helloSystem.Applicatio
         }
     }";
 
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"PASS", verify: Verification.Passes);
+            var compilation = CompileAndVerify(source, expectedOutput: @"PASS", verify: Verification.Passes);
 
             compilation.VerifyIL("Program.Main(string[])",
 @"
@@ -5140,7 +5140,7 @@ System.ApplicationException[]System.ApplicationException: helloSystem.Applicatio
         }
     }";
 
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"hi", verify: Verification.Fails);
+            var compilation = CompileAndVerify(source, expectedOutput: @"hi", verify: Verification.Fails);
 
             compilation.VerifyIL("Program.Main(string[])",
 @"
@@ -5167,7 +5167,7 @@ System.ApplicationException[]System.ApplicationException: helloSystem.Applicatio
   IL_0025:  ret
 }
 ");
-            compilation = CompileStandardAndVerify(source, expectedOutput: @"hi",  verify: Verification.Passes, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
+            compilation = CompileAndVerify(source, expectedOutput: @"hi",  verify: Verification.Passes, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
 
             compilation.VerifyIL("Program.Main(string[])",
 @"
@@ -5226,7 +5226,7 @@ System.ApplicationException[]System.ApplicationException: helloSystem.Applicatio
         }
     }";
 
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"hihi", verify: Verification.Fails);
+            var compilation = CompileAndVerify(source, expectedOutput: @"hihi", verify: Verification.Fails);
 
             var expectedIL = @"
 {
@@ -5247,7 +5247,7 @@ System.ApplicationException[]System.ApplicationException: helloSystem.Applicatio
             compilation.VerifyIL("Program.GetElementRef<T>(T[])", expectedIL);
 
             // expect the same IL in the compat case since direct references are required and must be emitted with "readonly.", even though unverifiable
-            compilation = CompileStandardAndVerify(source, expectedOutput: @"hihi", verify: Verification.Fails, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
+            compilation = CompileAndVerify(source, expectedOutput: @"hihi", verify: Verification.Fails, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
 
             compilation.VerifyIL("Program.GetElementRef<T>(T[])", expectedIL);
         }
@@ -5283,7 +5283,7 @@ public class D
         System.Console.Write(sr);
     }
 }";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"
+            var compilation = CompileAndVerify(source, expectedOutput: @"
 Interactive111CurrentCultureIgnoreCaseLevel1
 ");
 
@@ -5420,7 +5420,7 @@ public class MyList<T>
 }";
 
             // If we ever stop verifying the execution of this, we need to add IL verification for some of the method bodies.
-            CompileStandardAndVerify(source, expectedOutput: @"
+            CompileAndVerify(source, expectedOutput: @"
 1
 2
 3
@@ -5474,7 +5474,7 @@ public class D
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"42123");
+            var compilation = CompileAndVerify(source, expectedOutput: @"42123");
 
             compilation.VerifyIL("D.Main",
 @"{
@@ -5513,7 +5513,7 @@ public class D
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"True");
+            var compilation = CompileAndVerify(source, expectedOutput: @"True");
 
             compilation.VerifyIL("D.Main",
 @"{
@@ -5554,7 +5554,7 @@ public class D
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"True");
+            var compilation = CompileAndVerify(source, expectedOutput: @"True");
 
             // The last if condition is more compact than in Dev10.
             compilation.VerifyIL("D.Main", @"
@@ -5623,7 +5623,7 @@ public class D
     }
 }
 ";
-            CompileStandardAndVerify(source, expectedOutput: @"1").
+            CompileAndVerify(source, expectedOutput: @"1").
                 VerifyIL("D.Main",
 @"{
   // Code size       37 (0x25)
@@ -5657,7 +5657,7 @@ public class D
 }
 ");
 
-            var v = CompileStandardAndVerify(source, options: TestOptions.DebugExe, expectedOutput: @"1");
+            var v = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: @"1");
 
             v.VerifyIL("D.Main",
 @"{
@@ -5761,7 +5761,7 @@ public class D
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"1");
+            var compilation = CompileAndVerify(source, expectedOutput: @"1");
 
             compilation.VerifyIL("D.Main",
 @"{
@@ -5814,7 +5814,7 @@ public class D
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"True");
+            var compilation = CompileAndVerify(source, expectedOutput: @"True");
 
             compilation.VerifyIL("D.Main",
 @"{
@@ -5874,7 +5874,7 @@ public class D
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"TrueTrueTrueTrueTrue");
+            var compilation = CompileAndVerify(source, expectedOutput: @"TrueTrueTrueTrueTrue");
 
             compilation.VerifyIL("D.Main",
 @"{
@@ -5934,7 +5934,7 @@ public class D
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"12");
+            var compilation = CompileAndVerify(source, expectedOutput: @"12");
 
             compilation.VerifyIL("D.Main",
 @"{
@@ -5971,7 +5971,7 @@ public class D
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"onetwo");
+            var compilation = CompileAndVerify(source, expectedOutput: @"onetwo");
 
             compilation.VerifyIL("D.Main",
 @"{
@@ -6029,7 +6029,7 @@ public class D
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"23");
+            var compilation = CompileAndVerify(source, expectedOutput: @"23");
 
             compilation.VerifyIL("D.Inc",
 @"
@@ -6075,7 +6075,7 @@ public class D
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"onetwo");
+            var compilation = CompileAndVerify(source, expectedOutput: @"onetwo");
 
             compilation.VerifyIL("D.ProxyGet",
 @"{
@@ -6114,7 +6114,7 @@ public class D
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"A#A##");
+            var compilation = CompileAndVerify(source, expectedOutput: @"A#A##");
 
             compilation.VerifyIL("D.Inc",
 @"{
@@ -6167,7 +6167,7 @@ public class D
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"12");
+            var compilation = CompileAndVerify(source, expectedOutput: @"12");
 
             compilation.VerifyIL("D.Inc",
 @"{
@@ -6208,7 +6208,7 @@ public class D
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"CurrentCultureIgnoreCaseInvariantCulture");
+            var compilation = CompileAndVerify(source, expectedOutput: @"CurrentCultureIgnoreCaseInvariantCulture");
 
             compilation.VerifyIL("D.Inc",
 @"
@@ -6247,7 +6247,7 @@ public class D
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"12");
+            var compilation = CompileAndVerify(source, expectedOutput: @"12");
 
             compilation.VerifyIL("D.Inc",
 @"{
@@ -6338,7 +6338,7 @@ public class D
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"BCDE2442");
+            var compilation = CompileAndVerify(source, expectedOutput: @"BCDE2442");
 
             compilation.VerifyIL("D.DD.Test",
 @"{
@@ -6411,7 +6411,7 @@ public class D
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"hi");
+            var compilation = CompileAndVerify(source, expectedOutput: @"hi");
 
             compilation.VerifyIL("D.Main",
 @"{
@@ -6548,7 +6548,7 @@ public class D
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"hi");
+            var compilation = CompileAndVerify(source, expectedOutput: @"hi");
 
             compilation.VerifyIL("D.Main",
 @"{
@@ -6641,7 +6641,7 @@ public class D
         System.Console.WriteLine(d[4]);
     }
 }";
-            var compilation = CompileStandardAndVerify(source, options: TestOptions.ReleaseExe.WithModuleName("MODULE"), expectedOutput: @"
+            var compilation = CompileAndVerify(source, options: TestOptions.ReleaseExe.WithModuleName("MODULE"), expectedOutput: @"
 3
 -5
 True
@@ -6757,7 +6757,7 @@ public class D
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, options: TestOptions.ReleaseExe.WithModuleName("MODULE"), expectedOutput: @"3-5");
+            var compilation = CompileAndVerify(source, options: TestOptions.ReleaseExe.WithModuleName("MODULE"), expectedOutput: @"3-5");
             //string pid = "<PrivateImplementationDetails>" + compilation.Compilation.SourceModule.Pers
             compilation.VerifyIL("D.Main",
 @"{
@@ -6819,7 +6819,7 @@ public class D
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, options: TestOptions.ReleaseExe.WithModuleName("MODULE"), expectedOutput: @"30");
+            var compilation = CompileAndVerify(source, options: TestOptions.ReleaseExe.WithModuleName("MODULE"), expectedOutput: @"30");
             //string pid = "<PrivateImplementationDetails>" + compilation.Compilation.SourceModule.Pers
             compilation.VerifyIL("D.Main",
 @"{
@@ -6892,7 +6892,7 @@ public class D
     }
 }
 ";
-            var compilation = CompileAndVerify(source, expectedOutput: @"
+            var compilation = CompileAndVerifyWithMscorlib40(source, expectedOutput: @"
 Byte
 Char
 DBNull
@@ -7031,7 +7031,7 @@ class Program
     }
 }";
 
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"0");
+            var compilation = CompileAndVerify(source, expectedOutput: @"0");
 
             compilation.VerifyIL("Program.Main",
 @"
@@ -7087,7 +7087,7 @@ class Program
     }
 }";
 
-            var compilation = CompileStandardAndVerify(source, options: TestOptions.ReleaseDebugExe, expectedOutput: @"0");
+            var compilation = CompileAndVerify(source, options: TestOptions.ReleaseDebugExe, expectedOutput: @"0");
 
             compilation.VerifyIL("Program.Main",
 @"
@@ -7138,7 +7138,7 @@ class Program
         Console.WriteLine(x.ToString());
     }
 }";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"123");
+            var compilation = CompileAndVerify(source, expectedOutput: @"123");
 
             compilation.VerifyIL("Program.Main",
 @"{
@@ -7177,7 +7177,7 @@ class Derived : Base
         a();
     }
 }";
-            var compilation = CompileStandardAndVerify(source);
+            var compilation = CompileAndVerify(source);
 
             compilation.VerifyIL("Derived.F",
 @"{
@@ -7215,7 +7215,7 @@ class Derived : Base
         a();
     }
 }";
-            var compilation = CompileStandardAndVerify(source);
+            var compilation = CompileAndVerify(source);
 
             compilation.VerifyIL("Derived.F",
 @"{
@@ -7256,7 +7256,7 @@ class Derived : Base
         a();
     }
 }";
-            var compilation = CompileStandardAndVerify(source);
+            var compilation = CompileAndVerify(source);
 
             compilation.VerifyIL("Derived.F<T>",
 @"{
@@ -7294,7 +7294,7 @@ class Program
         bool b = r.Equals(1);
     }
 }";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"");
+            var compilation = CompileAndVerify(source, expectedOutput: @"");
 
             compilation.VerifyIL("Program.M",
 @"{
@@ -7332,7 +7332,7 @@ class Program
         Console.Write(s1.ToString());
     }
 }";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"123");
+            var compilation = CompileAndVerify(source, expectedOutput: @"123");
 
             compilation.VerifyIL("Program.Main",
 @"
@@ -7372,7 +7372,7 @@ class Program
         Console.WriteLine(v.ToString(""G""));
     }
 }";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"Program+Shade
+            var compilation = CompileAndVerify(source, expectedOutput: @"Program+Shade
 False
 Gray");
 
@@ -7457,7 +7457,7 @@ class Program
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"2");
+            var compilation = CompileAndVerify(source, expectedOutput: @"2");
 
             compilation.VerifyIL("Program.Test.Goo",
 @"{
@@ -7559,7 +7559,7 @@ class Program
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, options: TestOptions.ReleaseExe.WithModuleName("MODULE"), expectedOutput: @"
+            var compilation = CompileAndVerify(source, options: TestOptions.ReleaseExe.WithModuleName("MODULE"), expectedOutput: @"
 F1=3, F2=33
 444
 127
@@ -7658,7 +7658,7 @@ class A
 }
 
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: "True6False");
+            var compilation = CompileAndVerify(source, expectedOutput: "True6False");
 
             compilation.VerifyIL("A.Main",
 @"
@@ -7709,7 +7709,7 @@ class A
 }
 
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: "6");
+            var compilation = CompileAndVerify(source, expectedOutput: "6");
 
             compilation.VerifyIL("A.Main",
 @"{
@@ -7769,7 +7769,7 @@ class C
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"
+            var compilation = CompileAndVerify(source, expectedOutput: @"
 Qc
 9
 12468
@@ -7842,7 +7842,7 @@ class A
 }
 
 ";
-            var compilation = CompileStandardAndVerify(source, options: TestOptions.DebugExe.WithModuleName("MODULE"));
+            var compilation = CompileAndVerify(source, options: TestOptions.DebugExe.WithModuleName("MODULE"));
 
             compilation.VerifyIL("A.Main",
 @"{
@@ -7938,7 +7938,7 @@ namespace NS
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: "Hello");
+            var compilation = CompileAndVerify(source, expectedOutput: "Hello");
 
             compilation.VerifyIL("NS.Test.Main",
 @"{
@@ -7999,7 +7999,7 @@ namespace CodeGen
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"224");
+            var compilation = CompileAndVerify(source, expectedOutput: @"224");
 
             compilation.VerifyIL("CodeGen.MyData.M",
 @"{
@@ -8073,7 +8073,7 @@ class Test
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"result=One,Two");
+            var compilation = CompileAndVerify(source, expectedOutput: @"result=One,Two");
             // Why IL show 
             //  ldfld      "E Test.V_3"
             // Instead of
@@ -8152,7 +8152,7 @@ namespace CodeGen
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"6");
+            var compilation = CompileAndVerify(source, expectedOutput: @"6");
 
             compilation.VerifyIL("CodeGen.MyClass.M",
 @"{
@@ -8246,7 +8246,7 @@ public class Program
     }
 }
 ";
-            CompileStandardAndVerify(source, expectedOutput: @"
+            CompileAndVerify(source, expectedOutput: @"
 12
 13
 14
@@ -8281,7 +8281,7 @@ class C
     }
 }
 ";
-            CompileStandardAndVerify(source).VerifyIL("C.M", @"
+            CompileAndVerify(source).VerifyIL("C.M", @"
 {
   // Code size      124 (0x7c)
   .maxstack  3
@@ -8357,7 +8357,7 @@ public class Program
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"
+            var compilation = CompileAndVerify(source, expectedOutput: @"
 0
 1
 8
@@ -8443,7 +8443,7 @@ class NamedExample
     }
 }
 ";
-            CompileStandardAndVerify(source);
+            CompileAndVerify(source);
         }
 
         [Fact]
@@ -8471,7 +8471,7 @@ class A
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"first
+            var compilation = CompileAndVerify(source, expectedOutput: @"first
 42");
 
             compilation.VerifyIL("A.Main",
@@ -8517,7 +8517,7 @@ class A
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"1
+            var compilation = CompileAndVerify(source, expectedOutput: @"1
 2
 2
 3");
@@ -8591,7 +8591,7 @@ class A
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"2
+            var compilation = CompileAndVerify(source, expectedOutput: @"2
 2
 3");
 
@@ -8662,7 +8662,7 @@ class A
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"2
+            var compilation = CompileAndVerify(source, expectedOutput: @"2
 2
 3");
 
@@ -8708,7 +8708,7 @@ class A
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"2
+            var compilation = CompileAndVerify(source, expectedOutput: @"2
 2
 3");
 
@@ -8749,7 +8749,7 @@ class A
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"2
+            var compilation = CompileAndVerify(source, expectedOutput: @"2
 3
 4");
 
@@ -8828,7 +8828,7 @@ class A
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"2
+            var compilation = CompileAndVerify(source, expectedOutput: @"2
 2
 2
 3");
@@ -8902,7 +8902,7 @@ class A
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"2
+            var compilation = CompileAndVerify(source, expectedOutput: @"2
 2
 3");
 
@@ -8971,7 +8971,7 @@ class A
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, options: TestOptions.ReleaseDebugExe, expectedOutput: @"2
+            var compilation = CompileAndVerify(source, options: TestOptions.ReleaseDebugExe, expectedOutput: @"2
 2
 3");
 
@@ -9044,7 +9044,7 @@ struct S1
     public int y;
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"1");
+            var compilation = CompileAndVerify(source, expectedOutput: @"1");
 
             compilation.VerifyIL("A.Main",
 @"
@@ -9089,7 +9089,7 @@ struct S1
     public int y;
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"42");
+            var compilation = CompileAndVerify(source, expectedOutput: @"42");
 
             compilation.VerifyIL("A.Main",
 @"
@@ -9136,7 +9136,7 @@ struct S1
     public int y;
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"42", options: TestOptions.ReleaseDebugExe);
+            var compilation = CompileAndVerify(source, expectedOutput: @"42", options: TestOptions.ReleaseDebugExe);
 
             compilation.VerifyIL("A.Main",
 @"
@@ -9186,7 +9186,7 @@ struct S1
     public int y;
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"42");
+            var compilation = CompileAndVerify(source, expectedOutput: @"42");
 
             compilation.VerifyIL("A.Main",
 @"
@@ -9224,7 +9224,7 @@ public class Test
         decimal	dest = source;
     } 
 }";
-            CompileStandardAndVerify(source).
+            CompileAndVerify(source).
 VerifyIL("Test.Main", @"
 {
   // Code size        8 (0x8)
@@ -9248,7 +9248,7 @@ public class Test
         char dest = (char)source;
     } 
 }";
-            CompileStandardAndVerify(source).
+            CompileAndVerify(source).
 VerifyIL("Test.Main", @"
 {
   // Code size       12 (0xc)
@@ -9275,7 +9275,7 @@ VerifyIL("Test.Main", @"
 
         static partial void ReportFailure();
     }";
-            CompileStandardAndVerify(source);
+            CompileAndVerify(source);
         }
 
         [Fact, WorkItem(529173, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529173")]
@@ -9318,7 +9318,7 @@ using System;
         public void Bar(){}
     }
 ";
-            CompileStandardAndVerify(source, expectedOutput: "").
+            CompileAndVerify(source, expectedOutput: "").
 VerifyIL("Program.Main", @"
 {
   // Code size       61 (0x3d)
@@ -9360,7 +9360,7 @@ class Test
     }
 }
 ";
-            CompileStandardAndVerify(source, expectedOutput: "1").
+            CompileAndVerify(source, expectedOutput: "1").
 VerifyIL("Test.Main", @"
 {
   // Code size       24 (0x18)
@@ -9400,7 +9400,7 @@ class Test
     }
 }
 ";
-            CompileStandardAndVerify(source, expectedOutput: "-1").
+            CompileAndVerify(source, expectedOutput: "-1").
 VerifyIL("Test.Main", @"
 {
   // Code size       29 (0x1d)
@@ -9476,7 +9476,7 @@ class P
     }
 }
 ";
-            CompileStandardAndVerify(source);
+            CompileAndVerify(source);
         }
 
         #region Regression
@@ -9513,7 +9513,7 @@ namespace NS
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"M() Called!M() Called!");
+            var compilation = CompileAndVerify(source, expectedOutput: @"M() Called!M() Called!");
 
             compilation.VerifyIL("NS.Test.Main",
 @"
@@ -9562,7 +9562,7 @@ namespace NS
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"123");
+            var compilation = CompileAndVerify(source, expectedOutput: @"123");
 
             compilation.VerifyIL("NS.Test.Main",
 @"{
@@ -9634,7 +9634,7 @@ namespace CodeGen
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"12");
+            var compilation = CompileAndVerify(source, expectedOutput: @"12");
 
             compilation.VerifyIL("CodeGen.MyData.M",
 @"
@@ -9753,7 +9753,7 @@ class MyClass
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"6");
+            var compilation = CompileAndVerify(source, expectedOutput: @"6");
 
             // Dev10
             compilation.VerifyIL("MyClass.Main",
@@ -9848,7 +9848,7 @@ public class MyClass
         return ret;
     }
 }";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: "0").
+            var compilation = CompileAndVerify(source, expectedOutput: "0").
 VerifyIL("MyClass.Main", @"
 {
   // Code size      228 (0xe4)
@@ -9980,7 +9980,7 @@ class Program
             Console.WriteLine(const1);
     }
 }";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"1");
+            var compilation = CompileAndVerify(source, expectedOutput: @"1");
 
             // Dev10
             compilation.VerifyIL("Program.Main",
@@ -10010,7 +10010,7 @@ class Program
 }";
 
             //see Binder.TryFoldingNullableEquality for info on how/why this works
-            var comp = CompileStandardAndVerify(source, expectedOutput: @"False");
+            var comp = CompileAndVerify(source, expectedOutput: @"False");
 
             comp.VerifyIL("Program.Main",
 @"{
@@ -10067,7 +10067,7 @@ class Program
     }
 }";
 
-            CompileStandardAndVerify(source, expectedOutput: string.Empty);
+            CompileAndVerify(source, expectedOutput: string.Empty);
         }
 
         [Fact]
@@ -10115,7 +10115,7 @@ class Program
     }
 }";
 
-            CompileStandardAndVerify(source, expectedOutput: string.Empty);
+            CompileAndVerify(source, expectedOutput: string.Empty);
         }
 
         [WorkItem(540093, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540093")]
@@ -10141,7 +10141,7 @@ class MyMainClass
 }
 ";
 
-            CompileStandardAndVerify(source, expectedOutput: "0");
+            CompileAndVerify(source, expectedOutput: "0");
         }
 
         [WorkItem(528060, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528060")]
@@ -10194,7 +10194,7 @@ class MyClass
 }
 ";
 
-            CompileStandardAndVerify(source, expectedOutput: "0");
+            CompileAndVerify(source, expectedOutput: "0");
         }
 
         [WorkItem(540096, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540096")]
@@ -10229,7 +10229,7 @@ return 0;
 }
 ";
 
-            CompileStandardAndVerify(source, expectedOutput: "0");
+            CompileAndVerify(source, expectedOutput: "0");
         }
 
         [WorkItem(540097, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540097")]
@@ -10269,7 +10269,7 @@ namespace Microsoft.Conformance.Expressions
 }
 ";
 
-            CompileStandardAndVerify(source, expectedOutput: "0");
+            CompileAndVerify(source, expectedOutput: "0");
         }
 
         [WorkItem(540149, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540149")]
@@ -10302,7 +10302,7 @@ namespace Microsoft.Conformance.ParenthesizedExpression
 }
 ";
 
-            CompileStandardAndVerify(source, expectedOutput: "0");
+            CompileAndVerify(source, expectedOutput: "0");
         }
 
         [WorkItem(540158, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540158")]
@@ -10329,7 +10329,7 @@ public class MyClass
 }
 ";
 
-            CompileStandardAndVerify(source, expectedOutput: "0");
+            CompileAndVerify(source, expectedOutput: "0");
         }
 
         [WorkItem(540252, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540252")]
@@ -10351,7 +10351,7 @@ class Program
     static void Goo(Action<string, string, string, string, string> a) { }
 }
 ";
-            CompileStandardAndVerify(source, expectedOutput: "Hello");
+            CompileAndVerify(source, expectedOutput: "Hello");
         }
 
         [WorkItem(540331, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540331")]
@@ -10397,7 +10397,7 @@ class Test
 ";
             string expectedOutput = @"Pass01|Pass02|Pass03";
 
-            CompileStandardAndVerify(source, expectedOutput: expectedOutput);
+            CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
         [WorkItem(528183, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528183")]
@@ -10454,7 +10454,7 @@ public class Test
         }
     }
 }";
-            CompileAndVerify(
+            CompileAndVerifyWithMscorlib40(
                 source,
                 references: new[] { SystemCoreRef },
                 expectedOutput: @"Success");
@@ -10514,7 +10514,7 @@ class C
     partial void M1() { }
     partial void M2();
 }";
-            CompileStandardAndVerify(source);
+            CompileAndVerify(source);
         }
 
         [WorkItem(542275, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542275")]
@@ -10533,7 +10533,7 @@ class C
         M2();
     }
 }";
-            var compilation = CompileStandardAndVerify(source);
+            var compilation = CompileAndVerify(source);
             compilation.VerifyIL("C.M",
 @"{
   // Code size        7 (0x7)
@@ -10575,7 +10575,7 @@ namespace basic068One.basic068Three
     }
 }
 ";
-            CompileStandardAndVerify(source, expectedOutput: "0");
+            CompileAndVerify(source, expectedOutput: "0");
         }
 
         [WorkItem(542489, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542489")]
@@ -10595,7 +10595,7 @@ partial class program
     static partial void goo(string name, int age, bool gender);
 }
 ";
-            CompileStandardAndVerify(source);
+            CompileAndVerify(source);
         }
 
         [WorkItem(538544, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538544")]
@@ -10612,7 +10612,7 @@ public class MyClass {
     }
 }
 ";
-            CompileStandardAndVerify(source, expectedOutput: @"
+            CompileAndVerify(source, expectedOutput: @"
 0.0000000000
 0.0000000000000000000000000000
 1.0
@@ -10644,7 +10644,7 @@ public class MyClass {
     }
 }
 ";
-            CompileStandardAndVerify(source, expectedOutput: "1.00");
+            CompileAndVerify(source, expectedOutput: "1.00");
         }
 
         // Breaking change: native compiler considers
@@ -10674,7 +10674,7 @@ class C
         Console.WriteLine(.100000000000000000000000000050000000000000000000001m); // [Dev11 chops at 50 digits and does not round, Roslyn does not round]
     }
 }";
-            var compilation = CompileStandardAndVerify(source, expectedOutput:
+            var compilation = CompileAndVerify(source, expectedOutput:
 @"0.0000000000000000000000000031
 0.0000000000000000000000000030
 
@@ -11060,7 +11060,7 @@ class C
         Console.Write(j);
     }
 }";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: "101");
+            var compilation = CompileAndVerify(source, expectedOutput: "101");
             compilation.VerifyIL("C.Goo",
             @"{
   // Code size       13 (0xd)
@@ -11095,7 +11095,7 @@ class C
         System.Console.Write(myMoney);
     }
 }";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: "99.9");
+            var compilation = CompileAndVerify(source, expectedOutput: "99.9");
             compilation.VerifyIL("C.Main",
 @"{
   // Code size       31 (0x1f)
@@ -11129,7 +11129,7 @@ class Program
     public static int I { get; set; }
 }
 ";
-            var compilation = CompileStandardAndVerify(source);
+            var compilation = CompileAndVerify(source);
         }
 
         [Fact]
@@ -11152,7 +11152,7 @@ class Program
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: "11");
+            var compilation = CompileAndVerify(source, expectedOutput: "11");
         }
 
         [WorkItem(543888, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543888")]
@@ -11185,7 +11185,7 @@ public class C
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"
+            var compilation = CompileAndVerify(source, expectedOutput: @"
 One
 Three
 Five
@@ -11218,7 +11218,7 @@ public class C
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"
+            var compilation = CompileAndVerify(source, expectedOutput: @"
 1
 4
 6
@@ -11250,7 +11250,7 @@ public class C
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"
+            var compilation = CompileAndVerify(source, expectedOutput: @"
 1
 E2
 ");
@@ -11269,7 +11269,7 @@ class C
         System.Console.Write(y);
     }
 }";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: "79228162514264337593543950335");
+            var compilation = CompileAndVerify(source, expectedOutput: "79228162514264337593543950335");
             compilation.VerifyIL("C.Main",
 @"{
   // Code size       16 (0x10)
@@ -11298,7 +11298,7 @@ class C
         System.Console.Write(0 + decimal.MinusOne);
     }
 }";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: "79228162514264337593543950334-1");
+            var compilation = CompileAndVerify(source, expectedOutput: "79228162514264337593543950334-1");
             compilation.VerifyIL("C.Main",
 @"
 {
@@ -11351,7 +11351,7 @@ class C
         M(123456789.0123456789M, 123456789.1123456789M);
     }
 }";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"
+            var compilation = CompileAndVerify(source, expectedOutput: @"
 1007
 993
 7000
@@ -11418,7 +11418,7 @@ class C
             M(new decimal(123.456), new decimal(123456000, 0, 0, false, 6));
         }
 }";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"
+            var compilation = CompileAndVerify(source, expectedOutput: @"
 True
 False
 True
@@ -11490,7 +11490,7 @@ class C
             System.Console.WriteLine(x8);
         }
 }";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"
+            var compilation = CompileAndVerify(source, expectedOutput: @"
 123.456
 -123.456
 123.456
@@ -11610,7 +11610,7 @@ class C
         DecIncrDecrUnary(+7.5000000000000000000000000001M);
     }
 }";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"
+            var compilation = CompileAndVerify(source, expectedOutput: @"
 1.000000123
 -0.999999877
 
@@ -11641,7 +11641,7 @@ OverflowException
     void Goo(decimal x = 10) { }
 }
 ";
-            CompileStandardAndVerify(source);
+            CompileAndVerify(source);
         }
 
         [WorkItem(542742, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542742")]
@@ -11655,7 +11655,7 @@ OverflowException
         ;
     }
 }";
-            CompileStandardAndVerify(source);
+            CompileAndVerify(source);
         }
 
         [WorkItem(542458, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542458")]
@@ -11680,7 +11680,7 @@ public class DefaultParameterValues
             System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) { }
 }
 ";
-            CompileStandardAndVerify(source).VerifyIL("Test.Main", @"
+            CompileAndVerify(source).VerifyIL("Test.Main", @"
 {
   // Code size       26 (0x1a)
   .maxstack  4
@@ -11722,7 +11722,7 @@ public class Test
     }
 }
 ";
-            CompileStandardAndVerify(source2, new[] { new CSharpCompilationReference(compilation1) }).VerifyIL("Test.Main", @"
+            CompileAndVerify(source2, new[] { new CSharpCompilationReference(compilation1) }).VerifyIL("Test.Main", @"
 {
   // Code size       26 (0x1a)
   .maxstack  4
@@ -11752,7 +11752,7 @@ public class Test
     }
 }
 ";
-            CompileStandardAndVerify(source, new[] { TestReferences.SymbolsTests.Methods.CSMethods }).VerifyIL("Test.Main", @"
+            CompileAndVerify(source, new[] { TestReferences.SymbolsTests.Methods.CSMethods }).VerifyIL("Test.Main", @"
 {
   // Code size       26 (0x1a)
   .maxstack  4
@@ -11793,7 +11793,7 @@ public class Program
         Goo<string>(""test3"");
     }
 }";
-            CompileStandardAndVerify(source, expectedOutput: "Goo<System.String>(test3, test2)");
+            CompileAndVerify(source, expectedOutput: "Goo<System.String>(test3, test2)");
         }
 
         [WorkItem(542920, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542920")]
@@ -11820,7 +11820,7 @@ public class Program
         }
     }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"bye");
+            var compilation = CompileAndVerify(source, expectedOutput: @"bye");
 
             compilation.VerifyIL("Test.Main",
 @"{
@@ -11875,7 +11875,7 @@ public class Test
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"0");
+            var compilation = CompileAndVerify(source, expectedOutput: @"0");
 
             compilation.VerifyIL("Test.Main",
 @"{
@@ -11912,7 +11912,7 @@ public class Test
     }
 }
 ";
-            CompileStandardAndVerify(source, expectedOutput: @"0");
+            CompileAndVerify(source, expectedOutput: @"0");
         }
 
         [WorkItem(543089, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543089")]
@@ -11938,7 +11938,7 @@ class C
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"1A");
+            var compilation = CompileAndVerify(source, expectedOutput: @"1A");
         }
 
         [WorkItem(543090, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543090")]
@@ -11970,7 +11970,7 @@ partial class C
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"1A");
+            var compilation = CompileAndVerify(source, expectedOutput: @"1A");
         }
 
         [WorkItem(543530, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543530")]
@@ -12011,7 +12011,7 @@ class C1
         B(""Main"");
     }
 }";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: "null;null;C1;");
+            var compilation = CompileAndVerify(source, expectedOutput: "null;null;C1;");
         }
         [WorkItem(543091, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543091")]
         [Fact()]
@@ -12042,7 +12042,7 @@ partial class C
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"1A");
+            var compilation = CompileAndVerify(source, expectedOutput: @"1A");
         }
 
         [WorkItem(543156, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543156")]
@@ -12071,7 +12071,7 @@ class Test
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"00");
+            var compilation = CompileAndVerify(source, expectedOutput: @"00");
         }
 
         [WorkItem(543157, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543157")]
@@ -12107,7 +12107,7 @@ class Program
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"0");
+            var compilation = CompileAndVerify(source, expectedOutput: @"0");
         }
 
         [WorkItem(543566, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543566")]
@@ -12136,7 +12136,7 @@ class Test
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"0");
+            var compilation = CompileAndVerify(source, expectedOutput: @"0");
         }
 
         [Fact(), WorkItem(543667, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543667")]
@@ -12165,7 +12165,7 @@ class B<T> : A<T>
         return default(V);
     }
 }";
-            CompileStandardAndVerify(source);
+            CompileAndVerify(source);
         }
 
         #endregion
@@ -12223,7 +12223,7 @@ struct MyManagedStruct
         n.n.num = x;
     }
 }";
-            var comp = CompileStandardAndVerify(source, expectedOutput: @"42", parseOptions: TestOptions.Regular7_2, verify: Verification.Fails);
+            var comp = CompileAndVerify(source, expectedOutput: @"42", parseOptions: TestOptions.Regular7_2, verify: Verification.Fails);
 
             comp.VerifyIL("Program.Main",
 @"
@@ -12256,7 +12256,7 @@ struct MyManagedStruct
 }
 ");
 
-            comp = CompileStandardAndVerify(source, expectedOutput: @"42", verify: Verification.Passes, parseOptions:TestOptions.Regular.WithPEVerifyCompatFeature());
+            comp = CompileAndVerify(source, expectedOutput: @"42", verify: Verification.Passes, parseOptions:TestOptions.Regular.WithPEVerifyCompatFeature());
 
             comp.VerifyIL("Program.Main",
 @"
@@ -12288,7 +12288,7 @@ struct MyManagedStruct
 }
 ");
 
-            comp = CompileStandardAndVerify(source, expectedOutput: @"42", verify: Verification.Passes, parseOptions: TestOptions.Regular7_1);
+            comp = CompileAndVerify(source, expectedOutput: @"42", verify: Verification.Passes, parseOptions: TestOptions.Regular7_1);
 
             comp.VerifyIL("Program.Main",
 @"
@@ -12376,7 +12376,7 @@ struct MyManagedStruct
             return null;
         }
     }";
-            var comp = CompileStandardAndVerify(source, expectedOutput: @"-10", verify: Verification.Fails);
+            var comp = CompileAndVerify(source, expectedOutput: @"-10", verify: Verification.Fails);
 
             comp.VerifyIL("Program.Main",
 @"
@@ -12405,7 +12405,7 @@ struct MyManagedStruct
 }
 ");
 
-            comp = CompileStandardAndVerify(source, expectedOutput: @"-10", verify: Verification.Passes, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
+            comp = CompileAndVerify(source, expectedOutput: @"-10", verify: Verification.Passes, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
 
             comp.VerifyIL("Program.Main",
 @"
@@ -12448,7 +12448,7 @@ class Program
         Console.Write(SB.ToString());
     }
 }";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"123");
+            var compilation = CompileAndVerify(source, expectedOutput: @"123");
 
             // Dev10
             compilation.VerifyIL("Program.Main",
@@ -12506,7 +12506,7 @@ static class Test
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"");
+            var compilation = CompileAndVerify(source, expectedOutput: @"");
 
             // Dev10
             compilation.VerifyIL("Test.M1<T>(T)",
@@ -12560,7 +12560,7 @@ class Class1
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"notequal1
+            var compilation = CompileAndVerify(source, expectedOutput: @"notequal1
 notequal2");
 
             // Dev10
@@ -12649,7 +12649,7 @@ public class SinkHelper
     }
 }
 ";
-            CompileStandardAndVerify(source).VerifyIL("SinkHelper.OnEvent", @"
+            CompileAndVerify(source).VerifyIL("SinkHelper.OnEvent", @"
 {
   // Code size       29 (0x1d)
   .maxstack  1
@@ -12689,7 +12689,7 @@ class Class1
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"True
+            var compilation = CompileAndVerify(source, expectedOutput: @"True
 TrueFalseTrueFalse");
 
             compilation.VerifyIL("Class1.Main",
@@ -12773,7 +12773,7 @@ public class C
     }
 }
 ";
-            CompileStandardAndVerify(source, expectedOutput:
+            CompileAndVerify(source, expectedOutput:
 @"1.712
 1.712
 1.712
@@ -12809,7 +12809,7 @@ class C
         Console.WriteLine((decimal)-3.96140812571322d);
     }
 }";
-            CompileStandardAndVerify(source, expectedOutput:
+            CompileAndVerify(source, expectedOutput:
 @"2147484000
 2147483648
 9223372000000000000
@@ -12925,7 +12925,7 @@ class C
   IL_0038:  ret
 }";
 
-            var compilation = CompileStandardAndVerify(source, expectedOutput: expectedOutput);
+            var compilation = CompileAndVerify(source, expectedOutput: expectedOutput);
 
             compilation.VerifyIL("C.Main", expectedIL);
         }
@@ -12962,7 +12962,7 @@ class C
   IL_000c:  newobj     ""A..ctor(object, System.IntPtr)""
   IL_0011:  ret
 }";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: expectedOutput);
+            var compilation = CompileAndVerify(source, expectedOutput: expectedOutput);
             compilation.VerifyIL("C.R", expectedIL);
         }
 
@@ -12982,7 +12982,7 @@ enum " + "\u0915\u094d\u200d\u0937" + @"
                 Assert.True(type.CanBeReferencedByName);
             };
 
-            CompileStandardAndVerify(source, sourceSymbolValidator: validator, symbolValidator: validator);
+            CompileAndVerify(source, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [WorkItem(545778, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545778")]
@@ -13033,7 +13033,7 @@ Aggregate = 1,
 }
 
 ";
-            CompileStandardAndVerify(source).VerifyIL("EdmFunction.SetFunctionAttribute", @"
+            CompileAndVerify(source).VerifyIL("EdmFunction.SetFunctionAttribute", @"
 {
   // Code size       10 (0xa)
   .maxstack  4
@@ -13083,7 +13083,7 @@ class Program
     }
 }
 ";
-            CompileStandardAndVerify(source, expectedOutput: @"hello
+            CompileAndVerify(source, expectedOutput: @"hello
 hello").VerifyIL("Program.Main", @"
 {
   // Code size       31 (0x1f)
@@ -13141,7 +13141,7 @@ System.Console.WriteLine(s1);
   IL_0007:  ret
 }";
 
-            var compilation = CompileStandardAndVerify(source, expectedOutput: expectedOutput);
+            var compilation = CompileAndVerify(source, expectedOutput: expectedOutput);
 
             compilation.VerifyIL("Program.Main", expectedIL);
         }
@@ -13149,7 +13149,7 @@ System.Console.WriteLine(s1);
         [Fact(), WorkItem(546860, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546860")]
         public void Bug17007()
         {
-            CompileStandardAndVerify(
+            CompileAndVerify(
 @"
 class Module1
 {
@@ -13265,7 +13265,7 @@ class A
 
 }
 ";
-            var compilation = CompileStandardAndVerify(
+            var compilation = CompileAndVerify(
                 source,
                 expectedOutput: @"Inside - TestVarArgs::ctor (__arglist)
 Inside - TestVarArgs::ctor (__arglist)
@@ -13328,7 +13328,7 @@ public static class P
 }
 ";
 
-            var compilation = CompileAndVerify(code, expectedOutput: "4");
+            var compilation = CompileAndVerifyWithMscorlib40(code, expectedOutput: "4");
         }
 
         [WorkItem(24348, "https://github.com/dotnet/roslyn/issues/24348")]
@@ -13579,7 +13579,7 @@ public class C1
     public string s = ""hi"";
 }
 ";
-            CompileStandardAndVerify(source, expectedOutput: "2").VerifyIL("S1.Prop1.get", @"            
+            CompileAndVerify(source, expectedOutput: "2").VerifyIL("S1.Prop1.get", @"            
 {
   // Code size       17 (0x11)
   .maxstack  1
@@ -13636,7 +13636,7 @@ public class Program
 }
 ";
 
-            CompileStandardAndVerify(source, expectedOutput: "1234").VerifyIL("Program.Main", @"
+            CompileAndVerify(source, expectedOutput: "1234").VerifyIL("Program.Main", @"
 {
   // Code size       52 (0x34)
   .maxstack  2
@@ -13717,7 +13717,7 @@ class D : C, IGoo
             // class type other than object. The method C.ToString is the "slot" for
             // object.ToString, so this counts as coming from object.  M should call the explicit
             // interface implementation.
-            CompileStandardAndVerify(source, expectedOutput: "IGoo");
+            CompileAndVerify(source, expectedOutput: "IGoo");
         }
 
         // Same as above, but C.ToString is "new virtual", rather than "override".
@@ -13771,7 +13771,7 @@ class D : C, IGoo
             // The candidate set contains a method ToString which comes from a class type other
             // than object. The interface method should be eliminated and M should call virtual
             // method C.ToString().
-            CompileStandardAndVerify(source, expectedOutput: "D");
+            CompileAndVerify(source, expectedOutput: "D");
         }
 
         [WorkItem(638119, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638119")]
@@ -13821,7 +13821,7 @@ class D : C, IGoo
         }
     }
 ";
-            var compilation = CompileStandardAndVerify(source, options: TestOptions.ReleaseExe.WithModuleName("MODULE"), expectedOutput: @"False
+            var compilation = CompileAndVerify(source, options: TestOptions.ReleaseExe.WithModuleName("MODULE"), expectedOutput: @"False
 
 True
 System.Exception: Exception of type 'System.Exception' was thrown.
@@ -13900,7 +13900,7 @@ class A
 }
 ";
 
-            CompileStandardAndVerify(source, expectedOutput: @"").VerifyIL("A.Main",
+            CompileAndVerify(source, expectedOutput: @"").VerifyIL("A.Main",
 @"
 {
   // Code size      144 (0x90)
@@ -14023,7 +14023,7 @@ class Program
 }
 ";
 
-            CompileStandardAndVerify(source, expectedOutput: @"False
+            CompileAndVerify(source, expectedOutput: @"False
 False
 True
 False
@@ -14067,7 +14067,7 @@ public class Test
 }
 ";
 
-            CompileAndVerify(source, references: new[] { SystemCoreRef, CSharpRef }, expectedOutput: @"0");
+            CompileAndVerifyWithMscorlib40(source, references: new[] { SystemCoreRef, CSharpRef }, expectedOutput: @"0");
         }
 
 
@@ -14104,7 +14104,7 @@ public class Test
     }
 ";
 
-            CompileStandardAndVerify(source, expectedOutput: @"0
+            CompileAndVerify(source, expectedOutput: @"0
 42").VerifyIL("A.Main", @"
 {
   // Code size       40 (0x28)
@@ -14164,7 +14164,7 @@ class A
 }
 ";
 
-            CompileStandardAndVerify(source, expectedOutput: @"").VerifyIL("A.Main",
+            CompileAndVerify(source, expectedOutput: @"").VerifyIL("A.Main",
 @"
 {
   // Code size        9 (0x9)
@@ -14219,7 +14219,7 @@ class Program
 }
 ";
 
-            CompileStandardAndVerify(source, expectedOutput: @""
+            CompileAndVerify(source, expectedOutput: @""
 ).VerifyIL("Program.Goo<T>(T[])",
 @"
 {
@@ -14301,7 +14301,7 @@ class Program
 }
 ";
 
-            CompileStandardAndVerify(source, expectedOutput: @""
+            CompileAndVerify(source, expectedOutput: @""
 ).VerifyIL("Program.Goo<T>(A<T>)",
 @"
 {
@@ -14378,7 +14378,7 @@ class cls1 : i1
 
 ";
 
-            CompileStandardAndVerify(source, expectedOutput: @"GooGooGoo").
+            CompileAndVerify(source, expectedOutput: @"GooGooGoo").
                 VerifyIL("Program.Test1<T>(T)",
 @"
 {
@@ -14545,7 +14545,7 @@ using System;
 
 ";
 
-            CompileStandardAndVerify(source, expectedOutput: @""
+            CompileAndVerify(source, expectedOutput: @""
 ).VerifyIL("Test.Main()",
 @"
 {
@@ -14588,7 +14588,7 @@ using System;
 
 ";
 
-            CompileStandardAndVerify(source, expectedOutput: @"hello"
+            CompileAndVerify(source, expectedOutput: @"hello"
 ).VerifyIL("Test.Main()",
 @"
 {
@@ -14640,7 +14640,7 @@ class c1
 
 ";
 
-            CompileStandardAndVerify(source, expectedOutput: @"").
+            CompileAndVerify(source, expectedOutput: @"").
                 VerifyIL("Test..cctor()",
 @"
 {
@@ -14762,7 +14762,7 @@ using System;
     }
 ";
 
-            CompileStandardAndVerify(source, options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails, expectedOutput: @""
+            CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails, expectedOutput: @""
 ).VerifyIL("Program.TestArrElement(bool[])",
 @"
 {
@@ -14817,7 +14817,7 @@ class Program
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"42
+            var compilation = CompileAndVerify(source, expectedOutput: @"42
 42");
 
             compilation.VerifyIL("Program.Main",
@@ -14872,7 +14872,7 @@ class Program
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"42");
+            var compilation = CompileAndVerify(source, expectedOutput: @"42");
 
             compilation.VerifyIL("Program.Main",
     @"
@@ -14921,7 +14921,7 @@ class Program
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"42");
+            var compilation = CompileAndVerify(source, expectedOutput: @"42");
 
             compilation.VerifyIL("Program.Main",
     @"
@@ -14967,7 +14967,7 @@ class Program
 }";
 
             var testReference = AssemblyMetadata.CreateFromImage(TestResources.Repros.BadDefaultParameterValue).GetReference();
-            var compilation = CompileStandardAndVerify(source, references: new[] { testReference });
+            var compilation = CompileAndVerify(source, references: new[] { testReference });
             compilation.VerifyIL("Program.Main", @"
 {
   // Code size       12 (0xc)
@@ -15009,7 +15009,7 @@ class Program
     }
 ";
 
-            var compilation = CompileStandardAndVerify(source, expectedOutput: "2");
+            var compilation = CompileAndVerify(source, expectedOutput: "2");
 
             compilation.VerifyIL("Program.Main",
 @"
@@ -15063,7 +15063,7 @@ class Program
     }
 ";
 
-            var compilation = CompileStandardAndVerify(source, expectedOutput: "True");
+            var compilation = CompileAndVerify(source, expectedOutput: "True");
 
             compilation.VerifyIL("Program.Main",
 @"
@@ -15109,7 +15109,7 @@ class Program
     }
 ";
 
-            var compilation = CompileStandardAndVerify(source, expectedOutput: "hi");
+            var compilation = CompileAndVerify(source, expectedOutput: "hi");
 
             compilation.VerifyIL("Program.Main",
 @"
@@ -15156,7 +15156,7 @@ class Program
     }
 ";
 
-            var compilation = CompileStandardAndVerify(source, expectedOutput: "o");
+            var compilation = CompileAndVerify(source, expectedOutput: "o");
 
             compilation.VerifyIL("Program.Main",
 @"
@@ -15209,7 +15209,7 @@ class Program
     }
 ";
 
-            var compilation = CompileStandardAndVerify(source, expectedOutput: "hi");
+            var compilation = CompileAndVerify(source, expectedOutput: "hi");
 
             compilation.VerifyIL("Program.Main",
 @"
@@ -15294,7 +15294,7 @@ class Program
     }
 ";
 
-            var compilation = CompileStandardAndVerify(source, expectedOutput: "");
+            var compilation = CompileAndVerify(source, expectedOutput: "");
 
             compilation.VerifyIL("Program.Main",
 @"
@@ -15391,7 +15391,7 @@ class M
 }
 ";
 
-            var compilation = CompileAndVerify(source, new[] { SystemCoreRef, CSharpRef }, expectedOutput: "2");
+            var compilation = CompileAndVerifyWithMscorlib40(source, new[] { SystemCoreRef, CSharpRef }, expectedOutput: "2");
 
             // the main point of this test is to have it PEVerify/run correctly, although checking IL too can't hurt.
             compilation.VerifyIL("M..ctor",
@@ -15460,7 +15460,7 @@ class M
 }
 ";
 
-            var compilation = CompileAndVerify(source, new[] { SystemCoreRef, CSharpRef }, expectedOutput: "2");
+            var compilation = CompileAndVerifyWithMscorlib40(source, new[] { SystemCoreRef, CSharpRef }, expectedOutput: "2");
 
             compilation.VerifyIL("M..ctor",
 @"{
@@ -15573,7 +15573,7 @@ class M
 }
 ";
 
-            var compilation = CompileAndVerify(source, new[] { SystemCoreRef, CSharpRef }, expectedOutput: "long.ex caught");
+            var compilation = CompileAndVerifyWithMscorlib40(source, new[] { SystemCoreRef, CSharpRef }, expectedOutput: "long.ex caught");
         }
 
         [WorkItem(10463, "https://github.com/dotnet/roslyn/issues/10463")]
@@ -15898,7 +15898,7 @@ class Program
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: @"
+            var compilation = CompileAndVerify(source, expectedOutput: @"
 Goo1 0
 Goo1 0
 0
@@ -16019,7 +16019,7 @@ class Program
     }
 }
 ";
-            CompileAndVerify(source, references: new[] { SystemRef, SystemCoreRef },
+            CompileAndVerifyWithMscorlib40(source, references: new[] { SystemRef, SystemCoreRef },
                 expectedOutput: "0");
         }
 
@@ -16041,7 +16041,7 @@ public class Form1 {
         o = TestObj.Value;
     }
 }";
-            var compilation = CompileStandardAndVerify(source);
+            var compilation = CompileAndVerify(source);
             compilation.VerifyIL("Form1.IPE", @"
 {
     // Code size       13 (0xd)
@@ -16250,7 +16250,7 @@ unsafe class Test
         a[0] += s;
     }
 }";
-            var verifier = CompileStandardAndVerify(source, expectedOutput: "B");
+            var verifier = CompileAndVerify(source, expectedOutput: "B");
             verifier.VerifyIL("C.G",
 @"{
   // Code size       17 (0x11)
@@ -16289,7 +16289,7 @@ unsafe class Test
         a[0] += s;
     }
 }";
-            var verifier = CompileStandardAndVerify(source, expectedOutput: "AB");
+            var verifier = CompileAndVerify(source, expectedOutput: "AB");
             verifier.VerifyIL("C.G",
 @"{
   // Code size       15 (0xf)
@@ -16329,7 +16329,7 @@ unsafe class Test
         a[0] += i;
     }
 }";
-            var verifier = CompileStandardAndVerify(source, expectedOutput: "3");
+            var verifier = CompileAndVerify(source, expectedOutput: "3");
             verifier.VerifyIL("C.G",
 @"{
   // Code size       13 (0xd)
@@ -16373,7 +16373,7 @@ unsafe class Test
         return 0;
     }
 }";
-            var verifier = CompileStandardAndVerify(source, expectedOutput: "Object[]AString[]B");
+            var verifier = CompileAndVerify(source, expectedOutput: "Object[]AString[]B");
             verifier.VerifyIL("C.G",
 @"{
   // Code size       22 (0x16)
@@ -16417,7 +16417,7 @@ unsafe class Test
         a[0]++;
     }
 }";
-            var verifier = CompileStandardAndVerify(source, expectedOutput: "2");
+            var verifier = CompileAndVerify(source, expectedOutput: "2");
             verifier.VerifyIL("C.G",
 @"{
   // Code size       13 (0xd)

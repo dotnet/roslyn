@@ -79,7 +79,7 @@ public class N : D.K<M>
 {}
 ";
 
-            CompileStandardAndVerify(source, symbolValidator: module =>
+            CompileAndVerify(source, symbolValidator: module =>
             {
                 var baseLine = System.Xml.Linq.XElement.Load(new StringReader(Resources.EmitSimpleBaseLine1));
                 System.Xml.Linq.XElement dumpXML = DumpTypeInfo(module);
@@ -111,7 +111,7 @@ public class D
 }
 ";
 
-            CompileStandardAndVerify(source, expectedOutput: @"
+            CompileAndVerify(source, expectedOutput: @"
 65536
 string2
 string1
@@ -138,7 +138,7 @@ public class D
     }
 }
 ";
-            CompileStandardAndVerify(source, expectedOutput: @"
+            CompileAndVerify(source, expectedOutput: @"
 1
 9
 "
@@ -157,7 +157,7 @@ public class Test : C107
 }
 ";
 
-            CompileStandardAndVerify(source, new[] { metadataTestLib1, metadataTestLib2 }, assemblyValidator: (assembly) =>
+            CompileAndVerify(source, new[] { metadataTestLib1, metadataTestLib2 }, assemblyValidator: (assembly) =>
             {
                 var refs = assembly.Modules[0].ReferencedAssemblies.OrderBy(r => r.Name).ToArray();
                 Assert.Equal(2, refs.Length);
@@ -174,7 +174,7 @@ public class Test : Class2
 {
 }
 ";
-            CompileStandardAndVerify(sources, new[] { TestReferences.SymbolsTests.MultiModule.Assembly }, assemblyValidator: (assembly) =>
+            CompileAndVerify(sources, new[] { TestReferences.SymbolsTests.MultiModule.Assembly }, assemblyValidator: (assembly) =>
             {
                 var refs2 = assembly.Modules[0].ReferencedAssemblies.Select(r => r.Name);
                 Assert.Equal(2, refs2.Count());
@@ -192,7 +192,7 @@ public class Test : Class2
         [Fact()]
         public void Bug687434()
         {
-            CompileStandardAndVerify(
+            CompileAndVerify(
                 "public class C { }",
                 verify: Verification.Fails,
                 options: TestOptions.DebugDll.WithOutputKind(OutputKind.NetModule));
@@ -210,7 +210,7 @@ public class Test : Class1
 }
 ";
             // modules not supported in ref emit
-            CompileStandardAndVerify(source, new[] { netModule1, netModule2 }, assemblyValidator: (assembly) =>
+            CompileAndVerify(source, new[] { netModule1, netModule2 }, assemblyValidator: (assembly) =>
             {
                 Assert.Equal(3, assembly.Modules.Length);
 
@@ -273,7 +273,7 @@ abstract public class B : I2, I3
 }
 ";
 
-            CompileStandardAndVerify(source, symbolValidator: module =>
+            CompileAndVerify(source, symbolValidator: module =>
             {
                 var classA = module.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
                 var classB = module.GlobalNamespace.GetMember<NamedTypeSymbol>("B");
@@ -313,7 +313,7 @@ interface I7 { }
 class C : I1 { }
 ";
 
-            CompileStandardAndVerify(source, symbolValidator: module =>
+            CompileAndVerify(source, symbolValidator: module =>
             {
                 var i1 = module.GlobalNamespace.GetMember<NamedTypeSymbol>("I1");
                 var i2 = module.GlobalNamespace.GetMember<NamedTypeSymbol>("I2");
@@ -340,7 +340,7 @@ class C : I1 { }
         [Fact]
         public void ExplicitGenericInterfaceImplementation()
         {
-            CompileStandardAndVerify(@"
+            CompileAndVerify(@"
 class S
 {
     class C<T>
@@ -385,7 +385,7 @@ abstract public class A
     public abstract void M5<T, S>(T p17, S p18);
 }";
 
-            CompileStandardAndVerify(source, options: TestOptions.ReleaseDll, symbolValidator: module =>
+            CompileAndVerify(source, options: TestOptions.ReleaseDll, symbolValidator: module =>
             {
                 var classA = module.GlobalNamespace.GetTypeMembers("A").Single();
 
@@ -493,7 +493,7 @@ static class C
                     Assert.Equal(5, peModuleSymbol.Module.GetMetadataReader().TypeReferences.Count);
                 }
             };
-            CompileStandardAndVerify(source, options: TestOptions.ReleaseDll, sourceSymbolValidator: validator(true), symbolValidator: validator(false));
+            CompileAndVerify(source, options: TestOptions.ReleaseDll, sourceSymbolValidator: validator(true), symbolValidator: validator(false));
         }
 
         [Fact]
@@ -543,7 +543,7 @@ public class A
                 Assert.Equal("System.Runtime.CompilerServices.IsVolatile", mod.Modifier.ToTestDisplayString());
             };
 
-            CompileStandardAndVerify(source, sourceSymbolValidator: validator(true), symbolValidator: validator(false), options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
+            CompileAndVerify(source, sourceSymbolValidator: validator(true), symbolValidator: validator(false), options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
         }
 
         [Fact]
@@ -610,7 +610,7 @@ public class A
                     Assert.Null(cctor);
                 }
             };
-            CompileStandardAndVerify(source, sourceSymbolValidator: validator(true), symbolValidator: validator(false));
+            CompileAndVerify(source, sourceSymbolValidator: validator(true), symbolValidator: validator(false));
         }
 
         [Fact]
@@ -637,7 +637,7 @@ public class A
                 CheckConstantField(type, "S", Accessibility.Public, SpecialType.System_String, "string");
             };
 
-            CompileStandardAndVerify(source: source, sourceSymbolValidator: validator(true), symbolValidator: validator(false), options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
+            CompileAndVerify(source: source, sourceSymbolValidator: validator(true), symbolValidator: validator(false), options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
         }
 
         private void CheckConstantField(NamedTypeSymbol type, string name, Accessibility declaredAccessibility, SpecialType fieldType, object value)
@@ -705,7 +705,7 @@ class Properties
                 CheckPrivateMembers(module.GlobalNamespace.GetTypeMembers("Properties").Single(), isFromSource, false);
             };
 
-            CompileStandardAndVerify(source: source, sourceSymbolValidator: validator(true), symbolValidator: validator(false), options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
+            CompileAndVerify(source: source, sourceSymbolValidator: validator(true), symbolValidator: validator(false), options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
         }
 
         private void CheckPrivateMembers(NamedTypeSymbol type, bool isFromSource, bool importPrivates)
@@ -753,7 +753,7 @@ class Derived<T, U> : Base<T, U>
                 Assert.Same(baseType.TypeArguments()[0], derivedType.TypeParameters[0]);
                 Assert.Same(baseType.TypeArguments()[1], derivedType.TypeParameters[1]);
             };
-            CompileStandardAndVerify(source: source, sourceSymbolValidator: validator, symbolValidator: validator);
+            CompileAndVerify(source: source, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
@@ -788,7 +788,7 @@ class C : I
                 Assert.NotNull(property.GetMethod);
                 Assert.NotNull(property.SetMethod);
             };
-            CompileStandardAndVerify(source: source, sourceSymbolValidator: validator, symbolValidator: validator);
+            CompileAndVerify(source: source, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
@@ -852,7 +852,7 @@ class C : I
                 }
             };
 
-            CompileStandardAndVerify(source: source, sourceSymbolValidator: validator(true), symbolValidator: validator(false), options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
+            CompileAndVerify(source: source, sourceSymbolValidator: validator(true), symbolValidator: validator(false), options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
         }
 
         [Fact]
@@ -1104,7 +1104,7 @@ class Program
                 Assert.NotNull(overriddenProperty);
                 Assert.Same(overriddenAccessor, propertyQ.SetMethod.OverriddenMethod);
             };
-            CompileStandardAndVerify(source: source, sourceSymbolValidator: validator(true), symbolValidator: validator(false));
+            CompileAndVerify(source: source, sourceSymbolValidator: validator(true), symbolValidator: validator(false));
         }
 
         [Fact]
@@ -1126,7 +1126,7 @@ public class C : I
                 var ip = (PropertySymbol)members.First(member => member.Name == "I.P");
                 CheckPropertyAccessibility(ip, Accessibility.Private, Accessibility.Private, Accessibility.Private);
             };
-            CompileStandardAndVerify(source: source, sourceSymbolValidator: validator, symbolValidator: validator);
+            CompileAndVerify(source: source, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         private static void CheckPropertyAccessibility(PropertySymbol property, Accessibility propertyAccessibility, Accessibility getterAccessibility, Accessibility setterAccessibility)
@@ -1213,7 +1213,7 @@ class C : B
 
                 Assert.Same(getMethodC.OverriddenMethod, getMethodA);
             };
-            CompileStandardAndVerify(source: source, sourceSymbolValidator: validator, symbolValidator: validator);
+            CompileAndVerify(source: source, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
@@ -1248,7 +1248,7 @@ class C : B<string>
                 Assert.Equal(p.GetMethod.AssociatedSymbol, p);
             };
 
-            CompileStandardAndVerify(
+            CompileAndVerify(
                 source,
                 sourceSymbolValidator: validator(true),
                 symbolValidator: validator(false),
@@ -1298,7 +1298,7 @@ class C : B<string>
                 CheckEnumType(type, Accessibility.Internal, SpecialType.System_Int32);
                 Assert.Equal(1, type.GetMembers().Length);
             };
-            CompileStandardAndVerify(source: source, sourceSymbolValidator: validator, symbolValidator: validator);
+            CompileAndVerify(source: source, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
@@ -1330,7 +1330,7 @@ class C : B<string>
                 CheckEnumConstant(type, "F", (short)3);
                 CheckEnumConstant(type, "G", (short)4);
             };
-            CompileStandardAndVerify(source: source, sourceSymbolValidator: validator, symbolValidator: validator);
+            CompileAndVerify(source: source, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         private void CheckEnumConstant(NamedTypeSymbol type, string name, object value)
@@ -1422,7 +1422,7 @@ public class C<T>
 }
 ";
 
-            CompileStandardAndVerify(source, expectedOutput: "GenericMethods\r\n");
+            CompileAndVerify(source, expectedOutput: "GenericMethods\r\n");
         }
 
         [Fact]
@@ -1507,7 +1507,7 @@ class TC3<T8>
 
 ";
 
-            var verifier = CompileStandardAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput:
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput:
 @"TC1
 TC2`1[System.Byte]
 TC3`1+TC4[System.Byte]
@@ -1682,13 +1682,13 @@ class C1<C1T1, C1T2>
 }
 
 ";
-            CompileStandardAndVerify(source);
+            CompileAndVerify(source);
         }
 
         [Fact]
         public void RefEmit_UnsupportedOrdering1()
         {
-            CompileStandardAndVerify(@"
+            CompileAndVerify(@"
 public class E
 {
   public struct N2
@@ -1724,13 +1724,13 @@ public class E
   }
 }";
 
-            CompileStandardAndVerify(source, expectedOutput: @"1234");
+            CompileAndVerify(source, expectedOutput: @"1234");
         }
 
         [Fact]
         public void RefEmit_UnsupportedOrdering2()
         {
-            CompileStandardAndVerify(@"
+            CompileAndVerify(@"
 class B<T> where T : A {}
 class A : B<A> {}
 ");
@@ -1739,7 +1739,7 @@ class A : B<A> {}
         [Fact]
         public void RefEmit_MembersOfOpenGenericType()
         {
-            CompileStandardAndVerify(@"
+            CompileAndVerify(@"
 class C<T> 
 {
     void goo() 
@@ -1763,7 +1763,7 @@ class A
     List<S> f;
 }";
 
-            CompileStandardAndVerify(source);
+            CompileAndVerify(source);
         }
 
         [Fact]
@@ -1778,7 +1778,7 @@ class A<T>
     A<int>.B x;
 }";
 
-            CompileStandardAndVerify(source);
+            CompileAndVerify(source);
         }
 
         [Fact]
@@ -1795,7 +1795,7 @@ class A<T>
     A<int>.B<double>.C<string, bool> x;
 }";
 
-            CompileStandardAndVerify(source);
+            CompileAndVerify(source);
         }
 
         [Fact]
@@ -1806,7 +1806,7 @@ public class B : I<C> { }
 public class C : I<B> { }
 public interface I<T> { }
 ";
-            CompileStandardAndVerify(source);
+            CompileAndVerify(source);
         }
 
         [Fact]
@@ -1829,7 +1829,7 @@ class A<T>
     public static int field;
 }";
 
-            CompileStandardAndVerify(source);
+            CompileAndVerify(source);
         }
 
         [Fact]
@@ -1844,7 +1844,7 @@ class A<T>
     }
 }";
 
-            CompileStandardAndVerify(source);
+            CompileAndVerify(source);
         }
 
         [Fact]
@@ -1869,7 +1869,7 @@ public struct N3
    int g;
 }";
 
-            CompileStandardAndVerify(source);
+            CompileAndVerify(source);
         }
 
         [Fact]
@@ -1890,13 +1890,13 @@ public class E
   N2 n2;                           
 }";
 
-            CompileStandardAndVerify(source);
+            CompileAndVerify(source);
         }
 
         [Fact]
         public void RefEmit_IL1()
         {
-            CompileStandardAndVerify(@"
+            CompileAndVerify(@"
 class C 
 { 
     public static void Main() 
@@ -1970,7 +1970,7 @@ class Test
             // If I3<string> in Main body is resolved first and stored in a cache,
             // the fact that Implicit2 depends on I3<string> isn't recorded if we pull 
             // I3<string> from cache at the beginning of ResolveType method.
-            CompileStandardAndVerify(source);
+            CompileAndVerify(source);
         }
 
         [Fact]
@@ -1983,7 +1983,7 @@ public abstract class C
 }
 ";
 
-            CompileStandardAndVerify(source, symbolValidator: module =>
+            CompileAndVerify(source, symbolValidator: module =>
             {
                 var global = module.GlobalNamespace;
 
@@ -2004,7 +2004,7 @@ class C
     static void Main() { double d; double.TryParse(null, out d); } 
 }
 ";
-            CompileStandardAndVerify(source);
+            CompileAndVerify(source);
         }
 
         [Fact]
@@ -2016,7 +2016,7 @@ class C
     static void Main() { System.Activator.CreateInstance<int>(); } 
 }
 ";
-            CompileStandardAndVerify(source);
+            CompileAndVerify(source);
         }
 
         [Fact]
@@ -2028,7 +2028,7 @@ class C
                 // out int z, // commented out until 4264 is fixed.
                 int w);";
 
-            CompileStandardAndVerify(source, symbolValidator: module =>
+            CompileAndVerify(source, symbolValidator: module =>
             {
                 var global = module.GlobalNamespace;
 
@@ -2086,7 +2086,7 @@ public static class C
 }
 ";
 
-            CompileStandardAndVerify(source,
+            CompileAndVerify(source,
                 symbolValidator: module =>
             {
                 var global = module.GlobalNamespace;
@@ -2120,7 +2120,7 @@ public class Methods
                 CheckInternalMembers(m.GlobalNamespace.GetTypeMembers("Methods").Single(), isFromSource);
             };
 
-            CompileStandardAndVerify(sources, sourceSymbolValidator: validator(true), symbolValidator: validator(false));
+            CompileAndVerify(sources, sourceSymbolValidator: validator(true), symbolValidator: validator(false));
         }
 
         [Fact]
@@ -2156,7 +2156,7 @@ class Program
     }
 }
 ";
-            CompileStandardAndVerify(source, expectedOutput: "OK");
+            CompileAndVerify(source, expectedOutput: "OK");
         }
 
         private void CheckInternalMembers(NamedTypeSymbol type, bool isFromSource)
@@ -2516,7 +2516,7 @@ class T
                 Assert.False(parameters[3].IsMetadataIn);
             };
 
-            CompileStandardAndVerify(text, sourceSymbolValidator: verifier, symbolValidator: verifier);
+            CompileAndVerify(text, sourceSymbolValidator: verifier, symbolValidator: verifier);
         }
 
         [Fact]
@@ -2540,7 +2540,7 @@ class T
                 Assert.False(parameters[3].IsMetadataIn);
             };
 
-            CompileStandardAndVerify(text, sourceSymbolValidator: verifier, symbolValidator: verifier);
+            CompileAndVerify(text, sourceSymbolValidator: verifier, symbolValidator: verifier);
         }
 
         [Fact]
@@ -2559,7 +2559,7 @@ public class C
 }
 ";
 
-            CompileStandardAndVerify(text,
+            CompileAndVerify(text,
                 options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All),
                 sourceSymbolValidator: module =>
                 {
@@ -2605,7 +2605,7 @@ public class C
 }
 ";
 
-            CompileStandardAndVerify(text, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            CompileAndVerify(text, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 var parameters = module.GlobalNamespace.GetTypeMember("C").GetMember("<M>g__local|0_0").GetParameters();
                 Assert.Equal(2, parameters.Length);
@@ -2637,7 +2637,7 @@ class T
                 Assert.False(parameters[3].IsMetadataIn);
             };
 
-            CompileStandardAndVerify(text, sourceSymbolValidator: verifier, symbolValidator: verifier);
+            CompileAndVerify(text, sourceSymbolValidator: verifier, symbolValidator: verifier);
         }
 
         [Fact]
@@ -2676,7 +2676,7 @@ class User
 }";
 
 
-            CompileStandardAndVerify(
+            CompileAndVerify(
                 source: code,
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
                 references: new[] { comAssembly.EmitToImageReference(embedInteropTypes: true) },
@@ -2833,7 +2833,7 @@ public class Child : Parent, IParent
 {
 }";
 
-            CompileStandardAndVerify(
+            CompileAndVerify(
                 source: source,
                 references: new[] { reference.EmitToImageReference() },
                 options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All),
@@ -2885,7 +2885,7 @@ public class Child : Parent, IParent
 {
 }";
 
-            CompileStandardAndVerify(
+            CompileAndVerify(
                 source: source,
                 references: new[] { reference.EmitToImageReference() },
                 options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All),

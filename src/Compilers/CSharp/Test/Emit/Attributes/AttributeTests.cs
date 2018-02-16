@@ -816,7 +816,7 @@ public class Base
     public virtual int Goo { get { return 0; } }
 }
 ";
-            CompileStandardAndVerify(source);
+            CompileAndVerify(source);
         }
 
         [Fact]
@@ -1267,7 +1267,7 @@ public class Test
                 Assert.Equal("JJ", event10.AddMethod.GetReturnTypeAttributes().Single().AttributeClass.Name);
             };
 
-            CompileStandardAndVerify(source, sourceSymbolValidator: symbolValidator(true), symbolValidator: symbolValidator(false));
+            CompileAndVerify(source, sourceSymbolValidator: symbolValidator(true), symbolValidator: symbolValidator(false));
         }
 
         [Fact]
@@ -1504,7 +1504,7 @@ class C
                 Assert.Equal(0, parameters[2].GetAttributes(paramAttrType).Count());
             };
 
-            CompileStandardAndVerify(source, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
+            CompileAndVerify(source, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
         }
 
         [Fact]
@@ -1615,7 +1615,7 @@ class C
                 }
             };
 
-            CompileStandardAndVerify(source, sourceSymbolValidator: symbolValidator(false), symbolValidator: symbolValidator(true));
+            CompileAndVerify(source, sourceSymbolValidator: symbolValidator(false), symbolValidator: symbolValidator(true));
         }
 
         [Fact]
@@ -2119,7 +2119,7 @@ namespace AttributeTest
             };
 
             // Verify attributes from source and then load metadata to see attributes are written correctly.
-            var compVerifier = CompileStandardAndVerify(
+            var compVerifier = CompileAndVerify(
                 source,
                 sourceSymbolValidator: attributeValidator,
                 symbolValidator: attributeValidator,
@@ -2273,7 +2273,7 @@ public class MyAttribute : Attribute
     }
 }
 ";
-            CompileStandardAndVerify(source);
+            CompileAndVerify(source);
         }
 
         [WorkItem(541071, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541071")]
@@ -2310,7 +2310,7 @@ class Program
 }
 ";
             var expectedOutput = @"True";
-            CompileStandardAndVerify(source, expectedOutput: expectedOutput);
+            CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -2913,7 +2913,7 @@ public class A : Attribute
     }
 }
 ";
-            CompileStandardAndVerify(source, expectedOutput: "");
+            CompileAndVerify(source, expectedOutput: "");
         }
 
         [WorkItem(541856, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541856")]
@@ -2941,7 +2941,7 @@ public class B
     public object[] X;
 }
 ";
-            CompileStandardAndVerify(source, expectedOutput: "");
+            CompileAndVerify(source, expectedOutput: "");
         }
 
         [WorkItem(541856, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541856")]
@@ -3020,7 +3020,7 @@ public class I
 {
 }
 ";
-            CompileStandardAndVerify(source, expectedOutput: "");
+            CompileAndVerify(source, expectedOutput: "");
         }
 
         [WorkItem(541859, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541859")]
@@ -3045,7 +3045,7 @@ public class A : Attribute
     }
 }
 ";
-            CompileStandardAndVerify(source, expectedOutput: "int");
+            CompileAndVerify(source, expectedOutput: "int");
         }
 
         [WorkItem(541876, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541876")]
@@ -3332,7 +3332,7 @@ partial class Program
     }
 }
 ";
-            CompileStandardAndVerify(source, expectedOutput: "1");
+            CompileAndVerify(source, expectedOutput: "1");
         }
 
         [WorkItem(542534, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542534")]
@@ -3713,7 +3713,7 @@ class Test
     }
 }
 ";
-            CompileStandardAndVerify(source);
+            CompileAndVerify(source);
         }
 
         [Fact]
@@ -3869,7 +3869,7 @@ class C
         Console.WriteLine(message == UnicodeReplacementCharacter + UnicodeReplacementCharacter);
     }
 }";
-            CompileStandardAndVerify(source, expectedOutput: "True");
+            CompileAndVerify(source, expectedOutput: "True");
         }
 
         [WorkItem(546621, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546621")]
@@ -3991,7 +3991,7 @@ public class C
                                         UnicodeReplacementCharacter + UnicodeReplacementCharacter + UnicodeReplacementCharacter + UnicodeReplacementCharacter);
             };
 
-            CompileStandardAndVerify(source, sourceSymbolValidator: validator(true), symbolValidator: validator(false));
+            CompileAndVerify(source, sourceSymbolValidator: validator(true), symbolValidator: validator(false));
         }
 
         [Fact]
@@ -4064,7 +4064,7 @@ class C
 {
 }
 ";
-            CompileStandardAndVerify(source, symbolValidator: (m) =>
+            CompileAndVerify(source, symbolValidator: (m) =>
             {
                 var c = m.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
                 var attr = c.GetAttributes().Single();
@@ -4108,7 +4108,7 @@ class C
 {
 }
 ";
-            CompileStandardAndVerify(source, symbolValidator: (m) =>
+            CompileAndVerify(source, symbolValidator: (m) =>
             {
                 var c = m.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
                 var attr = c.GetAttributes().Single();
@@ -4136,7 +4136,7 @@ class C<T>
     public void M<[X]U>() { }
 }
 ";
-            CompileStandardAndVerify(source, symbolValidator: module =>
+            CompileAndVerify(source, symbolValidator: module =>
             {
                 var @class = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
                 var classTypeParameter = @class.TypeParameters.Single();
@@ -4968,7 +4968,7 @@ namespace AttributeTest
     }
 }
 ";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: "");
+            var compilation = CompileAndVerify(source, expectedOutput: "");
         }
 
         [WorkItem(541858, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541858")]
@@ -6019,7 +6019,7 @@ partial class C
     static partial void F(int y, [A]int z);
 }
 ";
-            CompileStandardAndVerify(source);
+            CompileAndVerify(source);
         }
 
         [WorkItem(543456, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543456")]
@@ -6061,7 +6061,7 @@ partial class Program
     }
 }
 ";
-            CompileStandardAndVerify(source, expectedOutput: "1");
+            CompileAndVerify(source, expectedOutput: "1");
         }
 
         [WorkItem(542652, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542652")]
@@ -6435,7 +6435,7 @@ public class C<T>
     public enum E { V }
 }";
 
-            CompileStandardAndVerify(source, expectedOutput: "");
+            CompileAndVerify(source, expectedOutput: "");
         }
 
         [WorkItem(544512, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544512")]
@@ -6574,7 +6574,7 @@ class Test
                 Assert.Equal("Attr2", attrs.Single().AttributeClass.Name);
             };
 
-            CompileStandardAndVerify(source, sourceSymbolValidator: sourceValidator, symbolValidator: metadataValidator);
+            CompileAndVerify(source, sourceSymbolValidator: sourceValidator, symbolValidator: metadataValidator);
         }
 
         [WorkItem(545499, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545499")]
@@ -6716,7 +6716,7 @@ class X: Attribute
 {
 }
 ";
-            CompileStandardAndVerify(source5, references: new[] { comp1, comp2 });
+            CompileAndVerify(source5, references: new[] { comp1, comp2 });
 
             // Multiple from PE, multiple from Source
             var source6 = @"
@@ -7323,7 +7323,7 @@ namespace Microsoft.Yeti
 } // namespace
 ";
 
-            CompileStandardAndVerify(source, expectedOutput: @"
+            CompileAndVerify(source, expectedOutput: @"
  - 5 -
  - 100 -
  - 100000 -

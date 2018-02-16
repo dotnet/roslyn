@@ -44,7 +44,7 @@ class Program
 }
 ";
 
-            var comp = CompileStandardAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: @"12");
+            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: @"12");
 
             comp.VerifyIL("Program.Main", @"
 {
@@ -60,7 +60,7 @@ class Program
   IL_0024:  ret
 }");
 
-            comp = CompileStandardAndVerify(text, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature(), verify: Verification.Passes, expectedOutput: @"12");
+            comp = CompileAndVerify(text, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature(), verify: Verification.Passes, expectedOutput: @"12");
 
             comp.VerifyIL("Program.Main", @"
 {
@@ -131,7 +131,7 @@ class Program
   IL_0024:  ret
 }");
 
-            comp = CompileStandardAndVerify(text, new[] { ref1 }, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature(), verify: Verification.Passes, expectedOutput: @"12");
+            comp = CompileAndVerify(text, new[] { ref1 }, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature(), verify: Verification.Passes, expectedOutput: @"12");
 
             comp.VerifyIL("Program.Main", @"
 {
@@ -181,7 +181,7 @@ class Program
 }
 ";
 
-            var comp = CompileStandardAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: @"12");
+            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: @"12");
 
             comp.VerifyIL("Program.Main", @"
 {
@@ -199,7 +199,7 @@ class Program
   IL_002a:  ret
 }");
 
-            comp = CompileStandardAndVerify(text, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature(), verify: Verification.Passes, expectedOutput: @"12");
+            comp = CompileAndVerify(text, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature(), verify: Verification.Passes, expectedOutput: @"12");
 
             comp.VerifyIL("Program.Main", @"
 {
@@ -254,7 +254,7 @@ class Program
 }
 ";
 
-            var comp = CompileStandardAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: @"hello2");
+            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: @"hello2");
 
             comp.VerifyIL("Program.Main", @"
 {
@@ -273,7 +273,7 @@ class Program
   IL_002f:  ret
 }");
 
-            comp = CompileStandardAndVerify(text, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature(), verify: Verification.Passes, expectedOutput: @"hello2");
+            comp = CompileAndVerify(text, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature(), verify: Verification.Passes, expectedOutput: @"hello2");
 
             comp.VerifyIL("Program.Main", @"
 {
@@ -334,7 +334,7 @@ class Program
 }
 ";
 
-            var comp = CompileStandardAndVerify(text, new[] { ref1 }, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: @"hello2");
+            var comp = CompileAndVerify(text, new[] { ref1 }, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: @"hello2");
 
             comp.VerifyIL("Program.Main", @"
 {
@@ -353,7 +353,7 @@ class Program
   IL_002f:  ret
 }");
 
-            comp = CompileStandardAndVerify(text, new[] { ref1 }, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature(), verify: Verification.Passes, expectedOutput: @"hello2");
+            comp = CompileAndVerify(text, new[] { ref1 }, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature(), verify: Verification.Passes, expectedOutput: @"hello2");
 
             comp.VerifyIL("Program.Main", @"
 {
@@ -407,7 +407,7 @@ class Program
 }
 ";
 
-            var comp = CompileStandardAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"12");
+            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"12");
 
             comp.VerifyIL("Program.Test", @"
 {
@@ -453,7 +453,7 @@ class Program
 }
 ";
 
-            var comp = CompileStandardAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"12");
+            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"12");
 
             comp.VerifyIL("Program.S1.Test()", @"
 {
@@ -504,7 +504,7 @@ class Program
 }
 ";
 
-            var comp = CompileStandardAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"Program+S1Program+S1");
+            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"Program+S1Program+S1");
 
             comp.VerifyIL("Program.S1.Test()", @"
 {
@@ -555,7 +555,7 @@ class Program
 }
 ";
 
-            var comp = CompileStandardAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"4242");
+            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"4242");
 
             comp.VerifyIL("Program.S1..ctor(int)", @"
 {

@@ -23,12 +23,15 @@ namespace Roslyn.Test.Utilities
         Net46,
         Net46Extended,
         NetStandard20,
+        WinRT,
 
         /// <summary>
         /// Eventually this will be deleted and replaced with NetStandard20. Short term this creates the "standard"
         /// API set across destkop and coreclr 
         /// </summary>
-        Standard
+        Standard,
+
+        StandardCompat
     }
 
     public static class TargetFrameworkUtil
@@ -41,7 +44,9 @@ namespace Roslyn.Test.Utilities
         public static readonly ImmutableArray<MetadataReference> Net46References = ImmutableArray.Create(TestBase.MscorlibRef_v46);
         public static readonly ImmutableArray<MetadataReference> Net46ExtendedReferences = ImmutableArray.Create(TestBase.MscorlibRef_v46, TestBase.SystemRef_v46, TestBase.SystemCoreRef_v46, TestBase.ValueTupleRef, TestBase.SystemRuntimeFacadeRef);
         public static readonly ImmutableArray<MetadataReference> NetStandard20References = ImmutableArray.Create<MetadataReference>(NetStandard20.NetStandard, NetStandard20.MscorlibRef, NetStandard20.SystemRuntimeRef, NetStandard20.SystemDynamicRuntimeRef);
+        public static readonly ImmutableArray<MetadataReference> WinRTReferences = ImmutableArray.Create(TestBase.WinRtRefs);
         public static readonly ImmutableArray<MetadataReference> StandardReferences = CoreClrShim.IsRunningOnCoreClr ? NetStandard20References : Net46ExtendedReferences;
+        public static readonly ImmutableArray<MetadataReference> StandardCompatReferences = CoreClrShim.IsRunningOnCoreClr ? NetStandard20References : Net40References;
 
         public static ImmutableArray<MetadataReference> GetReferences(TargetFramework tf)
         {
@@ -55,7 +60,9 @@ namespace Roslyn.Test.Utilities
                 case TargetFramework.Net46: return Net46References;
                 case TargetFramework.Net46Extended: return Net46ExtendedReferences;
                 case TargetFramework.NetStandard20: return NetStandard20References;
+                case TargetFramework.WinRT: return WinRTReferences;
                 case TargetFramework.Standard: return StandardReferences;
+                case TargetFramework.StandardCompat: return StandardCompatReferences;
                 default: throw new InvalidOperationException($"Unexpected target framework {tf}");
             }
         }

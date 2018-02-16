@@ -968,7 +968,7 @@ class Derived : Base
 }
 ";
 
-            CompileStandardAndVerify(csharp, new[] { CompileIL(il) }, expectedOutput: @"
+            CompileAndVerify(csharp, new[] { CompileIL(il) }, expectedOutput: @"
 1
 1
 1

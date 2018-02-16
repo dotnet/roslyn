@@ -30,7 +30,7 @@ class Test
 }
 ";
 
-            CompileStandardAndVerify(text, verify: Verification.Passes, symbolValidator: module =>
+            CompileAndVerify(text, verify: Verification.Passes, symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
                 Assert.True(type.IsReadOnly);
@@ -49,7 +49,7 @@ class Test
 readonly struct S1{}
 ";
 
-            CompileStandardAndVerify(text, verify: Verification.Passes, symbolValidator: module =>
+            CompileAndVerify(text, verify: Verification.Passes, symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("S1");
                 Assert.True(type.IsReadOnly);
@@ -67,7 +67,7 @@ class Test
 }
 ";
 
-            CompileStandardAndVerify(text, verify: Verification.Passes, symbolValidator: module =>
+            CompileAndVerify(text, verify: Verification.Passes, symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
                 Assert.True(type.IsReadOnly);
@@ -85,7 +85,7 @@ class Test
 }
 ";
 
-            CompileStandardAndVerify(text, verify: Verification.Passes, symbolValidator: module =>
+            CompileAndVerify(text, verify: Verification.Passes, symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Test+S1`1");
                 Assert.True(type.IsReadOnly);
@@ -103,7 +103,7 @@ class Test<T>
 }
 ";
 
-            CompileStandardAndVerify(text, verify: Verification.Passes, symbolValidator: module =>
+            CompileAndVerify(text, verify: Verification.Passes, symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Test`1").GetTypeMember("S1");
                 Assert.True(type.IsReadOnly);
@@ -129,7 +129,7 @@ class Test
 }
 ";
 
-            CompileStandardAndVerify(codeB, verify: Verification.Passes, references: new[] { referenceA }, symbolValidator: module =>
+            CompileAndVerify(codeB, verify: Verification.Passes, references: new[] { referenceA }, symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
                 Assert.True(type.IsReadOnly);
@@ -423,7 +423,7 @@ public class Test
     public readonly struct S1{}
 }";
 
-            CompileStandardAndVerify(code, verify: Verification.Fails, references: new[] { reference }, options: TestOptions.ReleaseModule, symbolValidator: module =>
+            CompileAndVerify(code, verify: Verification.Fails, references: new[] { reference }, options: TestOptions.ReleaseModule, symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
                 Assert.True(type.IsReadOnly);
@@ -444,7 +444,7 @@ public class Test1
 	public readonly struct S1{}
 }";
 
-            var comp1 = CompileStandardAndVerify(code1, options: options, verify: Verification.Passes, symbolValidator: module =>
+            var comp1 = CompileAndVerify(code1, options: options, verify: Verification.Passes, symbolValidator: module =>
             {
                 AssertGeneratedEmbeddedAttribute(module.ContainingAssembly, AttributeDescription.CodeAnalysisEmbeddedAttribute.FullName);
                 AssertGeneratedEmbeddedAttribute(module.ContainingAssembly, AttributeDescription.IsReadOnlyAttribute.FullName);
@@ -456,7 +456,7 @@ public class Test2
 	public readonly struct S1{}
 }";
 
-            CompileStandardAndVerify(code2, options: options.WithModuleName("Assembly2"), references: new[] { comp1.Compilation.ToMetadataReference() }, symbolValidator: module =>
+            CompileAndVerify(code2, options: options.WithModuleName("Assembly2"), references: new[] { comp1.Compilation.ToMetadataReference() }, symbolValidator: module =>
             {
                 AssertGeneratedEmbeddedAttribute(module.ContainingAssembly, AttributeDescription.CodeAnalysisEmbeddedAttribute.FullName);
                 AssertGeneratedEmbeddedAttribute(module.ContainingAssembly, AttributeDescription.IsReadOnlyAttribute.FullName);
@@ -477,7 +477,7 @@ class Test
 }
 ";
 
-            CompileStandardAndVerify(text, verify: Verification.Passes, symbolValidator: module =>
+            CompileAndVerify(text, verify: Verification.Passes, symbolValidator: module =>
             {
                 Assert.Null(module.ContainingAssembly.GetTypeByMetadataName(AttributeDescription.CodeAnalysisEmbeddedAttribute.FullName));
             });

@@ -80,7 +80,7 @@ class Program
         }
     }
 }";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: "123456789X");
+            var compilation = CompileAndVerify(source, expectedOutput: "123456789X");
         }
 
         [Fact]
@@ -117,7 +117,7 @@ class C
         foreach (var i in IE()) Console.Write(i);
     }
 }";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: "0123456789");
+            var compilation = CompileAndVerify(source, expectedOutput: "0123456789");
         }
 
         [Fact]
@@ -163,7 +163,7 @@ class Program
         foreach (var i in new C(4).IE(5, 6)) Console.Write(i);
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: "12324565");
+            var compilation = CompileAndVerifyWithMscorlib40(source, expectedOutput: "12324565");
 
             compilation.VerifyIL("C.<IE>d__2<T>.System.Collections.Generic.IEnumerable<T>.GetEnumerator()", @"
 {
@@ -297,7 +297,7 @@ class Program
         }
     }
 }";
-            var compilation = CompileStandardAndVerify(source, expectedOutput: "0|01Z|012XZ|012X3Z|012X34YZ|012X34Y5Z|012X34Y5Z6");
+            var compilation = CompileAndVerify(source, expectedOutput: "0|01Z|012XZ|012X3Z|012X34YZ|012X34Y5Z|012X34Y5Z6");
 
             compilation.VerifyIL("Program.<Int0>d__0.System.Collections.IEnumerator.MoveNext()", @"
 {
@@ -550,7 +550,7 @@ class Derived: Base
         yield return this.Func();
     }
 }";
-            CompileStandardAndVerify(source, expectedOutput: "Base.Func;Derived.Func;");
+            CompileAndVerify(source, expectedOutput: "Base.Func;Derived.Func;");
         }
 
         [Fact]
@@ -622,7 +622,7 @@ static class M1
         (new D<int>()).Test();
     }
 }";
-            CompileStandardAndVerify(source, expectedOutput: "B1::F;D::F;B1::F;");
+            CompileAndVerify(source, expectedOutput: "B1::F;D::F;B1::F;");
         }
 
         [Fact]
@@ -672,7 +672,7 @@ class C: Base
         yield return dd();
     }
 }";
-            CompileStandardAndVerify(source, expectedOutput: "444888");
+            CompileAndVerify(source, expectedOutput: "444888");
         }
 
         [WorkItem(543165, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543165")]
@@ -711,7 +711,7 @@ class C
     }
 }
 ";
-            CompileStandardAndVerify(source, expectedOutput: "36");
+            CompileAndVerify(source, expectedOutput: "36");
         }
 
         [Fact]
@@ -751,7 +751,7 @@ class Program
         foreach (var i in y) Console.Write(i);
     }
 }";
-            CompileStandardAndVerify(source, expectedOutput: "ab01");
+            CompileAndVerify(source, expectedOutput: "ab01");
         }
 
         [WorkItem(543178, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543178")]
@@ -785,7 +785,7 @@ public class A
     }
 }
 ";
-            CompileStandardAndVerify(source, expectedOutput: "abc");
+            CompileAndVerify(source, expectedOutput: "abc");
         }
 
         [WorkItem(543373, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543373")]
@@ -861,7 +861,7 @@ public class MyEnumerator : IEnumerator<int>
     void System.Collections.IEnumerator.Reset() { index = -1; }
 }
 ";
-            CompileStandardAndVerify(source, expectedOutput: "InnerOuterExInner");
+            CompileAndVerify(source, expectedOutput: "InnerOuterExInner");
         }
 
         [WorkItem(543542, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543542")]
@@ -898,7 +898,7 @@ class Test
     } // Iter2
 }
 ";
-            CompileStandardAndVerify(source, expectedOutput: "234");
+            CompileAndVerify(source, expectedOutput: "234");
         }
 
         [WorkItem(546128, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546128")]
@@ -938,7 +938,7 @@ struct B
     public int N;
     public B(int n) { this.N = n; }
 }";
-            CompileStandardAndVerify(source, expectedOutput: "3210");
+            CompileAndVerify(source, expectedOutput: "3210");
         }
 
         [Fact, WorkItem(544908, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544908")]
@@ -970,7 +970,7 @@ struct S : IEnumerable
     }
 }
 ";
-            CompileStandardAndVerify(source, expectedOutput: "1").VerifyIL("Program.Main", @"
+            CompileAndVerify(source, expectedOutput: "1").VerifyIL("Program.Main", @"
 {
   // Code size       90 (0x5a)
   .maxstack  2
@@ -1147,7 +1147,7 @@ class T
     {
     }
 }";
-            CompileStandardAndVerify(source, expectedOutput: "");
+            CompileAndVerify(source, expectedOutput: "");
         }
 
         [Fact, WorkItem(545767, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545767")]
@@ -1168,7 +1168,7 @@ class Program
         yield return x;
     }
 }";
-            var rel = CompileStandardAndVerify(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            var rel = CompileAndVerify(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 AssertEx.Equal(new[]
                 {
@@ -1185,7 +1185,7 @@ class Program
   IL_0001:  newobj     ""Program.<M>d__1..ctor(int)""
   IL_0006:  ret
 }");
-            var dbg = CompileStandardAndVerify(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            var dbg = CompileAndVerify(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 AssertEx.Equal(new[]
                 {
@@ -1224,7 +1224,7 @@ struct Test
         y = 1;
     }
 }";
-            CompileStandardAndVerify(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            CompileAndVerify(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 // consider: we don't really need to hoist "x" and "z", we could store the values of "<>3__x" and "<>3__z" to locals at the beginning of MoveNext.
                 AssertEx.Equal(new[]
@@ -1241,7 +1241,7 @@ struct Test
                 }, module.GetFieldNames("Test.<F>d__0"));
             });
 
-            CompileStandardAndVerify(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            CompileAndVerify(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 AssertEx.Equal(new[]
                 {
@@ -1273,7 +1273,7 @@ struct Test
         y = 1;
     }
 }";
-            CompileStandardAndVerify(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            CompileAndVerify(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 AssertEx.Equal(new[]
                 {
@@ -1285,7 +1285,7 @@ struct Test
                 }, module.GetFieldNames("Test.<F>d__0"));
             });
 
-            CompileStandardAndVerify(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            CompileAndVerify(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 AssertEx.Equal(new[]
                 {
@@ -1324,7 +1324,7 @@ class Test
         }
     }
 }";
-            CompileStandardAndVerify(source, expectedOutput: "abcdef").
+            CompileAndVerify(source, expectedOutput: "abcdef").
                 VerifyIL("Test.<M>d__0<T>.System.Collections.IEnumerator.MoveNext()",
 @"{
   // Code size      129 (0x81)
@@ -1428,7 +1428,7 @@ class Program
         }
     }
 }";
-            CompileStandardAndVerify(source, expectedOutput: "012");
+            CompileAndVerify(source, expectedOutput: "012");
         }
 
         [Fact]
@@ -1463,7 +1463,7 @@ class Program
         }
     }
 }";
-            CompileStandardAndVerify(source, expectedOutput: "012");
+            CompileAndVerify(source, expectedOutput: "012");
         }
 
         [Fact]
@@ -1494,7 +1494,7 @@ class Program1
         }
     }
 }";
-            CompileStandardAndVerify(source, expectedOutput: "12");
+            CompileAndVerify(source, expectedOutput: "12");
         }
 
         [Fact]
@@ -1571,7 +1571,7 @@ class Program
 
 
 ";
-            CompileStandardAndVerify(source, expectedOutput: "1TryNestedTryNestedFinally2Finally");
+            CompileAndVerify(source, expectedOutput: "1TryNestedTryNestedFinally2Finally");
         }
 
         [Fact]
@@ -1663,7 +1663,7 @@ class Program
 
 
 ";
-            CompileStandardAndVerify(source, expectedOutput: "12345Finally5Finally4Finally3Finally2L1Finally1");
+            CompileAndVerify(source, expectedOutput: "12345Finally5Finally4Finally3Finally2L1Finally1");
         }
 
         [Fact]
@@ -1762,7 +1762,7 @@ class Program
 }
 
 ";
-            CompileStandardAndVerify(source, expectedOutput: @"
+            CompileAndVerify(source, expectedOutput: @"
 L1
 Finally10Finally2L1
 Finally101Finally3Finally2L1
@@ -1870,7 +1870,7 @@ class S<T1, T2>
 
 
 ";
-            CompileStandardAndVerify(source, expectedOutput: @"M");
+            CompileAndVerify(source, expectedOutput: @"M");
         }
 
         [Fact]
@@ -1909,7 +1909,7 @@ class A
 }
 
 ";
-            CompileStandardAndVerify(source, expectedOutput: @"5
+            CompileAndVerify(source, expectedOutput: @"5
 42");
         }
 
@@ -1998,7 +1998,7 @@ class Program
 }
 
 ";
-            CompileStandardAndVerify(source, expectedOutput: @"DONE");
+            CompileAndVerify(source, expectedOutput: @"DONE");
         }
 
         [Fact]
@@ -2078,7 +2078,7 @@ class Program
         }
 
     }";
-            CompileStandardAndVerify(source, expectedOutput: @"");
+            CompileAndVerify(source, expectedOutput: @"");
         }
 
         [WorkItem(718498, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718498")]
@@ -2119,7 +2119,7 @@ class Program
         }
     }
 }";
-            CompileStandardAndVerify(source, expectedOutput: @"12");
+            CompileAndVerify(source, expectedOutput: @"12");
         }
 
         [WorkItem(718498, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718498")]
@@ -2164,7 +2164,7 @@ class Program
         }
     }
 }";
-            CompileStandardAndVerify(source, expectedOutput: @"12");
+            CompileAndVerify(source, expectedOutput: @"12");
         }
 
         [WorkItem(718498, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718498")]
@@ -2202,7 +2202,7 @@ class Program
         }
     }
 }";
-            CompileStandardAndVerify(source, expectedOutput: @"12");
+            CompileAndVerify(source, expectedOutput: @"12");
         }
 
         /// <summary>
@@ -2228,7 +2228,7 @@ class Program
     }
 }";
             string expectedIL;
-            CompileStandardAndVerify(source).VerifyIL("C<T>.<F>d__0.System.Collections.IEnumerator.MoveNext()", expectedIL =
+            CompileAndVerify(source).VerifyIL("C<T>.<F>d__0.System.Collections.IEnumerator.MoveNext()", expectedIL =
 @"{
   // Code size      176 (0xb0)
   .maxstack  3

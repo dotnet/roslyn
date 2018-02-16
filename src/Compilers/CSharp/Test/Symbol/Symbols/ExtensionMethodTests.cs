@@ -2407,7 +2407,7 @@ B");
                 Assert.True(assembly.MightContainExtensionMethods);
             };
 
-            CompileStandardAndVerify(
+            CompileAndVerify(
                 source: source,
                 sourceSymbolValidator: validator(true),
                 symbolValidator: validator(false),
@@ -2441,7 +2441,7 @@ B");
                     sourceAssembly = assembly;
                 }
             };
-            CompileStandardAndVerify(source, symbolValidator: validator(false), sourceSymbolValidator: validator(true));
+            CompileAndVerify(source, symbolValidator: validator(false), sourceSymbolValidator: validator(true));
             Assert.NotNull(sourceAssembly);
             Assert.False(sourceAssembly.MightContainExtensionMethods);
         }
@@ -2684,7 +2684,7 @@ class Program
         private CompilationVerifier CompileAndVerify(string source, string expectedOutput = null, Action<ModuleSymbol> validator = null,
             CSharpCompilationOptions options = null)
         {
-            return CompileStandardAndVerify(
+            return CompileAndVerify(
                 source: source,
                 expectedOutput: expectedOutput,
                 sourceSymbolValidator: validator,
@@ -2969,7 +2969,7 @@ static class Program
             var libCompilation = CreateCompilationWithMscorlibAndSystemCore(lib, assemblyName: Guid.NewGuid().ToString());
             var libReference = new CSharpCompilationReference(libCompilation);
 
-            CompileStandardAndVerify(consumer, references: new[] { libReference });
+            CompileAndVerify(consumer, references: new[] { libReference });
         }
 
         [Fact, WorkItem(545800, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545800")]

@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 {
     public abstract class CSharpTestBase : CommonTestBase
     {
-        internal CompilationVerifier CompileStandardAndVerify(
+        internal CompilationVerifier CompileAndVerifyWithMscorlib40(
             string source,
             IEnumerable<MetadataReference> references = null,
             IEnumerable<ResourceDescription> manifestResources = null,
@@ -45,8 +45,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             CSharpCompilationOptions options = null,
             CSharpParseOptions parseOptions = null,
             EmitOptions emitOptions = null,
+            TargetFramework targetFramework = TargetFramework.Net40,
             Verification verify = Verification.Passes) =>
-            CompileAndVerify(
+            CompileAndVerifyWithMscorlib40(
                 source: new[] { source },
                 references,
                 manifestResources,
@@ -61,10 +62,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 options,
                 parseOptions,
                 emitOptions,
-                TargetFramework.Standard,
                 verify);
 
-        internal CompilationVerifier CompileStandardAndVerify(
+        internal CompilationVerifier CompileAndVerifyWithMscorlib40(
             string[] source,
             IEnumerable<MetadataReference> references = null,
             IEnumerable<ResourceDescription> manifestResources = null,
@@ -79,9 +79,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             CSharpCompilationOptions options = null,
             CSharpParseOptions parseOptions = null,
             EmitOptions emitOptions = null,
-            Verification verify = Verification.Passes) =>
+            Verification verify = Verification.Passes) => 
             CompileAndVerify(
-                source: source,
+                source,
                 references,
                 manifestResources,
                 dependencies,
@@ -95,8 +95,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 options,
                 parseOptions,
                 emitOptions,
-                TargetFramework.Standard,
+                TargetFramework.Net40,
                 verify);
+
+        internal CompilationVerifier CompileAndVerifyWithWinRt(
+            string source,
+            string expectedOutput = null,
+            MetadataReference[] references = null,
+            CSharpCompilationOptions options = null,
+            Verification verify = Verification.Passes)
+        {
+            options = options ?? (expectedOutput != null ? TestOptions.ReleaseExe : TestOptions.ReleaseDll);
+            return CompileAndVerify(
+                source,
+                references,
+                expectedOutput: expectedOutput,
+                targetFramework: TargetFramework.WinRT,
+                verify: verify);
+        }
 
         internal CompilationVerifier CompileAndVerify(
             string source,
@@ -113,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             CSharpCompilationOptions options = null,
             CSharpParseOptions parseOptions = null,
             EmitOptions emitOptions = null,
-            TargetFramework targetFramework = TargetFramework.Net40,
+            TargetFramework targetFramework = TargetFramework.Standard,
             Verification verify = Verification.Passes) =>
             CompileAndVerify(
                 source: new[] { source },
@@ -148,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             CSharpCompilationOptions options = null,
             CSharpParseOptions parseOptions = null,
             EmitOptions emitOptions = null,
-            TargetFramework targetFramework = TargetFramework.Net40,
+            TargetFramework targetFramework = TargetFramework.Standard,
             Verification verify = Verification.Passes)
         {
             options = options ?? TestOptions.ReleaseDll.WithOutputKind((expectedOutput != null) ? OutputKind.ConsoleApplication : OutputKind.DynamicallyLinkedLibrary);
@@ -194,7 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 }
             }
 
-            return base.CompileAndVerify(
+            return CompileAndVerifyCommon(
                 compilation,
                 manifestResources,
                 dependencies,
@@ -209,33 +225,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 verify);
         }
 
-        internal CompilationVerifier CompileAndVerifyWinRt(
-            string source,
-            string expectedOutput = null,
-            MetadataReference[] references = null,
-            CSharpCompilationOptions options = null,
-            Verification verify = Verification.Passes)
-        {
-            if (options == null)
-            {
-                options = expectedOutput != null ? TestOptions.ReleaseExe : TestOptions.ReleaseDll;
-            }
-
-            var compilation = CreateCompilation(source,
-                                                WinRtRefs.Concat(references ?? Enumerable.Empty<MetadataReference>()),
-                                                options);
-
-            return CompileAndVerify(
-                compilation: compilation,
-                expectedOutput: expectedOutput,
-                verify: verify);
-        }
-
         public static CSharpCompilation CreateWinRtCompilation(string text, MetadataReference[] additionalRefs = null)
         {
-            return CSharpTestBase.CreateCompilation(text,
-                                                    WinRtRefs.Concat(additionalRefs ?? Enumerable.Empty<MetadataReference>()),
-                                                    TestOptions.ReleaseExe);
+            return CreateCompilation(
+                text,
+                WinRtRefs.Concat(additionalRefs ?? Enumerable.Empty<MetadataReference>()),
+                TestOptions.ReleaseExe);
         }
         
         protected override CompilationOptions CompilationOptionsReleaseDll
@@ -597,7 +592,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return createCompilationLambda();
         }
 
-        public CompilationVerifier CompileWithCustomILSource(string cSharpSource, string ilSource, Action<CSharpCompilation> compilationVerifier = null, bool importInternals = true, string expectedOutput = null)
+        public CompilationVerifier CompileWithCustomILSource(string cSharpSource, string ilSource, Action<CSharpCompilation> compilationVerifier = null, bool importInternals = true, string expectedOutput = null, TargetFramework targetFramework = TargetFramework.Standard)
         {
             var compilationOptions = (expectedOutput != null) ? TestOptions.ReleaseExe : TestOptions.ReleaseDll;
 
@@ -608,13 +603,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
             if (ilSource == null)
             {
-                var c = CreateStandardCompilation(cSharpSource, options: compilationOptions);
+                var c = CreateCompilation(cSharpSource, options: compilationOptions, targetFramework: targetFramework);
                 return CompileAndVerify(c, expectedOutput: expectedOutput);
             }
 
             MetadataReference reference = CreateMetadataReferenceFromIlSource(ilSource);
 
-            var compilation = CreateStandardCompilation(cSharpSource, new[] { reference }, compilationOptions);
+            var compilation = CreateCompilation(cSharpSource, targetFramework, new[] { reference }, compilationOptions);
             compilationVerifier?.Invoke(compilation);
 
             return CompileAndVerify(compilation, expectedOutput: expectedOutput);

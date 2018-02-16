@@ -59,7 +59,7 @@ public static class Program
     }
 }";
 
-            CompileStandardAndVerify(code, references: new[] { SystemCoreRef }, expectedOutput: "67");
+            CompileAndVerify(code, references: new[] { SystemCoreRef }, expectedOutput: "67");
         }
 
         [Fact]
@@ -82,7 +82,7 @@ public static class Program
     }
 }";
 
-            CompileStandardAndVerify(code, references: new[] { SystemCoreRef }, expectedOutput: "55");
+            CompileAndVerify(code, references: new[] { SystemCoreRef }, expectedOutput: "55");
         }
 
         [Fact]
@@ -106,7 +106,7 @@ public static class Program
     }
 }";
 
-            CompileStandardAndVerify(code, references: new[] { SystemCoreRef }, expectedOutput: "55");
+            CompileAndVerify(code, references: new[] { SystemCoreRef }, expectedOutput: "55");
         }
 
         [Fact]
@@ -189,8 +189,8 @@ public static class Program2
     }
 }";
 
-            CompileStandardAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "55");
-            CompileStandardAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "55");
+            CompileAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "55");
+            CompileAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "55");
         }
 
         [Fact]
@@ -359,8 +359,8 @@ public static class Program2
     }
 }";
 
-            CompileStandardAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "55");
-            CompileStandardAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "55");
+            CompileAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "55");
+            CompileAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "55");
         }
 
         [Fact]
@@ -482,7 +482,7 @@ public static class Program
     }
 }";
 
-            CompileStandardAndVerify(code, references: new[] { reference }, expectedOutput: "55");
+            CompileAndVerify(code, references: new[] { reference }, expectedOutput: "55");
         }
 
         [Fact]
@@ -625,7 +625,7 @@ public static class Program
     }
 }";
 
-            CompileStandardAndVerify(code, references: new[] { reference }, expectedOutput: "55");
+            CompileAndVerify(code, references: new[] { reference }, expectedOutput: "55");
         }
 
         [Fact]
@@ -734,8 +734,8 @@ public static class Program2
     }
 }";
 
-            CompileStandardAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "55");
-            CompileStandardAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "55");
+            CompileAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "55");
+            CompileAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "55");
         }
 
         [Fact]
@@ -1036,7 +1036,7 @@ public static class Program
     }
 }";
 
-            CompileStandardAndVerify(code, references: new[] { reference }, expectedOutput: "55");
+            CompileAndVerify(code, references: new[] { reference }, expectedOutput: "55");
         }
 
         [Fact]
@@ -1693,7 +1693,7 @@ public class Test
     }
 }";
 
-            CompileStandardAndVerify(code, references: new[] { SystemCoreRef }, expectedOutput: "Instance,Extension,Static");
+            CompileAndVerify(code, references: new[] { SystemCoreRef }, expectedOutput: "Instance,Extension,Static");
         }
 
         [Fact]
@@ -1732,7 +1732,7 @@ public class Test
     }
 }";
 
-            CompileStandardAndVerify(code, references: new[] { SystemCoreRef }, expectedOutput: "Instance,Extension,Static");
+            CompileAndVerify(code, references: new[] { SystemCoreRef }, expectedOutput: "Instance,Extension,Static");
         }
 
         [Fact]
@@ -1768,7 +1768,7 @@ public class Program
     }
 }";
 
-            CompileStandardAndVerify(code, references: new[] { SystemCoreRef }, expectedOutput: "54321");
+            CompileAndVerify(code, references: new[] { SystemCoreRef }, expectedOutput: "54321");
         }
 
         [Fact]
@@ -1792,7 +1792,7 @@ public class Program
     }
 }";
 
-            CompileStandardAndVerify(code, references: new[] { SystemCoreRef }, expectedOutput: "7");
+            CompileAndVerify(code, references: new[] { SystemCoreRef }, expectedOutput: "7");
         }
 
         [Fact]
@@ -1833,7 +1833,7 @@ public class Program
     }
 }";
 
-            CompileStandardAndVerify(code, references: new[] { SystemCoreRef }, expectedOutput: "5554535251");
+            CompileAndVerify(code, references: new[] { SystemCoreRef }, expectedOutput: "5554535251");
         }
 
         [Fact]
@@ -2096,7 +2096,7 @@ public static class Program
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "p").WithArguments("ref extension methods", "7.2").WithLocation(14, 9)
             );
 
-            CompileStandardAndVerify(code, references: new[] { SystemCoreRef }, expectedOutput: "5");
+            CompileAndVerify(code, references: new[] { SystemCoreRef }, expectedOutput: "5");
         }
 
         [Fact]
@@ -2137,8 +2137,8 @@ public static class Program
                 //         p.Print();
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "p").WithArguments("ref extension methods", "7.2").WithLocation(7, 9));
 
-            CompileStandardAndVerify(code, references: new[] { SystemCoreRef, reference.ToMetadataReference() }, expectedOutput: "5");
-            CompileStandardAndVerify(code, references: new[] { SystemCoreRef, reference.EmitToImageReference() }, expectedOutput: "5");
+            CompileAndVerify(code, references: new[] { SystemCoreRef, reference.ToMetadataReference() }, expectedOutput: "5");
+            CompileAndVerify(code, references: new[] { SystemCoreRef, reference.EmitToImageReference() }, expectedOutput: "5");
         }
 
         [Fact]
@@ -2173,7 +2173,7 @@ public static class Program
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "p").WithArguments("ref extension methods", "7.2").WithLocation(14, 9)
             );
 
-            CompileStandardAndVerify(code, references: new[] { SystemCoreRef }, expectedOutput: "5");
+            CompileAndVerify(code, references: new[] { SystemCoreRef }, expectedOutput: "5");
         }
 
         [Fact]
@@ -2214,8 +2214,8 @@ public static class Program
                 //         p.Print();
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "p").WithArguments("ref extension methods", "7.2").WithLocation(7, 9));
 
-            CompileStandardAndVerify(code, references: new[] { SystemCoreRef, reference.ToMetadataReference() }, expectedOutput: "5");
-            CompileStandardAndVerify(code, references: new[] { SystemCoreRef, reference.EmitToImageReference() }, expectedOutput: "5");
+            CompileAndVerify(code, references: new[] { SystemCoreRef, reference.ToMetadataReference() }, expectedOutput: "5");
+            CompileAndVerify(code, references: new[] { SystemCoreRef, reference.EmitToImageReference() }, expectedOutput: "5");
         }
         
         private const string ExtraRefReadOnlyIL = @"

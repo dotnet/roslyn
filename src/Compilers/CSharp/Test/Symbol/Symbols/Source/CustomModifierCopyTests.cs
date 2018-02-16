@@ -730,7 +730,7 @@ class Test
     }
 }
 ";
-            var comp = CreateCompilationWithCustomILSource(source, il,
+            var comp = CreateStandardCompilationWithCustomILSource(source, il,
                 options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All),
                 references: new[] { CSharpRef });
 

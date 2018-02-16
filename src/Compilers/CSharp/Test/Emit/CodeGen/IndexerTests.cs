@@ -24,7 +24,7 @@ class C
     public int this[int x] { get { return x; } set { } }
 }
 ";
-            var compVerifier = CompileStandardAndVerify(text,
+            var compVerifier = CompileAndVerify(text,
                 symbolValidator: module => ValidateIndexer(module, "System.Int32 C.this[System.Int32 x].get", "void C.this[System.Int32 x].set"),
                 expectedSignatures: new[]
                 {
@@ -43,7 +43,7 @@ class C
     public int this[int x, int y] { get { return x; } }
 }
 ";
-            var compVerifier = CompileStandardAndVerify(text,
+            var compVerifier = CompileAndVerify(text,
                 symbolValidator: module => ValidateIndexer(module, "System.Int32 C.this[System.Int32 x, System.Int32 y].get", null),
                 expectedSignatures: new[]
                 {
@@ -61,7 +61,7 @@ class C
     public int this[int x, int y, int z] { set { } }
 }
 ";
-            var compVerifier = CompileStandardAndVerify(text,
+            var compVerifier = CompileAndVerify(text,
                 symbolValidator: module => ValidateIndexer(module, null, "void C.this[System.Int32 x, System.Int32 y, System.Int32 z].set"),
                 expectedSignatures: new[]
                 {
@@ -79,7 +79,7 @@ class C<T>
     public T this[T x] { get { return x; } set { } }
 }
 ";
-            var compVerifier = CompileStandardAndVerify(text,
+            var compVerifier = CompileAndVerify(text,
                 symbolValidator: module => ValidateIndexer(module, "T C<T>.this[T x].get", "void C<T>.this[T x].set"),
                 expectedSignatures: new[]
                 {
@@ -98,7 +98,7 @@ class C
     public int this[int x = 1, int y = 2] { get { return x; } set { } }
 }
 ";
-            var compVerifier = CompileStandardAndVerify(text,
+            var compVerifier = CompileAndVerify(text,
                 symbolValidator: module => ValidateIndexer(module, "System.Int32 C.this[[System.Int32 x = 1], [System.Int32 y = 2]].get", "void C.this[[System.Int32 x = 1], [System.Int32 y = 2]].set"),
                 expectedSignatures: new[]
                 {
@@ -117,7 +117,7 @@ class C
     public int this[params int[] x] { get { return 0; } set { } }
 }
 ";
-            var compVerifier = CompileStandardAndVerify(text,
+            var compVerifier = CompileAndVerify(text,
                 symbolValidator: module => ValidateIndexer(module, "System.Int32 C.this[params System.Int32[] x].get", "void C.this[params System.Int32[] x].set"),
                 expectedSignatures: new[]
                 {
@@ -163,7 +163,7 @@ class C : I
                 Assert.Equal("void C.I.set_Item(System.Int32 x, System.Int32 value)", setMethod.ToTestDisplayString());
                 setMethod.CheckAccessorModifiers(indexer);
             };
-            var compVerifier = CompileStandardAndVerify(text, symbolValidator: validator, expectedSignatures: new[]
+            var compVerifier = CompileAndVerify(text, symbolValidator: validator, expectedSignatures: new[]
             {
                 Signature("C", "I.Item", ".property readwrite System.Int32 I.Item(System.Int32 x)"),
                 Signature("C", "I.get_Item", ".method private hidebysig newslot specialname virtual final instance System.Int32 I.get_Item(System.Int32 x) cil managed"),
@@ -185,7 +185,7 @@ class C : I
     public int this[int x] { get { return 0; } set { } }
 }
 ";
-            var compVerifier = CompileStandardAndVerify(text,
+            var compVerifier = CompileAndVerify(text,
                 symbolValidator: module => ValidateIndexer(module, "System.Int32 C.this[System.Int32 x].get", "void C.this[System.Int32 x].set"),
                 expectedSignatures: new[]
                 {
@@ -209,7 +209,7 @@ class C : B
     public override sealed int this[int x] { get { return 0; } set { } }
 }
 ";
-            var compVerifier = CompileStandardAndVerify(text,
+            var compVerifier = CompileAndVerify(text,
                 symbolValidator: module => ValidateIndexer(module, "System.Int32 C.this[System.Int32 x].get", "void C.this[System.Int32 x].set"),
                 expectedSignatures: new[]
                 {
@@ -233,7 +233,7 @@ class C : B
     public new virtual int this[int x] { get { return 0; } set { } }
 }
 ";
-            var compVerifier = CompileStandardAndVerify(text,
+            var compVerifier = CompileAndVerify(text,
                 symbolValidator: module => ValidateIndexer(module, "System.Int32 C.this[System.Int32 x].get", "void C.this[System.Int32 x].set"),
                 expectedSignatures: new[]
                 {
@@ -370,7 +370,7 @@ class Test
     }
 }
 ";
-            CompileStandardAndVerify(text, expectedOutput: @"
+            CompileAndVerify(text, expectedOutput: @"
 1,2,10,20,
 1,2,10,20,
 1,2,10,20,
@@ -415,7 +415,7 @@ class Test
     }
 }
 ";
-            var compVerifier = CompileStandardAndVerify(text, options: TestOptions.ReleaseExe.WithModuleName("MODULE"));
+            var compVerifier = CompileAndVerify(text, options: TestOptions.ReleaseExe.WithModuleName("MODULE"));
 
             compVerifier.VerifyIL("Test.Main", @"
 {
@@ -519,7 +519,7 @@ class Test
     }
 }
 ";
-            CompileStandardAndVerify(text, expectedOutput: @"
+            CompileAndVerify(text, expectedOutput: @"
 1,2,3,10,20,30,
 1,2,3,10,20,30,
 1,2,3,10,20,30,
@@ -563,7 +563,7 @@ class Test
     }
 }
 ";
-            var compVerifier = CompileStandardAndVerify(text, options: TestOptions.ReleaseExe.WithModuleName("MODULE"));
+            var compVerifier = CompileAndVerify(text, options: TestOptions.ReleaseExe.WithModuleName("MODULE"));
 
             compVerifier.VerifyIL("Test.Main", @"
 {
@@ -667,7 +667,7 @@ class Test
     }
 }
 ";
-            var compVerifier = CompileStandardAndVerify(text, expectedOutput: @"
+            var compVerifier = CompileAndVerify(text, expectedOutput: @"
 1,2,10,20,10,20,-29,
 1,2,10,20,10,20,-29,
 1,2,10,20,10,20,-29,
@@ -711,7 +711,7 @@ class Test
     }
 }
 ";
-            var compVerifier = CompileStandardAndVerify(text, options: TestOptions.ReleaseExe.WithModuleName("MODULE"));
+            var compVerifier = CompileAndVerify(text, options: TestOptions.ReleaseExe.WithModuleName("MODULE"));
 
             compVerifier.VerifyIL("Test.Main", @"
 {
@@ -880,7 +880,7 @@ class Test
     }
 }
 ";
-            CompileStandardAndVerify(text, expectedOutput: @"
+            CompileAndVerify(text, expectedOutput: @"
 1,2,10,20,3,10,20,0,
 1,2,10,20,3,10,20,0,
 1,2,10,20,3,10,20,0,
@@ -936,7 +936,7 @@ class Test
     }
 }
 ";
-            var compVerifier = CompileStandardAndVerify(text, options: TestOptions.ReleaseExe.WithModuleName("MODULE"));
+            var compVerifier = CompileAndVerify(text, options: TestOptions.ReleaseExe.WithModuleName("MODULE"));
 
             compVerifier.VerifyIL("Test.Main", @"
 {
@@ -1083,7 +1083,7 @@ class Test
     }
 }
 ";
-            CompileStandardAndVerify(text, expectedOutput: @"
+            CompileAndVerify(text, expectedOutput: @"
 N,1,N,2,20,9,N,3,N,4,40,9,30,-49,N,5,6,N,7,70,9,50,60,-79,50,60,-79,-2,30,-49,16,-29,10,16,
 ");
         }
@@ -1102,7 +1102,7 @@ class Test
     }
 }
 ";
-            var verifier = CompileStandardAndVerify(text, expectedOutput: @"2");
+            var verifier = CompileAndVerify(text, expectedOutput: @"2");
 
             verifier.VerifyIL("Test.Main", @"
 {

@@ -133,7 +133,7 @@ class Test
         i3.Property = x;
     }
 }";
-            var comp = CompileStandardAndVerify(source,
+            var comp = CompileAndVerify(source,
                 expectedOutput: @"
 Derived.Method<U>(1, a)
 Base.Method(2)
@@ -246,7 +246,7 @@ class Test
     }
 }";
 
-            var comp = CompileStandardAndVerify(source,
+            var comp = CompileAndVerify(source,
                 expectedOutput: @"
 Derived.Method( , 1, [1])
 Derived.Method( , 2, [2])
@@ -427,7 +427,7 @@ class Test
     }
 }";
 
-            var comp = CompileStandardAndVerify(source,
+            var comp = CompileAndVerify(source,
                 expectedOutput: @"
 Derived.Interface.Method
 Derived.Interface.Property
@@ -510,7 +510,7 @@ class Test
     }
 }";
 
-            var comp = CompileStandardAndVerify(source,
+            var comp = CompileAndVerify(source,
                 expectedOutput: @"
 Derived.Interface.Method
 Derived.Interface.Property
@@ -587,7 +587,7 @@ class Test
     }
 }";
 
-            var comp = CompileStandardAndVerify(source,
+            var comp = CompileAndVerify(source,
                 expectedOutput: @"
 Derived.Interface.Method
 Derived.Interface.Property
@@ -670,7 +670,7 @@ class Test
     }
 }";
 
-            var comp = CompileStandardAndVerify(source,
+            var comp = CompileAndVerify(source,
                 expectedOutput: @"
 Derived.Interface.Method
 Derived.Interface.Property
@@ -749,7 +749,7 @@ class Test
     }
 }";
 
-            var comp = CompileStandardAndVerify(source,
+            var comp = CompileAndVerify(source,
                 expectedOutput: @"
 Base.Interface.Method
 Base.Interface.Property
@@ -847,7 +847,7 @@ class Test
     }
 }";
 
-            var comp = CompileStandardAndVerify(source,
+            var comp = CompileAndVerify(source,
                 expectedOutput: @"
 Base.Interface.Method
 Base.Interface.Property
@@ -938,7 +938,7 @@ class Test
     }
 }";
 
-            var comp = CompileStandardAndVerify(source,
+            var comp = CompileAndVerify(source,
                 expectedOutput: @"
 Derived.Method
 Derived.Property
@@ -1021,7 +1021,7 @@ class Test
     }
 }";
 
-            var comp = CompileStandardAndVerify(source,
+            var comp = CompileAndVerify(source,
                 expectedOutput: @"
 Derived.Method
 Derived.Property
@@ -1098,7 +1098,7 @@ class Test
     }
 }";
 
-            var comp = CompileStandardAndVerify(source,
+            var comp = CompileAndVerify(source,
                 expectedOutput: @"
 Base.Interface.Method
 Base.Interface.Property
@@ -1181,7 +1181,7 @@ class Test
     }
 }";
 
-            var comp = CompileStandardAndVerify(source,
+            var comp = CompileAndVerify(source,
                 expectedOutput: @"
 Base.Interface.Method
 Base.Interface.Property
@@ -1258,7 +1258,7 @@ class Test
     }
 }";
 
-            var comp = CompileStandardAndVerify(source,
+            var comp = CompileAndVerify(source,
                 expectedOutput: @"
 Base.Interface.Method
 Base.Interface.Property
@@ -1341,7 +1341,7 @@ class Test
     }
 }";
 
-            var comp = CompileStandardAndVerify(source,
+            var comp = CompileAndVerify(source,
                 expectedOutput: @"
 Base.Interface.Method
 Base.Interface.Property
@@ -1419,7 +1419,7 @@ class Test
     }
 }";
 
-            var comp = CompileStandardAndVerify(source,
+            var comp = CompileAndVerify(source,
                 expectedOutput: @"
 Derived.Method
 Derived.Property
@@ -1504,7 +1504,7 @@ class Test
     }
 }";
 
-            var comp = CompileStandardAndVerify(source,
+            var comp = CompileAndVerify(source,
                 expectedOutput: @"
 Derived.Method
 Derived.Property
@@ -1583,7 +1583,7 @@ class Test
     }
 }";
 
-            var comp = CompileStandardAndVerify(source,
+            var comp = CompileAndVerify(source,
                 expectedOutput: @"
 Derived.Method
 Derived.Property
@@ -1668,7 +1668,7 @@ class Test
     }
 }";
 
-            var comp = CompileStandardAndVerify(source,
+            var comp = CompileAndVerify(source,
                 expectedOutput: @"
 Derived.Method
 Derived.Property
@@ -1746,7 +1746,7 @@ class Test
     }
 }";
 
-            var comp = CompileStandardAndVerify(source,
+            var comp = CompileAndVerify(source,
                 expectedOutput: @"
 Derived.Interface.Method
 Derived.Interface.Property
@@ -1828,7 +1828,7 @@ class Test
     }
 }";
 
-            var comp = CompileStandardAndVerify(source,
+            var comp = CompileAndVerify(source,
                 expectedOutput: @"
 Derived.Interface.Method
 Derived.Interface.Property
@@ -1921,7 +1921,7 @@ class Test
     }
 }";
 
-            var comp = CompileStandardAndVerify(source,
+            var comp = CompileAndVerify(source,
                 expectedOutput: @"
 Derived.Interface.Method
 Derived.Interface.Property
@@ -2026,7 +2026,7 @@ class Test
     }
 }";
 
-            var comp = CompileStandardAndVerify(source,
+            var comp = CompileAndVerify(source,
                 expectedOutput: @"
 Derived.Interface.Method
 Derived.Interface.Property
@@ -2093,7 +2093,7 @@ class Test
     }
 }";
 
-            var comp = CompileStandardAndVerify(source,
+            var comp = CompileAndVerify(source,
                 expectedOutput: "",
                 expectedSignatures: new[]
                 {
@@ -2235,7 +2235,7 @@ class Test
         k.Method<string>("""", null); k.Property = y; y = k.Property;
     }
 }";
-            var comp = CompileStandardAndVerify(source, expectedOutput: @"
+            var comp = CompileAndVerify(source, expectedOutput: @"
 Implicit.Method
 Implicit.set_Property
 Implicit.get_Property
@@ -2310,7 +2310,7 @@ class Test
         I3<string> i = new Implicit2();
     }
 }";
-            CompileStandardAndVerify(source, expectedOutput: "");
+            CompileAndVerify(source, expectedOutput: "");
         }
 
         [Fact]
@@ -2354,7 +2354,7 @@ class Test
     }
 }";
 
-            var comp = CompileStandardAndVerify(source, expectedOutput: @"
+            var comp = CompileAndVerify(source, expectedOutput: @"
 Explicit - Method - int
 Explicit - Method<T> - int
 Explicit - Method<T> - int
@@ -2418,7 +2418,7 @@ class Test
     }
 }";
 
-            var comp = CompileStandardAndVerify(source, expectedOutput: @"
+            var comp = CompileAndVerify(source, expectedOutput: @"
 Method(ref int x)
 Method(int x)
 Method(int x, int[] y)
@@ -2474,7 +2474,7 @@ class Test
     }
 }";
 
-            var comp = CompileStandardAndVerify(source, expectedOutput: @"
+            var comp = CompileAndVerify(source, expectedOutput: @"
 Method(ref int x)
 Method(int x)
 Method(out Func<int, int> v)
@@ -2537,7 +2537,7 @@ class Test
         j.Property = 0;
     }
 }";
-            CompileStandardAndVerify(source, expectedOutput: @"
+            CompileAndVerify(source, expectedOutput: @"
 C.Method
 Base.Method
 C.IY.set_Property
@@ -2554,7 +2554,7 @@ U.set_Property").VerifyDiagnostics(); // No errors
     int Prop { get; set; }
 }";
 
-            var comp = CompileStandardAndVerify(source, expectedSignatures: new[]
+            var comp = CompileAndVerify(source, expectedSignatures: new[]
             {
                 Signature("IFace", "Method", ".method public hidebysig newslot abstract virtual instance System.Void Method() cil managed"),
                 Signature("IFace", "get_Prop", ".method public hidebysig newslot specialname abstract virtual instance System.Int32 get_Prop() cil managed"),
@@ -2588,7 +2588,7 @@ class C : I<int[][,]>
 }
 ";
             // NOTE: order reversed from C# notation.
-            CompileStandardAndVerify(source, expectedOutput: @"Void I<System.Int32[,][]>.Goo()");
+            CompileAndVerify(source, expectedOutput: @"Void I<System.Int32[,][]>.Goo()");
         }
 
         [Fact]
