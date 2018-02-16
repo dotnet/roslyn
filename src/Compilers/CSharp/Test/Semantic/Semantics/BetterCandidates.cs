@@ -429,5 +429,93 @@ namespace System.Runtime.CompilerServices
                 );
             CompileAndVerify(compilation, expectedOutput: "2");
         }
+
+        // Test suggested by @VSadov
+        // 1) one candidate is generic, but candidate fails constraints, while another overload requires a conversion. Used to be an error, second should be picked now.
+        [Fact]
+        public void TestConstraintFailed03()
+        {
+            var source =
+@"public class Program
+{
+    static void Main()
+    {
+        M(new A(), 0);
+    }
+
+    static void M<T>(T t1, int i) where T: B { System.Console.WriteLine(1); }
+    static void M(C c, short s) { System.Console.WriteLine(2); }
+}
+public class A {}
+public class B {}
+public class C { public static implicit operator C(A a) => null; }
+";
+            CreateCompilationWithoutBetterCandidates(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
+                // (5,9): error CS0311: The type 'A' cannot be used as type parameter 'T' in the generic type or method 'Program.M<T>(T, int)'. There is no implicit reference conversion from 'A' to 'B'.
+                //         M(new A(), 0);
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "M").WithArguments("Program.M<T>(T, int)", "B", "T", "A").WithLocation(5, 9)
+                );
+            var compilation = CreateCompilationWithBetterCandidates(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
+                );
+            CompileAndVerify(compilation, expectedOutput: "2");
+        }
+
+        // Test suggested by @VSadov
+        // 2) one candidate is generic without constraints, but we pass a ref-struct to it, which cannot be a generic type arg, another candidate requires a conversion and now works.
+        [Fact]
+        public void TestConstraintFailed04()
+        {
+            var source =
+@"public class Program
+{
+    static void Main()
+    {
+        M(new A(), 0);
+    }
+
+    static void M<T>(T t1, int i) { System.Console.WriteLine(1); }
+    static void M(C c, short s) { System.Console.WriteLine(2); }
+}
+public ref struct A {}
+public class C { public static implicit operator C(A a) => null; }
+";
+            CreateCompilationWithoutBetterCandidates(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
+                // (5,9): error CS0306: The type 'A' may not be used as a type argument
+                //         M(new A(), 0);
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "M").WithArguments("A").WithLocation(5, 9)
+                );
+            var compilation = CreateCompilationWithBetterCandidates(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
+                );
+            CompileAndVerify(compilation, expectedOutput: "2");
+        }
+
+        // Test suggested by @VSadov
+        // 3) one candidate is generic without constraints, but we pass a pointer to it, which cannot be a generic type arg, another candidate requires a conversion and now works.
+        [Fact]
+        public void TestConstraintFailed05()
+        {
+            var source =
+@"public class Program
+{
+    static unsafe void Main()
+    {
+        int *p = null;
+        M(p, 0);
+    }
+
+    static void M<T>(T t1, int i) { System.Console.WriteLine(1); }
+    static void M(C c, short s) { System.Console.WriteLine(2); }
+}
+public class C { public static unsafe implicit operator C(int* p) => null; }
+";
+            CreateCompilationWithoutBetterCandidates(source, options: TestOptions.ReleaseExe.WithAllowUnsafe(true)).VerifyDiagnostics(
+                // (6,9): error CS0306: The type 'int*' may not be used as a type argument
+                //         M(p, 0);
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "M").WithArguments("int*").WithLocation(6, 9)
+                );
+            var compilation = CreateCompilationWithBetterCandidates(source, options: TestOptions.ReleaseExe.WithAllowUnsafe(true)).VerifyDiagnostics(
+                );
+            CompileAndVerify(compilation, expectedOutput: "2", verify: Verification.Skipped);
+        }
     }
 }
