@@ -502,16 +502,16 @@ public class C
 [CLSCompliant(false)]
 public class Bad { }
 ";
-            var libCompliant = CreateStandardCompilation(libCompliant_cs).EmitToImageReference();
-            var compCompliant = CreateStandardCompilation(source, new[] { libCompliant }, TestOptions.ReleaseDll);
+            var libCompliant = CreateCompilationWithMscorlib46(libCompliant_cs).EmitToImageReference();
+            var compCompliant = CreateCompilationWithMscorlib46(source, new[] { libCompliant }, TestOptions.ReleaseDll);
             compCompliant.VerifyDiagnostics(
                 // (8,23): warning CS3002: Return type of 'C.Method2()' is not CLS-compliant
                 //     public (Bad, Bad) Method2() { throw new Exception(); }
                 Diagnostic(ErrorCode.WRN_CLS_BadReturnType, "Method2").WithArguments("C.Method2()").WithLocation(8, 23)
                 );
 
-            var libNotCompliant = CreateStandardCompilation(libNotCompliant_cs).EmitToImageReference();
-            var compNotCompliant = CreateStandardCompilation(source, new[] { libNotCompliant }, TestOptions.ReleaseDll);
+            var libNotCompliant = CreateCompilationWithMscorlib46(libNotCompliant_cs).EmitToImageReference();
+            var compNotCompliant = CreateCompilationWithMscorlib46(source, new[] { libNotCompliant }, TestOptions.ReleaseDll);
             compNotCompliant.VerifyDiagnostics(
                 // (8,23): warning CS3002: Return type of 'C.Method2()' is not CLS-compliant
                 //     public (Bad, Bad) Method2() { throw new Exception(); }

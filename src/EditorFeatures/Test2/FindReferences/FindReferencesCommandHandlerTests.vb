@@ -34,19 +34,19 @@ class C
                 view.Selection.Select(
                     testDocument.AnnotatedSpans("Selection").Single().ToSnapshotSpan(snapshot), isReversed:=False)
 
-                Dim waiter = New Waiter()
+                Dim listenerProvider = New AsynchronousOperationListenerProvider()
 
                 Dim context = New FindReferencesTests.TestContext()
                 Dim commandHandler = New FindReferencesCommandHandler(
                     {}, {New Lazy(Of IStreamingFindUsagesPresenter)(Function() New MockStreamingFindReferencesPresenter(context))},
-                    {New Lazy(Of IAsynchronousOperationListener, FeatureMetadata)(Function() waiter, New FeatureMetadata(FeatureAttribute.FindReferences))})
+                    listenerProvider)
 
                 Dim document = workspace.CurrentSolution.GetDocument(testDocument.Id)
                 commandHandler.ExecuteCommand(
                     New FindReferencesCommandArgs(view, textBuffer), Utilities.TestCommandExecutionContext.Create())
 
                 ' Wait for the find refs to be done.
-                Await waiter.CreateWaitTask()
+                Await listenerProvider.GetWaiter(FeatureAttribute.FindReferences).CreateWaitTask()
 
                 Assert.Equal(1, context.Definitions.Count)
                 Assert.Equal(testDocument.AnnotatedSpans("Definition").Single(),
@@ -74,11 +74,6 @@ class C
             Public Function StartSearch(title As String, supportsReferences As Boolean) As FindUsagesContext Implements IStreamingFindUsagesPresenter.StartSearch
                 Return _context
             End Function
-        End Class
-
-        Private Class Waiter
-            Inherits AsynchronousOperationListener
-
         End Class
     End Class
 End Namespace

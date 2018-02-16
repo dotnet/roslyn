@@ -55,11 +55,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// </summary>
         private readonly ISet<string> _untrackedDocuments = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-        /// <summary>
-        /// The path to a metadata reference that was converted to project references.
-        /// </summary>
-        private readonly Dictionary<string, ProjectReference> _metadataFileNameToConvertedProjectReference = new Dictionary<string, ProjectReference>(StringComparer.OrdinalIgnoreCase);
-
         private bool _pushingChangesToWorkspaceHosts;
 
         #endregion
@@ -86,6 +81,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         private readonly HashSet<(AbstractProject, MetadataReferenceProperties)> _projectsReferencingMe = new HashSet<(AbstractProject, MetadataReferenceProperties)>();
+        
+        /// <summary>
+        /// Maps from the output path of a project that was converted to
+        /// </summary>
+        private readonly Dictionary<string, ProjectReference> _metadataFileNameToConvertedProjectReference = new Dictionary<string, ProjectReference>(StringComparer.OrdinalIgnoreCase);
 
         #endregion
 
@@ -282,18 +282,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         internal VsENCRebuildableProjectImpl EditAndContinueImplOpt { get; private set; }
 
-        /// <summary>
-        /// Override this method to validate references when creating <see cref="ProjectInfo"/> for current state.
-        /// By default, this method does nothing.
-        /// </summary>
-        protected virtual void ValidateReferences()
-        {
-        }
-
         public ProjectInfo CreateProjectInfoForCurrentState()
         {
-            ValidateReferences();
-
             lock (_gate)
             {
                 var info = ProjectInfo.Create(
@@ -441,46 +431,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        private void AddMetadataFileNameToConvertedProjectReference(string filePath, ProjectReference projectReference)
-        {
-            lock (_gate)
-            {
-                _metadataFileNameToConvertedProjectReference.Add(filePath, projectReference);
-            }
-        }
-
-        private void UpdateMetadataFileNameToConvertedProjectReference(string filePath, ProjectReference projectReference)
-        {
-            lock (_gate)
-            {
-                _metadataFileNameToConvertedProjectReference[filePath] = projectReference;
-            }
-        }
-
-        private bool RemoveMetadataFileNameToConvertedProjectReference(string filePath)
-        {
-            lock (_gate)
-            {
-                return _metadataFileNameToConvertedProjectReference.Remove(filePath);
-            }
-        }
-
-        private bool TryGetMetadataFileNameToConvertedProjectReference(string filePath, out ProjectReference projectReference)
-        {
-            lock (_gate)
-            {
-                return _metadataFileNameToConvertedProjectReference.TryGetValue(filePath, out projectReference);
-            }
-        }
-
-        private bool HasMetadataFileNameToConvertedProjectReference(string filePath)
-        {
-            lock (_gate)
-            {
-                return _metadataFileNameToConvertedProjectReference.ContainsKey(filePath);
-            }
-        }
-
         public bool CurrentProjectReferencesContains(ProjectId projectId)
         {
             lock (_gate)
@@ -576,7 +526,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 if (CanAddProjectReference(projectReference))
                 {
                     AddProjectReference(projectReference);
-                    AddMetadataFileNameToConvertedProjectReference(filePath, projectReference);
+                    _metadataFileNameToConvertedProjectReference.Add(filePath, projectReference);
                     return VSConstants.S_OK;
                 }
             }
@@ -633,12 +583,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             AssertIsForeground();
 
             // Is this a reference we converted to a project reference?
-            if (TryGetMetadataFileNameToConvertedProjectReference(filePath, out var projectReference))
+            if (_metadataFileNameToConvertedProjectReference.TryGetValue(filePath, out var projectReference))
             {
                 // We converted this, so remove the project reference instead
                 RemoveProjectReference(projectReference);
 
-                Contract.ThrowIfFalse(RemoveMetadataFileNameToConvertedProjectReference(filePath));
+                Contract.ThrowIfFalse(_metadataFileNameToConvertedProjectReference.Remove(filePath));
             }
 
             // Just a metadata reference, so remove all of those
@@ -1225,7 +1175,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             if (this.CanConvertToProjectReferences)
             {
                 // We should not already have references for this, since we're only introducing the path for the first time
-                Contract.ThrowIfTrue(HasMetadataFileNameToConvertedProjectReference(binPath));
+                Contract.ThrowIfTrue(_metadataFileNameToConvertedProjectReference.ContainsKey(binPath));
 
                 var metadataReference = TryGetCurrentMetadataReference(binPath);
                 if (metadataReference != null)
@@ -1240,7 +1190,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         RemoveMetadataReferenceCore(metadataReference, disposeReference: true);
                         AddProjectReference(projectReference);
 
-                        AddMetadataFileNameToConvertedProjectReference(binPath, projectReference);
+                        _metadataFileNameToConvertedProjectReference.Add(binPath, projectReference);
                     }
                 }
             }
@@ -1250,7 +1200,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             AssertIsForeground();
 
-            if (TryGetMetadataFileNameToConvertedProjectReference(binPath, out var projectReference))
+            if (_metadataFileNameToConvertedProjectReference.TryGetValue(binPath, out var projectReference))
             {
                 // We converted this, so convert it back to a metadata reference
                 RemoveProjectReference(projectReference);
@@ -1262,7 +1212,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 AddMetadataReferenceCore(MetadataReferenceProvider.CreateMetadataReference(binPath, metadataReferenceProperties));
 
-                Contract.ThrowIfFalse(RemoveMetadataFileNameToConvertedProjectReference(binPath));
+                Contract.ThrowIfFalse(_metadataFileNameToConvertedProjectReference.Remove(binPath));
             }
         }
 
@@ -1273,7 +1223,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             file = FileUtilities.NormalizeAbsolutePath(file);
             // Have we converted these to project references?
 
-            if (TryGetMetadataFileNameToConvertedProjectReference(file, out var convertedProjectReference))
+            if (_metadataFileNameToConvertedProjectReference.TryGetValue(file, out var convertedProjectReference))
             {
                 var project = ProjectTracker.GetProject(convertedProjectReference.ProjectId);
                 UpdateProjectReferenceAliases(project, aliases);
@@ -1301,9 +1251,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             // Is this a project with converted references? If so, make sure we track it
             string referenceBinPath = referencedProject.BinOutputPath;
-            if (referenceBinPath != null && HasMetadataFileNameToConvertedProjectReference(referenceBinPath))
+            if (referenceBinPath != null && _metadataFileNameToConvertedProjectReference.ContainsKey(referenceBinPath))
             {
-                UpdateMetadataFileNameToConvertedProjectReference(referenceBinPath, newProjectReference);
+                _metadataFileNameToConvertedProjectReference[referenceBinPath]= newProjectReference;
             }
 
             // Remove the existing reference first
@@ -1455,7 +1405,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        protected void SetBinOutputPathAndRelatedData(string binOutputPath)
+        protected internal void SetBinOutputPathAndRelatedData(string binOutputPath)
         {
             AssertIsForeground();
 
@@ -1543,16 +1493,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             return new WorkspaceMetadataFileReferenceResolver(metadataService, new RelativePathResolver(assemblySearchPaths, baseDirectory: projectDirectory));
         }
-
-#if DEBUG
-        public virtual bool Debug_VBEmbeddedCoreOptionOn
-        {
-            get
-            {
-                return false;
-            }
-        }
-#endif
 
         /// <summary>
         /// Used for unit testing: don't crash the process if something bad happens.

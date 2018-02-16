@@ -10,8 +10,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
     internal sealed class VisualStudioEditAndContinueService : EditAndContinueService
     {
         [ImportingConstructor]
-        public VisualStudioEditAndContinueService(IDiagnosticAnalyzerService diagnosticService)
-            : base(diagnosticService)
+        public VisualStudioEditAndContinueService(IDiagnosticAnalyzerService diagnosticService, IActiveStatementProvider activeStatementProvider)
+            : base(diagnosticService, activeStatementProvider)
         {
         }
     }

@@ -38,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EncapsulateField
         Public Sub Encapsulate()
             Dim args = New EncapsulateFieldCommandArgs(_testDocument.GetTextView(), _testDocument.GetTextBuffer())
             Dim commandHandler = New EncapsulateFieldCommandHandler(Workspace.GetService(Of ITextBufferUndoManagerProvider)(),
-                                                                    Workspace.ExportProvider.GetExportedValues(Of Lazy(Of IAsynchronousOperationListener, FeatureMetadata)))
+                                                                    Workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider))
             commandHandler.ExecuteCommand(args, TestCommandExecutionContext.Create())
         End Sub
 

@@ -4,6 +4,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Roslyn.Utilities;
 
@@ -16,12 +17,13 @@ namespace Microsoft.CodeAnalysis.Interactive
             public readonly Process Process;
             public readonly Service Service;
             private readonly int _processId;
+            private SemaphoreSlim _disposeSemaphore = new SemaphoreSlim(initialCount: 1);
 
             // output pumping threads (stream output from stdout/stderr of the host process to the output/errorOutput writers)
             private Thread _readOutputThread;           // nulled on dispose
             private Thread _readErrorOutputThread;      // nulled on dispose
             private InteractiveHost _host;              // nulled on dispose
-            private bool _disposing;                    // set to true on dispose
+            private volatile ProcessExitHandlerStatus _processExitHandlerStatus;  // set to Handled on dispose
 
             internal RemoteService(InteractiveHost host, Process process, int processId, Service service)
             {
@@ -30,10 +32,10 @@ namespace Microsoft.CodeAnalysis.Interactive
                 Debug.Assert(service != null);
 
                 _host = host;
-                _disposing = false;
                 this.Process = process;
                 _processId = processId;
                 this.Service = service;
+                _processExitHandlerStatus = ProcessExitHandlerStatus.Uninitialized;
 
                 // TODO (tomat): consider using single-thread async readers
                 _readOutputThread = new Thread(() => ReadOutput(error: false));
@@ -49,35 +51,36 @@ namespace Microsoft.CodeAnalysis.Interactive
 
             internal void HookAutoRestartEvent()
             {
-                const int ProcessExitHooked = 1;
-                const int ProcessExitHandled = 2;
-
-                int processExitHandling = 0;
-
-                async void localHandler(object _, EventArgs __)
+                using (_disposeSemaphore.DisposableWait())
                 {
-                    try
+                    // hook the event only once per process:
+                    if (_processExitHandlerStatus == ProcessExitHandlerStatus.Uninitialized)
                     {
-                        if (Interlocked.Exchange(ref processExitHandling, ProcessExitHandled) == ProcessExitHooked)
-                        {
-                            Process.Exited -= localHandler;
-
-                            if (!_disposing)
-                            {
-                                await _host.OnProcessExited(Process).ConfigureAwait(false);
-                            }
-                        }
-                    }
-                    catch (Exception e) when (FatalError.Report(e))
-                    {
-                        throw ExceptionUtilities.Unreachable;
+                        Process.Exited += ProcessExitedHandler;
+                        _processExitHandlerStatus = ProcessExitHandlerStatus.Hooked;
                     }
                 }
+            }
 
-                // hook the event only once per process:
-                if (Interlocked.Exchange(ref processExitHandling, ProcessExitHooked) == 0)
+            private async void ProcessExitedHandler(object _, EventArgs __)
+            {
+                try
                 {
-                    Process.Exited += localHandler;
+                    using (await _disposeSemaphore.DisposableWaitAsync().ConfigureAwait(false))
+                    {
+                        if (_processExitHandlerStatus == ProcessExitHandlerStatus.Hooked)
+                        {
+                            Process.Exited -= ProcessExitedHandler;
+                            _processExitHandlerStatus = ProcessExitHandlerStatus.Handled;
+                            // Should set _processExitHandlerStatus before calling OnProcessExited to avoid deadlocks.
+                            // Calling the host should be within the lock to prevent its disposing during the execution.
+                            await _host.OnProcessExited(Process).ConfigureAwait(false);
+                        }
+                    }
+                }
+                catch (Exception e) when (FatalError.Report(e))
+                {
+                    throw ExceptionUtilities.Unreachable;
                 }
             }
 
@@ -113,37 +116,38 @@ namespace Microsoft.CodeAnalysis.Interactive
 
             internal void Dispose(bool joinThreads)
             {
-                // set _disposing so that we don't attempt restart the host anymore:
-                _disposing = true;
+                // There can be a call from host initiated from OnProcessExit. 
+                // This check on the beginning helps to avoid a reentrancy.
+                if (_processExitHandlerStatus == ProcessExitHandlerStatus.Hooked)
+                {
+                    using (_disposeSemaphore.DisposableWait())
+                    {
+                        if (_processExitHandlerStatus == ProcessExitHandlerStatus.Hooked)
+                        {
+                            Process.Exited -= ProcessExitedHandler;
+                            _processExitHandlerStatus = ProcessExitHandlerStatus.Handled;
+                        }
+                    }
+                }
 
                 InitiateTermination(Process, _processId);
 
-                // only tests require joining the threads, so we can wait synchronously
-                if (joinThreads)
+                try
                 {
-                    if (_readOutputThread != null)
-                    {
-                        try
-                        {
-                            _readOutputThread.Join();
-                        }
-                        catch (ThreadStateException)
-                        {
-                            // thread hasn't started
-                        }
-                    }
+                    _readOutputThread?.Join();
+                }
+                catch (ThreadStateException)
+                {
+                    // thread hasn't started
+                }
 
-                    if (_readErrorOutputThread != null)
-                    {
-                        try
-                        {
-                            _readErrorOutputThread.Join();
-                        }
-                        catch (ThreadStateException)
-                        {
-                            // thread hasn't started
-                        }
-                    }
+                try
+                {
+                    _readErrorOutputThread?.Join();
+                }
+                catch (ThreadStateException)
+                {
+                    // thread hasn't started
                 }
 
                 // null the host so that we don't attempt to write to the buffer anymore:
@@ -165,6 +169,13 @@ namespace Microsoft.CodeAnalysis.Interactive
                 {
                     Debug.WriteLine("InteractiveHostProcess: can't terminate process {0}: {1}", processId, e.Message);
                 }
+            }
+
+            private enum ProcessExitHandlerStatus
+            {
+                Uninitialized = 0,
+                Hooked = 1,
+                Handled = 2
             }
         }
     }

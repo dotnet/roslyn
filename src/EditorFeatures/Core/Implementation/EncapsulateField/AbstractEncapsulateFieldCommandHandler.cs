@@ -23,16 +23,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EncapsulateField
     internal abstract class AbstractEncapsulateFieldCommandHandler : VSCommanding.ICommandHandler<EncapsulateFieldCommandArgs>
     {
         private readonly ITextBufferUndoManagerProvider _undoManager;
-        private readonly AggregateAsynchronousOperationListener _listener;
+        private readonly IAsynchronousOperationListener _listener;
 
-        public string DisplayName => EditorFeaturesResources.Encapsulate_Field_Command_Handler;
+        public string DisplayName => EditorFeaturesResources.Encapsulate_Field;
 
         public AbstractEncapsulateFieldCommandHandler(
             ITextBufferUndoManagerProvider undoManager,
-            IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
+            IAsynchronousOperationListenerProvider listenerProvider)
         {
             _undoManager = undoManager;
-            _listener = new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.EncapsulateField);
+            _listener = listenerProvider.GetListener(FeatureAttribute.EncapsulateField);
         }
 
         public bool ExecuteCommand(EncapsulateFieldCommandArgs args, CommandExecutionContext context)
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EncapsulateField
                 return false;
             }
 
-            using (var waitScope = context.WaitContext.AddScope(allowCancellation: true, EditorFeaturesResources.Applying_Encapsulate_Field_refactoring))
+            using (var waitScope = context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Applying_Encapsulate_Field_refactoring))
             {
                 return Execute(args, waitScope);
             }
