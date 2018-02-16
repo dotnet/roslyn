@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
             bool onBeforeGlobalSymbolRenamedReturnValue = true,
             bool onAfterGlobalSymbolRenamedReturnValue = true)
         {
-            var workspace = CreateTestWorkspace(markup, languageName, EditorServicesUtil.CreateExportProvider());
+            var workspace = CreateTestWorkspace(markup, languageName, EditorServicesUtil.ExportProvider);
             return new RenameTrackingTestState(workspace, languageName, onBeforeGlobalSymbolRenamedReturnValue, onAfterGlobalSymbolRenamedReturnValue);
         }
 
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
         {
             var workspace = TestWorkspace.Create(
                 workspaceXml,
-                exportProvider: EditorServicesUtil.CreateExportProvider());
+                exportProvider: EditorServicesUtil.ExportProvider);
 
             return new RenameTrackingTestState(workspace, languageName, onBeforeGlobalSymbolRenamedReturnValue, onAfterGlobalSymbolRenamedReturnValue);
         }

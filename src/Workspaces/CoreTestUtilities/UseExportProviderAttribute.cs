@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             MefHostServices.HookServiceCreation(CreateMefHostServices);
             RoslynServices.HookHostServices(GetOrCreateRemoteHostServices);
+            DesktopMefHostServices.ResetHostServicesTestOnly();
 
             // make sure we enable this for all unit tests
             AsynchronousOperationListenerProvider.Enable(true);
@@ -76,9 +77,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             finally
             {
                 exportProvider?.Dispose();
-                _hostServices = null;
                 MefHostServices.HookServiceCreation((_, __) => throw new InvalidOperationException("Cannot create host services after test tear down."));
                 RoslynServices.HookHostServices(() => throw new InvalidOperationException("Cannot create host services after test tear down."));
+                DesktopMefHostServices.ResetHostServicesTestOnly();
+                _hostServices = null;
                 ExportProviderCache.EnabledViaUseExportProviderAttributeOnly = false;
             }
         }

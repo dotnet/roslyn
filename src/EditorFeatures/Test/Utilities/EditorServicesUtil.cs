@@ -10,17 +10,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 {
     public static class EditorServicesUtil
     {
-        private static Lazy<ExportProvider> s_lazyExportProvider = new Lazy<ExportProvider>(CreateExportProvider);
+        private static Lazy<ComposableCatalog> s_composableCatalog = new Lazy<ComposableCatalog>(CreateComposableCatalog);
 
-        public static ExportProvider ExportProvider => s_lazyExportProvider.Value;
+        public static ExportProvider ExportProvider => ExportProviderCache.CreateExportProvider(s_composableCatalog.Value);
 
-        public static ExportProvider CreateExportProvider()
+        private static ComposableCatalog CreateComposableCatalog()
         {
             var assemblies = TestExportProvider
                 .GetCSharpAndVisualBasicAssemblies()
                 .Concat(new[] { typeof(EditorServicesUtil).Assembly });
-            var catalog = ExportProviderCache.CreateAssemblyCatalog(assemblies, MinimalTestExportProvider.CreateResolver());
-            return MinimalTestExportProvider.CreateExportProvider(catalog);
+            return ExportProviderCache.CreateAssemblyCatalog(assemblies, ExportProviderCache.CreateResolver());
         }
     }
 }

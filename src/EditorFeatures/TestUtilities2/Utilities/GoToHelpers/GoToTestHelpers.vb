@@ -18,9 +18,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
                         GetType(VisualBasicGoToDefinitionSymbolService),
                         GetType(CSharpGeneratedCodeRecognitionService),
                         GetType(VisualBasicGeneratedCodeRecognitionService))
-
-        Public ReadOnly ExportProvider As ExportProvider = MinimalTestExportProvider.CreateExportProvider(Catalog)
-
     End Module
 
     Friend Structure FilePathAndSpan

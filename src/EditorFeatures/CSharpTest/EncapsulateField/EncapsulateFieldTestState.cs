@@ -27,11 +27,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EncapsulateField
         public Document TargetDocument { get; }
         public string NotificationMessage { get; private set; }
 
-        private static readonly ExportProvider s_exportProvider = MinimalTestExportProvider.CreateExportProvider(
+        private static readonly ComposableCatalog s_composableCatalog =
             TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic.WithParts(
             typeof(CSharpEncapsulateFieldService),
             typeof(EditorNotificationServiceFactory),
-            typeof(DefaultDocumentSupportsFeatureService)));
+            typeof(DefaultDocumentSupportsFeatureService));
 
         public EncapsulateFieldTestState(TestWorkspace workspace)
         {
@@ -46,7 +46,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EncapsulateField
 
         public static EncapsulateFieldTestState Create(string markup)
         {
-            var workspace = TestWorkspace.CreateCSharp(markup, exportProvider: s_exportProvider);
+            var exportProvider = ExportProviderCache.CreateExportProvider(s_composableCatalog);
+            var workspace = TestWorkspace.CreateCSharp(markup, exportProvider: exportProvider);
             workspace.Options = workspace.Options
                 .WithChangedOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithNoneEnforcement)
                 .WithChangedOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithNoneEnforcement);

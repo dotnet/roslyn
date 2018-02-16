@@ -77,5 +77,12 @@ namespace Roslyn.Test.Utilities
                 operation.Abort();
             }
         }
+
+        public static Task<TaskScheduler> ToTaskSchedulerAsync(this Dispatcher dispatcher, DispatcherPriority priority = DispatcherPriority.Normal)
+        {
+            return dispatcher.InvokeAsync(
+                () => TaskScheduler.FromCurrentSynchronizationContext(),
+                priority).Task;
+        }
     }
 }

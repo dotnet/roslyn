@@ -3,8 +3,8 @@
 using System;
 using System.Linq;
 using System.Runtime.ExceptionServices;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 using Microsoft.VisualStudio.LanguageServices.UnitTests;
@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
         [HandleProcessCorruptedStateExceptions]
         public static Tuple<TestWorkspace, EnvDTE.FileCodeModel> CreateWorkspaceAndFileCodeModel(string file)
         {
-            var workspace = TestWorkspace.CreateCSharp(file, exportProvider: VisualStudioTestExportProvider.ExportProvider);
+            var workspace = TestWorkspace.CreateCSharp(file, exportProvider: ExportProviderCache.CreateExportProvider(VisualStudioTestExportProvider.PartCatalog));
 
             try
             {

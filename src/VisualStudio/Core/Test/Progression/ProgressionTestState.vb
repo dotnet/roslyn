@@ -1,15 +1,13 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.ComponentModel.Composition.Hosting
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.FindSymbols
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.GraphModel
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Progression
-Imports Roslyn.Test.Utilities
-Imports Microsoft.CodeAnalysis.Editor.UnitTests
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
     Friend Class ProgressionTestState
@@ -23,7 +21,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
 
         Public Shared Function Create(workspaceXml As XElement) As ProgressionTestState
             Dim workspace = TestWorkspace.Create(workspaceXml,
-exportProvider:=MinimalTestExportProvider.CreateExportProvider(CompositionCatalog))
+exportProvider:=ExportProviderCache.CreateExportProvider(CompositionCatalog))
 
             Return New ProgressionTestState(workspace)
         End Function

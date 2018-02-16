@@ -72,6 +72,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return ComposableCatalog.Create(resolver ?? Resolver.DefaultInstance).AddParts(parts);
         }
 
+        public static Resolver CreateResolver()
+        {
+            // simple assembly loader is stateless, so okay to share
+            return new Resolver(SimpleAssemblyLoader.Instance);
+        }
+
         public static PartDiscovery CreatePartDiscovery(Resolver resolver)
         {
             return PartDiscovery.Combine(new AttributedPartDiscoveryV1(resolver), new AttributedPartDiscovery(resolver, isNonPublicSupported: true));
@@ -107,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var expectedCatalog = Interlocked.CompareExchange(ref _expectedCatalog, catalog, null) ?? catalog;
             if (expectedCatalog != catalog)
             {
-                throw new InvalidOperationException($"Only one {nameof(ComposableCatalog)} can be created for a single test.");
+                throw new InvalidOperationException($"Only one {nameof(ExportProvider)} can be created for a single test.");
             }
 
             var expected = _expectedProviderForCatalog;
@@ -136,6 +142,27 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
 
             return exportProvider;
+        }
+
+        private class SimpleAssemblyLoader : IAssemblyLoader
+        {
+            public static readonly IAssemblyLoader Instance = new SimpleAssemblyLoader();
+
+            public Assembly LoadAssembly(AssemblyName assemblyName)
+            {
+                return Assembly.Load(assemblyName);
+            }
+
+            public Assembly LoadAssembly(string assemblyFullName, string codeBasePath)
+            {
+                var assemblyName = new AssemblyName(assemblyFullName);
+                if (!string.IsNullOrEmpty(codeBasePath))
+                {
+                    assemblyName.CodeBase = codeBasePath;
+                }
+
+                return this.LoadAssembly(assemblyName);
+            }
         }
     }
 }

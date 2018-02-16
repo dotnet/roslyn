@@ -134,7 +134,7 @@ End Class
         <Trait(Traits.Feature, Traits.Features.EncapsulateField)>
         <Trait(Traits.Feature, Traits.Features.Interactive)>
         Public Sub EncapsulateFieldCommandDisabledInSubmission()
-            Dim exportProvider = MinimalTestExportProvider.CreateExportProvider(
+            Dim exportProvider = ExportProviderCache.CreateExportProvider(
                 TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(GetType(InteractiveDocumentSupportsFeatureService)))
 
             Using workspace = TestWorkspace.Create(

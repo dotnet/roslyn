@@ -28,9 +28,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
 
         public static ChangeSignatureTestState Create(string markup, string languageName, ParseOptions parseOptions = null)
         {
+            var exportProvider = ExportProviderCache.CreateExportProvider(s_composableCatalog);
             var workspace = languageName == LanguageNames.CSharp
-                  ? TestWorkspace.CreateCSharp(markup, exportProvider: s_exportProvider, parseOptions: (CSharpParseOptions)parseOptions)
-                  : TestWorkspace.CreateVisualBasic(markup, exportProvider: s_exportProvider, parseOptions: parseOptions, compilationOptions: new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+                  ? TestWorkspace.CreateCSharp(markup, exportProvider: exportProvider, parseOptions: (CSharpParseOptions)parseOptions)
+                  : TestWorkspace.CreateVisualBasic(markup, exportProvider: exportProvider, parseOptions: parseOptions, compilationOptions: new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
             return new ChangeSignatureTestState(workspace);
         }
@@ -78,11 +79,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
                 CancellationToken.None);
         }
 
-        private static readonly ExportProvider s_exportProvider = MinimalTestExportProvider.CreateExportProvider(
-                TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic
-                    .WithPart(typeof(TestChangeSignatureOptionsService))
-                    .WithPart(typeof(CSharpChangeSignatureService))
-                    .WithPart(typeof(VisualBasicChangeSignatureService)));
+        private static readonly ComposableCatalog s_composableCatalog =
+            TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic
+                .WithPart(typeof(TestChangeSignatureOptionsService))
+                .WithPart(typeof(CSharpChangeSignatureService))
+                .WithPart(typeof(VisualBasicChangeSignatureService));
 
         public void Dispose()
         {

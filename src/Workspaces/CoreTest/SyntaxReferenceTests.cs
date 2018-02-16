@@ -2,6 +2,7 @@
 
 using System.Linq;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -36,7 +37,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         private static Solution CreateEmptySolutionUsingRecoverableSyntaxTrees()
         {
-            var workspace = new AdhocWorkspace(TestHost.Services, workspaceKind: "NotKeptAlive");
+            var workspace = new AdhocWorkspace(MefHostServices.Create(TestHost.Assemblies), workspaceKind: "NotKeptAlive");
             workspace.Options = workspace.Options.WithChangedOption(Host.CacheOptions.RecoverableTreeLengthThreshold, 0);
             return workspace.CurrentSolution;
         }

@@ -29,8 +29,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
                 </Project>
             </Workspace>
 
-            Dim exportProvider = MinimalTestExportProvider.CreateExportProvider(
-                TestExportProvider.CreateAssemblyCatalogWithCSharpAndVisualBasic().WithParts(
+            Dim exportProvider = ExportProviderCache.CreateExportProvider(
+                TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic().WithParts(
                     GetType(NoCompilationEditorClassificationService)))
 
             Using workspace = TestWorkspace.Create(workspaceDefinition, exportProvider:=exportProvider)

@@ -24,16 +24,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
             Return mock.Object
         End Function
 
-        <ThreadStatic>
-        Private t_disabledLineCommitExportProvider As ExportProvider
-
         Private ReadOnly Property DisabledLineCommitExportProvider As ExportProvider
             Get
-                If t_disabledLineCommitExportProvider Is Nothing Then
-                    t_disabledLineCommitExportProvider = TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic()
-                End If
-
-                Return t_disabledLineCommitExportProvider
+                Return TestExportProvider.ExportProviderWithCSharpAndVisualBasic
             End Get
         End Property
 

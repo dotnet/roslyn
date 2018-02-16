@@ -14,8 +14,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Preview
     <[UseExportProvider]>
     Public Class PreviewChangesTests
 
-        Private _exportProvider As ExportProvider = MinimalTestExportProvider.CreateExportProvider(
-            TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic.WithPart(GetType(StubVsEditorAdaptersFactoryService)))
+        Private _composableCatalog As ComposableCatalog =
+            TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic.WithPart(GetType(StubVsEditorAdaptersFactoryService))
 
         <WpfFact>
         Public Sub TestListStructure()
@@ -26,7 +26,7 @@ Class C
     {
         $$
     }
-}</text>.Value, exportProvider:=_exportProvider)
+}</text>.Value, exportProvider:=ExportProviderCache.CreateExportProvider(_composableCatalog))
                 Dim expectedItems = New List(Of Tuple(Of String, Integer)) From
                     {
                     Tuple.Create("topLevelItemName", 0),
@@ -75,7 +75,7 @@ Class C
                     </Project>
                 </Workspace>
 
-            Using workspace = TestWorkspace.Create(workspaceXml, exportProvider:=_exportProvider)
+            Using workspace = TestWorkspace.Create(workspaceXml, exportProvider:=ExportProviderCache.CreateExportProvider(_composableCatalog))
                 Dim expectedItems = New List(Of Tuple(Of String, Integer)) From
                     {
                     Tuple.Create("topLevelItemName", 0),
@@ -126,7 +126,7 @@ Class C
     {
         $$
     }
-}</text>.Value, exportProvider:=_exportProvider)
+}</text>.Value, exportProvider:=ExportProviderCache.CreateExportProvider(_composableCatalog))
                 Dim expectedItems = New List(Of String) From {"topLevelItemName", "*test1.cs", "**insertion!"}
 
                 Dim documentId = workspace.Documents.First().Id
@@ -182,7 +182,7 @@ Class C
                     </Project>
                 </Workspace>
 
-            Using workspace = TestWorkspace.Create(workspaceXml, exportProvider:=_exportProvider)
+            Using workspace = TestWorkspace.Create(workspaceXml, exportProvider:=ExportProviderCache.CreateExportProvider(_composableCatalog))
                 Dim docId = workspace.Documents.First().Id
                 Dim document = workspace.CurrentSolution.GetDocument(docId)
 
@@ -265,7 +265,7 @@ End Class
                                    </Project>
                                </Workspace>
 
-            Using workspace = TestWorkspace.Create(workspaceXml, , exportProvider:=_exportProvider)
+            Using workspace = TestWorkspace.Create(workspaceXml, , exportProvider:=ExportProviderCache.CreateExportProvider(_composableCatalog))
                 Dim documentId1 = workspace.Documents.Where(Function(d) d.Project.Name = "VBProj1").Single().Id
                 Dim document1 = workspace.CurrentSolution.GetDocument(documentId1)
 

@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.VisualStudio.Composition
@@ -21,18 +22,12 @@ Imports Roslyn.Utilities
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
     Friend Module RenameTestHelpers
 
-        <ThreadStatic>
-        Friend _exportProvider As ExportProvider = MinimalTestExportProvider.CreateExportProvider(
-            TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(GetType(MockDocumentNavigationServiceFactory)))
+        Friend _composableCatalog As ComposableCatalog =
+            TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(GetType(MockDocumentNavigationServiceFactory))
 
-        Friend ReadOnly Property ExportProvider As ExportProvider
+        Friend ReadOnly Property ComposableCatalog As ComposableCatalog
             Get
-                If _exportProvider Is Nothing Then
-                    _exportProvider = MinimalTestExportProvider.CreateExportProvider(
-                        TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(GetType(MockDocumentNavigationServiceFactory)))
-                End If
-
-                Return _exportProvider
+                Return _composableCatalog
             End Get
         End Property
 
@@ -105,7 +100,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
         Public Function CreateWorkspaceWithWaiter(element As XElement) As TestWorkspace
             Dim workspace = TestWorkspace.CreateWorkspace(
                 element,
-                exportProvider:=ExportProvider)
+                exportProvider:=ExportProviderCache.CreateExportProvider(ComposableCatalog))
             workspace.GetOpenDocumentIds().Select(Function(id) workspace.GetTestDocument(id).GetTextView()).ToList()
             Return workspace
         End Function

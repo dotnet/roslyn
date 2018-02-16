@@ -138,10 +138,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
 
             if (extraParts == null)
             {
-                return MinimalTestExportProvider.CreateExportProvider(baseCatalog);
+                return ExportProviderCache.CreateExportProvider(baseCatalog);
             }
 
-            return MinimalTestExportProvider.CreateExportProvider(baseCatalog.WithParts(extraParts));
+            return ExportProviderCache.CreateExportProvider(baseCatalog.WithParts(extraParts));
         }
 
         public virtual ITextView TextView

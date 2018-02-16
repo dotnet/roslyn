@@ -39,11 +39,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateType
             string existingFileName,
             string languageName)
         {
+            var exportProvider = ExportProviderCache.CreateExportProvider(s_composableCatalog);
             var workspace = TestWorkspace.IsWorkspaceElement(initial)
-                ? TestWorkspace.Create(initial, exportProvider: s_exportProvider)
+                ? TestWorkspace.Create(initial, exportProvider: exportProvider)
                 : languageName == LanguageNames.CSharp
-                  ? TestWorkspace.CreateCSharp(initial, exportProvider: s_exportProvider)
-                  : TestWorkspace.CreateVisualBasic(initial, exportProvider: s_exportProvider);
+                  ? TestWorkspace.CreateCSharp(initial, exportProvider: exportProvider)
+                  : TestWorkspace.CreateVisualBasic(initial, exportProvider: exportProvider);
 
             return new GenerateTypeTestState(projectToBeModified, typeName, existingFileName, workspace);
         }
@@ -103,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateType
             }
         }
 
-        private static readonly ExportProvider s_exportProvider = MinimalTestExportProvider.CreateExportProvider(
+        private static readonly ComposableCatalog s_composableCatalog =
             TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic.WithParts(
                 typeof(TestGenerateTypeOptionsService),
                 typeof(TestProjectManagementService),
@@ -117,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateType
                 typeof(PreviewFactoryService),
                 typeof(InlineRenameService),
                 typeof(TextBufferAssociatedViewService),
-                typeof(IProjectionBufferFactoryServiceExtensions)));
+                typeof(IProjectionBufferFactoryServiceExtensions));
 
         public void Dispose()
         {

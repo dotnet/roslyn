@@ -1,10 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
-using System.Linq;
 using System.Reflection;
 using System.Threading;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Host.Mef
 {
@@ -22,6 +20,11 @@ namespace Microsoft.CodeAnalysis.Host.Mef
 
                 return s_defaultServices;
             }
+        }
+
+        internal static void ResetHostServicesTestOnly()
+        {
+            s_defaultServices = null;
         }
 
         private static ImmutableArray<Assembly> s_defaultAssemblies;

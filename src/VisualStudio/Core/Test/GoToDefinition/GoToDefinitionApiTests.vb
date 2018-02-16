@@ -14,7 +14,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.GoToDefinition
     Public Class GoToDefinitionApiTests
 
         Private Async Function TestAsync(workspaceDefinition As XElement, expectSuccess As Boolean) As Tasks.Task
-            Using workspace = TestWorkspace.Create(workspaceDefinition, exportProvider:=GoToTestHelpers.ExportProvider)
+            Using workspace = TestWorkspace.Create(workspaceDefinition, exportProvider:=ExportProviderCache.CreateExportProvider(GoToTestHelpers.Catalog))
                 Dim solution = workspace.CurrentSolution
                 Dim cursorDocument = workspace.Documents.First(Function(d) d.CursorPosition.HasValue)
                 Dim cursorPosition = cursorDocument.CursorPosition.Value

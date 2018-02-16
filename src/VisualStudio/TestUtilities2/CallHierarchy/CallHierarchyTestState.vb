@@ -107,7 +107,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy
                 .WithPart(GetType(EditorNotificationServiceFactory)) _
                 .WithParts(additionalTypes)
 
-            Return MinimalTestExportProvider.CreateExportProvider(catalog)
+            Return ExportProviderCache.CreateExportProvider(catalog)
         End Function
 
         Public Shared Function Create(markup As String, ParamArray additionalTypes As Type()) As CallHierarchyTestState

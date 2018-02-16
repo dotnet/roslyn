@@ -21,13 +21,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive
 
         private readonly System.ComponentModel.Composition.Hosting.ExportProvider _exportProvider;
 
-        private static readonly Lazy<ComposableCatalog> s_lazyCatalog = new Lazy<ComposableCatalog>(() =>
-        {
-            var assemblies = new[] { typeof(TestWaitIndicator).Assembly, typeof(TestInteractiveEvaluator).Assembly, typeof(IInteractiveWindow).Assembly }
-                .Concat(MinimalTestExportProvider.GetEditorAssemblies());
-            return ExportProviderCache.CreateAssemblyCatalog(assemblies);
-        });
-
+        internal static readonly ComposableCatalog Catalog = ExportProviderCache.CreateAssemblyCatalog(
+            new[]
+            {
+                typeof(TestWaitIndicator).Assembly,
+                typeof(TestInteractiveEvaluator).Assembly,
+                typeof(IInteractiveWindow).Assembly
+            }
+            .Concat(TestExportProvider.GetCSharpAndVisualBasicAssemblies())
+            .Concat(MinimalTestExportProvider.GetEditorAssemblies()));
 
         // Provide an export of ILoggingServiceInternal to work around https://devdiv.visualstudio.com/DevDiv/_workitems/edit/570290
         [Export(typeof(ILoggingServiceInternal))]
@@ -62,9 +64,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive
             }
         }
 
-        internal InteractiveWindowTestHost()
+        internal InteractiveWindowTestHost(ExportProvider exportProvider)
         {
-            _exportProvider = MinimalTestExportProvider.CreateExportProvider(s_lazyCatalog.Value).AsExportProvider();
+            _exportProvider = exportProvider.AsExportProvider();
 
             var contentTypeRegistryService = _exportProvider.GetExport<IContentTypeRegistryService>().Value;
             Evaluator = new TestInteractiveEvaluator();

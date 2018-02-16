@@ -44,7 +44,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
 <%= code.Replace(vbCrLf, vbLf) %>
 </Document>
 </Project>
-</Workspace>, exportProvider:=VisualStudioTestExportProvider.ExportProvider)
+</Workspace>, exportProvider:=ExportProviderCache.CreateExportProvider(VisualStudioTestExportProvider.PartCatalog))
         End Function
 
         Protected Function GetDocument(workspace As TestWorkspace) As Document

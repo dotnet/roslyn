@@ -5,17 +5,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SymbolMapping;
-using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VisualStudio.Composition;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests
 {
     public static class MinimalTestExportProvider
     {
-        private static readonly PartDiscovery s_partDiscovery = ExportProviderCache.CreatePartDiscovery(Resolver.DefaultInstance);
-
         public static Type[] GetLanguageNeutralTypes()
         {
             var types = new[]
@@ -83,43 +78,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             };
 
             return assemblies;
-        }
-
-        public static Resolver CreateResolver()
-        {
-            // simple assembly loader is stateless, so okay to share
-            return new Resolver(SimpleAssemblyLoader.Instance);
-        }
-
-        public static ExportProvider CreateExportProvider(ComposableCatalog catalog)
-        {
-            // make sure we enable this for all unit tests
-            AsynchronousOperationListenerProvider.Enable(true);
-
-            var configuration = CompositionConfiguration.Create(catalog.WithCompositionService());
-            var runtimeComposition = RuntimeComposition.CreateRuntimeComposition(configuration);
-            return runtimeComposition.CreateExportProviderFactory().CreateExportProvider();
-        }
-
-        private class SimpleAssemblyLoader : IAssemblyLoader
-        {
-            public static readonly IAssemblyLoader Instance = new SimpleAssemblyLoader();
-
-            public Assembly LoadAssembly(AssemblyName assemblyName)
-            {
-                return Assembly.Load(assemblyName);
-            }
-
-            public Assembly LoadAssembly(string assemblyFullName, string codeBasePath)
-            {
-                var assemblyName = new AssemblyName(assemblyFullName);
-                if (!string.IsNullOrEmpty(codeBasePath))
-                {
-                    assemblyName.CodeBase = codeBasePath;
-                }
-
-                return this.LoadAssembly(assemblyName);
-            }
         }
     }
 }

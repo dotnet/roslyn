@@ -13,6 +13,7 @@ using Xunit;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using System;
 using CS = Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
@@ -159,9 +160,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
             string commandLine = @"CSharpClass.cs /out:goo.dll /target:library";
             var baseDirectory = Path.Combine(this.SolutionDirectory.Path, "CSharpProject");
 
-            using (var ws = new AdhocWorkspace())
+            using (var ws = new AdhocWorkspace(DesktopMefHostServices.DefaultServices))
             {
-                var info = CommandLineProject.CreateProjectInfo("TestProject", LanguageNames.CSharp, commandLine, baseDirectory);
+                var info = CommandLineProject.CreateProjectInfo("TestProject", LanguageNames.CSharp, commandLine, baseDirectory, ws);
                 ws.AddProject(info);
                 var project = ws.CurrentSolution.GetProject(info.Id);
 
@@ -403,9 +404,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        private AdhocWorkspace CreateWorkspaceWithRecoverableTrees()
+        private AdhocWorkspace CreateWorkspaceWithRecoverableTrees(HostServices hostServices)
         {
-            var ws = new AdhocWorkspace(TestHost.Services, workspaceKind: "NotKeptAlive");
+            var ws = new AdhocWorkspace(hostServices, workspaceKind: "NotKeptAlive");
             ws.Options = ws.Options.WithChangedOption(Host.CacheOptions.RecoverableTreeLengthThreshold, 0);
             return ws;
         }
@@ -413,8 +414,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public async Task TestUpdatedDocumentTextIsObservablyConstantAsync()
         {
-            await CheckUpdatedDocumentTextIsObservablyConstantAsync(new AdhocWorkspace());
-            await CheckUpdatedDocumentTextIsObservablyConstantAsync(CreateWorkspaceWithRecoverableTrees());
+            var hostServices = MefHostServices.Create(TestHost.Assemblies);
+            await CheckUpdatedDocumentTextIsObservablyConstantAsync(new AdhocWorkspace(hostServices));
+            await CheckUpdatedDocumentTextIsObservablyConstantAsync(CreateWorkspaceWithRecoverableTrees(hostServices));
         }
 
         private async Task CheckUpdatedDocumentTextIsObservablyConstantAsync(AdhocWorkspace ws)

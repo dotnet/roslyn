@@ -25,11 +25,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         public static ComposableCatalog EntireAssemblyCatalogWithCSharpAndVisualBasic
             => s_lazyEntireAssemblyCatalogWithCSharpAndVisualBasic.Value;
 
-        private static Lazy<ExportProvider> s_lazyExportProviderWithCSharpAndVisualBasic
-            = new Lazy<ExportProvider>(CreateExportProviderWithCSharpAndVisualBasic);
-
         public static ExportProvider ExportProviderWithCSharpAndVisualBasic
-            => s_lazyExportProviderWithCSharpAndVisualBasic.Value;
+        {
+            get
+            {
+                return CreateExportProviderWithCSharpAndVisualBasic();
+            }
+        }
 
         private static Lazy<ComposableCatalog> s_lazyMinimumCatalogWithCSharpAndVisualBasic =
             new Lazy<ComposableCatalog>(() => ExportProviderCache.CreateTypeCatalog(GetNeutralAndCSharpAndVisualBasicTypes())
@@ -109,9 +111,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         /// Create fresh ExportProvider that doesn't share anything with others. Tests can use this
         /// export provider to create all new MEF components not shared with others.
         /// </summary>
-        public static ExportProvider CreateExportProviderWithCSharpAndVisualBasic()
+        private static ExportProvider CreateExportProviderWithCSharpAndVisualBasic()
         {
-            return MinimalTestExportProvider.CreateExportProvider(CreateAssemblyCatalogWithCSharpAndVisualBasic());
+            return ExportProviderCache.CreateExportProvider(EntireAssemblyCatalogWithCSharpAndVisualBasic);
         }
 
         /// <summary>
@@ -119,11 +121,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         /// this catalog should have been created from scratch that doesn't share anything with 
         /// others.
         /// </summary>
-        public static ComposableCatalog CreateAssemblyCatalogWithCSharpAndVisualBasic()
+        private static ComposableCatalog CreateAssemblyCatalogWithCSharpAndVisualBasic()
         {
-            return ExportProviderCache.CreateAssemblyCatalog(
-                GetCSharpAndVisualBasicAssemblies(),
-                MinimalTestExportProvider.CreateResolver());
+            return ExportProviderCache
+                .CreateAssemblyCatalog(GetCSharpAndVisualBasicAssemblies(), ExportProviderCache.CreateResolver())
+                .WithCompositionService();
         }
 
         public static IEnumerable<Assembly> GetCSharpAndVisualBasicAssemblies()

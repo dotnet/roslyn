@@ -635,7 +635,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         private Solution CreateNotKeptAliveSolution()
         {
-            var workspace = new AdhocWorkspace(TestHost.Services, "NotKeptAlive");
+            var workspace = new AdhocWorkspace(MefHostServices.Create(TestHost.Assemblies), "NotKeptAlive");
             workspace.Options = workspace.Options.WithChangedOption(CacheOptions.RecoverableTreeLengthThreshold, 0);
             return workspace.CurrentSolution;
         }
@@ -1128,11 +1128,13 @@ End Class";
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestWorkspaceLanguageServiceOverride()
         {
-            var ws = new AdhocWorkspace(TestHost.Services, ServiceLayer.Host);
+            var hostServices = MefHostServices.Create(TestHost.Assemblies);
+
+            var ws = new AdhocWorkspace(hostServices, ServiceLayer.Host);
             var service = ws.Services.GetLanguageServices(LanguageNames.CSharp).GetService<ITestLanguageService>();
             Assert.NotNull(service as TestLanguageServiceA);
 
-            var ws2 = new AdhocWorkspace(TestHost.Services, "Quasimodo");
+            var ws2 = new AdhocWorkspace(hostServices, "Quasimodo");
             var service2 = ws2.Services.GetLanguageServices(LanguageNames.CSharp).GetService<ITestLanguageService>();
             Assert.NotNull(service2 as TestLanguageServiceB);
         }
@@ -1421,7 +1423,7 @@ public class C : A {
         {
             // set max file length to 1 bytes
             var maxLength = 1;
-            var workspace = new AdhocWorkspace(TestHost.Services, ServiceLayer.Host);
+            var workspace = new AdhocWorkspace(MefHostServices.Create(TestHost.Assemblies), ServiceLayer.Host);
             workspace.Options = workspace.Options.WithChangedOption(FileTextLoaderOptions.FileLengthThreshold, maxLength);
 
             using (var root = new TempRoot())

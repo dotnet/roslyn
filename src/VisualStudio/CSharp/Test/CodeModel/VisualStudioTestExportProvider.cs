@@ -9,7 +9,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
 {
     public static class VisualStudioTestExportProvider
     {
-        public static readonly ExportProvider ExportProvider;
         public static readonly ComposableCatalog PartCatalog;
 
         static VisualStudioTestExportProvider()
@@ -17,8 +16,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
             PartCatalog =
                 TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(
                     ExportProviderCache.CreateAssemblyCatalog(typeof(CSharpCodeModelService).Assembly));
-
-            ExportProvider = MinimalTestExportProvider.CreateExportProvider(PartCatalog);
         }
     }
 }
