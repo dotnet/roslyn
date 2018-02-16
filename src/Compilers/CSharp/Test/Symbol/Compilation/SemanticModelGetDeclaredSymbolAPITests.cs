@@ -1170,7 +1170,7 @@ namespace System
 
             var methodM = (MethodDeclarationSyntax)typeDeclC.Members[1];
             var namesInM = model.LookupNames(methodM.Body.SpanStart);
-            Assert.Equal(17, namesInM.Count);
+            Assert.Equal(16, namesInM.Count);
         }
 
         [Fact]
@@ -3660,7 +3660,7 @@ class Program
         [Fact]
         public void SourceNamespaceSymbolMergeWithMetadata()
         {
-            var compilation = CreateCompilation(new string[] {
+            var compilation = CreateCompilationRaw(new string[] {
 @"namespace System {
     public partial class PartialClass 
     {

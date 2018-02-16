@@ -180,7 +180,7 @@ namespace NS
         public int CompareTo(object o) { return 0; }
     }
 ";
-            var compilation = CreateCompilation(text, new[] { MscorlibRef });
+            var compilation = CreateCompilationRaw(text, new[] { MscorlibRef });
             var srcSym = compilation.GlobalNamespace.GetTypeMembers("BaseTypeSpecifierClass").Single();
 
             var ref2 = TestReferences.SymbolsTests.InheritIComparable;
@@ -196,7 +196,7 @@ namespace NS
             var text = @"
     class FooAttribute : System.Attribute {}
 ";
-            var compilation = CreateCompilation(text, new[] { MscorlibRef });
+            var compilation = CreateCompilationRaw(text, new[] { MscorlibRef });
             var srcSym = compilation.GlobalNamespace.GetTypeMembers("FooAttribute").Single();
 
             var ref2 = TestReferences.SymbolsTests.InheritIComparable;

@@ -807,7 +807,7 @@ class C : I
 }
 ";
             var ilRef = CompileIL(il, prependDefaultHeader: false);
-            var comp = CreateCompilation(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
+            var comp = CreateCompilationRaw(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
             comp.VerifyDiagnostics();
 
             var global = comp.GlobalNamespace;
@@ -851,7 +851,7 @@ class C : I
 }
 ";
             var ilRef = CompileIL(il, prependDefaultHeader: false);
-            var comp1 = CreateCompilation(source1, new[] { MscorlibRef, SystemCoreRef, ilRef, ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef });
+            var comp1 = CreateCompilationRaw(source1, new[] { MscorlibRef, SystemCoreRef, ilRef, ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef });
             comp1.VerifyDiagnostics();
 
             var interfaceMethod1 = comp1.GlobalNamespace.GetMember<MethodSymbol>("I.M");
@@ -875,7 +875,7 @@ class C : I
     (object a, object b) I.M((object, object) x) { return x; }
 }
 ";
-            var comp2 = CreateCompilation(source2, new[] { MscorlibRef, SystemCoreRef, ilRef, ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef });
+            var comp2 = CreateCompilationRaw(source2, new[] { MscorlibRef, SystemCoreRef, ilRef, ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef });
             comp2.VerifyDiagnostics(
                 // (4,28): error CS8141: The tuple element names in the signature of method 'C.I.M((object, object))' must match the tuple element names of interface method 'I.M((object c, object d))' (including on the return type).
                 //     (object a, object b) I.M((object, object) x) { return x; }
@@ -897,7 +897,7 @@ class C : I
     (object, object) I.M((object c, object d) x) { return x; }
 }
 ";
-            var comp3 = CreateCompilation(source3, new[] { MscorlibRef, SystemCoreRef, ilRef, ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef });
+            var comp3 = CreateCompilationRaw(source3, new[] { MscorlibRef, SystemCoreRef, ilRef, ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef });
             comp3.VerifyDiagnostics(
                 // (4,24): error CS8141: The tuple element names in the signature of method 'C.I.M((object c, object d))' must match the tuple element names of interface method 'I.M((object c, object d))' (including on the return type).
                 //     (object, object) I.M((object c, object d) x) { return x; }
@@ -918,7 +918,7 @@ class C : I
     public (object a, object b) M((object c, object d) x) { return x; }
 }
 ";
-            var comp4 = CreateCompilation(source4, new[] { MscorlibRef, SystemCoreRef, ilRef, ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef });
+            var comp4 = CreateCompilationRaw(source4, new[] { MscorlibRef, SystemCoreRef, ilRef, ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef });
             comp4.VerifyDiagnostics();
 
             var classMethod4 = comp4.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMethod("M");
@@ -971,7 +971,7 @@ class C : I
 }
 ";
             var ilRef = CompileIL(il, prependDefaultHeader: false);
-            var comp1 = CreateCompilation(source1, new[] { MscorlibRef, SystemCoreRef, ilRef, ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef });
+            var comp1 = CreateCompilationRaw(source1, new[] { MscorlibRef, SystemCoreRef, ilRef, ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef });
             comp1.VerifyDiagnostics();
 
             var interfaceProperty1 = comp1.GlobalNamespace.GetMember<PropertySymbol>("I.P");
@@ -991,7 +991,7 @@ class C : I
     (object, object) I.P { get; set; }
 }
 ";
-            var comp2 = CreateCompilation(source2, new[] { MscorlibRef, SystemCoreRef, ilRef, ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef });
+            var comp2 = CreateCompilationRaw(source2, new[] { MscorlibRef, SystemCoreRef, ilRef, ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef });
             comp2.VerifyDiagnostics();
 
             var classProperty2 = comp2.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetProperty("I.P");
@@ -1005,7 +1005,7 @@ class C : I
     public (object a, object b) P { get; set; }
 }
 ";
-            var comp3 = CreateCompilation(source3, new[] { MscorlibRef, SystemCoreRef, ilRef, ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef });
+            var comp3 = CreateCompilationRaw(source3, new[] { MscorlibRef, SystemCoreRef, ilRef, ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef });
             comp3.VerifyDiagnostics();
 
             var classProperty3 = comp3.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetProperty("P");
@@ -1114,7 +1114,7 @@ class C : Base
 }
 ";
             var ilRef = CompileIL(il, prependDefaultHeader: false);
-            var comp1 = CreateCompilation(source1, new[] { MscorlibRef, SystemCoreRef, ilRef, ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef });
+            var comp1 = CreateCompilationRaw(source1, new[] { MscorlibRef, SystemCoreRef, ilRef, ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef });
             comp1.VerifyDiagnostics();
 
             var baseMethod1 = comp1.GlobalNamespace.GetMember<MethodSymbol>("Base.M");
@@ -1151,7 +1151,7 @@ class C : Base
     public override (object, object) M((object c, object d) y) { return y; }
 }
 ";
-            var comp2 = CreateCompilation(source2, new[] { MscorlibRef, SystemCoreRef, ilRef, ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef });
+            var comp2 = CreateCompilationRaw(source2, new[] { MscorlibRef, SystemCoreRef, ilRef, ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef });
             comp2.VerifyDiagnostics(
                 // (5,38): error CS8139: 'C.M((object c, object d))': cannot change tuple element names when overriding inherited member 'Base.M((object c, object d))'
                 //     public override (object, object) M((object c, object d) y) { return y; }
@@ -1178,7 +1178,7 @@ class C : Base
     public override (object a, object b) M((object, object) y) { return y; }
 }
 ";
-            var comp3 = CreateCompilation(source3, new[] { MscorlibRef, SystemCoreRef, ilRef, ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef });
+            var comp3 = CreateCompilationRaw(source3, new[] { MscorlibRef, SystemCoreRef, ilRef, ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef });
             comp3.VerifyDiagnostics(
                 // (5,42): error CS8139: 'C.M((object, object))': cannot change tuple element names when overriding inherited member 'Base.M((object c, object d))'
                 //     public override (object a, object b) M((object, object) y) { return y; }
@@ -1225,7 +1225,7 @@ class C : I
 }
 ";
             var ilRef = CompileIL(il, prependDefaultHeader: false);
-            var comp = CreateCompilation(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
+            var comp = CreateCompilationRaw(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
             comp.VerifyDiagnostics();
 
             var global = comp.GlobalNamespace;
@@ -1265,7 +1265,7 @@ class C : I
 }
 ";
             var ilRef = CompileIL(il, prependDefaultHeader: false);
-            var comp = CreateCompilation(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
+            var comp = CreateCompilationRaw(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
             comp.VerifyDiagnostics();
 
             var global = comp.GlobalNamespace;
@@ -1310,7 +1310,7 @@ public class C : I<byte, char>
 }
 ";
             var ilRef = CompileIL(il, prependDefaultHeader: false);
-            var comp = CreateCompilation(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
+            var comp = CreateCompilationRaw(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
             comp.VerifyDiagnostics();
 
             var global = comp.GlobalNamespace;
@@ -1354,7 +1354,7 @@ public class C : I<byte, char>
 }
 ";
             var ilRef = CompileIL(il, prependDefaultHeader: false);
-            var comp = CreateCompilation(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
+            var comp = CreateCompilationRaw(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
             comp.VerifyDiagnostics();
 
             var global = comp.GlobalNamespace;
@@ -1409,7 +1409,7 @@ class Derived : Base
 }
 ";
             var ilRef = CompileIL(il, prependDefaultHeader: false);
-            var comp = CreateCompilation(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
+            var comp = CreateCompilationRaw(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
             comp.VerifyDiagnostics();
 
             var global = comp.GlobalNamespace;
@@ -1463,7 +1463,7 @@ class Derived : Base
 }
 ";
             var ilRef = CompileIL(il, prependDefaultHeader: false);
-            var comp = CreateCompilation(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
+            var comp = CreateCompilationRaw(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
             comp.VerifyDiagnostics();
 
             var global = comp.GlobalNamespace;
@@ -1513,7 +1513,7 @@ class Derived : Base
 }
 ";
             var ilRef = CompileIL(il, prependDefaultHeader: false);
-            var comp = CreateCompilation(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
+            var comp = CreateCompilationRaw(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
             comp.VerifyDiagnostics();
 
             var global = comp.GlobalNamespace;
@@ -1598,7 +1598,7 @@ class Derived : Base
 }
 ";
             var ilRef = CompileIL(il, prependDefaultHeader: false);
-            var comp = CreateCompilation(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
+            var comp = CreateCompilationRaw(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
             comp.VerifyDiagnostics();
 
             var global = comp.GlobalNamespace;
@@ -1715,7 +1715,7 @@ class Derived : Base
 }
 ";
             var ilRef = CompileIL(il, prependDefaultHeader: false);
-            var comp = CreateCompilation(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
+            var comp = CreateCompilationRaw(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
             comp.VerifyDiagnostics();
 
             var global = comp.GlobalNamespace;
@@ -1810,7 +1810,7 @@ class Implementation : I
 }
 ";
             var ilRef = CompileIL(il, prependDefaultHeader: false);
-            var comp = CreateCompilation(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
+            var comp = CreateCompilationRaw(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
             comp.VerifyDiagnostics();
 
             var global = comp.GlobalNamespace;
@@ -1912,7 +1912,7 @@ class Implementation : I
 }
 ";
             var ilRef = CompileIL(il, prependDefaultHeader: false);
-            var comp = CreateCompilation(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
+            var comp = CreateCompilationRaw(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
             comp.VerifyDiagnostics();
 
             var global = comp.GlobalNamespace;

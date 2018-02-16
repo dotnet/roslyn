@@ -309,7 +309,7 @@ namespace N1
         [Fact]
         public void CompilingCodeWithInvalidPreProcessorSymbolsShouldProvideDiagnostics()
         {
-            var compilation = CreateCompilation(string.Empty, parseOptions: new CSharpParseOptions().WithPreprocessorSymbols(new[] { "1" }));
+            var compilation = CreateCompilationRaw(string.Empty, parseOptions: new CSharpParseOptions().WithPreprocessorSymbols(new[] { "1" }));
 
             compilation.VerifyDiagnostics(
                 // (1,1): error CS8301: Invalid name for a preprocessing symbol; '1' is not a valid identifier
@@ -333,7 +333,7 @@ namespace N1
         [Fact]
         public void CompilingCodeWithInvalidLanguageVersionShouldProvideDiagnostics()
         {
-            var compilation = CreateCompilation(string.Empty, parseOptions: new CSharpParseOptions().WithLanguageVersion((LanguageVersion)10000));
+            var compilation = CreateCompilationRaw(string.Empty, parseOptions: new CSharpParseOptions().WithLanguageVersion((LanguageVersion)10000));
             compilation.VerifyDiagnostics(
                 // (1,1): error CS8192: Provided language version is unsupported or invalid: '10000'.
                 // 
@@ -343,7 +343,7 @@ namespace N1
         [Fact]
         public void CompilingCodeWithInvalidDocumentationModeShouldProvideDiagnostics()
         {
-            var compilation = CreateCompilation(string.Empty, parseOptions: new CSharpParseOptions().WithDocumentationMode(unchecked((DocumentationMode)100)));
+            var compilation = CreateCompilationRaw(string.Empty, parseOptions: new CSharpParseOptions().WithDocumentationMode(unchecked((DocumentationMode)100)));
             compilation.VerifyDiagnostics(
                 // (1,1): error CS8191: Provided documentation mode is unsupported or invalid: '100'.
                 // 
@@ -357,7 +357,7 @@ namespace N1
             var syntaxTree2 = Parse(string.Empty, options: new CSharpParseOptions().WithPreprocessorSymbols(new[] { "2" }));
             var syntaxTree3 = Parse(string.Empty, options: new CSharpParseOptions().WithPreprocessorSymbols(new[] { "3" }));
 
-            var compilation = CreateCompilation(new[] { syntaxTree1, syntaxTree2, syntaxTree3 });
+            var compilation = CreateCompilationRaw(new[] { syntaxTree1, syntaxTree2, syntaxTree3 });
             var diagnostics = compilation.GetDiagnostics();
 
             diagnostics.Verify(

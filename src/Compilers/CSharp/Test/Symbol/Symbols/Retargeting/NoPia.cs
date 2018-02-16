@@ -275,10 +275,10 @@ public class LocalTypes3
         [ClrOnlyFact]
         public void HideLocalTypeDefinitions()
         {
-            var LocalTypes1 = CreateCompilation(s_sourceLocalTypes1_IL, new[] { MscorlibRef }, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes1");
+            var LocalTypes1 = CreateCompilationRaw(s_sourceLocalTypes1_IL, new[] { MscorlibRef }, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes1");
             CompileAndVerify(LocalTypes1);
 
-            var LocalTypes2 = CreateCompilation(s_sourceLocalTypes2_IL, new[] { MscorlibRef }, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes2");
+            var LocalTypes2 = CreateCompilationRaw(s_sourceLocalTypes2_IL, new[] { MscorlibRef }, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes2");
             CompileAndVerify(LocalTypes2);
 
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
@@ -641,11 +641,13 @@ public class LocalTypes3
         [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
         public void LocalTypeSubstitution1_2()
         {
-            var LocalTypes1 = CreateStandardCompilation(s_sourceLocalTypes1, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes1",
+            var LocalTypes1 = CreateCompilation(s_sourceLocalTypes1, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes1",
+                                        targetFramework: TargetFramework.StandardCompat,
                                         references: new[] { TestReferences.SymbolsTests.NoPia.Pia1.WithEmbedInteropTypes(true) });
             CompileAndVerify(LocalTypes1);
 
-            var LocalTypes2 = CreateStandardCompilation(s_sourceLocalTypes2, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes2",
+            var LocalTypes2 = CreateCompilation(s_sourceLocalTypes2, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes2",
+                                        targetFramework: TargetFramework.StandardCompat,
                                         references: new[] { TestReferences.SymbolsTests.NoPia.Pia1.WithEmbedInteropTypes(true) });
             CompileAndVerify(LocalTypes2);
 
@@ -940,14 +942,16 @@ public class LocalTypes3
         [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
         public void LocalTypeSubstitution1_3()
         {
-            var Pia1 = CreateStandardCompilation(s_sourcePia1, options: TestOptions.ReleaseDll, assemblyName: "Pia1");
+            var Pia1 = CreateCompilation(s_sourcePia1, options: TestOptions.ReleaseDll, assemblyName: "Pia1", targetFramework: TargetFramework.StandardCompat);
             CompileAndVerify(Pia1);
 
-            var LocalTypes1 = CreateStandardCompilation(s_sourceLocalTypes1, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes1",
+            var LocalTypes1 = CreateCompilation(s_sourceLocalTypes1, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes1",
+                                        targetFramework: TargetFramework.StandardCompat,
                                         references: new MetadataReference[] { new CSharpCompilationReference(Pia1, embedInteropTypes: true) });
             CompileAndVerify(LocalTypes1);
 
-            var LocalTypes2 = CreateStandardCompilation(s_sourceLocalTypes2, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes2",
+            var LocalTypes2 = CreateCompilation(s_sourceLocalTypes2, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes2",
+                                        targetFramework: TargetFramework.StandardCompat,
                                         references: new MetadataReference[] { new CSharpCompilationReference(Pia1, embedInteropTypes: true) });
             CompileAndVerify(LocalTypes2);
 

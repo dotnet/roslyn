@@ -98,11 +98,11 @@ namespace System
         public ValueTuple(T1 item1, T2 item2) => (Item1, Item2) = (item1, item2);
     }
 }";
-            var corlibWithoutVT = CreateCompilation(new[] { Parse(String.Format(versionTemplate, "1") + corlib_cs) }, assemblyName: "corlib");
+            var corlibWithoutVT = CreateCompilationRaw(new[] { Parse(String.Format(versionTemplate, "1") + corlib_cs) }, assemblyName: "corlib");
             corlibWithoutVT.VerifyDiagnostics();
             var corlibWithoutVTRef = corlibWithoutVT.EmitToImageReference();
 
-            var corlibWithVT = CreateCompilation(new[] { Parse(String.Format(versionTemplate, "2") + corlib_cs + valuetuple_cs) }, assemblyName: "corlib");
+            var corlibWithVT = CreateCompilationRaw(new[] { Parse(String.Format(versionTemplate, "2") + corlib_cs + valuetuple_cs) }, assemblyName: "corlib");
             corlibWithVT.VerifyDiagnostics();
 
             var source =
@@ -115,7 +115,7 @@ namespace System
     }
 }
 ";
-            var app = CreateCompilation(source + valuetuple_cs, references: new[] { corlibWithoutVTRef }, options: TestOptions.DebugDll);
+            var app = CreateCompilationRaw(source + valuetuple_cs, references: new[] { corlibWithoutVTRef }, options: TestOptions.DebugDll);
             app.VerifyDiagnostics();
 
             // Create EE context with app assembly (including ValueTuple) and a more recent corlib (also including ValueTuple)

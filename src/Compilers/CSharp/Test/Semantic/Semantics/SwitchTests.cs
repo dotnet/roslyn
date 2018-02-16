@@ -1329,7 +1329,7 @@ class Program
             // Intentionally not passing any references here to ensure System.Int32 is 
             // unresolvable and hence the constant values in the enum "E" will all be 
             // created as ConstantValue.Bad 
-            var comp = CreateCompilation(new[] { syntaxTree }, references: null);
+            var comp = CreateCompilationRaw(new[] { syntaxTree }, references: null);
             var semanticModel = comp.GetSemanticModel(syntaxTree);
             var node = syntaxTree.GetRoot().DescendantNodes().First(x => x.IsKind(SyntaxKind.SimpleMemberAccessExpression));
 

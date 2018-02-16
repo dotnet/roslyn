@@ -462,12 +462,12 @@ class C
 @"public class B : A
 {
 }";
-            var moduleA = CreateCompilation(
+            var moduleA = CreateCompilationRaw(
                 sourceA,
                 references: new[] { SystemRuntimePP7Ref },
                 options: TestOptions.DebugDll).ToModuleInstance();
 
-            var moduleB = CreateCompilation(
+            var moduleB = CreateCompilationRaw(
                 sourceB,
                 references: new[] { SystemRuntimePP7Ref, moduleA.GetReference() },
                 options: TestOptions.DebugDll).ToModuleInstance();
@@ -563,7 +563,7 @@ IL_0005:  ret
             var runtimeReferences = ImmutableArray.Create(systemConsoleRef, MscorlibFacadeRef, SystemRuntimeFacadeRef, systemObjectModelRef);
 
             // Verify the compiler reports duplicate types with facade assemblies.
-            var compilation = CreateCompilation(
+            var compilation = CreateCompilationRaw(
                 source,
                 references: runtimeReferences,
                 options: TestOptions.DebugDll,
@@ -579,7 +579,7 @@ IL_0005:  ret
             // EE should not report duplicate type when the original source
             // is compiled with contract assemblies and the EE expression
             // is compiled with facade assemblies.
-            compilation = CreateCompilation(
+            compilation = CreateCompilationRaw(
                 source,
                 references: contractReferences,
                 options: TestOptions.DebugDll);
@@ -752,7 +752,7 @@ namespace System
 }";
             // Create a custom corlib with a reference to compilation
             // above and a reference to the actual mscorlib.
-            var compCorLib = CreateCompilation(sourceCorLib, assemblyName: CorLibAssemblyName, references: new[] { MscorlibRef, refLib });
+            var compCorLib = CreateCompilationRaw(sourceCorLib, assemblyName: CorLibAssemblyName, references: new[] { MscorlibRef, refLib });
             compCorLib.VerifyDiagnostics();
             var objectType = compCorLib.SourceAssembly.GlobalNamespace.GetMember<NamedTypeSymbol>("System.Object");
             Assert.NotNull(objectType.BaseType());
@@ -788,7 +788,7 @@ namespace System
     {
     }
 }";
-                var comp = CreateCompilation(source, options: TestOptions.DebugDll, references: new[] { refLib, AssemblyMetadata.Create(module).GetReference() });
+                var comp = CreateCompilationRaw(source, options: TestOptions.DebugDll, references: new[] { refLib, AssemblyMetadata.Create(module).GetReference() });
                 comp.VerifyDiagnostics();
 
                 using (var runtime = RuntimeInstance.Create(new[] { comp.ToModuleInstance(), moduleInstance }))
@@ -870,7 +870,7 @@ namespace System
 }";
             // Create a custom corlib with a reference to compilation
             // above and a reference to the actual mscorlib.
-            var compCorLib = CreateCompilation(sourceCorLib, assemblyName: CorLibAssemblyName, references: new[] { MscorlibRef, refLib });
+            var compCorLib = CreateCompilationRaw(sourceCorLib, assemblyName: CorLibAssemblyName, references: new[] { MscorlibRef, refLib });
             compCorLib.VerifyDiagnostics();
             var objectType = compCorLib.SourceAssembly.GlobalNamespace.GetMember<NamedTypeSymbol>("System.Object");
             Assert.NotNull(objectType.BaseType());

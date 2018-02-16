@@ -1737,7 +1737,7 @@ public class Test
 
         private static CSharpCompilation CreateCompilationWithCorlib20(string text)
         {
-            return CreateCompilation(new string[] { text }, new[] { TestReferences.NetFx.v2_0_50727.mscorlib });
+            return CreateCompilationRaw(new string[] { text }, new[] { TestReferences.NetFx.v2_0_50727.mscorlib });
         }
 
         #endregion Pre-4.0 codegen

@@ -785,7 +785,7 @@ public struct Test21
 }
 ";
 
-            var piaCompilation = CreateCompilation(pia, new MetadataReference[] { MscorlibRef_v20 }, options: TestOptions.ReleaseDll);
+            var piaCompilation = CreateCompilationRaw(pia, new MetadataReference[] { MscorlibRef_v20 }, options: TestOptions.ReleaseDll);
 
             CompileAndVerify(piaCompilation);
 
@@ -808,11 +808,11 @@ class UsePia
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "default(Test21)").WithArguments("System.Runtime.InteropServices.TypeIdentifierAttribute", ".ctor")
                                                };
 
-            var compilation = CreateCompilation(consumer, new MetadataReference[] { MscorlibRef_v20, new CSharpCompilationReference(piaCompilation, embedInteropTypes: true) }, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationRaw(consumer, new MetadataReference[] { MscorlibRef_v20, new CSharpCompilationReference(piaCompilation, embedInteropTypes: true) }, options: TestOptions.ReleaseExe);
 
             VerifyEmitDiagnostics(compilation, true, expected);
 
-            compilation = CreateCompilation(consumer, references: new MetadataReference[] { MscorlibRef_v20, piaCompilation.EmitToImageReference(embedInteropTypes: true) }, options: TestOptions.ReleaseExe);
+            compilation = CreateCompilationRaw(consumer, references: new MetadataReference[] { MscorlibRef_v20, piaCompilation.EmitToImageReference(embedInteropTypes: true) }, options: TestOptions.ReleaseExe);
 
             VerifyEmitDiagnostics(compilation, true, expected);
         }
@@ -834,7 +834,7 @@ public interface ITest20
 }
 ";
 
-            var piaCompilation = CreateCompilation(pia, new MetadataReference[] { MscorlibRef_v20 }, options: TestOptions.DebugDll);
+            var piaCompilation = CreateCompilationRaw(pia, new MetadataReference[] { MscorlibRef_v20 }, options: TestOptions.DebugDll);
 
             CompileAndVerify(piaCompilation);
 
@@ -858,11 +858,11 @@ class UsePia
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x = (ITest20)null").WithArguments("System.Runtime.InteropServices.TypeIdentifierAttribute", ".ctor")
             };
 
-            var compilation = CreateCompilation(consumer, new MetadataReference[] { MscorlibRef_v20, new CSharpCompilationReference(piaCompilation, embedInteropTypes: true) }, options: TestOptions.DebugExe);
+            var compilation = CreateCompilationRaw(consumer, new MetadataReference[] { MscorlibRef_v20, new CSharpCompilationReference(piaCompilation, embedInteropTypes: true) }, options: TestOptions.DebugExe);
 
             VerifyEmitDiagnostics(compilation, true, expected);
 
-            compilation = CreateCompilation(consumer, references: new MetadataReference[] { MscorlibRef_v20, piaCompilation.EmitToImageReference(embedInteropTypes: true) }, options: TestOptions.DebugExe);
+            compilation = CreateCompilationRaw(consumer, references: new MetadataReference[] { MscorlibRef_v20, piaCompilation.EmitToImageReference(embedInteropTypes: true) }, options: TestOptions.DebugExe);
 
             VerifyEmitDiagnostics(compilation, true, expected);
         }
@@ -1934,7 +1934,7 @@ public abstract class ClassITest28 //: ITest28
 }
 ";
 
-            var piaCompilation = CreateCompilation(pia, new MetadataReference[] { MscorlibRef_v4_0_30316_17626 }, options: TestOptions.DebugDll);
+            var piaCompilation = CreateCompilationRaw(pia, new MetadataReference[] { MscorlibRef_v4_0_30316_17626 }, options: TestOptions.DebugDll);
 
             CompileAndVerify(piaCompilation);
 
@@ -1982,7 +1982,7 @@ class UsePia
                 Assert.Equal("System.Runtime.InteropServices.CoClassAttribute(typeof(object))", interfaceType.ToString());
             };
 
-            var compilation = CreateCompilation(consumer,
+            var compilation = CreateCompilationRaw(consumer,
                                                 new MetadataReference[] { MscorlibRef_v4_0_30316_17626, new CSharpCompilationReference(piaCompilation, embedInteropTypes: true) },
                                                 options: TestOptions.DebugExe);
 

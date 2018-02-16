@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
         private static CompiledFile CompileLibrary(TempDirectory dir, string fileName, string assemblyName, string source, params MetadataReference[] references)
         {
             var file = dir.CreateFile(fileName);
-            var compilation = CreateCompilation(
+            var compilation = CreateCompilationRaw(
                 new[] { source },
                 assemblyName: assemblyName,
                 references: references.Concat(new[] { MetadataReference.CreateFromAssemblyInternal(typeof(object).Assembly) }),

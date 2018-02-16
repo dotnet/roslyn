@@ -7130,7 +7130,7 @@ public interface EventInterface
 }
 ";
 
-            var comp1 = CreateCompilation(source1, WinRtRefs, TestOptions.ReleaseWinMD, TestOptions.Regular);
+            var comp1 = CreateCompilationRaw(source1, WinRtRefs, TestOptions.ReleaseWinMD, TestOptions.Regular);
 
             string source2 = @"
 class C : EventInterface
@@ -7177,7 +7177,7 @@ public interface EventInterface
 }
 ";
 
-            var comp1 = CreateCompilation(source1, WinRtRefs, TestOptions.ReleaseWinMD, TestOptions.Regular);
+            var comp1 = CreateCompilationRaw(source1, WinRtRefs, TestOptions.ReleaseWinMD, TestOptions.Regular);
 
             string source2 = @"
 struct S : EventInterface

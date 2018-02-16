@@ -26,7 +26,7 @@ class C1
 }
 
 ");
-            CSharpCompilation c = CreateCompilation(new[] { t });
+            CSharpCompilation c = CreateCompilationRaw(new[] { t });
             s_testModel = c.GetSemanticModel(t);
             s_testPosition = t.FindNodeOrTokenByKind(SyntaxKind.VariableDeclaration).SpanStart;
             s_testSymbol = c.GetWellKnownType(WellKnownType.System_Exception);

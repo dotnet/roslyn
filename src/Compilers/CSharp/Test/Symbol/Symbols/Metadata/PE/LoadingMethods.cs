@@ -1340,7 +1340,7 @@ class P
 ";
 
             var ilRef = CompileIL(il, prependDefaultHeader: false);
-            var comp = CreateCompilation("", new[] { ilRef });
+            var comp = CreateCompilationRaw("", new[] { ilRef });
 
             var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
             var method = type.GetMember<MethodSymbol>("M");

@@ -6688,7 +6688,7 @@ class Y
 }
 ";
             comp1 = CreateStandardCompilation(source2, assemblyName: "Temp1").ToMetadataReference();
-            var comp2 = CreateCompilation(source3, assemblyName: "Temp2").ToMetadataReference();
+            var comp2 = CreateCompilationRaw(source3, assemblyName: "Temp2").ToMetadataReference();
             var comp3 = CreateStandardCompilation(source4, references: new[] { comp1, comp2 });
             comp3.VerifyDiagnostics(
                 // (2,2): error CS0434: The namespace 'X' in 'Temp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with the type 'X' in 'Temp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'

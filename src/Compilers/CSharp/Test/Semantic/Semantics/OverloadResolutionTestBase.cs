@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var mscorlibRef = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30316_17626.mscorlib).GetReference(display: "mscorlib");
             var references = new[] { mscorlibRef }.Concat(additionalRefs ?? Array.Empty<MetadataReference>());
 
-            var compilation = CreateCompilation(source, references, TestOptions.ReleaseDll);
+            var compilation = CreateCompilationRaw(source, references, TestOptions.ReleaseDll);
 
             var method = (SourceMemberMethodSymbol)compilation.GlobalNamespace.GetTypeMembers("C").Single().GetMembers("M").Single();
             var diagnostics = new DiagnosticBag();

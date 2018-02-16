@@ -168,10 +168,10 @@ class C
         d((0, 0));
     }
 }";
-            var comp = CreateCompilation(source0);
+            var comp = CreateCompilationRaw(source0);
             comp.VerifyDiagnostics();
             var ref0 = comp.EmitToImageReference();
-            comp = CreateCompilation(source1,
+            comp = CreateCompilationRaw(source1,
                 references: s_attributeRefs.Concat(new[] { ref0 }));
             comp.VerifyDiagnostics(
                 // (6,11): error CS0518: Predefined type 'System.String' is not defined or imported
@@ -204,10 +204,10 @@ class C
 {
     static (int x, int y) M() => (0, 0);
 }";
-            var comp = CreateCompilation(source0);
+            var comp = CreateCompilationRaw(source0);
             comp.VerifyDiagnostics();
             var ref0 = comp.EmitToImageReference();
-            comp = CreateCompilation(source1,
+            comp = CreateCompilationRaw(source1,
                 references: new[] { ref0, ValueTupleRef });
             comp.VerifyDiagnostics(
                 // (4,12): error CS0518: Predefined type 'System.String' is not defined or imported

@@ -46,7 +46,7 @@ public class Top : A<E> { // base is A<E>
   public class BF : B<F> {} // base is A<E>.B<F>
 }
 ";
-            var comp = CreateCompilation(text);
+            var comp = CreateCompilationRaw(text);
             var global = comp.GlobalNamespace;
             var at = global.GetTypeMembers("A", 1).Single(); // A<T>
             var t = at.TypeParameters[0];

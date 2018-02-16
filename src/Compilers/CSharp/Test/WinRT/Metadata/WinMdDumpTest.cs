@@ -437,7 +437,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata
                 references = references.Concat(additionalRefs);
             }
 
-            var comp = CreateCompilation("", references, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            var comp = CreateCompilationRaw("", references, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
 
             var writer = new StringBuilder();
             AppendAssemblyRefs(writer, (PEAssemblySymbol)comp.GetReferencedAssemblySymbol(winmd));

@@ -5824,7 +5824,7 @@ enum E { }
 ";
 
             // Restore compat: include inaccessible members in cref lookup
-            var comp = CreateCompilation(
+            var comp = CreateCompilationRaw(
                 new[] { Parse(source, options: TestOptions.RegularWithDocumentationComments) },
                 new[] { MscorlibRef },
                 TestOptions.ReleaseDll.WithXmlReferenceResolver(XmlFileResolver.Default));

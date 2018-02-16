@@ -725,7 +725,7 @@ public interface CL3_I1 : CL2_I1
                 cl3
             };
 
-            var compilation1 = CreateCompilation(
+            var compilation1 = CreateCompilationRaw(
 @"
     class Program
     {
@@ -772,17 +772,17 @@ public class C
 class D : C, I { }
 ";
 
-            var libRef = CreateCompilation(libSource, new[] { MscorlibRef }, assemblyName: "System.Drawing").EmitToImageReference();
+            var libRef = CreateCompilationRaw(libSource, new[] { MscorlibRef }, assemblyName: "System.Drawing").EmitToImageReference();
 
-            var comp1 = CreateCompilation(project1Source, new[] { MscorlibRef, libRef }, assemblyName: "Project1");
+            var comp1 = CreateCompilationRaw(project1Source, new[] { MscorlibRef, libRef }, assemblyName: "Project1");
             comp1.VerifyDiagnostics();
 
-            var comp2 = CreateCompilation(project2Source, new[] { MscorlibRef, libRef }, assemblyName: "Project2");
+            var comp2 = CreateCompilationRaw(project2Source, new[] { MscorlibRef, libRef }, assemblyName: "Project2");
             comp2.VerifyDiagnostics();
 
             // Scenario 1: Projects 1, 2, and 3 are in source; project 3 does not reference lib.
             {
-                var comp3 = CreateCompilation(project3Source, new[] { MscorlibRef, comp1.ToMetadataReference(), comp2.ToMetadataReference() }, assemblyName: "Project3");
+                var comp3 = CreateCompilationRaw(project3Source, new[] { MscorlibRef, comp1.ToMetadataReference(), comp2.ToMetadataReference() }, assemblyName: "Project3");
                 comp3.VerifyDiagnostics(
                     // (2,7): error CS0012: The type 'System.Drawing.Point' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.Drawing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                     // class D : C, I { }
@@ -791,7 +791,7 @@ class D : C, I { }
 
             // Scenario 2: Projects 1 and 2 are metadata, and project 3 is in source; project 3 does not reference lib.
             {
-                var comp3 = CreateCompilation(project3Source, new[] { MscorlibRef, comp1.EmitToImageReference(), comp2.EmitToImageReference() }, assemblyName: "Project3");
+                var comp3 = CreateCompilationRaw(project3Source, new[] { MscorlibRef, comp1.EmitToImageReference(), comp2.EmitToImageReference() }, assemblyName: "Project3");
                 comp3.VerifyDiagnostics(
                     // (2,7): error CS0012: The type 'System.Drawing.Point' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.Drawing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                     // class D : C, I { }

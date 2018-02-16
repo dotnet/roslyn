@@ -1817,7 +1817,7 @@ class CL3 : CL2
         }
     }
 ";
-            var compilation = CreateCompilationWithCustomILSource(source, ilSource, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithCustomILSource(source, ilSource, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net40, references: new[] { SystemCoreRef });
 
             System.Action<IModuleSymbol> validator = (m) =>
             {

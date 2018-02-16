@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
         public static CSharpCompilation CreateWinRtCompilation(string text, MetadataReference[] additionalRefs = null)
         {
-            return CreateCompilation(
+            return CreateCompilationRaw(
                 text,
                 WinRtRefs.Concat(additionalRefs ?? Enumerable.Empty<MetadataReference>()),
                 TestOptions.ReleaseExe);
@@ -311,7 +311,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         {
             MetadataReference ilReference = CompileIL(ilSource, appendDefaultHeader);
             var allReferences = TargetFrameworkUtil.GetReferences(targetFramework, references).Add(ilReference);
-            return CreateCompilation(source, allReferences, options);
+            return CreateCompilationRaw(source, allReferences, options);
         }
 
         public static CSharpCompilation CreateCompilationWithMscorlib40(
@@ -417,7 +417,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 refs.AddRange(additionalRefs);
             }
 
-            return CreateCompilation(new[] { Parse(text, options: parseOptions) }, refs, options);
+            return CreateCompilationRaw(new[] { Parse(text, options: parseOptions) }, refs, options);
         }
 
         public static CSharpCompilation CreateCompilationWithMscorlibAndSystemCore(
@@ -426,7 +426,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             CSharpCompilationOptions options = null,
             string assemblyName = "")
         {
-            return CreateCompilation(trees, (references != null) ? new[] { MscorlibRef, SystemCoreRef }.Concat(references) : new[] { MscorlibRef, SystemCoreRef }, options, assemblyName);
+            return CreateCompilationRaw(trees, (references != null) ? new[] { MscorlibRef, SystemCoreRef }.Concat(references) : new[] { MscorlibRef, SystemCoreRef }, options, assemblyName);
         }
 
         public static CSharpCompilation CreateCompilationWithMscorlibAndSystemCore(
@@ -438,7 +438,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         {
             references = (references != null) ? new[] { MscorlibRef, SystemCoreRef }.Concat(references) : new[] { MscorlibRef, SystemCoreRef };
 
-            return CreateCompilation(
+            return CreateCompilationRaw(
                 new[] { Parse(text, "", parseOptions) },
                 references: references,
                 options: options,
@@ -453,7 +453,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             CSharpCompilationOptions options = null,
             string assemblyName = "Test")
         {
-            return CreateCompilation(
+            return CreateCompilationRaw(
                 new[] { Parse(text, options: TestOptions.RegularWithDocumentationComments) },
                 references: references?.Concat(s_mscorlibRefArray) ?? s_mscorlibRefArray,
                 options: (options ?? TestOptions.ReleaseDll).WithXmlReferenceResolver(XmlFileResolver.Default),
@@ -466,46 +466,46 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             IEnumerable<MetadataReference> references = null,
             CSharpCompilationOptions options = null,
             CSharpParseOptions parseOptions = null,
-            string assemblyName = "") => CreateCompilation(source, TargetFrameworkUtil.GetReferences(targetFramework, references), options, parseOptions, assemblyName);
+            string assemblyName = "") => CreateCompilationRaw(source, TargetFrameworkUtil.GetReferences(targetFramework, references), options, parseOptions, assemblyName);
 
         public static CSharpCompilation CreateCompilation(
-            IEnumerable<string> sources,
+            IEnumerable<string> source,
             TargetFramework targetFramework,
             IEnumerable<MetadataReference> references = null,
             CSharpCompilationOptions options = null,
             CSharpParseOptions parseOptions = null,
-            string assemblyName = "") => CreateCompilation(Parse(sources, parseOptions), TargetFrameworkUtil.GetReferences(targetFramework, references), options, assemblyName);
+            string assemblyName = "") => CreateCompilationRaw(Parse(source, parseOptions), TargetFrameworkUtil.GetReferences(targetFramework, references), options, assemblyName);
+
+        public static CSharpCompilation CreateCompilationRaw(
+            IEnumerable<string> source,
+            IEnumerable<MetadataReference> references = null,
+            CSharpCompilationOptions options = null,
+            CSharpParseOptions parseOptions = null,
+            string assemblyName = "") => CreateCompilationRaw(Parse(source, parseOptions), references, options, assemblyName);
 
         public static CSharpCompilation CreateCompilation(
+            SyntaxTree source,
+            TargetFramework targetFramework,
+            IEnumerable<MetadataReference> references = null,
+            CSharpCompilationOptions options = null,
+            string assemblyName = "") => CreateCompilationRaw(new[] { source }, TargetFrameworkUtil.GetReferences(targetFramework, references), options, assemblyName);
+
+        public static CSharpCompilation CreateCompilation(
+            IEnumerable<SyntaxTree> source,
+            TargetFramework targetFramework,
+            IEnumerable<MetadataReference> references = null,
+            CSharpCompilationOptions options = null,
+            string assemblyName = "") => CreateCompilationRaw(source, TargetFrameworkUtil.GetReferences(targetFramework, references), options, assemblyName);
+
+        public static CSharpCompilation CreateCompilationRaw(
             string source,
             IEnumerable<MetadataReference> references = null,
             CSharpCompilationOptions options = null,
             CSharpParseOptions parseOptions = null,
-            string assemblyName = "") => CreateCompilation(new[] { Parse(source, options: parseOptions) }, references, options, assemblyName);
+            string assemblyName = "") => CreateCompilationRaw(new[] { Parse(source, options: parseOptions) }, references, options, assemblyName);
 
-        public static CSharpCompilation CreateCompilation(
-            IEnumerable<string> sources,
-            IEnumerable<MetadataReference> references = null,
-            CSharpCompilationOptions options = null,
-            CSharpParseOptions parseOptions = null,
-            string assemblyName = "") => CreateCompilation(Parse(sources, parseOptions), references, options, assemblyName);
-
-        public static CSharpCompilation CreateCompilation(
-            SyntaxTree tree,
-            TargetFramework targetFramework,
-            IEnumerable<MetadataReference> references = null,
-            CSharpCompilationOptions options = null,
-            string assemblyName = "") => CreateCompilation(new[] { tree }, TargetFrameworkUtil.GetReferences(targetFramework, references), options, assemblyName);
-
-        public static CSharpCompilation CreateCompilation(
-            IEnumerable<SyntaxTree> trees,
-            TargetFramework targetFramework,
-            IEnumerable<MetadataReference> references = null,
-            CSharpCompilationOptions options = null,
-            string assemblyName = "") => CreateCompilation(trees, TargetFrameworkUtil.GetReferences(targetFramework, references), options, assemblyName);
-
-        public static CSharpCompilation CreateCompilation(
-            IEnumerable<SyntaxTree> trees,
+        public static CSharpCompilation CreateCompilationRaw(
+            IEnumerable<SyntaxTree> source,
             IEnumerable<MetadataReference> references = null,
             CSharpCompilationOptions options = null,
             string assemblyName = "")
@@ -523,7 +523,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
             Func<CSharpCompilation> createCompilationLambda = () => CSharpCompilation.Create(
                 assemblyName == "" ? GetUniqueName() : assemblyName,
-                trees,
+                source,
                 references,
                 options);
             CompilationExtensions.ValidateIOperations(createCompilationLambda);
@@ -631,7 +631,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         {
             var single = new[] { MscorlibRef };
             references = references != null ? single.Concat(references) : single;
-            return CreateCompilation(
+            return CreateCompilationRaw(
                 source.ToArray(),
                 references: (IEnumerable<MetadataReference>)references,
                 options: (CSharpCompilationOptions)options,
@@ -1224,14 +1224,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
         protected static CSharpCompilation CreateCompilationWithMscorlibAndSpan(string text, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
         {
-            var reference = CreateCompilation(
+            var reference = CreateCompilationRaw(
                 spanSource,
                 references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef },
                 options: TestOptions.UnsafeReleaseDll);
 
             reference.VerifyDiagnostics();
 
-            var comp = CreateCompilation(
+            var comp = CreateCompilationRaw(
                 text,
                 references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef, reference.EmitToImageReference() },
                 options: options,
@@ -1244,7 +1244,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         protected static CSharpCompilation CreateCompilationWithMscorlibAndSpanSrc(string text, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
         {
             var textWitSpan = new string[] { text, spanSource };
-            var comp = CreateCompilation(
+            var comp = CreateCompilationRaw(
                 textWitSpan,
                 references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef },
                 options: options ?? TestOptions.UnsafeReleaseDll,

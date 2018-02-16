@@ -7811,7 +7811,7 @@ public class Class4
 {
 }
 ";
-            var compilation1 = CreateCompilation(source1, WinRtRefs, TestOptions.ReleaseDll);
+            var compilation1 = CreateCompilationRaw(source1, WinRtRefs, TestOptions.ReleaseDll);
 
             compilation1.VerifyDiagnostics();
 
@@ -7858,7 +7858,7 @@ class Class6
     }
 }
 ";
-            var compilation2 = CreateCompilation(source2, WinRtRefs.Concat(new[] { new CSharpCompilationReference(compilation1) }), TestOptions.ReleaseDll);
+            var compilation2 = CreateCompilationRaw(source2, WinRtRefs.Concat(new[] { new CSharpCompilationReference(compilation1) }), TestOptions.ReleaseDll);
 
             var expected = new[] {
                 // (25,10): error CS1667: Attribute 'Windows.Foundation.Metadata.DeprecatedAttribute' is not valid on property or event accessors. It is only valid on 'class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate' declarations.
@@ -7883,7 +7883,7 @@ class Class6
 
             compilation2.VerifyDiagnostics(expected);
 
-            compilation2 = CreateCompilation(source2, WinRtRefs.Concat(new[] { compilation1.EmitToImageReference() }), TestOptions.ReleaseDll);
+            compilation2 = CreateCompilationRaw(source2, WinRtRefs.Concat(new[] { compilation1.EmitToImageReference() }), TestOptions.ReleaseDll);
             compilation2.VerifyDiagnostics(expected);
         }
 
@@ -7910,7 +7910,7 @@ class C
         G();
     }
 }";
-            var compilation = CreateCompilation(source, WinRtRefs, TestOptions.ReleaseDll);
+            var compilation = CreateCompilationRaw(source, WinRtRefs, TestOptions.ReleaseDll);
             compilation.VerifyDiagnostics(
                 // (12,9): warning CS0618: 'C.F()' is obsolete: 'Deprecated'
                 //         F();
@@ -8172,7 +8172,7 @@ public sealed class ConcreteGoo5 : IGoo1
     }
 }
 ";
-            var compilation1 = CreateCompilation(source1, WinRtRefs, TestOptions.ReleaseDll);
+            var compilation1 = CreateCompilationRaw(source1, WinRtRefs, TestOptions.ReleaseDll);
 
             var expected = new[] {
                 // (12,9): warning CS0618: 'IGoo1.Goo()' is obsolete: 'IGoo1.Goo has been deprecated'
@@ -8209,7 +8209,7 @@ public interface IExceptionalInterface
     }
 }
 ";
-            var compilation1 = CreateCompilation(source1, WinRtRefs, TestOptions.ReleaseDll);
+            var compilation1 = CreateCompilationRaw(source1, WinRtRefs, TestOptions.ReleaseDll);
 
             //compilation1.VerifyDiagnostics();
 
@@ -8225,7 +8225,7 @@ class Test
         }
     }
 ";
-            var compilation2 = CreateCompilation(source2, WinRtRefs.Concat(new[] { new CSharpCompilationReference(compilation1) }), TestOptions.ReleaseDll);
+            var compilation2 = CreateCompilationRaw(source2, WinRtRefs.Concat(new[] { new CSharpCompilationReference(compilation1) }), TestOptions.ReleaseDll);
 
             var expected = new[] {
                 // (8,9): error CS0619: 'IExceptionalInterface.ExceptionalProp.set' is obsolete: 'Changed my mind; don't put this prop.'
@@ -8285,7 +8285,7 @@ public class C
 ";
 
             var ilReference = CompileIL(ilsource);
-            var cscomp = CreateCompilation(cssource, new[] { MscorlibRef, ilReference }, TestOptions.ReleaseExe);
+            var cscomp = CreateCompilationRaw(cssource, new[] { MscorlibRef, ilReference }, TestOptions.ReleaseExe);
 
             var expected = new[] {
                 // (12,29): error CS0648: 'Scenario1' is a type not supported by the language
@@ -8393,7 +8393,7 @@ public class C
 ";
 
             var ilReference = CompileIL(ilsource);
-            var cscomp = CreateCompilation(cssource, new[] { MscorlibRef, ilReference }, TestOptions.ReleaseExe);
+            var cscomp = CreateCompilationRaw(cssource, new[] { MscorlibRef, ilReference }, TestOptions.ReleaseExe);
 
             var expected = new[] {
                 // (9,11): error CS0570: 'RequiredAttr.ReqAttrUsage.sc1_field' is not supported by the language

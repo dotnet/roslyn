@@ -4192,8 +4192,8 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(
-                trees: new[] { Parse(text) },
+            var comp = CreateCompilationRaw(
+                source: new[] { Parse(text) },
                 references: new[] { AacorlibRef });
 
 

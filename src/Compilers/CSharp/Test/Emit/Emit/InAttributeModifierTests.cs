@@ -1497,7 +1497,7 @@ class Test
     public virtual void M(in object x) { }
 }";
 
-            CreateCompilation(code).VerifyDiagnostics(
+            CreateCompilationRaw(code).VerifyDiagnostics(
                 // (9,27): error CS0518: Predefined type 'System.Runtime.InteropServices.InAttribute' is not defined or imported
                 //     public virtual void M(in object x) { }
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "in object x").WithArguments("System.Runtime.InteropServices.InAttribute").WithLocation(9, 27));
@@ -1518,7 +1518,7 @@ class Test
     public virtual ref readonly object M() => ref value;
 }";
 
-            CreateCompilation(code).VerifyDiagnostics(
+            CreateCompilationRaw(code).VerifyDiagnostics(
                 // (10,20): error CS0518: Predefined type 'System.Runtime.InteropServices.InAttribute' is not defined or imported
                 //     public virtual ref readonly object M() => ref value;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "ref readonly object").WithArguments("System.Runtime.InteropServices.InAttribute").WithLocation(10, 20));
@@ -1539,7 +1539,7 @@ class Test
     public virtual ref readonly object M => ref value;
 }";
 
-            CreateCompilation(code).VerifyDiagnostics(
+            CreateCompilationRaw(code).VerifyDiagnostics(
                 // (10,20): error CS0518: Predefined type 'System.Runtime.InteropServices.InAttribute' is not defined or imported
                 //     public virtual ref readonly object M => ref value;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "ref readonly object").WithArguments("System.Runtime.InteropServices.InAttribute").WithLocation(10, 20));
@@ -1559,7 +1559,7 @@ class Test
     public virtual object this[in object p] => null;
 }";
 
-            CreateCompilation(code).VerifyDiagnostics(
+            CreateCompilationRaw(code).VerifyDiagnostics(
                 // (9,32): error CS0518: Predefined type 'System.Runtime.InteropServices.InAttribute' is not defined or imported
                 //     public virtual object this[in object p] => null;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "in object p").WithArguments("System.Runtime.InteropServices.InAttribute").WithLocation(9, 32));
@@ -1580,7 +1580,7 @@ class Test
     public virtual ref readonly object this[object p] => ref value;
 }";
 
-            CreateCompilation(code).VerifyDiagnostics(
+            CreateCompilationRaw(code).VerifyDiagnostics(
                 // (10,20): error CS0518: Predefined type 'System.Runtime.InteropServices.InAttribute' is not defined or imported
                 //     public virtual ref readonly object this[object p] => ref value;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "ref readonly object").WithArguments("System.Runtime.InteropServices.InAttribute").WithLocation(10, 20));
@@ -1601,7 +1601,7 @@ namespace System
 }
 public delegate void D(in int p);";
 
-            CreateCompilation(code).VerifyDiagnostics(
+            CreateCompilationRaw(code).VerifyDiagnostics(
                 // (11,24): error CS0518: Predefined type 'System.Runtime.InteropServices.InAttribute' is not defined or imported
                 // public delegate void D(in int p);
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "in int p").WithArguments("System.Runtime.InteropServices.InAttribute").WithLocation(11, 24));
@@ -1622,7 +1622,7 @@ namespace System
 }
 public delegate ref readonly int D();";
 
-            CreateCompilation(code).VerifyDiagnostics(
+            CreateCompilationRaw(code).VerifyDiagnostics(
                 // (11,17): error CS0518: Predefined type 'System.Runtime.InteropServices.InAttribute' is not defined or imported
                 // public delegate ref readonly int D();
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "ref readonly int").WithArguments("System.Runtime.InteropServices.InAttribute").WithLocation(11, 17));

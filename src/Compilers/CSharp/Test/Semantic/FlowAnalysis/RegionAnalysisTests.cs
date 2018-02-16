@@ -4931,7 +4931,7 @@ class C
         S<object> o;
     }
 }";
-            var compilation = CreateCompilation(source);
+            var compilation = CreateCompilationRaw(source);
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
             var root = tree.GetCompilationUnitRoot();
@@ -4966,7 +4966,7 @@ class Program
         Expression<Func<int>> f3 = () => switch (args[0]) {};
     }
 }";
-            var compilation = CreateCompilation(source);
+            var compilation = CreateCompilationRaw(source);
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
             var root = tree.GetCompilationUnitRoot();
@@ -4993,7 +4993,7 @@ class Program
         }
     }
 }";
-            var compilation = CreateCompilation(source);
+            var compilation = CreateCompilationRaw(source);
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
             var root = tree.GetCompilationUnitRoot();
@@ -5031,7 +5031,7 @@ public class ExportedSymbol
 }
 ";
 
-            var compilation = CreateCompilation(source);
+            var compilation = CreateCompilationRaw(source);
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
             var statement = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BlockSyntax>().FirstOrDefault();

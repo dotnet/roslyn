@@ -918,7 +918,7 @@ enum E2 : int* { }
 enum E3 : dynamic { }
 class C<T> { enum E4 : T { } }
 ";
-            var compilation = CreateCompilation(text, new[] { MscorlibRef });
+            var compilation = CreateCompilationRaw(text, new[] { MscorlibRef });
             compilation.VerifyDiagnostics(
                 // (2,11): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // enum E2 : int* { }

@@ -525,7 +525,7 @@ public class A {
 }
 ";
 
-            var compilation = CreateCompilation(text, new[] { MscorlibRef });
+            var compilation = CreateCompilationRaw(text, new[] { MscorlibRef });
             int[] ary = new int[2];
 
             var globalNS = compilation.SourceModule.GlobalNamespace;
@@ -792,7 +792,7 @@ namespace System
     }
 }
 ";
-            var sysConsoleRef = CreateCompilation(
+            var sysConsoleRef = CreateCompilationRaw(
                 sysConsoleSrc,
                 new[] { SystemRuntimePP7Ref },
                 TestOptions.ReleaseDll.WithCryptoPublicKey(TestResources.TestKeys.PublicKey_b03f5f7f11d50a3a),
@@ -803,7 +803,7 @@ System.Console.Goo();
 Goo();
 ";
 
-            var main1 = CreateCompilation(
+            var main1 = CreateCompilationRaw(
                 new[] { Parse(mainSrc, options: TestOptions.Script) },
                 new[] { MscorlibRef_v46, sysConsoleRef },
                 TestOptions.ReleaseDll.WithUsings("System.Console"));
@@ -816,7 +816,7 @@ Goo();
                 // (2,9): error CS0103: The name 'Goo' does not exist in the current context
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "Goo").WithArguments("Goo"));
 
-            var main2 = CreateCompilation(
+            var main2 = CreateCompilationRaw(
                 new[] { Parse(mainSrc, options: TestOptions.Script) },
                 new[] { MscorlibRef_v46, sysConsoleRef, SystemRuntimeFacadeRef },
                 TestOptions.ReleaseDll.WithUsings("System.Console").WithTopLevelBinderFlags(BinderFlags.IgnoreCorLibraryDuplicatedTypes));
@@ -914,7 +914,7 @@ static class @main
 }
 
 ";
-            var comp = CreateCompilation(text);
+            var comp = CreateCompilationRaw(text);
             var typeSym = comp.Assembly.GlobalNamespace.GetTypeMembers().First();
             Assert.Equal("main", typeSym.ToTestDisplayString());
             var memSym = typeSym.GetMembers("Main").First();
@@ -932,7 +932,7 @@ static class @main
                     {
                     }
                 }";
-            var comp = CreateCompilation(code);
+            var comp = CreateCompilationRaw(code);
             NamedTypeSymbol testTypeSymbol = comp.Assembly.GlobalNamespace.GetTypeMembers("Test").Single() as NamedTypeSymbol;
             MethodSymbol methodSymbol = testTypeSymbol.GetMembers("Main").Single() as MethodSymbol;
             Assert.Equal("void Test.Main()", methodSymbol.ToTestDisplayString());
@@ -968,7 +968,7 @@ static class @main
 public class MyClass : T1
 {
 }";
-            var comp = CreateCompilation(code);
+            var comp = CreateCompilationRaw(code);
             NamedTypeSymbol testTypeSymbol = comp.Assembly.GlobalNamespace.GetTypeMembers("MyClass").Single() as NamedTypeSymbol;
             Assert.Equal("T1", testTypeSymbol.BaseType().ToTestDisplayString());
         }
@@ -981,7 +981,7 @@ public class MyClass : T1
 public class GC1<T> {}
 public class X : GC1<BOGUS> {}
 ";
-            var comp = CreateCompilation(code);
+            var comp = CreateCompilationRaw(code);
             NamedTypeSymbol testTypeSymbol = comp.Assembly.GlobalNamespace.GetTypeMembers("X").Single() as NamedTypeSymbol;
             Assert.Equal("GC1<BOGUS>", testTypeSymbol.BaseType().ToTestDisplayString());
         }

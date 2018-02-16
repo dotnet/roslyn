@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void ImplicitClassSymbol()
         {
-            var c = CreateCompilation(@"
+            var c = CreateCompilationRaw(@"
 namespace N
 {
     void Goo()

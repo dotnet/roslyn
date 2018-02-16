@@ -2891,7 +2891,7 @@ class Test
     }
 }
 ";
-            var compilation = CreateCompilation(text, new MetadataReference[] { MscorlibRef_v20 });
+            var compilation = CreateCompilationRaw(text, new MetadataReference[] { MscorlibRef_v20 });
 
             var obj = compilation.GetSpecialType(SpecialType.System_Object);
             var finalize = (MethodSymbol)obj.GetMembers("Finalize").Single();
