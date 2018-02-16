@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var analysisResult = await analyzerDriver.GetAnalysisResultAsync(cancellationToken).ConfigureAwait(false);
 
                 // if remote host is there, report performance data
-                var asyncToken = _owner.Listener.BeginAsyncOperation(nameof(AnalyzeInProcAsync));
+                var asyncToken = _owner?.Listener.BeginAsyncOperation(nameof(AnalyzeInProcAsync));
                 var _ = FireAndForgetReportAnalyzerPerformanceAsync(project, client, analysisResult, cancellationToken).CompletesAsyncOperation(asyncToken);
 
                 // get compiler result builder map
