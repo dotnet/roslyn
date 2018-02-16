@@ -1816,6 +1816,11 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
         <target state="translated">IsNot Nothing' チェックを使用します</target>
         <note />
       </trans-unit>
+      <trans-unit id="Multiple_Types">
+        <source>&lt;Multiple Types&gt;</source>
+        <target state="new">&lt;Multiple Types&gt;</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

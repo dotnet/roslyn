@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             {
                 var codeActions = await GetCodeActionsAsync(workspace, parameters);
                 await TestAddDocument(
-                    workspace, expectedMarkup, index, expectedContainers, 
+                    workspace, expectedMarkup, index, expectedContainers,
                     expectedDocumentName, codeActions);
             }
         }
@@ -344,7 +344,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             TestParameters parameters)
         {
             MarkupTestFile.GetSpans(
-                expectedMarkup.NormalizeLineEndings(), 
+                expectedMarkup.NormalizeLineEndings(),
                 out var expected, out IDictionary<string, ImmutableArray<TextSpan>> spanMap);
 
             var conflictSpans = spanMap.GetOrAdd("Conflict", _ => ImmutableArray<TextSpan>.Empty);

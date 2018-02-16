@@ -1,13 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Language.Intellisense;
@@ -23,20 +22,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
         AbstractController<Session<Controller, Model, IQuickInfoPresenterSession>, Model, IQuickInfoPresenterSession, IQuickInfoSession>
     {
         private static readonly object s_quickInfoPropertyKey = new object();
-
-        private readonly IList<Lazy<IQuickInfoProvider, OrderableLanguageMetadata>> _allProviders;
-        private IList<IQuickInfoProvider> _providers;
+        private QuickInfoService _service;
 
         public Controller(
             ITextView textView,
             ITextBuffer subjectBuffer,
             IIntelliSensePresenter<IQuickInfoPresenterSession, IQuickInfoSession> presenter,
             IAsynchronousOperationListener asyncListener,
-            IDocumentProvider documentProvider,
-            IList<Lazy<IQuickInfoProvider, OrderableLanguageMetadata>> allProviders)
+            IDocumentProvider documentProvider)
             : base(textView, subjectBuffer, presenter, asyncListener, documentProvider, "QuickInfo")
         {
-            _allProviders = allProviders;
         }
 
         // For testing purposes
@@ -46,17 +41,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             IIntelliSensePresenter<IQuickInfoPresenterSession, IQuickInfoSession> presenter,
             IAsynchronousOperationListener asyncListener,
             IDocumentProvider documentProvider,
-            IList<IQuickInfoProvider> providers)
+            QuickInfoService service)
             : base(textView, subjectBuffer, presenter, asyncListener, documentProvider, "QuickInfo")
         {
-            _providers = providers;
+            _service = service;
         }
 
         internal static Controller GetInstance(
             EditorCommandArgs args,
             IIntelliSensePresenter<IQuickInfoPresenterSession, IQuickInfoSession> presenter,
-            IAsynchronousOperationListener asyncListener,
-            IList<Lazy<IQuickInfoProvider, OrderableLanguageMetadata>> allProviders)
+            IAsynchronousOperationListener asyncListener)
         {
             var textView = args.TextView;
             var subjectBuffer = args.SubjectBuffer;
@@ -64,8 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                 (v, b) => new Controller(v, b,
                     presenter,
                     asyncListener,
-                    new DocumentProvider(),
-                    allProviders));
+                    new DocumentProvider()));
         }
 
         internal override void OnModelUpdated(Model modelOpt)
@@ -81,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 
                 // We want the span to actually only go up to the caret.  So get the expected span
                 // and then update its end point accordingly.
-                var triggerSpan = modelOpt.GetCurrentSpanInSnapshot(quickInfoItem.TextSpan, this.SubjectBuffer.CurrentSnapshot);
+                var triggerSpan = modelOpt.GetCurrentSpanInSnapshot(quickInfoItem.Span, this.SubjectBuffer.CurrentSnapshot);
                 var trackingSpan = triggerSpan.CreateTrackingSpan(SpanTrackingMode.EdgeInclusive);
 
                 sessionOpt.PresenterSession.PresentItem(trackingSpan, quickInfoItem, modelOpt.TrackMouse);
@@ -95,8 +88,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
         {
             AssertIsForeground();
 
-            var providers = GetProviders();
-            if (providers == null)
+            var service = GetService();
+            if (service == null)
             {
                 return;
             }
@@ -106,30 +99,30 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                 this.Presenter.CreateSession(this.TextView, this.SubjectBuffer, augmentSession));
 
             this.sessionOpt.Computation.ChainTaskAndNotifyControllerWhenFinished(
-                (model, cancellationToken) => ComputeModelInBackgroundAsync(position, snapshot, providers, trackMouse, cancellationToken));
+                (model, cancellationToken) => ComputeModelInBackgroundAsync(position, snapshot, service, trackMouse, cancellationToken));
         }
 
-        public IList<IQuickInfoProvider> GetProviders()
+        public QuickInfoService GetService()
         {
             this.AssertIsForeground();
 
-            if (_providers == null)
+            if (_service == null)
             {
                 var snapshot = this.SubjectBuffer.CurrentSnapshot;
                 var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
                 if (document != null)
                 {
-                    _providers = document.Project.LanguageServices.WorkspaceServices.SelectMatchingExtensionValues(_allProviders, this.SubjectBuffer.ContentType);
+                    _service = QuickInfoService.GetService(document);
                 }
             }
 
-            return _providers;
+            return _service;
         }
 
         private async Task<Model> ComputeModelInBackgroundAsync(
                int position,
                ITextSnapshot snapshot,
-               IList<IQuickInfoProvider> providers,
+               QuickInfoService service,
                bool trackMouse,
                CancellationToken cancellationToken)
         {
@@ -147,15 +140,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                         return null;
                     }
 
-                    foreach (var provider in providers)
+                    var item = await service.GetQuickInfoAsync(document, position, cancellationToken).ConfigureAwait(false);
+                    if (item != null)
                     {
-                        // TODO(cyrusn): We're calling into extensions, we need to make ourselves resilient
-                        // to the extension crashing.
-                        var item = await provider.GetItemAsync(document, position, cancellationToken).ConfigureAwait(false);
-                        if (item != null)
-                        {
-                            return new Model(snapshot.Version, item, provider, trackMouse);
-                        }
+                        return new Model(snapshot.Version, item, trackMouse);
                     }
 
                     return null;

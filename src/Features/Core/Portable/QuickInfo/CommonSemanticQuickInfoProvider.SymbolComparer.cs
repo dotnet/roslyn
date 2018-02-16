@@ -3,9 +3,9 @@
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
+namespace Microsoft.CodeAnalysis.QuickInfo
 {
-    internal abstract partial class AbstractSemanticQuickInfoProvider
+    internal abstract partial class CommonSemanticQuickInfoProvider
     {
         private class SymbolComparer : IEqualityComparer<ISymbol>
         {

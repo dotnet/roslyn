@@ -7,13 +7,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Editor.CSharp.QuickInfo;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.VisualStudio.Language.Intellisense;
-using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Text.Projection;
+using Microsoft.CodeAnalysis.QuickInfo;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -22,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
 {
     public class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSourceTests
     {
-        private async Task TestWithOptionsAsync(CSharpParseOptions options, string markup, params Action<object>[] expectedResults)
+        private async Task TestWithOptionsAsync(CSharpParseOptions options, string markup, params Action<QuickInfoItem>[] expectedResults)
         {
             using (var workspace = TestWorkspace.CreateCSharp(markup, options))
             {
@@ -30,16 +26,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
             }
         }
 
-        private async Task TestWithOptionsAsync(TestWorkspace workspace, params Action<object>[] expectedResults)
+        private async Task TestWithOptionsAsync(TestWorkspace workspace, params Action<QuickInfoItem>[] expectedResults)
         {
             var testDocument = workspace.DocumentWithCursor;
             var position = testDocument.CursorPosition.GetValueOrDefault();
             var documentId = workspace.GetDocumentId(testDocument);
             var document = workspace.CurrentSolution.GetDocument(documentId);
 
-            var provider = new SemanticQuickInfoProvider();
+            var service = QuickInfoService.GetService(document);
 
-            await TestWithOptionsAsync(document, provider, position, expectedResults);
+            await TestWithOptionsAsync(document, service, position, expectedResults);
 
             // speculative semantic model
             if (await CanUseSpeculativeSemanticModelAsync(document, position))
@@ -52,34 +48,30 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
                     edit.Apply();
                 }
 
-                await TestWithOptionsAsync(document, provider, position, expectedResults);
+                await TestWithOptionsAsync(document, service, position, expectedResults);
             }
         }
 
-        private async Task TestWithOptionsAsync(Document document, SemanticQuickInfoProvider provider, int position, Action<object>[] expectedResults)
+        private async Task TestWithOptionsAsync(Document document, QuickInfoService service, int position, Action<QuickInfoItem>[] expectedResults)
         {
-            var state = await provider.GetItemAsync(document, position, cancellationToken: CancellationToken.None);
-            if (state != null)
-            {
-                WaitForDocumentationComment(state.Content);
-            }
+            var info = await service.GetQuickInfoAsync(document, position, cancellationToken: CancellationToken.None);
 
             if (expectedResults.Length == 0)
             {
-                Assert.Null(state);
+                Assert.Null(info);
             }
             else
             {
-                Assert.NotNull(state);
+                Assert.NotNull(info);
 
                 foreach (var expected in expectedResults)
                 {
-                    expected(state.Content);
+                    expected(info);
                 }
             }
         }
 
-        private async Task VerifyWithMscorlib45Async(string markup, Action<object>[] expectedResults)
+        private async Task VerifyWithMscorlib45Async(string markup, Action<QuickInfoItem>[] expectedResults)
         {
             var xmlString = string.Format(@"
 <Workspace>
@@ -96,37 +88,33 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
                 var documentId = workspace.Documents.Where(d => d.Name == "SourceDocument").Single().Id;
                 var document = workspace.CurrentSolution.GetDocument(documentId);
 
-                var provider = new SemanticQuickInfoProvider();
+                var service = QuickInfoService.GetService(document);
 
-                var state = await provider.GetItemAsync(document, position, cancellationToken: CancellationToken.None);
-                if (state != null)
-                {
-                    WaitForDocumentationComment(state.Content);
-                }
+                var info = await service.GetQuickInfoAsync(document, position, cancellationToken: CancellationToken.None);
 
                 if (expectedResults.Length == 0)
                 {
-                    Assert.Null(state);
+                    Assert.Null(info);
                 }
                 else
                 {
-                    Assert.NotNull(state);
+                    Assert.NotNull(info);
 
                     foreach (var expected in expectedResults)
                     {
-                        expected(state.Content);
+                        expected(info);
                     }
                 }
             }
         }
 
-        protected override async Task TestAsync(string markup, params Action<object>[] expectedResults)
+        protected override async Task TestAsync(string markup, params Action<QuickInfoItem>[] expectedResults)
         {
             await TestWithOptionsAsync(Options.Regular, markup, expectedResults);
             await TestWithOptionsAsync(Options.Script, markup, expectedResults);
         }
 
-        protected async Task TestWithUsingsAsync(string markup, params Action<object>[] expectedResults)
+        private async Task TestWithUsingsAsync(string markup, params Action<QuickInfoItem>[] expectedResults)
         {
             var markupWithUsings =
 @"using System;
@@ -137,13 +125,13 @@ using System.Linq;
             await TestAsync(markupWithUsings, expectedResults);
         }
 
-        protected Task TestInClassAsync(string markup, params Action<object>[] expectedResults)
+        private Task TestInClassAsync(string markup, params Action<QuickInfoItem>[] expectedResults)
         {
             var markupInClass = "class C { " + markup + " }";
             return TestWithUsingsAsync(markupInClass, expectedResults);
         }
 
-        protected Task TestInMethodAsync(string markup, params Action<object>[] expectedResults)
+        private Task TestInMethodAsync(string markup, params Action<QuickInfoItem>[] expectedResults)
         {
             var markupInMethod = "class C { void M() { " + markup + " } }";
             return TestWithUsingsAsync(markupInMethod, expectedResults);
@@ -153,7 +141,7 @@ using System.Linq;
             string referencedCode,
             string sourceLanguage,
             string referencedLanguage,
-            params Action<object>[] expectedResults)
+            params Action<QuickInfoItem>[] expectedResults)
         {
             await TestWithMetadataReferenceHelperAsync(sourceCode, referencedCode, sourceLanguage, referencedLanguage, expectedResults);
             await TestWithProjectReferenceHelperAsync(sourceCode, referencedCode, sourceLanguage, referencedLanguage, expectedResults);
@@ -170,7 +158,7 @@ using System.Linq;
             string referencedCode,
             string sourceLanguage,
             string referencedLanguage,
-            params Action<object>[] expectedResults)
+            params Action<QuickInfoItem>[] expectedResults)
         {
             var xmlString = string.Format(@"
 <Workspace>
@@ -195,7 +183,7 @@ using System.Linq;
             string referencedCode,
             string sourceLanguage,
             string referencedLanguage,
-            params Action<object>[] expectedResults)
+            params Action<QuickInfoItem>[] expectedResults)
         {
             var xmlString = string.Format(@"
 <Workspace>
@@ -221,7 +209,7 @@ using System.Linq;
             string sourceCode,
             string referencedCode,
             string sourceLanguage,
-            params Action<object>[] expectedResults)
+            params Action<QuickInfoItem>[] expectedResults)
         {
             var xmlString = string.Format(@"
 <Workspace>
@@ -238,7 +226,7 @@ using System.Linq;
             await VerifyWithReferenceWorkerAsync(xmlString, expectedResults);
         }
 
-        private async Task VerifyWithReferenceWorkerAsync(string xmlString, params Action<object>[] expectedResults)
+        private async Task VerifyWithReferenceWorkerAsync(string xmlString, params Action<QuickInfoItem>[] expectedResults)
         {
             using (var workspace = TestWorkspace.Create(xmlString))
             {
@@ -246,25 +234,21 @@ using System.Linq;
                 var documentId = workspace.Documents.First(d => d.Name == "SourceDocument").Id;
                 var document = workspace.CurrentSolution.GetDocument(documentId);
 
-                var provider = new SemanticQuickInfoProvider();
+                var service = QuickInfoService.GetService(document);
 
-                var state = await provider.GetItemAsync(document, position, cancellationToken: CancellationToken.None);
-                if (state != null)
-                {
-                    WaitForDocumentationComment(state.Content);
-                }
+                var info = await service.GetQuickInfoAsync(document, position, cancellationToken: CancellationToken.None);
 
                 if (expectedResults.Length == 0)
                 {
-                    Assert.Null(state);
+                    Assert.Null(info);
                 }
                 else
                 {
-                    Assert.NotNull(state);
+                    Assert.NotNull(info);
 
                     foreach (var expected in expectedResults)
                     {
-                        expected(state.Content);
+                        expected(info);
                     }
                 }
             }

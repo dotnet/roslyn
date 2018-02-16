@@ -1817,6 +1817,11 @@ Sub(&lt;elencoParametri&gt;) &lt;istruzione&gt;</target>
         <target state="translated">Usa controllo 'IsNot Nothing'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Multiple_Types">
+        <source>&lt;Multiple Types&gt;</source>
+        <target state="new">&lt;Multiple Types&gt;</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

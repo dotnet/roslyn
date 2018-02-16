@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.VisualStudio.Language.Intellisense;
@@ -31,27 +30,23 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
     {
         private readonly IAsynchronousOperationListener _listener;
         private readonly IIntelliSensePresenter<IQuickInfoPresenterSession, IQuickInfoSession> _presenter;
-        private readonly IList<Lazy<IQuickInfoProvider, OrderableLanguageMetadata>> _providers;
 
         [ImportingConstructor]
         public QuickInfoCommandHandlerAndSourceProvider(
             [ImportMany] IEnumerable<Lazy<IIntelliSensePresenter<IQuickInfoPresenterSession, IQuickInfoSession>, OrderableMetadata>> presenters,
-            [ImportMany] IEnumerable<Lazy<IQuickInfoProvider, OrderableLanguageMetadata>> providers,
             IAsynchronousOperationListenerProvider listenerProvider)
             : this(ExtensionOrderer.Order(presenters).Select(lazy => lazy.Value).FirstOrDefault(),
-                   providers, listenerProvider)
+                   listenerProvider)
         {
         }
 
         // For testing purposes.
         public QuickInfoCommandHandlerAndSourceProvider(
             IIntelliSensePresenter<IQuickInfoPresenterSession, IQuickInfoSession> presenter,
-            [ImportMany] IEnumerable<Lazy<IQuickInfoProvider, OrderableLanguageMetadata>> providers,
             IAsynchronousOperationListenerProvider listenerProvider)
         {
-            _providers = ExtensionOrderer.Order(providers);
-            _listener = listenerProvider.GetListener(FeatureAttribute.QuickInfo);
             _presenter = presenter;
+            _listener = listenerProvider.GetListener(FeatureAttribute.QuickInfo);
         }
 
         private bool TryGetController(EditorCommandArgs args, out Controller controller)
@@ -75,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 
             // TODO(cyrusn): If there are no presenters then we should not create a controller.
             // Otherwise we'll be affecting the user's typing and they'll have no idea why :)
-            controller = Controller.GetInstance(args, _presenter, _listener, _providers);
+            controller = Controller.GetInstance(args, _presenter, _listener);
             return true;
         }
 

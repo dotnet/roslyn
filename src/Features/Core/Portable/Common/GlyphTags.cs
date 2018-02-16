@@ -3,7 +3,7 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Tags;
 
-namespace Microsoft.CodeAnalysis.Completion
+namespace Microsoft.CodeAnalysis
 {
     internal static class GlyphTags
     {

@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Wpf;
+using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Language.Intellisense;
@@ -31,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             // extra allocation is avoided.
             _completionPresenterSession = completionPresenterSession;
             this.CompletionItem = completionItem;
-            _imageMoniker = ImageMonikers.GetImageMoniker(CompletionItem.Tags);
+            _imageMoniker = ImageMonikers.GetFirstImageMoniker(CompletionItem.Tags);
         }
 
         public void Commit()
@@ -74,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         {
             get
             {
-                if (this.CompletionItem.Tags.Contains(CompletionTags.Warning))
+                if (this.CompletionItem.Tags.Contains(WellKnownTags.Warning))
                 {
                     return new[] { new CompletionIcon2(Glyph.CompletionWarning.GetImageMoniker(), s_glyphCompletionWarning, s_glyphCompletionWarning) };
                 }

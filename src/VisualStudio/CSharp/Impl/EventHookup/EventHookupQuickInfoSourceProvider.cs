@@ -15,9 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
     /// added due to errors in the code (which happen right after "eventName +=")
     /// </summary>
     [Export(typeof(IQuickInfoSourceProvider))]
-    [Name(PredefinedQuickInfoProviderNames.EventHookup)]
-    [Order(After = PredefinedQuickInfoProviderNames.Semantic)]
-    [Order(After = PredefinedQuickInfoProviderNames.Syntactic)]
+    [Name(PredefinedQuickInfoSourceProviderNames.EventHookup)]
     [Order(After = "squiggle")]
     [ContentType(ContentTypeNames.CSharpContentType)]
     internal sealed class EventHookupQuickInfoSourceProvider : IQuickInfoSourceProvider

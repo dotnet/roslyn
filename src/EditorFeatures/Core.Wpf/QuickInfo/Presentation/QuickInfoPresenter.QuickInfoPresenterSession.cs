@@ -2,24 +2,40 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.Editor.QuickInfo;
+using System.Collections.Immutable;
+using System.Linq;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Editor.Wpf;
+using Microsoft.CodeAnalysis.QuickInfo;
+using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Language.Intellisense;
+using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Projection;
+
+using QuickInfoItem = Microsoft.CodeAnalysis.QuickInfo.QuickInfoItem;
 
 #pragma warning disable CS0618 // IQuickInfo* is obsolete, tracked by https://github.com/dotnet/roslyn/issues/24094
-namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo.Presentation
+namespace Microsoft.CodeAnalysis.Editor.QuickInfo.Presentation
 {
     internal partial class QuickInfoPresenter
     {
         private class QuickInfoPresenterSession : ForegroundThreadAffinitizedObject, IQuickInfoPresenterSession
         {
             private readonly IQuickInfoBroker _quickInfoBroker;
-            private readonly DeferredContentFrameworkElementFactory _elementFactory;
             private readonly ITextView _textView;
             private readonly ITextBuffer _subjectBuffer;
+            private readonly ClassificationTypeMap _classificationTypeMap;
+            private readonly IClassificationFormatMapService _classificationFormatMapService;
+            private readonly IProjectionBufferFactoryService _projectionBufferFactoryService;
+            private readonly IEditorOptionsFactoryService _editorOptionsFactoryService;
+            private readonly ITextEditorFactoryService _textEditorFactoryService;
 
             private IQuickInfoSession _editorSessionOpt;
 
@@ -28,18 +44,26 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo.Pr
 
             public event EventHandler<EventArgs> Dismissed;
 
-            public QuickInfoPresenterSession(IQuickInfoBroker quickInfoBroker, DeferredContentFrameworkElementFactory elementFactory, ITextView textView, ITextBuffer subjectBuffer)
-                : this(quickInfoBroker, elementFactory, textView, subjectBuffer, null)
-            {
-            }
-
-            public QuickInfoPresenterSession(IQuickInfoBroker quickInfoBroker, DeferredContentFrameworkElementFactory elementFactory, ITextView textView, ITextBuffer subjectBuffer, IQuickInfoSession sessionOpt)
+            public QuickInfoPresenterSession(
+                IQuickInfoBroker quickInfoBroker,
+                ITextView textView,
+                ITextBuffer subjectBuffer,
+                IQuickInfoSession sessionOpt,
+                ClassificationTypeMap classificationTypeMap,
+                IClassificationFormatMapService classificationFormatMapService,
+                IProjectionBufferFactoryService projectionBufferFactoryService,
+                IEditorOptionsFactoryService editorOptionsFactoryService,
+                ITextEditorFactoryService textEditorFactoryService)
             {
                 _quickInfoBroker = quickInfoBroker;
-                _elementFactory = elementFactory;
                 _textView = textView;
                 _subjectBuffer = subjectBuffer;
                 _editorSessionOpt = sessionOpt;
+                _classificationTypeMap = classificationTypeMap;
+                _classificationFormatMapService = classificationFormatMapService;
+                _projectionBufferFactoryService = projectionBufferFactoryService;
+                _editorOptionsFactoryService = editorOptionsFactoryService;
+                _textEditorFactoryService = textEditorFactoryService;
             }
 
             public void PresentItem(ITrackingSpan triggerSpan, QuickInfoItem item, bool trackMouse)
@@ -99,13 +123,100 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo.Pr
             private void OnEditorSessionDismissed()
             {
                 AssertIsForeground();
-                this.Dismissed?.Invoke(this, new EventArgs());
+                this.Dismissed?.Invoke(this, EventArgs.Empty);
             }
 
             internal void AugmentQuickInfoSession(IList<object> quickInfoContent, out ITrackingSpan applicableToSpan)
             {
                 applicableToSpan = _triggerSpan;
-                quickInfoContent.Add(_elementFactory.CreateElement(_item.Content));
+
+                var content = CreateContent(_item, _subjectBuffer.CurrentSnapshot);
+                if (content != null)
+                {
+                    quickInfoContent.Add(content);
+                }
+            }
+
+            private FrameworkElement CreateContent(QuickInfoItem quickInfoItem, ITextSnapshot snapshot)
+            {
+                var glyphs = quickInfoItem.Tags.GetGlyphs();
+                var symbolGlyph = glyphs.FirstOrDefault(g => g != Glyph.CompletionWarning);
+                var warningGlyph = glyphs.FirstOrDefault(g => g == Glyph.CompletionWarning);
+                var documentSpan = quickInfoItem.RelatedSpans.Length > 0 ? CreateDocumentSpanPresentation(quickInfoItem, snapshot) : null;
+
+                return new QuickInfoDisplayPanel(
+                    symbolGlyph: symbolGlyph != default ? CreateSymbolPresentation(symbolGlyph) : null,
+                    warningGlyph: warningGlyph != default ? CreateSymbolPresentation(warningGlyph) : null,
+                    textBlocks: quickInfoItem.Sections.Select(section => new TextBlockElement(section.Kind, CreateTextPresentation(section))).ToImmutableArray(),
+                    documentSpan: documentSpan);
+            }
+
+            private FrameworkElement CreateSymbolPresentation(Glyph glyph)
+            {
+                var image = new CrispImage
+                {
+                    Moniker = glyph.GetImageMoniker()
+                };
+
+                // Inform the ImageService of the background color so that images have the correct background.
+                var binding = new Binding("Background")
+                {
+                    Converter = new BrushToColorConverter(),
+                    RelativeSource = new RelativeSource(RelativeSourceMode.FindAncestor, typeof(QuickInfoDisplayPanel), 1)
+                };
+
+                image.SetBinding(ImageThemingUtilities.ImageBackgroundColorProperty, binding);
+                return image;
+            }
+
+            private TextBlock CreateTextPresentation(QuickInfoSection section)
+            {
+                if (section.Kind == QuickInfoSectionKinds.DocumentationComments)
+                {
+                    return CreateDocumentationCommentPresentation(section.TaggedParts);
+                }
+                else
+                {
+                    return CreateTextPresentation(section.TaggedParts);
+                }
+            }
+
+            private TextBlock CreateTextPresentation(ImmutableArray<TaggedText> text)
+            {
+                var formatMap = _classificationFormatMapService.GetClassificationFormatMap("tooltip");
+                var classifiedTextBlock = text.ToTextBlock(formatMap, _classificationTypeMap);
+
+                if (classifiedTextBlock.Inlines.Count == 0)
+                {
+                    classifiedTextBlock.Visibility = Visibility.Collapsed;
+                }
+
+                return classifiedTextBlock;
+            }
+
+            private TextBlock CreateDocumentationCommentPresentation(ImmutableArray<TaggedText> text)
+            {
+                var formatMap = _classificationFormatMapService.GetClassificationFormatMap("tooltip");
+                var documentationTextBlock = text.ToTextBlock(formatMap, _classificationTypeMap);
+
+                documentationTextBlock.TextWrapping = TextWrapping.Wrap;
+
+                // If we have already computed the symbol documentation by now, update
+                if (documentationTextBlock.Inlines.Count == 0)
+                {
+                    documentationTextBlock.Visibility = Visibility.Collapsed;
+                }
+
+                return documentationTextBlock;
+            }
+
+            private FrameworkElement CreateDocumentSpanPresentation(Microsoft.CodeAnalysis.QuickInfo.QuickInfoItem info, ITextSnapshot snapshot)
+            {
+                return ProjectionBufferContent.Create(
+                    info.RelatedSpans.Select(s => new SnapshotSpan(snapshot, new Span(s.Start, s.Length))).ToImmutableArray(),
+                    _projectionBufferFactoryService,
+                    _editorOptionsFactoryService,
+                    _textEditorFactoryService);
             }
         }
     }

@@ -2,10 +2,11 @@
 
 using System.Linq;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
+namespace Microsoft.CodeAnalysis.QuickInfo
 {
-    internal abstract partial class AbstractSemanticQuickInfoProvider
+    internal abstract partial class CommonSemanticQuickInfoProvider
     {
         private class ErrorVisitor : SymbolVisitor<bool>
         {
