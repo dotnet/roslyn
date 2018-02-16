@@ -5,10 +5,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.MSBuild.Build;
 using Microsoft.CodeAnalysis.MSBuild.Logging;
@@ -241,46 +239,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
             return await worker.LoadAsync(cancellationToken).ConfigureAwait(false);
         }
 
-        private static ImmutableArray<DocumentInfo> CreateDocumentInfos(IReadOnlyList<DocumentFileInfo> documentFileInfos, ProjectId projectId, Encoding encoding)
-        {
-            var results = ImmutableArray.CreateBuilder<DocumentInfo>();
-
-            foreach (var info in documentFileInfos)
-            {
-                GetDocumentNameAndFolders(info.LogicalPath, out var name, out var folders);
-
-                var documentInfo = DocumentInfo.Create(
-                    DocumentId.CreateNewId(projectId, debugName: info.FilePath),
-                    name,
-                    folders,
-                    info.SourceCodeKind,
-                    new FileTextLoader(info.FilePath, encoding),
-                    info.FilePath,
-                    info.IsGenerated);
-
-                results.Add(documentInfo);
-            }
-
-            return results.ToImmutable();
-        }
-
-        private IEnumerable<AnalyzerReference> ResolveAnalyzerReferences(CommandLineArguments commandLineArgs)
-        {
-            var analyzerService = _workspace.Services.GetService<IAnalyzerService>();
-            var analyzerLoader = analyzerService.GetLoader();
-
-            foreach (var path in commandLineArgs.AnalyzerReferences.Select(r => r.FilePath))
-            {
-                var fullPath = Path.GetFullPath(path);
-                if (File.Exists(fullPath))
-                {
-                    analyzerLoader.AddDependencyLocation(fullPath);
-                }
-            }
-
-            return commandLineArgs.ResolveAnalyzerReferences(analyzerLoader);
-        }
-
         private static string GetMsbuildFailedMessage(string projectFilePath, string message)
         {
             if (string.IsNullOrWhiteSpace(message))
@@ -290,73 +248,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
             else
             {
                 return string.Format(WorkspaceMSBuildResources.Msbuild_failed_when_processing_the_file_0_with_message_1, projectFilePath, message);
-            }
-        }
-
-        private static VersionStamp GetProjectVersion(string projectFilePath)
-        {
-            if (!string.IsNullOrEmpty(projectFilePath) && File.Exists(projectFilePath))
-            {
-                return VersionStamp.Create(File.GetLastWriteTimeUtc(projectFilePath));
-            }
-            else
-            {
-                return VersionStamp.Create();
-            }
-        }
-
-        private static string GetAssemblyNameFromProjectPath(string projectFilePath)
-        {
-            var assemblyName = Path.GetFileNameWithoutExtension(projectFilePath);
-
-            // if this is still unreasonable, use a fixed name.
-            if (string.IsNullOrWhiteSpace(assemblyName))
-            {
-                assemblyName = "assembly";
-            }
-
-            return assemblyName;
-        }
-
-        private static readonly char[] s_directorySplitChars = new char[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar };
-
-        private static void GetDocumentNameAndFolders(string logicalPath, out string name, out ImmutableArray<string> folders)
-        {
-            var pathNames = logicalPath.Split(s_directorySplitChars, StringSplitOptions.RemoveEmptyEntries);
-            if (pathNames.Length > 0)
-            {
-                if (pathNames.Length > 1)
-                {
-                    folders = pathNames.Take(pathNames.Length - 1).ToImmutableArray();
-                }
-                else
-                {
-                    folders = ImmutableArray.Create<string>();
-                }
-
-                name = pathNames[pathNames.Length - 1];
-            }
-            else
-            {
-                name = logicalPath;
-                folders = ImmutableArray.Create<string>();
-            }
-        }
-
-        private void CheckForDuplicateDocuments(ImmutableArray<DocumentInfo> documents, ImmutableArray<DocumentInfo> additionalDocuments, string projectFilePath, ProjectId projectId)
-        {
-            var paths = new HashSet<string>();
-            foreach (var doc in documents.Concat(additionalDocuments))
-            {
-                if (paths.Contains(doc.FilePath))
-                {
-                    var message = string.Format(WorkspacesResources.Duplicate_source_file_0_in_project_1, doc.FilePath, projectFilePath);
-                    var diagnostic = new ProjectDiagnostic(WorkspaceDiagnosticKind.Warning, message, projectId);
-
-                    _workspace.OnWorkspaceFailed(diagnostic);
-                }
-
-                paths.Add(doc.FilePath);
             }
         }
 
@@ -510,6 +401,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
             {
                 ReportFailure(ReportMode.Log, GetMsbuildFailedMessage(logItem.ProjectFilePath, logItem.ToString()));
             }
+        }
+
+        private void ReportWorkspaceDiagnostic(WorkspaceDiagnostic diagnostic)
+        {
+            _workspace.OnWorkspaceFailed(diagnostic);
         }
 
         private bool IsSupportedLanguage(string languageName)

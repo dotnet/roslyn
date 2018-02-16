@@ -1,16 +1,17 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.MSBuild.Build;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MSBuild
@@ -296,7 +297,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
                 var documents = CreateDocumentInfos(projectFileInfo.Documents, projectId, commandLineArgs.Encoding);
                 var additionalDocuments = CreateDocumentInfos(projectFileInfo.AdditionalDocuments, projectId, commandLineArgs.Encoding);
-                _owner.CheckForDuplicateDocuments(documents, additionalDocuments, projectFileInfo.FilePath, projectId);
+                CheckForDuplicateDocuments(documents, additionalDocuments, projectFileInfo.FilePath, projectId);
 
                 var analyzerReferences = ResolveAnalyzerReferences(commandLineArgs);
 
@@ -321,6 +322,31 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     hostObjectType: null);
             }
 
+            private static VersionStamp GetProjectVersion(string projectFilePath)
+            {
+                if (!string.IsNullOrEmpty(projectFilePath) && File.Exists(projectFilePath))
+                {
+                    return VersionStamp.Create(File.GetLastWriteTimeUtc(projectFilePath));
+                }
+                else
+                {
+                    return VersionStamp.Create();
+                }
+            }
+
+            private static string GetAssemblyNameFromProjectPath(string projectFilePath)
+            {
+                var assemblyName = Path.GetFileNameWithoutExtension(projectFilePath);
+
+                // if this is still unreasonable, use a fixed name.
+                if (string.IsNullOrWhiteSpace(assemblyName))
+                {
+                    assemblyName = "assembly";
+                }
+
+                return assemblyName;
+            }
+
             private IEnumerable<AnalyzerReference> ResolveAnalyzerReferences(CommandLineArguments commandLineArgs)
             {
                 var analyzerService = _owner.GetWorkspaceService<IAnalyzerService>();
@@ -336,6 +362,71 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 }
 
                 return commandLineArgs.ResolveAnalyzerReferences(analyzerLoader);
+            }
+
+            private static ImmutableArray<DocumentInfo> CreateDocumentInfos(IReadOnlyList<DocumentFileInfo> documentFileInfos, ProjectId projectId, Encoding encoding)
+            {
+                var results = ImmutableArray.CreateBuilder<DocumentInfo>();
+
+                foreach (var info in documentFileInfos)
+                {
+                    GetDocumentNameAndFolders(info.LogicalPath, out var name, out var folders);
+
+                    var documentInfo = DocumentInfo.Create(
+                        DocumentId.CreateNewId(projectId, debugName: info.FilePath),
+                        name,
+                        folders,
+                        info.SourceCodeKind,
+                        new FileTextLoader(info.FilePath, encoding),
+                        info.FilePath,
+                        info.IsGenerated);
+
+                    results.Add(documentInfo);
+                }
+
+                return results.ToImmutable();
+            }
+
+            private static readonly char[] s_directorySplitChars = new char[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar };
+
+            private static void GetDocumentNameAndFolders(string logicalPath, out string name, out ImmutableArray<string> folders)
+            {
+                var pathNames = logicalPath.Split(s_directorySplitChars, StringSplitOptions.RemoveEmptyEntries);
+                if (pathNames.Length > 0)
+                {
+                    if (pathNames.Length > 1)
+                    {
+                        folders = pathNames.Take(pathNames.Length - 1).ToImmutableArray();
+                    }
+                    else
+                    {
+                        folders = ImmutableArray.Create<string>();
+                    }
+
+                    name = pathNames[pathNames.Length - 1];
+                }
+                else
+                {
+                    name = logicalPath;
+                    folders = ImmutableArray.Create<string>();
+                }
+            }
+
+            private void CheckForDuplicateDocuments(ImmutableArray<DocumentInfo> documents, ImmutableArray<DocumentInfo> additionalDocuments, string projectFilePath, ProjectId projectId)
+            {
+                var paths = new HashSet<string>();
+                foreach (var doc in documents.Concat(additionalDocuments))
+                {
+                    if (paths.Contains(doc.FilePath))
+                    {
+                        var message = string.Format(WorkspacesResources.Duplicate_source_file_0_in_project_1, doc.FilePath, projectFilePath);
+                        var diagnostic = new ProjectDiagnostic(WorkspaceDiagnosticKind.Warning, message, projectId);
+
+                        _owner.ReportWorkspaceDiagnostic(diagnostic);
+                    }
+
+                    paths.Add(doc.FilePath);
+                }
             }
 
             private struct ResolvedReferences
