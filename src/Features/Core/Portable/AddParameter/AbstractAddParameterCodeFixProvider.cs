@@ -283,14 +283,12 @@ namespace Microsoft.CodeAnalysis.AddParameter
             var referencedSymbols = fixAllReferences
                 ? await FindMethodDeclarationReferences(invocationDocument, method, cancellationToken).ConfigureAwait(false)
                 : method.GetAllMethodSymbolsOfPartialParts();
-            // prepare lookup of declarations by document
-            var declarationLocations = referencedSymbols.SelectMany(definition
-                => definition.Locations.Select(location => new { Declaration = definition, Location = location })).ToImmutableArray();
             // TODO: Insert hint in the fix with a warning if anySymbolsReferenceNotInSource is true
-            var anySymbolReferencesNotInSource = declarationLocations.Any(declarationLocation => !declarationLocation.Location.IsInSource);
-            var locationsInSource = declarationLocations.Where(declarationLocation => declarationLocation.Location.IsInSource);
+            var anySymbolReferencesNotInSource = referencedSymbols.Any(symbol => !symbol.IsFromSource());
+            var locationsInSource = referencedSymbols.Where(symbol => symbol.IsFromSource());
+            // Indexing Locations[0] is valid because IMethodSymbols have one location at most and IsFromSource() tests if there is at least one location.
             var locationsByDocument = locationsInSource.ToLookup(declarationLocation
-                => solution.GetDocument(declarationLocation.Location.SourceTree));
+                => solution.GetDocument(declarationLocation.Locations[0].SourceTree));
             foreach (var documentLookup in locationsByDocument)
             {
                 var document = documentLookup.Key;
@@ -300,10 +298,9 @@ namespace Microsoft.CodeAnalysis.AddParameter
                 var generator = editor.Generator;
                 foreach (var methodDeclaration in documentLookup)
                 {
-                    var methodNode = syntaxRoot.FindNode(methodDeclaration.Location.SourceSpan);
-                    var methodSymbol = methodDeclaration.Declaration;
+                    var methodNode = syntaxRoot.FindNode(methodDeclaration.Locations[0].SourceSpan);
                     var parameterSymbol = CreateParameterSymbol(
-                        methodSymbol, argumentType, argumentNameSuggestion);
+                        methodDeclaration, argumentType, argumentNameSuggestion);
 
                     var parameterDeclaration = generator.ParameterDeclaration(parameterSymbol)
                                                         .WithAdditionalAnnotations(Formatter.Annotation);
