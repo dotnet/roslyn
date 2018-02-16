@@ -153,7 +153,7 @@ class Implicit : I
     public void M() { }
 }
 ";
-            var compilation = CreateStandardCompilation(new[] { source });
+            var compilation = CreateCompilation(new[] { source });
 
             Test(compilation, n => n.IndexOf("M", StringComparison.OrdinalIgnoreCase) >= 0, includeNamespace: false, includeType: false, includeMember: true, count: 3);
         }
@@ -194,7 +194,7 @@ enum Enum
     EnumValue
 }
 ";
-            return CreateStandardCompilation(source: new string[] { source });
+            return CreateCompilation(source: new string[] { source });
         }
 
         private static void Test(CSharpCompilation compilation, Func<string, bool> predicate, bool includeNamespace, bool includeType, bool includeMember, int count)

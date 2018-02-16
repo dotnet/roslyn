@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 }
 ";
             var simpleName = GetUniqueName();
-            var comp = CreateStandardCompilation(text, assemblyName: simpleName);
+            var comp = CreateCompilation(text, assemblyName: simpleName);
             var sym = comp.Assembly;
             // See bug 2058: the following lines assume System.Reflection.AssemblyName preserves the case of
             // the "displayName" passed to it, but it sometimes does not.
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     class A {}
 }
 ";
-            var comp = CreateStandardCompilation(text, assemblyName: "Test");
+            var comp = CreateCompilation(text, assemblyName: "Test");
 
             var sym = comp.SourceModule;
             Assert.Equal("Test.dll", sym.Name);
@@ -154,7 +154,7 @@ namespace NS.NS1 {
     }
 }
 ";
-            var comp1 = CreateStandardCompilation(text);
+            var comp1 = CreateCompilation(text);
             var compRef = new CSharpCompilationReference(comp1);
 
             var comp = CSharpCompilation.Create(assemblyName: "Test1", options: new CSharpCompilationOptions(OutputKind.ConsoleApplication),
@@ -195,8 +195,8 @@ namespace NS.NS1 {
     struct SGoo {}
 }
 ";
-            var comp1 = CreateStandardCompilation(text1, assemblyName: "Compilation1");
-            var comp2 = CreateStandardCompilation(text2, assemblyName: "Compilation2");
+            var comp1 = CreateCompilation(text1, assemblyName: "Compilation1");
+            var comp2 = CreateCompilation(text2, assemblyName: "Compilation2");
 
             var compRef1 = new CSharpCompilationReference(comp1);
             var compRef2 = new CSharpCompilationReference(comp2);

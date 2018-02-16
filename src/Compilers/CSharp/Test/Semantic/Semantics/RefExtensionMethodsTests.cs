@@ -222,7 +222,7 @@ public static class Program
                 //         x.PrintValue();
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "PrintValue").WithArguments("string", "PrintValue").WithLocation(14, 11));
 
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 public static class Program2
 {
     public static void Main()
@@ -266,7 +266,7 @@ public static class Program
                 //         x.PrintValue();
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "PrintValue").WithArguments("System.IComparable", "PrintValue").WithLocation(14, 11));
 
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 public static class Program2
 {
     public static void Main()
@@ -310,7 +310,7 @@ public static class Program
                 //         x.PrintValue();
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "PrintValue").WithArguments("string", "PrintValue").WithLocation(14, 11));
 
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 public static class Program2
 {
     public static void Main()
@@ -392,7 +392,7 @@ public static class Program
                 //         x.PrintValue();
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "PrintValue").WithArguments("string", "PrintValue").WithLocation(14, 11));
 
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 public static class Program2
 {
     public static void Main()
@@ -436,7 +436,7 @@ public static class Program
                 //         x.PrintValue();
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "PrintValue").WithArguments("string", "PrintValue").WithLocation(14, 11));
 
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 public static class Program2
 {
     public static void Main()
@@ -767,7 +767,7 @@ public static class Program
                 //         x.PrintValue();
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "PrintValue").WithArguments("string", "PrintValue").WithLocation(14, 11));
 
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 public static class Program2
 {
     public static void Main()
@@ -811,7 +811,7 @@ public static class Program
                 //         x.PrintValue();
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "PrintValue").WithArguments("System.IComparable", "PrintValue").WithLocation(14, 11));
 
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 public static class Program2
 {
     public static void Main()
@@ -855,7 +855,7 @@ public static class Program
                 //         x.PrintValue();
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "PrintValue").WithArguments("string", "PrintValue").WithLocation(14, 11));
 
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 public static class Program2
 {
     public static void Main()
@@ -899,7 +899,7 @@ public static class Program
                 //         x.PrintValue();
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "PrintValue").WithArguments("int", "PrintValue").WithLocation(14, 11));
 
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 public static class Program2
 {
     public static void Main()
@@ -943,7 +943,7 @@ public static class Program
                 //         x.PrintValue();
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "PrintValue").WithArguments("string", "PrintValue").WithLocation(14, 11));
 
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 public static class Program2
 {
     public static void Main()
@@ -987,7 +987,7 @@ public static class Program
                 //         x.PrintValue();
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "PrintValue").WithArguments("string", "PrintValue").WithLocation(14, 11));
 
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 public static class Program2
 {
     public static void Main()

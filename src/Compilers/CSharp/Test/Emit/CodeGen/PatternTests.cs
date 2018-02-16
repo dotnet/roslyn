@@ -163,7 +163,7 @@ public class C
         return null;
     }
 }";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             var expectedOutput = @"eval";
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
@@ -235,7 +235,7 @@ class IdentityAccessor<T>
         return Guid.Empty;
     }
 }";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugDll, references: new[] { LinqAssemblyRef });
+            var compilation = CreateCompilation(source, options: TestOptions.DebugDll, references: new[] { LinqAssemblyRef });
             compilation.VerifyDiagnostics();
             var compVerifier = CompileAndVerify(compilation);
             compVerifier.VerifyIL("X<T>.Y<U>",
@@ -303,7 +303,7 @@ class Program
         System.Console.WriteLine(null != (x as Derived));
     }
 }";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe, references: new[] { LinqAssemblyRef });
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, references: new[] { LinqAssemblyRef });
             compilation.VerifyDiagnostics();
             var expectedOutput =
 @"True

@@ -216,14 +216,14 @@ public interface I3 : I1<(int c, int d)> {}";
 class C1 : I2, I1<(int a, int b)> {}
 class C2 : I3, I1<(int c, int d)> {}";
 
-            var comp1 = CreateStandardCompilation(src1);
+            var comp1 = CreateCompilation(src1);
             comp1.VerifyDiagnostics();
 
-            var comp2 = CreateStandardCompilation(src2,
+            var comp2 = CreateCompilation(src2,
                 references: new[] { comp1.ToMetadataReference() });
             comp2.VerifyDiagnostics();
 
-            var comp3 = CreateStandardCompilation(src2,
+            var comp3 = CreateCompilation(src2,
                 references: new[] { comp1.EmitToImageReference() });
             comp3.VerifyDiagnostics();
         }
@@ -287,7 +287,7 @@ class C4 : C2
         [Fact]
         public void InterfaceAttributes()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -457,7 +457,7 @@ y: 0
         [Fact]
         public void GenericConstraintAttributes()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -934,7 +934,7 @@ class C
 }
 " + trivial2uple + tupleattributes_cs;
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,21): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
                 //         var x = new (int, int)(1, 2);
@@ -961,7 +961,7 @@ class C
 }
 " + trivial2uple + tupleattributes_cs;
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (7,21): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
                 //         var x = new (int, int)(1, arg);
@@ -993,7 +993,7 @@ class C
 }
 " + trivial2uple + tupleattributes_cs;
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,21): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
                 //         var x = new (int a, int b)(1, 2);
@@ -1038,7 +1038,7 @@ class C
 }
 " + trivial2uple + tupleattributes_cs;
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,22): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
                 //         var x0 = new (int a, int b)(1, 2, 3);
@@ -1402,7 +1402,7 @@ class C
 }
 " + trivial2uple + trivial3uple + tupleattributes_cs;
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (6,27): error CS0029: Cannot implicitly convert type '(int, string, int)' to '(int, string)'
                 //         (int, string) x = (1, "hello", 2);
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, @"(1, ""hello"", 2)").WithArguments("(int, string, int)", "(int, string)").WithLocation(6, 27));
@@ -1422,7 +1422,7 @@ class C
 }
 " + trivial2uple + trivial3uple + tupleattributes_cs;
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (6,27): error CS8135: Tuple with 3 elements cannot be converted to type '(int, string)'.
                 //         (int, string) x = (1, null, 2);
                 Diagnostic(ErrorCode.ERR_ConversionNotTupleCompatible, "(1, null, 2)").WithArguments("3", "(int, string)").WithLocation(6, 27)
@@ -1468,7 +1468,7 @@ class C
 " + trivial2uple + trivial3uple + tupleattributes_cs;
 
             var tree = Parse(source, options: TestOptions.Regular);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics(
                 // (6,29): error CS0029: Cannot implicitly convert type '(int, string, int c)' to '(int, string a)'
                 //         (int, string a) x = (1, "hello", c: 2);
@@ -2335,7 +2335,7 @@ namespace System
     }
 }
 ";
-            var verifier = CompileAndVerifyWithMscorlib40(source, targetFramework: TargetFramework.Net46Extended, expectedOutput: @"42", options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net46Extended, expectedOutput: @"42", options: TestOptions.ReleaseExe);
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.<Test>d__1<T>.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
@@ -2780,7 +2780,7 @@ class C
 }
 " + trivial2uple + trivial3uple + trivialRemainingTuples + tupleattributes_cs;
 
-            CompileAndVerifyWithMscorlib40(source, expectedOutput: @"42", targetFramework: TargetFramework.Net46, options: TestOptions.ReleaseExe);
+            CompileAndVerify(source, expectedOutput: @"42", targetFramework: TargetFramework.Net46, options: TestOptions.ReleaseExe);
         }
 
         [Fact]
@@ -2850,7 +2850,7 @@ class C
 }
 " + trivial2uple + trivial3uple + tupleattributes_cs;
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,24): error CS8127: Tuple member names must be unique.
                 //         (int a, string a) x = (b: 1, b: "hello", b: 2);
@@ -2878,7 +2878,7 @@ class C
 }
 " + trivial2uple + tupleattributes_cs;
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,28): error CS8125: Tuple member name 'Item1' is only allowed at position 1.
                 //         (int Item1, string Item1) x = (Item1: 1, Item1: "hello");
@@ -2908,7 +2908,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,37): error CS8125: Tuple member name 'Item10' is only allowed at position 10.
                 //         (int Item1, int Item01, int Item10) x = (Item01: 1, Item1: 2, Item10: 3);
@@ -2955,7 +2955,7 @@ class C
 }
 " + trivial2uple + trivial3uple + tupleattributes_cs;
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,24): error CS8127: Tuple member names must be unique.
                 //         (int a, string a) x = (b: 1, c: "hello", b: 2);
@@ -2979,7 +2979,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,28): error CS8125: Tuple member name 'Item3' is only allowed at position 3.
                 //         (int Item1, string Item3, string Item2, int Item4, int Item5, int Item6, int Item7, string Rest) x = (Item2: "bad", Item4: "bad", Item3: 3, Item4: 4, Item5: 5, Item6: 6, Item7: 7, Rest: "bad");
@@ -3015,7 +3015,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,18): error CS8126: Tuple member name 'CompareTo' is disallowed at any position.
                 //         var x = (CompareTo: 2, Create: 3, Deconstruct: 4, Equals: 5, GetHashCode: 6, Rest: 8, ToString: 10);
@@ -3142,7 +3142,7 @@ class C
     }
 }
 ";
-            CreateStandardCompilation(source);
+            CreateCompilation(source);
         }
 
         [NoIOperationValidationFact]
@@ -3165,7 +3165,7 @@ class C
     }
 }
 ";
-            CreateStandardCompilation(source);
+            CreateCompilation(source);
         }
 
         [Fact]
@@ -3420,7 +3420,7 @@ class C
 }
 ";
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (4,41): error CS1736: Default parameter value for 'y' must be a compile-time constant
                 //     void M(int x, (int a, string b) y = (42, "Alice"))
                 Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, @"(42, ""Alice"")").WithArguments("y").WithLocation(4, 41));
@@ -3598,7 +3598,7 @@ class D
         System.Console.Write(C.GetTuple().Item1);
     }
 }";
-            var missingComp = CreateStandardCompilation(missing_cs, assemblyName: "UseSiteDiagnosticOnTupleField_missingComp");
+            var missingComp = CreateCompilation(missing_cs, assemblyName: "UseSiteDiagnosticOnTupleField_missingComp");
             missingComp.VerifyDiagnostics();
 
             var libComp = CreateCompilationWithMscorlib40(lib_cs,
@@ -3652,14 +3652,14 @@ namespace System
 }
 ";
 
-            var comp7 = CreateStandardCompilation(source_cs, parseOptions: TestOptions.Regular, assemblyName: "UseSiteDiagnosticOnTupleField2_comp7");
+            var comp7 = CreateCompilation(source_cs, parseOptions: TestOptions.Regular, assemblyName: "UseSiteDiagnosticOnTupleField2_comp7");
             comp7.VerifyDiagnostics(
                 // (8,32): error CS8128: Member 'Item1' was not found on type 'ValueTuple<T1, T2>' from assembly 'UseSiteDiagnosticOnTupleField2_comp7, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         System.Console.Write(t.a);
                 Diagnostic(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, "a").WithArguments("Item1", "System.ValueTuple<T1, T2>", "UseSiteDiagnosticOnTupleField2_comp7, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null")
                 );
 
-            var comp7_1 = CreateStandardCompilation(source_cs, parseOptions: TestOptions.Regular7_1, assemblyName: "UseSiteDiagnosticOnTupleField2_comp7_1");
+            var comp7_1 = CreateCompilation(source_cs, parseOptions: TestOptions.Regular7_1, assemblyName: "UseSiteDiagnosticOnTupleField2_comp7_1");
             comp7_1.VerifyDiagnostics(
                 // (8,32): error CS8128: Member 'Item1' was not found on type 'ValueTuple<T1, T2>' from assembly 'UseSiteDiagnosticOnTupleField2_comp7_1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         System.Console.Write(t.a);
@@ -3804,7 +3804,7 @@ class C2
 }
 ";
 
-            var compilation = CreateStandardCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
             compilation.VerifyDiagnostics(
                 // (12,27): error CS0122: 'C.e' is inaccessible due to its protection level
                 //         var y = (instance?.e, (instance.e, instance2.M(), checked(instance.e), default(int)));
@@ -3883,7 +3883,7 @@ class C
 }
 ";
 
-            var verifier = CompileAndVerifyWithMscorlib40(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
+            var verifier = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
                 targetFramework: TargetFramework.Net46Extended,
                 expectedOutput:"1");
             verifier.VerifyDiagnostics();
@@ -3910,7 +3910,7 @@ static class Extension
 
             // When C# 7.0 shipped, no tuple element would be found/inferred, so the extension method was called.
             // The C# 7.1 compiler disallows that, even when LanguageVersion is 7.0
-            var comp7 = CreateStandardCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+            var comp7 = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             comp7.VerifyDiagnostics(
                 // (8,16): error CS8305: Tuple element name 'M' is inferred. Please use language version 7.1 or greater to access an element by its inferred name.
                 //         (1, M).M();
@@ -4058,9 +4058,9 @@ class C3
     }
 }
 ";
-            var comp1 = CreateStandardCompilation(source1);
+            var comp1 = CreateCompilation(source1);
             comp1.VerifyDiagnostics();
-            var comp2 = CreateStandardCompilation(source2);
+            var comp2 = CreateCompilation(source2);
             comp2.VerifyDiagnostics();
             var comp = CompileAndVerify(source,
                 expectedOutput: @"1 1 2 2 3 3 4 4",
@@ -4105,11 +4105,11 @@ class C3
     }
 }
 ";
-            var comp1 = CreateStandardCompilation(source1);
+            var comp1 = CreateCompilation(source1);
             comp1.VerifyDiagnostics();
-            var comp2 = CreateStandardCompilation(source2);
+            var comp2 = CreateCompilation(source2);
             comp2.VerifyDiagnostics();
-            var comp = CreateStandardCompilation(source, references: new[] { new CSharpCompilationReference(comp1), new CSharpCompilationReference(comp2) }, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(source, references: new[] { new CSharpCompilationReference(comp1), new CSharpCompilationReference(comp2) }, options: TestOptions.ReleaseExe);
 
             var v = CompileAndVerify(comp, expectedOutput: @"
 C1.M
@@ -4296,7 +4296,7 @@ namespace System
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, assemblyName: "comp");
+            var comp = CreateCompilation(source, assemblyName: "comp");
             comp.VerifyDiagnostics(
                 // (7,39): error CS0229: Ambiguity between '(string, string).Item1' and '(string, string).Item1'
                 //         System.Console.WriteLine($"{x.Item1}");
@@ -4433,7 +4433,7 @@ namespace System
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, assemblyName: "comp");
+            var comp = CreateCompilation(source, assemblyName: "comp");
             comp.VerifyDiagnostics(
                 // (7,39): error CS8128: Member 'Item1' was not found on type 'ValueTuple<T1, T2>' from assembly 'comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         System.Console.WriteLine($"{x.a}");
@@ -4468,7 +4468,7 @@ namespace System
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, assemblyName: "comp");
+            var comp = CreateCompilation(source, assemblyName: "comp");
             comp.VerifyDiagnostics(
                 // (7,39): error CS8128: Member 'Item1' was not found on type 'ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>' from assembly 'comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         System.Console.WriteLine($"{x.a}");
@@ -4597,7 +4597,7 @@ class C : I
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (19,38): error CS1061: '(int, int)' does not contain a definition for 'i1' and no extension method 'i1' accepting a first argument of type '(int, int)' could be found (are you missing a using directive or an assembly reference?)
                 //         System.Console.Write(result2.i1);
@@ -4713,7 +4713,7 @@ class C2 : I<CB, CA>
 }
 ";
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (15,25): error CS0425: The constraints for type parameter 'TC' of method 'C1.M<TC>((CB, (CA, TC)))' must match the constraints for type parameter 'TC' of interface method 'I<CB, CA>.M<TC>((CB, (CA, TC)))'. Consider using an explicit interface implementation instead.
                 //     public (CB, CA, TC) M<TC>((CB, (CA, TC)) arg)
@@ -4743,7 +4743,7 @@ class D : C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (11,36): error CS8139: 'D.M((int g, int h))': cannot change tuple element names when overriding inherited member 'C.M((int c, int d))'
                 //     public override (int e, int f) M((int g, int h) y)
@@ -4770,7 +4770,7 @@ class D : C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (11,32): error CS8139: 'D.M((int g, int h))': cannot change tuple element names when overriding inherited member 'C.M((int c, int d))'
                 //     public override (int, int) M((int g, int h) y)
@@ -4797,7 +4797,7 @@ class D : C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (11,36): error CS8139: 'D.M((int, int))': cannot change tuple element names when overriding inherited member 'C.M((int c, int d))'
                 //     public override (int e, int f) M((int, int) y)
@@ -4833,7 +4833,7 @@ class E
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (21,37): error CS1061: '(int, int)' does not contain a definition for 'a' and no extension method 'a' accepting a first argument of type '(int, int)' could be found (are you missing a using directive or an assembly reference?)
                 //         System.Console.Write(result.a);
@@ -4877,7 +4877,7 @@ class E
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (22,37): error CS1061: '(int, int)' does not contain a definition for 'a' and no extension method 'a' accepting a first argument of type '(int, int)' could be found (are you missing a using directive or an assembly reference?)
                 //         System.Console.Write(result.a);
@@ -4915,7 +4915,7 @@ class D : C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (14,37): error CS1061: '(int, int)' does not contain a definition for 'a' and no extension method 'a' accepting a first argument of type '(int, int)' could be found (are you missing a using directive or an assembly reference?)
                 //         System.Console.Write(result.a);
@@ -4959,7 +4959,7 @@ class D : C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (12,37): error CS1061: '((int, int), int)' does not contain a definition for 'c' and no extension method 'c' accepting a first argument of type '((int, int), int)' could be found (are you missing a using directive or an assembly reference?)
                 //         System.Console.Write(result.c);
@@ -5030,7 +5030,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (9,40): error CS0111: Type 'C' already defines a member called 'M' with the same parameter types
                 //     public System.ValueTuple<int, int> M(System.ValueTuple<string, string> a)
@@ -5175,7 +5175,7 @@ class C
             var source = @"
 using VT2 = (int, int);
 ";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular);
             comp.VerifyDiagnostics(
                 // (2,13): error CS1001: Identifier expected
                 // using VT2 = (int, int);
@@ -5239,7 +5239,7 @@ namespace TuplesCrash2
 ";
 
             var tree = Parse(source);
-            var comp = CreateStandardCompilation(new[] { tree });
+            var comp = CreateCompilation(new[] { tree });
 
             var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
             var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
@@ -5380,7 +5380,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, references: new[] { CSharpRef });
+            var comp = CreateCompilation(source, references: new[] { CSharpRef });
             comp.VerifyDiagnostics(
                 // (7,24): error CS0266: Cannot implicitly convert type '(dynamic, dynamic)' to '(int, int)'. An explicit conversion exists (are you missing a cast?)
                 //         (int, int) t = d;
@@ -5626,7 +5626,7 @@ class C
         [Fact]
         public void CreateTupleTypeSymbol_Locations()
         {
-            var tupleComp = CreateStandardCompilation(trivial2uple);
+            var tupleComp = CreateCompilation(trivial2uple);
             var comp = CSharpCompilation.Create("test", references: new[] { MscorlibRef, tupleComp.ToMetadataReference() });
 
             var intType = comp.GetSpecialType(SpecialType.System_Int32);
@@ -5856,7 +5856,7 @@ class C
         [Fact]
         public void CreateTupleTypeSymbol_ElementTypeIsError()
         {
-            var tupleComp = CreateStandardCompilation(trivial2uple + trivial3uple + trivialRemainingTuples);
+            var tupleComp = CreateCompilation(trivial2uple + trivial3uple + trivialRemainingTuples);
             var comp = CSharpCompilation.Create("test", references: new[] { MscorlibRef, tupleComp.ToMetadataReference() });
 
             TypeSymbol intType = comp.GetSpecialType(SpecialType.System_Int32);
@@ -6060,7 +6060,7 @@ End Class";
         [Fact]
         public void CreateTupleTypeSymbol2_WithValueTuple()
         {
-            var tupleComp = CreateStandardCompilation(trivial2uple + trivial3uple + trivialRemainingTuples);
+            var tupleComp = CreateCompilation(trivial2uple + trivial3uple + trivialRemainingTuples);
             var comp = CSharpCompilation.Create("test", references: new[] { MscorlibRef, tupleComp.ToMetadataReference() });
 
             ITypeSymbol intType = comp.GetSpecialType(SpecialType.System_Int32);
@@ -6078,7 +6078,7 @@ End Class";
         [Fact]
         public void CreateTupleTypeSymbol_WithLocations()
         {
-            var tupleComp = CreateStandardCompilation(trivial2uple + trivial3uple + trivialRemainingTuples);
+            var tupleComp = CreateCompilation(trivial2uple + trivial3uple + trivialRemainingTuples);
             var comp = CSharpCompilation.Create("test", references: new[] { MscorlibRef, tupleComp.ToMetadataReference() });
 
             var intType = comp.GetSpecialType(SpecialType.System_Int32);
@@ -6236,7 +6236,7 @@ End Class";
         [Fact]
         public void CreateTupleTypeSymbol2_ElementTypeIsError()
         {
-            var tupleComp = CreateStandardCompilation(trivial2uple + trivial3uple + trivialRemainingTuples);
+            var tupleComp = CreateCompilation(trivial2uple + trivial3uple + trivialRemainingTuples);
             var comp = CSharpCompilation.Create("test", references: new[] { MscorlibRef, tupleComp.ToMetadataReference() });
 
             ITypeSymbol intType = comp.GetSpecialType(SpecialType.System_Int32);
@@ -6295,7 +6295,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             var tuple1 = comp.SourceModule.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<SourceMemberFieldSymbol>("F").Type;
 
             var intType = comp.GetSpecialType(SpecialType.System_Int32);
@@ -6352,7 +6352,7 @@ class C
 }
 " + trivial2uple + tupleattributes_cs;
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (10,30): error CS0266: Cannot implicitly convert type '(long, string)' to '(short, string)'. An explicit conversion exists (are you missing a cast?)
                 //         (short, string) x2 = ((long, string))(1, "hello");
@@ -6435,7 +6435,7 @@ class C
 }
 " + trivial2uple + trivial3uple + tupleattributes_cs;
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (12,20): error CS1525: Invalid expression term ')'
                 //         x = (1, 1, );
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(12, 20),
@@ -6492,7 +6492,7 @@ class C
 }
 " + trivial2uple + trivial3uple + tupleattributes_cs;
 
-            CreateStandardCompilation(source, parseOptions: TestOptions.Regular).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.Regular).VerifyDiagnostics(
                 // (12,32): error CS1525: Invalid expression term ')'
                 //         x = ((int, int))(1, 1, );
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(12, 32),
@@ -6609,7 +6609,7 @@ class C
 }
 " + trivial2uple + trivial3uple + tupleattributes_cs;
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (12,20): error CS1525: Invalid expression term ')'
                 //         x = (1, 1, );
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(12, 20),
@@ -6665,7 +6665,7 @@ class C
 }
 " + trivial2uple + trivial3uple + tupleattributes_cs;
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (12,21): error CS1525: Invalid expression term ')'
                 //         x = ((1, 1, ), 1);
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(12, 21),
@@ -6805,7 +6805,7 @@ class C
 }
 " + trivial2uple + trivial3uple + tupleattributes_cs;
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (8,30): error CS0029: Cannot implicitly convert type 'int' to 'string'
                 //         Func<string> l = ()=>1; // reference
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "string").WithLocation(8, 30),
@@ -6855,7 +6855,7 @@ class C
 }
 " + trivial2uple + trivial3uple + tupleattributes_cs;
 
-            CreateStandardCompilation(source, parseOptions: TestOptions.Regular).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.Regular).VerifyDiagnostics(
                 // (8,45): error CS0029: Cannot implicitly convert type 'int' to 'string'
                 //         Func<string> l = (Func<string>)(()=>1); // reference
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "string").WithLocation(8, 45),
@@ -6897,7 +6897,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics();
             CompileAndVerify(comp, expectedOutput: "(1, )");
 
@@ -6930,7 +6930,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics();
             CompileAndVerify(comp, expectedOutput: "(1, )");
 
@@ -6967,7 +6967,7 @@ struct C
 }
 ";
 
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics();
             CompileAndVerify(comp, expectedOutput: "CCC");
 
@@ -7024,7 +7024,7 @@ struct C
 }
 ";
 
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics(
                 // (6,18): error CS8305: The first operand of an 'as' operator may not be a tuple literal without a natural type.
                 //         var x4 = (1, null) as C;
@@ -7120,7 +7120,7 @@ class C
 }
 ";
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (23,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.Test(Func<(Func<short>, int)>)' and 'C.Test(Func<(Func<byte>, int)>)'
                 //         Test(()=>(()=>1, 1));
                 Diagnostic(ErrorCode.ERR_AmbigCall, "Test").WithArguments("C.Test(System.Func<(System.Func<short>, int)>)", "C.Test(System.Func<(System.Func<byte>, int)>)").WithLocation(23, 9)
@@ -7404,7 +7404,7 @@ class C
 }
 " + trivial2uple + tupleattributes_cs;
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (7,48): warning CS8123: The tuple element name 'e' is ignored because a different name or no name is specified by the target type '(long c, long d)'.
                 //         (int a, int b) x1 = ((long c, long d))(e: 1, f:2);
                 Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "e: 1").WithArguments("e", "(long c, long d)").WithLocation(7, 48),
@@ -7449,7 +7449,7 @@ class C
 }
 " + trivial2uple + trivial3uple + tupleattributes_cs;
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (6,29): error CS8135: Tuple with 3 elements cannot be converted to type '(long c, long d)'.
                 //         (int a, int b) x4 = ((long c, long d))(1, null, 2);
                 Diagnostic(ErrorCode.ERR_ConversionNotTupleCompatible, "((long c, long d))(1, null, 2)").WithArguments("3", "(long c, long d)").WithLocation(6, 29)
@@ -7470,7 +7470,7 @@ class C
 " + trivial2uple + trivial3uple + tupleattributes_cs;
 
             var tree = Parse(source, options: TestOptions.Regular);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
 
             var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
             var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
@@ -7501,7 +7501,7 @@ class C
 " + trivial2uple + trivial3uple + tupleattributes_cs;
 
             var tree = Parse(source, options: TestOptions.Regular);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
 
             var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
             var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
@@ -7556,7 +7556,7 @@ class C
 " + trivial2uple + trivial3uple + tupleattributes_cs;
 
             var tree = Parse(source, options: TestOptions.Regular);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
 
             var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
             var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
@@ -7585,7 +7585,7 @@ class C
 " + trivial2uple + trivial3uple + tupleattributes_cs;
 
             var tree = Parse(source, options: TestOptions.Regular);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
 
             var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
             var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
@@ -7614,7 +7614,7 @@ class C
 " + trivial2uple + trivial3uple + tupleattributes_cs;
 
             var tree = Parse(source, options: TestOptions.Regular);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
 
             var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
             var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
@@ -7663,7 +7663,7 @@ class C
 " + trivial2uple + trivial3uple + tupleattributes_cs;
 
             var tree = Parse(source, options: TestOptions.Regular);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
 
             var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
             var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
@@ -7697,7 +7697,7 @@ class C
 " + trivial2uple + trivial3uple + tupleattributes_cs;
 
             var tree = Parse(source, options: TestOptions.Regular);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
 
             var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
             var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
@@ -7730,7 +7730,7 @@ class C
 " + trivial2uple + trivial3uple + tupleattributes_cs;
 
             var tree = Parse(source, options: TestOptions.Regular);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
 
             var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
             var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
@@ -7759,7 +7759,7 @@ class C
 " + trivial2uple + trivial3uple + tupleattributes_cs;
 
             var tree = Parse(source, options: TestOptions.Regular);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
 
             var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
             var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
@@ -7806,7 +7806,7 @@ class C
 " + trivial2uple + trivial3uple + tupleattributes_cs;
 
             var tree = Parse(source, options: TestOptions.Regular);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
 
             var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
             var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
@@ -7841,7 +7841,7 @@ class C
 " + trivial2uple + trivial3uple + tupleattributes_cs;
 
             var tree = Parse(source, options: TestOptions.Regular);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
 
             var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
             var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
@@ -7870,7 +7870,7 @@ class C
 " + trivial2uple + trivial3uple + tupleattributes_cs;
 
             var tree = Parse(source, options: TestOptions.Regular);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
 
             var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
             var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
@@ -7899,7 +7899,7 @@ class C
 " + trivial2uple + trivial3uple + tupleattributes_cs;
 
             var tree = Parse(source, options: TestOptions.Regular);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
 
             var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
             var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
@@ -7929,7 +7929,7 @@ class C
 " + trivial2uple + trivial3uple + tupleattributes_cs;
 
             var tree = Parse(source, options: TestOptions.Regular);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
 
             var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
             var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
@@ -7984,7 +7984,7 @@ class C
 " + trivial2uple + trivial3uple + tupleattributes_cs;
 
             var tree = Parse(source, options: TestOptions.Regular);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
 
             var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
             var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
@@ -8014,7 +8014,7 @@ class C
 " + trivial2uple + trivial3uple + tupleattributes_cs;
 
             var tree = Parse(source, options: TestOptions.Regular);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
 
             var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
             var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
@@ -8073,7 +8073,7 @@ class C
 " + trivial2uple + trivial3uple + tupleattributes_cs;
 
             var tree = Parse(source, options: TestOptions.Regular);
-            var comp = CreateStandardCompilation(tree, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(tree, options: TestOptions.ReleaseExe);
 
             var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
             var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
@@ -8120,7 +8120,7 @@ class C
 " + trivial2uple + trivial3uple + tupleattributes_cs;
 
             var tree = Parse(source, options: TestOptions.Regular);
-            var comp = CreateStandardCompilation(tree, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(tree, options: TestOptions.ReleaseExe);
 
             var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
             var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
@@ -8191,7 +8191,7 @@ class C
 " + trivial2uple + tupleattributes_cs;
 
             var tree = Parse(source, options: TestOptions.Regular);
-            var comp = CreateStandardCompilation(tree, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(tree, options: TestOptions.ReleaseExe);
 
             comp.VerifyDiagnostics();
 
@@ -8243,7 +8243,7 @@ class C
 ";
 
             var tree = Parse(source, options: TestOptions.Regular);
-            var comp = CreateStandardCompilation(tree,
+            var comp = CreateCompilation(tree,
                 options: TestOptions.ReleaseExe);
 
             comp.VerifyDiagnostics(
@@ -8320,7 +8320,7 @@ namespace System
 ";
 
             var tree = Parse(source, options: TestOptions.Regular);
-            var comp = CreateStandardCompilation(tree, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(tree, options: TestOptions.ReleaseExe);
 
             comp.VerifyDiagnostics();
 
@@ -8401,7 +8401,7 @@ namespace System
 ";
 
             var tree = Parse(source, options: TestOptions.Regular);
-            var comp = CreateStandardCompilation(tree, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(tree, options: TestOptions.ReleaseExe);
 
             comp.VerifyDiagnostics();
 
@@ -8484,7 +8484,7 @@ namespace System
 ";
 
             var tree = Parse(source, options: TestOptions.Regular);
-            var comp = CreateStandardCompilation(tree, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(tree, options: TestOptions.ReleaseExe);
 
             comp.VerifyDiagnostics();
 
@@ -8538,7 +8538,7 @@ class C
 ";
 
             var tree = Parse(source, options: TestOptions.Regular);
-            var comp = CreateStandardCompilation(tree,
+            var comp = CreateCompilation(tree,
                 options: TestOptions.ReleaseExe);
 
             comp.VerifyDiagnostics(
@@ -8991,7 +8991,7 @@ class C
 }
 " + trivial2uple + tupleattributes_cs;
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (10,9): error CS0411: The type arguments for method 'C.Test1<T>(ref T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         Test1(ref t, (ValueType)1);
@@ -9028,7 +9028,7 @@ class C
 }
 " + trivial2uple + tupleattributes_cs;
 
-            var comp = CreateStandardCompilation(source, references: new[] { CSharpRef });
+            var comp = CreateCompilation(source, references: new[] { CSharpRef });
             comp.VerifyDiagnostics(
                 // (17,18): error CS0411: The type arguments for method 'C.Test3<T>(ref T, ref T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         var d3 = Test3(ref o, ref d);
@@ -9083,7 +9083,7 @@ class C
 }
 " + trivial2uple + tupleattributes_cs;
 
-            var comp = CreateStandardCompilation(source, references: new[] { CSharpRef });
+            var comp = CreateCompilation(source, references: new[] { CSharpRef });
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.First();
@@ -9125,7 +9125,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.First();
@@ -9171,7 +9171,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source, references: new[] { CSharpRef });
+            var comp = CreateCompilation(source, references: new[] { CSharpRef });
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.First();
@@ -9210,7 +9210,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source, references: new[] { CSharpRef });
+            var comp = CreateCompilation(source, references: new[] { CSharpRef });
             comp.VerifyDiagnostics(
                 // (10,18): error CS0411: The type arguments for method 'C.Test1<T>(ref T, T, T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         var t1 = Test1(ref ab, cd, 1, de);
@@ -9237,7 +9237,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source, references: new[] { CSharpRef });
+            var comp = CreateCompilation(source, references: new[] { CSharpRef });
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.First();
@@ -9310,7 +9310,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.First();
@@ -9417,7 +9417,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,15): error CS1503: Argument 1: cannot convert from '(int a, (int a, int b) b)?' to '(int, object)'
                 //         Test1(Nullable((a: 1, b: (a: 1, b: 2))), (a: 1, b: (object)1));
@@ -9449,7 +9449,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (7,9): error CS0411: The type arguments for method 'C.Test1<T, U>((T, U)?, (T, U?))' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         Test1((a: 1, b: (a: 1, b: 2)), (a: 1, b: (c: 1, d: 2)));
@@ -9884,7 +9884,7 @@ class C
 }
 " + trivial2uple + trivial3uple + tupleattributes_cs;
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,24): error CS0306: The type 'ArgIterator' may not be used as a type argument
                 //         var x = (1, 2, new System.ArgIterator());
@@ -9923,7 +9923,7 @@ class C
 }
 " + trivial2uple + trivial3uple + tupleattributes_cs;
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,36): error CS0306: The type 'ArgIterator' may not be used as a type argument
                 //         (int x, System.ArgIterator y) y;
@@ -9943,7 +9943,7 @@ public interface MyInterface {
 }
 ";
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (3,21): error CS1002: ; expected
                 //     (int, int) Goo()
@@ -10100,7 +10100,7 @@ class D : C, I<(int a, int b), (int c, int d)>
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (9,49): error CS8141: The tuple element names in the signature of method 'C.M(((int, int), (int, int)))' must match the tuple element names of interface method 'I<(int b, int a), (int a, int b)>.M(((int b, int a) paramA, (int a, int b) paramB))' (including on the return type).
                 //     public virtual ((int, int) x, (int, int) y) M(((int, int), (int, int)) x)
@@ -10127,7 +10127,7 @@ class C
 CS0151ERR_IntegralTypeValueExpected}
 " + trivial2uple + tupleattributes_cs;
 
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular6);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular6);
             comp.VerifyDiagnostics(
                 // (6,9): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
                 //         (int, int) x = (1, 1);
@@ -10954,7 +10954,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (8,42): error CS1061: '(int, int)' does not contain a definition for 'a4' and no extension method 'a4' accepting a first argument of type '(int, int)' could be found (are you missing a using directive or an assembly reference?)
                 //         System.Console.WriteLine(v4.Rest.a4);
@@ -11238,7 +11238,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (8,42): error CS1061: '(int, int, int, int, int, int, int, int, int)' does not contain a definition for 'Item10' and no extension method 'Item10' accepting a first argument of type '(int, int, int, int, int, int, int, int, int)' could be found (are you missing a using directive or an assembly reference?)
                 //         System.Console.WriteLine(v5.Rest.Item10);
@@ -11324,7 +11324,7 @@ class C
 }
 " + trivial2uple + trivial3uple + trivialRemainingTuples + tupleattributes_cs;
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (9,17): error CS8125: Tuple member name 'Item9' is only allowed at position 9.
                 //     static (int Item9, int Item1, int Item2, int Item3, int Item4, int Item5, int Item6, int Item7, int Item8) M7()
@@ -11427,7 +11427,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (9,73): error CS8125: Tuple member name 'Item1' is only allowed at position 1.
                 //     static (int a1, int a2, int a3, int a4, int a5, int a6, int a7, int Item1) M8()
@@ -11947,7 +11947,7 @@ partial class C
 }
 " + trivialRemainingTuples + tupleattributes_cs;
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
 
             var c = comp.GetTypeByMetadataName("C");
             comp.VerifyDiagnostics(
@@ -12176,7 +12176,7 @@ namespace System
 }
 " + tupleattributes_cs;
 
-            var comp = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics();
 
             CompileAndVerify(comp, expectedOutput:
@@ -12245,7 +12245,7 @@ namespace System
 }
 ";
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
 
             var c = comp.GetTypeByMetadataName("C");
             comp.VerifyDiagnostics();
@@ -12684,7 +12684,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,42): error CS1525: Invalid expression term 'int'
                 //         System.Console.WriteLine(nameof((int, int)));
@@ -13054,7 +13054,7 @@ interface ITest2<T> : ValueTuple<int, int, int, int, int, int, int, T> where T :
 }
 ";
 
-            var comp = CreateStandardCompilation(source,
+            var comp = CreateCompilation(source,
                                                      options: TestOptions.ReleaseExe.WithAllowUnsafe(true));
 
             comp.VerifyDiagnostics(
@@ -14848,7 +14848,7 @@ namespace System
 }
 ";
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (7,12): error CS0070: The event '(int, long).E1' can only appear on the left hand side of += or -= (except when used from within the type '(int, long)')
                 //         v1.E1();
@@ -14869,7 +14869,7 @@ class C
 }
 " + trivial2uple + tupleattributes_cs;
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,19): error CS1525: Invalid expression term 'int'
                 //         if (o is (int, int) t) { }
@@ -14908,7 +14908,7 @@ class C
 }
 " + trivial2uple + tupleattributes_cs;
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
                 //         (x, x);
@@ -14930,7 +14930,7 @@ class C
 " + trivial2uple + tupleattributes_cs;
 
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,19): error CS8185: A declaration is not allowed in this context.
                 //         if (o is (int a, int b)) { }
@@ -14963,7 +14963,7 @@ class C
 }
 " + trivial2uple + tupleattributes_cs;
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,18): error CS0150: A constant value is expected
                 //         if (o is (1, 2))
@@ -14986,7 +14986,7 @@ class C
 }
 " + trivial2uple + tupleattributes_cs;
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (7,19): error CS1525: Invalid expression term 'int'
                 //             case (int, int) tuple: return;
@@ -15024,7 +15024,7 @@ class C
 }
 " + trivial2uple + tupleattributes_cs;
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (7,18): error CS0150: A constant value is expected
                 //             case (1, 1): return;
@@ -15050,7 +15050,7 @@ class C
 }
 " + trivial2uple + tupleattributes_cs;
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (7,25): error CS1003: Syntax error, ':' expected
                 //             case (1, 1) t: return;
@@ -15079,7 +15079,7 @@ class C
     }
 }
 " + trivial2uple + tupleattributes_cs;
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
                 //         (1, 1);
@@ -15154,7 +15154,7 @@ class TestAttribute : System.Attribute
 }
 " + trivial2uple + tupleattributes_cs;
 
-            var comp = CreateStandardCompilation(source, references: new[] { SystemRef });
+            var comp = CreateCompilation(source, references: new[] { SystemRef });
             comp.VerifyDiagnostics(
                 // (6,32): error CS8129: Type of the tuple element cannot be infered from '<null>'.
                 //         var x0 = new {tuple = (null, null)};
@@ -15245,7 +15245,7 @@ class C
 }
 " + trivial2uple + tupleattributes_cs;
 
-            var comp = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput:
 @"System.ValueTuple`2[System.Int32,System.String] - {1, s}
 System.ValueType - {2, s}
@@ -15260,7 +15260,7 @@ System.ValueTuple`2[System.Int32,System.ValueTuple`2[System.Int32,System.String]
 class Class { void Method() { tuple = (1, ""hello""); } }
 " + trivial2uple + tupleattributes_cs;
 
-            var comp = CreateStandardCompilation(source, references: new[] { SystemRef });
+            var comp = CreateCompilation(source, references: new[] { SystemRef });
             comp.VerifyDiagnostics(
                 // (2,31): error CS0103: The name 'tuple' does not exist in the current context
                 // class Class { void Method() { tuple = (1, "hello"); } }
@@ -15405,7 +15405,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,21): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
                 //         var x = new (int, int, int, int, int, int, int, int)(1, 2, 3, 4, 5, 6, 7, 8);
@@ -15442,13 +15442,13 @@ class D
 }
 ";
 
-            var libComp = CreateStandardCompilation(lib_cs, assemblyName: "lib");
+            var libComp = CreateCompilation(lib_cs, assemblyName: "lib");
             libComp.VerifyDiagnostics();
 
-            var comp1 = CreateStandardCompilation(source, references: new[] { libComp.ToMetadataReference() });
+            var comp1 = CreateCompilation(source, references: new[] { libComp.ToMetadataReference() });
             comp1.VerifyDiagnostics();
 
-            var comp2 = CreateStandardCompilation(source, references: new[] { libComp.EmitToImageReference() });
+            var comp2 = CreateCompilation(source, references: new[] { libComp.EmitToImageReference() });
             comp2.VerifyDiagnostics();
         }
 
@@ -15857,7 +15857,7 @@ class C3
 }
 ";
 
-            var comp = CreateStandardCompilation(source,
+            var comp = CreateCompilation(source,
                 references: new[] { comp1.ToMetadataReference(), comp2.ToMetadataReference().WithAliases(ImmutableArray.Create("alias1")) },
                 parseOptions: TestOptions.Regular,
                 options: TestOptions.DebugExe);
@@ -15886,7 +15886,7 @@ class C
 " + trivial2uple + trivial3uple + tupleattributes_cs;
 
             var tree = Parse(source, options: TestOptions.Regular);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             //comp.VerifyDiagnostics();
 
             var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
@@ -15947,7 +15947,7 @@ class C
 " + trivial2uple + trivial3uple + tupleattributes_cs;
 
             var tree = Parse(source, options: TestOptions.Regular);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             //comp.VerifyDiagnostics();
 
             var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
@@ -16007,7 +16007,7 @@ class C
 " + trivial2uple + trivial3uple + tupleattributes_cs;
 
             var tree = Parse(source, options: TestOptions.Regular);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
 
             var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
             var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
@@ -16039,7 +16039,7 @@ class C
 ";
 
             var tree = Parse(source, options: TestOptions.Regular7_1);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
 
             var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
@@ -16072,7 +16072,7 @@ class C
 ";
 
             var tree = Parse(source, options: TestOptions.Regular7_1);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
 
             var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
@@ -16599,7 +16599,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source,
+            var comp = CreateCompilation(source,
                 parseOptions: TestOptions.Regular, assemblyName: "ImplicitConversions06Err");
 
             comp.VerifyEmitDiagnostics(
@@ -16763,7 +16763,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (10,70): error CS0029: Cannot implicitly convert type 'C.C1' to '(int, (object, (byte, (int?, (long, System.IComparable)?))?))?'
                 //         (int, (object, (byte, (int?, (long, IComparable)?))?))? x1 = y;
@@ -16814,7 +16814,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (14,70): error CS0030: Cannot convert type 'C.C1' to '(int, C.C1)?'
                 //                                                                      ((int, C1)?)
@@ -16855,7 +16855,7 @@ namespace System
 }
 ";
 
-            var comp = CreateStandardCompilation(source, assemblyName: "ImplicitConversions06Err");
+            var comp = CreateCompilation(source, assemblyName: "ImplicitConversions06Err");
             comp.VerifyEmitDiagnostics(
                 // (7,26): error CS8128: Member 'Item2' was not found on type 'ValueTuple<T1, T2>' from assembly 'ImplicitConversions06Err, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         (long, long) y = x;   
@@ -16895,7 +16895,7 @@ namespace System
 }
 ";
 
-            var comp = CreateStandardCompilation(source, assemblyName: "ImplicitConversions06Err");
+            var comp = CreateCompilation(source, assemblyName: "ImplicitConversions06Err");
             comp.VerifyEmitDiagnostics(
                 // (7,26): error CS8128: Member 'Item2' was not found on type 'ValueTuple<T1, T2>' from assembly 'ImplicitConversions06Err, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         (byte, byte) y = ((byte, byte))x;   
@@ -17306,7 +17306,7 @@ class C
 }
 " + trivial2uple + tupleattributes_cs;
 
-            var comp = CreateStandardCompilation(source, assemblyName: "ImplicitConversions06Err");
+            var comp = CreateCompilation(source, assemblyName: "ImplicitConversions06Err");
             comp.VerifyEmitDiagnostics(
                 // (28,13): error CS0457: Ambiguous user defined conversions 'B.implicit operator B(long)' and 'A.implicit operator A(int)' when converting from 'int' to 'B'
                 //         b = (B)x;
@@ -17467,7 +17467,7 @@ class Program
 
 " + trivial2uple + tupleattributes_cs;
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (22,9): error CS0411: The type arguments for method 'Program.Test<T>(Action<T>, Action<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         Test(z, z1);
@@ -17484,7 +17484,7 @@ class Program
         [Fact]
         public void ClassifyConversionIdentity01()
         {
-            var tupleComp = CreateStandardCompilation(trivial2uple + trivial3uple + trivialRemainingTuples);
+            var tupleComp = CreateCompilation(trivial2uple + trivial3uple + trivialRemainingTuples);
             var comp = CSharpCompilation.Create("test", references: new[] { MscorlibRef, tupleComp.ToMetadataReference() });
 
             ITypeSymbol intType = comp.GetSpecialType(SpecialType.System_Int32);
@@ -17502,7 +17502,7 @@ class Program
         [Fact]
         public void ClassifyConversionIdentity02()
         {
-            var tupleComp = CreateStandardCompilation(trivial2uple + trivial3uple + trivialRemainingTuples);
+            var tupleComp = CreateCompilation(trivial2uple + trivial3uple + trivialRemainingTuples);
             var comp = CSharpCompilation.Create("test", references: new[] { MscorlibRef, tupleComp.ToMetadataReference() });
 
             ITypeSymbol intType = comp.GetSpecialType(SpecialType.System_Int32);
@@ -17522,7 +17522,7 @@ class Program
         [Fact]
         public void ClassifyConversionNone01()
         {
-            var tupleComp = CreateStandardCompilation(trivial2uple + trivial3uple + trivialRemainingTuples);
+            var tupleComp = CreateCompilation(trivial2uple + trivial3uple + trivialRemainingTuples);
             var comp = CSharpCompilation.Create("test", references: new[] { MscorlibRef, tupleComp.ToMetadataReference() });
 
             ITypeSymbol intType = comp.GetSpecialType(SpecialType.System_Int32);
@@ -17545,7 +17545,7 @@ class Program
         [Fact]
         public void ClassifyConversionImplicit01()
         {
-            var tupleComp = CreateStandardCompilation(trivial2uple + trivial3uple + trivialRemainingTuples);
+            var tupleComp = CreateCompilation(trivial2uple + trivial3uple + trivialRemainingTuples);
             var comp = CSharpCompilation.Create("test", references: new[] { MscorlibRef, tupleComp.ToMetadataReference() });
 
             ITypeSymbol intType = comp.GetSpecialType(SpecialType.System_Int32);
@@ -17562,7 +17562,7 @@ class Program
         [Fact]
         public void ClassifyConversionImplicit02()
         {
-            var tupleComp = CreateStandardCompilation(trivial2uple + trivial3uple + trivialRemainingTuples);
+            var tupleComp = CreateCompilation(trivial2uple + trivial3uple + trivialRemainingTuples);
             var comp = CSharpCompilation.Create("test", references: new[] { MscorlibRef, tupleComp.ToMetadataReference() });
 
             ITypeSymbol intType = comp.GetSpecialType(SpecialType.System_Int32);
@@ -17588,8 +17588,8 @@ class Program
         [Fact]
         public void ClassifyConversionImplicit03()
         {
-            var tupleComp1 = CreateStandardCompilation(trivial2uple + trivial3uple + trivialRemainingTuples);
-            var tupleComp2 = CreateStandardCompilation(trivial2uple + trivial3uple + trivialRemainingTuples);
+            var tupleComp1 = CreateCompilation(trivial2uple + trivial3uple + trivialRemainingTuples);
+            var tupleComp2 = CreateCompilation(trivial2uple + trivial3uple + trivialRemainingTuples);
             var comp = CSharpCompilation.Create("test", references: new[] { MscorlibRef, tupleComp1.ToMetadataReference(), tupleComp2.ToMetadataReference() });
 
             ITypeSymbol intType = comp.GetSpecialType(SpecialType.System_Int32);
@@ -17613,8 +17613,8 @@ class Program
         [Fact]
         public void ClassifyConversionImplicit03u()
         {
-            var tupleComp1 = CreateStandardCompilation(trivial2uple + trivial3uple + trivialRemainingTuples);
-            var tupleComp2 = CreateStandardCompilation(trivial2uple + trivial3uple + trivialRemainingTuples);
+            var tupleComp1 = CreateCompilation(trivial2uple + trivial3uple + trivialRemainingTuples);
+            var tupleComp2 = CreateCompilation(trivial2uple + trivial3uple + trivialRemainingTuples);
             var comp = CSharpCompilation.Create("test", references: new[] { MscorlibRef, tupleComp1.ToMetadataReference(), tupleComp2.ToMetadataReference() });
 
             ITypeSymbol intType = comp.GetSpecialType(SpecialType.System_Int32);
@@ -17638,8 +17638,8 @@ class Program
         [Fact]
         public void ClassifyConversionImplicit03uu()
         {
-            var tupleComp1 = CreateStandardCompilation(trivial2uple + trivial3uple + trivialRemainingTuples);
-            var tupleComp2 = CreateStandardCompilation(trivial2uple + trivial3uple + trivialRemainingTuples);
+            var tupleComp1 = CreateCompilation(trivial2uple + trivial3uple + trivialRemainingTuples);
+            var tupleComp2 = CreateCompilation(trivial2uple + trivial3uple + trivialRemainingTuples);
             var comp = CSharpCompilation.Create("test", references: new[] { MscorlibRef, tupleComp1.ToMetadataReference(), tupleComp2.ToMetadataReference() });
 
             ITypeSymbol intType = comp.GetSpecialType(SpecialType.System_Int32);
@@ -17663,8 +17663,8 @@ class Program
         [Fact]
         public void ClassifyConversionImplicit03uuu()
         {
-            var tupleComp1 = CreateStandardCompilation(trivial2uple + trivial3uple + trivialRemainingTuples);
-            var tupleComp2 = CreateStandardCompilation(trivial2uple + trivial3uple + trivialRemainingTuples);
+            var tupleComp1 = CreateCompilation(trivial2uple + trivial3uple + trivialRemainingTuples);
+            var tupleComp2 = CreateCompilation(trivial2uple + trivial3uple + trivialRemainingTuples);
             var comp = CSharpCompilation.Create("test", references: new[] { MscorlibRef, tupleComp1.ToMetadataReference(), tupleComp2.ToMetadataReference() });
 
             ITypeSymbol intType = comp.GetSpecialType(SpecialType.System_Int32);
@@ -17776,7 +17776,7 @@ class C {
         var i = /*<bind0>*/x/*</bind0>*/;
     }
 }";
-            var tupleComp1 = CreateStandardCompilation(trivial2uple + trivial3uple + trivialRemainingTuples);
+            var tupleComp1 = CreateCompilation(trivial2uple + trivial3uple + trivialRemainingTuples);
 
             var tree = Parse(text);
             var comp = CSharpCompilation.Create("test", syntaxTrees: new[] { tree }, references: new[] { MscorlibRef, tupleComp1.ToMetadataReference() });
@@ -17815,7 +17815,7 @@ class C {
         var i = /*<bind0>*/x/*</bind0>*/;
     }
 }";
-            var tupleComp1 = CreateStandardCompilation(trivial2uple + trivial3uple + trivialRemainingTuples);
+            var tupleComp1 = CreateCompilation(trivial2uple + trivial3uple + trivialRemainingTuples);
 
             var tree = Parse(text);
             var comp = CSharpCompilation.Create("test", syntaxTrees: new[] { tree }, references: new[] { MscorlibRef, tupleComp1.ToMetadataReference() });
@@ -17859,7 +17859,7 @@ public class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (7,32): warning CS8123: The tuple element name 'b' is ignored because a different name is specified by the target type '(int a, int)'.
                 //         var x1 = flag ? (a: 1, b: 2) : (a: 1, c: 2);
@@ -17914,7 +17914,7 @@ public class D
     public static implicit operator (int d1, int d2) (D x) { throw null; }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (16,32): warning CS8123: The tuple element name 'c' is ignored because a different name is specified by the target type '(int a, int b)'.
                 //         var x6 = nab ?? (a: 1, c: 3); // (a, b)?
@@ -17979,7 +17979,7 @@ public class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (7,26): warning CS8123: The tuple element name 'a' is ignored because a different name is specified by the target type '(int, int)'.
                 //         var x1 = flag ? (a: 1, b: 2) : (1, 2);
@@ -18019,7 +18019,7 @@ public class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (7,59): warning CS8123: The tuple element name 'c' is ignored because a different name is specified by the target type '(int a, long b)'.
                 //         var x1 = flag ? (a: 1, b: (long)2) : (a: (byte)1, c: 2);
@@ -18067,7 +18067,7 @@ public class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (11,43): warning CS8123: The tuple element name 'b' is ignored because a different name is specified by the target type '(int a, int)'.
                 //                             return (a: 1, b: 2);
@@ -18122,7 +18122,7 @@ public class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (12,43): warning CS8123: The tuple element name 'b' is ignored because a different name is specified by the target type '(dynamic a, int)'.
                 //                             return (a: 1, b: 2);
@@ -18177,7 +18177,7 @@ public class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,18): error CS0411: The type arguments for method 'C.M2<T>(Func<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         var x1 = M2(() =>
@@ -18198,7 +18198,7 @@ public class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,31): warning CS8123: The tuple element name 'b' is ignored because a different name or no name is specified by the target type '(int a, int)'.
                 //         (int a, int) x1 = (1, b: 2);
@@ -18236,7 +18236,7 @@ public class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,27): warning CS8123: The tuple element name 'b' is ignored because a different name is specified by the target type '(int a, int)'.
                 //         var t = M2((a: 1, b: 2), (a: 1, c: 3));
@@ -18289,7 +18289,7 @@ public class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,39): warning CS8123: The tuple element name 'c' is ignored because a different name is specified by the target type '(int a, int b)'.
                 //         M2((a: 1, b: 2), (a: (byte)1, c: (byte)3));
@@ -18330,7 +18330,7 @@ public class C
     public void M2<T>(T x1, T x2) { }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.First();
@@ -18365,7 +18365,7 @@ class Derived : Base
     }
 }";
 
-            var comp1 = CreateStandardCompilation(source1 + trivial2uple + source2);
+            var comp1 = CreateCompilation(source1 + trivial2uple + source2);
             comp1.VerifyDiagnostics();
 
             var comp2 = CreateCompilationWithMscorlib45(source1 + trivial2uple);
@@ -18451,7 +18451,7 @@ public class Derived : Base
     public override (dynamic notA, dynamic) M6<T>() { return (default(T), default(T)); }
 }
 ";
-            var comp = CreateStandardCompilation(source, references: new[] { CSharpRef });
+            var comp = CreateCompilation(source, references: new[] { CSharpRef });
             comp.VerifyDiagnostics(
                 // (14,38): error CS8139: 'Derived.M2<T>()': cannot change tuple element names when overriding inherited member 'Base.M2<T>()'
                 //     public override (T notA, T notB) M2<T>() { return (default(T), default(T)); }
@@ -18490,7 +18490,7 @@ public class Derived : Base
     public override void M4(((int notA, int notB) c, int d) x) { }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (12,26): error CS8139: 'Derived.M2((int notA, int notB)[])': cannot change tuple element names when overriding inherited member 'Base.M2((int a, int b)[])'
                 //     public override void M2((int notA, int notB)[] x) { }
@@ -18526,7 +18526,7 @@ public class Derived : Base
     public override void M4<T>(((T notA, T notB) c, T d) x) { }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (12,26): error CS8139: 'Derived.M2<T>((T notA, T notB)[])': cannot change tuple element names when overriding inherited member 'Base.M2<T>((T a, T b)[])'
                 //     public override void M2<T>((T notA, T notB)[] x) { }
@@ -18562,7 +18562,7 @@ public class Derived : Base
     public override ((int notA, int notB) c, int d) P4 { get; set; }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (12,44): error CS8139: 'Derived.P2': cannot change tuple element names when overriding inherited member 'Base.P2'
                 //     public override (int notA, int notB)[] P2 { get; set; }
@@ -18627,7 +18627,7 @@ public class Derived : Base
     void M() { E1(); E2(); E3(); E4(); }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (15,54): error CS8139: 'Derived.E2': cannot change tuple element names when overriding inherited member 'Base.E2'
                 //     public override event Func<(int notA, int notB)> E2;
@@ -18680,7 +18680,7 @@ public class Derived : Base
     public ((int notA, int notB) c, int d) M4() { return ((1, 2), 3); }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (13,27): warning CS0114: 'Derived.M1()' hides inherited member 'Base.M1()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
                 //     public (int a, int b) M1() { return (1, 2); }
@@ -18714,7 +18714,7 @@ public class Derived : Base
     public (int, int) M1() { return (1, 2); }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (8,23): warning CS0114: 'Derived.M1()' hides inherited member 'Base.M1()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
                 //     public (int, int) M1() { return (1, 2); }
@@ -18741,7 +18741,7 @@ public class C
     public void M4(((int notA, int notB) c, int d) x) { }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (5,17): error CS0111: Type 'C' already defines a member called 'M1' with the same parameter types
                 //     public void M1((int notA, int notB) x) { }
@@ -18777,7 +18777,7 @@ public class Derived : Base
     public void M4(((int notA, int notB) c, int d) x) { }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (12,17): warning CS0114: 'Derived.M2((int notA, int notB)[])' hides inherited member 'Base.M2((int a, int b)[])'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
                 //     public void M2((int notA, int notB)[] x) { }
@@ -18814,7 +18814,7 @@ public class C : I0
 }
 ";
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (12,13): error CS8141: The tuple element names in the signature of method 'C.I0.M2((int notA, int notB))' must match the tuple element names of interface method 'I0.M2((int a, int b))' (including on the return type).
                 //     void I0.M2((int notA, int notB) z) { }
@@ -18854,7 +18854,7 @@ public class C : I0
 }
 ";
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
         }
 
@@ -18874,7 +18874,7 @@ public interface I1 : I0
 }
 ";
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (10,26): warning CS0108: 'I1.MR2()' hides inherited member 'I0.MR2()'. Use the new keyword if hiding was intended.
                 //     (int notA, int notB) MR2();
@@ -18908,7 +18908,7 @@ public interface I1 : I0
     (int a, int b) M6();
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (18,20): warning CS0108: 'I1.M6()' hides inherited member 'I0.M6()'. Use the new keyword if hiding was intended.
                 //     (int a, int b) M6();
@@ -18936,7 +18936,7 @@ public class C3 : I0<int>, I0<int> { }
 public class C4<T, U> : I0<(int a, int b)>, I0<(T a, U b)> { }
 public class C5<T, U> : I0<(int a, int b)>, I0<(T notA, U notB)> { }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (5,28): error CS0528: 'I0<int>' is already listed in interface list
                 // public class C3 : I0<int>, I0<int> { }
@@ -18993,7 +18993,7 @@ public class C2
     private class C3 { }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (11,9): error CS0122: 'C2.C3' is inaccessible due to its protection level
                 //     (C2.C3, int) M() { throw new System.Exception(); }
@@ -19018,7 +19018,7 @@ public class C
     private class C2 { }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (11,22): error CS0050: Inconsistent accessibility: return type '(C.C2, int)' is less accessible than method 'C.M()'
                 //     public (C2, int) M() { throw new System.Exception(); }
@@ -19046,7 +19046,7 @@ public class D : I0<(int a, int b)>
     public void set((int a, int b) y) { }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (10,17): error CS8141: The tuple element names in the signature of method 'C.set((int notA, int notB))' must match the tuple element names of interface method 'I0<(int a, int b)>.set((int a, int b))'.
                 //     public void set((int notA, int notB) y) { }
@@ -19087,7 +19087,7 @@ public class D2 : D1, I0<(int notA, int notB)>
     void I0<(int a, int b)>.set((int a, int b) y) { }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (20,17): error CS8141: The tuple element names in the signature of method 'D1.set((int notA, int notB))' must match the tuple element names of interface method 'I0<(int a, int b)>.set((int a, int b))' (including on the return type).
                 //     public void set((int notA, int notB) y) { }
@@ -19135,7 +19135,7 @@ public class D2 : D1, I0<(int, int)>
     void I0<(int, int)>.set((int, int) y) { }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (15,10): error CS0540: 'C2.I0<(int, int)>.set((int, int))': containing type does not implement interface 'I0<(int, int)>'
                 //     void I0<(int, int)>.set((int, int) y) { }
@@ -19163,7 +19163,7 @@ public partial class C
     partial void M3((int a, int b) y) { }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (4,18): error CS8142: Both partial method declarations, 'C.M1((int a, int b))' and 'C.M1((int notA, int notB))', must use the same tuple element names.
                 //     partial void M1((int a, int b) x);
@@ -19186,7 +19186,7 @@ public partial class C : I0<(int, int)> { }
 public partial class D : I0<(int a, int b)> { }
 public partial class D : I0<(int a, int b)> { }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (3,22): error CS8140: 'I0<(int notA, int notB)>' is already listed in the interface list on type 'C' with different tuple element names, as 'I0<(int a, int b)>'.
                 // public partial class C : I0<(int a, int b)> { }
@@ -19209,7 +19209,7 @@ public partial class C2 : Base<(int, int)> { }
 public partial class C3 : Base<(int a, int b)> { }
 public partial class C3 : Base<(int a, int b)> { }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (5,22): error CS0263: Partial declarations of 'C2' must not specify different base classes
                 // public partial class C2 : Base<(int a, int b)> { }
@@ -19232,7 +19232,7 @@ public interface I3 : I0<(int a, int b)> { }
 public class C : I1, I2 { }
 public class D : I1, I3 { }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (7,14): error CS8140: 'I0<(int notA, int notB)>' is already listed in the interface list on type 'C' with different tuple element names, as 'I0<(int a, int b)>'.
                 // public class C : I1, I2 { }
@@ -19250,7 +19250,7 @@ public class C2<T2> : I0<(int, int)>, I0<System.ValueTuple<T2, T2>> { }
 public class C3<T2> : I0<(int a, int b)>, I0<(T2, T2)> { }
 public class C4<T2> : I0<(int a, int b)>, I0<(T2 a, T2 b)> { }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,14): error CS0695: 'C4<T2>' cannot implement both 'I0<(int a, int b)>' and 'I0<(T2 a, T2 b)>' because they may unify for some type parameter substitutions
                 // public class C4<T2> : I0<(int a, int b)>, I0<(T2 a, T2 b)> { }
@@ -19284,7 +19284,7 @@ public class Derived : Base<(int a, int b)>
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (9,37): error CS0553: 'Derived.explicit operator Derived(Base<(int, int)>)': user-defined conversions to or from a base class are not allowed
                 //     public static explicit operator Derived(Base<(int, int)> x)
@@ -19302,7 +19302,7 @@ public class Derived : Base<(int a, int b)>
 public interface I0<T1> { }
 public class Derived<T> : I0<Derived<(T, T)>>, I0<T> { }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
             // Didn't run out of memory in trying to substitute T with Derived<(T, T)> in a loop
         }
@@ -19333,7 +19333,7 @@ public class D
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (18,18): error CS0121: The call is ambiguous between the following methods or properties: 'C1.M(string, (int, int))' and 'C2.M(string, (int a, int b))'
                 //         "string".M((1, 1));
@@ -19492,7 +19492,7 @@ public class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.First();
@@ -19529,7 +19529,7 @@ public class Derived : Base
     public override (dynamic notA, dynamic) P6 { get; set; }
 }
 ";
-            var comp = CreateStandardCompilation(source, references: new[] { CSharpRef });
+            var comp = CreateCompilation(source, references: new[] { CSharpRef });
             comp.VerifyDiagnostics(
                 // (14,42): error CS8139: 'Derived.P2': cannot change tuple element names when overriding inherited member 'Base.P2'
                 //     public override (int notA, int notB) P2 { get; set; }
@@ -20066,7 +20066,7 @@ namespace System
 }
 " + TestResources.NetFX.ValueTuple.tupleattributes_cs;
 
-            var comp = CreateStandardCompilation(source,
+            var comp = CreateCompilation(source,
                 parseOptions: TestOptions.Regular);
 
             comp.VerifyDiagnostics(
@@ -20155,7 +20155,7 @@ class C
 
 ";
 
-            var comp = CreateStandardCompilation(source,
+            var comp = CreateCompilation(source,
                 parseOptions: TestOptions.Regular);
 
             comp.VerifyDiagnostics(
@@ -20207,7 +20207,7 @@ class C
 
 ";
 
-            var comp = CreateStandardCompilation(source,
+            var comp = CreateCompilation(source,
                 parseOptions: TestOptions.Regular);
 
             comp.VerifyDiagnostics(
@@ -20246,7 +20246,7 @@ class C
 
 ";
 
-            var comp = CreateStandardCompilation(source,
+            var comp = CreateCompilation(source,
                 parseOptions: TestOptions.Regular);
 
             comp.VerifyDiagnostics(
@@ -20287,7 +20287,7 @@ class C
     }
 " + trivial2uple + tupleattributes_cs;
 
-            var verifier = CompileAndVerifyWithMscorlib40(source, targetFramework: TargetFramework.Net46, expectedOutput: @"5", options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net46, expectedOutput: @"5", options: TestOptions.ReleaseExe);
 
             // NOTE: !!! There should be NO IL local for  " (long a, int b) v1 " , it should be captured instead
             // NOTE: !!! There should be an IL local for  " (byte x, int y) v2 " , it should not be captured 
@@ -20394,7 +20394,7 @@ public struct S
 }
 ";
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (4,19): error CS0523: Struct member 'S.field' of type '(S, S)' causes a cycle in the struct layout
                 //     public (S, S) field;
@@ -20531,7 +20531,7 @@ public class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (10,42): warning CS8123: The tuple element name 'e' is ignored because a different name is specified by the target type '(int d, int)'.
                 //         return new[] { (d: 1, 2), (d: 1, e: 3), TupleDE() };
@@ -20643,7 +20643,7 @@ namespace System
 }
 ";
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,18): warning CS0612: 'ValueTuple<T1, T2>' is obsolete
                 //         var x9 = (1, 2, 3, 4, 5, 6, 7, 8, 9);
@@ -20684,7 +20684,7 @@ public class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source, assemblyName: "comp");
+            var comp = CreateCompilation(source, assemblyName: "comp");
             comp.VerifyEmitDiagnostics(
                 // (25,28): error CS8128: Member 'Item1' was not found on type 'ValueTuple<T1, T2>' from assembly 'comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         (int x1, int y1) = GetCoordinates();
@@ -20741,7 +20741,7 @@ class Program
         M((1, 2));
     }
 }";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (9,11): error CS1503: Argument 1: cannot convert from '(int, int)' to 'int'
                 //         M((1, 2));
@@ -20763,7 +20763,7 @@ class Program
         M((1, null));
     }
 }";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (9,11): error CS1503: Argument 1: cannot convert from '(int, <null>)' to 'int'
                 //         M((1, null));
@@ -20792,7 +20792,7 @@ class Program
     }
 ";
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (7,37): error CS1061: 'string' does not contain a definition for 'first' and no extension method 'first' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
                 //             Console.WriteLine($"({a.first}, {a.second})");
@@ -20815,7 +20815,7 @@ public interface I<out T>
     System.ValueTuple<bool, T> M();
 }
 ";
-            var comp1 = CreateStandardCompilation(source);
+            var comp1 = CreateCompilation(source);
             comp1.VerifyDiagnostics(
                 // (4,5): error CS1961: Invalid variance: The type parameter 'T' must be invariantly valid on 'I<T>.M()'. 'T' is covariant.
                 //     System.ValueTuple<bool, T> M();
@@ -20832,7 +20832,7 @@ public interface I<out T>
     (bool, T)[] M();
 }
 ";
-            var comp1 = CreateStandardCompilation(source);
+            var comp1 = CreateCompilation(source);
             comp1.VerifyDiagnostics(
                 // (4,5): error CS1961: Invalid variance: The type parameter 'T' must be invariantly valid on 'I<T>.M()'. 'T' is covariant.
                 //     (bool, T)[] M();
@@ -20849,7 +20849,7 @@ public interface I<in T>
     void M((bool, T)[] x);
 }
 ";
-            var comp1 = CreateStandardCompilation(source);
+            var comp1 = CreateCompilation(source);
             comp1.VerifyDiagnostics(
                 // (4,12): error CS1961: Invalid variance: The type parameter 'T' must be invariantly valid on 'I<T>.M((bool, T)[])'. 'T' is contravariant.
                 //     void M((bool, T)[] x);
@@ -20872,7 +20872,7 @@ class C
     }
 }";
 
-            var comp = CreateStandardCompilation(source, assemblyName: "comp", options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, assemblyName: "comp", options: TestOptions.DebugExe);
 
             // emit without pdb
             using (ModuleMetadata block = ModuleMetadata.CreateFromStream(comp.EmitToStream()))
@@ -20909,10 +20909,10 @@ class C
     }
 }";
 
-            var libComp = CreateStandardCompilation(libSource, assemblyName: "lib");
+            var libComp = CreateCompilation(libSource, assemblyName: "lib");
             libComp.VerifyDiagnostics();
 
-            var comp = CreateStandardCompilation(source, assemblyName: "comp", references: new[] { libComp.EmitToImageReference() }, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, assemblyName: "comp", references: new[] { libComp.EmitToImageReference() }, options: TestOptions.DebugExe);
 
             // emit without pdb
             using (ModuleMetadata block = ModuleMetadata.CreateFromStream(comp.EmitToStream()))
@@ -21003,7 +21003,7 @@ namespace System
 
 " + tupleattributes_cs;
 
-            var comp = CreateStandardCompilation(source, assemblyName: "ValueTupleNotStruct", options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, assemblyName: "ValueTupleNotStruct", options: TestOptions.DebugExe);
 
             comp.VerifyEmitDiagnostics(
                 // (6,24): error CS8182: Predefined type 'ValueTuple`2' must be a struct.
@@ -21073,7 +21073,7 @@ namespace System
 
 " + tupleattributes_cs;
 
-            var comp = CreateStandardCompilation(source, assemblyName: "ValueTupleNotStruct", options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, assemblyName: "ValueTupleNotStruct", options: TestOptions.DebugExe);
 
             comp.VerifyEmitDiagnostics(
                 // (6,13): error CS8182: Predefined type 'ValueTuple`8' must be a struct.
@@ -21118,7 +21118,7 @@ namespace System
 
 " + tupleattributes_cs;
 
-            var comp = CreateStandardCompilation(source, assemblyName: "ValueTupleNotStruct", options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, assemblyName: "ValueTupleNotStruct", options: TestOptions.DebugExe);
 
             comp.VerifyEmitDiagnostics(
                 // error CS8180: Predefined type 'ValueTuple`2' must be a struct.
@@ -21151,7 +21151,7 @@ namespace System
 
 " + tupleattributes_cs;
 
-            var comp = CreateStandardCompilation(source, assemblyName: "ValueTupleNotStruct", options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, assemblyName: "ValueTupleNotStruct", options: TestOptions.DebugExe);
 
             comp.VerifyEmitDiagnostics(
                 // error CS8180: Predefined type 'ValueTuple`2' must be a struct.
@@ -21195,7 +21195,7 @@ namespace System
 
 " + tupleattributes_cs;
 
-            var comp = CreateStandardCompilation(source, assemblyName: "ValueTupleNotStruct", options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, assemblyName: "ValueTupleNotStruct", options: TestOptions.DebugExe);
 
             comp.VerifyEmitDiagnostics(
                 // (10,22): error CS8180: Predefined type 'ValueTuple`2' must be a struct.
@@ -21238,7 +21238,7 @@ namespace System
 
 " + tupleattributes_cs;
 
-            var comp = CreateStandardCompilation(source, assemblyName: "ValueTupleNotStruct", options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, assemblyName: "ValueTupleNotStruct", options: TestOptions.DebugExe);
 
             comp.VerifyEmitDiagnostics(
                 // (9,5): error CS8180: Predefined type 'ValueTuple`2' must be a struct.
@@ -21501,7 +21501,7 @@ public class B1
     public static bool operator <=((B1 notA, B1 notB) x1, B1 x2) { return true; }
 }
 ";
-            var comp1 = CreateStandardCompilation(source);
+            var comp1 = CreateCompilation(source);
             comp1.VerifyDiagnostics();
         }
 
@@ -22368,7 +22368,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
@@ -22430,7 +22430,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
@@ -22494,7 +22494,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
@@ -22566,7 +22566,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
@@ -22638,7 +22638,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
@@ -22708,7 +22708,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (35,27): error CS1640: foreach statement cannot operate on variables of type 'Derived<(string notA, string notB)>' because it implements multiple instantiations of 'IEnumerable<T>'; try casting to a specific interface instantiation
                 //         foreach (var x in collection)
@@ -22749,7 +22749,7 @@ class Base<U> where U : I1<(int a, int b)> {}
 
 class Derived : Base<I1<(int notA, int notB)>> {}
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
         }
 
@@ -22765,7 +22765,7 @@ class Base<U> where U : I1<(int a, int b)> {}
 
 class Derived : Base<I2<(int notA, int notB)>> {}
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
         }
 
@@ -22788,7 +22788,7 @@ class Derived : Base, I<(int notA, int notB)>
 }
 ";
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
         }
 
@@ -22811,7 +22811,7 @@ class Derived : Base, I<(int notA, int notB)>
 }
 ";
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (12,42): error CS8139: 'Derived.M()': cannot change tuple element names when overriding inherited member 'Base.M()'
                 //     public override (int notA, int notB) M() { return (3, 4); }
@@ -22838,7 +22838,7 @@ class Derived : Base, I<(int notA, int notB)>
 }
 ";
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
         }
 
@@ -22864,7 +22864,7 @@ class Derived2 : Base, I<(int a, int b)>
     // ok
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (10,24): error CS0535: 'Derived1' does not implement interface member 'I<(int notA, int notB)>.M()'
                 // class Derived1 : Base, I<(int notA, int notB)> { }
@@ -22890,7 +22890,7 @@ class Derived : Base, I<(int notA, int notB)>
     // error
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (10,23): error CS8141: The tuple element names in the signature of method 'Base.M()' must match the tuple element names of interface method 'I<(int notA, int notB)>.M()' (including on the return type).
                 // class Derived : Base, I<(int notA, int notB)>
@@ -22916,7 +22916,7 @@ class Derived : Base, I<(int notA, int notB)>
     // error
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (10,23): error CS8141: The tuple element names in the signature of method 'Base.M()' must match the tuple element names of interface method 'I<(int notA, int notB)>.M()' (including on the return type).
                 // class Derived : Base, I<(int notA, int notB)>
@@ -22942,7 +22942,7 @@ class Derived : Base, I<(int, int)>
     // error
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (10,23): error CS8141: The tuple element names in the signature of method 'Base.M()' must match the tuple element names of interface method 'I<(int, int)>.M()' (including on the return type).
                 // class Derived : Base, I<(int, int)>
@@ -22968,7 +22968,7 @@ class Derived : Base, I<(int a, int b)>
     // ok
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
         }
 
@@ -23000,7 +23000,7 @@ class C
     static T Test<T>(I<T> t) { return t.M(); }
 }
 ";
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "3");
 
@@ -23022,7 +23022,7 @@ class C
     void M(int x, () y, (int a) z) { }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (4,20): error CS8124: Tuple must contain at least two elements.
                 //     void M(int x, () y, (int a) z) { }
@@ -23056,7 +23056,7 @@ class C
     object x = (Alice: 1);
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (4,25): error CS8124: Tuple must contain at least two elements.
                 //     object x = (Alice: 1);
@@ -23169,7 +23169,7 @@ static class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (13,64): error CS0117: '(string, (int, (<null>, int)))' does not contain a definition for 'M'
                 //         System.Console.WriteLine(("qq", (Alice: 1, (null, 3))).M());
@@ -23210,7 +23210,7 @@ static class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (10,34): error CS1929: '(int, int)' does not contain a definition for 'M' and the best extension method overload 'C.M((int x, long y))' requires a receiver of type '(int x, long y)'
                 //         System.Console.WriteLine((1, 2).M());
@@ -24108,7 +24108,7 @@ public class C
     public static void M1<T1, T2, T3, T4, T5, T6, T7, TRest>(ValueTuple<Func<T1>, Func<T2>, Func<T3>, Func<T4>, Func<T5>, Func<T6>, Func<T7>, TRest> a) where TRest : struct { Console.Write(1); }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (6,9): error CS0411: The type arguments for method 'C.M1<T1, T2, T3, T4, T5, T6, T7, TRest>(ValueTuple<Func<T1>, Func<T2>, Func<T3>, Func<T4>, Func<T5>, Func<T6>, Func<T7>, TRest>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         M1((()=>1, ()=>2, ()=>3, ()=>4, ()=>5, ()=>6, ()=>7, ()=>8));
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M1").WithArguments("C.M1<T1, T2, T3, T4, T5, T6, T7, TRest>(System.ValueTuple<System.Func<T1>, System.Func<T2>, System.Func<T3>, System.Func<T4>, System.Func<T5>, System.Func<T6>, System.Func<T7>, TRest>)").WithLocation(6, 9)
@@ -24178,7 +24178,7 @@ public class C
     public static void M1<T, U>(((T, int), int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, U) a)
         { Console.Write(4); }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (7,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.M1<T, U>((T, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, (U, int)))' and 'C.M1<T, U>(((T, int), int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, U))'
                 //         M1(b); // error: ambiguous
                 Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("C.M1<T, U>((T, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, (U, int)))", "C.M1<T, U>(((T, int), int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, U))").WithLocation(7, 9)
@@ -24199,7 +24199,7 @@ class C
         System.Console.Write(mTupleArray[0].B == null);
     }
 }";
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "True");
 
@@ -24244,7 +24244,7 @@ namespace System
     }
 }
 ";
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (10,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or a variable initializer)
                 //         tuple.Item1 = 3;
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "tuple.Item1").WithLocation(8, 9));

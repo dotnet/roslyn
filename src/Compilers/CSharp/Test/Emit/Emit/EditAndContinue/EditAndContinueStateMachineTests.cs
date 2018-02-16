@@ -4788,7 +4788,7 @@ class C
 }
 ");
 
-            var compilation0 = CreateStandardCompilation(new[] { source0.Tree }, options: ComSafeDebugDll);
+            var compilation0 = CreateCompilation(new[] { source0.Tree }, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1.Tree);
 
             // the ctor is missing a parameter
@@ -4921,7 +4921,7 @@ class C
 }
 ");
 
-            var compilation0 = CreateStandardCompilation(new[] { source0.Tree }, options: ComSafeDebugDll);
+            var compilation0 = CreateCompilation(new[] { source0.Tree }, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1.Tree);
 
             // older versions of mscorlib don't contain IteratorStateMachineAttribute

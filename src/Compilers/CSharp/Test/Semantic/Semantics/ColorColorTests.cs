@@ -157,7 +157,7 @@ class Color
     }
 }
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
 
             comp.VerifyDiagnostics(
                     // Dev10 does not give a warning about unused variable. Should we?
@@ -581,7 +581,7 @@ class F
             // Can't use CheckExpressionAndParent because we're using alias.
 
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree, new[] { TestReferences.NetFx.v4_0_30319.System_Core });
+            var comp = CreateCompilation(tree, new[] { TestReferences.NetFx.v4_0_30319.System_Core });
             var model = comp.GetSemanticModel(tree);
 
             var expr = (IdentifierNameSyntax)GetExprSyntaxForBinding(GetExprSyntaxList(tree));
@@ -621,7 +621,7 @@ class C
 ";
             var tree = Parse(text);
 
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics(
                 // (13,44): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
                 //         System.Console.WriteLine(/*<bind>*/Color/*</bind>*/.M is object);
@@ -968,7 +968,7 @@ class Program
         var xs = var<int>.field;
     }
 }";
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (9,13): warning CS0219: The variable 'var' is assigned but its value is never used
                 //         var var = "A";
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "var").WithArguments("var"),
@@ -998,7 +998,7 @@ class C
         }
     }
 }";
-            CreateStandardCompilation(text).VerifyDiagnostics();
+            CreateCompilation(text).VerifyDiagnostics();
         }
 
         [WorkItem(531386, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531386")]
@@ -1024,7 +1024,7 @@ public class Program
         }
     }
 }";
-            CreateStandardCompilation(text).VerifyDiagnostics();
+            CreateCompilation(text).VerifyDiagnostics();
         }
 
         #region Error cases
@@ -1051,7 +1051,7 @@ class F
 ";
             var tree = Parse(text);
 
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics(
             // (14,32): error CS1061: 'E' does not contain a definition for 'Q' and no extension method 'Q' accepting a first argument of type 'E' could be found (are you missing a using directive or an assembly reference?)
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Q").WithArguments("E", "Q"));
@@ -1096,7 +1096,7 @@ class F
 ";
             var tree = Parse(text);
 
-            var comp = CreateStandardCompilation(tree, new[] { TestReferences.NetFx.v4_0_30319.System_Core });
+            var comp = CreateCompilation(tree, new[] { TestReferences.NetFx.v4_0_30319.System_Core });
             comp.VerifyDiagnostics(
             // (14,32): error CS1061: 'E' does not contain a definition for 'Q' and no extension method 'Q' accepting a first argument of type 'E' could be found (are you missing a using directive or an assembly reference?)
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Q").WithArguments("E", "Q"));
@@ -1141,7 +1141,7 @@ class F
 ";
             var tree = Parse(text);
 
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics(
             // (14,34): error CS1503: Argument 1: cannot convert from 'string' to 'int'
                 Diagnostic(ErrorCode.ERR_BadArgType, @"""Hello""").WithArguments("1", "string", "int"));
@@ -1186,7 +1186,7 @@ class F
 ";
             var tree = Parse(text);
 
-            var comp = CreateStandardCompilation(tree, new[] { TestReferences.NetFx.v4_0_30319.System_Core });
+            var comp = CreateCompilation(tree, new[] { TestReferences.NetFx.v4_0_30319.System_Core });
             comp.VerifyDiagnostics(
             // (14,58): error CS0123: No overload for 'M' matches delegate 'System.Action<string>'
                 Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "M").WithArguments("M", "System.Action<string>"));
@@ -1227,7 +1227,7 @@ class F
 ";
             var tree = Parse(text);
 
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics(
             // (10,19): error CS0079: The event 'F.E' can only appear on the left hand side of += or -=
                 Diagnostic(ErrorCode.ERR_BadEventUsageNoField, "E").WithArguments("F.E"));
@@ -1264,7 +1264,7 @@ enum Color
 ";
             var tree = Parse(text);
 
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics(
             // (6,18): error CS1061: 'int' does not contain a definition for 'Blue' and no extension method 'Blue' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Blue").WithArguments("int", "Blue"));
@@ -1453,7 +1453,7 @@ class F
         static void Bar(D x) { }
     }
 }";
-            CreateStandardCompilation(text).VerifyDiagnostics();
+            CreateCompilation(text).VerifyDiagnostics();
         }
 
         [WorkItem(542039, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542039")]
@@ -1477,7 +1477,7 @@ class F
         static void Bar(int x) { }
     }
 }";
-            CreateStandardCompilation(text).VerifyDiagnostics();
+            CreateCompilation(text).VerifyDiagnostics();
         }
 
         #endregion Error cases
@@ -1569,7 +1569,7 @@ namespace Goo
     }
 }";
 
-            var comp1 = CreateStandardCompilation(source1, options: TestOptions.ReleaseDll, assemblyName: System.Guid.NewGuid().ToString());
+            var comp1 = CreateCompilation(source1, options: TestOptions.ReleaseDll, assemblyName: System.Guid.NewGuid().ToString());
             var ref1 = MetadataReference.CreateFromStream(comp1.EmitToStream());
             var refIdentity = ((AssemblyMetadata)ref1.GetMetadataNoCopy()).GetAssembly().Identity.ToString();
             CompileAndVerify(source2, new[] { ref1 }, expectedOutput: "42").VerifyDiagnostics(
@@ -1610,7 +1610,7 @@ namespace Goo
     }
 }";
 
-            var comp1 = CreateStandardCompilation(source1, options: TestOptions.ReleaseDll, assemblyName: System.Guid.NewGuid().ToString());
+            var comp1 = CreateCompilation(source1, options: TestOptions.ReleaseDll, assemblyName: System.Guid.NewGuid().ToString());
             var ref1 = MetadataReference.CreateFromStream(comp1.EmitToStream());
             var refIdentity = ((AssemblyMetadata)ref1.GetMetadataNoCopy()).GetAssembly().Identity.ToString();
             CompileAndVerify(source2, new[] { ref1 }, expectedOutput: "42").VerifyDiagnostics(
@@ -1648,7 +1648,7 @@ namespace Goo
     }
 }";
 
-            var comp1 = CreateStandardCompilation(source1, options: TestOptions.ReleaseDll, assemblyName: System.Guid.NewGuid().ToString());
+            var comp1 = CreateCompilation(source1, options: TestOptions.ReleaseDll, assemblyName: System.Guid.NewGuid().ToString());
             var ref1 = MetadataReference.CreateFromStream(comp1.EmitToStream());
             var refIdentity = ((AssemblyMetadata)ref1.GetMetadataNoCopy()).GetAssembly().Identity.ToString();
             CompileAndVerify(source2, new[] { ref1 }, expectedOutput: "42").VerifyDiagnostics(
@@ -1689,7 +1689,7 @@ namespace Goo
     }
 }";
 
-            var comp1 = CreateStandardCompilation(source1, options: TestOptions.ReleaseDll, assemblyName: System.Guid.NewGuid().ToString());
+            var comp1 = CreateCompilation(source1, options: TestOptions.ReleaseDll, assemblyName: System.Guid.NewGuid().ToString());
             var ref1 = MetadataReference.CreateFromStream(comp1.EmitToStream());
             var refIdentity = ((AssemblyMetadata)ref1.GetMetadataNoCopy()).GetAssembly().Identity.ToString();
             CompileAndVerify(source2, new[] { ref1 }, expectedOutput: "42").VerifyDiagnostics(
@@ -1868,7 +1868,7 @@ class C
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             var tree = compilation.SyntaxTrees[0];
             var model1 = compilation.GetSemanticModel(tree);
@@ -1925,7 +1925,7 @@ class C
 }
 ";
 
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             var tree = compilation.SyntaxTrees[0];
             var model1 = compilation.GetSemanticModel(tree);
@@ -1982,7 +1982,7 @@ class C
 }
 ";
 
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             var tree = compilation.SyntaxTrees[0];
             var model1 = compilation.GetSemanticModel(tree);
@@ -2032,7 +2032,7 @@ class C
 }
 ";
 
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             var tree = compilation.SyntaxTrees[0];
             var model1 = compilation.GetSemanticModel(tree);
@@ -2130,7 +2130,7 @@ class M
 }
 ";
 
-            var compilation = CreateStandardCompilation(source, assemblyName: "Main");
+            var compilation = CreateCompilation(source, assemblyName: "Main");
 
             DiagnosticDescription obsoleteWarning =
                 // warning CS0612: 'Color.Red' is obsolete

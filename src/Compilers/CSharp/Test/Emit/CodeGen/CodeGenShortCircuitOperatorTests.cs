@@ -5327,7 +5327,7 @@ class C
     void M() => System.Console.WriteLine(""M"");
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
     // (16,32): error CS0029: Cannot implicitly convert type 'void' to 'object'
@@ -5457,7 +5457,7 @@ class C<T>
 }
 ";
 
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
     // (15,33): error CS0023: Operator '?' cannot be applied to operand of type 'T'
@@ -5586,7 +5586,7 @@ unsafe class C
 }
 ";
 
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe.WithAllowUnsafe(true));
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe.WithAllowUnsafe(true));
 
             compilation.VerifyDiagnostics(
     // (16,40): error CS0023: Operator '?' cannot be applied to operand of type 'void*'
@@ -5723,7 +5723,7 @@ class C<T>
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
     // (15,17): error CS0023: Operator '?' cannot be applied to operand of type 'T'

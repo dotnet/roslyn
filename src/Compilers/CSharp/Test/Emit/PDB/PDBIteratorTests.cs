@@ -1572,7 +1572,7 @@ public class C
 {
     IEnumerable<int> M() { yield return 1; }
 }";
-            var compilation = CreateStandardCompilation(src, options: TestOptions.DebugDll);
+            var compilation = CreateCompilation(src, options: TestOptions.DebugDll);
             compilation.VerifyDiagnostics();
 
             var peStream = new MemoryStream();

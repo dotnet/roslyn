@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void MetadataTypeSymbolGenInterface01()
         {
             var text = "public class A {}";
-            var compilation = CreateStandardCompilation(text);
+            var compilation = CreateCompilation(text);
 
             var mscorlib = compilation.ExternalReferences[0];
             var mscorNS = compilation.GetReferencedAssemblySymbol(mscorlib);
@@ -330,7 +330,7 @@ class Test : StaticModClass
         r";
 
             var tree = SyntaxFactory.ParseSyntaxTree(String.Empty);
-            var comp = CreateStandardCompilation(source: tree, references: new[] { modRef });
+            var comp = CreateCompilation(source: tree, references: new[] { modRef });
 
             var currComp = comp;
 
@@ -484,7 +484,7 @@ class Test : StaticModClass
 } // end of class C
 ";
 
-            var comp = CreateStandardCompilationWithCustomILSource("", ilSource);
+            var comp = CreateCompilationWithCustomILSource("", ilSource);
 
             var stateMachineClass = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMembers().OfType<NamedTypeSymbol>().Single();
             Assert.Equal("<I<System.Int32>.F>d__0", stateMachineClass.Name); // The name has been reconstructed correctly.
@@ -550,7 +550,7 @@ class Test : StaticModClass
     .method public hidebysig specialname rtspecialname instance void .ctor() { ret }
   }
 }";
-            var comp = CreateStandardCompilationWithCustomILSource("", ilSource);
+            var comp = CreateCompilationWithCustomILSource("", ilSource);
             comp.VerifyDiagnostics();
             var builder = ArrayBuilder<string>.GetInstance();
             var module = comp.GetMember<NamedTypeSymbol>("A").ContainingModule;

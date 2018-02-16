@@ -1181,7 +1181,7 @@ System.Collections.Generic.List`1[System.Int32]
         return b ? c : d;
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (3,34): error CS0246: The type or namespace name 'D' could not be found (are you missing a using directive or an assembly reference?)
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "D").WithArguments("D"));
         }
@@ -1217,7 +1217,7 @@ interface I<in T, out U> {{ }}";
             var source = string.Format(sourceTemplate, conditionalExpression);
             var tree = Parse(source);
 
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics(expectedDiagnostics);
 
             var compUnit = tree.GetCompilationUnitRoot();
@@ -1269,7 +1269,7 @@ class TestClass
 }
 ";
 
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
 
             CompileAndVerify(compilation, expectedOutput:
 @"----
@@ -1324,7 +1324,7 @@ class TestClass
 }
 ";
 
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
 
             CompileAndVerify(compilation, expectedOutput:
 @"----
@@ -1371,7 +1371,7 @@ class TestClass
 }
 ";
 
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugDll);
 
             compilation.VerifyDiagnostics(
     // (10,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
@@ -1433,7 +1433,7 @@ class TestClass
 }
 ";
 
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe,
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe,
                                                             parseOptions: CSharpParseOptions.Default.WithPreprocessorSymbols("DEBUG"));
 
             CompileAndVerify(compilation, expectedOutput:
@@ -1453,7 +1453,7 @@ Self
 Test
 ");
 
-            compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
+            compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(compilation, expectedOutput: "---");
         }

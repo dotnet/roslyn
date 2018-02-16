@@ -1422,7 +1422,7 @@ class Query
        Console.WriteLine(r1);
     }
 }";
-            var compilation = CreateStandardCompilation(csSource);
+            var compilation = CreateCompilation(csSource);
             compilation.VerifyDiagnostics();
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
@@ -1626,7 +1626,7 @@ class Query
        Console.WriteLine(r1);
     }
 }";
-            var compilation = CreateStandardCompilation(csSource, new[] { LinqAssemblyRef });
+            var compilation = CreateCompilation(csSource, new[] { LinqAssemblyRef });
             foreach (var dd in compilation.GetDiagnostics()) Console.WriteLine(dd);
             compilation.VerifyDiagnostics();
             var tree = compilation.SyntaxTrees[0];
@@ -1687,7 +1687,7 @@ class Query
        Console.WriteLine(r1);
     }
 }";
-            var compilation = CreateStandardCompilation(csSource);
+            var compilation = CreateCompilation(csSource);
             compilation.VerifyDiagnostics();
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
@@ -1725,7 +1725,7 @@ class Query
         Console.WriteLine(r);
     }
 }";
-            var compilation = CreateStandardCompilation(csSource);
+            var compilation = CreateCompilation(csSource);
             compilation.VerifyDiagnostics();
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
@@ -3331,7 +3331,7 @@ class Query
 ";
             var queryStatement = (LocalDeclarationStatementSyntax)SyntaxFactory.ParseStatement(speculatedSource);
 
-            var compilation = CreateStandardCompilation(csSource);
+            var compilation = CreateCompilation(csSource);
             compilation.VerifyDiagnostics();
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
@@ -3375,7 +3375,7 @@ class Query
 
             var queryStatement = (LocalDeclarationStatementSyntax)SyntaxFactory.ParseStatement(speculatedSource);
 
-            var compilation = CreateStandardCompilation(csSource);
+            var compilation = CreateCompilation(csSource);
             compilation.VerifyDiagnostics();
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);

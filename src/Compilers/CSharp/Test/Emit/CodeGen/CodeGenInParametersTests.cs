@@ -1919,7 +1919,7 @@ struct S1
         [WorkItem(530136, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=530136")]
         public void OperatorsWithInParametersFromMetadata_Binary()
         {
-            var reference = CreateStandardCompilation(@"
+            var reference = CreateCompilation(@"
 public class Test
 {
     public int Value { get; set; }
@@ -1950,7 +1950,7 @@ class Program
         [WorkItem(530136, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=530136")]
         public void OperatorsWithInParametersFromMetadata_Binary_Right()
         {
-            var reference = CreateStandardCompilation(@"
+            var reference = CreateCompilation(@"
 public class Test
 {
     public int Value { get; set; }
@@ -1981,7 +1981,7 @@ class Program
         [WorkItem(530136, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=530136")]
         public void OperatorsWithInParametersFromMetadata_Binary_Left()
         {
-            var reference = CreateStandardCompilation(@"
+            var reference = CreateCompilation(@"
 public class Test
 {
     public int Value { get; set; }
@@ -2012,7 +2012,7 @@ class Program
         [WorkItem(530136, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=530136")]
         public void OperatorsWithInParametersFromMetadata_Unary()
         {
-            var reference = CreateStandardCompilation(@"
+            var reference = CreateCompilation(@"
 public class Test
 {
     public bool Value { get; set; }
@@ -2042,7 +2042,7 @@ class Program
         [WorkItem(530136, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=530136")]
         public void OperatorsWithInParametersFromMetadata_Conversion()
         {
-            var reference = CreateStandardCompilation(@"
+            var reference = CreateCompilation(@"
 public class Test
 {
     public bool Value { get; set; }

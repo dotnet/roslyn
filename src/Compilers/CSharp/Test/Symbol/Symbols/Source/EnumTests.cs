@@ -73,7 +73,7 @@ ValueB = 2.2, // Can't implicitly convert
 ValueC = 257 // Out of underlying range 
 }; 
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             VerifyEnumsValue(comp, "Suits", SpecialType.System_Byte, null, (byte)2, null);
 
             comp.VerifyDiagnostics(
@@ -90,7 +90,7 @@ ValueC = 257 // Out of underlying range
 
             text =
 @"enum Suits : short { a, b, c, d = -65536, e, f }";
-            comp = CreateStandardCompilation(text);
+            comp = CreateCompilation(text);
             VerifyEnumsValue(comp, "Suits", SpecialType.System_Int16, (short)0, (short)1, (short)2, null, null, null);
 
             comp.VerifyDiagnostics(
@@ -145,7 +145,7 @@ ValueC = 257 // Out of underlying range
             var text =
 @"enum Figure ;";
             VerifyEnumsValue(text, "Figure");
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             // Same errors as parsing "class Name ;".
             DiagnosticsUtils.VerifyErrorCodesNoLineColumn(comp.GetDiagnostics(),
                 new ErrorDescription { Code = (int)ErrorCode.ERR_LbraceExpected },
@@ -158,7 +158,7 @@ ValueC = 257 // Out of underlying range
             var text =
 @"enum E";
             VerifyEnumsValue(text, "E");
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             DiagnosticsUtils.VerifyErrorCodesNoLineColumn(comp.GetDiagnostics(),
                 new ErrorDescription { Code = (int)ErrorCode.ERR_LbraceExpected },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_RbraceExpected });
@@ -170,7 +170,7 @@ ValueC = 257 // Out of underlying range
             var text =
 @"enum E {";
             VerifyEnumsValue(text, "E");
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             DiagnosticsUtils.VerifyErrorCodesNoLineColumn(comp.GetDiagnostics(),
                 new ErrorDescription { Code = (int)ErrorCode.ERR_RbraceExpected });
         }
@@ -190,7 +190,7 @@ ValueC = 257 // Out of underlying range
         {
             var text =
 @"enum { One, Two, Three };";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             DiagnosticsUtils.VerifyErrorCodesNoLineColumn(comp.GetDiagnostics(), new ErrorDescription { Code = (int)ErrorCode.ERR_IdentifierExpected });
         }
 
@@ -201,7 +201,7 @@ ValueC = 257 // Out of underlying range
             var text =
 @"enum TestEnum { One, One }";
             VerifyEnumsValue(text, "TestEnum", 0, 1);
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             DiagnosticsUtils.VerifyErrorCodesNoLineColumn(comp.GetDiagnostics(), new ErrorDescription { Code = (int)ErrorCode.ERR_DuplicateNameInClass });
         }
 
@@ -221,7 +221,7 @@ ValueC = 257 // Out of underlying range
     new enum Figure { Zero };                   // OK
 }";
             //VerifyEnumsValue(text, "TestEnum", 0, 1);
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (5,19): error CS0106: The modifier 'abstract' is not valid for this item
                 //     abstract enum Figure3 { Zero };             // abstract not valid
@@ -256,7 +256,7 @@ ValueC = 257 // Out of underlying range
 }
 ";
             //VerifyEnumsValue(text, "ColorA", 0);
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (2,2): error CS1513: } expected
                 // {
@@ -275,7 +275,7 @@ void goo()
 }
 ";
             VerifyEnumsValue(text, "ColorA", 0);
-            var comp1 = CreateStandardCompilation(text);
+            var comp1 = CreateCompilation(text);
             DiagnosticsUtils.VerifyErrorCodesNoLineColumn(comp1.GetDiagnostics(), new ErrorDescription { Code = (int)ErrorCode.ERR_IdentifierExpectedKW },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_EOFExpected },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_SyntaxError });
@@ -313,7 +313,7 @@ void goo()
     enum Figure { One, Two, Three };
 ";
             VerifyEnumsValue(text, "Figure", 0, 1, 2);
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             DiagnosticsUtils.VerifyErrorCodes(comp.GetDiagnostics());
         }
 
@@ -382,7 +382,7 @@ class c1
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             DiagnosticsUtils.VerifyErrorCodes(comp.GetDiagnostics());
             source =
 @"
@@ -411,7 +411,7 @@ class c1
     }
 }
 ";
-            comp = CreateStandardCompilation(source);
+            comp = CreateCompilation(source);
             DiagnosticsUtils.VerifyErrorCodesNoLineColumn(comp.GetDiagnostics(), new ErrorDescription { Code = (int)ErrorCode.ERR_DuplicateCaseLabel });
         }
 
@@ -454,7 +454,7 @@ struct C : A{}
 interface D : A{}
 ";
 
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             DiagnosticsUtils.VerifyErrorCodesNoLineColumn(comp.GetDiagnostics(), new ErrorDescription { Code = (int)ErrorCode.ERR_NonInterfaceInInterfaceList },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_NonInterfaceInInterfaceList });
         }
@@ -474,7 +474,7 @@ public enum Num
 ";
             VerifyEnumsValue(text, "Num");
             VerifyEnumsValue(text, "Figure", 0);
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             DiagnosticsUtils.VerifyErrorCodesNoLineColumn(comp.GetDiagnostics(), new ErrorDescription { Code = (int)ErrorCode.ERR_EOFExpected },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_EOFExpected },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_IdentifierExpected },
@@ -553,7 +553,7 @@ enum MyEnum
 {
     One
 }";
-            var comp = CreateStandardCompilation(source).VerifyDiagnostics(
+            var comp = CreateCompilation(source).VerifyDiagnostics(
                 // (3,17): warning CS0458: The result of the expression is always 'null' of type 'MyEnum?'
                 //     MyEnum? e = null & MyEnum.One;
                 Diagnostic(ErrorCode.WRN_AlwaysNull, "null & MyEnum.One").WithArguments("MyEnum?")
@@ -586,7 +586,7 @@ class c1
 public enum Enum1 { A1 = 1, B1 = 2 };
 public enum Enum2 : byte { A2, B2 };
 ";
-            var comp = CreateStandardCompilation(source).VerifyDiagnostics(
+            var comp = CreateCompilation(source).VerifyDiagnostics(
                 // (6,20): error CS0019: Operator '+' cannot be applied to operands of type 'Enum1' and 'long'
                 //         Enum1 e1 = e1 + 5L;
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "e1 + 5L").WithArguments("+", "Enum1", "long"),
@@ -678,7 +678,7 @@ public class c1
 }
 ";
 
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             VerifyEnumsValue(comp, "c1.COLORS", SpecialType.System_UInt32, 0u, 1u, 2u);
             comp.VerifyDiagnostics(
                 // (5,17): warning CS3009: 'c1.COLORS': base type 'uint' is not CLS-compliant
@@ -694,7 +694,7 @@ public class c1
             var text =
 @"enum Figure : { One, Two, Three }
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             DiagnosticsUtils.VerifyErrorCodes(comp.GetDiagnostics(),
                 new ErrorDescription { Code = (int)ErrorCode.ERR_TypeExpected },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_IntegralTypeExpected });
@@ -707,7 +707,7 @@ public class c1
             var text =
 @"enum Figure : System.Int16 { One, Two, Three }
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             DiagnosticsUtils.VerifyErrorCodes(comp.GetDiagnostics()); // ok
             VerifyEnumsValue(comp, "Figure", SpecialType.System_Int16, (short)0, (short)1, (short)2);
 
@@ -715,7 +715,7 @@ public class c1
 @"class C { }
 enum Figure : C { One, Two, Three }
 ";
-            comp = CreateStandardCompilation(text);
+            comp = CreateCompilation(text);
             DiagnosticsUtils.VerifyErrorCodes(comp.GetDiagnostics(),
                 new ErrorDescription { Code = (int)ErrorCode.ERR_IntegralTypeExpected });
             VerifyEnumsValue(comp, "Figure", SpecialType.System_Int32, 0, 1, 2);
@@ -735,7 +735,7 @@ partial class EnumPartial
 }
 ";
             VerifyEnumsValue(text, "EnumPartial.partial");
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (6,13): warning CS0169: The field 'EnumPartial.M' is never used
                 //     partial M;
@@ -766,7 +766,7 @@ class c1
     }
 }
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (9,27): error CS1763: 'o' is of type 'object'. A default parameter value of a reference type other than string can only be initialized with null
                 //     public int Moo(object o = ABC.a)
@@ -791,7 +791,7 @@ class Test
     }
     const E1 e1 = E1.Member1;
 }";
-            CreateStandardCompilation(text).VerifyDiagnostics(); // No Errors
+            CreateCompilation(text).VerifyDiagnostics(); // No Errors
         }
 
         [WorkItem(540765, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540765")]
@@ -807,7 +807,7 @@ class Test
         Member2 = e, Member1
     }
 }";
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
             // (4,14): error CS0110: The evaluation of the constant value for 'Test.e' involves a circular definition
                 Diagnostic(ErrorCode.ERR_CircConstValue, "e").WithArguments("Test.e")); // No Errors
         }
@@ -842,7 +842,7 @@ class Test
         Member = (e) + 1 //fine
     }
 }";
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
             // (16,18): error CS0266: Cannot implicitly convert type 'Test.E3' to 'int'. An explicit conversion exists (are you missing a cast?)
             //         Member = (E3)e
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "(E3)e").WithArguments("Test.E3", "int"));
@@ -864,7 +864,7 @@ class Derived<T, U> : Base<U, T>
 {
     const Enum1 E = Enum1.C;
 }";
-            CreateStandardCompilation(text).VerifyDiagnostics(); // No Errors
+            CreateCompilation(text).VerifyDiagnostics(); // No Errors
         }
 
         [WorkItem(667303, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/667303")]
@@ -888,7 +888,7 @@ public enum Breaks5 : System.Int32 {}
 public enum Breaks6 : System.UInt32 {} 
 public enum Breaks7 : System.Int64 {} 
 public enum Breaks8 : System.UInt64 {}";
-            CreateStandardCompilation(text).VerifyDiagnostics(); // No Errors
+            CreateCompilation(text).VerifyDiagnostics(); // No Errors
         }
 
         [WorkItem(667303, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/667303")]
@@ -898,7 +898,7 @@ public enum Breaks8 : System.UInt64 {}";
             var text =
 @"public enum Breaks1 : string {} 
 public enum Breaks2 : System.String {}";
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (1,23): error CS1008: Type byte, sbyte, short, ushort, int, uint, long, or ulong expected
                 // public enum Breaks1 : string {} 
                 Diagnostic(ErrorCode.ERR_IntegralTypeExpected, "string").WithLocation(1, 23),
@@ -977,7 +977,7 @@ class C<T> { enum E4 : T { } }
 
         private List<Symbol> VerifyEnumsValue(string text, string enumName, params object[] expectedEnumValues)
         {
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             var specialType = SpecialType.System_Int32;
             if (expectedEnumValues.Length > 0)
             {

@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public S(int i) {}
 }";
 
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
     // (3,16): error CS0573: 'S': cannot have instance property or field initializers in structs
     //     public int I = 9;
     Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "I").WithArguments("S").WithLocation(3, 16)
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public S(int i) : this() {}
 }";
 
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
     // (3,16): error CS0573: 'S': cannot have instance property or field initializers in structs
     //     public int I = 9;
@@ -88,7 +88,7 @@ class A {
     A G;
 }
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
             var a = global.GetTypeMembers("A", 0).Single();
             var f = a.GetMembers("F").Single() as FieldSymbol;
@@ -175,7 +175,7 @@ class A {
     int? F = null;
 }
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             var global = comp.GlobalNamespace;
             var a = global.GetTypeMembers("A", 0).Single();
             var sym = a.GetMembers("F").Single() as FieldSymbol;
@@ -199,7 +199,7 @@ class A {
     }
 }
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             var type1 = comp.GlobalNamespace.GetTypeMembers("C", 1).Single();
             var type2 = type1.GetTypeMembers("S").Single();
 
@@ -234,7 +234,7 @@ class C1
     @out @in;
 }
 ";
-            var comp = CreateStandardCompilation(Parse(text));
+            var comp = CreateCompilation(Parse(text));
             NamedTypeSymbol c1 = (NamedTypeSymbol)comp.SourceModule.GlobalNamespace.GetMembers("C1").Single();
             FieldSymbol ein = (FieldSymbol)c1.GetMembers("in").Single();
             Assert.Equal("in", ein.Name);
@@ -254,7 +254,7 @@ class C
     const int x;
 }
 ";
-            var comp = CreateStandardCompilation(Parse(text));
+            var comp = CreateCompilation(Parse(text));
             NamedTypeSymbol type1 = (NamedTypeSymbol)comp.SourceModule.GlobalNamespace.GetMembers("C").Single();
             FieldSymbol mem = (FieldSymbol)type1.GetMembers("x").Single();
             Assert.Equal("x", mem.Name);
@@ -413,7 +413,7 @@ class A
 }
 ";
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (4,5): error CS0246: The type or namespace name 'Unknown' could not be found (are you missing a using directive or an assembly reference?)
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unknown").WithArguments("Unknown"),
                 // (4,13): warning CS0169: The field 'A.a' is never used
@@ -470,7 +470,7 @@ class K
         return v => { value__ = v; };
     }
 }";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (19,25): warning CS0067: The event 'E.value__' is never used
                 //     event System.Action value__;

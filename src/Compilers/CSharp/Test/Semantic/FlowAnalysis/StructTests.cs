@@ -63,7 +63,7 @@ struct S
     public S(int x, int y) : this() { this.x = x; this.y = y; }
 }
 ";
-            var comp = CreateStandardCompilation(program);
+            var comp = CreateCompilation(program);
             comp.VerifyDiagnostics();
 
             var structType = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("S");
@@ -97,7 +97,7 @@ class Program
  
 struct P { public int X; }
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             comp.VerifyDiagnostics();
         }
 
@@ -169,7 +169,7 @@ class SectionInformation2
         return _flags.Goo(x);
     }
 }";
-            var comp = CreateStandardCompilation(program);
+            var comp = CreateCompilation(program);
             comp.VerifyDiagnostics();
         }
 
@@ -196,7 +196,7 @@ class GraphicsContext
     }
     public PointF TransformOffset { get { return this.transformOffset; } }
 }";
-            var comp = CreateStandardCompilation(program);
+            var comp = CreateCompilation(program);
             comp.VerifyDiagnostics();
         }
 
@@ -209,7 +209,7 @@ class GraphicsContext
 {
     S<T[]>? P { get; set; }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (3,13): error CS0523: Struct member 'S<T>.P' of type 'S<T[]>?' causes a cycle in the struct layout
                 //     S<T[]>? P { get; set; }
                 Diagnostic(ErrorCode.ERR_StructLayoutCycle, "P").WithArguments("S<T>.P", "S<T[]>?").WithLocation(3, 13));
@@ -218,7 +218,7 @@ class GraphicsContext
         [Fact, WorkItem(1017887, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1017887")]
         public void EmptyStructsFromMetadata()
         {
-            var comp1 = CreateStandardCompilation(
+            var comp1 = CreateCompilation(
 @"public struct StructWithReference
 {
     string PrivateData;
@@ -242,7 +242,7 @@ public struct StructWithValue
         var v2 = v1;
     }
 }";
-            CreateStandardCompilation(source2,
+            CreateCompilation(source2,
                 options: TestOptions.ReleaseDll,
                 references: new MetadataReference[] { sourceReference },
                 parseOptions: TestOptions.Regular.WithStrictFeature()).VerifyDiagnostics(
@@ -253,7 +253,7 @@ public struct StructWithValue
                 //         var v2 = v1;
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "v1").WithArguments("v1").WithLocation(9, 18)
                 );
-            CreateStandardCompilation(source2, references: new MetadataReference[] { sourceReference }).VerifyDiagnostics(
+            CreateCompilation(source2, references: new MetadataReference[] { sourceReference }).VerifyDiagnostics(
                 // NOTE: no errors expected because we treat all imported data the same as if imported from metadata.
                 ////// (6,18): error CS0165: Use of unassigned local variable 'r1'
                 //////         var r2 = r1;
@@ -262,7 +262,7 @@ public struct StructWithValue
                 //         var v2 = v1;
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "v1").WithArguments("v1").WithLocation(9, 18)
                 );
-            CreateStandardCompilation(source2, references: new MetadataReference[] { metadataReference }).VerifyDiagnostics(
+            CreateCompilation(source2, references: new MetadataReference[] { metadataReference }).VerifyDiagnostics(
                 // (9,18): error CS0165: Use of unassigned local variable 'v1'
                 //         var v2 = v1;
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "v1").WithArguments("v1").WithLocation(9, 18)
@@ -272,7 +272,7 @@ public struct StructWithValue
         [Fact, WorkItem(1072447, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1072447")]
         public void DoNotIgnorePrivateStructFieldsOfTypeParameterTypeFromMetadata()
         {
-            var comp1 = CreateStandardCompilation(
+            var comp1 = CreateCompilation(
 @"public struct GenericStruct<T> where T : class
 {
     T PrivateData;
@@ -290,12 +290,12 @@ public struct StructWithValue
         var r2 = r1;
     }
 }";
-            CreateStandardCompilation(source2, references: new MetadataReference[] { sourceReference }).VerifyDiagnostics(
+            CreateCompilation(source2, references: new MetadataReference[] { sourceReference }).VerifyDiagnostics(
                 // (6,18): error CS0165: Use of unassigned local variable 'r1'
                 //         var r2 = r1;
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "r1").WithArguments("r1").WithLocation(6, 18)
                 );
-            CreateStandardCompilation(source2, references: new MetadataReference[] { metadataReference }).VerifyDiagnostics(
+            CreateCompilation(source2, references: new MetadataReference[] { metadataReference }).VerifyDiagnostics(
                 // (6,18): error CS0165: Use of unassigned local variable 'r1'
                 //         var r2 = r1;
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "r1").WithArguments("r1").WithLocation(6, 18)
@@ -305,7 +305,7 @@ public struct StructWithValue
         [Fact, WorkItem(1072447, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1072447")]
         public void IgnoreInternalStructFieldsOfReferenceTypeFromMetadata()
         {
-            var comp1 = CreateStandardCompilation(
+            var comp1 = CreateCompilation(
 @"public struct Struct
 {
     internal string data;
@@ -323,20 +323,20 @@ public struct StructWithValue
         var r2 = r1;
     }
 }";
-            CreateStandardCompilation(source2, references: new MetadataReference[] { sourceReference }).VerifyDiagnostics(
+            CreateCompilation(source2, references: new MetadataReference[] { sourceReference }).VerifyDiagnostics(
                 // NOTE: no errors expected because we treat all imported data the same as if imported from metadata.
                 ////// (6,18): error CS0165: Use of unassigned local variable 'r1'
                 //////         var r2 = r1;
                 ////Diagnostic(ErrorCode.ERR_UseDefViolation, "r1").WithArguments("r1").WithLocation(6, 18)
                 );
-            CreateStandardCompilation(source2, references: new MetadataReference[] { metadataReference }).VerifyDiagnostics(
+            CreateCompilation(source2, references: new MetadataReference[] { metadataReference }).VerifyDiagnostics(
                 );
         }
 
         [Fact, WorkItem(1072447, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1072447")]
         public void IgnoreEffectivelyInternalStructFieldsOfReferenceTypeFromMetadata()
         {
-            var comp1 = CreateStandardCompilation(
+            var comp1 = CreateCompilation(
 @"
 internal class C1
 {
@@ -362,13 +362,13 @@ public struct Struct
         var r2 = r1;
     }
 }";
-            CreateStandardCompilation(source2, references: new MetadataReference[] { sourceReference }).VerifyDiagnostics(
+            CreateCompilation(source2, references: new MetadataReference[] { sourceReference }).VerifyDiagnostics(
                 // NOTE: no errors expected because we treat all imported data the same as if imported from metadata.
                 ////// (6,18): error CS0165: Use of unassigned local variable 'r1'
                 //////         var r2 = r1;
                 ////Diagnostic(ErrorCode.ERR_UseDefViolation, "r1").WithArguments("r1").WithLocation(6, 18)
                 );
-            CreateStandardCompilation(source2, references: new MetadataReference[] { metadataReference }).VerifyDiagnostics(
+            CreateCompilation(source2, references: new MetadataReference[] { metadataReference }).VerifyDiagnostics(
                 );
         }
 
@@ -388,7 +388,7 @@ public struct Struct
     internal C1.S data;
 }
 ";
-            var comp1 = CreateStandardCompilation(source, options: TestOptions.DebugModule);
+            var comp1 = CreateCompilation(source, options: TestOptions.DebugModule);
             var moduleReference = comp1.EmitToImageReference();
 
             var source2 =
@@ -400,7 +400,7 @@ public struct Struct
         var r2 = r1;
     }
 }";
-            CreateStandardCompilation(source2, references: new MetadataReference[] { moduleReference }).VerifyDiagnostics(
+            CreateCompilation(source2, references: new MetadataReference[] { moduleReference }).VerifyDiagnostics(
                 // (6,18): error CS0165: Use of unassigned local variable 'r1'
                 //         var r2 = r1;
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "r1").WithArguments("r1").WithLocation(6, 18)
@@ -416,7 +416,7 @@ public struct Struct
     private string data;
 }
 ";
-            var comp1 = CreateStandardCompilation(source, options: TestOptions.DebugModule);
+            var comp1 = CreateCompilation(source, options: TestOptions.DebugModule);
             var moduleReference = comp1.EmitToImageReference();
 
             var source2 =
@@ -428,7 +428,7 @@ public struct Struct
         var r2 = r1;
     }
 }";
-            CreateStandardCompilation(source2, references: new MetadataReference[] { moduleReference }).VerifyDiagnostics(
+            CreateCompilation(source2, references: new MetadataReference[] { moduleReference }).VerifyDiagnostics(
                 );
         }
     }

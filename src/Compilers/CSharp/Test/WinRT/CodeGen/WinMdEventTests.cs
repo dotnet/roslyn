@@ -23,7 +23,7 @@ class C
     event System.Action E;
 }
 ";
-            var comp = CreateStandardCompilation(source, options: TestOptions.ReleaseWinMD);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseWinMD);
             comp.VerifyDiagnostics(
                 // For the backing field and accessors:
 
@@ -58,7 +58,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source, options: TestOptions.ReleaseWinMD);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseWinMD);
             comp.VerifyEmitDiagnostics(
                 // For the backing field and accessors:
 
@@ -100,7 +100,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source, options: TestOptions.ReleaseWinMD);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseWinMD);
             comp.VerifyEmitDiagnostics(
                 // For the backing field and accessors:
 
@@ -142,7 +142,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source, options: TestOptions.ReleaseWinMD);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseWinMD);
             comp.VerifyEmitDiagnostics(
                 // For the backing field and accessors:
 

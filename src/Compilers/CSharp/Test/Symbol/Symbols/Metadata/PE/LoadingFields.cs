@@ -131,7 +131,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateStandardCompilationWithCustomILSource(text, il, options:TestOptions.DebugExe);
+            var compilation = CreateCompilationWithCustomILSource(text, il, options:TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput: @"Value1
 Value2");
         }

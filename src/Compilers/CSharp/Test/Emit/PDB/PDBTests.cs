@@ -96,7 +96,7 @@ public class C
 }
 ";
 
-            var compilation = CreateStandardCompilation(
+            var compilation = CreateCompilation(
                 new[] { Parse(text1, @"C:\Folder1\Folder2\Test1.cs") },
                 options: TestOptions.DebugDll.WithSourceReferenceResolver(SourceFileResolver.Default));
 
@@ -130,7 +130,7 @@ public class C
 @"class C
 {
 }";
-            var compilation = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
+            var compilation = CreateCompilation(source0, options: TestOptions.DebugDll);
 
             // Verify full metadata contains expected rows.
             using (MemoryStream peStream = new MemoryStream(), pdbStream = new MemoryStream())
@@ -164,7 +164,7 @@ public class C
 @"class C
 {
 }";
-            var compilation = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
+            var compilation = CreateCompilation(source0, options: TestOptions.DebugDll);
 
             // Verify full metadata contains expected rows.
             using (MemoryStream peStream = new MemoryStream(), pdbStream = new MemoryStream())
@@ -200,7 +200,7 @@ public class C
 @"class C
 {
 }";
-            var compilation = CreateStandardCompilation(source0, options: TestOptions.DebugDll.WithDeterministic(true));
+            var compilation = CreateCompilation(source0, options: TestOptions.DebugDll.WithDeterministic(true));
 
             // Verify full metadata contains expected rows.
             using (MemoryStream peStream = new MemoryStream(), pdbStream = new MemoryStream())
@@ -247,7 +247,7 @@ public class C
 }
 ";
 
-            var debug = CreateStandardCompilation(source, new[] { CSharpRef }, options: TestOptions.DebugWinMD);
+            var debug = CreateCompilation(source, new[] { CSharpRef }, options: TestOptions.DebugWinMD);
             debug.VerifyPdb(@"
 <symbols>
     <files>
@@ -286,7 +286,7 @@ public class C
   </methods>
 </symbols>", format: DebugInformationFormat.Pdb, options: PdbValidationOptions.SkipConversionValidation);
 
-            var release = CreateStandardCompilation(source, new[] { CSharpRef }, options: TestOptions.ReleaseWinMD);
+            var release = CreateCompilation(source, new[] { CSharpRef }, options: TestOptions.ReleaseWinMD);
             release.VerifyPdb(@"
 <symbols>
   <files>
@@ -331,7 +331,7 @@ public class C
     }
 }";
 
-            var debug = CreateStandardCompilation(source, options: TestOptions.DebugWinMD);
+            var debug = CreateCompilation(source, options: TestOptions.DebugWinMD);
             debug.VerifyPdb(
 @"<symbols>
   <files>
@@ -356,7 +356,7 @@ public class C
   </methods>
 </symbols>", format: DebugInformationFormat.Pdb, options: PdbValidationOptions.SkipConversionValidation);
 
-            var release = CreateStandardCompilation(source, options: TestOptions.ReleaseWinMD);
+            var release = CreateCompilation(source, options: TestOptions.ReleaseWinMD);
             release.VerifyPdb(
 @"<symbols>
   <files>
@@ -386,7 +386,7 @@ public class C
             var tree1 = Parse(source1, @"foo.cs");
             var tree2 = Parse(source2, @"foo.cs");
 
-            var comp = CreateStandardCompilation(new[] { tree1, tree2 });
+            var comp = CreateCompilation(new[] { tree1, tree2 });
 
             // the first file wins (checksum CB 22 ...)
             comp.VerifyPdb(@"
@@ -423,7 +423,7 @@ public class C
         {
             var source = @"class C { static void F() { } }";
 
-            var c = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var c = CreateCompilation(source, options: TestOptions.DebugDll);
             var f = c.GetMember<MethodSymbol>("C.F");
 
             c.VerifyPdb(@"
@@ -446,7 +446,7 @@ public class C
         {
             var source = @"class M { static void Main() { } } class C { static void F<S>() { } }";
 
-            var c = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var c = CreateCompilation(source, options: TestOptions.DebugExe);
             var f = c.GetMember<MethodSymbol>("C.F");
 
             c.VerifyPdb(@"
@@ -472,8 +472,8 @@ public class C
             var source1 = @"class C { static void F() { } } class D<T> { static void G<S>() {} }";
             var source2 = @"class C { static void F() { } }";
 
-            var c1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll);
-            var c2 = CreateStandardCompilation(source2, options: TestOptions.DebugDll);
+            var c1 = CreateCompilation(source1, options: TestOptions.DebugDll);
+            var c2 = CreateCompilation(source2, options: TestOptions.DebugDll);
 
             var f1 = c1.GetMember<MethodSymbol>("C.F");
             var f2 = c2.GetMember<MethodSymbol>("C.F");
@@ -2832,7 +2832,7 @@ public class C
     }
 }
 ";
-            var c = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var c = CreateCompilation(source, options: TestOptions.DebugDll);
             var v = CompileAndVerify(c);
 
             v.VerifyIL("C.Main", @"
@@ -4025,7 +4025,7 @@ public partial class C
             //Having a unique name here may be important. The infrastructure of the pdb to xml conversion
             //loads the assembly into the ReflectionOnlyLoadFrom context.
             //So it's probably a good idea to have a new name for each assembly.
-            var compilation = CreateStandardCompilation(new SyntaxTree[] { Parse(text1, "a.cs"), Parse(text2, "b.cs") });
+            var compilation = CreateCompilation(new SyntaxTree[] { Parse(text1, "a.cs"), Parse(text2, "b.cs") });
 
             compilation.VerifyPdb("C..ctor", @"
 <symbols>
@@ -4104,7 +4104,7 @@ public partial class C
             //Having a unique name here may be important. The infrastructure of the pdb to xml conversion
             //loads the assembly into the ReflectionOnlyLoadFrom context.
             //So it's probably a good idea to have a new name for each assembly.
-            var compilation = CreateStandardCompilation(new[] { Parse(text1, "a.cs"), Parse(text2, "b.cs"), Parse(text3, "a.cs") }, options: TestOptions.DebugDll);
+            var compilation = CreateCompilation(new[] { Parse(text1, "a.cs"), Parse(text2, "b.cs"), Parse(text3, "a.cs") }, options: TestOptions.DebugDll);
 
             compilation.VerifyPdb("C..ctor", @"
 <symbols>
@@ -4239,7 +4239,7 @@ public class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
 
             comp.VerifyPdb(@"
 <symbols>
@@ -6311,7 +6311,7 @@ public class C
 }
 ";
 
-            var compilation = CreateStandardCompilation(text1, options: TestOptions.DebugDll);
+            var compilation = CreateCompilation(text1, options: TestOptions.DebugDll);
             compilation.VerifyPdb(@"
 <symbols>
   <files>
@@ -6576,7 +6576,7 @@ namespace N
 	}
 }
 ";
-            var c = CreateStandardCompilation(Parse(source, filename: "file.cs"));
+            var c = CreateCompilation(Parse(source, filename: "file.cs"));
             c.VerifyPdb(@"
 <symbols>
   <files>
@@ -7243,7 +7243,7 @@ public class C
     }
 }
 ";
-            var c = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var c = CreateCompilation(source, options: TestOptions.DebugDll);
             var v = CompileAndVerify(c);
 
             v.VerifyIL("C.Main", @"
@@ -7557,7 +7557,7 @@ partial class C
 }
 ";
 
-            var c = CreateStandardCompilation(
+            var c = CreateCompilation(
                 new[] { Parse(initializerSource, "initializer.cs"), Parse(constructorSource, "constructor.cs") },
                 options: TestOptions.DebugDll);
 

@@ -1430,7 +1430,7 @@ public class A
     const int i = /*<bind>*/(new {a = 2}).a/*</bind>*/;
 }";
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             var tuple = GetBindingNodeAndModel<ExpressionSyntax>(comp);
             var info = tuple.Item2.GetSymbolInfo(tuple.Item1);
             Assert.NotNull(info.Symbol);

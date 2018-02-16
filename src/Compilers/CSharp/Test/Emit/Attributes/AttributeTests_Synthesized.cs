@@ -116,7 +116,7 @@ class C
     int[] a = new[] { 1,2,3,4,5,6,7,8,9,1,2,3,4,5,6,7,8,9,1,2,3,4,5,6,7,8,9,1,2,3,4,5,6,7,8,9,1,2,3,4,5,6,7,8,9,1,2,3,4,5,6,7,8,9,1,2,3,4,5,6,7,8,9, };
 }
 ";
-            var reference = CreateStandardCompilation(source).EmitToImageReference();
+            var reference = CreateCompilation(source).EmitToImageReference();
 
             var comp = CreateCompilationRaw("", new[] { reference }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
 
@@ -138,7 +138,7 @@ unsafe struct S
     public fixed char C[5];
 }
 ";
-            var reference = CreateStandardCompilation(source, options: TestOptions.UnsafeReleaseDll).EmitToImageReference();
+            var reference = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).EmitToImageReference();
             var comp = CreateCompilationRaw("", new[] { reference }, options: TestOptions.UnsafeReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
 
             var s = (NamedTypeSymbol)comp.GlobalNamespace.GetMembers("S").Single();
@@ -258,7 +258,7 @@ class C
                 .WithOptimizationLevel(optimizationLevel)
                 .WithMetadataImportOptions(MetadataImportOptions.All);
 
-            CompileAndVerify(CreateStandardCompilation(source, options: options), symbolValidator: m =>
+            CompileAndVerify(CreateCompilation(source, options: options), symbolValidator: m =>
             {
                 var displayClass = m.GlobalNamespace.GetMember<NamedTypeSymbol>("C.<>c__DisplayClass0_0");
                 AssertEx.SetEqual(new[] { "CompilerGeneratedAttribute" }, GetAttributeNames(displayClass.GetAttributes()));
@@ -287,7 +287,7 @@ class C
                 .WithOptimizationLevel(optimizationLevel)
                 .WithMetadataImportOptions(MetadataImportOptions.All);
 
-            CompileAndVerify(CreateStandardCompilation(source, options: options), symbolValidator: m =>
+            CompileAndVerify(CreateCompilation(source, options: options), symbolValidator: m =>
             {
                 var anon = m.ContainingAssembly.GetTypeByMetadataName("<>f__AnonymousType0`2");
 
@@ -368,7 +368,7 @@ public class C
    }
 }
 ";
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
 
             CompileAndVerify(comp, symbolValidator: m =>
             {
@@ -426,7 +426,7 @@ public class C
                 .WithOptimizationLevel(optimizationLevel)
                 .WithMetadataImportOptions(MetadataImportOptions.All);
 
-            CompileAndVerify(CreateStandardCompilation(source, options: options), symbolValidator: module =>
+            CompileAndVerify(CreateCompilation(source, options: options), symbolValidator: module =>
             {
                 var iter = module.ContainingAssembly.GetTypeByMetadataName("C+<Iterator>d__0");
                 AssertEx.SetEqual(new[] { "CompilerGeneratedAttribute" }, GetAttributeNames(iter.GetAttributes()));
@@ -878,7 +878,7 @@ public class Test
 }";
 
             var options = new CSharpCompilationOptions(outputKind, optimizationLevel: optimizationLevel);
-            var compilation = CreateStandardCompilation(code, options: options);
+            var compilation = CreateCompilation(code, options: options);
 
             CompileAndVerify(compilation, verify: outputKind.IsNetModule() ? Verification.Skipped : Verification.Passes, symbolValidator: module =>
             {
@@ -927,7 +927,7 @@ public class Test
 }";
 
             var options = new CSharpCompilationOptions(outputKind, optimizationLevel: optimizationLevel);
-            var compilation = CreateStandardCompilation(code, options: options);
+            var compilation = CreateCompilation(code, options: options);
 
             CompileAndVerify(compilation, verify: outputKind.IsNetModule() ? Verification.Skipped : Verification.Passes, symbolValidator: module =>
             {
@@ -974,7 +974,7 @@ public class Test
 }";
 
             var options = new CSharpCompilationOptions(outputKind, optimizationLevel: optimizationLevel);
-            var compilation = CreateStandardCompilation(code, options: options);
+            var compilation = CreateCompilation(code, options: options);
 
             CompileAndVerify(compilation, verify: outputKind.IsNetModule() ? Verification.Skipped : Verification.Passes, symbolValidator: module =>
             {
@@ -1018,7 +1018,7 @@ public class Test
 }";
 
             var options = new CSharpCompilationOptions(outputKind, optimizationLevel: optimizationLevel);
-            var compilation = CreateStandardCompilation(code, options: options);
+            var compilation = CreateCompilation(code, options: options);
 
             CompileAndVerify(compilation, verify: outputKind.IsNetModule() ? Verification.Skipped : Verification.Passes, symbolValidator: module =>
             {
@@ -1061,7 +1061,7 @@ public class Test
     }
 }";
             var options = new CSharpCompilationOptions(outputKind, optimizationLevel: optimizationLevel);
-            var compilation = CreateStandardCompilation(source, options: options);
+            var compilation = CreateCompilation(source, options: options);
 
             if (outputKind.IsNetModule())
             {
@@ -1087,7 +1087,7 @@ public class Test
         [MemberData(nameof(FullMatrixTheoryData))]
         public void AppliedCompilationRelaxationsOnModuleSupressesAssemblyAttributes(OutputKind outputKind, OptimizationLevel optimizationLevel)
         {
-            var referenceComp = CreateStandardCompilation(@"
+            var referenceComp = CreateCompilation(@"
 using System.Runtime.CompilerServices;
 
 [assembly: CompilationRelaxationsAttribute(0)]
@@ -1128,7 +1128,7 @@ public class Test
         [MemberData(nameof(FullMatrixTheoryData))]
         public void AppliedRuntimeCompatibilityOnModuleSupressesAssemblyAttributes(OutputKind outputKind, OptimizationLevel optimizationLevel)
         {
-            var referenceComp = CreateStandardCompilation(@"
+            var referenceComp = CreateCompilation(@"
 using System.Runtime.CompilerServices;
 
 [assembly: RuntimeCompatibilityAttribute()]
@@ -1180,7 +1180,7 @@ unsafe class C
     }
 }";
 
-            var compilation = CreateStandardCompilation(source, options: new CSharpCompilationOptions(
+            var compilation = CreateCompilation(source, options: new CSharpCompilationOptions(
                 outputKind: outputKind,
                 optimizationLevel: OptimizationLevel.Release,
                 allowUnsafe: true));

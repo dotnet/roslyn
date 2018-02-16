@@ -549,10 +549,10 @@ public class TypeRefs1
     }
 }";
 
-            var localType = CreateStandardCompilation(assemblyName: "Dummy", source: localTypeSource,
+            var localType = CreateCompilation(assemblyName: "Dummy", source: localTypeSource,
                 references: new[] { TestReferences.SymbolsTests.NoPia.GeneralPia.WithEmbedInteropTypes(true) });
 
-            var localConsumer = CreateStandardCompilation(assemblyName: "Dummy", source: (string[])null,
+            var localConsumer = CreateCompilation(assemblyName: "Dummy", source: (string[])null,
                 references: new MetadataReference[]
                 {
                     TestReferences.SymbolsTests.NoPia.GeneralPiaCopy,

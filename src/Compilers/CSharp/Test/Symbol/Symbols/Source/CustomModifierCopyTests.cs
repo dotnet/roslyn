@@ -42,7 +42,7 @@ class Class : CppCli.CppInterface1
 
             var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.CppCli.dll;
 
-            var comp = CreateStandardCompilation(text, new MetadataReference[] { ilAssemblyReference });
+            var comp = CreateCompilation(text, new MetadataReference[] { ilAssemblyReference });
             var global = comp.GlobalNamespace;
 
             comp.VerifyDiagnostics();
@@ -85,7 +85,7 @@ class Class : CppCli.CppInterface1, CppCli.CppInterface2
 
             var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.CppCli.dll;
 
-            var comp = CreateStandardCompilation(text, new MetadataReference[] { ilAssemblyReference });
+            var comp = CreateCompilation(text, new MetadataReference[] { ilAssemblyReference });
             var global = comp.GlobalNamespace;
 
             comp.VerifyDiagnostics();
@@ -136,7 +136,7 @@ class Class : CppCli.CppBase1
 
             var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.CppCli.dll;
 
-            var comp = CreateStandardCompilation(text, new MetadataReference[] { ilAssemblyReference });
+            var comp = CreateCompilation(text, new MetadataReference[] { ilAssemblyReference });
             var global = comp.GlobalNamespace;
 
             comp.VerifyDiagnostics();
@@ -185,7 +185,7 @@ class Derived : Base
 
             var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.CppCli.dll;
 
-            var comp = CreateStandardCompilation(text, new MetadataReference[] { ilAssemblyReference });
+            var comp = CreateCompilation(text, new MetadataReference[] { ilAssemblyReference });
             var global = comp.GlobalNamespace;
 
             comp.VerifyDiagnostics();
@@ -247,7 +247,7 @@ class Derived : MethodCustomModifierCombinations
 
             var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll;
 
-            var comp = CreateStandardCompilation(text, new MetadataReference[] { ilAssemblyReference });
+            var comp = CreateCompilation(text, new MetadataReference[] { ilAssemblyReference });
             var global = comp.GlobalNamespace;
 
             comp.VerifyDiagnostics();
@@ -283,7 +283,7 @@ class Derived : PropertyCustomModifierCombinations
 
             var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll;
 
-            var comp = CreateStandardCompilation(text, new MetadataReference[] { ilAssemblyReference });
+            var comp = CreateCompilation(text, new MetadataReference[] { ilAssemblyReference });
             var global = comp.GlobalNamespace;
 
             comp.VerifyDiagnostics();
@@ -392,7 +392,7 @@ class Class3 : CppCli.CppBase2, CppCli.CppInterface1
 
             var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.CppCli.dll;
 
-            var comp = CreateStandardCompilation(text, new MetadataReference[] { ilAssemblyReference });
+            var comp = CreateCompilation(text, new MetadataReference[] { ilAssemblyReference });
             var global = comp.GlobalNamespace;
 
             comp.VerifyDiagnostics();
@@ -461,7 +461,7 @@ class Class : I2
 
             var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll;
 
-            var comp = CreateStandardCompilation(text, new MetadataReference[] { ilAssemblyReference });
+            var comp = CreateCompilation(text, new MetadataReference[] { ilAssemblyReference });
             var global = comp.GlobalNamespace;
 
             comp.VerifyDiagnostics();
@@ -508,7 +508,7 @@ public class Derived2 : Derived
 }
 ";
 
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             comp.VerifyDiagnostics();
 
             var global = comp.GlobalNamespace;
@@ -552,7 +552,7 @@ class Explicit : CppCli.CppIndexerInterface
 
             var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.CppCli.dll;
 
-            var comp = CreateStandardCompilation(text, new MetadataReference[] { ilAssemblyReference });
+            var comp = CreateCompilation(text, new MetadataReference[] { ilAssemblyReference });
             var global = comp.GlobalNamespace;
 
             comp.VerifyDiagnostics();
@@ -585,7 +585,7 @@ class Implicit : CppCli.CppIndexerInterface
 
             var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.CppCli.dll;
 
-            var comp = CreateStandardCompilation(text, new MetadataReference[] { ilAssemblyReference });
+            var comp = CreateCompilation(text, new MetadataReference[] { ilAssemblyReference });
             var global = comp.GlobalNamespace;
 
             comp.VerifyDiagnostics();
@@ -626,7 +626,7 @@ class Override : CppCli.CppIndexerBase
 
             var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.CppCli.dll;
 
-            var comp = CreateStandardCompilation(text, new MetadataReference[] { ilAssemblyReference });
+            var comp = CreateCompilation(text, new MetadataReference[] { ilAssemblyReference });
             var global = comp.GlobalNamespace;
 
             comp.VerifyDiagnostics();
@@ -667,7 +667,7 @@ public class Derived2 : Derived
 }
 ";
 
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             comp.VerifyDiagnostics();
 
             var global = comp.GlobalNamespace;
@@ -730,8 +730,9 @@ class Test
     }
 }
 ";
-            var comp = CreateStandardCompilationWithCustomILSource(source, il,
+            var comp = CreateCompilationWithCustomILSource(source, il,
                 options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                targetFramework: TargetFramework.Standard,
                 references: new[] { CSharpRef });
 
             CompileAndVerify(comp, expectedOutput: "Bug813305.M",
@@ -763,7 +764,7 @@ class C : I
     void I.M(dynamic x) { }
 }
 ";
-            var comp = CreateStandardCompilationWithCustomILSource(source, il);
+            var comp = CreateCompilationWithCustomILSource(source, il, targetFramework: TargetFramework.Standard);
             comp.VerifyDiagnostics();
 
             var global = comp.GlobalNamespace;

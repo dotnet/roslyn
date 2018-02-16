@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             Verification verify = Verification.Passes)
         {
             options = options ?? TestOptions.ReleaseDll.WithOutputKind((expectedOutput != null) ? OutputKind.ConsoleApplication : OutputKind.DynamicallyLinkedLibrary);
-            var compilation = CreateCompilation(source, targetFramework, references, options, parseOptions, assemblyName: GetUniqueName());
+            var compilation = CreateCompilation(source, references, options, parseOptions, targetFramework, assemblyName: GetUniqueName());
             return CompileAndVerify(
                 compilation,
                 manifestResources,
@@ -318,7 +318,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             IEnumerable<SyntaxTree> source,
             IEnumerable<MetadataReference> references = null,
             CSharpCompilationOptions options = null,
-            string assemblyName = "") => CreateCompilation(source, TargetFramework.Net40, references, options, assemblyName);
+            string assemblyName = "") => CreateCompilation(source, references, options, TargetFramework.Net40, assemblyName);
 
         public static CSharpCompilation CreateCompilationWithMscorlib40(
             string source,
@@ -326,20 +326,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             CSharpCompilationOptions options = null,
             CSharpParseOptions parseOptions = null,
             string sourceFileName = "",
-            string assemblyName = "") => CreateCompilation(Parse(source, sourceFileName, parseOptions), TargetFramework.Net40, references, options, assemblyName);
+            string assemblyName = "") => CreateCompilation(Parse(source, sourceFileName, parseOptions), references, options, TargetFramework.Net40, assemblyName);
 
         public static CSharpCompilation CreateCompilationWithMscorlib40(
             string[] source,
             IEnumerable<MetadataReference> references = null,
             CSharpCompilationOptions options = null,
             CSharpParseOptions parseOptions = null,
-            string assemblyName = "") => CreateCompilation(source, TargetFramework.Net40, references, options, parseOptions, assemblyName);
+            string assemblyName = "") => CreateCompilation(source, references, options, parseOptions, TargetFramework.Net40, assemblyName);
 
         public static CSharpCompilation CreateCompilationWithMscorlib45(
             IEnumerable<SyntaxTree> source,
             IEnumerable<MetadataReference> references = null,
             CSharpCompilationOptions options = null,
-            string assemblyName = "") => CreateCompilation(source, TargetFramework.Net45, references, options, assemblyName);
+            string assemblyName = "") => CreateCompilation(source, references, options, TargetFramework.Net45, assemblyName);
 
         public static CSharpCompilation CreateCompilationWithMscorlib45(
             string source,
@@ -347,20 +347,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             CSharpCompilationOptions options = null,
             CSharpParseOptions parseOptions = null,
             string sourceFileName = "",
-            string assemblyName = "") => CreateCompilation(Parse(source, sourceFileName, parseOptions), TargetFramework.Net45, references, options, assemblyName);
+            string assemblyName = "") => CreateCompilation(Parse(source, sourceFileName, parseOptions), references, options, TargetFramework.Net45, assemblyName);
 
         public static CSharpCompilation CreateCompilationWithMscorlib45(
             string[] source,
             IEnumerable<MetadataReference> references = null,
             CSharpCompilationOptions options = null,
             CSharpParseOptions parseOptions = null,
-            string assemblyName = "") => CreateCompilation(source, TargetFramework.Net45, references, options, parseOptions, assemblyName);
+            string assemblyName = "") => CreateCompilation(source, references, options, parseOptions, TargetFramework.Net45, assemblyName);
 
         public static CSharpCompilation CreateCompilationWithMscorlib46(
             IEnumerable<SyntaxTree> source,
             IEnumerable<MetadataReference> references = null,
             CSharpCompilationOptions options = null,
-            string assemblyName = "") => CreateCompilation(source, TargetFramework.Net46, references, options, assemblyName);
+            string assemblyName = "") => CreateCompilation(source, references, options, TargetFramework.Net46, assemblyName);
 
         public static CSharpCompilation CreateCompilationWithMscorlib46(
             string source,
@@ -368,41 +368,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             CSharpCompilationOptions options = null,
             CSharpParseOptions parseOptions = null,
             string sourceFileName = "",
-            string assemblyName = "") => CreateCompilation(Parse(source, sourceFileName, parseOptions), TargetFramework.Net46, references, options, assemblyName);
+            string assemblyName = "") => CreateCompilation(Parse(source, sourceFileName, parseOptions), references, options, TargetFramework.Net46, assemblyName);
 
         public static CSharpCompilation CreateCompilationWithMscorlib46(
             string[] source,
             IEnumerable<MetadataReference> references = null,
             CSharpCompilationOptions options = null,
             CSharpParseOptions parseOptions = null,
-            string assemblyName = "") => CreateCompilation(source, TargetFramework.Net46, references, options, parseOptions, assemblyName);
-
-        public static CSharpCompilation CreateStandardCompilation(
-            IEnumerable<SyntaxTree> source,
-            IEnumerable<MetadataReference> references = null,
-            CSharpCompilationOptions options = null,
-            string assemblyName = "") => CreateCompilation(source, TargetFramework.Standard, references, options, assemblyName);
-
-        public static CSharpCompilation CreateStandardCompilation(
-            string source,
-            IEnumerable<MetadataReference> references = null,
-            CSharpCompilationOptions options = null,
-            CSharpParseOptions parseOptions = null,
-            string sourceFileName = "",
-            string assemblyName = "") => CreateCompilation(Parse(source, sourceFileName, parseOptions), TargetFramework.Standard, references, options, assemblyName);
-
-        public static CSharpCompilation CreateStandardCompilation(
-            string[] source,
-            IEnumerable<MetadataReference> references = null,
-            CSharpCompilationOptions options = null,
-            CSharpParseOptions parseOptions = null,
-            string assemblyName = "") => CreateCompilation(source, TargetFramework.Standard, references, options, parseOptions, assemblyName);
-
-        public static CSharpCompilation CreateStandardCompilation(
-            SyntaxTree source,
-            IEnumerable<MetadataReference> references = null,
-            CSharpCompilationOptions options = null,
-            string assemblyName = "") => CreateCompilation(source, TargetFramework.Standard, references, options, assemblyName);
+            string assemblyName = "") => CreateCompilation(source, references, options, parseOptions, TargetFramework.Net46, assemblyName);
 
         public static CSharpCompilation CreateCompilationWithMscorlib45AndCSruntime(
             string text,
@@ -462,19 +435,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
         public static CSharpCompilation CreateCompilation(
             string source,
-            TargetFramework targetFramework,
             IEnumerable<MetadataReference> references = null,
             CSharpCompilationOptions options = null,
             CSharpParseOptions parseOptions = null,
-            string assemblyName = "") => CreateCompilationRaw(source, TargetFrameworkUtil.GetReferences(targetFramework, references), options, parseOptions, assemblyName);
+            TargetFramework targetFramework = TargetFramework.Standard,
+            string assemblyName = "",
+            string sourceFileName = "") => CreateCompilationRaw(new[] { Parse(source, sourceFileName, parseOptions) }, TargetFrameworkUtil.GetReferences(targetFramework, references), options, assemblyName);
 
         public static CSharpCompilation CreateCompilation(
             IEnumerable<string> source,
-            TargetFramework targetFramework,
             IEnumerable<MetadataReference> references = null,
             CSharpCompilationOptions options = null,
             CSharpParseOptions parseOptions = null,
+            TargetFramework targetFramework = TargetFramework.Standard,
             string assemblyName = "") => CreateCompilationRaw(Parse(source, parseOptions), TargetFrameworkUtil.GetReferences(targetFramework, references), options, assemblyName);
+
+        public static CSharpCompilation CreateCompilation(
+            SyntaxTree source,
+            IEnumerable<MetadataReference> references = null,
+            CSharpCompilationOptions options = null,
+            TargetFramework targetFramework = TargetFramework.Standard,
+            string assemblyName = "") => CreateCompilationRaw(new[] { source }, TargetFrameworkUtil.GetReferences(targetFramework, references), options, assemblyName);
+
+        public static CSharpCompilation CreateCompilation(
+            IEnumerable<SyntaxTree> source,
+            IEnumerable<MetadataReference> references = null,
+            CSharpCompilationOptions options = null,
+            TargetFramework targetFramework = TargetFramework.Standard,
+            string assemblyName = "") => CreateCompilationRaw(source, TargetFrameworkUtil.GetReferences(targetFramework, references), options, assemblyName);
 
         public static CSharpCompilation CreateCompilationRaw(
             IEnumerable<string> source,
@@ -482,20 +470,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             CSharpCompilationOptions options = null,
             CSharpParseOptions parseOptions = null,
             string assemblyName = "") => CreateCompilationRaw(Parse(source, parseOptions), references, options, assemblyName);
-
-        public static CSharpCompilation CreateCompilation(
-            SyntaxTree source,
-            TargetFramework targetFramework,
-            IEnumerable<MetadataReference> references = null,
-            CSharpCompilationOptions options = null,
-            string assemblyName = "") => CreateCompilationRaw(new[] { source }, TargetFrameworkUtil.GetReferences(targetFramework, references), options, assemblyName);
-
-        public static CSharpCompilation CreateCompilation(
-            IEnumerable<SyntaxTree> source,
-            TargetFramework targetFramework,
-            IEnumerable<MetadataReference> references = null,
-            CSharpCompilationOptions options = null,
-            string assemblyName = "") => CreateCompilationRaw(source, TargetFrameworkUtil.GetReferences(targetFramework, references), options, assemblyName);
 
         public static CSharpCompilation CreateCompilationRaw(
             string source,
@@ -609,7 +583,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
             MetadataReference reference = CreateMetadataReferenceFromIlSource(ilSource);
 
-            var compilation = CreateCompilation(cSharpSource, targetFramework, new[] { reference }, compilationOptions);
+            var compilation = CreateCompilation(cSharpSource, new[] { reference }, compilationOptions, targetFramework: targetFramework);
             compilationVerifier?.Invoke(compilation);
 
             return CompileAndVerify(compilation, expectedOutput: expectedOutput);
@@ -647,7 +621,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         /// <param name="expectedMessage">Ignored if null.</param>
         internal CompilationVerifier CompileAndVerifyException<T>(string source, string expectedMessage = null, bool allowUnsafe = false, Verification verify = Verification.Passes) where T : Exception
         {
-            var comp = CreateStandardCompilation(source, options: TestOptions.ReleaseExe.WithAllowUnsafe(allowUnsafe));
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe.WithAllowUnsafe(allowUnsafe));
             return CompileAndVerifyException<T>(comp, expectedMessage, verify);
         }
 
@@ -1126,7 +1100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             where TSyntaxNode : SyntaxNode
         {
             var targetFramework = useLatestFrameworkReferences ? TargetFramework.Net46Extended : TargetFramework.Standard;
-            var compilation = CreateCompilation(testSrc, targetFramework, options: compilationOptions ?? TestOptions.ReleaseDll, parseOptions: parseOptions);
+            var compilation = CreateCompilation(testSrc, targetFramework: targetFramework, options: compilationOptions ?? TestOptions.ReleaseDll, parseOptions: parseOptions);
             return GetOperationTreeForTest<TSyntaxNode>(compilation);
         }
 
@@ -1196,9 +1170,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         {
             var compilation = CreateCompilation(
                 new[] { Parse(testSrc, filename: "file.cs", options: parseOptions) },
-                targetFramework,
                 references,
-                options: compilationOptions ?? TestOptions.ReleaseDll);
+                options: compilationOptions ?? TestOptions.ReleaseDll,
+                targetFramework);
             VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(compilation, expectedOperationTree, expectedDiagnostics, additionalOperationTreeVerifier);
         }
 

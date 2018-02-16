@@ -191,7 +191,7 @@ class Program {
         int?[ , ] ar1 = { null  };
     }
 }";
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
 // (5,27): error CS0846: A nested array initializer is expected
 //         int?[ , ] ar1 = { null  };
 Diagnostic(ErrorCode.ERR_ArrayInitializerExpected, "null")
@@ -414,7 +414,7 @@ Test2
         return null;
     }
 }";
-            var compilation = CreateStandardCompilationWithCustomILSource(source, s_arraysOfRank1IlSource, options: TestOptions.ReleaseDll);
+            var compilation = CreateCompilationWithCustomILSource(source, s_arraysOfRank1IlSource, options: TestOptions.ReleaseDll);
             compilation.VerifyDiagnostics(
     // (3,30): error CS0508: 'C.Test1()': return type must be 'double[*]' to match overridden member 'Test.Test1()'
     //     public override double[] Test1()
@@ -434,7 +434,7 @@ Test2
         return x[0];
     }
 }";
-            var compilation = CreateStandardCompilationWithCustomILSource(source, s_arraysOfRank1IlSource, options: TestOptions.ReleaseDll);
+            var compilation = CreateCompilationWithCustomILSource(source, s_arraysOfRank1IlSource, options: TestOptions.ReleaseDll);
             compilation.VerifyDiagnostics(
     // (3,28): error CS0115: 'C.Test2(double[])': no suitable method found to override
     //     public override double Test2(double[] x)
@@ -465,7 +465,7 @@ Test2
         mdarray = new [] { 3.0d };
     }
 }";
-            var compilation = CreateStandardCompilationWithCustomILSource(source, s_arraysOfRank1IlSource, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithCustomILSource(source, s_arraysOfRank1IlSource, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
     // (6,23): error CS0029: Cannot implicitly convert type 'double[*]' to 'double[]'
     //         double[] a1 = t.Test1();
@@ -525,7 +525,7 @@ Test2
     static void M2<T>(T a, T b){}
     static void M3<T>(System.Collections.Generic.IList<T> a){}
 }";
-            var compilation = CreateStandardCompilationWithCustomILSource(source, s_arraysOfRank1IlSource, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithCustomILSource(source, s_arraysOfRank1IlSource, options: TestOptions.ReleaseExe);
 
             var m2 = compilation.GetTypeByMetadataName("Test").GetMember<MethodSymbol>("M2");
             var szArray = (IArrayTypeSymbol)m2.Parameters.First().Type;
@@ -739,7 +739,7 @@ System.Double
         t.Test3(new double [] {d});
     }
 }";
-            var compilation = CreateStandardCompilationWithCustomILSource(source, s_arraysOfRank1IlSource, options: TestOptions.ReleaseDll);
+            var compilation = CreateCompilationWithCustomILSource(source, s_arraysOfRank1IlSource, options: TestOptions.ReleaseDll);
             compilation.VerifyDiagnostics(
     // (7,17): error CS1503: Argument 1: cannot convert from 'double' to 'params double[*]'
     //         t.Test3(d);

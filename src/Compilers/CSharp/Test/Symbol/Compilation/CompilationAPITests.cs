@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [WorkItem(11497, "https://github.com/dotnet/roslyn/issues/11497")]
         public void PublicSignWithEmptyKeyPath()
         {
-            CreateStandardCompilation("", options: TestOptions.ReleaseDll.WithPublicSign(true).WithCryptoKeyFile("")).VerifyDiagnostics(
+            CreateCompilation("", options: TestOptions.ReleaseDll.WithPublicSign(true).WithCryptoKeyFile("")).VerifyDiagnostics(
                 // error CS8102: Public signing was specified and requires a public key, but no public key was specified.
                 Diagnostic(ErrorCode.ERR_PublicSignButNoKey).WithLocation(1, 1));
         }
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [WorkItem(11497, "https://github.com/dotnet/roslyn/issues/11497")]
         public void PublicSignWithEmptyKeyPath2()
         {
-            CreateStandardCompilation("", options: TestOptions.ReleaseDll.WithPublicSign(true).WithCryptoKeyFile("\"\"")).VerifyDiagnostics(
+            CreateCompilation("", options: TestOptions.ReleaseDll.WithPublicSign(true).WithCryptoKeyFile("\"\"")).VerifyDiagnostics(
                 // error CS8106: Option 'CryptoKeyFile' must be an absolute path.
                 Diagnostic(ErrorCode.ERR_OptionMustBeAbsolutePath).WithArguments("CryptoKeyFile").WithLocation(1, 1),
                 // error CS8102: Public signing was specified and requires a public key, but no public key was specified.
@@ -191,7 +191,7 @@ namespace A.B {
         [Fact]
         public void EmitOptionsDiagnostics()
         {
-            var c = CreateStandardCompilation("class C {}");
+            var c = CreateCompilation("class C {}");
             var stream = new MemoryStream();
 
             var options = new EmitOptions(
@@ -748,13 +748,13 @@ class D
         [ClrOnlyFact]
         public void MissedModuleA()
         {
-            var netModule1 = CreateStandardCompilation(
+            var netModule1 = CreateCompilation(
                 options: TestOptions.ReleaseModule,
                 assemblyName: "a1",
                 source: new string[] { "public class C1 {}" });
             netModule1.VerifyEmitDiagnostics();
 
-            var netModule2 = CreateStandardCompilation(
+            var netModule2 = CreateCompilation(
                 options: TestOptions.ReleaseModule,
                 assemblyName: "a2",
                 references: new MetadataReference[] { netModule1.EmitToImageReference() },
@@ -768,7 +768,7 @@ public static void M() {
                 });
             netModule2.VerifyEmitDiagnostics();
 
-            var assembly = CreateStandardCompilation(
+            var assembly = CreateCompilation(
                 options: TestOptions.ReleaseExe,
                 assemblyName: "a",
                 references: new MetadataReference[] { netModule2.EmitToImageReference() },
@@ -783,7 +783,7 @@ var a = new C2();
             assembly.VerifyEmitDiagnostics(
                 Diagnostic(ErrorCode.ERR_MissingNetModuleReference).WithArguments("a1.netmodule"));
 
-            assembly = CreateStandardCompilation(
+            assembly = CreateCompilation(
                 options: TestOptions.ReleaseExe,
                 assemblyName: "a",
                 references: new MetadataReference[] { netModule1.EmitToImageReference(), netModule2.EmitToImageReference() },
@@ -803,13 +803,13 @@ var a = new C2();
         [Fact]
         public void MissedModuleB_OneError()
         {
-            var netModule1 = CreateStandardCompilation(
+            var netModule1 = CreateCompilation(
                 options: TestOptions.ReleaseModule,
                 assemblyName: "a1",
                 source: new string[] { "public class C1 {}" });
             netModule1.VerifyEmitDiagnostics();
 
-            var netModule2 = CreateStandardCompilation(
+            var netModule2 = CreateCompilation(
                 options: TestOptions.ReleaseModule,
                 assemblyName: "a2",
                 references: new MetadataReference[] { netModule1.EmitToImageReference() },
@@ -823,7 +823,7 @@ public static void M() {
                 });
             netModule2.VerifyEmitDiagnostics();
 
-            var netModule3 = CreateStandardCompilation(
+            var netModule3 = CreateCompilation(
                 options: TestOptions.ReleaseModule,
                 assemblyName: "a3",
                 references: new MetadataReference[] { netModule1.EmitToImageReference() },
@@ -837,7 +837,7 @@ public static void M() {
                 });
             netModule3.VerifyEmitDiagnostics();
 
-            var assembly = CreateStandardCompilation(
+            var assembly = CreateCompilation(
                 options: TestOptions.ReleaseExe,
                 assemblyName: "a",
                 references: new MetadataReference[] { netModule2.EmitToImageReference(), netModule3.EmitToImageReference() },
@@ -858,7 +858,7 @@ var a = new C2();
         [Fact]
         public void MissedModuleB_NoErrorForUnmanagedModules()
         {
-            var netModule1 = CreateStandardCompilation(
+            var netModule1 = CreateCompilation(
                 options: TestOptions.ReleaseModule,
                 assemblyName: "a1",
                 source: new string[] {
@@ -873,7 +873,7 @@ public class C2 {
                 });
             netModule1.VerifyEmitDiagnostics();
 
-            var assembly = CreateStandardCompilation(
+            var assembly = CreateCompilation(
                 options: TestOptions.ReleaseExe,
                 assemblyName: "a",
                 references: new MetadataReference[] { netModule1.EmitToImageReference() },
@@ -892,13 +892,13 @@ var a = new C2();
         [Fact()]
         public void MissedModuleC()
         {
-            var netModule1 = CreateStandardCompilation(
+            var netModule1 = CreateCompilation(
                 options: TestOptions.ReleaseModule,
                 assemblyName: "a1",
                 source: new string[] { "public class C1 {}" });
             netModule1.VerifyEmitDiagnostics();
 
-            var netModule2 = CreateStandardCompilation(
+            var netModule2 = CreateCompilation(
                 options: TestOptions.ReleaseModule,
                 assemblyName: "a1",
                 references: new MetadataReference[] { netModule1.EmitToImageReference() },
@@ -912,7 +912,7 @@ public static void M() {
                 });
             netModule2.VerifyEmitDiagnostics();
 
-            var assembly = CreateStandardCompilation(
+            var assembly = CreateCompilation(
                 options: TestOptions.ReleaseExe,
                 assemblyName: "a",
                 references: new MetadataReference[] { netModule1.EmitToImageReference(), netModule2.EmitToImageReference() },
@@ -1398,7 +1398,7 @@ class A
     static void Main() { }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics();
 
             var mainMethod = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("A").GetMember<MethodSymbol>("Main");
@@ -1419,7 +1419,7 @@ class A
     static void Main() { }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
             compilation.VerifyDiagnostics();
 
             Assert.Null(compilation.GetEntryPoint(default(CancellationToken)));
@@ -1435,7 +1435,7 @@ class A
     static void Main() { }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseModule);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseModule);
             compilation.VerifyDiagnostics();
 
             Assert.Null(compilation.GetEntryPoint(default(CancellationToken)));
@@ -1631,7 +1631,7 @@ class B
     static void Main() { }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe.WithMainTypeName("B"));
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe.WithMainTypeName("B"));
             compilation.VerifyDiagnostics();
 
             var mainMethod = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("B").GetMember<MethodSymbol>("Main");
@@ -1696,7 +1696,7 @@ public class TestClass
 
             // Ask for model diagnostics first.
             {
-                var compilation = CreateStandardCompilation(source: new string[] { source1, source2 });
+                var compilation = CreateCompilation(source: new string[] { source1, source2 });
 
                 var tree2 = compilation.SyntaxTrees[1]; //tree for empty file
                 var model2 = compilation.GetSemanticModel(tree2);
@@ -1710,7 +1710,7 @@ public class TestClass
 
             // Ask for compilation diagnostics first.
             {
-                var compilation = CreateStandardCompilation(source: new string[] { source1, source2 });
+                var compilation = CreateCompilation(source: new string[] { source1, source2 });
 
                 var tree2 = compilation.SyntaxTrees[1]; //tree for empty file
                 var model2 = compilation.GetSemanticModel(tree2);
@@ -1923,8 +1923,8 @@ class C { }", options: TestOptions.Script);
         [Fact]
         public void MetadataConsistencyWhileEvolvingCompilation()
         {
-            var md1 = AssemblyMetadata.CreateFromImage(CreateStandardCompilation("public class C { }").EmitToArray());
-            var md2 = AssemblyMetadata.CreateFromImage(CreateStandardCompilation("public class D { }").EmitToArray());
+            var md1 = AssemblyMetadata.CreateFromImage(CreateCompilation("public class C { }").EmitToArray());
+            var md2 = AssemblyMetadata.CreateFromImage(CreateCompilation("public class D { }").EmitToArray());
 
             var reference = new EvolvingTestReference(new[] { md1, md2 });
 

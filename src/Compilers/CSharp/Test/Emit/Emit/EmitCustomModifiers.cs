@@ -35,7 +35,7 @@ public class A
     }
 }
 ";
-            var c = CreateStandardCompilation(source,
+            var c = CreateCompilation(source,
                 new[] { TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll },
                 options: TestOptions.UnsafeReleaseExe);
 
@@ -699,7 +699,7 @@ class Test
         }
     }
 }";
-            var compilation = CreateStandardCompilationWithCustomILSource(source, ilSource, options: TestOptions.UnsafeReleaseExe);
+            var compilation = CreateCompilationWithCustomILSource(source, ilSource, options: TestOptions.UnsafeReleaseExe);
             compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, verify: Verification.Fails);
         }
@@ -733,7 +733,7 @@ class Test
         }
     }
 }";
-            var compilation = CreateStandardCompilationWithCustomILSource(source, ilSource, options: TestOptions.UnsafeReleaseExe);
+            var compilation = CreateCompilationWithCustomILSource(source, ilSource, options: TestOptions.UnsafeReleaseExe);
             compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, verify: Verification.Fails);
         }

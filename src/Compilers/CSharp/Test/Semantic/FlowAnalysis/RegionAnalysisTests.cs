@@ -2370,7 +2370,7 @@ class C {
         [Fact]
         public void NullArgsToAnalyzeControlFlowStatements()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -3696,7 +3696,7 @@ public class A
         public void BlockSyntaxInAttributeDecl()
         {
             {
-                var compilation = CreateStandardCompilation(@"
+                var compilation = CreateCompilation(@"
 [Attribute(delegate.Class)] 
 public class C {
   public static int Main () {
@@ -4839,7 +4839,7 @@ public class MyClass : BaseClass
     {
     }
 }";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
 
@@ -5059,7 +5059,7 @@ public class ExportedSymbol
     }
     static object P { get; set; }
 }";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
             var root = tree.GetCompilationUnitRoot();
@@ -5081,7 +5081,7 @@ public class ExportedSymbol
         this.value = null;
     }
 }";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (6,18): error CS0170: Use of possibly unassigned field 'value'
                 //         S.Equals(value , value);

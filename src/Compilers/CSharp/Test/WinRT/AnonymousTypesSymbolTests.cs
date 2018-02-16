@@ -1661,7 +1661,7 @@ class Program
 }
 ";
             var tree = SyntaxFactory.ParseSyntaxTree(source);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
             var expr = tree.GetCompilationUnitRoot().DescendantNodes().OfType<AnonymousObjectCreationExpressionSyntax>().Single();
 
@@ -1702,7 +1702,7 @@ class Program
 }
 ";
             var tree = SyntaxFactory.ParseSyntaxTree(source);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
             var programType = (NamedTypeSymbol)(comp.GlobalNamespace.GetTypeMembers("Program").Single());
             var mainMethod = (MethodSymbol)(programType.GetMembers("Main").Single());
@@ -1868,7 +1868,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // error CS0746: Invalid anonymous type member declarator. Anonymous type members must be declared with a member assignment, simple name or member access.
                 Diagnostic(ErrorCode.ERR_InvalidAnonymousTypeMemberDeclarator, "local?.M()").WithLocation(12, 24),

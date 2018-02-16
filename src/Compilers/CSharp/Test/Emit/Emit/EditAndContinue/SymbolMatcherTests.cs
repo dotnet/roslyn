@@ -43,7 +43,7 @@ class B
     interface I { }
 }";
 
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source);
 
             var builder = new List<Symbol>();
@@ -112,7 +112,7 @@ class B
     {
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source);
 
             var matcher = new CSharpSymbolMatcher(
@@ -144,7 +144,7 @@ class C
     {
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source);
 
             var matcher = new CSharpSymbolMatcher(
@@ -174,7 +174,7 @@ class C
 {
     public override object[] F(int* p) { return null; }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll, references: new[] { metadataRef });
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll, references: new[] { metadataRef });
             var compilation1 = compilation0.WithSource(source);
 
             var member1 = compilation1.GetMember<MethodSymbol>("B.F");
@@ -207,10 +207,10 @@ public class C
     public void F(D a) {}
 }
 ";
-            var lib0 = CreateStandardCompilation(libSource, options: TestOptions.DebugDll, assemblyName: "Lib");
-            var lib1 = CreateStandardCompilation(libSource, options: TestOptions.DebugDll, assemblyName: "Lib");
+            var lib0 = CreateCompilation(libSource, options: TestOptions.DebugDll, assemblyName: "Lib");
+            var lib1 = CreateCompilation(libSource, options: TestOptions.DebugDll, assemblyName: "Lib");
 
-            var compilation0 = CreateStandardCompilation(source, new[] { lib0.ToMetadataReference() }, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, new[] { lib0.ToMetadataReference() }, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source).WithReferences(MscorlibRef, lib1.ToMetadataReference());
 
             var matcher = new CSharpSymbolMatcher(
@@ -250,7 +250,7 @@ class C
     }
     class D {}
 }";
-            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var matcher = new CSharpSymbolMatcher(
@@ -287,7 +287,7 @@ class C
     }
     class D {}
 }";
-            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var matcher = new CSharpSymbolMatcher(
@@ -325,7 +325,7 @@ class C
     }
     struct D {}
 }";
-            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var matcher = new CSharpSymbolMatcher(
@@ -366,7 +366,7 @@ class C
     class D {}
     List<D> y;
 }";
-            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var matcher = new CSharpSymbolMatcher(
@@ -410,10 +410,10 @@ class C
         var y = new Func<int>(() => x1.A + x2.b);
     }
 }";
-            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
 
             var peRef0 = compilation0.EmitToImageReference();
-            var peAssemblySymbol0 = (PEAssemblySymbol)CreateStandardCompilation("", new[] { peRef0 }).GetReferencedAssemblySymbol(peRef0);
+            var peAssemblySymbol0 = (PEAssemblySymbol)CreateCompilation("", new[] { peRef0 }).GetReferencedAssemblySymbol(peRef0);
             var peModule0 = (PEModuleSymbol)peAssemblySymbol0.Modules[0];
 
             var reader0 = peModule0.Module.MetadataReader;
@@ -424,7 +424,7 @@ class C
             Assert.Equal("<>f__AnonymousType1", anonymousTypeMap0[new AnonymousTypeKey(ImmutableArray.Create(new AnonymousTypeKeyField("B", isKey: false, ignoreCase: false)))].Name);
             Assert.Equal(2, anonymousTypeMap0.Count);
 
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll);
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll);
 
             var testData = new CompilationTestData();
             compilation1.EmitToArray(testData: testData);
@@ -479,10 +479,10 @@ class C
         var y = new Func<int>(() => x1[0].A.X + x2[0].A.Z);
     }
 }";
-            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
 
             var peRef0 = compilation0.EmitToImageReference();
-            var peAssemblySymbol0 = (PEAssemblySymbol)CreateStandardCompilation("", new[] { peRef0 }).GetReferencedAssemblySymbol(peRef0);
+            var peAssemblySymbol0 = (PEAssemblySymbol)CreateCompilation("", new[] { peRef0 }).GetReferencedAssemblySymbol(peRef0);
             var peModule0 = (PEModuleSymbol)peAssemblySymbol0.Modules[0];
 
             var reader0 = peModule0.Module.MetadataReader;
@@ -494,7 +494,7 @@ class C
             Assert.Equal("<>f__AnonymousType2", anonymousTypeMap0[new AnonymousTypeKey(ImmutableArray.Create(new AnonymousTypeKeyField("Y", isKey: false, ignoreCase: false)))].Name);
             Assert.Equal(3, anonymousTypeMap0.Count);
 
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll);
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll);
 
             var testData = new CompilationTestData();
             compilation1.EmitToArray(testData: testData);
@@ -533,7 +533,7 @@ class C
 {
     public (int a, bool b) x;
 }";
-            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var matcher = new CSharpSymbolMatcher(
@@ -563,7 +563,7 @@ class C
 {
     public (int a, int c) x;
 }";
-            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var matcher = new CSharpSymbolMatcher(
@@ -593,7 +593,7 @@ class C
 {
     public (int a, bool b) X() { return null };
 }";
-            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var matcher = new CSharpSymbolMatcher(
@@ -623,7 +623,7 @@ class C
 {
     public (int a, int c) X() { return null };
 }";
-            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var matcher = new CSharpSymbolMatcher(
@@ -653,7 +653,7 @@ class C
 {
     public (int a, bool b) X { get { return null; } };
 }";
-            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var matcher = new CSharpSymbolMatcher(
@@ -683,7 +683,7 @@ class C
 {
     public (int a, int c) X { get { return null; } };
 }";
-            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var matcher = new CSharpSymbolMatcher(
@@ -713,7 +713,7 @@ public struct Vector
 {
     public (int x, int y, int z) Coordinates;
 }";
-            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var matcher = new CSharpSymbolMatcher(
@@ -743,7 +743,7 @@ public struct Vector
 {
     public (int x, int z) Coordinates;
 }";
-            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var matcher = new CSharpSymbolMatcher(
@@ -773,7 +773,7 @@ public class C
 {
     public delegate (int, bool) F();
 }";
-            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var matcher = new CSharpSymbolMatcher(
@@ -803,7 +803,7 @@ public class C
 {
     public delegate (int x, int y) F();
 }";
-            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var matcher = new CSharpSymbolMatcher(
@@ -833,7 +833,7 @@ class C
 {
     public ref bool GetFirst(int[] numbers, bool[] bools) { return ref bools[0]; } };
 }";
-            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var matcher = new CSharpSymbolMatcher(
@@ -863,7 +863,7 @@ class C
 {
     public bool GetFirst(bool[] bools) { return bools[0]; } };
 }";
-            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var matcher = new CSharpSymbolMatcher(
@@ -897,7 +897,7 @@ struct S
     bool[] bools;
     public ref bool X { get => ref bools[0]; }
 }";
-            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var matcher = new CSharpSymbolMatcher(
@@ -929,7 +929,7 @@ struct S
     int[] ints;
     public int X { get => ints[0]; }
 }";
-            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var matcher = new CSharpSymbolMatcher(
@@ -966,12 +966,12 @@ class C : I<int, bool>
 	}
 }";
 
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
 
             var peRef0 = compilation0.EmitToImageReference();
-            var peAssemblySymbol0 = (PEAssemblySymbol)CreateStandardCompilation("", new[] { peRef0 }).GetReferencedAssemblySymbol(peRef0);
+            var peAssemblySymbol0 = (PEAssemblySymbol)CreateCompilation("", new[] { peRef0 }).GetReferencedAssemblySymbol(peRef0);
 
-            var compilation1 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll);
 
             var testData = new CompilationTestData();
             compilation1.EmitToArray(testData: testData);

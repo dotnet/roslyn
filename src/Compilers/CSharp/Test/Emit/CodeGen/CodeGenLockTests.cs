@@ -1894,7 +1894,7 @@ class C1
     }
 }";
 
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Enter);
 
             CompileAndVerify(compilation, expectedOutput: "Inside lock.");
@@ -1915,7 +1915,7 @@ class C1
     }
 }";
 
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Enter2);
 
             CompileAndVerify(compilation, expectedOutput: "Inside lock.");
@@ -1936,7 +1936,7 @@ class C1
     }
 }";
 
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Enter);
             compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Enter2);
 
@@ -1965,7 +1965,7 @@ class C1
     }
 }";
 
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Exit);
 
             compilation.VerifyEmitDiagnostics(
@@ -1993,7 +1993,7 @@ class C1
     }
 }";
 
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Enter);
             compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Enter2);
             compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Exit);
@@ -2029,7 +2029,7 @@ class C1
     }
 }";
 
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.MakeTypeMissing(WellKnownType.System_Threading_Monitor);
 
             compilation.VerifyEmitDiagnostics(

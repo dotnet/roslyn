@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         [WorkItem(481125, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=481125")]
         public void Repro481125()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 using System;
 using System.Linq;
 
@@ -79,7 +79,7 @@ public class E
         [WorkItem(24647, "https://github.com/dotnet/roslyn/issues/24647")]
         public void Repro24647()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 class Program
 {
     static void Main(string[] args)
@@ -135,7 +135,7 @@ static void Main(string[] args)
         [WorkItem(21768, "https://github.com/dotnet/roslyn/issues/21768")]
         public void Repro21768()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 using System;
 using System.Linq;
 class C
@@ -169,7 +169,7 @@ class C
         [WorkItem(21811, "https://github.com/dotnet/roslyn/issues/21811")]
         public void Repro21811()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 using System.Collections.Generic;
 using System.Linq;
 
@@ -688,7 +688,7 @@ class C
         [Fact]
         public void Repro20577()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 using System.Linq;
 
 public class Program {
@@ -1078,7 +1078,7 @@ class C2
         [Fact]
         public void NameofRecursiveDefaultParameter()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 using System;
 class C
 {
@@ -1331,7 +1331,7 @@ class C
         Console.WriteLine(x);
     }
 }";
-            CompileAndVerifyWithMscorlib40(src,
+            CompileAndVerify(src,
                 targetFramework: TargetFramework.Net46,
                 expectedOutput: @"1
 0");
@@ -1638,7 +1638,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(src);
+            var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics();
         }
 

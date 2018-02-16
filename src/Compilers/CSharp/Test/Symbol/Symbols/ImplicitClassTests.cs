@@ -46,7 +46,7 @@ namespace N
         [Fact]
         public void ScriptClassSymbol()
         {
-            var c = CreateStandardCompilation(@"
+            var c = CreateCompilation(@"
 base.ToString();
 void Goo()
 {
@@ -89,7 +89,7 @@ event System.Action e;
         [Fact]
         public void AliasQualifiedNamespaceName()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 namespace N::A
 {
     void Goo()

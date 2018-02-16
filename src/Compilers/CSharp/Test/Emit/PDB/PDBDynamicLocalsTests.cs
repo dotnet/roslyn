@@ -1683,7 +1683,7 @@ class C
     }
 }
 ";
-            var c = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var c = CreateCompilation(source, options: TestOptions.DebugDll);
             var v = CompileAndVerify(c);
             v.VerifyIL("C.F", @"
 {

@@ -268,7 +268,7 @@ this[1]
         [Fact]
         public void Submission_TypeDisambiguationBasedUponAssemblyName()
         {
-            var compilation = CreateStandardCompilation("namespace System { public struct Int32 { } }");
+            var compilation = CreateCompilation("namespace System { public struct Int32 { } }");
 
             compilation.VerifyDiagnostics();
         }

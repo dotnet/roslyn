@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestInteropAttributes01()
         {
-            var source = CreateStandardCompilation(@"
+            var source = CreateCompilation(@"
 using System;
 using System.Runtime.InteropServices;
 
@@ -133,7 +133,7 @@ class C
         [Fact]
         public void TestInteropAttributes02()
         {
-            var source = CreateStandardCompilation(@"
+            var source = CreateCompilation(@"
 using System;
 using System.Runtime.InteropServices;
 
@@ -490,10 +490,10 @@ public class Consumer
 ";
             #endregion
 
-            var libComp = CreateStandardCompilation(source1);
+            var libComp = CreateCompilation(source1);
             var libCompRef = new CSharpCompilationReference(libComp);
 
-            var comp2 = CreateStandardCompilation(source2, new[] { libCompRef });
+            var comp2 = CreateCompilation(source2, new[] { libCompRef });
             comp2.VerifyDiagnostics(
                 // (6,19): error CS7036: There is no argument given that corresponds to the required formal parameter 'p1' of 'Bar.Method(DateTime)'
                 //         new Bar().Method();
@@ -502,7 +502,7 @@ public class Consumer
 
             // The native compiler also gives an error: error CS1501: No overload for method 'Method' takes 0 arguments
             var libAssemblyRef = libComp.EmitToImageReference();
-            var comp3 = CreateStandardCompilation(source2, new[] { libAssemblyRef });
+            var comp3 = CreateCompilation(source2, new[] { libAssemblyRef });
             comp3.VerifyDiagnostics(
                 // (6,19): error CS7036: There is no argument given that corresponds to the required formal parameter 'p1' of 'Bar.Method(DateTime)'
                 //         new Bar().Method();
@@ -536,7 +536,7 @@ public class Bar
             // .param [1] = nullref
             // .custom instance void[mscorlib] System.Runtime.CompilerServices.DateTimeConstantAttribute::.ctor(int64) = ( 01 00 FF FF FF FF FF FF FF FF 00 00 )
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (7,60): error CS8017: The parameter has multiple distinct default values.
                 //     public DateTime M1([DateTimeConstant(-1)] DateTime x = default(DateTime)) { return x; }
@@ -568,7 +568,7 @@ public class Bar
             // .param [1] = nullref
             // .custom instance void[mscorlib] System.Runtime.CompilerServices.DateTimeConstantAttribute::.ctor(int64) = (01 00 2A 00 00 00 00 00 00 00 00 00 )
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (7,60): error CS8017: The parameter has multiple distinct default values.
                 //     public DateTime M1([DateTimeConstant(42)] DateTime x = default(DateTime)) { return x; }
@@ -764,7 +764,7 @@ public class C
     }
 }
 ";
-            CreateStandardCompilation(source, new[] { SystemRef }).VerifyDiagnostics(
+            CreateCompilation(source, new[] { SystemRef }).VerifyDiagnostics(
                 // (6,59): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "default(decimal)"));
         }
@@ -809,7 +809,7 @@ public class C
         [Fact]
         public void DPV_String()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 using System.Runtime.InteropServices;
 
 public class C
@@ -839,7 +839,7 @@ public class C
         [Fact]
         public void OptionalAttribute()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 using System.Runtime.InteropServices;
 
 public class C
@@ -868,7 +868,7 @@ public class C
         [Fact]
         public void DPV_Optional_CallFromAnotherCompilation()
         {
-            var c1 = CreateStandardCompilation(@"
+            var c1 = CreateCompilation(@"
 using System.Runtime.InteropServices;
 
 public class C
@@ -890,7 +890,7 @@ public class C
 }
 ", new[] { SystemRef });
 
-            var c2 = CreateStandardCompilation(@"
+            var c2 = CreateCompilation(@"
 public class D 
 {
     public void M() 
@@ -912,7 +912,7 @@ public class D
         [Fact]
         public void CustomDefaultParameterValueAttribute1()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 using System.Runtime.InteropServices;
 
 namespace System.Runtime.InteropServices
@@ -956,7 +956,7 @@ public class C
         [Fact]
         public void CustomDefaultParameterValueAttribute2()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 using System.Runtime.InteropServices;
 
 namespace System.Runtime.InteropServices
@@ -1205,7 +1205,7 @@ class C
         [Fact]
         public void OptionalParameterInTheMiddle()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 using System.Runtime.InteropServices;
 using System;
 
@@ -1222,7 +1222,7 @@ public class X
         [Fact]
         public void OptionalAttributeParameter_Numeric()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 using System;
 
 [AttributeUsage(AttributeTargets.Parameter)]
@@ -1246,7 +1246,7 @@ public class C
         [Fact]
         public void OptionalAttributeParameter_Enum()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 using System;
 
 public enum E { A, B, C }
@@ -1363,7 +1363,7 @@ public class Goo: Attribute
     public static void Main() {}
 }";
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (15,17): warning CS0436: The type 'System.Runtime.InteropServices.OptionalAttribute' in '' conflicts with the imported type 'System.Runtime.InteropServices.OptionalAttribute' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
                 //     public Goo([Optional(isOpt: false)][Goo]int y) {}
                 Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Optional").WithArguments("", "System.Runtime.InteropServices.OptionalAttribute", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "System.Runtime.InteropServices.OptionalAttribute").WithLocation(15, 17),
@@ -1394,7 +1394,7 @@ public class Goo: Attribute
     public static void Main() {}
 }";
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (16,17): warning CS0436: The type 'System.Runtime.InteropServices.OptionalAttribute' in '' conflicts with the imported type 'System.Runtime.InteropServices.OptionalAttribute' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
                 //     public Goo([Optional][Goo]int y) {}
                 Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Optional").WithArguments("", "System.Runtime.InteropServices.OptionalAttribute", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "System.Runtime.InteropServices.OptionalAttribute"),
@@ -1425,7 +1425,7 @@ public class Goo: Attribute
     public static void Main() {}
 }";
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (16,17): warning CS0436: The type 'System.Runtime.InteropServices.OptionalAttribute' in '' conflicts with the imported type 'System.Runtime.InteropServices.OptionalAttribute' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
                 //     public Goo([Optional(new Goo())][Goo]int y) {}
                 Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Optional").WithArguments("", "System.Runtime.InteropServices.OptionalAttribute", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "System.Runtime.InteropServices.OptionalAttribute").WithLocation(16, 17),
@@ -1720,7 +1720,7 @@ class C
 }
 ";
 
-            CreateStandardCompilation(source, references: new[] { SystemRef }).VerifyDiagnostics(
+            CreateCompilation(source, references: new[] { SystemRef }).VerifyDiagnostics(
                 // (63,65): error CS1763: 'x' is of type 'object'. A default parameter value of a reference type other than string can only be initialized with null
                 //     public MyPermission5Attribute(SecurityAction action, object x = SecurityAction.Demand) : base(SecurityAction.Demand)
                 Diagnostic(ErrorCode.ERR_NotNullRefDefaultParameter, "x").WithArguments("x", "object"),
@@ -1778,7 +1778,7 @@ class Program
         Goo();
     }
 }";
-            var comp = CreateStandardCompilation(source, references: new[] { SystemRef });
+            var comp = CreateCompilation(source, references: new[] { SystemRef });
             comp.VerifyEmitDiagnostics(
                 // (13,9): error CS0029: Cannot implicitly convert type 'int' to 'Enum'
                 //         Goo();
@@ -2028,7 +2028,7 @@ class C
         [Fact]
         public void InAttribute_RefParameter()
         {
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 using System.Runtime.InteropServices;
 class C
 {
@@ -2039,7 +2039,7 @@ class C
         [Fact]
         public void OutAttribute_RefParameter()
         {
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 using System.Runtime.InteropServices;
 class C
 {
@@ -2053,7 +2053,7 @@ class C
         [Fact]
         public void InAndOutAttributes_RefParameter()
         {
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 using System.Runtime.InteropServices;
 class C
 {
@@ -2064,7 +2064,7 @@ class C
         [Fact]
         public void InAttribute_OutParameter()
         {
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 using System.Runtime.InteropServices;
 class C
 {
@@ -2078,7 +2078,7 @@ class C
         [Fact]
         public void OutAttribute_OutParameter()
         {
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 using System.Runtime.InteropServices;
 class C
 {
@@ -2089,7 +2089,7 @@ class C
         [Fact]
         public void InAndOutAttributes_OutParameter()
         {
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 using System.Runtime.InteropServices;
 class C
 {
@@ -2103,7 +2103,7 @@ class C
         [Fact]
         public void InAttribute_InParameter()
         {
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 using System.Runtime.InteropServices;
 class C
 {
@@ -2114,7 +2114,7 @@ class C
         [Fact]
         public void OutAttribute_InParameter()
         {
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 using System.Runtime.InteropServices;
 class C
 {
@@ -2128,7 +2128,7 @@ class C
         [Fact]
         public void OutAndInAttributes_InParameter()
         {
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 using System.Runtime.InteropServices;
 class C
 {
@@ -2277,7 +2277,7 @@ class C
         [Fact]
         public void TestPseudoDllImport()
         {
-            var source = CreateStandardCompilation(@"
+            var source = CreateCompilation(@"
 using System;
 using System.Runtime.InteropServices;
 using System.Runtime.CompilerServices;
@@ -2358,7 +2358,7 @@ namespace System.Runtime.InteropServices
             //      (4,6): warning CS0436: The type 'DllImport' in '' conflicts with the imported type 'System.Runtime.InteropServices.DllImportAttribute' in 
             //      'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (4,6): error CS0616: 'System.Runtime.InteropServices.DllImportAttribute' is not an attribute class
                 //     [DllImport]
                 Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "DllImport").WithArguments("System.Runtime.InteropServices.DllImportAttribute"));
@@ -2416,7 +2416,7 @@ class C
 }
 ";
             // Dev10 fails in Emit or emits invalid metadata
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (6,16): error CS0591: Invalid value for argument to 'DllImport' attribute
                 Diagnostic(ErrorCode.ERR_InvalidAttributeArgument, "null").WithArguments("DllImport"),
                 // (9,16): error CS0591: Invalid value for argument to 'DllImport' attribute
@@ -2858,7 +2858,7 @@ class M
     static extern int F6();
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (6,31): error CS0037: Cannot convert null to 'System.Runtime.InteropServices.CharSet' because it is a non-nullable value type
                 Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("System.Runtime.InteropServices.CharSet"),
                 // (9,31): error CS0119: 'System.Runtime.InteropServices.CharSet' is a type, which is not valid in the given context
@@ -2944,7 +2944,7 @@ abstract class C
         [Fact]
         public void TestMethodImplAttribute_UnverifiableMD()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 using System.Runtime.CompilerServices;
 
 class C
@@ -3224,7 +3224,7 @@ class Program1
     void f7() { } 
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (9,17): error CS0591: Invalid value for argument to 'MethodImpl' attribute
                 Diagnostic(ErrorCode.ERR_InvalidAttributeArgument, "1").WithArguments("MethodImpl"),
                 // (12,17): error CS0591: Invalid value for argument to 'MethodImpl' attribute
@@ -3333,7 +3333,7 @@ using System.Runtime.InteropServices;
 [module: DefaultCharSet((CharSet)int.MaxValue)]
 ";
             // Ref.Emit doesn't implement custom attributes yet
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (4,25): error CS0591: Invalid value for argument to 'DefaultCharSet' attribute
                 Diagnostic(ErrorCode.ERR_InvalidAttributeArgument, "(CharSet)int.MaxValue").WithArguments("DefaultCharSet"));
         }
@@ -3447,7 +3447,7 @@ public class C1 { }
 public class C2 { }
 ";
             // Dev10 fails in Emit or emits invalid metadata
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (25,6): error CS1513: } expected {
                 Diagnostic(ErrorCode.ERR_RbraceExpected, ""),
                 // (29,1): error CS1022: Type or namespace definition, or end-of-file expected }
@@ -3826,7 +3826,7 @@ public class MainClass
         return 0;
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (22,29): error CS0122: 'Wrapper.IWorksheet' is inaccessible due to its protection level
                 //         var a = new Wrapper.IWorksheet();
                 Diagnostic(ErrorCode.ERR_BadAccess, "IWorksheet").WithArguments("Wrapper.IWorksheet").WithLocation(22, 29));
@@ -3864,13 +3864,13 @@ public class MainClass
     }
 }";
             // Using metadata reference to test RetargetingNamedTypeSymbol CoClass type
-            CreateStandardCompilation(source2, references: new[] { compDll.ToMetadataReference() }).VerifyDiagnostics(
+            CreateCompilation(source2, references: new[] { compDll.ToMetadataReference() }).VerifyDiagnostics(
                 // (6,29): error CS0122: 'Wrapper.IWorksheet' is inaccessible due to its protection level
                 //         var a = new Wrapper.IWorksheet();
                 Diagnostic(ErrorCode.ERR_BadAccess, "IWorksheet").WithArguments("Wrapper.IWorksheet").WithLocation(6, 29));
 
             // Using assembly file reference to test PENamedTypeSymbol symbol CoClass type
-            CreateStandardCompilation(source2, references: new[] { compDll.EmitToImageReference() }).VerifyDiagnostics(
+            CreateCompilation(source2, references: new[] { compDll.EmitToImageReference() }).VerifyDiagnostics(
                 // (6,29): error CS0122: 'Wrapper.IWorksheet' is inaccessible due to its protection level
                 //         var a = new Wrapper.IWorksheet();
                 Diagnostic(ErrorCode.ERR_BadAccess, "IWorksheet").WithArguments("Wrapper.IWorksheet").WithLocation(6, 29));
@@ -3904,7 +3904,7 @@ public class MainClass
         return 0;
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (22,21): error CS0122: 'Wrapper.WorksheetClass.WorksheetClass()' is inaccessible due to its protection level
                 //         var a = new Wrapper.IWorksheet();
                 Diagnostic(ErrorCode.ERR_BadAccess, "Wrapper.IWorksheet").WithArguments("Wrapper.WorksheetClass.WorksheetClass()").WithLocation(22, 21));
@@ -3943,13 +3943,13 @@ public class MainClass
 }";
 
             // Using metadata reference to test RetargetingNamedTypeSymbol CoClass type
-            CreateStandardCompilation(source2, references: new[] { compDll.ToMetadataReference() }).VerifyDiagnostics(
+            CreateCompilation(source2, references: new[] { compDll.ToMetadataReference() }).VerifyDiagnostics(
                 // (6,21): error CS0122: 'Wrapper.WorksheetClass.WorksheetClass()' is inaccessible due to its protection level
                 //         var a = new Wrapper.IWorksheet();
                 Diagnostic(ErrorCode.ERR_BadAccess, "Wrapper.IWorksheet").WithArguments("Wrapper.WorksheetClass.WorksheetClass()").WithLocation(6, 21));
 
             // Using assembly file reference to test PENamedTypeSymbol symbol CoClass type
-            CreateStandardCompilation(source2, references: new[] { compDll.EmitToImageReference() }).VerifyDiagnostics(
+            CreateCompilation(source2, references: new[] { compDll.EmitToImageReference() }).VerifyDiagnostics(
                 // (6,21): error CS0122: 'Wrapper.WorksheetClass.WorksheetClass()' is inaccessible due to its protection level
                 //         var a = new Wrapper.IWorksheet();
                 Diagnostic(ErrorCode.ERR_BadAccess, "Wrapper.IWorksheet").WithArguments("Wrapper.WorksheetClass.WorksheetClass()").WithLocation(6, 21));
@@ -3981,7 +3981,7 @@ public class MainClass
         return 0;
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (10,6): warning CS0684: 'IWorksheet' interface marked with 'CoClassAttribute' not marked with 'ComImportAttribute'
                 //     [CoClass(typeof(WorksheetClass))]
                 Diagnostic(ErrorCode.WRN_CoClassWithoutComImport, "CoClass(typeof(WorksheetClass))").WithArguments("IWorksheet").WithLocation(10, 6),
@@ -4021,7 +4021,7 @@ public class MainClass
 }";
 
             // Using metadata reference to test RetargetingNamedTypeSymbol CoClass type
-            CreateStandardCompilation(source2, references: new[] { compDll.ToMetadataReference() }).VerifyDiagnostics(
+            CreateCompilation(source2, references: new[] { compDll.ToMetadataReference() }).VerifyDiagnostics(
                 // (6,17): error CS0144: Cannot create an instance of the abstract class or interface 'Wrapper.IWorksheet'
                 //         var a = new Wrapper.IWorksheet();
                 Diagnostic(ErrorCode.ERR_NoNewAbstract, "new Wrapper.IWorksheet()").WithArguments("Wrapper.IWorksheet").WithLocation(6, 17));
@@ -4034,7 +4034,7 @@ public class MainClass
             });
 
             // Using assembly file reference to test PENamedTypeSymbol symbol CoClass type
-            CreateStandardCompilation(source2, references: new[] { assemblyRef }).VerifyDiagnostics(
+            CreateCompilation(source2, references: new[] { assemblyRef }).VerifyDiagnostics(
                 // (6,17): error CS0144: Cannot create an instance of the abstract class or interface 'Wrapper.IWorksheet'
                 //         var a = new Wrapper.IWorksheet();
                 Diagnostic(ErrorCode.ERR_NoNewAbstract, "new Wrapper.IWorksheet()").WithArguments("Wrapper.IWorksheet").WithLocation(6, 17));
@@ -4068,7 +4068,7 @@ public class MainClass
         return 0;
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (22,17): error CS0144: Cannot create an instance of the abstract class or interface 'IWorksheet'
                 //         var a = new IWorksheet();
                 Diagnostic(ErrorCode.ERR_NoNewAbstract, "new IWorksheet()").WithArguments("IWorksheet").WithLocation(22, 17));
@@ -4106,13 +4106,13 @@ public class MainClass
     }
 }";
             // Using metadata reference to test RetargetingNamedTypeSymbol CoClass type
-            CreateStandardCompilation(source2, references: new[] { compDll.ToMetadataReference() }).VerifyDiagnostics(
+            CreateCompilation(source2, references: new[] { compDll.ToMetadataReference() }).VerifyDiagnostics(
                 // (6,17): error CS0144: Cannot create an instance of the abstract class or interface 'IWorksheet'
                 //         var a = new IWorksheet();
                 Diagnostic(ErrorCode.ERR_NoNewAbstract, "new IWorksheet()").WithArguments("IWorksheet").WithLocation(6, 17));
 
             // Using assembly file reference to test PENamedTypeSymbol symbol CoClass type
-            CreateStandardCompilation(source2, references: new[] { compDll.EmitToImageReference() }).VerifyDiagnostics(
+            CreateCompilation(source2, references: new[] { compDll.EmitToImageReference() }).VerifyDiagnostics(
                 // (6,17): error CS0144: Cannot create an instance of the abstract class or interface 'IWorksheet'
                 //         var a = new IWorksheet();
                 Diagnostic(ErrorCode.ERR_NoNewAbstract, "new IWorksheet()").WithArguments("IWorksheet").WithLocation(6, 17));
@@ -4146,7 +4146,7 @@ public class MainClass
         return 0;
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (6,25): error CS0122: 'Wrapper.WorksheetClass' is inaccessible due to its protection level
                 // [CoClass(typeof(Wrapper.WorksheetClass))]
                 Diagnostic(ErrorCode.ERR_BadAccess, "WorksheetClass").WithArguments("Wrapper.WorksheetClass").WithLocation(6, 25),
@@ -4214,7 +4214,7 @@ public class MainClass
     }
 }";
 
-            var compilation = CreateStandardCompilationWithCustomILSource(source, ilSource);
+            var compilation = CreateCompilationWithCustomILSource(source, ilSource);
 
             compilation.VerifyDiagnostics();
         }
@@ -4246,7 +4246,7 @@ public class MainClass
     }
 }";
 
-            var compilation = CreateStandardCompilationWithCustomILSource(source, ilSource);
+            var compilation = CreateCompilationWithCustomILSource(source, ilSource);
 
             compilation.VerifyDiagnostics(
                 // (6,17): error CS0144: Cannot create an instance of the abstract class or interface 'IWorksheet'
@@ -4286,7 +4286,7 @@ public class MainClass
     }
 }";
 
-            var compilation = CreateStandardCompilationWithCustomILSource(source, ilSource);
+            var compilation = CreateCompilationWithCustomILSource(source, ilSource);
 
             compilation.VerifyDiagnostics(
                 // (6,17): error CS1613: The managed coclass wrapper class 'YorksheetClass' for interface 'IWorksheet' cannot be found (are you missing an assembly reference?)
@@ -4326,7 +4326,7 @@ public class MainClass
     }
 }";
 
-            var compilation = CreateStandardCompilationWithCustomILSource(source, ilSource);
+            var compilation = CreateCompilationWithCustomILSource(source, ilSource);
 
             compilation.VerifyDiagnostics(
                 // (6,17): error CS1639: The managed coclass wrapper class signature 'WorksheetClass<>' for interface 'IWorksheet' is not a valid class name signature
@@ -4364,7 +4364,7 @@ public class MainClass
         return 0;
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (16,13): error CS0144: Cannot create an instance of the abstract class or interface 'InterfaceType'
                 // [AAttribute(new InterfaceType())]
                 Diagnostic(ErrorCode.ERR_NoNewAbstract, "new InterfaceType()").WithArguments("InterfaceType").WithLocation(16, 13));
@@ -4390,7 +4390,7 @@ class A
     }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (14,17): error CS0030: Cannot convert type 'System.StackOverflowException' to 'I'
                 //         var x = new I(); // error CS0030: Cannot convert type 'System.StackOverflowException' to 'I'
                 Diagnostic(ErrorCode.ERR_NoExplicitConv, "new I()").WithArguments("System.StackOverflowException", "I").WithLocation(14, 17));
@@ -4423,7 +4423,7 @@ class D {}
 [Guid(null)]    // null
 class E {}
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (9,7): error CS0591: Invalid value for argument to 'Guid' attribute
                 // [Guid("69D3E2A0-BB0F-4FE3-9860-ED714C51075")]    // incorrect length (35 chars)
                 Diagnostic(ErrorCode.ERR_InvalidAttributeArgument, @"""69D3E2A0-BB0F-4FE3-9860-ED714C51075""").WithArguments("Guid").WithLocation(9, 7),
@@ -4460,7 +4460,7 @@ class C {}
 [Guid(""{0x00000000,0x0000,0x0000,{0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00}}"")]    // Four hexadecimal values enclosed in braces, where the fourth value is a subset of eight hexadecimal values that is also enclosed in braces
 class D {}
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (7,7): error CS0591: Invalid value for argument to 'Guid' attribute
                 // [Guid("69D3E2A0BB0F4FE39860ED714C510756")]    // 32 digits, no hyphens
                 Diagnostic(ErrorCode.ERR_InvalidAttributeArgument, @"""69D3E2A0BB0F4FE39860ED714C510756""").WithArguments("Guid").WithLocation(7, 7),
@@ -4484,7 +4484,7 @@ using System.Runtime.InteropServices;
 
 [assembly: Guid(""69D3E2A0BB0F--4FE3-9860-ED714C510756"")]    // invalid format
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (5,17): error CS0591: Invalid value for argument to 'Guid' attribute
                 // [assembly: Guid("69D3E2A0BB0F--4FE3-9860-ED714C510756")]    // invalid format
                 Diagnostic(ErrorCode.ERR_InvalidAttributeArgument, @"""69D3E2A0BB0F--4FE3-9860-ED714C510756""").WithArguments("Guid").WithLocation(5, 17));
@@ -4740,7 +4740,7 @@ namespace AttributeTest
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             // Verify attributes from source and then load metadata to see attributes are written correctly.
             var comp = CompileAndVerify(
@@ -4786,7 +4786,7 @@ namespace System
     }
 }";
             var syntaxTree = Parse(source, filename: "test.cs");
-            var compilation = CreateStandardCompilation(syntaxTree);
+            var compilation = CreateCompilation(syntaxTree);
 
             var comp = compilation.VerifyDiagnostics(
                 // test.cs(4,6): warning CS0436: The type 'AttributeUsageAttribute' in 'test.cs' conflicts with the imported type 'AttributeUsageAttribute' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in 'test.cs'.
@@ -4824,7 +4824,7 @@ namespace System
     }
 }";
             var syntaxTree = Parse(source, filename: "test.cs");
-            var compilation = CreateStandardCompilation(syntaxTree, options: TestOptions.ReleaseDll);
+            var compilation = CreateCompilation(syntaxTree, options: TestOptions.ReleaseDll);
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
@@ -4901,7 +4901,7 @@ public class MyAttribute : Attribute
 	public const AttributeTargets badAttributeTargets = Missing;
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (7,54): error CS0103: The name 'Missing' does not exist in the current context
                 // 	public const AttributeTargets badAttributeTargets = Missing;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "Missing").WithArguments("Missing"),
@@ -4953,14 +4953,14 @@ public class Child2: Child
             #endregion
 
             var opt = TestOptions.ReleaseDll;
-            var comp1 = CreateStandardCompilation(text1, options: opt);
+            var comp1 = CreateCompilation(text1, options: opt);
             var compref1 = new CSharpCompilationReference(comp1);
-            var comp2 = CreateStandardCompilation(text2, references: new[] { compref1 }, options: opt, assemblyName: "Child");
-            var comp3 = CreateStandardCompilation(text3, references: new[] { compref1, new CSharpCompilationReference(comp2) }, options: opt, assemblyName: "Child2");
+            var comp2 = CreateCompilation(text2, references: new[] { compref1 }, options: opt, assemblyName: "Child");
+            var comp3 = CreateCompilation(text3, references: new[] { compref1, new CSharpCompilationReference(comp2) }, options: opt, assemblyName: "Child2");
             // OK
             comp3.VerifyDiagnostics();
 
-            comp3 = CreateStandardCompilation(text3, references: new[] { compref1, new CSharpCompilationReference(comp2) }, options: opt, assemblyName: "Child2");
+            comp3 = CreateCompilation(text3, references: new[] { compref1, new CSharpCompilationReference(comp2) }, options: opt, assemblyName: "Child2");
             comp3.VerifyDiagnostics();
         }
 
@@ -5073,7 +5073,7 @@ public class InvalidClass5 { }
 public interface InvalidTarget {}
 ";
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (26,17): error CS0591: Invalid value for argument to 'ClassInterface' attribute
                 // [ClassInterface((ClassInterfaceType)(-1))]
                 Diagnostic(ErrorCode.ERR_InvalidAttributeArgument, "(ClassInterfaceType)(-1)").WithArguments("ClassInterface"),
@@ -5152,7 +5152,7 @@ public interface InvalidInterface5 {}
 [InterfaceType(ComInterfaceType.InterfaceIsDual)]
 public class InvalidTarget {}
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (34,16): error CS0591: Invalid value for argument to 'InterfaceType' attribute
                 // [InterfaceType((ComInterfaceType)(-1))]
                 Diagnostic(ErrorCode.ERR_InvalidAttributeArgument, "(ComInterfaceType)(-1)").WithArguments("InterfaceType"),
@@ -5185,7 +5185,7 @@ using System.Runtime.InteropServices;
 
 [assembly: TypeLibVersionAttribute(0, int.MaxValue)]
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -5200,7 +5200,7 @@ public class C
     public const short S = short.MaxValue;
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -5211,7 +5211,7 @@ using System.Runtime.InteropServices;
 
 [assembly: TypeLibVersionAttribute(-1, int.MinValue)]
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (4,36): error CS0591: Invalid value for argument to 'TypeLibVersionAttribute' attribute
                 // [assembly: TypeLibVersionAttribute(-1, int.MinValue)]
                 Diagnostic(ErrorCode.ERR_InvalidAttributeArgument, "-1").WithArguments("TypeLibVersionAttribute"),
@@ -5228,7 +5228,7 @@ using System.Runtime.InteropServices;
 
 [assembly: TypeLibVersionAttribute(""str"", 0)]
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (4,36): error CS1503: Argument 1: cannot convert from 'string' to 'int'
                 // [assembly: TypeLibVersionAttribute("str", 0)]
                 Diagnostic(ErrorCode.ERR_BadArgType, @"""str""").WithArguments("1", "string", "int"));
@@ -5246,7 +5246,7 @@ using System.Runtime.InteropServices;
 
 [assembly: ComCompatibleVersionAttribute(0, 0, 0, 0)]
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -5257,7 +5257,7 @@ using System.Runtime.InteropServices;
 
 [assembly: ComCompatibleVersionAttribute(-1, -1, -1, -1)]
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (4,42): error CS0591: Invalid value for argument to 'ComCompatibleVersionAttribute' attribute
                 // [assembly: ComCompatibleVersionAttribute(-1, -1, -1, -1)]
                 Diagnostic(ErrorCode.ERR_InvalidAttributeArgument, "-1").WithArguments("ComCompatibleVersionAttribute"),
@@ -5280,7 +5280,7 @@ using System.Runtime.InteropServices;
 
 [assembly: ComCompatibleVersionAttribute(""str"", 0)]
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (4,12): error CS7036: There is no argument given that corresponds to the required formal parameter 'build' of 'System.Runtime.InteropServices.ComCompatibleVersionAttribute.ComCompatibleVersionAttribute(int, int, int, int)'
                 // [assembly: ComCompatibleVersionAttribute("str", 0)]
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, @"ComCompatibleVersionAttribute(""str"", 0)").WithArguments("build", "System.Runtime.InteropServices.ComCompatibleVersionAttribute.ComCompatibleVersionAttribute(int, int, int, int)").WithLocation(4, 12));
@@ -5338,7 +5338,7 @@ class A
             // Dev10 Runtime Exception:
             // Unhandled Exception: System.TypeLoadException: Windows Runtime types can only be declared in Windows Runtime assemblies.
 
-            var verifier = CompileAndVerify(source, sourceSymbolValidator: sourceValidator, symbolValidator: metadataValidator, verify: Verification.Fails);
+            var verifier = CompileAndVerify(source, sourceSymbolValidator: sourceValidator, symbolValidator: metadataValidator, verify: Verification.Fails, targetFramework: TargetFramework.Net40);
         }
 
         #endregion
@@ -5494,7 +5494,7 @@ class SelfReferenceInBase : IGoo<SelfReferenceInBase> {}
 class SelfReferenceInBase1 : IGoo<SelfReferenceInBase> {}
 
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (78,7): error CS0101: The namespace '<global namespace>' already contains a definition for 'TypeClashWithNS'
                 // class TypeClashWithNS : Attribute
                 Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "TypeClashWithNS").WithArguments("TypeClashWithNS", "<global namespace>").WithLocation(78, 7),
@@ -5768,7 +5768,7 @@ public class Test
     static public Test operator &(Test x, Test x2) { return new Test(); }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (27,13): warning CS0612: 'Test.implicit operator Test(int)' is obsolete
                 //         t = 10;
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "10").WithArguments("Test.implicit operator Test(int)"),
@@ -5828,7 +5828,7 @@ public class TestClass
     public Action event1;
 }
 ";
-            var peReference = MetadataReference.CreateFromStream(CreateStandardCompilation(peSource).EmitToStream());
+            var peReference = MetadataReference.CreateFromStream(CreateCompilation(peSource).EmitToStream());
 
             var source = @"
 public class Test
@@ -5849,7 +5849,7 @@ public class Test
     }
 }
 ";
-            CreateStandardCompilation(source, new[] { peReference }).VerifyDiagnostics(
+            CreateCompilation(source, new[] { peReference }).VerifyDiagnostics(
                 // (4,29): warning CS0612: 'TestClass1' is obsolete
                 //     public static void goo1(TestClass1 c) {}
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "TestClass1").WithArguments("TestClass1"),
@@ -5940,7 +5940,7 @@ class D6 : D5
     public override void goo() {}
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (10,26): warning CS0809: Obsolete member 'C2.goo()' overrides non-obsolete member 'C1.goo()'
                 //     public override void goo() {}
                 Diagnostic(ErrorCode.WRN_ObsoleteOverridingNonObsolete, "goo").WithArguments("C2.goo()", "C1.goo()"),
@@ -6017,7 +6017,7 @@ public class SomeAttr1: Attribute
     public SomeAttr1(Action x) {}
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (7,15): warning CS0618: 'Test.F1' is obsolete: 'F1 is obsolete'
                 //     [SomeAttr(F1)]
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "F1").WithArguments("Test.F1", "F1 is obsolete").WithLocation(7, 15),
@@ -6116,7 +6116,7 @@ public class Base
     public SomeType SomeProp { get; set; }
 }
 ";
-            CreateStandardCompilation(source, null, TestOptions.ReleaseDll.WithConcurrentBuild(false)).VerifyDiagnostics(
+            CreateCompilation(source, null, TestOptions.ReleaseDll.WithConcurrentBuild(false)).VerifyDiagnostics(
                 // (23,15): warning CS0612: 'SomeType' is obsolete
                 //     [Obsolete(SomeType.Message)]
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "SomeType").WithArguments("SomeType"));
@@ -6170,7 +6170,7 @@ public class Base<T> {}
 [Obsolete]
 public class Derived : Base<Base<int>> {}
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (20,28): warning CS0067: The event 'Test.someEvent' is never used
                 //     event Action<SomeType> someEvent;
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "someEvent").WithArguments("Test.someEvent"));
@@ -6193,7 +6193,7 @@ class Outer: Attribute
   }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -6207,7 +6207,7 @@ public class C {
     public void Goo() {} 
 }
 ";
-            var other = CreateStandardCompilation(s);
+            var other = CreateCompilation(s);
 
             s = @"
 public class A
@@ -6218,7 +6218,7 @@ public class A
     }
 }
 ";
-            CreateStandardCompilation(s, new[] { new CSharpCompilationReference(other) }).VerifyDiagnostics(
+            CreateCompilation(s, new[] { new CSharpCompilationReference(other) }).VerifyDiagnostics(
                 // (3,17): warning CS0612: 'C' is obsolete
                 //     protected A(C o)
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "C").WithArguments("C"),
@@ -6267,7 +6267,7 @@ public class B : IEnumerable
     }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (9,26): warning CS1064: The best overloaded Add method 'B.Add(long)' for the collection initializer element is obsolete.
                 //         B coll = new B { 1, new B(), "a", false };
                 Diagnostic(ErrorCode.WRN_DeprecatedCollectionInitAdd, "1").WithArguments("B.Add(long)"),
@@ -6313,7 +6313,7 @@ public class Test
     public static void Main() { }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (20,6): error CS0619: 'Att.Field' is obsolete: 'Field'
                 // [Att(Field = 1)]
                 Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Field = 1").WithArguments("Att.Field", "Field"),
@@ -6394,7 +6394,7 @@ class Program
     }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (42,13): warning CS0612: 'A.B.C1' is obsolete
                 // class D : B<A.B.C1.D> { }
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "A.B.C1").WithArguments("A.B.C1"),
@@ -6483,7 +6483,7 @@ class Event1
     }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (11,5): error CS0619: 'C.C()' is obsolete: 'Do not use'
                 //     public D() { }
                 Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "public D() { }").WithArguments("C.C()", "Do not use"),
@@ -6548,7 +6548,7 @@ class Program
         }
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (35,9): warning CS0618: 'Foreachable.GetEnumerator()' is obsolete: '4'
                 //         foreach (var x in new Foreachable())
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "foreach").WithArguments("Foreachable.GetEnumerator()", "4"),
@@ -6583,7 +6583,7 @@ internal sealed class C1 : I1
     void I1.M() {}
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (4,1): info CS8019: Unnecessary using directive.
                 // using X = A;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using X = A;"),
@@ -6622,7 +6622,7 @@ class D
     [Deprecated(null, DeprecationType.Deprecate, 0)] object Q { get { return new B(); } }
     object R { [Deprecated(null, DeprecationType.Deprecate, 0)] get { return new C(); } }
 }";
-            var comp = CreateStandardCompilation(new[] { Parse(source0), Parse(source1) });
+            var comp = CreateCompilation(new[] { Parse(source0), Parse(source1) });
             comp.VerifyDiagnostics(
                 // (9,17): error CS1667: Attribute 'Windows.Foundation.Metadata.DeprecatedAttribute' is not valid on property or event accessors. It is only valid on 'assembly, module, class, struct, enum, constructor, method, property, indexer, field, event, interface, parameter, delegate, return, type parameter' declarations.
                 //     object R { [Deprecated(null, DeprecationType.Deprecate, 0)] get { return new C(); } }
@@ -6679,7 +6679,7 @@ class D
     }
     static void M(object o) { }
 }";
-            var comp = CreateStandardCompilation(new[] { Parse(source0), Parse(source1) });
+            var comp = CreateCompilation(new[] { Parse(source0), Parse(source1) });
             comp.VerifyDiagnostics(
                 // (21,10): error CS1667: Attribute 'Windows.Foundation.Metadata.DeprecatedAttribute' is not valid on property or event accessors. It is only valid on 'assembly, module, class, struct, enum, constructor, method, property, indexer, field, event, interface, parameter, delegate, return, type parameter' declarations.
                 //         [Deprecated(null, DeprecationType.Deprecate, 0)] remove { M(new C()); }
@@ -6717,7 +6717,7 @@ namespace N
         public Z z;
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (12,22): error CS0619: 'A' is obsolete: 'Do not use'
                 //     public class E : Z { }
                 Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Z").WithArguments("N.A", "Do not use").WithLocation(12, 22),
@@ -6794,7 +6794,7 @@ class Test
 }
 ";
             // All member accesses produce obsolete warnings.
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (17,25): warning CS0672: Member 'B.P' overrides obsolete member 'A.P'. Add the Obsolete attribute to 'B.P'.
                 //     public override int P { get; set; }
                 Diagnostic(ErrorCode.WRN_NonObsoleteOverridingObsolete, "P").WithArguments("B.P", "A.P"),
@@ -6893,7 +6893,7 @@ class Test
 }
 ";
             // No member accesses produce obsolete warnings.
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (16,25): warning CS0809: Obsolete member 'B.P' overrides non-obsolete member 'A.P'
                 //     public override int P { get; set; }
                 Diagnostic(ErrorCode.WRN_ObsoleteOverridingNonObsolete, "P").WithArguments("B.P", "A.P"),
@@ -6939,7 +6939,7 @@ class Test
 }
 ";
             // All member accesses produce obsolete warnings.
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (17,26): warning CS0672: Member 'C<T>.M()' overrides obsolete member 'A<T>.M()'. Add the Obsolete attribute to 'C<T>.M()'.
                 //     public override void M() { }
                 Diagnostic(ErrorCode.WRN_NonObsoleteOverridingObsolete, "M").WithArguments("C<T>.M()", "A<T>.M()"),
@@ -6984,7 +6984,7 @@ class Test
 }
 ";
             // All member accesses produce obsolete warnings.
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (12,26): warning CS0672: Member 'B.M<T>()' overrides obsolete member 'A.M<T>()'. Add the Obsolete attribute to 'B.M<T>()'.
                 //     public override void M<T>() { }
                 Diagnostic(ErrorCode.WRN_NonObsoleteOverridingObsolete, "M").WithArguments("B.M<T>()", "A.M<T>()"),
@@ -7039,7 +7039,7 @@ public class C : B
 }
 ";
             // Reported in B.Test and C.Test against members of A.
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (17,25): warning CS0672: Member 'B.P' overrides obsolete member 'A.P'. Add the Obsolete attribute to 'B.P'.
                 //     public override int P { get; set; }
                 Diagnostic(ErrorCode.WRN_NonObsoleteOverridingObsolete, "P").WithArguments("B.P", "A.P"),
@@ -7129,7 +7129,7 @@ public class C : B
 ";
             // Reported in B.Test and C.Test against members of A (seems like C.Test should report against members of B,
             // but this is dev11's behavior).
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (34,25): warning CS0672: Member 'C.P' overrides obsolete member 'A.P'. Add the Obsolete attribute to 'C.P'.
                 //     public override int P { get; set; }
                 Diagnostic(ErrorCode.WRN_NonObsoleteOverridingObsolete, "P").WithArguments("C.P", "A.P"),
@@ -7205,7 +7205,7 @@ public class C : B
     }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (16,25): warning CS0809: Obsolete member 'B.P' overrides non-obsolete member 'A.P'
                 //     public override int P { get; set; }
                 Diagnostic(ErrorCode.WRN_ObsoleteOverridingNonObsolete, "P").WithArguments("B.P", "A.P"),
@@ -7259,7 +7259,7 @@ public class C : B
     }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (15,25): warning CS0809: Obsolete member 'B.this[int]' overrides non-obsolete member 'A.this[int]'
                 //     public override int this[int x] { get { return 0; } set { } }
                 Diagnostic(ErrorCode.WRN_ObsoleteOverridingNonObsolete, "this").WithArguments("B.this[int]", "A.this[int]"),
@@ -7315,7 +7315,7 @@ class Test
 }
 ";
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (29,15): warning CS0618: 'B.explicit operator B(A)' is obsolete: 'B to A'
                 //         B b = (B)a;
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "(B)a").WithArguments("B.explicit operator B(A)", "B to A"),
@@ -7372,7 +7372,7 @@ class Test
 }
 ";
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (25,17): warning CS0618: 'A<int>.implicit operator int(A<int>)' is obsolete: 'A<T> to T'
                 //         int i = ai;
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "ai").WithArguments("A<int>.implicit operator int(A<int>)", "A<T> to T"),
@@ -7423,7 +7423,7 @@ class Test
 }
 ";
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (25,13): warning CS0618: 'Convertible.implicit operator bool(Convertible)' is obsolete: 'To bool'
                 //         if (c)
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "c").WithArguments("Convertible.implicit operator bool(Convertible)", "To bool"),
@@ -7465,7 +7465,7 @@ class Test
 }
 ";
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (19,14): warning CS0618: 'Convertible.implicit operator int(Convertible)' is obsolete: 'To int'
                 //         args[c].ToString();
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "c").WithArguments("Convertible.implicit operator int(Convertible)", "To int"));
@@ -7507,7 +7507,7 @@ class Test
 }
 ";
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (26,13): warning CS0618: 'Convertible.implicit operator Convertible(int)' is obsolete: 'From int'
                 //             c++;
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "c++").WithArguments("Convertible.implicit operator Convertible(int)", "From int"),
@@ -7551,7 +7551,7 @@ class Test
 }
 ";
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (18,17): warning CS0618: 'Convertible.implicit operator int(Convertible)' is obsolete: 'To int'
                 //         int i = c ?? 1;
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "c ?? 1").WithArguments("Convertible.implicit operator int(Convertible)", "To int"));
@@ -7580,7 +7580,7 @@ public class C : B
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
 
@@ -7629,7 +7629,7 @@ public class NumAttribute : Attribute
     public NumAttribute(int x) { }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
 
@@ -7681,10 +7681,10 @@ class C : ReadWriteControlDesigner
     }
 }
 ";
-            var comp1 = CreateStandardCompilation(source1);
+            var comp1 = CreateCompilation(source1);
             comp1.VerifyDiagnostics();
 
-            var comp2 = CreateStandardCompilation(source2, new[] { comp1.EmitToImageReference() });
+            var comp2 = CreateCompilation(source2, new[] { comp1.EmitToImageReference() });
 
             var tree = comp2.SyntaxTrees.Single();
             var model = comp2.GetSemanticModel(tree);
@@ -7747,7 +7747,7 @@ public class F : E
     public override void M() { }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (13,26): warning CS0672: Member 'B.M()' overrides obsolete member 'A.M()'. Add the Obsolete attribute to 'B.M()'.
                 //     public override void M() { }
                 Diagnostic(ErrorCode.WRN_NonObsoleteOverridingObsolete, "M").WithArguments("B.M()", "A.M()"),
@@ -7770,7 +7770,7 @@ public class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, new[] { SystemRef });
+            var comp = CreateCompilation(source, new[] { SystemRef });
 
             Action<ModuleSymbol> validator = module =>
             {
@@ -8652,7 +8652,7 @@ class Test
     }
 }";
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (3,14): error CS0619: 'TestError' is obsolete: 'Broken Error Class'
                 // using static TestError;
                 Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "TestError").WithArguments("TestError", "Broken Error Class").WithLocation(3, 14),
@@ -8717,7 +8717,7 @@ class Test
     }
 }";
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (3,14): warning CS0612: 'ActiveParent.ObsoleteChild' is obsolete
                 // using static ActiveParent.ObsoleteChild;
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "ActiveParent.ObsoleteChild").WithArguments("ActiveParent.ObsoleteChild").WithLocation(3, 14),

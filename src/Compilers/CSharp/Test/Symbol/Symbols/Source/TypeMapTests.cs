@@ -104,7 +104,7 @@ class C
 }
 ";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
 
             var global = comp.GlobalNamespace;
             var c = global.GetTypeMembers("C", 0).Single() as NamedTypeSymbol;
@@ -128,7 +128,7 @@ class C1<C1T1, C1T2>
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             var _int = compilation.GetSpecialType(SpecialType.System_Int32);
             var _byte = compilation.GetSpecialType(SpecialType.System_Byte);
@@ -170,7 +170,7 @@ class C1<C1T1, C1T2>
 }
 ";
 
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             var _int = compilation.GetSpecialType(SpecialType.System_Int32);
             var _byte = compilation.GetSpecialType(SpecialType.System_Byte);

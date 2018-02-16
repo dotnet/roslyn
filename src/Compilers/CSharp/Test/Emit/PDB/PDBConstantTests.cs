@@ -523,7 +523,7 @@ class C
 }
 ";
 
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
 
             var exebits = new MemoryStream();
             var pdbbits = new MemoryStream();

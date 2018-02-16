@@ -138,7 +138,7 @@ public sealed class CSharpArgumentInfo
             }
 
             string source = string.Format(CSharpBinderTemplate, sb.ToString());
-            return CreateStandardCompilation(source, new[] { systemCore ?? SystemCoreRef }, assemblyName: GetUniqueName()).EmitToImageReference();
+            return CreateCompilationWithMscorlib40(source, new[] { systemCore ?? SystemCoreRef }, assemblyName: GetUniqueName()).EmitToImageReference();
         }
 
         private const string ExpressionTypeSource = @"
@@ -240,7 +240,7 @@ class C
     }
 }
 ";
-            CreateStandardCompilation(source, new[] { SystemCoreRef, csrtRef }).VerifyEmitDiagnostics(
+            CreateCompilation(source, new[] { SystemCoreRef, csrtRef }).VerifyEmitDiagnostics(
                 // (8,9): error CS0656: Missing compiler required member 'Microsoft.CSharp.RuntimeBinder.Binder.InvokeConstructor'
                 //         new C(d.M(d.M = d[-d], d[(int)d()] = d * d.M));
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "new C(d.M(d.M = d[-d], d[(int)d()] = d * d.M))").WithArguments("Microsoft.CSharp.RuntimeBinder.Binder", "InvokeConstructor")
@@ -265,7 +265,7 @@ class C
 }
 ";
             // the compiler ignores the enum values, uses hardcoded values:
-            CreateStandardCompilation(source, new[] { SystemCoreRef, csrtRef }).VerifyEmitDiagnostics();
+            CreateCompilation(source, new[] { SystemCoreRef, csrtRef }).VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -7413,7 +7413,7 @@ public class Color
 	public int F(int a) { return 1; } 
 }
 ";
-            var lib = CreateStandardCompilation(sourceLib);
+            var lib = CreateCompilation(sourceLib);
 
             string sourceScript = @"
 Color Color;
@@ -7506,7 +7506,7 @@ public class Color
 	public int F(int a) { return 1; } 
 }
 ";
-            var lib = CreateStandardCompilation(sourceLib);
+            var lib = CreateCompilation(sourceLib);
 
             string sourceScript = @"
 Color Color;
@@ -13622,7 +13622,7 @@ class C
     }
 }
 ";
-            CreateStandardCompilation(source, new[] { CSharpRef, SystemCoreRef }, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(source, new[] { CSharpRef, SystemCoreRef }, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (9,3): error CS0019: Operator '&=' cannot be applied to operands of type 'int*' and 'dynamic'
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "ret &= (1 == d)").WithArguments("&=", "int*", "dynamic"));
         }

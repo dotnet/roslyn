@@ -1250,7 +1250,7 @@ public class LocalTypes3
             var cyclic2Ref = TestReferences.SymbolsTests.Cyclic.Cyclic2.dll;
             var piaRef = TestReferences.SymbolsTests.NoPia.Pia1;
 
-            var LocalTypes1 = CreateStandardCompilation(s_sourceLocalTypes1_IL, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes1");
+            var LocalTypes1 = CreateCompilation(s_sourceLocalTypes1_IL, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes1");
             CompileAndVerify(LocalTypes1);
 
             var localTypes1Ref = new CSharpCompilationReference(LocalTypes1);
@@ -1275,7 +1275,7 @@ public class LocalTypes3
             var cyclic2Ref = TestReferences.SymbolsTests.Cyclic.Cyclic2.dll;
             var piaRef = TestReferences.SymbolsTests.NoPia.Pia1;
 
-            var LocalTypes1 = CreateStandardCompilation(s_sourceLocalTypes1, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes1",
+            var LocalTypes1 = CreateCompilation(s_sourceLocalTypes1, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes1",
                                         references: new[] { TestReferences.SymbolsTests.NoPia.Pia1.WithEmbedInteropTypes(true) });
             CompileAndVerify(LocalTypes1);
 
@@ -1300,12 +1300,12 @@ public class LocalTypes3
             var mscorlibRef = TestReferences.SymbolsTests.MDTestLib1;
             var cyclic2Ref = TestReferences.SymbolsTests.Cyclic.Cyclic2.dll;
 
-            var Pia1 = CreateStandardCompilation(s_sourcePia1, options: TestOptions.ReleaseDll, assemblyName: "Pia1");
+            var Pia1 = CreateCompilation(s_sourcePia1, options: TestOptions.ReleaseDll, assemblyName: "Pia1");
             CompileAndVerify(Pia1);
 
             var piaRef = new CSharpCompilationReference(Pia1);
 
-            var LocalTypes1 = CreateStandardCompilation(s_sourceLocalTypes1, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes1",
+            var LocalTypes1 = CreateCompilation(s_sourceLocalTypes1, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes1",
                                         references: new MetadataReference[] { new CSharpCompilationReference(Pia1, embedInteropTypes: true) });
             CompileAndVerify(LocalTypes1);
 
@@ -1327,7 +1327,7 @@ public class LocalTypes3
         [ClrOnlyFact]
         public void GenericsClosedOverLocalTypes1_1()
         {
-            var LocalTypes3 = CreateStandardCompilation(s_sourceLocalTypes3_IL, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes3");
+            var LocalTypes3 = CreateCompilation(s_sourceLocalTypes3_IL, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes3");
             CompileAndVerify(LocalTypes3);
 
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(
@@ -1563,7 +1563,7 @@ public interface ITest1
     IEnumerable<IEnumerable<S<int>>> M2();
 }";
 
-            var pia = CreateStandardCompilation(piaSource, options: TestOptions.ReleaseDll, assemblyName: "pia");
+            var pia = CreateCompilation(piaSource, options: TestOptions.ReleaseDll, assemblyName: "pia");
             pia.VerifyEmitDiagnostics();
 
             string source = @"
@@ -1578,11 +1578,11 @@ public interface ITest2 : ITest1 { }
                 Diagnostic(ErrorCode.ERR_GenericsUsedInNoPIAType).WithArguments("S<T>").WithLocation(1, 1)
             };
 
-            var comp1 = CreateStandardCompilation(source, options: TestOptions.ReleaseDll,
+            var comp1 = CreateCompilation(source, options: TestOptions.ReleaseDll,
                             references: new MetadataReference[] { pia.ToMetadataReference(embedInteropTypes: true) });
             comp1.VerifyEmitDiagnostics(expectedDiagnostics);
 
-            var comp2 = CreateStandardCompilation(source, options: TestOptions.ReleaseDll,
+            var comp2 = CreateCompilation(source, options: TestOptions.ReleaseDll,
                             references: new MetadataReference[] { pia.EmitToImageReference(embedInteropTypes: true) });
             comp2.VerifyEmitDiagnostics(expectedDiagnostics);
         }
@@ -1616,7 +1616,7 @@ public interface ITest1
     S<int> P2 {get;}
 }";
 
-            var pia = CreateStandardCompilation(piaSource, options: TestOptions.ReleaseDll, assemblyName: "pia");
+            var pia = CreateCompilation(piaSource, options: TestOptions.ReleaseDll, assemblyName: "pia");
             pia.VerifyEmitDiagnostics();
 
             string source = @"
@@ -1631,11 +1631,11 @@ public interface ITest2 : ITest1 { }
                 Diagnostic(ErrorCode.ERR_GenericsUsedInNoPIAType).WithArguments("S<T>").WithLocation(1, 1)
             };
 
-            var comp1 = CreateStandardCompilation(source, options: TestOptions.ReleaseDll,
+            var comp1 = CreateCompilation(source, options: TestOptions.ReleaseDll,
                             references: new MetadataReference[] { pia.ToMetadataReference(embedInteropTypes: true) });
             comp1.VerifyEmitDiagnostics(expectedDiagnostics);
 
-            var comp2 = CreateStandardCompilation(source, options: TestOptions.ReleaseDll,
+            var comp2 = CreateCompilation(source, options: TestOptions.ReleaseDll,
                             references: new MetadataReference[] { pia.EmitToImageReference(embedInteropTypes: true) });
             comp2.VerifyEmitDiagnostics(expectedDiagnostics);
         }
@@ -1660,7 +1660,7 @@ public interface ITest1
     event S<int> E;
 }";
 
-            var pia = CreateStandardCompilation(piaSource, options: TestOptions.ReleaseDll, assemblyName: "pia");
+            var pia = CreateCompilation(piaSource, options: TestOptions.ReleaseDll, assemblyName: "pia");
             pia.VerifyEmitDiagnostics();
 
             string source = @"
@@ -1673,11 +1673,11 @@ public interface ITest2 : ITest1 { }
                 Diagnostic(ErrorCode.ERR_GenericsUsedInNoPIAType).WithArguments("S<T>").WithLocation(1, 1)
             };
 
-            var comp1 = CreateStandardCompilation(source, options: TestOptions.ReleaseDll,
+            var comp1 = CreateCompilation(source, options: TestOptions.ReleaseDll,
                             references: new MetadataReference[] { pia.ToMetadataReference(embedInteropTypes: true) });
             comp1.VerifyEmitDiagnostics(expectedDiagnostics);
 
-            var comp2 = CreateStandardCompilation(source, options: TestOptions.ReleaseDll,
+            var comp2 = CreateCompilation(source, options: TestOptions.ReleaseDll,
                             references: new MetadataReference[] { pia.EmitToImageReference(embedInteropTypes: true) });
             comp2.VerifyEmitDiagnostics(expectedDiagnostics);
         }
@@ -1710,7 +1710,7 @@ public struct Test1
     public IEnumerable<IEnumerable<S<int>>> F2;
 }";
 
-            var pia = CreateStandardCompilation(piaSource, options: TestOptions.ReleaseDll, assemblyName: "pia");
+            var pia = CreateCompilation(piaSource, options: TestOptions.ReleaseDll, assemblyName: "pia");
             pia.VerifyEmitDiagnostics();
 
             string source = @"
@@ -1728,11 +1728,11 @@ public interface ITest2
                 Diagnostic(ErrorCode.ERR_GenericsUsedInNoPIAType).WithArguments("S<T>").WithLocation(1, 1)
             };
 
-            var comp1 = CreateStandardCompilation(source, options: TestOptions.ReleaseDll,
+            var comp1 = CreateCompilation(source, options: TestOptions.ReleaseDll,
                             references: new MetadataReference[] { pia.ToMetadataReference(embedInteropTypes: true) });
             comp1.VerifyEmitDiagnostics(expectedDiagnostics);
 
-            var comp2 = CreateStandardCompilation(source, options: TestOptions.ReleaseDll,
+            var comp2 = CreateCompilation(source, options: TestOptions.ReleaseDll,
                             references: new MetadataReference[] { pia.EmitToImageReference(embedInteropTypes: true) });
             comp2.VerifyEmitDiagnostics(expectedDiagnostics);
         }
@@ -1879,7 +1879,7 @@ namespace System
         [ClrOnlyFact]
         public void GenericsClosedOverLocalTypes1_2()
         {
-            var LocalTypes3 = CreateStandardCompilation(s_sourceLocalTypes3, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes3",
+            var LocalTypes3 = CreateCompilation(s_sourceLocalTypes3, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes3",
                                         references: new[] { TestReferences.SymbolsTests.NoPia.Pia1.WithEmbedInteropTypes(true) });
             CompileAndVerify(LocalTypes3);
 
@@ -1926,10 +1926,10 @@ namespace System
         [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
         public void GenericsClosedOverLocalTypes1_3()
         {
-            var Pia1 = CreateStandardCompilation(s_sourcePia1, options: TestOptions.ReleaseDll, assemblyName: "Pia1");
+            var Pia1 = CreateCompilation(s_sourcePia1, options: TestOptions.ReleaseDll, assemblyName: "Pia1");
             CompileAndVerify(Pia1);
 
-            var LocalTypes3 = CreateStandardCompilation(s_sourceLocalTypes3, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes3",
+            var LocalTypes3 = CreateCompilation(s_sourceLocalTypes3, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes3",
                                         references: new MetadataReference[] { new CSharpCompilationReference(Pia1, embedInteropTypes: true) });
             CompileAndVerify(LocalTypes3);
 
@@ -2007,7 +2007,7 @@ interface AttrTest1
 }
 ";
 
-            var localTypes2 = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes2");
+            var localTypes2 = CreateCompilation(source, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes2");
             CompileAndVerify(localTypes2);
 
             var localTypes2Image = MetadataReference.CreateFromImage(localTypes2.EmitToArray());
@@ -2033,12 +2033,12 @@ public struct S1
 }
 ";
 
-            var pia = CreateStandardCompilation(piaSource, options: TestOptions.ReleaseDll, assemblyName: "Pia");
+            var pia = CreateCompilation(piaSource, options: TestOptions.ReleaseDll, assemblyName: "Pia");
             CompileAndVerify(pia);
 
             var piaImage = MetadataReference.CreateFromImage(pia.EmitToArray());
 
-            var compilation = CreateStandardCompilation("", options: TestOptions.ReleaseDll,
+            var compilation = CreateCompilation("", options: TestOptions.ReleaseDll,
                                                             references: new MetadataReference[] {new CSharpCompilationReference(localTypes2),
                                                                                                  new CSharpCompilationReference(pia)});
 
@@ -2053,7 +2053,7 @@ public struct S1
             Assert.Equal("Pia", ((TypeSymbol)args[0].Value).ContainingAssembly.Name);
             Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].Value);
 
-            compilation = CreateStandardCompilation("", options: TestOptions.ReleaseDll,
+            compilation = CreateCompilation("", options: TestOptions.ReleaseDll,
                                                         references: new MetadataReference[] {localTypes2Image,
                                                                                              new CSharpCompilationReference(pia)});
 
@@ -2068,7 +2068,7 @@ public struct S1
             Assert.Equal("Pia", ((TypeSymbol)args[0].Value).ContainingAssembly.Name);
             Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].Value);
 
-            compilation = CreateStandardCompilation("", options: TestOptions.ReleaseDll,
+            compilation = CreateCompilation("", options: TestOptions.ReleaseDll,
                                                         references: new MetadataReference[] {new CSharpCompilationReference(localTypes2),
                                                                                              piaImage});
 
@@ -2083,7 +2083,7 @@ public struct S1
             Assert.Equal("Pia", ((TypeSymbol)args[0].Value).ContainingAssembly.Name);
             Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].Value);
 
-            compilation = CreateStandardCompilation("", options: TestOptions.ReleaseDll,
+            compilation = CreateCompilation("", options: TestOptions.ReleaseDll,
                                                         references: new MetadataReference[] {localTypes2Image,
                                                                                              piaImage});
 
@@ -2132,7 +2132,7 @@ interface AttrTest1
 }
 ";
 
-            var localTypes2 = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes2");
+            var localTypes2 = CreateCompilation(source, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes2");
             CompileAndVerify(localTypes2);
 
             var localTypes2Image = MetadataReference.CreateFromImage(localTypes2.EmitToArray());
@@ -2158,12 +2158,12 @@ public struct S1
 }
 ";
 
-            var pia = CreateStandardCompilation(piaSource, options: TestOptions.ReleaseDll, assemblyName: "Pia");
+            var pia = CreateCompilation(piaSource, options: TestOptions.ReleaseDll, assemblyName: "Pia");
             CompileAndVerify(pia);
 
             var piaImage = MetadataReference.CreateFromImage(pia.EmitToArray());
 
-            var compilation = CreateStandardCompilation("", options: TestOptions.ReleaseDll,
+            var compilation = CreateCompilation("", options: TestOptions.ReleaseDll,
                                                             references: new MetadataReference[] {new CSharpCompilationReference(localTypes2),
                                                                                                  new CSharpCompilationReference(pia)});
 
@@ -2178,7 +2178,7 @@ public struct S1
             Assert.Equal("Pia", ((TypeSymbol)args[0].Value).ContainingAssembly.Name);
             Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].Value);
 
-            compilation = CreateStandardCompilation("", options: TestOptions.ReleaseDll,
+            compilation = CreateCompilation("", options: TestOptions.ReleaseDll,
                                                         references: new MetadataReference[] {localTypes2Image,
                                                                                              new CSharpCompilationReference(pia)});
 
@@ -2193,7 +2193,7 @@ public struct S1
             Assert.Equal("Pia", ((TypeSymbol)args[0].Value).ContainingAssembly.Name);
             Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].Value);
 
-            compilation = CreateStandardCompilation("", options: TestOptions.ReleaseDll,
+            compilation = CreateCompilation("", options: TestOptions.ReleaseDll,
                                                         references: new MetadataReference[] {new CSharpCompilationReference(localTypes2),
                                                                                              piaImage});
 
@@ -2208,7 +2208,7 @@ public struct S1
             Assert.Equal("Pia", ((TypeSymbol)args[0].Value).ContainingAssembly.Name);
             Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].Value);
 
-            compilation = CreateStandardCompilation("", options: TestOptions.ReleaseDll,
+            compilation = CreateCompilation("", options: TestOptions.ReleaseDll,
                                                         references: new MetadataReference[] {localTypes2Image,
                                                                                              piaImage});
 
@@ -2257,7 +2257,7 @@ interface AttrTest1
 }
 ";
 
-            var localTypes2 = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes2");
+            var localTypes2 = CreateCompilation(source, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes2");
             //CompileAndVerify(localTypes2);
 
             var localTypes2Image = MetadataReference.CreateFromImage(localTypes2.EmitToArray());
@@ -2283,12 +2283,12 @@ public struct S1
 }
 ";
 
-            var pia = CreateStandardCompilation(piaSource, options: TestOptions.ReleaseDll, assemblyName: "Pia");
+            var pia = CreateCompilation(piaSource, options: TestOptions.ReleaseDll, assemblyName: "Pia");
             CompileAndVerify(pia);
 
             var piaImage = MetadataReference.CreateFromImage(pia.EmitToArray());
 
-            var compilation = CreateStandardCompilation("", options: TestOptions.ReleaseDll,
+            var compilation = CreateCompilation("", options: TestOptions.ReleaseDll,
                                                             references: new MetadataReference[] {new CSharpCompilationReference(localTypes2),
                                                                                                  new CSharpCompilationReference(pia)});
 
@@ -2303,7 +2303,7 @@ public struct S1
             Assert.Equal("LocalTypes2", ((TypeSymbol)args[0].Value).ContainingAssembly.Name);
             Assert.Equal("LocalTypes2", ((TypeSymbol)args[1].Value).ContainingAssembly.Name);
 
-            compilation = CreateStandardCompilation("", options: TestOptions.ReleaseDll,
+            compilation = CreateCompilation("", options: TestOptions.ReleaseDll,
                                                         references: new MetadataReference[] {localTypes2Image,
                                                                                              new CSharpCompilationReference(pia)});
 
@@ -2318,7 +2318,7 @@ public struct S1
             Assert.Equal("LocalTypes2", ((TypeSymbol)args[0].Value).ContainingAssembly.Name);
             Assert.Equal("LocalTypes2", ((TypeSymbol)args[1].Value).ContainingAssembly.Name);
 
-            compilation = CreateStandardCompilation("", options: TestOptions.ReleaseDll,
+            compilation = CreateCompilation("", options: TestOptions.ReleaseDll,
                                                         references: new MetadataReference[] {new CSharpCompilationReference(localTypes2),
                                                                                              piaImage});
 
@@ -2333,7 +2333,7 @@ public struct S1
             Assert.Equal("LocalTypes2", ((TypeSymbol)args[0].Value).ContainingAssembly.Name);
             Assert.Equal("LocalTypes2", ((TypeSymbol)args[1].Value).ContainingAssembly.Name);
 
-            compilation = CreateStandardCompilation("", options: TestOptions.ReleaseDll,
+            compilation = CreateCompilation("", options: TestOptions.ReleaseDll,
                                                         references: new MetadataReference[] {localTypes2Image,
                                                                                              piaImage});
 
@@ -2373,7 +2373,7 @@ public struct S1
 }
 ";
 
-            var pia = CreateStandardCompilation(piaSource, options: TestOptions.ReleaseDll, assemblyName: "Pia");
+            var pia = CreateCompilation(piaSource, options: TestOptions.ReleaseDll, assemblyName: "Pia");
             CompileAndVerify(pia);
 
             string source =
@@ -2395,12 +2395,12 @@ interface AttrTest1
 }
 ";
 
-            var localTypes2 = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes2",
+            var localTypes2 = CreateCompilation(source, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes2",
                                                             references: new MetadataReference[] { new CSharpCompilationReference(pia, embedInteropTypes: true) });
 
             var piaImage = MetadataReference.CreateFromImage(pia.EmitToArray());
 
-            var compilation = CreateStandardCompilation("", options: TestOptions.ReleaseDll,
+            var compilation = CreateCompilation("", options: TestOptions.ReleaseDll,
                                                             references: new MetadataReference[] {new CSharpCompilationReference(localTypes2),
                                                                                                  new CSharpCompilationReference(pia)});
 
@@ -2415,7 +2415,7 @@ interface AttrTest1
             Assert.Equal("Pia", ((TypeSymbol)args[0].Value).ContainingAssembly.Name);
             Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].Value);
 
-            compilation = CreateStandardCompilation("", options: TestOptions.ReleaseDll,
+            compilation = CreateCompilation("", options: TestOptions.ReleaseDll,
                                                         references: new MetadataReference[] {new CSharpCompilationReference(localTypes2),
                                                                                              piaImage});
 
@@ -2465,7 +2465,7 @@ interface AttrTest1
 }
 ";
 
-            var localTypes2 = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes2");
+            var localTypes2 = CreateCompilation(source, options: TestOptions.ReleaseDll, assemblyName: "LocalTypes2");
             //CompileAndVerify(localTypes2);
 
             var localTypes2Image = MetadataReference.CreateFromImage(localTypes2.EmitToArray());
@@ -2491,12 +2491,12 @@ public struct S2<T>
 }
 ";
 
-            var pia = CreateStandardCompilation(piaSource, options: TestOptions.ReleaseDll, assemblyName: "Pia");
+            var pia = CreateCompilation(piaSource, options: TestOptions.ReleaseDll, assemblyName: "Pia");
             CompileAndVerify(pia);
 
             var piaImage = MetadataReference.CreateFromImage(pia.EmitToArray());
 
-            var compilation = CreateStandardCompilation("", options: TestOptions.ReleaseDll,
+            var compilation = CreateCompilation("", options: TestOptions.ReleaseDll,
                                                             references: new MetadataReference[] {new CSharpCompilationReference(localTypes2),
                                                                                                  new CSharpCompilationReference(pia)});
 
@@ -2511,7 +2511,7 @@ public struct S2<T>
             Assert.Equal("Pia", ((TypeSymbol)args[0].Value).ContainingAssembly.Name);
             Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].Value);
 
-            compilation = CreateStandardCompilation("", options: TestOptions.ReleaseDll,
+            compilation = CreateCompilation("", options: TestOptions.ReleaseDll,
                                                         references: new MetadataReference[] {localTypes2Image,
                                                                                              new CSharpCompilationReference(pia)});
 
@@ -2526,7 +2526,7 @@ public struct S2<T>
             Assert.Equal("Pia", ((TypeSymbol)args[0].Value).ContainingAssembly.Name);
             Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].Value);
 
-            compilation = CreateStandardCompilation("", options: TestOptions.ReleaseDll,
+            compilation = CreateCompilation("", options: TestOptions.ReleaseDll,
                                                         references: new MetadataReference[] {new CSharpCompilationReference(localTypes2),
                                                                                              piaImage});
 
@@ -2541,7 +2541,7 @@ public struct S2<T>
             Assert.Equal("Pia", ((TypeSymbol)args[0].Value).ContainingAssembly.Name);
             Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].Value);
 
-            compilation = CreateStandardCompilation("", options: TestOptions.ReleaseDll,
+            compilation = CreateCompilation("", options: TestOptions.ReleaseDll,
                                                         references: new MetadataReference[] {localTypes2Image,
                                                                                              piaImage});
 
@@ -2578,7 +2578,7 @@ public interface I1
 }
 ";
 
-            var pia1 = CreateStandardCompilation(piaSource, options: TestOptions.ReleaseDll, assemblyName: "Pia1");
+            var pia1 = CreateCompilation(piaSource, options: TestOptions.ReleaseDll, assemblyName: "Pia1");
             CompileAndVerify(pia1);
 
             string moduleSource = @"
@@ -2591,10 +2591,10 @@ public class Test
 }
 ";
 
-            var module1 = CreateStandardCompilation(moduleSource, options: TestOptions.ReleaseModule, assemblyName: "Module1",
+            var module1 = CreateCompilation(moduleSource, options: TestOptions.ReleaseModule, assemblyName: "Module1",
                 references: new[] { new CSharpCompilationReference(pia1, embedInteropTypes: true) });
 
-            var multiModule = CreateStandardCompilation("", options: TestOptions.ReleaseDll,
+            var multiModule = CreateCompilation("", options: TestOptions.ReleaseDll,
                 references: new[] { module1.EmitToImageReference() });
 
             CompileAndVerify(multiModule);
@@ -2609,7 +2609,7 @@ public class Consumer
 }
 ";
 
-            var consumer = CreateStandardCompilation(consumerSource, options: TestOptions.ReleaseDll,
+            var consumer = CreateCompilation(consumerSource, options: TestOptions.ReleaseDll,
                 references: new[] { new CSharpCompilationReference(multiModule),
                                     new CSharpCompilationReference(pia1)});
 

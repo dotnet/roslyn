@@ -100,7 +100,7 @@ class Program
     }
 ";
 
-            var comp1 = CreateStandardCompilation(text1, assemblyName: "A");
+            var comp1 = CreateCompilation(text1, assemblyName: "A");
             var ref1 = comp1.EmitToImageReference();
 
             var text = @"
@@ -317,7 +317,7 @@ class Program
     }
 ";
 
-            var comp1 = CreateStandardCompilation(text1, assemblyName: "A");
+            var comp1 = CreateCompilation(text1, assemblyName: "A");
             var ref1 = comp1.EmitToImageReference();
 
             var text = @"
@@ -623,7 +623,7 @@ class Program
 }
 ";
 
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (27,13): error CS1604: Cannot assign to 'this' because it is read-only
                 //             this = default; // error
@@ -695,7 +695,7 @@ class Program
 }
 ";
 
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (19,24): error CS1673: Anonymous methods, lambda expressions, and query expressions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression or query expression and using the local instead.
                 //             void F() { x = i;} // Error           
@@ -809,7 +809,7 @@ class Program
 }
 ";
 
-            var comp = CreateStandardCompilation(text, parseOptions: TestOptions.Regular);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular);
 
             // S1
             NamedTypeSymbol namedType = comp.GetTypeByMetadataName("Program+S1");
@@ -980,10 +980,10 @@ class Program
     delegate int D1();
 }
 ";
-            var comp1 = CreateStandardCompilation(text1, assemblyName: "A");
+            var comp1 = CreateCompilation(text1, assemblyName: "A");
             var ref1 = comp1.EmitToImageReference();
 
-            var comp = CreateStandardCompilation("//NO CODE HERE", new[] { ref1 }, parseOptions: TestOptions.Regular);
+            var comp = CreateCompilation("//NO CODE HERE", new[] { ref1 }, parseOptions: TestOptions.Regular);
 
             // S1
             NamedTypeSymbol namedType = comp.GetTypeByMetadataName("Program+S1");

@@ -2767,7 +2767,7 @@ class P
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             var (operation, syntaxNode) = GetOperationAndSyntaxForTest<InvocationExpressionSyntax>(compilation);
 
             var invocation = (IInvocationOperation)operation;

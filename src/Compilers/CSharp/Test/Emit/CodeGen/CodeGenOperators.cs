@@ -81,7 +81,7 @@ class C
 }
 ";
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (7,28): error CS0403: Cannot convert null to type parameter 'T' because it could be a non-nullable value type. Consider using 'default(T)' instead.
                 //         Console.Write(o is null);
                 Diagnostic(ErrorCode.ERR_TypeVarCantBeNull, "null").WithArguments("T").WithLocation(7, 28),
@@ -1380,7 +1380,7 @@ static class Program
     }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (10,17): error CS0019: Operator '??' cannot be applied to operands of type 'T' and 'T'
                 //         var y = default(T) ?? x;
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "default(T) ?? x").WithArguments("??", "T", "T").WithLocation(10, 17)); ;
@@ -1440,7 +1440,7 @@ public class Test
         a = M ?? a;
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (7,13): error CS0019: Operator '??' cannot be applied to operands of type 'method group' and 'System.Action'
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "M ?? a").WithArguments("??", "method group", "System.Action").WithLocation(7, 13));
         }
@@ -5124,7 +5124,7 @@ class Test
 }
 ";
 
-                var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
+                var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
                 diagnostics = compilation.GetEmitDiagnostics();
             }
 
@@ -5183,7 +5183,7 @@ class Test
 }
 ";
 
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyEmitDiagnostics(
     // (17,16): error CS8078: An expression is too long or complex to compile
     //         return 1 * f[0] + 2 * f[1] + 3 * f[2] + 4 * f[3] + ...
@@ -5291,7 +5291,7 @@ struct S1
 }
 ";
 
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyEmitDiagnostics(
     // (10,16): error CS8078: An expression is too long or complex to compile
     //         return a[0] && f[0] || a[1] && f[1] || a[2] && f[2] || ...

@@ -3230,7 +3230,7 @@ class C
 ";
 
             // NB: not referencing WinRtRefs
-            var comp = CreateStandardCompilation(source, options: TestOptions.ReleaseWinMD);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseWinMD);
             comp.VerifyDiagnostics(
                 // Add accessor signature:
                 // (4,25): error CS0518: Predefined type 'System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken' is not defined or imported
@@ -3287,7 +3287,7 @@ class C
     }
 }
 ";
-            CreateStandardCompilation(source, WinRtRefs, TestOptions.ReleaseWinMD).VerifyDiagnostics(
+            CreateCompilation(source, WinRtRefs, TestOptions.ReleaseWinMD).VerifyDiagnostics(
                 // (9,17): error CS7084: A Windows Runtime event may not be passed as an out or ref parameter.
                 //         Ref(ref Instance);
                 Diagnostic(ErrorCode.ERR_WinRtEventPassedByRef, "Instance").WithArguments("C.Instance"),
@@ -3336,7 +3336,7 @@ namespace System.Runtime.InteropServices.WindowsRuntime
     }
 }
 ";
-            CreateStandardCompilation(source, options: TestOptions.ReleaseWinMD).VerifyEmitDiagnostics(
+            CreateCompilation(source, options: TestOptions.ReleaseWinMD).VerifyEmitDiagnostics(
                 // (4,32): error CS0656: Missing compiler required member 'System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable`1.AddEventHandler'
                 //     public event System.Action E;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "E").WithArguments("System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable`1", "AddEventHandler"),
@@ -3407,7 +3407,7 @@ namespace System.Runtime.InteropServices.WindowsRuntime
 }
 ";
 
-            var compilation = CreateStandardCompilationWithCustomILSource("", il, WinRtRefs);
+            var compilation = CreateCompilationWithCustomILSource("", il, references: WinRtRefs);
 
             var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Events");
             var instanceEvent = type.GetMember<EventSymbol>("Instance");

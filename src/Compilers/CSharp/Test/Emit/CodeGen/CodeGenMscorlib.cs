@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     {
     }
 }";
-            CreateStandardCompilation(text).VerifyDiagnostics();
+            CreateCompilation(text).VerifyDiagnostics();
         }
 
         [WorkItem(546832, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546832")]

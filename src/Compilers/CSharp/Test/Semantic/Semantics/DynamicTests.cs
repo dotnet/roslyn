@@ -40,7 +40,7 @@ public unsafe class C
         [Fact]
         public void ConversionClassification()
         {
-            var c = CreateStandardCompilation("", new[] { CSharpRef, SystemCoreRef });
+            var c = CreateCompilation("", new[] { CSharpRef, SystemCoreRef });
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             var dynamicToObject = c.Conversions.ClassifyConversionFromType(DynamicTypeSymbol.Instance, c.GetSpecialType(SpecialType.System_Object), ref useSiteDiagnostics);
             var objectToDynamic = c.Conversions.ClassifyConversionFromType(c.GetSpecialType(SpecialType.System_Object), DynamicTypeSymbol.Instance, ref useSiteDiagnostics);
@@ -235,7 +235,7 @@ class C : B
     public override event Action<object> E { add { } remove { } }
 }
 ";
-            CreateStandardCompilation(source, new[] { CSharpRef, SystemCoreRef }).VerifyDiagnostics();
+            CreateCompilation(source, new[] { CSharpRef, SystemCoreRef }).VerifyDiagnostics();
         }
 
         [Fact]
@@ -258,7 +258,7 @@ class B : A
     public void I(ref object a) { }
 }
 ";
-            CreateStandardCompilation(source, new[] { CSharpRef, SystemCoreRef }).VerifyDiagnostics(
+            CreateCompilation(source, new[] { CSharpRef, SystemCoreRef }).VerifyDiagnostics(
                 // (13,17): warning CS0108: 'B.G(object)' hides inherited member 'A.G(dynamic)'. Use the new keyword if hiding was intended.
                 Diagnostic(ErrorCode.WRN_NewRequired, "G").WithArguments("B.G(object)", "A.G(dynamic)"),
                 // (14,17): warning CS0108: 'B.H(dynamic[])' hides inherited member 'A.H(params object[])'. Use the new keyword if hiding was intended.
@@ -588,7 +588,7 @@ class C
     }
 }
 ";
-            CreateStandardCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (9,30): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('dynamic')
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "&d").WithArguments("dynamic"),
                 // (10,15): error CS0193: The * or -> operator must be applied to a pointer
@@ -3230,7 +3230,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
         }
 
@@ -3452,7 +3452,7 @@ class Program
     static T Goo<T>(Func<T, T> x) { throw null; }
 }
 ";
-            CreateStandardCompilation(source, options: TestOptions.DebugDll.WithAllowUnsafe(true)).VerifyDiagnostics(
+            CreateCompilation(source, options: TestOptions.DebugDll.WithAllowUnsafe(true)).VerifyDiagnostics(
     // (10,33): error CS0411: The type arguments for method 'Program.Goo<T>(Func<T, T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
     //         void* p = Pointer.Unbox(Goo(action));
     Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Goo").WithArguments("Program.Goo<T>(System.Func<T, T>)").WithLocation(10, 33)
@@ -3525,7 +3525,7 @@ class Test
 }
 ";
 
-            var compilation2 = CreateStandardCompilation(source2, new[] { reference.WithEmbedInteropTypes(true), CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe);
+            var compilation2 = CreateCompilation(source2, new[] { reference.WithEmbedInteropTypes(true), CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(compilation2, expectedOutput: @"4");
         }
@@ -3548,7 +3548,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, new[] { CSharpRef, SystemCoreRef }, options: TestOptions.DebugDll);
+            var compilation = CreateCompilation(source, new[] { CSharpRef, SystemCoreRef }, options: TestOptions.DebugDll);
             // crash happens during emit if not detected, so VerifyDiagnostics (no Emit) doesn't catch the crash.
             compilation.VerifyEmitDiagnostics(
                 // (7,25): error CS0154: The property or indexer 'Program.I.d' cannot be used in this context because it lacks the get accessor
@@ -3575,7 +3575,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, new[] { CSharpRef, SystemCoreRef }, options: TestOptions.DebugDll);
+            var compilation = CreateCompilation(source, new[] { CSharpRef, SystemCoreRef }, options: TestOptions.DebugDll);
             compilation.VerifyEmitDiagnostics(
                 // (7,25): error CS0154: The property or indexer 'Program.I.this[string]' cannot be used in this context because it lacks the get accessor
                 //         System.Type t = i[null].GetType();
@@ -3634,7 +3634,7 @@ class Program
 
 } // end of class Generic`2
 ";
-            var comp = CreateStandardCompilationWithCustomILSource("", il, new[] { SystemCoreRef }, appendDefaultHeader: false);
+            var comp = CreateCompilationWithCustomILSource("", il, references: new[] { SystemCoreRef }, appendDefaultHeader: false);
             var global = comp.GlobalNamespace;
             var typeD = global.GetMember<NamedTypeSymbol>("D");
             var typeG = global.GetMember<NamedTypeSymbol>("Generic");
@@ -3752,7 +3752,7 @@ class Test
 }
 ";
 
-            var compilation1 = CreateStandardCompilation(consumer1, options: TestOptions.ReleaseExe,
+            var compilation1 = CreateCompilation(consumer1, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { reference, CSharpRef, SystemCoreRef });
 
             compilation1.VerifyDiagnostics(
@@ -3775,7 +3775,7 @@ class Test
 }
 ";
 
-            var compilation2 = CreateStandardCompilation(consumer2, options: TestOptions.ReleaseExe,
+            var compilation2 = CreateCompilation(consumer2, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { reference, CSharpRef, SystemCoreRef });
 
             compilation2.VerifyDiagnostics(
@@ -3876,7 +3876,7 @@ class Test
     }
 }";
 
-            var compilation1 = CreateStandardCompilation(consumer1, options: TestOptions.ReleaseExe,
+            var compilation1 = CreateCompilation(consumer1, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { reference, CSharpRef, SystemCoreRef });
 
             CompileAndVerify(compilation1, expectedOutput: "MIndexer").VerifyDiagnostics();
@@ -3892,7 +3892,7 @@ class Test
     }
 }";
 
-            var compilation2 = CreateStandardCompilation(consumer2, options: TestOptions.ReleaseExe,
+            var compilation2 = CreateCompilation(consumer2, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { reference, CSharpRef, SystemCoreRef });
 
             compilation2.VerifyDiagnostics(

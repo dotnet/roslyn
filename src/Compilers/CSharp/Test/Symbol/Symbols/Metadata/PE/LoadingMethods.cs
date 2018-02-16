@@ -764,7 +764,7 @@ class Invoke
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, new[] { TestReferences.SymbolsTests.Methods.ILMethods });
+            var compilation = CreateCompilation(source, new[] { TestReferences.SymbolsTests.Methods.ILMethods });
             compilation.VerifyDiagnostics(); // No errors, as in Dev10
         }
 
@@ -777,7 +777,7 @@ class Abstract : MetadataModifiers
     //CS0534 for methods 2, 5, 8, 9, 11, 12, 14, 15
 }
 ";
-            var compilation = CreateStandardCompilation(source, new[] { TestReferences.SymbolsTests.Methods.ILMethods });
+            var compilation = CreateCompilation(source, new[] { TestReferences.SymbolsTests.Methods.ILMethods });
             compilation.VerifyDiagnostics(
                 // (2,7): error CS0534: 'Abstract' does not implement inherited abstract member 'MetadataModifiers.M02()'
                 Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Abstract").WithArguments("Abstract", "MetadataModifiers.M02()"),
@@ -821,7 +821,7 @@ class Override : MetadataModifiers
     public override void M15() { }
 }
 ";
-            var compilation = CreateStandardCompilation(source, new[] { TestReferences.SymbolsTests.Methods.ILMethods });
+            var compilation = CreateCompilation(source, new[] { TestReferences.SymbolsTests.Methods.ILMethods });
             compilation.VerifyDiagnostics(
                 // (4,26): error CS0506: 'Override.M00()': cannot override inherited member 'MetadataModifiers.M00()' because it is not marked virtual, abstract, or override
                 Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "M00").WithArguments("Override.M00()", "MetadataModifiers.M00()"),
@@ -1170,7 +1170,7 @@ class Override : MetadataModifiers
 } 
 ";
 
-            var compilation = CreateStandardCompilationWithCustomILSource("", ilSource);
+            var compilation = CreateCompilationWithCustomILSource("", ilSource);
 
             foreach (var m in compilation.GetTypeByMetadataName("cls1").GetMembers())
             {
@@ -1232,7 +1232,7 @@ class Override : MetadataModifiers
 } // end of class Microsoft.FSharp.Control.IDelegateEvent`1
 ";
 
-            var compilation = CreateStandardCompilationWithCustomILSource("", ilSource);
+            var compilation = CreateCompilationWithCustomILSource("", ilSource);
 
             foreach (var m in compilation.GetTypeByMetadataName("Microsoft.FSharp.Control.IDelegateEvent`1").GetMembers())
             {
@@ -1257,7 +1257,7 @@ public class D
 ";
             var longFormRef = MetadataReference.CreateFromImage(TestResources.MetadataTests.Invalid.LongTypeFormInSignature);
 
-            var c = CreateStandardCompilation(source, new[] { longFormRef });
+            var c = CreateCompilation(source, new[] { longFormRef });
 
             c.VerifyDiagnostics(
                 // (6,20): error CS0570: 'C.RT()' is not supported by the language
@@ -1281,7 +1281,7 @@ class P
 ";
             var lib = MetadataReference.CreateFromImage(TestResources.MetadataTests.Invalid.Signatures.SignatureCycle2);
 
-            var c = CreateStandardCompilation(source, new[] { lib });
+            var c = CreateCompilation(source, new[] { lib });
 
             c.VerifyDiagnostics();
         }
@@ -1301,7 +1301,7 @@ class P
 ";
             var lib = MetadataReference.CreateFromImage(TestResources.MetadataTests.Invalid.Signatures.TypeSpecInWrongPlace);
 
-            var c = CreateStandardCompilation(source, new[] { lib });
+            var c = CreateCompilation(source, new[] { lib });
 
             c.VerifyDiagnostics(
                 // (6,14): error CS0570: 'User.X(?)' is not supported by the language
@@ -1364,7 +1364,7 @@ public class D
 ";
             var references = new[] { MetadataReference.CreateFromImage(TestResources.SymbolsTests.Metadata.PublicAndPrivateFlags) };
 
-            var comp = CreateStandardCompilation(source, references: references);
+            var comp = CreateCompilation(source, references: references);
 
             // The method, field and nested type with public and private accessibility flags get loaded as private.
             comp.VerifyDiagnostics(

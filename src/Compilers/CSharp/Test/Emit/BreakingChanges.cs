@@ -35,7 +35,7 @@ class A
     }
 }
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (7,22): warning CS0219: The variable 'o2' is assigned but its value is never used
                 //         const string o2 = (string)o1; // Dev10 reports CS0133
@@ -58,7 +58,7 @@ class B : IFace<B.C.D>
     }
 }
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             // In Dev10, there was an error - ErrorCode.ERR_CircularBase at (4,7)
             Assert.Equal(0, comp.GetDiagnostics().Count());
         }
@@ -75,7 +75,7 @@ public class Base<T>
     public virtual List<T> Property1 { get { return null; } protected internal set { } }
     public virtual List<T> Property2 { protected internal get { return null; } set { } }
 }";
-            var compilation1 = CreateStandardCompilation(source1);
+            var compilation1 = CreateCompilation(source1);
 
             var source2 = @"
 using System.Collections.Generic;
@@ -85,7 +85,7 @@ public class Derived : Base<int>
     public sealed override List<int> Property1 { get { return null; } }
     public sealed override List<int> Property2 { set { } }
 }";
-            var comp = CreateStandardCompilation(source2, new[] { new CSharpCompilationReference(compilation1) });
+            var comp = CreateCompilation(source2, new[] { new CSharpCompilationReference(compilation1) });
             comp.VerifyDiagnostics();
 
             // This is not a breaking change - but it is a change in behavior from Dev10
@@ -154,7 +154,7 @@ public class MonthDays : idx
    }
 }
 ";
-            var compilation = CreateStandardCompilation(text);
+            var compilation = CreateCompilation(text);
 
             compilation.VerifyDiagnostics();
 
@@ -244,7 +244,7 @@ class Program
     }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "null ?? null").WithArguments("??", "<null>", "<null>"),
                 Diagnostic(ErrorCode.ERR_NotConstantExpression, @"null ?? ""ABC""").WithArguments("b"),
                 Diagnostic(ErrorCode.ERR_NotConstantExpression, @"""DEF"" ?? null").WithArguments("c"),
@@ -288,7 +288,7 @@ public class Test { }
         static T x;
     }
 }";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (3,18): warning CS0169: The field 'S1<T>.x' is never used
                 //     S1<S1<T>>.S2 x;
@@ -399,8 +399,8 @@ class C
     }
 }
 ";
-            var standardCompilation = CreateStandardCompilation(source);
-            var strictCompilation = CreateStandardCompilation(source, parseOptions: TestOptions.Regular.WithStrictFeature());
+            var standardCompilation = CreateCompilation(source);
+            var strictCompilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithStrictFeature());
 
             standardCompilation.VerifyDiagnostics(
                 // (8,32): warning CS0642: Possible mistaken empty statement
@@ -466,7 +466,7 @@ class A
             // Dev10 reports CS0121 because ExpressionBinder::WhichConversionIsBetter fails to unwrap
             // the NamedArgumentSpecification to find the UNBOUNDLAMBDA and, thus, never calls
             // WhichLambdaConversionIsBetter.
-            CreateStandardCompilation(text).VerifyDiagnostics();
+            CreateCompilation(text).VerifyDiagnostics();
         }
 
         [Fact, WorkItem(529202, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529202")]
@@ -494,7 +494,7 @@ struct S
     }
 }";
             // Dev10/11: (11,9): error CS0029: Cannot implicitly convert type 'int' to 'S'
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (6,15): error CS0029: Cannot implicitly convert type 'int' to 'S'
                 //         S s = 0;
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "0").WithArguments("int", "S")
@@ -572,7 +572,7 @@ public class GenC<T, U> where T : struct, U
         U valueUn = nt;
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (7,21): error CS0029: Cannot implicitly convert type 'T?' to 'U'
                 //         U valueUn = nt;
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "nt").WithArguments("T?", "U"));
@@ -617,7 +617,7 @@ public class Test
 ";
 
             // CompileAndVerify(source, expectedOutput: "ExpConv");
-            CreateStandardCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Fact, WorkItem(529362, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529362")]
@@ -710,7 +710,7 @@ class NullCoalescingTest
 }
 ";
             // Native compiler no error (print -123)
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (10,27): error CS0165: Use of unassigned local variable 'c'
                 //         Console.WriteLine(c);
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "c").WithArguments("c"),
@@ -736,7 +736,7 @@ class A
 ";
             // Dev10 Won't fix bug#31328 for md array with different types' index and involving ulong
             // CS0266: Cannot implicitly convert type 'ulong' to 'int'. ...
-            CreateStandardCompilation(text).VerifyDiagnostics();
+            CreateCompilation(text).VerifyDiagnostics();
         }
 
         [Fact]
@@ -753,7 +753,7 @@ unsafe class C
 ";
             // Dev10: the null literal is treated as though it is converted to void*, making the subtraction illegal (ExpressionBinder::GetPtrBinOpSigs).
             // Roslyn: the null literal is converted to int*, making the subtraction legal.
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
         [Fact]
@@ -773,7 +773,7 @@ class Boom : System.Attribute
 ";
             // Roslyn: error CS0181: Attribute constructor parameter 'x' has type 'int?', which is not a valid attribute parameter type
             // Dev10/11: no error, but throw at runtime - System.Reflection.CustomAttributeFormatException
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_BadAttributeParamType, "Boom").WithArguments("x", "int?"));
         }
 
@@ -800,7 +800,7 @@ public class Test
 ";
             // Roslyn: error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('T')
             // Dev10/11: no error
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "T*").WithArguments("T"));
         }
 
@@ -813,7 +813,7 @@ class F<T> : A where T : F<object*>.I { }
 ";
             // Roslyn: error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('object')
             // Dev10/11: no error
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "object*").WithArguments("object"));
         }
 
@@ -843,7 +843,7 @@ class C
 ";
             // Roslyn: error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('object')
             // Dev10/11: no error
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // This is new in Roslyn.
 
                 // (7,29): error CS0165: Use of unassigned local variable 'i'
@@ -930,13 +930,13 @@ public class Program
             // Dev11 reported no errors for the above repro and allowed the name 'count' to bind to different
             // variables within the same declaration space. According to the old spec the error should be reported.
             // In Roslyn the single definition rule is relaxed and we do not give an error, but for a different reason.
-            CreateStandardCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Fact, WorkItem(530301, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530301")]
         public void NoMore_CS0458WRN_AlwaysNull02()
         {
-            CreateStandardCompilation(
+            CreateCompilation(
 @"
 public class Test
 {
@@ -1000,7 +1000,7 @@ public class c
    }
 } 
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
 
             // In Roslyn the single definition rule is relaxed and we do not give an error.
             comp.VerifyDiagnostics();
@@ -1076,7 +1076,7 @@ public class Test
 }
 ";
             // Native compiler no error (print -123)
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
     // (8,13): warning CS0219: The variable 'b1' is assigned but its value is never used
     //         var b1 = new Derived(); // Both Warning CS0219
     Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "b1").WithArguments("b1"),
@@ -1097,7 +1097,7 @@ class MyAtt1 : Attribute { }
 public class Test {}
 ";
             // Native compiler  error CS0591: Invalid value for argument to 'AttributeUsage' attribute
-            CreateStandardCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Fact, WorkItem(530586, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530586")]
@@ -1285,7 +1285,7 @@ if (esbyte.e0 == esbyte.e0)
 }}
 ";
             // Native compiler no warn
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (7,5): warning CS1718: Comparison made to same variable; did you mean to compare something else?
                 Diagnostic(ErrorCode.WRN_ComparisonToSelf, "esbyte.e0 == esbyte.e0"));
         }
@@ -1311,7 +1311,7 @@ namespace VS7_336319
 }
 ";
             // Native compiler no warn
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
     // (10,40): warning CS0414: The field 'VS7_336319.ExpressionBinder.PredefinedTypes' is assigned but its value is never used
     //         private static PredefinedTypes PredefinedTypes = null;
     Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "PredefinedTypes").WithArguments("VS7_336319.ExpressionBinder.PredefinedTypes"));
@@ -1370,7 +1370,7 @@ static int Main()
     }
 ";
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
     // (15,13): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(params double[])' and 'C.M(params G<int>[])'
     //             M();
     Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(params double[])", "C.M(params G<int>[])"));
@@ -1595,7 +1595,7 @@ public static class Util
 }
 ";
 
-            var libRef = CreateStandardCompilation(libSource, assemblyName: "lib").EmitToImageReference();
+            var libRef = CreateCompilation(libSource, assemblyName: "lib").EmitToImageReference();
 
             {
                 var source = @"
@@ -1618,7 +1618,7 @@ class Test
 ";
 
                 // As in dev11.
-                var comp = CreateStandardCompilation(source, new[] { libRef }, TestOptions.ReleaseExe);
+                var comp = CreateCompilation(source, new[] { libRef }, TestOptions.ReleaseExe);
                 CompileAndVerify(comp, expectedOutput: "03");
             }
 
@@ -1643,7 +1643,7 @@ class Test
 
                 // As in dev11.
                 // NOTE: The spec will likely be updated to make this illegal.
-                var comp = CreateStandardCompilation(source, new[] { libRef }, TestOptions.ReleaseExe);
+                var comp = CreateCompilation(source, new[] { libRef }, TestOptions.ReleaseExe);
                 CompileAndVerify(comp, expectedOutput: "3");
             }
 
@@ -1667,7 +1667,7 @@ class Test
 ";
 
                 // BREAK: dev11 compiles and prints "0"
-                var comp = CreateStandardCompilation(source, new[] { libRef }, TestOptions.ReleaseExe);
+                var comp = CreateCompilation(source, new[] { libRef }, TestOptions.ReleaseExe);
                 comp.VerifyDiagnostics(
                     // (15,33): error CS1918: Members of property 'Wrapper<T>.Item' of type 'T' cannot be assigned with an object initializer because it is of a value type
                     //         return new Wrapper<T> { Item = { 1, 2, 3} };

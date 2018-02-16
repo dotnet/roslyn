@@ -861,7 +861,7 @@ class Program
 }");
 
             // WithPEVerifyCompatFeature should not cause us to get a ref of a temp in ref returns
-            comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature(), verify: Verification.Fails);
+            comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature(), verify: Verification.Fails, targetFramework: TargetFramework.Net40);
             comp.VerifyIL("Program.Test", @"
 {
   // Code size       57 (0x39)

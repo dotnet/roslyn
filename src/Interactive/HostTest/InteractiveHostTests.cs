@@ -659,7 +659,7 @@ WriteLine(5);
             var dir = Temp.CreateDirectory();
 
             var source1 = "public class C { public int X = 1; }";
-            var c1 = CreateStandardCompilation(source1, assemblyName: "C");
+            var c1 = CreateCompilation(source1, assemblyName: "C");
             var file = dir.CreateFile("c.dll").WriteAllBytes(c1.EmitToArray());
 
             // use:
@@ -671,7 +671,7 @@ new C().X
 
             // update:
             var source2 = "public class D { public int Y = 2; }";
-            var c2 = CreateStandardCompilation(source2, assemblyName: "C");
+            var c2 = CreateCompilation(source2, assemblyName: "C");
             file.WriteAllBytes(c2.EmitToArray());
 
             // add the reference again:
@@ -698,11 +698,11 @@ new D().Y
             var dir2 = dir.CreateDirectory("2");
 
             var source1 = "public class C1 { }";
-            var c1 = CreateStandardCompilation(source1, assemblyName: "C");
+            var c1 = CreateCompilation(source1, assemblyName: "C");
             var file1 = dir1.CreateFile("c.dll").WriteAllBytes(c1.EmitToArray());
 
             var source2 = "public class C2 { }";
-            var c2 = CreateStandardCompilation(source2, assemblyName: "C");
+            var c2 = CreateCompilation(source2, assemblyName: "C");
             var file2 = dir2.CreateFile("c.dll").WriteAllBytes(c2.EmitToArray());
 
             Execute($@"
@@ -732,11 +732,11 @@ new D().Y
             var dir2 = dir.CreateDirectory("2");
 
             var source1 = @"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public class C1 { }";
-            var c1 = CreateStandardCompilation(source1, assemblyName: "C");
+            var c1 = CreateCompilation(source1, assemblyName: "C");
             var file1 = dir1.CreateFile("c.dll").WriteAllBytes(c1.EmitToArray());
 
             var source2 = @"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")] public class C2 { }";
-            var c2 = CreateStandardCompilation(source2, assemblyName: "C");
+            var c2 = CreateCompilation(source2, assemblyName: "C");
             var file2 = dir2.CreateFile("c.dll").WriteAllBytes(c2.EmitToArray());
 
             Execute($@"

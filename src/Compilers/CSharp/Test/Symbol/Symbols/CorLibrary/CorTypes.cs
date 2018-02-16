@@ -200,7 +200,7 @@ namespace System
             CreateCompilationRaw(source1 + source2).VerifyDiagnostics();
 
             // Error elsewhere.
-            CreateStandardCompilation(source2).VerifyDiagnostics(
+            CreateCompilation(source2).VerifyDiagnostics(
                 // (4,20): error CS0644: 'System.ArrayContract' cannot derive from special class 'System.Array'
                 //     internal class ArrayContract : Array
                 Diagnostic(ErrorCode.ERR_DeriveFromEnumOrValueType, "ArrayContract").WithArguments("System.ArrayContract", "System.Array"));

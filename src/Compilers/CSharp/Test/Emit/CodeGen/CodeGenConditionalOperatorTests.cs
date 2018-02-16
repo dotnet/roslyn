@@ -124,7 +124,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp);
         }

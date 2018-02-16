@@ -253,7 +253,7 @@ using System.Runtime.CompilerServices;
 [assembly: TypeForwardedTo(typeof(Namespace3.GenericType<int, int>))]
 ";
 
-            var forwardingCompilation = CreateStandardCompilation(forwardingCode, new MetadataReference[] { forwardedToReference });
+            var forwardingCompilation = CreateCompilation(forwardingCode, new MetadataReference[] { forwardedToReference });
 
             var sortedFullNames = new string[]
             {

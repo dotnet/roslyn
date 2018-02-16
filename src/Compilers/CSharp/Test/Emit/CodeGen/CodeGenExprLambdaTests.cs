@@ -3625,7 +3625,7 @@ Lambda:
             string source = @"
 namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
 ";
-            CreateStandardCompilation(source, parseOptions: TestOptions.Regular).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.Regular).VerifyDiagnostics(
                 // (2,11): error CS7000: Unexpected use of an aliased name
                 // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
                 Diagnostic(ErrorCode.ERR_UnexpectedAliasedName, "global::").WithLocation(2, 11),
@@ -3675,7 +3675,7 @@ namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B 
             string source = @"
 namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
 ";
-            CreateStandardCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)).VerifyDiagnostics(
                 // (2,11): error CS7000: Unexpected use of an aliased name
                 // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
                 Diagnostic(ErrorCode.ERR_UnexpectedAliasedName, "global::").WithLocation(2, 11),
@@ -3735,7 +3735,7 @@ class Test
         ((System.Linq.Expressions.Expression<System.Func<void>>)(() => global::System.Console.WriteLine(""))).Compile()();
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (8,58): error CS1547: Keyword 'void' cannot be used in this context
                 //         ((System.Linq.Expressions.Expression<System.Func<void>>)(() => global::System.Console.WriteLine("))).Compile()();
                 Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(8, 58),

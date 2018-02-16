@@ -75,7 +75,7 @@ namespace System
         public TRest Rest;
     }
 }";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             Assert.Equal("T1 System.ValueTuple<T1>.Item1",
                 comp.GetWellKnownTypeMember(WellKnownMember.System_ValueTuple_T1__Item1).ToTestDisplayString());
 

@@ -3225,7 +3225,7 @@ True
                 trees.Add(Parse(source.Content, filename: source.Path));
             }
 
-            var compilation = CreateStandardCompilation(trees, options: (options ?? TestOptions.ReleaseExe).WithDeterministic(true));
+            var compilation = CreateCompilation(trees, options: (options ?? TestOptions.ReleaseExe).WithDeterministic(true));
             trees.Free();
             return base.CompileAndVerify(compilation, expectedOutput: expectedOutput, emitOptions: EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
         }

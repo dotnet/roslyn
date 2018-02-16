@@ -386,7 +386,7 @@ namespace N1
             var syntaxTree2 = Parse(string.Empty, options: parseOptions2);
             var syntaxTree3 = Parse(string.Empty, options: parseOptions2);
 
-            var compilation = CreateStandardCompilation(new[] { syntaxTree1, syntaxTree2, syntaxTree3 });
+            var compilation = CreateCompilation(new[] { syntaxTree1, syntaxTree2, syntaxTree3 });
             var diagnostics = compilation.GetDiagnostics();
 
             diagnostics.Verify(
@@ -409,7 +409,7 @@ namespace N1
             var tree1 = Parse(string.Empty, options: parseOptions);
             var tree2 = Parse("ref struct X {}", options: parseOptions);
 
-            var compilation = CreateStandardCompilation(new[] { tree1, tree2 });
+            var compilation = CreateCompilation(new[] { tree1, tree2 });
 
             // Verify diagnostics for the first tree. This should have sealed the attributes
             compilation.GetSemanticModel(tree1).GetDeclarationDiagnostics().Verify();

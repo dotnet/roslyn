@@ -417,7 +417,7 @@ class Test
                 "Test"
             };
 
-            var comp = CreateStandardCompilation(testSrc);
+            var comp = CreateCompilation(testSrc);
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
             var position = GetPositionForBinding(tree);
@@ -573,7 +573,7 @@ class Test
             };
 
             // Get the list of LookupSymbols at the location of the CSharpSyntaxNode enclosed within the <bind> </bind> tags
-            var comp = CreateStandardCompilation(testSrc);
+            var comp = CreateCompilation(testSrc);
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
             var position = testSrc.IndexOf("return", StringComparison.Ordinal);
@@ -1225,7 +1225,7 @@ public class NumberSpecification<TCandidate>
         var key = candidate.Key;
     }
 }";
-            CreateStandardCompilation(testSrc).VerifyDiagnostics();
+            CreateCompilation(testSrc).VerifyDiagnostics();
         }
 
         [WorkItem(529406, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529406")]
@@ -1405,7 +1405,7 @@ class Q : P
         return 0;
     }
 }";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
             var node = tree.GetRoot().DescendantNodes().OfType<ExpressionSyntax>().Where(n => n.ToString() == "m.M").Single();
@@ -1422,7 +1422,7 @@ class Q : P
         public void TestLookupVerbatimVar()
         {
             var source = "class C { public static void Main() { @var v = 1; } }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (1,39): error CS0246: The type or namespace name 'var' could not be found (are you missing a using directive or an assembly reference?)
                 // class C { public static void Main() { @var v = 1; } }
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "@var").WithArguments("var").WithLocation(1, 39)
@@ -1522,7 +1522,7 @@ class C
         public void GenericNameLookup()
         {
             var source = @"using A = List<int>;";
-            var compilation = CreateStandardCompilation(source).VerifyDiagnostics(
+            var compilation = CreateCompilation(source).VerifyDiagnostics(
                 // (1,11): error CS0246: The type or namespace name 'List<>' could not be found (are you missing a using directive or an assembly reference?)
                 // using A = List<int>;
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "List<int>").WithArguments("List<>").WithLocation(1, 11),
@@ -1546,7 +1546,7 @@ class C
     {
         int result = 0;
         Dels Test : Base";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
             SemanticModel imodel = model;
@@ -1573,7 +1573,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
             SemanticModel imodel = model;
@@ -1614,7 +1614,7 @@ class Test
 }
 ";
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
 
             var global = comp.GlobalNamespace;
@@ -1660,7 +1660,7 @@ public class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
@@ -1688,7 +1688,7 @@ public class C<T>
 }
 ";
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
 
             var classC = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
@@ -1723,7 +1723,7 @@ public class Outer
 }
 ";
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
@@ -1884,7 +1884,7 @@ class C
     }
 }";
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();

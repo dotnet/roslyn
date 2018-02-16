@@ -388,7 +388,7 @@ d.cs
             };
 
             var parsedArgs = DefaultParse(args, _baseDirectory);
-            var compilation = CreateStandardCompilation(new SyntaxTree[0]);
+            var compilation = CreateCompilation(new SyntaxTree[0]);
             IEnumerable<DiagnosticInfo> errors;
             CSharpCompiler.GetWin32ResourcesInternal(MessageProvider.Instance, parsedArgs, compilation, out errors);
             Assert.Equal(1, errors.Count());
@@ -512,7 +512,7 @@ d.cs
             string tmpFileName = Temp.CreateFile().WriteAllBytes(new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }).Path;
 
             var parsedArgs = DefaultParse(new[] { "/win32icon:" + tmpFileName, "a.cs" }, _baseDirectory);
-            var compilation = CreateStandardCompilation(new SyntaxTree[0]);
+            var compilation = CreateCompilation(new SyntaxTree[0]);
             IEnumerable<DiagnosticInfo> errors;
 
             CSharpCompiler.GetWin32ResourcesInternal(MessageProvider.Instance, parsedArgs, compilation, out errors);
@@ -9016,7 +9016,7 @@ class C
             var arguments = DefaultParse(new[] { "/warnaserror-:3001", "/warnaserror" }, null);
             var options = arguments.CompilationOptions;
 
-            var comp = CreateStandardCompilation(@"[assembly: System.CLSCompliant(true)]
+            var comp = CreateCompilation(@"[assembly: System.CLSCompliant(true)]
 public class C
 {
     public void M(ushort i)
@@ -9041,7 +9041,7 @@ public class C
             var arguments = DefaultParse(new[] { "/warnaserror", "/warnaserror-:3001" }, null);
             var options = arguments.CompilationOptions;
 
-            var comp = CreateStandardCompilation(@"[assembly: System.CLSCompliant(true)]
+            var comp = CreateCompilation(@"[assembly: System.CLSCompliant(true)]
 public class C
 {
     public void M(ushort i)

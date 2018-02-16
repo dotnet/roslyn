@@ -29,7 +29,7 @@ public class Program
         yield return 1;
     }
 }";
-            var comp = CreateStandardCompilation(source, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
 
             comp.MakeMemberMissing(SpecialMember.System_Collections_Generic_IEnumerable_T__GetEnumerator);
 
@@ -61,7 +61,7 @@ public class Program
         yield return 1;
     }
 }";
-            var comp = CreateStandardCompilation(source, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
 
             comp.MakeMemberMissing(SpecialMember.System_IDisposable__Dispose);
 
@@ -93,7 +93,7 @@ public class Program
         yield return 1;
     }
 }";
-            var comp = CreateStandardCompilation(source, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
 
             comp.MakeMemberMissing(WellKnownMember.System_Diagnostics_DebuggerHiddenAttribute__ctor);
 
@@ -895,7 +895,7 @@ public class MyClass
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.MakeMemberMissing(SpecialMember.System_IntPtr__op_Explicit_FromInt32);
             comp.VerifyEmitDiagnostics(
                 // (8,10): error CS0656: Missing compiler required member 'System.IntPtr.op_Explicit'

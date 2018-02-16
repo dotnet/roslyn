@@ -248,7 +248,7 @@ public class Test
             // Scenario to test Conditional directive stack creation during SyntaxTree.Create, see Devdiv Bug #13846 for details.
             CompilationUnitSyntax root = SyntaxFactory.ParseCompilationUnit(testSource);
             var syntaxTree = SyntaxFactory.SyntaxTree(root);
-            var compilation = CreateStandardCompilation(syntaxTree, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(syntaxTree, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, sourceSymbolValidator: CommonSourceValidatorForCondAttrType, symbolValidator: CommonMetadataValidatorForCondAttrType, expectedOutput: "");
         }
 
@@ -264,7 +264,7 @@ using System;
             CompileAndVerify(testSources, sourceSymbolValidator: CommonSourceValidatorForCondAttrType, symbolValidator: CommonMetadataValidatorForCondAttrType, expectedOutput: "");
 
             // Different source files, different compilation
-            var comp1 = CreateStandardCompilation(source1);
+            var comp1 = CreateCompilation(source1);
             CompileAndVerify(source2, references: new[] { comp1.ToMetadataReference() }, sourceSymbolValidator: CommonSourceValidatorForCondAttrType, symbolValidator: CommonMetadataValidatorForCondAttrType, expectedOutput: "");
         }
 
@@ -459,7 +459,7 @@ Z.PreservedCalls_MultipleConditional_Method";
             // Scenario to test Conditional directive stack creation during SyntaxTree.Create, see Devdiv Bug #13846 for details.
             CompilationUnitSyntax root = SyntaxFactory.ParseCompilationUnit(testSource);
             var syntaxTree = SyntaxFactory.SyntaxTree(root);
-            var compilation = CreateStandardCompilation(syntaxTree, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(syntaxTree, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: s_commonExpectedOutput_ConditionalMethodsTest);
         }
 
@@ -475,7 +475,7 @@ using System;
             CompileAndVerify(testSources, expectedOutput: s_commonExpectedOutput_ConditionalMethodsTest);
 
             // Different source files, different compilation
-            var comp1 = CreateStandardCompilation(source1, assemblyName: Guid.NewGuid().ToString());
+            var comp1 = CreateCompilation(source1, assemblyName: Guid.NewGuid().ToString());
             CompileAndVerify(source2, references: new[] { comp1.ToMetadataReference() }, expectedOutput: s_commonExpectedOutput_ConditionalMethodsTest);
         }
 
@@ -554,7 +554,7 @@ using System;
         [Fact, WorkItem(529683, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529683")]
         public void CondMethodInDelegateCreationExpr()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 using System.Diagnostics;
 
 class Test
@@ -668,7 +668,7 @@ class Bar
     public static string M() { return ""str""; }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (12,33): error CS0428: Cannot convert method group 'M' to non-delegate type 'string'. Did you intend to invoke the method?
                 //     public const string M = Bar.M;
                 Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "M").WithArguments("M", "string"),

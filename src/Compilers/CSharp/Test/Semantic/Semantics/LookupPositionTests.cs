@@ -1460,7 +1460,7 @@ label1:
 }
 ";
 
-            var compilation = CreateStandardCompilation(source, references: new[] { LinqAssemblyRef });
+            var compilation = CreateCompilation(source, references: new[] { LinqAssemblyRef });
 
             var tree = compilation.SyntaxTrees.Single();
             var model = (Microsoft.CodeAnalysis.SemanticModel)(compilation.GetSemanticModel(tree));
@@ -1489,7 +1489,7 @@ label1:
 }
 ";
 
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
             var symbols = model.LookupLabels(source.ToString().IndexOf("HERE", StringComparison.Ordinal));

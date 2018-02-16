@@ -547,9 +547,9 @@ IL_0005:  ret
         var o = (System.Collections.ObjectModel.ReadOnlyDictionary<object, object>)null;
     }
 }";
-            var systemConsoleComp = CreateStandardCompilation(sourceConsole, options: TestOptions.DebugDll, assemblyName: "System.Console");
+            var systemConsoleComp = CreateCompilation(sourceConsole, options: TestOptions.DebugDll, assemblyName: "System.Console");
             var systemConsoleRef = systemConsoleComp.EmitToImageReference();
-            var systemObjectModelComp = CreateStandardCompilation(sourceObjectModel, options: TestOptions.DebugDll, assemblyName: "System.ObjectModel");
+            var systemObjectModelComp = CreateCompilation(sourceObjectModel, options: TestOptions.DebugDll, assemblyName: "System.ObjectModel");
             var systemObjectModelRef = systemObjectModelComp.EmitToImageReference();
             var identityObjectModel = systemObjectModelRef.GetAssemblyIdentity();
 
@@ -733,7 +733,7 @@ IL_0030:  ret
 public class Private2
 {
 }";
-            var compLib = CreateStandardCompilation(sourceLib, assemblyName: "System.Private.Library");
+            var compLib = CreateCompilation(sourceLib, assemblyName: "System.Private.Library");
             compLib.VerifyDiagnostics();
             var refLib = compLib.EmitToImageReference();
 
@@ -848,7 +848,7 @@ namespace System
 {
     public class Private { }
 }";
-            var compLib = CreateStandardCompilation(sourceLib, assemblyName: "System.Private.Library");
+            var compLib = CreateCompilation(sourceLib, assemblyName: "System.Private.Library");
             compLib.VerifyDiagnostics();
             var refLib = compLib.EmitToImageReference(aliases: ImmutableArray.Create("A"));
 
@@ -926,7 +926,7 @@ namespace System
 @"class Private
 {
 }";
-            var compLib = CreateStandardCompilation(sourceLib, assemblyName: CorLibAssemblyName);
+            var compLib = CreateCompilation(sourceLib, assemblyName: CorLibAssemblyName);
             compLib.VerifyDiagnostics();
             var refLib = compLib.EmitToImageReference();
 
@@ -937,7 +937,7 @@ namespace System
     {
     }
 }";
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
             comp.VerifyDiagnostics();
 
             using (var runtime = RuntimeInstance.Create(new[] { comp.ToModuleInstance(), refLib.ToModuleInstance(), MscorlibRef.ToModuleInstance() }))

@@ -1340,7 +1340,7 @@ class Program
     }
 }";
 
-            CreateStandardCompilation(code).VerifyDiagnostics(
+            CreateCompilation(code).VerifyDiagnostics(
                 // (8,19): error CS8345: Field or auto-implemented property cannot be of type 'Point' unless it is an instance member of a ref struct.
                 //     public static Point field2 = new Point();
                 Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "Point").WithArguments("Point").WithLocation(8, 19),
@@ -1374,7 +1374,7 @@ ref struct Program
     }
 }";
 
-            CreateStandardCompilation(code).VerifyDiagnostics(
+            CreateCompilation(code).VerifyDiagnostics(
                 // (8,19): error CS8345: Field or auto-implemented property cannot be of type 'Point' unless it is an instance member of a ref struct.
                 //     public static Point field2 = new Point();
                 Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "Point").WithArguments("Point").WithLocation(8, 19),

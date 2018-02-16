@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public abstract object this[object x] = { get; }
 }";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
             VisitAllExpressions(model, tree.GetCompilationUnitRoot());
         }
@@ -41,7 +41,7 @@ class/*</bind>*/ B
 {
 }";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
             var expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
             VisitAllExpressions(model, expr);
@@ -64,7 +64,7 @@ class/*</bind>*/ B
     }
 }";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
             var expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
             VisitAllExpressions(model, expr);
@@ -87,7 +87,7 @@ class C
     }
 }";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
             var expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
             VisitAllExpressions(model, expr);
@@ -100,7 +100,7 @@ class C
             var text =
 @"#if e==true";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
             foreach (var expr in GetAllExpressions(tree.GetCompilationUnitRoot()))
             {
@@ -125,7 +125,7 @@ class C
     }
 }";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
             VisitAllExpressions(model, tree.GetCompilationUnitRoot());
         }
@@ -152,7 +152,7 @@ static class C
     }
 }";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
             foreach (var stmt in GetAllStatements(tree.GetCompilationUnitRoot()))
             {
@@ -169,7 +169,7 @@ static class C
 abstract object P { get; set; }
 abstract void M();";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
             var diagnostics = model.GetDiagnostics().ToArray();
             Assert.NotEmpty(diagnostics);
@@ -189,7 +189,7 @@ abstract void M();";
         public void Repro611177()
         {
             var source = @"[_<_[delegate using'";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
 
@@ -212,7 +212,7 @@ class C
         int[delegate { using (Q); }] array;
     }
 }";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
 
@@ -233,7 +233,7 @@ class C
         int[delegate { typeof(int) }] array;
     }
 }";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
 
@@ -255,7 +255,7 @@ class C
         var x = typeof(int[delegate { 1 }]);
     }
 }";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
 
@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
     }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
 
@@ -352,7 +352,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     static object F = new C<,>();
 }";
             var tree = Parse(text);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
             foreach (var expr in GetAllExpressions(tree.GetCompilationUnitRoot()))
             {

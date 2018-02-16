@@ -1289,7 +1289,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         [WorkItem(530209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530209")]
         public void Bug530209_DecimalConstant()
         {
-            var compilation = CreateStandardCompilation(
+            var compilation = CreateCompilation(
 @"
 public class Class1
 {
@@ -1423,7 +1423,7 @@ class Class2 : Class1
 {
 }";
 
-            CompileAndVerify(CreateStandardCompilationWithCustomILSource(csSource, ilSource), symbolValidator: module =>
+            CompileAndVerify(CreateCompilationWithCustomILSource(csSource, ilSource), symbolValidator: module =>
             {
                 var class1 = module.GlobalNamespace.GetTypeMember("Class2").BaseType();
                 Assert.Equal("Class1", class1.ToTestDisplayString());
@@ -1450,7 +1450,7 @@ class Class2 : Class1
 
             // Switch order of API calls
 
-            CompileAndVerify(CreateStandardCompilationWithCustomILSource(csSource, ilSource), symbolValidator: module =>
+            CompileAndVerify(CreateCompilationWithCustomILSource(csSource, ilSource), symbolValidator: module =>
             {
                 var class1 = module.GlobalNamespace.GetTypeMember("Class2").BaseType();
                 Assert.Equal("Class1", class1.ToTestDisplayString());

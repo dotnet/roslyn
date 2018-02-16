@@ -8794,7 +8794,7 @@ unsafe struct S
 }
 
 ";
-            var comp = CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll);
+            var comp = CreateCompilation(text, options: TestOptions.UnsafeReleaseDll);
             comp.VerifyDiagnostics(
                 // (24,44): error CS1510: A ref or out argument must be an assignable variable
                 //             retval = Test.printAddress(out s.i);
@@ -9248,7 +9248,7 @@ unsafe class A
 }
 ";
 
-            var comp = CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll);
+            var comp = CreateCompilation(text, options: TestOptions.UnsafeReleaseDll);
             comp.VerifyDiagnostics();
         }
 
@@ -9661,7 +9661,7 @@ public unsafe class C
         }
     }
 ";
-            var cscomp = CreateStandardCompilationWithCustomILSource(csharpSource, ilSource);
+            var cscomp = CreateCompilationWithCustomILSource(csharpSource, ilSource);
 
             var expected = new[] {
                 // (7,35): error CS0570: 'AddressHelper.AddressOf<T>(?)' is not supported by the language

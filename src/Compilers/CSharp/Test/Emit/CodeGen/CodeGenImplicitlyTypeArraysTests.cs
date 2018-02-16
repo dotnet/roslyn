@@ -120,7 +120,7 @@ namespace Test
 }
 ";
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
     // (15,54): warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
     //             var a = new [] {E.START, 0, 0U, 0u, 0L, 0l, 0UL, 0Ul, 0uL, 0ul, 0LU, 0Lu, 0lU, 0lu};
@@ -932,7 +932,7 @@ namespace Test
     }
 }
 ";
-            var comp = CreateStandardCompilation(testSrc);
+            var comp = CreateCompilation(testSrc);
             comp.VerifyDiagnostics(
                 // (8,46): error CS0846: A nested array initializer is expected
                 //             var a3 = new[,,] { { { 3, 4 } }, 3, 4 };
@@ -957,7 +957,7 @@ namespace Test
     }
 }
 ";
-            var comp = CreateStandardCompilation(testSrc);
+            var comp = CreateCompilation(testSrc);
             comp.VerifyDiagnostics(
                 // (8,46): error CS0103: The name 'x' does not exist in the current context
                 //             var a3 = new[,,] { { { 3, 4 } }, x, 4 };
@@ -992,7 +992,7 @@ namespace Test
     }
 }
 ";
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (16,21): error CS0826: No best type found for implicitly-typed array
                 //             E[] a = new[] { E.FortyTwo, 0 }; // Dev10 error CS0826
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { E.FortyTwo, 0 }").WithLocation(16, 21));

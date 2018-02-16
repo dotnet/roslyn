@@ -1963,7 +1963,7 @@ namespace System
 
 ";
             var parsed = new[] { Parse(source) };
-            var comp = CreateStandardCompilation(parsed);
+            var comp = CreateCompilation(parsed);
             comp.MakeMemberMissing(WellKnownMember.System_Threading_Thread__ManagedThreadId);
             var verifier = this.CompileAndVerify(comp);
             var il = verifier.VisualizeIL("Program.<Goo>d__0.System.Collections.Generic.IEnumerable<int>.GetEnumerator()");
