@@ -159,9 +159,9 @@ namespace Microsoft.CodeAnalysis.AddParameter
                 {
                     // TODO Localization of titles
                     context.RegisterCodeFix(new GroupingCodeAction(title,
-                        new MyCodeAction("Only declaration",
+                        new MyCodeAction(title,
                             c => FixAsync(context.Document, methodToUpdate, argumentToInsert, arguments, fixAllReferences: false, c)),
-                        new MyCodeAction("Declaration, overrides and implementations",
+                        new MyCodeAction(title + " (including overrides/implementations)",
                             c => FixAsync(context.Document, methodToUpdate, argumentToInsert, arguments, fixAllReferences: true, c))),
                         context.Diagnostics);
                 }
