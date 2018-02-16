@@ -77,16 +77,13 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
                 var solution = workspace.CurrentSolution;
 
-                var keepAliveSession = await client.TryCreateCodeAnalysisKeepAliveSessionAsync(CancellationToken.None);
-                var comments = await keepAliveSession.TryInvokeAsync<IList<TodoComment>>(
-                    nameof(IRemoteTodoCommentService.GetTodoCommentsAsync),
+                var comments = await client.TryRunCodeAnalysisRemoteAsync<IList<TodoComment>>(
                     solution,
+                    nameof(IRemoteTodoCommentService.GetTodoCommentsAsync),
                     new object[] { solution.Projects.First().DocumentIds.First(), ImmutableArray.Create(new TodoCommentDescriptor("TODO", 0)) },
                     CancellationToken.None);
 
                 Assert.Equal(comments.Count, 1);
-
-                keepAliveSession.Shutdown();
             }
         }
 
@@ -102,11 +99,10 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
                 var solution = workspace.CurrentSolution;
 
-                var keepAliveSession = await client.TryCreateCodeAnalysisKeepAliveSessionAsync(CancellationToken.None);
-                var result = await keepAliveSession.TryInvokeAsync<DesignerAttributeResult>(
-                    nameof(IRemoteDesignerAttributeService.ScanDesignerAttributesAsync),
+                var result = await client.TryRunCodeAnalysisRemoteAsync<DesignerAttributeResult>(
                     solution,
-                    new object[] { solution.Projects.First().DocumentIds.First() },
+                    nameof(IRemoteDesignerAttributeService.ScanDesignerAttributesAsync),
+                    solution.Projects.First().DocumentIds.First(),
                     CancellationToken.None);
 
                 Assert.Equal(result.DesignerAttributeArgument, "Form");
