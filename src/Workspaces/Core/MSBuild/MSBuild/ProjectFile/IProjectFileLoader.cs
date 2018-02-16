@@ -4,12 +4,17 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.MSBuild.Build;
 
 namespace Microsoft.CodeAnalysis.MSBuild
 {
     internal interface IProjectFileLoader : ILanguageService
     {
         string Language { get; }
-        Task<IProjectFile> LoadProjectFileAsync(string path, IDictionary<string, string> globalProperties, CancellationToken cancellationToken);
+        Task<IProjectFile> LoadProjectFileAsync(
+            string path,
+            IDictionary<string, string> globalProperties,
+            ProjectBuildManager buildManager,
+            CancellationToken cancellationToken);
     }
 }

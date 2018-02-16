@@ -17,9 +17,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
     {
         public abstract string Language { get; }
 
-        protected abstract ProjectFile CreateProjectFile(MSB.Evaluation.Project project, DiagnosticLog log);
+        protected abstract ProjectFile CreateProjectFile(MSB.Evaluation.Project project, ProjectBuildManager buildManager, DiagnosticLog log);
 
-        public async Task<IProjectFile> LoadProjectFileAsync(string path, IDictionary<string, string> globalProperties, CancellationToken cancellationToken)
+        public async Task<IProjectFile> LoadProjectFileAsync(string path, IDictionary<string, string> globalProperties, ProjectBuildManager buildManager, CancellationToken cancellationToken)
         {
             if (path == null)
             {
@@ -27,9 +27,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
 
             // load project file async
-            var (project, log) = await ProjectBuildManager.LoadProjectAsync(path, globalProperties, cancellationToken).ConfigureAwait(false);
+            var (project, log) = await buildManager.LoadProjectAsync(path, globalProperties, cancellationToken).ConfigureAwait(false);
 
-            return this.CreateProjectFile(project, log);
+            return this.CreateProjectFile(project, buildManager, log);
         }
 
         public static IProjectFileLoader GetLoaderForProjectFileExtension(Workspace workspace, string extension)

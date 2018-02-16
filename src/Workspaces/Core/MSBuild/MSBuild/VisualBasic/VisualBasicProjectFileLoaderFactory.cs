@@ -7,7 +7,8 @@ using Microsoft.CodeAnalysis.MSBuild;
 
 namespace Microsoft.CodeAnalysis.VisualBasic
 {
-    [ExportLanguageServiceFactory(typeof(IProjectFileLoader), LanguageNames.VisualBasic), Shared()]
+    [Shared]
+    [ExportLanguageServiceFactory(typeof(IProjectFileLoader), LanguageNames.VisualBasic)]
     [ProjectFileExtension("vbproj")]
     internal class VisualBasicProjectFileLoaderFactory : ILanguageServiceFactory
     {

@@ -13,6 +13,7 @@ using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.MSBuild.Build;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
@@ -3504,7 +3505,8 @@ class C { }";
                 var projectFilePath = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
 
                 var properties = ImmutableDictionary<string, string>.Empty;
-                var projectFile = await loader.LoadProjectFileAsync(projectFilePath, properties, CancellationToken.None);
+                var buildManager = new ProjectBuildManager();
+                var projectFile = await loader.LoadProjectFileAsync(projectFilePath, properties, buildManager, CancellationToken.None);
                 var projectFileInfo = (await projectFile.GetProjectFileInfosAsync(CancellationToken.None)).Single();
 
                 var commandLineParser = workspace.Services

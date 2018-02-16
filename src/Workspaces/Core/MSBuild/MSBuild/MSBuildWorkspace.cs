@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.MSBuild.Build;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -278,7 +279,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         protected override void ApplyProjectChanges(ProjectChanges projectChanges)
         {
-            System.Diagnostics.Debug.Assert(_applyChangesProjectFile == null);
+            Debug.Assert(_applyChangesProjectFile == null);
 
             var project = projectChanges.OldProject ?? projectChanges.NewProject;
 
@@ -292,9 +293,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     {
                         try
                         {
-                            _applyChangesProjectFile = loader.LoadProjectFileAsync(projectPath, _loader.Properties, CancellationToken.None).Result;
+                            _applyChangesProjectFile = loader.LoadProjectFileAsync(projectPath, _loader.Properties, _loader.BuildManager, CancellationToken.None).Result;
                         }
-                        catch (System.IO.IOException exception)
+                        catch (IOException exception)
                         {
                             this.OnWorkspaceFailed(new ProjectDiagnostic(WorkspaceDiagnosticKind.Failure, exception.Message, projectChanges.ProjectId));
                         }
@@ -311,7 +312,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     {
                         _applyChangesProjectFile.Save();
                     }
-                    catch (System.IO.IOException exception)
+                    catch (IOException exception)
                     {
                         this.OnWorkspaceFailed(new ProjectDiagnostic(WorkspaceDiagnosticKind.Failure, exception.Message, projectChanges.ProjectId));
                     }

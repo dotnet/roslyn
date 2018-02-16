@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.MSBuild;
+using Microsoft.CodeAnalysis.MSBuild.Build;
 using Microsoft.CodeAnalysis.MSBuild.Logging;
 using Roslyn.Utilities;
 using MSB = Microsoft.Build;
@@ -13,8 +14,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal class CSharpProjectFile : ProjectFile
     {
-        public CSharpProjectFile(CSharpProjectFileLoader loader, MSB.Evaluation.Project project, DiagnosticLog log)
-            : base(loader, project, log)
+        public CSharpProjectFile(CSharpProjectFileLoader loader, MSB.Evaluation.Project project, ProjectBuildManager buildManager, DiagnosticLog log)
+            : base(loader, project, buildManager, log)
         {
         }
 

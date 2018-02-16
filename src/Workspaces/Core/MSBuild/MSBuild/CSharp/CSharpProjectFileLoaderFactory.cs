@@ -7,8 +7,8 @@ using Microsoft.CodeAnalysis.MSBuild;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    [ExportLanguageServiceFactory(typeof(IProjectFileLoader), LanguageNames.CSharp)]
     [Shared]
+    [ExportLanguageServiceFactory(typeof(IProjectFileLoader), LanguageNames.CSharp)]
     [ProjectFileExtension("csproj")]
     internal class CSharpProjectFileLoaderFactory : ILanguageServiceFactory
     {

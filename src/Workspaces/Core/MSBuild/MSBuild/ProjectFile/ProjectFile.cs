@@ -20,15 +20,17 @@ namespace Microsoft.CodeAnalysis.MSBuild
     {
         private readonly ProjectFileLoader _loader;
         private readonly MSB.Evaluation.Project _loadedProject;
+        private readonly ProjectBuildManager _buildManager;
 
         public DiagnosticLog Log { get; }
         public virtual string FilePath => _loadedProject.FullPath;
         public string Language => _loader.Language;
 
-        protected ProjectFile(ProjectFileLoader loader, MSB.Evaluation.Project loadedProject, DiagnosticLog log)
+        protected ProjectFile(ProjectFileLoader loader, MSB.Evaluation.Project loadedProject, ProjectBuildManager buildManager, DiagnosticLog log)
         {
             _loader = loader;
             _loadedProject = loadedProject;
+            _buildManager = buildManager;
             Log = log;
         }
 
@@ -99,7 +101,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         private async Task<ProjectFileInfo> BuildProjectFileInfoAsync(CancellationToken cancellationToken)
         {
-            var project = await ProjectBuildManager.BuildProjectAsync(_loadedProject, this.Log, cancellationToken).ConfigureAwait(false);
+            var project = await _buildManager.BuildProjectAsync(_loadedProject, this.Log, cancellationToken).ConfigureAwait(false);
 
             return project != null
                 ? CreateProjectFileInfo(project)

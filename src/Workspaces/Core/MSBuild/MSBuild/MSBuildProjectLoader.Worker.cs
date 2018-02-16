@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     return ImmutableArray<ProjectFileInfo>.Empty; // Failure should already be reported.
                 }
 
-                var projectFile = await loader.LoadProjectFileAsync(projectPath, _globalProperties, cancellationToken).ConfigureAwait(false);
+                var projectFile = await loader.LoadProjectFileAsync(projectPath, _globalProperties, _owner.BuildManager, cancellationToken).ConfigureAwait(false);
 
                 // If there were any failures during load, we won't be able to build the project. So, bail early with an empty project.
                 if (projectFile.Log.HasFailure)
@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 var additionalDocuments = CreateDocumentInfos(projectFileInfo.AdditionalDocuments, projectId, commandLineArgs.Encoding);
                 _owner.CheckForDuplicateDocuments(documents, additionalDocuments, projectFileInfo.FilePath, projectId);
 
-                var analyzerReferences = _owner.ResolveAnalyzerReferences(commandLineArgs);
+                var analyzerReferences = ResolveAnalyzerReferences(commandLineArgs);
 
                 var resolvedReferences = await ResolveReferencesAsync(projectId, projectFileInfo, commandLineArgs, cancellationToken).ConfigureAwait(false);
 
@@ -319,6 +319,23 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     additionalDocuments: additionalDocuments,
                     isSubmission: false,
                     hostObjectType: null);
+            }
+
+            private IEnumerable<AnalyzerReference> ResolveAnalyzerReferences(CommandLineArguments commandLineArgs)
+            {
+                var analyzerService = _owner.GetWorkspaceService<IAnalyzerService>();
+                var analyzerLoader = analyzerService.GetLoader();
+
+                foreach (var path in commandLineArgs.AnalyzerReferences.Select(r => r.FilePath))
+                {
+                    var fullPath = Path.GetFullPath(path);
+                    if (File.Exists(fullPath))
+                    {
+                        analyzerLoader.AddDependencyLocation(fullPath);
+                    }
+                }
+
+                return commandLineArgs.ResolveAnalyzerReferences(analyzerLoader);
             }
 
             private struct ResolvedReferences
@@ -451,7 +468,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                             // We don't have a full project loader, but we can try to use project evaluation to get the output file path.
                             // If that works, we can check to see if the output path is in the metadata references. If it is, we're done:
                             // Leave the metadata reference and don't create a project reference.
-                            var outputFilePath = await ProjectBuildManager.TryGetOutputFilePathAsync(fullPath, _globalProperties, cancellationToken).ConfigureAwait(false);
+                            var outputFilePath = await _owner.BuildManager.TryGetOutputFilePathAsync(fullPath, _globalProperties, cancellationToken).ConfigureAwait(false);
                             if (!string.IsNullOrEmpty(outputFilePath) &&
                                 metadataReferenceSet.Contains(outputFilePath) &&
                                 File.Exists(outputFilePath))

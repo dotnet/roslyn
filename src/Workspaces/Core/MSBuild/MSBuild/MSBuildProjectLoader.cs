@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.MSBuild.Build;
 using Microsoft.CodeAnalysis.MSBuild.Logging;
 using Roslyn.Utilities;
 using MSB = Microsoft.Build;
@@ -29,6 +30,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
         private ImmutableDictionary<string, string> _properties;
         private readonly Dictionary<string, string> _extensionToLanguageMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
+        internal readonly ProjectBuildManager BuildManager;
+
         /// <summary>
         /// Create a new instance of an <see cref="MSBuildProjectLoader"/>.
         /// </summary>
@@ -36,6 +39,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         {
             _workspace = workspace;
             _properties = properties ?? ImmutableDictionary<string, string>.Empty;
+            BuildManager = new ProjectBuildManager();
         }
 
         /// <summary>
@@ -268,9 +272,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
             foreach (var path in commandLineArgs.AnalyzerReferences.Select(r => r.FilePath))
             {
                 var fullPath = Path.GetFullPath(path);
-                if (File.Exists(path))
+                if (File.Exists(fullPath))
                 {
-                    analyzerLoader.AddDependencyLocation(path);
+                    analyzerLoader.AddDependencyLocation(fullPath);
                 }
             }
 

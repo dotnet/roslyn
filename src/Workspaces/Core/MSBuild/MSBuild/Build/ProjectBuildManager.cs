@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,38 +21,9 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
             XmlResolver = null
         };
 
-        public static async Task<(MSB.Evaluation.Project project, DiagnosticLog log)> LoadProjectAsync(
-            string path, IDictionary<string, string> globalProperties, CancellationToken cancellationToken)
-        {
-            var properties = GetProperties(globalProperties);
+        private readonly MSB.Evaluation.ProjectCollection _projectCollection;
 
-            var log = new DiagnosticLog();
-
-            try
-            {
-                using (var stream = await ReadFileAsync(path, cancellationToken).ConfigureAwait(false))
-                using (var xmlReader = XmlReader.Create(stream, s_xmlReaderSettings))
-                {
-                    var collection = new MSB.Evaluation.ProjectCollection(properties);
-                    var xml = MSB.Construction.ProjectRootElement.Create(xmlReader, collection);
-
-                    // When constructing a project from an XmlReader, MSBuild cannot determine the project file path.  Setting the
-                    // path explicitly is necessary so that the reserved properties like $(MSBuildProjectDirectory) will work.
-                    xml.FullPath = path;
-
-                    var project = new MSB.Evaluation.Project(xml, globalProperties: null, toolsVersion: null, collection);
-
-                    return (project, log);
-                }
-            }
-            catch (Exception e)
-            {
-                log.Add(e, path);
-                return (project: null, log);
-            }
-        }
-
-        private static Dictionary<string, string> GetProperties(IDictionary<string, string> globalProperties)
+        public ProjectBuildManager()
         {
             var properties = new Dictionary<string, string>()
             {
@@ -64,15 +36,81 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
                 { "ContinueOnError", "ErrorAndContinue" }
             };
 
-            if (globalProperties != null)
+            _projectCollection = new MSB.Evaluation.ProjectCollection(properties);
+        }
+
+        private MSB.Evaluation.Project FindProject(string path, IDictionary<string, string> globalProperties)
+        {
+            var loadedProjects = _projectCollection.GetLoadedProjects(path);
+            if (loadedProjects == null || loadedProjects.Count == 0)
             {
-                foreach (var globalProperty in globalProperties)
+                return null;
+            }
+
+            globalProperties = globalProperties ?? ImmutableDictionary<string, string>.Empty;
+            var totalGlobalProperties = _projectCollection.GlobalProperties.Count + globalProperties.Count;
+
+            foreach (var loadedProject in loadedProjects)
+            {
+                if (loadedProject.GlobalProperties.Count != totalGlobalProperties)
                 {
-                    properties[globalProperty.Key] = MSB.Evaluation.ProjectCollection.Escape(globalProperty.Value);
+                    continue;
+                }
+
+                // All projects in the collection should have the default global properties, so
+                // there's no need to check collection.GlobalProperties.
+
+                var found = true;
+                foreach (var globalProp in globalProperties)
+                {
+                    if (!loadedProject.GlobalProperties.Contains(globalProp))
+                    {
+                        found = false;
+                        break;
+                    }
+                }
+
+                if (found)
+                {
+                    return loadedProject;
                 }
             }
 
-            return properties;
+            return null;
+        }
+
+        public async Task<(MSB.Evaluation.Project project, DiagnosticLog log)> LoadProjectAsync(
+            string path, IDictionary<string, string> globalProperties, CancellationToken cancellationToken)
+        {
+            var log = new DiagnosticLog();
+
+            try
+            {
+                var project = FindProject( path, globalProperties);
+                if (project != null)
+                {
+                    return (project, log);
+                }
+
+                using (var stream = await ReadFileAsync(path, cancellationToken).ConfigureAwait(false))
+                using (var xmlReader = XmlReader.Create(stream, s_xmlReaderSettings))
+                {
+                    var xml = MSB.Construction.ProjectRootElement.Create(xmlReader, _projectCollection);
+
+                    // When constructing a project from an XmlReader, MSBuild cannot determine the project file path.  Setting the
+                    // path explicitly is necessary so that the reserved properties like $(MSBuildProjectDirectory) will work.
+                    xml.FullPath = path;
+
+                    project = new MSB.Evaluation.Project(xml, globalProperties, toolsVersion: null, _projectCollection);
+
+                    return (project, log);
+                }
+            }
+            catch (Exception e)
+            {
+                log.Add(e, path);
+                return (project: null, log);
+            }
         }
 
         private static async Task<MemoryStream> ReadFileAsync(string path, CancellationToken cancellationToken)
@@ -113,14 +151,14 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
             return new MemoryStream(buffer);
         }
 
-        public static async Task<string> TryGetOutputFilePathAsync(
+        public async Task<string> TryGetOutputFilePathAsync(
             string path, IDictionary<string, string> globalProperties, CancellationToken cancellationToken)
         {
             var (project, _) = await LoadProjectAsync(path, globalProperties, cancellationToken).ConfigureAwait(false);
             return project?.GetPropertyValue("TargetPath");
         }
 
-        public static Task<MSB.Execution.ProjectInstance> BuildProjectAsync(
+        public Task<MSB.Execution.ProjectInstance> BuildProjectAsync(
             MSB.Evaluation.Project project, DiagnosticLog log, CancellationToken cancellationToken)
         {
             var targets = new[] { "Compile", "CoreCompile" };
