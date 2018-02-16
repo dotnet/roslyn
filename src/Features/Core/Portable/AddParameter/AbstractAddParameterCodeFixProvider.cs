@@ -279,7 +279,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
             var solution = invocationDocument.Project.Solution;
             var argumentType = await GetArgumentTypeAsync(invocationDocument, argument, cancellationToken).ConfigureAwait(false);
             // the argumentNameSuggestion is the base for the parameter name. For each method declaration the name is made unique to avoid name collisions.
-            (var argumentNameSuggestion, var isNamedArgument) = await GetNameSuggestionForArgumentAsync(invocationDocument, argument, cancellationToken).ConfigureAwait(false);
+            var (argumentNameSuggestion, isNamedArgument) = await GetNameSuggestionForArgumentAsync(invocationDocument, argument, cancellationToken).ConfigureAwait(false);
             var referencedSymbols = fixAllReferences
                 ? await FindMethodDeclarationReferences(invocationDocument, method, cancellationToken).ConfigureAwait(false)
                 : method.GetAllMethodSymbolsOfPartialParts();
