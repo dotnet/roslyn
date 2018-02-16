@@ -2316,7 +2316,8 @@ class Program
         public async Task TestInSwitchSection()
         {
             await TestInRegularAndScriptAsync(
-@"class Program
+@"using System;
+class Program
 {
     int Main(int i)
     {
@@ -2328,7 +2329,8 @@ class Program
         }
     }
 }",
-@"class Program
+@"using System;
+class Program
 {
     int Main(int i)
     {
@@ -2342,6 +2344,82 @@ class Program
     }
 }",
 index: 2);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestInSwitchSection_AllOccurencesMultiStatement()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class Program
+{
+    int Main(int i)
+    {
+        switch (1)
+        {
+            case 0:
+                var f = Main([|1 + 1|]);
+                var g = Main(1 + 1);
+            case 1:
+                Console.WriteLine(1 + 0);
+        }
+    }
+}",
+@"using System;
+class Program
+{
+    int Main(int i)
+    {
+        switch (1)
+        {
+            case 0:
+                const int {|Rename:I|} = 1 + 1;
+                var f = Main(I);
+                var g = Main(I);
+            case 1:
+                Console.WriteLine(1 + 0);
+        }
+    }
+}",
+index: 3);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestInSwitchSection_AllOccurencesDifferentSections()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class Program
+{
+    int Main(int i)
+    {
+        switch (1)
+        {
+            case 0:
+                var f = Main([|1 + 1|]);
+                var g = Main(1 + 1);
+            case 1:
+                Console.WriteLine(1 + 1);
+        }
+    }
+}",
+@"using System;
+class Program
+{
+    int Main(int i)
+    {
+        const int {|Rename:I|} = 1 + 1;
+        switch (1)
+        {
+            case 0:
+                var f = Main(I);
+                var g = Main(I);
+            case 1:
+                Console.WriteLine(I);
+        }
+    }
+}",
+index: 3);
         }
 
         [WorkItem(530480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530480")]
@@ -2981,6 +3059,37 @@ class C
     }
 }
 ", options: ImplicitTypingEverywhere());
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestIntroduceLocalWithBlankLine_AllOccurencesMultiStatement()
+        {
+            await TestInRegularAndScriptAsync(@"
+class C
+{
+    void M()
+    {
+        int x = 5;
+
+        // comment
+        int y = [|(x + 5)|] * (x + 5);
+        int z = (x + 5);
+    }
+}
+", @"
+class C
+{
+    void M()
+    {
+        int x = 5;
+
+        // comment
+        var {|Rename:v|} = (x + 5);
+        int y = v * v;
+        int z = v;
+    }
+}
+", options: ImplicitTypingEverywhere(), index: 1);
         }
 
         [WorkItem(1065661, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1065661")]
