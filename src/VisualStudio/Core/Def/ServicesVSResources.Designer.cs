@@ -407,6 +407,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Can&apos;t apply changes -- unexpected error: &apos;{0}&apos;.
+        /// </summary>
+        internal static string CantApplyChangesUnexpectedError {
+            get {
+                return ResourceManager.GetString("CantApplyChangesUnexpectedError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Capitalization:.
         /// </summary>
         internal static string Capitalization_colon {
@@ -827,16 +836,7 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Error while reading &apos;{0}&apos;: {1}.
-        /// </summary>
-        internal static string Error_while_reading_0_colon_1 {
-            get {
-                return ResourceManager.GetString("Error_while_reading_0_colon_1", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Error while reading a file.
+        ///   Looks up a localized string similar to Error while reading file &apos;{0}&apos;: {1}.
         /// </summary>
         internal static string ErrorReadingFile {
             get {
