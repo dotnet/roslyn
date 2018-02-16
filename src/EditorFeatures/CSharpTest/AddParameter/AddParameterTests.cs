@@ -1857,5 +1857,77 @@ namespace N
             await TestInRegularAndScriptAsync(code, fix_DeclarationOnly, index: 0);
             await TestInRegularAndScriptAsync(code, fix_All, index: 1);
         }
+
+        [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestInvocation_Cascading_CrossLanguage()
+        {
+            var code =
+@"
+<Workspace>
+    <Project Language=""Visual Basic"" CommonReferences=""true"" AssemblyName=""VB1"">
+        <Document FilePath=""ReferencedDocument"">
+Namespace N
+    Public Class BaseClass
+        Public Overridable Sub M()
+        End Sub
+    End Class
+End Namespace
+        </Document>
+    </Project>
+    <Project Language=""C#"" CommonReferences=""true""  AssemblyName=""A2"">
+        <ProjectReference>VB1</ProjectReference>
+        <Document>
+namespace N
+{
+    public class Derived: BaseClass
+    {
+        public override void M() { }
+    }
+    public class T
+    {
+        public void Test() { 
+            new Derived().[|M|](1);
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>";
+            var fix =
+@"
+<Workspace>
+    <Project Language=""Visual Basic"" CommonReferences=""true"" AssemblyName=""VB1"">
+        <Document FilePath=""ReferencedDocument"">
+Namespace N
+    Public Class BaseClass
+        Public Overridable Sub M(v As Integer)
+        End Sub
+    End Class
+End Namespace
+        </Document>
+    </Project>
+    <Project Language=""C#"" CommonReferences=""true""  AssemblyName=""A2"">
+        <ProjectReference>VB1</ProjectReference>
+        <Document>
+namespace N
+{
+    public class Derived: BaseClass
+    {
+        public override void M(int v) { }
+    }
+    public class T
+    {
+        public void Test() { 
+            new Derived().M(1);
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>";
+            await TestInRegularAndScriptAsync(code, fix, index: 1);
+        }
+
     }
 }
