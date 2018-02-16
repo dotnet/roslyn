@@ -226,6 +226,8 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
             var editor = new SyntaxEditor(root, document.Project.Solution.Workspace);
             var nullCheckStatement = generateNullCheck(compilation, editor.Generator);
+            nullCheckStatement = nullCheckStatement.WithAppendedTrailingTrivia(
+                editor.Generator.ElasticCarriageReturnLineFeed);
 
             // Find a good location to add the null check. In general, we want the order of checks
             // and assignments in the constructor to match the order of parameters in the method

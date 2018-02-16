@@ -6,6 +6,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Operations;
 using Roslyn.Utilities;
 
@@ -115,6 +116,13 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
                     // as the single statement the block will have.
                     Debug.Assert(block.Statements.Count == 0);
                     editor.ReplaceNode(block, block.AddStatements(statement));
+                }
+
+                if (CSharpSyntaxFactsService.Instance.IsOnSingleLine(block, fullSpan: false))
+                {
+                    editor.ReplaceNode(
+                        block,
+                        (currentBlock, _) => currentBlock.WithAdditionalAnnotations(Formatter.Annotation));
                 }
             }
             else
