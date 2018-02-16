@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Bind switch expression and set the switch governing type.
             var boundSwitchGoverningExpression = SwitchGoverningExpression;
             diagnostics.AddRange(SwitchGoverningDiagnostics);
-            ImmutableArray<BoundSwitchExpressionCase> switchCases = BindSwitchExpressionCases(node, originalBinder, diagnostics);
+            ImmutableArray<BoundSwitchExpressionArm> switchCases = BindSwitchExpressionCases(node, originalBinder, diagnostics);
             bool hasErrors = false;
             TypeSymbol resultType = InferResultType(switchCases, diagnostics);
             switchCases = AddConversionsToCases(switchCases, resultType, diagnostics);
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Infer the result type of the switch expression by looking for a common type.
         /// </summary>
-        private TypeSymbol InferResultType(ImmutableArray<BoundSwitchExpressionCase> switchCases, DiagnosticBag diagnostics)
+        private TypeSymbol InferResultType(ImmutableArray<BoundSwitchExpressionArm> switchCases, DiagnosticBag diagnostics)
         {
             var seenTypes = new HashSet<TypeSymbol>();
             var typesInOrder = ArrayBuilder<TypeSymbol>.GetInstance();
@@ -71,25 +71,25 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Rewrite the expressions in the switch expression cases to add a conversion to the result (common) type.
         /// </summary>
-        private ImmutableArray<BoundSwitchExpressionCase> AddConversionsToCases(ImmutableArray<BoundSwitchExpressionCase> switchCases, TypeSymbol resultType, DiagnosticBag diagnostics)
+        private ImmutableArray<BoundSwitchExpressionArm> AddConversionsToCases(ImmutableArray<BoundSwitchExpressionArm> switchCases, TypeSymbol resultType, DiagnosticBag diagnostics)
         {
-            var builder = ArrayBuilder<BoundSwitchExpressionCase>.GetInstance();
+            var builder = ArrayBuilder<BoundSwitchExpressionArm>.GetInstance();
             foreach (var oldCase in switchCases)
             {
                 var oldValue = oldCase.Value;
                 var newValue = GenerateConversionForAssignment(resultType, oldValue, diagnostics);
                 var newCase = (oldValue == newValue) ? oldCase :
-                    new BoundSwitchExpressionCase(oldCase.Syntax, oldCase.Locals, oldCase.Pattern, oldCase.Guard, newValue, oldCase.HasErrors);
+                    new BoundSwitchExpressionArm(oldCase.Syntax, oldCase.Locals, oldCase.Pattern, oldCase.Guard, newValue, oldCase.HasErrors);
                 builder.Add(newCase);
             }
 
             return builder.ToImmutableAndFree();
         }
 
-        private ImmutableArray<BoundSwitchExpressionCase> BindSwitchExpressionCases(SwitchExpressionSyntax node, Binder originalBinder, DiagnosticBag diagnostics)
+        private ImmutableArray<BoundSwitchExpressionArm> BindSwitchExpressionCases(SwitchExpressionSyntax node, Binder originalBinder, DiagnosticBag diagnostics)
         {
             bool hasErrors = SwitchGoverningExpression.HasErrors;
-            var builder = ArrayBuilder<BoundSwitchExpressionCase>.GetInstance();
+            var builder = ArrayBuilder<BoundSwitchExpressionArm>.GetInstance();
             foreach (var arm in node.Arms)
             {
                 var armBinder = originalBinder.GetBinder(arm);
@@ -104,11 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                if (_switchGoverningExpression == null)
-                {
-                    EnsureSwitchGoverningExpressionAndDiagnosticsBound();
-                }
-
+                EnsureSwitchGoverningExpressionAndDiagnosticsBound();
                 Debug.Assert(_switchGoverningExpression != null);
                 return _switchGoverningExpression;
             }
@@ -121,16 +117,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 EnsureSwitchGoverningExpressionAndDiagnosticsBound();
+                Debug.Assert(_switchGoverningDiagnostics != null);
                 return _switchGoverningDiagnostics;
             }
         }
 
         private void EnsureSwitchGoverningExpressionAndDiagnosticsBound()
         {
-            var switchGoverningDiagnostics = new DiagnosticBag();
-            var boundSwitchGoverningExpression = BindSwitchGoverningExpression(switchGoverningDiagnostics);
-            _switchGoverningDiagnostics = switchGoverningDiagnostics;
-            Interlocked.CompareExchange(ref _switchGoverningExpression, boundSwitchGoverningExpression, null);
+            if (_switchGoverningExpression == null)
+            {
+                var switchGoverningDiagnostics = new DiagnosticBag();
+                var boundSwitchGoverningExpression = BindSwitchGoverningExpression(switchGoverningDiagnostics);
+                _switchGoverningDiagnostics = switchGoverningDiagnostics;
+                Interlocked.CompareExchange(ref _switchGoverningExpression, boundSwitchGoverningExpression, null);
+            }
         }
 
         private BoundExpression BindSwitchGoverningExpression(DiagnosticBag diagnostics)

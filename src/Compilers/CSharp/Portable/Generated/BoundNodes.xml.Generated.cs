@@ -2934,7 +2934,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundSwitchExpression : BoundExpression
     {
-        public BoundSwitchExpression(SyntaxNode syntax, BoundExpression governingExpression, ImmutableArray<BoundSwitchExpressionCase> switchSections, TypeSymbol type, bool hasErrors = false)
+        public BoundSwitchExpression(SyntaxNode syntax, BoundExpression governingExpression, ImmutableArray<BoundSwitchExpressionArm> switchSections, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.SwitchExpression, syntax, type, hasErrors || governingExpression.HasErrors() || switchSections.HasErrors())
         {
 
@@ -2948,14 +2948,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundExpression GoverningExpression { get; }
 
-        public ImmutableArray<BoundSwitchExpressionCase> SwitchSections { get; }
+        public ImmutableArray<BoundSwitchExpressionArm> SwitchSections { get; }
 
         public override BoundNode Accept(BoundTreeVisitor visitor)
         {
             return visitor.VisitSwitchExpression(this);
         }
 
-        public BoundSwitchExpression Update(BoundExpression governingExpression, ImmutableArray<BoundSwitchExpressionCase> switchSections, TypeSymbol type)
+        public BoundSwitchExpression Update(BoundExpression governingExpression, ImmutableArray<BoundSwitchExpressionArm> switchSections, TypeSymbol type)
         {
             if (governingExpression != this.GoverningExpression || switchSections != this.SwitchSections || type != this.Type)
             {
@@ -2967,9 +2967,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal sealed partial class BoundSwitchExpressionCase : BoundNode
+    internal sealed partial class BoundSwitchExpressionArm : BoundNode
     {
-        public BoundSwitchExpressionCase(SyntaxNode syntax, ImmutableArray<LocalSymbol> locals, BoundPattern pattern, BoundExpression guard, BoundExpression value, bool hasErrors = false)
+        public BoundSwitchExpressionArm(SyntaxNode syntax, ImmutableArray<LocalSymbol> locals, BoundPattern pattern, BoundExpression guard, BoundExpression value, bool hasErrors = false)
             : base(BoundKind.SwitchExpressionCase, syntax, hasErrors || pattern.HasErrors() || guard.HasErrors() || value.HasErrors())
         {
 
@@ -2997,11 +2997,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return visitor.VisitSwitchExpressionCase(this);
         }
 
-        public BoundSwitchExpressionCase Update(ImmutableArray<LocalSymbol> locals, BoundPattern pattern, BoundExpression guard, BoundExpression value)
+        public BoundSwitchExpressionArm Update(ImmutableArray<LocalSymbol> locals, BoundPattern pattern, BoundExpression guard, BoundExpression value)
         {
             if (locals != this.Locals || pattern != this.Pattern || guard != this.Guard || value != this.Value)
             {
-                var result = new BoundSwitchExpressionCase(this.Syntax, locals, pattern, guard, value, this.HasErrors);
+                var result = new BoundSwitchExpressionArm(this.Syntax, locals, pattern, guard, value, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -6940,7 +6940,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.SwitchExpression: 
                     return VisitSwitchExpression(node as BoundSwitchExpression, arg);
                 case BoundKind.SwitchExpressionCase: 
-                    return VisitSwitchExpressionCase(node as BoundSwitchExpressionCase, arg);
+                    return VisitSwitchExpressionCase(node as BoundSwitchExpressionArm, arg);
                 case BoundKind.EvaluationPoint: 
                     return VisitEvaluationPoint(node as BoundEvaluationPoint, arg);
                 case BoundKind.DecisionPoint: 
@@ -7421,7 +7421,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return this.DefaultVisit(node, arg);
         }
-        public virtual R VisitSwitchExpressionCase(BoundSwitchExpressionCase node, A arg)
+        public virtual R VisitSwitchExpressionCase(BoundSwitchExpressionArm node, A arg)
         {
             return this.DefaultVisit(node, arg);
         }
@@ -8089,7 +8089,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return this.DefaultVisit(node);
         }
-        public virtual BoundNode VisitSwitchExpressionCase(BoundSwitchExpressionCase node)
+        public virtual BoundNode VisitSwitchExpressionCase(BoundSwitchExpressionArm node)
         {
             return this.DefaultVisit(node);
         }
@@ -8834,7 +8834,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.VisitList(node.SwitchSections);
             return null;
         }
-        public override BoundNode VisitSwitchExpressionCase(BoundSwitchExpressionCase node)
+        public override BoundNode VisitSwitchExpressionCase(BoundSwitchExpressionArm node)
         {
             this.Visit(node.Pattern);
             this.Visit(node.Guard);
@@ -9744,11 +9744,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitSwitchExpression(BoundSwitchExpression node)
         {
             BoundExpression governingExpression = (BoundExpression)this.Visit(node.GoverningExpression);
-            ImmutableArray<BoundSwitchExpressionCase> switchSections = (ImmutableArray<BoundSwitchExpressionCase>)this.VisitList(node.SwitchSections);
+            ImmutableArray<BoundSwitchExpressionArm> switchSections = (ImmutableArray<BoundSwitchExpressionArm>)this.VisitList(node.SwitchSections);
             TypeSymbol type = this.VisitType(node.Type);
             return node.Update(governingExpression, switchSections, type);
         }
-        public override BoundNode VisitSwitchExpressionCase(BoundSwitchExpressionCase node)
+        public override BoundNode VisitSwitchExpressionCase(BoundSwitchExpressionArm node)
         {
             BoundPattern pattern = (BoundPattern)this.Visit(node.Pattern);
             BoundExpression guard = (BoundExpression)this.Visit(node.Guard);
@@ -11039,7 +11039,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             );
         }
-        public override TreeDumperNode VisitSwitchExpressionCase(BoundSwitchExpressionCase node, object arg)
+        public override TreeDumperNode VisitSwitchExpressionCase(BoundSwitchExpressionArm node, object arg)
         {
             return new TreeDumperNode("switchExpressionCase", null, new TreeDumperNode[]
             {
