@@ -6,6 +6,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Operations;
 using Roslyn.Utilities;
 
@@ -115,6 +116,21 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
                     // as the single statement the block will have.
                     Debug.Assert(block.Statements.Count == 0);
                     editor.ReplaceNode(block, block.AddStatements(statement));
+                }
+
+                // If the block was on a single line before, the format it so that the formatting
+                // engine will update it to go over multiple lines. Otherwise, we can end up in
+                // the strange state where the { and } tokens stay where they were originally,
+                // which will look very strange like:
+                //
+                //          a => {
+                //              if (...) {
+                //              } };
+                if (CSharpSyntaxFactsService.Instance.IsOnSingleLine(block, fullSpan: false))
+                {
+                    editor.ReplaceNode(
+                        block,
+                        (currentBlock, _) => currentBlock.WithAdditionalAnnotations(Formatter.Annotation));
                 }
             }
             else
