@@ -88,8 +88,8 @@ namespace Test.Utilities
                     // Is it starting a new match, or ending an existing match.  As a workaround, we
                     // special case these and consider it ending a match if we have something on the
                     // stack already.
-                    if ((matches[0].Item2 == SpanStartString && matches[1].Item2 == SpanEndString && spanStartStack.Peek().Item2 == string.Empty) ||
-                        (matches[0].Item2 == SpanStartString && matches[1].Item2 == NamedSpanEndString && spanStartStack.Peek().Item2 != string.Empty))
+                    if ((matches[0].Item2 == SpanStartString && matches[1].Item2 == SpanEndString && spanStartStack.Peek().Item2.Length == 0) ||
+                        (matches[0].Item2 == SpanStartString && matches[1].Item2 == NamedSpanEndString && spanStartStack.Peek().Item2.Length > 0))
                     {
                         orderedMatches.RemoveAt(0);
                     }

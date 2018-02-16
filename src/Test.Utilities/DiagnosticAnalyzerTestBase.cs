@@ -210,7 +210,7 @@ namespace Test.Utilities
                 string[] tokens = str.Split('(', ',', ')');
                 Assert.True(tokens.Length == 4, "Location string must be of the format 'FileName.cs(line,column)' or just 'line,column' to use " + defaultPath + " as the file name.");
 
-                string path = tokens[0] == "" ? defaultPath : tokens[0];
+                string path = tokens[0].Length == 0 ? defaultPath : tokens[0];
 
                 Assert.True(int.TryParse(tokens[1], out int line) && line >= -1, "Line must be >= -1 in location string: " + str);
 

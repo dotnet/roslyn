@@ -59,7 +59,9 @@ namespace Test.Utilities
     {
         private DiagnosticResultLocation[] _locations;
 
+#pragma warning disable CA1819 // Properties should not return arrays
         public DiagnosticResultLocation[] Locations
+#pragma warning restore CA1819 // Properties should not return arrays
         {
             get
             {
