@@ -333,6 +333,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (targetType is null)
             {
+                Debug.Assert(conversion.Kind == ConversionKind.NoConversion || conversion.Kind == ConversionKind.Identity);
                 return Result.Unset;
             }
             var result = ApplyConversion(value, conversion, targetType, valueResult, checkConversion: true, requireIdentity: false, canConvert: out bool canConvert);
@@ -349,15 +350,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return typeOpt ?? (object)"<null>";
         }
 
-        private static BoundExpression CreatePlaceholderExpressionIfNecessary(BoundExpression value, Result valueResult)
+        private static BoundExpression CreatePlaceholderExpressionIfNecessary(SyntaxNode syntax, Result value)
         {
-            var valueType = valueResult.Type;
-            return valueResult.Expression ?? new BoundValuePlaceholder(value.Syntax, valueType?.IsNullable, valueType?.TypeSymbol);
+            var valueType = value.Type;
+            return value.Expression ?? new BoundValuePlaceholder(syntax, valueType?.IsNullable, valueType?.TypeSymbol);
         }
 
         private static ImmutableArray<BoundExpression> CreatePlaceholderExpressionsIfNecessary(ImmutableArray<BoundExpression> values, ImmutableArray<Result> valueResults)
         {
-            return valueResults.ZipAsArray(values, (r, v) => CreatePlaceholderExpressionIfNecessary(v, r));
+            return valueResults.ZipAsArray(values, (r, v) => CreatePlaceholderExpressionIfNecessary(v.Syntax, r));
         }
 
         /// <summary>
@@ -753,7 +754,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             int slot = GetOrCreateSlot(local);
 
             initializer = RemoveImplicitConversion(initializer, out var conversion);
-            var value = VisitRvalue(initializer);
+            Result value = VisitRvalue(initializer);
             TypeSymbolWithAnnotations type = local.Type;
 
             if (node.DeclaredType.InferredType)
@@ -764,7 +765,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                var valueType = value.Type;
+                TypeSymbolWithAnnotations valueType = value.Type;
                 value = ApplyConversion(initializer, conversion, type.TypeSymbol, value, checkConversion: true, requireIdentity: false, canConvert: out bool canConvert);
                 if (!canConvert)
                 {
@@ -785,7 +786,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Verify Visit method set _result.
             if (!IsConditionalState)
             {
-                var resultType = _result.Type;
+                TypeSymbolWithAnnotations resultType = _result.Type;
                 Debug.Assert((object)resultType != _invalidType);
                 Debug.Assert((object)resultType == null || AreCloseEnough(resultType.TypeSymbol, node.Type));
             }
@@ -881,7 +882,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
                 default:
                     // PROTOTYPE(NullableReferenceTypes): Unwrap implicit conversions and re-calculate.
-                    var result = VisitRvalue(node);
+                    Result result = VisitRvalue(node);
                     if ((object)containingSymbol != null)
                     {
                         var type = GetTypeOrReturnTypeWithAdjustedNullableAnnotations(containingSymbol);
@@ -925,7 +926,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // of omitted call. See PreciseAbstractFlowPass.VisitCollectionElementInitializer.
             }
 
-            VisitArguments(node, node.Arguments, default, default, node.AddMethod, node.ArgsToParamsOpt, node.Expanded);
+            VisitArguments(node, node.Arguments, namesOpt: default, refKindsOpt: default, method: node.AddMethod, argsToParamsOpt: node.ArgsToParamsOpt, expanded: node.Expanded);
             SetUnknownResultNullability();
         }
 
@@ -1031,6 +1032,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                 var resultTypes = resultBuilder.SelectAsArray(r => r.Type);
+                // PROTOTYPE(NullableReferenceType): Initial binding calls InferBestType(ImmutableArray<BoundExpression>, ...)
+                // overload. Why are we calling InferBestType(ImmutableArray<TypeSymbolWithAnnotations>, ...) here?
+                // PROTOTYPE(NullableReferenceType): InferBestType(ImmutableArray<BoundExpression>, ...)
+                // uses a HashSet<TypeSymbol> to reduce the candidates to the unique types before comparing.
+                // Should do the same here.
                 var bestType = BestTypeInferrer.InferBestType(resultTypes.SelectAsArray(r => r?.TypeSymbol), _conversions, useSiteDiagnostics: ref useSiteDiagnostics);
                 var isNullable = BestTypeInferrer.GetIsNullable(resultTypes);
                 elementType = TypeSymbolWithAnnotations.Create(bestType ?? elementType.TypeSymbol, isNullable);
@@ -1187,8 +1193,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     WarnOnNullReferenceArgument(binary.Left, leftType, binary.MethodOpt.Parameters[0]);
                 }
 
-                var right = RemoveImplicitConversion(binary.Right, out var conversion);
-                var rightResult = VisitRvalue(right);
+                BoundExpression right = RemoveImplicitConversion(binary.Right, out var conversion);
+                Result rightResult = VisitRvalue(right);
 
                 Debug.Assert(!IsConditionalState);
                 rightResult = ApplyConversion(right, conversion, binary.Right.Type, rightResult);
@@ -1289,10 +1295,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!IsConditionalState);
 
-            var leftOperand = node.LeftOperand;
-            var rightOperand = RemoveImplicitConversion(node.RightOperand, out var rightConversion);
+            BoundExpression leftOperand = node.LeftOperand;
+            BoundExpression rightOperand = RemoveImplicitConversion(node.RightOperand, out var rightConversion);
 
-            var leftResult = VisitRvalue(leftOperand);
+            Result leftResult = VisitRvalue(leftOperand);
             if (IsConstantNull(leftOperand))
             {
                 VisitRvalue(rightOperand);
@@ -1330,9 +1336,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     leftResult = ApplyConversion(node.LeftOperand, node.LeftConversion, rightResult.Type.TypeSymbol, leftResult);
                     resultType = TypeSymbolWithAnnotations.Create(rightResult.Type.TypeSymbol, getResultNullable(leftResult, rightResult));
                     break;
-                default:
+                case BoundNullCoalescingOperatorResultKind.ErrorType:
                     resultType = TypeSymbolWithAnnotations.Create(node.Type);
                     break;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(node.OperatorResultKind);
             }
 
             _result = resultType;
@@ -1402,17 +1410,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var consequence = node.Consequence;
-            visitConditionalOperand(consequenceState, node.Consequence, out var consequenceConversion);
+            visitConditionalOperand(consequenceState, consequence, out var consequenceConversion);
             Unsplit();
             consequenceState = this.State;
             var consequenceResult = _result;
-            consequence = CreatePlaceholderExpressionIfNecessary(consequence, consequenceResult);
+            consequence = CreatePlaceholderExpressionIfNecessary(consequence.Syntax, consequenceResult);
 
             var alternative = node.Alternative;
             visitConditionalOperand(alternativeState, alternative, out var alternativeConversion);
             Unsplit();
             var alternativeResult = _result;
-            alternative = CreatePlaceholderExpressionIfNecessary(alternative, alternativeResult);
+            alternative = CreatePlaceholderExpressionIfNecessary(alternative.Syntax, alternativeResult);
 
             TypeSymbol resultType = null;
             if (!node.HasErrors)
@@ -1810,6 +1818,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return method;
         }
 
+        // PROTOTYPE(NullableReferenceTypes): Can we avoid removing and re-applying
+        // conversions and instead simply call VisitConversion in most cases?
         private static BoundExpression RemoveImplicitConversion(BoundExpression expr, out Conversion conversion)
         {
             BoundConversion asImplicitConversion(BoundExpression e)
@@ -1852,13 +1862,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             while (true)
             {
+                if (conversion.Kind == ConversionKind.ImplicitUserDefined)
+                {
+                    switch (conversion.UserDefinedFromConversion.Kind)
+                    {
+                        case ConversionKind.NoConversion:
+                        case ConversionKind.Identity:
+                        case ConversionKind.ImplicitTupleLiteral:
+                            return expr;
+                    }
+                }
+
                 conv = asImplicitConversion(expr);
                 if (conv == null)
                 {
-                    Debug.Assert(conversion.Kind != ConversionKind.ImplicitUserDefined ||
-                        conversion.UserDefinedFromConversion.Kind == ConversionKind.Identity ||
-                        conversion.UserDefinedFromConversion.Kind == ConversionKind.NoConversion ||
-                        conversion.UserDefinedFromConversion.Kind == ConversionKind.ImplicitTupleLiteral);
                     return expr;
                 }
 
@@ -1953,6 +1970,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static Symbol AsMemberOfTupleType(TupleTypeSymbol tupleType, Symbol symbol)
         {
+            if (symbol.ContainingType.Equals(tupleType, TypeCompareKind.CompareNullableModifiersForReferenceTypes))
+            {
+                return symbol;
+            }
             var underlyingType = tupleType.UnderlyingNamedType;
             switch (symbol.Kind)
             {
@@ -2134,8 +2155,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.Unboxing:
                 case ConversionKind.ExplicitDynamic:
                 case ConversionKind.ImplicitDynamic:
-                case ConversionKind.ImplicitThrow:
                     break;
+
+                case ConversionKind.ImplicitThrow:
+                    Debug.Assert(operand.Expression.Kind == BoundKind.ThrowExpression);
+                    return operand;
 
                 case ConversionKind.Boxing:
                     {
@@ -3163,11 +3187,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Some Visit methods call SetUnknownResultNullability,
-        // some set ResultType = null directly. Use the same approach for all.
         private void SetUnknownResultNullability()
         {
-            _result = (BoundExpression)null;
+            _result = Result.Unset;
         }
 
         public override BoundNode VisitStackAllocArrayCreation(BoundStackAllocArrayCreation node)
@@ -3307,9 +3329,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitThrowExpression(BoundThrowExpression node)
         {
-            var result = base.VisitThrowExpression(node);
-            SetUnknownResultNullability();
-            return result;
+            base.VisitThrowExpression(node);
+            SetResult(node);
+            return null;
         }
 
 #endregion Visitors

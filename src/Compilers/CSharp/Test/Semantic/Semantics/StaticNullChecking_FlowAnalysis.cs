@@ -665,6 +665,47 @@ class C
         }
 
         [Fact]
+        public void ConditionalOperator_10()
+        {
+            var source =
+@"using System;
+class C
+{
+    static void F(bool b, object? x, object y)
+    {
+        (b ? x : throw new Exception()).ToString();
+        (b ? y : throw new Exception()).ToString();
+        (b ? throw new Exception() : x).ToString();
+        (b ? throw new Exception() : y).ToString();
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (6,10): warning CS8602: Possible dereference of a null reference.
+                //         (b ? x : throw new Exception()).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b ? x : throw new Exception()").WithLocation(6, 10),
+                // (8,10): warning CS8602: Possible dereference of a null reference.
+                //         (b ? throw new Exception() : x).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b ? throw new Exception() : x").WithLocation(8, 10));
+        }
+
+        [Fact]
+        public void ConditionalOperator_11()
+        {
+            var source =
+@"class C
+{
+    static void F(bool b, object x)
+    {
+        (b ? x : throw null).ToString();
+        (b ? throw null : x).ToString();
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void NullCoalescingOperator_01()
         {
             var source =

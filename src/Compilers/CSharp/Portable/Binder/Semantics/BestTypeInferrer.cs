@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -12,13 +13,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static TypeSymbol InferBestType(ImmutableArray<TypeSymbol> types, Conversions conversions, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             return GetBestType(types, conversions, ref useSiteDiagnostics);
-        }
-
-        public static TypeSymbolWithAnnotations InferBestType(ImmutableArray<TypeSymbolWithAnnotations> types, Conversions conversions, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
-        {
-            // PROTOTYPE(NullableReferenceTypes): Avoid extra ImmutableArray.
-            var bestType = GetBestType(types.SelectAsArray(t => t?.TypeSymbol), conversions, ref useSiteDiagnostics);
-            return (bestType is null) ? null : TypeSymbolWithAnnotations.Create(bestType, GetIsNullable(types));
         }
 
         internal static bool? GetIsNullable(ImmutableArray<TypeSymbolWithAnnotations> types)
@@ -67,7 +61,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC:    If no such S exists, the expressions have no best common type.
 
             // All non-null types are candidates for best type inference.
-            var candidateTypes = new HashSet<TypeSymbol>(conversions.IncludeNullability ? TypeSymbol.EqualsIncludingNullableComparer : TypeSymbol.EqualsConsiderEverything);
+            Debug.Assert(!conversions.IncludeNullability); // Ignoring top-level and nested nullability.
+            var candidateTypes = new HashSet<TypeSymbol>(TypeSymbol.EqualsConsiderEverything);
             foreach (BoundExpression expr in exprs)
             {
                 var type = expr.Type;
