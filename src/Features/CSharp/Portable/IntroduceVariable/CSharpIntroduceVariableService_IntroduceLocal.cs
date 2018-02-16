@@ -118,7 +118,11 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                 ? SyntaxFactory.Block(declarationStatement)
                 : SyntaxFactory.Block(declarationStatement, SyntaxFactory.ReturnStatement(rewrittenBody));
 
-            var newLambda = oldLambda.WithBody(newBody.WithAdditionalAnnotations(Formatter.Annotation));
+            // Add an elastic newline so that the formatter will place this new lambda body across multiple lines.
+            newBody = newBody.WithOpenBraceToken(newBody.OpenBraceToken.WithAppendedTrailingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed))
+                             .WithAdditionalAnnotations(Formatter.Annotation);
+
+            var newLambda = oldLambda.WithBody(newBody);
 
             var newRoot = document.Root.ReplaceNode(oldLambda, newLambda);
             return document.Document.WithSyntaxRoot(newRoot);
@@ -188,9 +192,12 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
 
             var newBody = SyntaxFactory.Block(declarationStatement, convertedStatement)
                                        .WithLeadingTrivia(leadingTrivia)
-                                       .WithTrailingTrivia(oldBody.GetTrailingTrivia())
-                                       .WithAdditionalAnnotations(Formatter.Annotation);
-            
+                                       .WithTrailingTrivia(oldBody.GetTrailingTrivia());
+
+            // Add an elastic newline so that the formatter will place this new block across multiple lines.
+            newBody = newBody.WithOpenBraceToken(newBody.OpenBraceToken.WithAppendedTrailingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed))
+                             .WithAdditionalAnnotations(Formatter.Annotation);
+
             var newRoot = document.Root.ReplaceNode(oldParentingNode, WithBlockBody(oldParentingNode, newBody));
             return document.Document.WithSyntaxRoot(newRoot);
         }

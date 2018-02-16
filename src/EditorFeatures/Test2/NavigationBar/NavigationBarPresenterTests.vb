@@ -43,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
             End Using
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(544957, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544957")>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/24754"), Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(544957, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544957")>
         Public Async Function ProjectionBuffersWork() As Task
             Using workspace = TestWorkspace.Create(
                 <Workspace>
