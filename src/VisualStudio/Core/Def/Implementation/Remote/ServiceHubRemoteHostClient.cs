@@ -6,9 +6,7 @@ using System.Globalization;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Remote;
@@ -33,12 +31,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
         private static int s_instanceId = 0;
 
-        private readonly HubClient _hubClient;
-        private readonly HostGroup _hostGroup;
-        private readonly TimeSpan _timeout;
-
         private readonly JsonRpc _rpc;
-        private readonly ReferenceCountedDisposable<RemotableDataJsonRpc> _remotableDataRpc;
+        private readonly ConnectionManager _connectionManager;
 
         /// <summary>
         /// Lock for the <see cref="_globalNotificationsTask"/> task chain.  Each time we hear 
@@ -61,7 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 // Retry (with timeout) until we can connect to RemoteHost (service hub process). 
                 // we are seeing cases where we failed to connect to service hub process when a machine is under heavy load.
                 // (see https://devdiv.visualstudio.com/DevDiv/_workitems/edit/481103 as one of example)
-                var instance = await RetryRemoteCallAsync<IOException, ServiceHubRemoteHostClient>(
+                var instance = await Connections.RetryRemoteCallAsync<IOException, ServiceHubRemoteHostClient>(
                     () => CreateWorkerAsync(workspace, primary, timeout, cancellationToken), timeout, cancellationToken).ConfigureAwait(false);
 
                 instance.Started();
@@ -86,11 +80,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 var current = $"VS ({Process.GetCurrentProcess().Id}) ({currentInstanceId})";
 
                 var hostGroup = new HostGroup(current);
-                var remoteHostStream = await RequestServiceAsync(primary, WellKnownRemoteHostServices.RemoteHostService, hostGroup, timeout, cancellationToken).ConfigureAwait(false);
+                var remoteHostStream = await Connections.RequestServiceAsync(primary, WellKnownRemoteHostServices.RemoteHostService, hostGroup, timeout, cancellationToken).ConfigureAwait(false);
 
                 var remotableDataRpc = new RemotableDataJsonRpc(
-                    workspace, primary.Logger, await RequestServiceAsync(primary, WellKnownServiceHubServices.SnapshotService, hostGroup, timeout, cancellationToken).ConfigureAwait(false));
-                client = new ServiceHubRemoteHostClient(workspace, primary, hostGroup, new ReferenceCountedDisposable<RemotableDataJsonRpc>(remotableDataRpc), remoteHostStream);
+                                          workspace, primary.Logger,
+                                          await Connections.RequestServiceAsync(primary, WellKnownServiceHubServices.SnapshotService, hostGroup, timeout, cancellationToken).ConfigureAwait(false));
+
+                var enableConnectionPool = workspace.Options.GetOption(RemoteHostOptions.EnableConnectionPool);
+                var maxConnection = workspace.Options.GetOption(RemoteHostOptions.MaxPoolConnection);
+
+                var connectionManager = new ConnectionManager(primary, hostGroup, enableConnectionPool, maxConnection, timeout, new ReferenceCountedDisposable<RemotableDataJsonRpc>(remotableDataRpc));
+
+                client = new ServiceHubRemoteHostClient(workspace, connectionManager, remoteHostStream);
 
                 var uiCultureLCID = CultureInfo.CurrentUICulture.LCID;
                 var cultureLCID = CultureInfo.CurrentCulture.LCID;
@@ -145,18 +146,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
         private ServiceHubRemoteHostClient(
             Workspace workspace,
-            HubClient hubClient,
-            HostGroup hostGroup,
-            ReferenceCountedDisposable<RemotableDataJsonRpc> remotableDataRpc,
+            ConnectionManager connectionManager,
             Stream stream)
             : base(workspace)
         {
-            Contract.ThrowIfNull(remotableDataRpc);
-
-            _hubClient = hubClient;
-            _hostGroup = hostGroup;
-            _timeout = TimeSpan.FromMilliseconds(workspace.Options.GetOption(RemoteHostOptions.RequestServiceTimeoutInMS));
-            _remotableDataRpc = remotableDataRpc;
+            _connectionManager = connectionManager;
 
             _rpc = new JsonRpc(new JsonRpcMessageHandler(stream, stream), target: this);
             _rpc.JsonSerializer.Converters.Add(AggregateJsonConverter.Instance);
@@ -167,23 +161,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             _rpc.StartListening();
         }
 
-        public override async Task<Connection> TryCreateConnectionAsync(string serviceName, object callbackTarget, CancellationToken cancellationToken)
+        public override Task<Connection> TryCreateConnectionAsync(string serviceName, object callbackTarget, CancellationToken cancellationToken)
         {
-            var dataRpc = _remotableDataRpc.TryAddReference();
-            if (dataRpc == null)
-            {
-                // dataRpc is disposed. this can happen if someone killed remote host process while there is
-                // no other one holding the data connection.
-                // in those error case, don't crash but return null. this method is TryCreate since caller expects it to return null
-                // on such error situation.
-                return null;
-            }
-
-            // get stream from service hub to communicate service specific information
-            // this is what consumer actually use to communicate information
-            var serviceStream = await RequestServiceAsync(_hubClient, serviceName, _hostGroup, _timeout, cancellationToken).ConfigureAwait(false);
-
-            return new JsonRpcConnection(_hubClient.Logger, callbackTarget, serviceStream, dataRpc);
+            return _connectionManager.TryCreateConnectionAsync(serviceName, callbackTarget, cancellationToken);
         }
 
         protected override void OnStarted()
@@ -201,7 +181,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             UnregisterGlobalOperationNotifications();
             _rpc.Disconnected -= OnRpcDisconnected;
             _rpc.Dispose();
-            _remotableDataRpc.Dispose();
+            _connectionManager.Shutdown();
         }
 
         private void RegisterGlobalOperationNotifications()
@@ -294,134 +274,5 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         {
             Stopped();
         }
-
-        /// <summary>
-        /// call <paramref name="funcAsync"/> and retry up to <paramref name="timeout"/> if the call throws
-        /// <typeparamref name="TException"/>. any other exception from the call won't be handled here.
-        /// </summary>
-        private static async Task<TResult> RetryRemoteCallAsync<TException, TResult>(
-            Func<Task<TResult>> funcAsync,
-            TimeSpan timeout,
-            CancellationToken cancellationToken) where TException : Exception
-        {
-            const int retry_delayInMS = 50;
-
-            using (var pooledStopwatch = SharedPools.Default<Stopwatch>().GetPooledObject())
-            {
-                var watch = pooledStopwatch.Object;
-                watch.Start();
-
-                while (watch.Elapsed < timeout)
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    try
-                    {
-                        return await funcAsync().ConfigureAwait(false);
-                    }
-                    catch (TException)
-                    {
-                        // throw cancellation token if operation is cancelled
-                        cancellationToken.ThrowIfCancellationRequested();
-                    }
-
-                    // wait for retry_delayInMS before next try
-                    await Task.Delay(retry_delayInMS, cancellationToken).ConfigureAwait(false);
-
-                    ReportTimeout(watch);
-                }
-            }
-
-            // operation timed out, more than we are willing to wait
-            RemoteHostCrashInfoBar.ShowInfoBar();
-
-            // user didn't ask for cancellation, but we can't fullfill this request. so we
-            // create our own cancellation token and then throw it. this doesn't guarantee
-            // 100% that we won't crash, but this is at least safest way we know until user
-            // restart VS (with info bar)
-            using (var ownCancellationSource = new CancellationTokenSource())
-            {
-                ownCancellationSource.Cancel();
-                ownCancellationSource.Token.ThrowIfCancellationRequested();
-            }
-
-            throw ExceptionUtilities.Unreachable;
-        }
-
-        private static async Task<Stream> RequestServiceAsync(
-            HubClient client,
-            string serviceName,
-            HostGroup hostGroup,
-            TimeSpan timeout,
-            CancellationToken cancellationToken = default)
-        {
-            const int max_retry = 10;
-            const int retry_delayInMS = 50;
-
-            Exception lastException = null;
-
-            var descriptor = new ServiceDescriptor(serviceName) { HostGroup = hostGroup };
-
-            // call to get service can fail due to this bug - devdiv#288961 or more.
-            // until root cause is fixed, we decide to have retry rather than fail right away
-            for (var i = 0; i < max_retry; i++)
-            {
-                try
-                {
-                    // we are wrapping HubClient.RequestServiceAsync since we can't control its internal timeout value ourselves.
-                    // we have bug opened to track the issue.
-                    // https://devdiv.visualstudio.com/DefaultCollection/DevDiv/Editor/_workitems?id=378757&fullScreen=false&_a=edit
-
-                    // retry on cancellation token since HubClient will throw its own cancellation token
-                    // when it couldn't connect to service hub service for some reasons
-                    // (ex, OOP process GC blocked and not responding to request)
-                    return await RetryRemoteCallAsync<OperationCanceledException, Stream>(
-                        () => client.RequestServiceAsync(descriptor, cancellationToken),
-                        timeout,
-                        cancellationToken).ConfigureAwait(false);
-                }
-                catch (RemoteInvocationException ex)
-                {
-                    // save info only if it failed with different issue than before.
-                    if (lastException?.Message != ex.Message)
-                    {
-                        // RequestServiceAsync should never fail unless service itself is actually broken.
-                        // So far, we catched multiple issues from this NFW. so we will keep this NFW.
-                        ex.ReportServiceHubNFW("RequestServiceAsync Failed");
-
-                        lastException = ex;
-                    }
-                }
-
-                // wait for retry_delayInMS before next try
-                await Task.Delay(retry_delayInMS, cancellationToken).ConfigureAwait(false);
-            }
-
-            // crash right away to get better dump. otherwise, we will get dump from async exception
-            // which most likely lost all valuable data
-            FatalError.ReportUnlessCanceled(lastException);
-            GC.KeepAlive(lastException);
-
-            // unreachable
-            throw ExceptionUtilities.Unreachable;
-        }
-
-        #region code related to make diagnosis easier later
-
-        private static readonly TimeSpan s_reportTimeout = TimeSpan.FromMinutes(10);
-        private static bool s_timeoutReported = false;
-
-        private static void ReportTimeout(Stopwatch watch)
-        {
-            // if we tried for 10 min and still couldn't connect. NFW (non fatal watson) some data
-            if (!s_timeoutReported && watch.Elapsed > s_reportTimeout)
-            {
-                s_timeoutReported = true;
-
-                // report service hub logs along with dump
-                (new Exception("RequestServiceAsync Timeout")).ReportServiceHubNFW("RequestServiceAsync Timeout");
-            }
-        }
-        #endregion
     }
 }

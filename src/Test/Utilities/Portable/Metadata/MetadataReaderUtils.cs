@@ -309,7 +309,7 @@ namespace Roslyn.Test.Utilities
                         var decoder = new SignatureDecoder<string, object>(ConstantSignatureVisualizer.Instance, reader, genericContext: null);
                         var signature = decoder.DecodeMethodSignature(ref blob);
                         var parameters = signature.ParameterTypes.Join(", ");
-                        return $"{signature.ReturnType} {reader.GetString(method.Name)}({parameters})";
+                        return $"{signature.ReturnType} {DumpRec(reader, method.GetDeclaringType())}.{reader.GetString(method.Name)}({parameters})";
                     }
                 case HandleKind.MemberReference:
                     {
@@ -318,7 +318,7 @@ namespace Roslyn.Test.Utilities
                         var decoder = new SignatureDecoder<string, object>(ConstantSignatureVisualizer.Instance, reader, genericContext: null);
                         var signature = decoder.DecodeMethodSignature(ref blob);
                         var parameters = signature.ParameterTypes.Join(", ");
-                        return $"{signature.ReturnType} {DumpRec(reader, member.Parent)}{reader.GetString(member.Name)}({parameters})";
+                        return $"{signature.ReturnType} {DumpRec(reader, member.Parent)}.{reader.GetString(member.Name)}({parameters})";
                     }
                 case HandleKind.TypeReference:
                     {

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -114,7 +115,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef, ref1}, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: @"12");
+            var comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef, ref1 }, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: @"12");
 
             comp.VerifyIL("Program.Main", @"
 {
@@ -817,6 +818,16 @@ class Program
             Assert.Equal(RefKind.In, namedType.GetMethod("M1").ThisParameter.RefKind);
             Assert.Equal(RefKind.In, namedType.GetMethod("ToString").ThisParameter.RefKind);
 
+            void validate(ModuleSymbol module)
+            {
+                var test = module.ContainingAssembly.GetTypeByMetadataName("Program+S1");
+
+                var peModule = (PEModuleSymbol)module;
+                Assert.True(peModule.Module.HasIsReadOnlyAttribute(((PENamedTypeSymbol)test).Handle));
+                AssertDeclaresType(peModule, WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute, Accessibility.Internal);
+            }
+            CompileAndVerify(comp, symbolValidator: validate);
+
             // S1<T>
             namedType = comp.GetTypeByMetadataName("Program+S1`1");
             Assert.True(namedType.IsReadOnly);
@@ -882,6 +893,14 @@ class Program
             type = (TypeSymbol)comp.CreateTupleTypeSymbol(ImmutableArray.Create<ITypeSymbol>(comp.ObjectType, comp.ObjectType));
             Assert.False(type.IsReadOnly);
 
+            // S1 from image
+            var clientComp = CreateStandardCompilation("", references: new[] { comp.EmitToImageReference() });
+            NamedTypeSymbol s1 = clientComp.GetTypeByMetadataName("Program+S1");
+            Assert.True(s1.IsReadOnly);
+            Assert.Empty(s1.GetAttributes());
+            Assert.Equal(RefKind.Out, s1.Constructors[0].ThisParameter.RefKind);
+            Assert.Equal(RefKind.In, s1.GetMethod("M1").ThisParameter.RefKind);
+            Assert.Equal(RefKind.In, s1.GetMethod("ToString").ThisParameter.RefKind);
         }
 
         [Fact]
