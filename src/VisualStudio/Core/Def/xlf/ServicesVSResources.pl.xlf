@@ -192,11 +192,6 @@
         <target state="translated">Nie można odnaleźć lokalizacji folderu na dysku</target>
         <note />
       </trans-unit>
-      <trans-unit id="Error_while_reading_0_colon_1">
-        <source>Error while reading '{0}': {1}</source>
-        <target state="translated">Błąd podczas odczytywania elementu „{0}”: {1}</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Assembly">
         <source>Assembly </source>
         <target state="translated">Zestaw </target>
@@ -1398,7 +1393,7 @@ Funkcja „Uproszczone ładowanie rozwiązania” jest włączona dla bieżąceg
         <note />
       </trans-unit>
       <trans-unit id="Prefer_local_function_over_anonymous_function">
-        <source>Prefere local function over anonymous function</source>
+        <source>Prefer local function over anonymous function</source>
         <target state="translated">Preferuj funkcję lokalną zamiast funkcji anonimowej</target>
         <note />
       </trans-unit>
@@ -1433,8 +1428,8 @@ Funkcja „Uproszczone ładowanie rozwiązania” jest włączona dla bieżąceg
         <note />
       </trans-unit>
       <trans-unit id="ErrorReadingFile">
-        <source>Error while reading a file</source>
-        <target state="translated">Błąd podczas odczytu pliku</target>
+        <source>Error while reading file '{0}': {1}</source>
+        <target state="needs-review-translation">Błąd podczas odczytu pliku</target>
         <note />
       </trans-unit>
       <trans-unit id="ModuleHasBeenUnloaded">
@@ -1501,6 +1496,11 @@ Wyrażam zgodę na wszystkie następujące postanowienia:</target>
       <trans-unit id="Sync_Class_View">
         <source>Sync Class View</source>
         <target state="new">Sync Class View</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CantApplyChangesUnexpectedError">
+        <source>Can't apply changes -- unexpected error: '{0}'</source>
+        <target state="new">Can't apply changes -- unexpected error: '{0}'</target>
         <note />
       </trans-unit>
     </body>

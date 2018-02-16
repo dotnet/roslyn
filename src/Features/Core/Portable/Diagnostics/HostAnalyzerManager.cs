@@ -222,15 +222,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         /// <summary>
-        /// Create <see cref="DiagnosticAnalyzer"/>s collection for given <paramref name="project"/>
-        /// </summary>
-        public ImmutableArray<DiagnosticAnalyzer> CreateDiagnosticAnalyzers(Project project)
-        {
-            var analyzersPerReferences = CreateDiagnosticAnalyzersPerReference(project);
-            return analyzersPerReferences.SelectMany(kv => kv.Value).ToImmutableArray();
-        }
-
-        /// <summary>
         /// Check whether given <see cref="DiagnosticData"/> belong to compiler diagnostic analyzer
         /// </summary>
         public bool IsCompilerDiagnostic(string language, DiagnosticData diagnostic)

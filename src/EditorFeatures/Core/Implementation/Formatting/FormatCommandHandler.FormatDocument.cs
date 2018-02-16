@@ -18,12 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
 
         public bool ExecuteCommand(FormatDocumentCommandArgs args, CommandExecutionContext context)
         {
-            return TryExecuteCommand(args, context);
-        }
-
-        private bool TryExecuteCommand(FormatDocumentCommandArgs args, CommandExecutionContext context)
-        {
-            if (!args.SubjectBuffer.CanApplyChangeDocumentToWorkspace())
+            if (!CanExecuteCommand(args.SubjectBuffer))
             {
                 return false;
             }
