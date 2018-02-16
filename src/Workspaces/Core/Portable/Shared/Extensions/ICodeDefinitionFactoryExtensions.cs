@@ -88,12 +88,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 typeName: typeName,
                 parameters: parameters,
                 statements: statements,
-                thisConstructorArguments: GetThisConstructorArguments(containingTypeOpt, parameterToExistingFieldMap));
+                thisConstructorArguments: ShouldGenerateThisConstructorCall(containingTypeOpt, parameterToExistingFieldMap)
+                    ? ImmutableArray<SyntaxNode>.Empty
+                    : default);
 
             return (ImmutableArray<ISymbol>.CastUp(fields), constructor);
         }
 
-        private static ImmutableArray<SyntaxNode> GetThisConstructorArguments(
+        private static bool ShouldGenerateThisConstructorCall(
             INamedTypeSymbol containingTypeOpt,
             IDictionary<string, ISymbol> parameterToExistingFieldMap)
         {
@@ -121,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
                 if (numFieldsRequiringInitialization == 0)
                 {
-                    return default;
+                    return false;
                 }
 
                 foreach (var initialized in parameterToExistingFieldMap.Values)
@@ -138,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                             numFieldsRequiringInitialization--;
                             if (numFieldsRequiringInitialization == 0)
                             {
-                                return default;
+                                return false;
                             }
                             break;
                     }
@@ -146,10 +148,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
                 // We have fewer field assignments than actual fields.  Generate a call to the
                 // default constructor as well.
-                return ImmutableArray<SyntaxNode>.Empty;
+                return true;
             }
 
-            return default;
+            return false;
         }
 
         public static ImmutableArray<IFieldSymbol> CreateFieldsForParameters(
