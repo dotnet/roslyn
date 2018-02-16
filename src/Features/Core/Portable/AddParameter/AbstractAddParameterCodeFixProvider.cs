@@ -304,7 +304,11 @@ namespace Microsoft.CodeAnalysis.AddParameter
 
                     var parameterDeclaration = generator.ParameterDeclaration(parameterSymbol)
                                                         .WithAdditionalAnnotations(Formatter.Annotation);
-
+                    if (anySymbolReferencesNotInSource && methodDeclaration == method)
+                    {
+                        parameterDeclaration = parameterDeclaration.WithAdditionalAnnotations(
+                            ConflictAnnotation.Create("One or more method declarations that needed to be updated are not available as source code."));
+                    }
                     var existingParameters = generator.GetParameters(methodNode);
                     var insertionIndex = isNamedArgument
                         ? existingParameters.Count
