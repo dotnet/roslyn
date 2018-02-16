@@ -158,11 +158,12 @@ namespace Microsoft.CodeAnalysis.AddParameter
                 if (hasCascadingDeclarations)
                 {
                     // TODO Localization of titles
-                    context.RegisterCodeFix(new GroupingCodeAction(title,
-                        new MyCodeAction(title,
-                            c => FixAsync(context.Document, methodToUpdate, argumentToInsert, arguments, fixAllReferences: false, c)),
-                        new MyCodeAction(title + " (including overrides/implementations)",
-                            c => FixAsync(context.Document, methodToUpdate, argumentToInsert, arguments, fixAllReferences: true, c))),
+                    context.RegisterCodeFix(new CodeAction.CodeActionWithNestedActions(title, ImmutableArray.Create<CodeAction>(
+                            new MyCodeAction(title,
+                                c => FixAsync(context.Document, methodToUpdate, argumentToInsert, arguments, fixAllReferences: false, c)),
+                            new MyCodeAction(title + " (including overrides/implementations)",
+                                c => FixAsync(context.Document, methodToUpdate, argumentToInsert, arguments, fixAllReferences: true, c))),
+                            isInlinable: true),
                         context.Diagnostics);
                 }
                 else
@@ -688,14 +689,6 @@ namespace Microsoft.CodeAnalysis.AddParameter
         {
             public MyCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution)
                 : base(title, createChangedSolution)
-            {
-            }
-        }
-
-        private class GroupingCodeAction : CodeAction.CodeActionWithNestedActions
-        {
-            public GroupingCodeAction(string title, MyCodeAction directDeclarationOnly, MyCodeAction allDeclarations)
-                : base(title, ImmutableArray.Create<CodeAction>(directDeclarationOnly, allDeclarations), isInlinable: true)
             {
             }
         }
