@@ -2961,7 +2961,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _binder.Conversions,
                     method,
                     args,
-                    includeNullability: Compilation.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking),
                     useSiteDiagnostics: ref useSiteDiagnostics);
                 if (inferredFromFirstArgument.IsDefault)
                 {

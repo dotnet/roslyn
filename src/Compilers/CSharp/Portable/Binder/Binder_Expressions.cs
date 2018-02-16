@@ -740,7 +740,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var boundArguments = ArrayBuilder<BoundExpression>.GetInstance(arguments.Count);
             var elementTypes = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance(arguments.Count);
             var elementLocations = ArrayBuilder<Location>.GetInstance(arguments.Count);
-            bool includeNullability = Compilation.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking);
 
             // prepare names
             var (elementNames, inferredPositions, hasErrors) = ExtractTupleElementNames(arguments, diagnostics);
@@ -771,8 +770,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 boundArguments.Add(boundArgument);
 
-                var elementType = boundArgument.GetTypeAndNullability(includeNullability);
-                elementTypes.Add(elementType);
+                var elementType = boundArgument.Type;
+                elementTypes.Add(TypeSymbolWithAnnotations.Create(elementType));
 
                 if ((object)elementType == null)
                 {
@@ -2091,7 +2090,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         /// <param name="syntax">Syntax node</param>
         /// <param name="nameString">Plain text name</param>
-        private static NameSyntax GetNameSyntax(SyntaxNode syntax, out string nameString)
+        internal static NameSyntax GetNameSyntax(SyntaxNode syntax, out string nameString)
         {
             nameString = string.Empty;
             while (true)
@@ -2697,7 +2696,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var bestType = BestTypeInferrer.InferBestType(
                 boundInitializerExpressions,
                 this.Conversions,
-                includeNullability: false,
                 hadMultipleCandidates: out hadMultipleCandidates,
                 useSiteDiagnostics: ref useSiteDiagnostics);
             diagnostics.Add(node, useSiteDiagnostics);
@@ -2705,16 +2703,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)bestType == null || bestType.SpecialType == SpecialType.System_Void) // Dev10 also reports ERR_ImplicitlyTypedArrayNoBestType for void.
             {
                 Error(diagnostics, ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, node);
-                bestType = TypeSymbolWithAnnotations.Create(CreateErrorType());
+                bestType = CreateErrorType();
             }
 
             if (bestType.IsRestrictedType())
             {
                 // CS0611: Array elements cannot be of type '{0}'
-                Error(diagnostics, ErrorCode.ERR_ArrayElementCantBeRefAny, node, bestType.TypeSymbol);
+                Error(diagnostics, ErrorCode.ERR_ArrayElementCantBeRefAny, node, bestType);
             }
 
-            var arrayType = ArrayTypeSymbol.CreateCSharpArray(Compilation.Assembly, bestType, rank);
+            var arrayType = ArrayTypeSymbol.CreateCSharpArray(Compilation.Assembly, TypeSymbolWithAnnotations.Create(bestType), rank);
             return BindArrayCreationWithInitializer(diagnostics, node, initializer, arrayType,
                 sizes: ImmutableArray<BoundExpression>.Empty, boundInitExprOpt: boundInitializerExpressions);
         }

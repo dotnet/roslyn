@@ -235,10 +235,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     userDefinedConversion = CreateConversion(
                         syntax: syntax,
                         source: userDefinedConversion,
-                        conversion: Conversions.ClassifyStandardConversion(null, conversionReturnType, conversion.BestUserDefinedConversionAnalysis.ToType, ref useSiteDiagnostics),
+                        conversion: Conversions.ClassifyStandardConversion(null, conversionReturnType, conversionToType, ref useSiteDiagnostics),
                         isCast: false,
                         wasCompilerGenerated: true,
-                        destination: conversion.BestUserDefinedConversionAnalysis.ToType,
+                        destination: conversionToType,
                         diagnostics: diagnostics);
                 }
             }
@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     @checked: false,
                     explicitCastInCode: isCast,
                     constantValueOpt: ConstantValue.NotAvailable,
-                    type: conversion.BestUserDefinedConversionAnalysis.ToType)
+                    type: conversionToType)
                 { WasCompilerGenerated = true };
             }
 

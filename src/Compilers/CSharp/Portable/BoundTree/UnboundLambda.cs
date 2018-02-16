@@ -68,14 +68,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (inferReturnType)
             {
-                this._inferredReturnType = InferReturnType(
+                this._inferredReturnType = TypeSymbolWithAnnotations.Create(InferReturnType(
                     this.Body,
                     this.Binder,
                     delegateType,
                     this.Symbol.IsAsync,
                     ref this._inferredReturnTypeUseSiteDiagnostics,
                     out this._refKind,
-                    out this._inferredFromSingleType);
+                    out this._inferredFromSingleType));
 
 #if DEBUG
                 _hasInferredReturnType = true;
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Behavior of this function should be kept aligned with <see cref="UnboundLambdaState.ReturnInferenceCacheKey"/>.
         /// </summary>
-        private static TypeSymbolWithAnnotations InferReturnType(
+        private static TypeSymbol InferReturnType(
             BoundBlock block,
             Binder binder,
             TypeSymbol delegateType,
@@ -124,12 +124,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             out bool inferredFromSingleType)
         {
             int numberOfDistinctReturns;
-            bool includeNullability = binder.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking);
-            var resultTypes = BlockReturns.GetReturnTypes(includeNullability, block, out refKind, out numberOfDistinctReturns);
+            var resultTypes = BlockReturns.GetReturnTypes(block, out refKind, out numberOfDistinctReturns);
 
             inferredFromSingleType = numberOfDistinctReturns < 2;
 
-            TypeSymbolWithAnnotations bestResultType;
+            TypeSymbol bestResultType;
             if (resultTypes.IsDefaultOrEmpty)
             {
                 bestResultType = null;
@@ -140,8 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                // PROTOTYPE(NullableReferenceTypes): Should pass includeNullability: false.
-                bestResultType = BestTypeInferrer.InferBestType(resultTypes, binder.Conversions, includeNullability, ref useSiteDiagnostics);
+                bestResultType = BestTypeInferrer.InferBestType(resultTypes, binder.Conversions, ref useSiteDiagnostics);
             }
 
             if (!isAsync)
@@ -170,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var resultType = (object)taskType != null && taskType.Arity == 0 ?
                     taskType :
                     binder.Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task);
-                return TypeSymbolWithAnnotations.Create(resultType);
+                return resultType;
             }
 
             if ((object)bestResultType == null || bestResultType.SpecialType == SpecialType.System_Void)
@@ -185,27 +183,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             var taskTypeT = (object)taskType != null && taskType.Arity == 1 ?
                 taskType :
                 binder.Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T);
-            return TypeSymbolWithAnnotations.Create(taskTypeT.Construct(ImmutableArray.Create(bestResultType)));
+            return taskTypeT.Construct(ImmutableArray.Create(bestResultType));
         }
 
         internal sealed class BlockReturns : BoundTreeWalker
         {
-            private readonly bool _includeNullability;
-            private readonly HashSet<TypeSymbolWithAnnotations> _types;
+            private readonly HashSet<TypeSymbol> _types;
             private bool _hasReturnWithoutArgument;
             private RefKind refKind;
 
-            private BlockReturns(bool includeNullability, HashSet<TypeSymbolWithAnnotations> types)
+            private BlockReturns(HashSet<TypeSymbol> types)
             {
-                _includeNullability = includeNullability;
                 _types = types;
             }
 
-            // PROTOTYPE(NullableReferenceTypes): Remove includeNullability parameter.
-            public static ImmutableArray<TypeSymbolWithAnnotations> GetReturnTypes(bool includeNullability, BoundBlock block, out RefKind refKind, out int numberOfDistinctReturns)
+            public static ImmutableArray<TypeSymbol> GetReturnTypes(BoundBlock block, out RefKind refKind, out int numberOfDistinctReturns)
             {
-                var types = new HashSet<TypeSymbolWithAnnotations>(TypeSymbolWithAnnotations.EqualsComparer.Instance);
-                var inferrer = new BlockReturns(includeNullability, types);
+                var types = new HashSet<TypeSymbol>();
+                var inferrer = new BlockReturns(types);
                 inferrer.Visit(block);
                 refKind = inferrer.refKind;
                 var result = types.AsImmutableOrEmpty();
@@ -249,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var expression = node.ExpressionOpt;
                 if (expression != null)
                 {
-                    var returnType = expression.GetTypeAndNullability(_includeNullability);
+                    var returnType = expression.Type;
                     if (!_types.Contains(returnType))
                     {
                         _types.Add(returnType);

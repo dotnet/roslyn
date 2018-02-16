@@ -3299,7 +3299,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Error(diagnostics, ErrorCode.ERR_BadBinaryOps, node, SyntaxFacts.GetText(node.OperatorToken.Kind()), leftOperand.Display, rightOperand.Display);
 
             return new BoundNullCoalescingOperator(node, leftOperand, rightOperand,
-                leftConversion, CreateErrorType(), hasErrors: true);
+                leftConversion, BoundNullCoalescingOperatorResultKind.ErrorType, CreateErrorType(), hasErrors: true);
         }
 
         private BoundExpression BindNullCoalescingOperator(BinaryExpressionSyntax node, DiagnosticBag diagnostics)
@@ -3311,7 +3311,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (leftOperand.HasAnyErrors || rightOperand.HasAnyErrors)
             {
                 return new BoundNullCoalescingOperator(node, leftOperand, rightOperand,
-                    Conversion.NoConversion, CreateErrorType(), hasErrors: true);
+                    Conversion.NoConversion, BoundNullCoalescingOperatorResultKind.ErrorType, CreateErrorType(), hasErrors: true);
             }
 
             if (leftOperand.IsLiteralDefault())
@@ -3319,7 +3319,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Error(diagnostics, ErrorCode.ERR_BadOpOnNullOrDefault, node, node.OperatorToken.Text, "default");
 
                 return new BoundNullCoalescingOperator(node, leftOperand, rightOperand,
-                    Conversion.NoConversion, CreateErrorType(), hasErrors: true);
+                    Conversion.NoConversion, BoundNullCoalescingOperatorResultKind.ErrorType, CreateErrorType(), hasErrors: true);
             }
 
             // SPEC ERROR: The specification states:
@@ -3369,7 +3369,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var leftConversion = Conversions.ClassifyConversionFromExpression(leftOperand, GetSpecialType(SpecialType.System_Object, diagnostics, node), ref useSiteDiagnostics);
                 diagnostics.Add(node, useSiteDiagnostics);
                 return new BoundNullCoalescingOperator(node, leftOperand, rightOperand,
-                    leftConversion, optRightType);
+                    leftConversion, BoundNullCoalescingOperatorResultKind.RightType, optRightType);
             }
 
             // SPEC:    Otherwise, if A exists and is a nullable type and an implicit conversion exists from b to A0,
@@ -3386,7 +3386,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics.Add(node, useSiteDiagnostics);
                     var convertedRightOperand = CreateConversion(rightOperand, rightConversion, optLeftType0, diagnostics);
                     return new BoundNullCoalescingOperator(node, leftOperand, convertedRightOperand,
-                        leftConversion, optLeftType0);
+                        leftConversion, BoundNullCoalescingOperatorResultKind.LeftUnwrappedType, optLeftType0);
                 }
             }
 
@@ -3403,7 +3403,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var leftConversion = Conversion.Identity;
                     diagnostics.Add(node, useSiteDiagnostics);
                     return new BoundNullCoalescingOperator(node, leftOperand, convertedRightOperand,
-                        leftConversion, optLeftType);
+                        leftConversion, BoundNullCoalescingOperatorResultKind.LeftType, optLeftType);
                 }
             }
 
@@ -3474,7 +3474,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     diagnostics.Add(node, useSiteDiagnostics);
-                    return new BoundNullCoalescingOperator(node, leftOperand, rightOperand, leftConversion, optRightType);
+                    return new BoundNullCoalescingOperator(node, leftOperand, rightOperand, leftConversion, BoundNullCoalescingOperatorResultKind.RightType, optRightType);
                 }
             }
 
@@ -3581,7 +3581,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     trueExpr,
                     falseExpr,
                     this.Conversions,
-                    includeNullability: false,
                     hadMultipleCandidates: out hadMultipleCandidates,
                     useSiteDiagnostics: ref useSiteDiagnostics);
                 diagnostics.Add(node, useSiteDiagnostics);
@@ -3616,7 +3615,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (bestType.IsErrorType())
                 {
-                    type = bestType.TypeSymbol;
+                    type = bestType;
                     hasErrors = true;
                 }
                 else if (isRef)
@@ -3629,15 +3628,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        Debug.Assert(Conversions.HasIdentityConversion(trueType, bestType.TypeSymbol));
-                        Debug.Assert(Conversions.HasIdentityConversion(falseType, bestType.TypeSymbol));
-                        type = bestType.TypeSymbol;
+                        Debug.Assert(Conversions.HasIdentityConversion(trueType, bestType));
+                        Debug.Assert(Conversions.HasIdentityConversion(falseType, bestType));
+                        type = bestType;
                     }
                 }
                 else
                 {
-                    trueExpr = GenerateConversionForAssignment(bestType.TypeSymbol, trueExpr, diagnostics);
-                    falseExpr = GenerateConversionForAssignment(bestType.TypeSymbol, falseExpr, diagnostics);
+                    trueExpr = GenerateConversionForAssignment(bestType, trueExpr, diagnostics);
+                    falseExpr = GenerateConversionForAssignment(bestType, falseExpr, diagnostics);
 
                     if (trueExpr.HasAnyErrors || falseExpr.HasAnyErrors)
                     {
@@ -3648,7 +3647,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        type = bestType.TypeSymbol;
+                        type = bestType;
                     }
                 }
             }

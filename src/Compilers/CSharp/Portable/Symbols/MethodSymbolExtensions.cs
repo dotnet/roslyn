@@ -68,7 +68,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 conversions,
                 method,
                 arguments.AsImmutable(),
-                includeNullability: false, // PROTOTYPE(NullableReferenceTypes): Support nullability if feature enabled.
                 useSiteDiagnostics: ref useSiteDiagnostics);
 
             if (typeArgs.IsDefault)

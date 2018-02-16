@@ -574,7 +574,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             AdjustConditionalState(node);
         }
 
-        private void AdjustConditionalState(BoundExpression node)
+        protected void AdjustConditionalState(BoundExpression node)
         {
             if (IsConstantTrue(node))
             {
@@ -1888,64 +1888,34 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Do not blow the stack due to a deep recursion on the left.
             var stack = ArrayBuilder<BoundExpression>.GetInstance();
 
-            BoundExpression binary;
-            BoundExpression child = node;
-
+            BoundExpression binary = node;
             while (true)
             {
-                var childKind = child.Kind;
-
-                if (childKind == BoundKind.BinaryOperator)
-                {
-                    var binOp = (BoundBinaryOperator)child;
-
-                    if (!binOp.OperatorKind.IsLogical())
-                    {
-                        break;
-                    }
-
-                    Debug.Assert(!binOp.OperatorKind.IsUserDefined());
-                    binary = child;
-                    child = binOp.Left;
-                }
-                else if (childKind == BoundKind.UserDefinedConditionalLogicalOperator)
-                {
-                    binary = child;
-                    child = ((BoundUserDefinedConditionalLogicalOperator)binary).Left;
-                }
-                else
+                var child = GetBinaryLogicalOperatorLeft(binary);
+                if (child == null)
                 {
                     break;
                 }
-
                 stack.Push(binary);
+                binary = child;
             }
 
             Debug.Assert(stack.Count > 0);
 
+            VisitBinaryLogicalOperatorChildren(stack);
+            stack.Free();
+        }
+
+        protected virtual void VisitBinaryLogicalOperatorChildren(ArrayBuilder<BoundExpression> stack)
+        {
+            var child = GetBinaryLogicalOperatorLeft(stack.Peek());
             VisitCondition(child);
 
             while (true)
             {
-                binary = stack.Pop();
-
+                var binary = stack.Pop();
                 BinaryOperatorKind kind;
-                BoundExpression right;
-                switch (binary.Kind)
-                {
-                    case BoundKind.BinaryOperator:
-                        var binOp = (BoundBinaryOperator)binary;
-                        kind = binOp.OperatorKind;
-                        right = binOp.Right;
-                        break;
-                    case BoundKind.UserDefinedConditionalLogicalOperator:
-                        var udBinOp = (BoundUserDefinedConditionalLogicalOperator)binary;
-                        kind = udBinOp.OperatorKind;
-                        right = udBinOp.Right;
-                        break;
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(binary.Kind);
-                }
+                BoundExpression right = GetBinaryLogicalOperatorRight(binary, out kind);
 
                 var op = kind.Operator();
                 var isAnd = op == BinaryOperatorKind.And;
@@ -1957,7 +1927,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var leftFalse = this.StateWhenFalse;
                 SetState(isAnd ? leftTrue : leftFalse);
 
-                AfterLeftChildOfBinaryLogicalOperatorHasBeenVisited(binary, right, isAnd, isBool, ref leftTrue, ref leftFalse);
+                Visit(right); // First part of VisitCondition
+                AfterRightChildOfBinaryLogicalOperatorHasBeenVisited(binary, right, isAnd, isBool, ref leftTrue, ref leftFalse);
 
                 if (stack.Count == 0)
                 {
@@ -1966,15 +1937,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 AdjustConditionalState(binary);
             }
-
-            Debug.Assert((object)binary == node);
-            stack.Free();
-        }
-
-        protected virtual void AfterLeftChildOfBinaryLogicalOperatorHasBeenVisited(BoundExpression binary, BoundExpression right, bool isAnd, bool isBool, ref LocalState leftTrue, ref LocalState leftFalse)
-        {
-            Visit(right); // First part of VisitCondition
-            AfterRightChildOfBinaryLogicalOperatorHasBeenVisited(binary, right, isAnd, isBool, ref leftTrue, ref leftFalse);
         }
 
         protected void AfterRightChildOfBinaryLogicalOperatorHasBeenVisited(BoundExpression binary, BoundExpression right, bool isAnd, bool isBool, ref LocalState leftTrue, ref LocalState leftFalse)
@@ -2010,6 +1972,47 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        protected static BoundExpression GetBinaryLogicalOperatorLeft(BoundExpression expr)
+        {
+            switch (expr.Kind)
+            {
+                case BoundKind.BinaryOperator:
+                    {
+                        var binOp = (BoundBinaryOperator)expr;
+                        if (binOp.OperatorKind.IsLogical())
+                        {
+                            return binOp.Left;
+                        }
+                    }
+                    break;
+                case BoundKind.UserDefinedConditionalLogicalOperator:
+                    return ((BoundUserDefinedConditionalLogicalOperator)expr).Left;
+            }
+            return null;
+        }
+
+        protected static BoundExpression GetBinaryLogicalOperatorRight(BoundExpression expr, out BinaryOperatorKind kind)
+        {
+            switch (expr.Kind)
+            {
+                case BoundKind.BinaryOperator:
+                    {
+                        var binOp = (BoundBinaryOperator)expr;
+                        kind = binOp.OperatorKind;
+                        Debug.Assert(kind.IsLogical());
+                        return binOp.Right;
+                    }
+                case BoundKind.UserDefinedConditionalLogicalOperator:
+                    {
+                        var binOp = (BoundUserDefinedConditionalLogicalOperator)expr;
+                        kind = binOp.OperatorKind;
+                        return binOp.Right;
+                    }
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(expr.Kind);
+            }
+        }
+
         private void VisitBinaryOperatorChildren(BoundBinaryOperator node)
         {
             // It is common in machine-generated code for there to be deep recursion on the left side of a binary
@@ -2018,29 +2021,37 @@ namespace Microsoft.CodeAnalysis.CSharp
             //
             // Of course we must ensure that we visit the left hand side before the right hand side.
             var stack = ArrayBuilder<BoundBinaryOperator>.GetInstance();
-            stack.Push(node);
 
-            BoundBinaryOperator binary;
-            BoundExpression child = node.Left;
-
+            BoundBinaryOperator binary = node;
             while (true)
             {
-                binary = child as BoundBinaryOperator;
-                if (binary == null || binary.OperatorKind.IsLogical())
+                stack.Push(binary);
+                var child = binary.Left as BoundBinaryOperator;
+                if (child == null || child.OperatorKind.IsLogical())
                 {
                     break;
                 }
-
-                stack.Push(binary);
-                child = binary.Left;
+                binary = child;
             }
 
+            VisitBinaryOperatorChildren(stack);
+            stack.Free();
+        }
+
+        protected virtual void VisitBinaryOperatorChildren(ArrayBuilder<BoundBinaryOperator> stack)
+        {
+            var child = stack.Peek().Left;
             VisitRvalue(child);
 
             while (true)
             {
-                binary = stack.Pop();
-                AfterLeftChildHasBeenVisited(binary);
+                var binary = stack.Pop();
+                VisitRvalue(binary.Right);
+
+                if (_trackExceptions && binary.HasExpressionSymbols())
+                {
+                    NotePossibleException(binary);
+                }
 
                 if (stack.Count == 0)
                 {
@@ -2048,23 +2059,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 Unsplit(); // VisitRvalue does this
-            }
-
-            Debug.Assert((object)binary == node);
-            stack.Free();
-        }
-
-        protected virtual void AfterLeftChildHasBeenVisited(BoundBinaryOperator binary)
-        {
-            VisitRvalue(binary.Right);
-            AfterRightChildHasBeenVisited(binary);
-        }
-
-        protected void AfterRightChildHasBeenVisited(BoundBinaryOperator binary)
-        {
-            if (_trackExceptions && binary.HasExpressionSymbols())
-            {
-                NotePossibleException(binary);
             }
         }
 
@@ -2422,7 +2416,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        protected void VisitConditionalOperand(LocalState state, BoundExpression operand, bool isByRef)
+        private void VisitConditionalOperand(LocalState state, BoundExpression operand, bool isByRef)
         {
             SetState(state);
             if (isByRef)
@@ -2795,6 +2789,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static MethodSymbol GetWriteMethod(PropertySymbol property) =>
             property.GetOwnOrInheritedSetMethod() ?? property.GetMethod;
 
-        #endregion visitors
+#endregion visitors
     }
 }

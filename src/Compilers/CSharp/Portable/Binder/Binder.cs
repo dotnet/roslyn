@@ -33,12 +33,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Compilation = compilation;
         }
 
-        internal Binder(Binder next)
+        internal Binder(Binder next, Conversions conversions = null)
         {
             Debug.Assert(next != null);
             _next = next;
             this.Flags = next.Flags;
             this.Compilation = next.Compilation;
+            _lazyConversions = conversions;
         }
 
         protected Binder(Binder next, BinderFlags flags)

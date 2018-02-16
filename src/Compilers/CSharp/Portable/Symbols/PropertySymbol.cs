@@ -328,7 +328,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return visitor.VisitProperty(this);
         }
 
-        internal virtual PropertySymbol AsMember(NamedTypeSymbol newOwner)
+        internal PropertySymbol AsMember(NamedTypeSymbol newOwner)
         {
             Debug.Assert(this.IsDefinition);
             Debug.Assert(ReferenceEquals(newOwner.OriginalDefinition, this.ContainingSymbol.OriginalDefinition));
