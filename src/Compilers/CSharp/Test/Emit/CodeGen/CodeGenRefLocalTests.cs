@@ -129,6 +129,39 @@ class C
         }
 
         [Fact]
+        public void RefReassignRefExpressions()
+        {
+            var comp = CompileAndVerify(@"
+using System;
+class C
+{
+    static readonly int _ro = 42;
+    static int _rw = 42;
+
+    static void Main()
+    {
+        ref readonly var rro = ref _ro;
+        ref var rrw = ref _rw;
+
+        Console.WriteLine(rro);
+        Console.WriteLine(rrw);
+
+        rrw++;
+        rro = ref (rro = ref rrw);
+        rrw = ref (rrw = ref rrw);
+
+        Console.WriteLine(rro);
+        Console.WriteLine(rrw);
+        Console.WriteLine(_ro);
+    }
+}", verify: Verification.Fails, expectedOutput: @"42
+42
+43
+43
+42");
+        }
+
+        [Fact]
         public void RefReassignParamByVal()
         {
             var comp = CompileAndVerify(@"

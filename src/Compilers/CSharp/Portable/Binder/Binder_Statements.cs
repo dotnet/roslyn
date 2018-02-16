@@ -1280,7 +1280,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (op1.Type.IsByRefLikeType)
                 {
                     var leftEscape = GetValEscape(op1, LocalScopeDepth);
-                    op2 = ValidateEscape(op2, leftEscape, isByRef: false, diagnostics: diagnostics);
+                    op2 = ValidateEscape(op2, leftEscape, isByRef: false, diagnostics);
                 }
             }
 

@@ -28,6 +28,42 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void RefReturnRefAssignment()
+        {
+            CompileAndVerify(@"
+using System;
+class C
+{
+    static readonly int _ro = 42;
+    static int _rw = 42;
+
+    static void Main()
+    {
+        Console.WriteLine(M1(ref _rw));
+        Console.WriteLine(M2(in _ro));
+        Console.WriteLine(M3(in _ro));;
+
+        M1(ref _rw)++;
+
+        Console.WriteLine(M1(ref _rw));
+        Console.WriteLine(M2(in _ro));
+        Console.WriteLine(M3(in _ro));;
+    }
+
+    static ref int M1(ref int rrw) => ref (rrw = ref _rw);
+
+    static ref readonly int M2(in int rro) => ref (rro = ref _ro);
+
+    static ref readonly int M3(in int rro) => ref (rro = ref _rw);
+}", verify: Verification.Fails, expectedOutput: @"42
+42
+42
+43
+42
+43");
+        }
+
+        [Fact]
         public void RefReturnArrayAccess()
         {
             var text = @"
