@@ -118,6 +118,14 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
                     editor.ReplaceNode(block, block.AddStatements(statement));
                 }
 
+                // If the block was on a single line before, the format it so that the formatting
+                // engine will update it to go over multiple lines. Otherwise, we can end up in
+                // the strange state where the { and } tokens stay where they were originally,
+                // which will look very strange like:
+                //
+                //          a => {
+                //              if (...) {
+                //              } };
                 if (CSharpSyntaxFactsService.Instance.IsOnSingleLine(block, fullSpan: false))
                 {
                     editor.ReplaceNode(

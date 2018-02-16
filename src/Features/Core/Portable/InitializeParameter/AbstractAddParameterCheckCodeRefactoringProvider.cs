@@ -226,6 +226,11 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
             var editor = new SyntaxEditor(root, document.Project.Solution.Workspace);
             var nullCheckStatement = generateNullCheck(compilation, editor.Generator);
+
+            // We may be inserting a statement into a single-line container.  In that case,
+            // we don't want the formatting engine to think this construct should stay single-line
+            // so add a newline after the check to help dissuade it from thinking we should stay
+            // on a single line.
             nullCheckStatement = nullCheckStatement.WithAppendedTrailingTrivia(
                 editor.Generator.ElasticCarriageReturnLineFeed);
 
