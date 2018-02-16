@@ -103,6 +103,18 @@ namespace Analyzer.Utilities.Extensions
             return false;
         }
 
+        /// <summary>
+        /// Indicates if the given <paramref name="type"/> implements <paramref name="iDisposable"/>.
+        /// </summary>
+        public static bool ImplementsIDisposable(this ITypeSymbol type, INamedTypeSymbol iDisposable)
+            => iDisposable != null && type.AllInterfaces.Contains(iDisposable);
+
+        /// <summary>
+        /// Indicates if the given <paramref name="type"/> is a reference type that implements <paramref name="iDisposable"/>.
+        /// </summary>
+        public static bool IsDisposable(this ITypeSymbol type, INamedTypeSymbol iDisposable)
+            => type.IsReferenceType && type.ImplementsIDisposable(iDisposable);
+
         public static IEnumerable<AttributeData> GetApplicableAttributes(this INamedTypeSymbol type)
         {
             var attributes = new List<AttributeData>();

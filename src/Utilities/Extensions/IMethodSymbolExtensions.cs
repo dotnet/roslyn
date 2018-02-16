@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -120,11 +121,19 @@ namespace Analyzer.Utilities.Extensions
         /// </summary>
         public static bool IsDisposeImplementation(this IMethodSymbol method, Compilation compilation)
         {
+            INamedTypeSymbol iDisposable = WellKnownTypes.IDisposable(compilation);
+            return method.IsDisposeImplementation(iDisposable);
+        }
+
+        /// <summary>
+        /// Checks if the given method implements IDisposable.Dispose()
+        /// </summary>
+        public static bool IsDisposeImplementation(this IMethodSymbol method, INamedTypeSymbol iDisposable)
+        {
             if (method.ReturnType.SpecialType == SpecialType.System_Void && method.Parameters.Length == 0)
             {
                 // Identify the implementor of IDisposable.Dispose in the given method's containing type and check
                 // if it is the given method.
-                INamedTypeSymbol iDisposable = WellKnownTypes.IDisposable(compilation);
                 if (method.IsImplementationOfInterfaceMethod(null, iDisposable, "Dispose"))
                 {
                     return true;
@@ -132,6 +141,59 @@ namespace Analyzer.Utilities.Extensions
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Checks if the given method has the signature "void Dispose(bool)".
+        /// </summary>
+        public static bool HasDisposeBoolMethodSignature(this IMethodSymbol method)
+        {
+            if (method.Name == "Dispose" && method.MethodKind == MethodKind.Ordinary &&
+                method.ReturnsVoid && method.Parameters.Length == 1)
+            {
+                IParameterSymbol parameter = method.Parameters[0];
+                return parameter.Type != null &&
+                    parameter.Type.SpecialType == SpecialType.System_Boolean &&
+                    parameter.RefKind == RefKind.None;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Gets the <see cref="DisposeMethodKind"/> for the given method.
+        /// </summary>
+        public static DisposeMethodKind GetDisposeMethodKind(this IMethodSymbol method, Compilation compilation)
+        {
+            INamedTypeSymbol iDisposable = WellKnownTypes.IDisposable(compilation);
+            return method.GetDisposeMethodKind(iDisposable);
+        }
+
+        /// <summary>
+        /// Gets the <see cref="DisposeMethodKind"/> for the given method.
+        /// </summary>
+        public static DisposeMethodKind GetDisposeMethodKind(this IMethodSymbol method, INamedTypeSymbol iDisposable)
+        {
+            if (method.ContainingType.IsDisposable(iDisposable))
+            {
+                if (IsDisposeImplementation(method, iDisposable))
+                {
+                    return DisposeMethodKind.Dispose;
+                }
+                else if (HasDisposeBoolMethodSignature(method))
+                {
+                    return DisposeMethodKind.DisposeBool;
+                }
+                else if (method.Name == "Close" &&
+                    method.MethodKind == MethodKind.Ordinary &&
+                    method.ReturnsVoid &&
+                    method.Parameters.IsEmpty)
+                {
+                    return DisposeMethodKind.Close;
+                }
+            }
+
+            return DisposeMethodKind.None;
         }
 
         /// <summary>
@@ -191,5 +253,19 @@ namespace Analyzer.Utilities.Extensions
                 }
             }
         }
+
+        /// <summary>
+        /// Determine if the specific method is an Add method that adds to a collection.
+        /// </summary>
+        /// <param name="method">The method to test.</param>
+        /// <returns>'true' if <paramref name="method"/> is believed to be the add method of a collection.</returns>
+        /// <remarks>
+        /// The current heuristic is that we consider a method to be an add method if its name begins with "Add" and its
+        /// enclosing type derives from ICollection or any instantiation of ICollection&lt;T&gt;.
+        /// </remarks>
+        public static bool IsCollectionAddMethod(this IMethodSymbol method, INamedTypeSymbol iCollectionType)
+            => iCollectionType != null &&
+               method.Name.StartsWith("Add", StringComparison.Ordinal) &&
+               method.ContainingType.OriginalDefinition.DerivesFrom(iCollectionType.OriginalDefinition);
     }
 }

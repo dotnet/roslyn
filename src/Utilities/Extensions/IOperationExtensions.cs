@@ -298,5 +298,8 @@ namespace Analyzer.Utilities.Extensions
 
             return null;
         }
+
+        public static bool IsInsideCatchClause(this IOperation operation)
+            => operation.GetAncestor<ICatchClauseOperation>(OperationKind.CatchClause) != null;
     }
 }
