@@ -27,6 +27,7 @@ class C
 
         rs = ref (string)o;
         ro = ref s;
+        ro = s;
     }
 }");
             comp.VerifyDiagnostics(

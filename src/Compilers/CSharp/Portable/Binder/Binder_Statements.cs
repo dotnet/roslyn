@@ -740,7 +740,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (expression is BoundStackAllocArrayCreation boundStackAlloc)
             {
                 var type = new PointerTypeSymbol(boundStackAlloc.ElementType);
-                expression = GenerateConversionForAssignment(type, boundStackAlloc, diagnostics, isRefVariable: refKind != RefKind.None);
+                expression = GenerateConversionForAssignment(type, boundStackAlloc, diagnostics, isRefAssignment: refKind != RefKind.None);
             }
 
             // Certain expressions (null literals, method groups and anonymous functions) have no type of 
@@ -907,7 +907,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             declTypeOpt,
                             initializerOpt,
                             localDiagnostics,
-                            isRefVariable: localSymbol.RefKind != RefKind.None);
+                            isRefAssignment: localSymbol.RefKind != RefKind.None);
                     }
                 }
             }
@@ -1255,7 +1255,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Build bound conversion. The node might not be used if this is a dynamic conversion 
                 // but diagnostics should be reported anyways.
-                var conversion = GenerateConversionForAssignment(op1.Type, op2, diagnostics, isRefVariable: isRef);
+                var conversion = GenerateConversionForAssignment(op1.Type, op2, diagnostics, isRefAssignment: isRef);
 
                 // If the result is a dynamic assignment operation (SetMember or SetIndex), 
                 // don't generate the boxing conversion to the dynamic type.
@@ -1526,7 +1526,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 boundStatements.ToImmutableAndFree());
         }
 
-        internal BoundExpression GenerateConversionForAssignment(TypeSymbol targetType, BoundExpression expression, DiagnosticBag diagnostics, bool isDefaultParameter = false, bool isRefVariable = false)
+        internal BoundExpression GenerateConversionForAssignment(TypeSymbol targetType, BoundExpression expression, DiagnosticBag diagnostics, bool isDefaultParameter = false, bool isRefAssignment = false)
         {
             Debug.Assert((object)targetType != null);
             Debug.Assert(expression != null);
@@ -1548,8 +1548,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var conversion = this.Conversions.ClassifyConversionFromExpression(expression, targetType, ref useSiteDiagnostics);
             diagnostics.Add(expression.Syntax, useSiteDiagnostics);
 
-            // UNDONE: cast in code
-            if (isRefVariable)
+            if (isRefAssignment)
             {
                 if (conversion.Kind != ConversionKind.Identity)
                 {
