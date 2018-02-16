@@ -2,13 +2,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.MSBuild.Build;
 using Microsoft.CodeAnalysis.MSBuild.Logging;
 using Roslyn.Utilities;
 using MSB = Microsoft.Build;
@@ -19,7 +17,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
     {
         public abstract string Language { get; }
 
-        protected abstract ProjectFile CreateProjectFile(LoadedProjectInfo info);
+        protected abstract ProjectFile CreateProjectFile(MSB.Evaluation.Project project, DiagnosticLog log);
 
         public async Task<IProjectFile> LoadProjectFileAsync(string path, IDictionary<string, string> globalProperties, CancellationToken cancellationToken)
         {
@@ -29,89 +27,15 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
 
             // load project file async
-            var loadedProjectInfo = await LoadProjectAsync(path, globalProperties, cancellationToken).ConfigureAwait(false);
+            var (project, log) = await ProjectBuildManager.LoadProjectAsync(path, globalProperties, cancellationToken).ConfigureAwait(false);
 
-            return this.CreateProjectFile(loadedProjectInfo);
-        }
-
-        private static readonly XmlReaderSettings s_xmlSettings = new XmlReaderSettings()
-        {
-            DtdProcessing = DtdProcessing.Prohibit,
-            XmlResolver = null
-        };
-
-        public struct LoadedProjectInfo
-        {
-            public readonly MSB.Evaluation.Project Project;
-            public readonly DiagnosticLog Log;
-
-            public LoadedProjectInfo(MSB.Evaluation.Project project, DiagnosticLog log)
-            {
-                this.Project = project;
-                this.Log = log;
-            }
-        }
-
-        private static async Task<LoadedProjectInfo> LoadProjectAsync(string path, IDictionary<string, string> globalProperties, CancellationToken cancellationToken)
-        {
-            globalProperties = globalProperties ?? ImmutableDictionary<string, string>.Empty;
-
-            var properties = new Dictionary<string, string>(globalProperties)
-            {
-                { "DesignTimeBuild", "true" }, // this will tell msbuild to not build the dependent projects
-                { "BuildingInsideVisualStudio", "true" }, // this will force CoreCompile task to execute even if all inputs and outputs are up to date
-                { "BuildProjectReferences", "false" },
-                { "BuildingProject", "false" },
-                { "ProvideCommandLineArgs", "true" }, // retrieve the command-line arguments to the compiler
-                { "SkipCompilerExecution", "true" }, // don't actually run the compiler
-                { "ContinueOnError", "ErrorAndContinue" }
-            };
-
-            var log = new DiagnosticLog();
-
-            try
-            {
-                var xmlReader = XmlReader.Create(await ReadFileAsync(path, cancellationToken).ConfigureAwait(false), s_xmlSettings);
-                var collection = new MSB.Evaluation.ProjectCollection(properties);
-                var xml = MSB.Construction.ProjectRootElement.Create(xmlReader, collection);
-
-                // When constructing a project from an XmlReader, MSBuild cannot determine the project file path.  Setting the
-                // path explicitly is necessary so that the reserved properties like $(MSBuildProjectDirectory) will work.
-                xml.FullPath = path;
-
-                return new LoadedProjectInfo(
-                    new MSB.Evaluation.Project(xml, globalProperties: null, toolsVersion: null, projectCollection: collection), log);
-            }
-            catch (Exception e)
-            {
-                log.Add(e, path);
-                return new LoadedProjectInfo(project: null, log);
-            }
+            return this.CreateProjectFile(project, log);
         }
 
         public static async Task<string> GetOutputFilePathAsync(string path, IDictionary<string, string> globalProperties, CancellationToken cancellationToken)
         {
-            var info = await LoadProjectAsync(path, globalProperties, cancellationToken).ConfigureAwait(false);
-            return info.Project?.GetPropertyValue("TargetPath") ?? string.Empty;
-        }
-
-        private static async Task<MemoryStream> ReadFileAsync(string path, CancellationToken cancellationToken)
-        {
-            var memoryStream = new MemoryStream();
-            var buffer = new byte[1024];
-            using (var stream = FileUtilities.OpenAsyncRead(path))
-            {
-                var bytesRead = 0;
-                do
-                {
-                    bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length, cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
-                    memoryStream.Write(buffer, 0, bytesRead);
-                }
-                while (bytesRead > 0);
-            }
-
-            memoryStream.Position = 0;
-            return memoryStream;
+            var (project, _) = await ProjectBuildManager.LoadProjectAsync(path, globalProperties, cancellationToken).ConfigureAwait(false);
+            return project?.GetPropertyValue("TargetPath") ?? string.Empty;
         }
 
         public static IProjectFileLoader GetLoaderForProjectTypeGuid(Workspace workspace, Guid guid)

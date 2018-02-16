@@ -3505,7 +3505,7 @@ class C { }";
 
                 var properties = ImmutableDictionary<string, string>.Empty;
                 var projectFile = await loader.LoadProjectFileAsync(projectFilePath, properties, CancellationToken.None);
-                var projectFileInfo = await projectFile.GetProjectFileInfoAsync(CancellationToken.None);
+                var projectFileInfo = (await projectFile.GetProjectFileInfosAsync(CancellationToken.None)).Single();
 
                 var commandLineParser = workspace.Services
                     .GetLanguageServices(loader.Language)

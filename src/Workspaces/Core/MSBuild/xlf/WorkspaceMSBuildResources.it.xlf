@@ -12,6 +12,11 @@
         <target state="new">Msbuild failed when processing the file '{0}' with message: {1}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Project_does_not_contain_0_target">
+        <source>Project does not contain '{0}' target.</source>
+        <target state="new">Project does not contain '{0}' target.</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

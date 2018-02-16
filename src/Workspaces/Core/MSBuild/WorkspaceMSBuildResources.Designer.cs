@@ -77,5 +77,14 @@ namespace Microsoft.CodeAnalysis {
                 return ResourceManager.GetString("Msbuild_failed_when_processing_the_file_0_with_message_1", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Project does not contain &apos;{0}&apos; target..
+        /// </summary>
+        internal static string Project_does_not_contain_0_target {
+            get {
+                return ResourceManager.GetString("Project_does_not_contain_0_target", resourceCulture);
+            }
+        }
     }
 }

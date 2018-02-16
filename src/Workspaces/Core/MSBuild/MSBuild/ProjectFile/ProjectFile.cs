@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.MSBuild.Build;
 using Microsoft.CodeAnalysis.MSBuild.Logging;
 using Roslyn.Utilities;
 using MSB = Microsoft.Build;
@@ -46,15 +47,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
         protected abstract SourceCodeKind GetSourceCodeKind(string documentFileName);
         public abstract string GetDocumentExtension(SourceCodeKind kind);
         protected abstract ProjectFileInfo CreateProjectFileInfo(MSB.Execution.ProjectInstance project);
-
-        public async Task<ProjectFileInfo> GetProjectFileInfoAsync(CancellationToken cancellationToken)
-        {
-            var project = await BuildProjectAsync(cancellationToken).ConfigureAwait(false);
-
-            return project != null
-                ? CreateProjectFileInfo(project)
-                : ProjectFileInfo.CreateEmpty(this.Language, _loadedProject.FullPath, this.Log);
-        }
 
         public async Task<ImmutableArray<ProjectFileInfo>> GetProjectFileInfosAsync(CancellationToken cancellationToken)
         {
@@ -107,113 +99,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         private async Task<ProjectFileInfo> BuildProjectFileInfoAsync(CancellationToken cancellationToken)
         {
-            var project = await BuildProjectAsync(cancellationToken).ConfigureAwait(false);
+            var project = await ProjectBuildManager.BuildProjectAsync(_loadedProject, this.Log, cancellationToken).ConfigureAwait(false);
 
             return project != null
                 ? CreateProjectFileInfo(project)
                 : ProjectFileInfo.CreateEmpty(this.Language, _loadedProject.FullPath, this.Log);
-        }
-
-        private async Task<MSB.Execution.ProjectInstance> BuildProjectAsync(CancellationToken cancellationToken)
-        {
-            // create a project instance to be executed by build engine.
-            // The executed project will hold the final model of the project after execution via msbuild.
-            var projectInstance = _loadedProject.CreateProjectInstance();
-
-            if (!projectInstance.Targets.ContainsKey("Compile") &&
-                !projectInstance.Targets.ContainsKey("CoreCompile"))
-            {
-                Log.Add("MSBuildWorkspace can only build projects which contain Compile and CoreCompile targets", projectInstance.FullPath);
-                return projectInstance;
-            }
-
-            var buildParameters = new MSB.Execution.BuildParameters(_loadedProject.ProjectCollection);
-
-            // capture errors that are output in the build log
-            var logger = new MSBuildDiagnosticLogger(Log, projectInstance.FullPath)
-            {
-                Verbosity = MSB.Framework.LoggerVerbosity.Normal
-            };
-
-            buildParameters.Loggers = new MSB.Framework.ILogger[] { logger };
-
-            var buildRequestData = new MSB.Execution.BuildRequestData(projectInstance, new string[] { "Compile", "CoreCompile" });
-
-            var result = await this.BuildAsync(buildParameters, buildRequestData, cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
-
-            if (result.OverallResult == MSB.Execution.BuildResultCode.Failure)
-            {
-                if (result.Exception != null)
-                {
-                    Log.Add(result.Exception, projectInstance.FullPath);
-                }
-            }
-
-            return projectInstance;
-        }
-
-        // this lock is static because we are using the default build manager, and there is only one per process
-        private static readonly SemaphoreSlim s_buildManagerLock = new SemaphoreSlim(initialCount: 1);
-
-        private async Task<MSB.Execution.BuildResult> BuildAsync(MSB.Execution.BuildParameters parameters, MSB.Execution.BuildRequestData requestData, CancellationToken cancellationToken)
-        {
-            // only allow one build to use the default build manager at a time
-            using (await s_buildManagerLock.DisposableWaitAsync(cancellationToken).ConfigureAwait(continueOnCapturedContext: false))
-            {
-                return await BuildAsync(MSB.Execution.BuildManager.DefaultBuildManager, parameters, requestData, cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
-            }
-        }
-
-        private static Task<MSB.Execution.BuildResult> BuildAsync(MSB.Execution.BuildManager buildManager, MSB.Execution.BuildParameters parameters, MSB.Execution.BuildRequestData requestData, CancellationToken cancellationToken)
-        {
-            var taskSource = new TaskCompletionSource<MSB.Execution.BuildResult>();
-
-            buildManager.BeginBuild(parameters);
-
-            // enable cancellation of build
-            CancellationTokenRegistration registration = default;
-            if (cancellationToken.CanBeCanceled)
-            {
-                registration = cancellationToken.Register(() =>
-                {
-                    try
-                    {
-                        buildManager.CancelAllSubmissions();
-                        buildManager.EndBuild();
-                        registration.Dispose();
-                    }
-                    finally
-                    {
-                        taskSource.TrySetCanceled();
-                    }
-                });
-            }
-
-            // execute build async
-            try
-            {
-                buildManager.PendBuildRequest(requestData).ExecuteAsync(sub =>
-                {
-                    // when finished
-                    try
-                    {
-                        var result = sub.BuildResult;
-                        buildManager.EndBuild();
-                        registration.Dispose();
-                        taskSource.TrySetResult(result);
-                    }
-                    catch (Exception e)
-                    {
-                        taskSource.TrySetException(e);
-                    }
-                }, null);
-            }
-            catch (Exception e)
-            {
-                taskSource.SetException(e);
-            }
-
-            return taskSource.Task;
         }
 
         protected static bool IsProjectReferenceOutputAssembly(MSB.Framework.ITaskItem item)

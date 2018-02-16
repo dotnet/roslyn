@@ -27,8 +27,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// <summary>
         /// Gets the project file info asynchronously.
         /// </summary>
-        Task<ProjectFileInfo> GetProjectFileInfoAsync(CancellationToken cancellationToken);
-
         Task<ImmutableArray<ProjectFileInfo>> GetProjectFileInfosAsync(CancellationToken cancellationToken);
 
         /// <summary>

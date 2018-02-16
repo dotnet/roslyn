@@ -1,0 +1,230 @@
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Xml;
+using Microsoft.CodeAnalysis.MSBuild.Logging;
+using Roslyn.Utilities;
+using MSB = Microsoft.Build;
+
+namespace Microsoft.CodeAnalysis.MSBuild.Build
+{
+    internal class ProjectBuildManager
+    {
+        private static readonly XmlReaderSettings s_xmlReaderSettings = new XmlReaderSettings()
+        {
+            DtdProcessing = DtdProcessing.Prohibit,
+            XmlResolver = null
+        };
+
+        public static async Task<(MSB.Evaluation.Project project, DiagnosticLog log)> LoadProjectAsync(
+            string path, IDictionary<string, string> globalProperties, CancellationToken cancellationToken)
+        {
+            var properties = GetProperties(globalProperties);
+
+            var log = new DiagnosticLog();
+
+            try
+            {
+                using (var stream = await ReadFileAsync(path, cancellationToken).ConfigureAwait(false))
+                using (var xmlReader = XmlReader.Create(stream, s_xmlReaderSettings))
+                {
+                    var collection = new MSB.Evaluation.ProjectCollection(properties);
+                    var xml = MSB.Construction.ProjectRootElement.Create(xmlReader, collection);
+
+                    // When constructing a project from an XmlReader, MSBuild cannot determine the project file path.  Setting the
+                    // path explicitly is necessary so that the reserved properties like $(MSBuildProjectDirectory) will work.
+                    xml.FullPath = path;
+
+                    var project = new MSB.Evaluation.Project(xml, globalProperties: null, toolsVersion: null, collection);
+
+                    return (project, log);
+                }
+            }
+            catch (Exception e)
+            {
+                log.Add(e, path);
+                return (project: null, log);
+            }
+        }
+
+        private static Dictionary<string, string> GetProperties(IDictionary<string, string> globalProperties)
+        {
+            var properties = new Dictionary<string, string>()
+            {
+                { "DesignTimeBuild", "true" }, // this will tell msbuild to not build the dependent projects
+                { "BuildingInsideVisualStudio", "true" }, // this will force CoreCompile task to execute even if all inputs and outputs are up to date
+                { "BuildProjectReferences", "false" },
+                { "BuildingProject", "false" },
+                { "ProvideCommandLineArgs", "true" }, // retrieve the command-line arguments to the compiler
+                { "SkipCompilerExecution", "true" }, // don't actually run the compiler
+                { "ContinueOnError", "ErrorAndContinue" }
+            };
+
+            if (globalProperties != null)
+            {
+                foreach (var globalProperty in globalProperties)
+                {
+                    properties[globalProperty.Key] = MSB.Evaluation.ProjectCollection.Escape(globalProperty.Value);
+                }
+            }
+
+            return properties;
+        }
+
+        private static async Task<MemoryStream> ReadFileAsync(string path, CancellationToken cancellationToken)
+        {
+            var buffer = new byte[1024];
+
+            using (var stream = FileUtilities.OpenAsyncRead(path))
+            {
+                var totalBytesRead = 0;
+
+                int bytesRead;
+                while ((bytesRead = await stream.ReadAsync(buffer, totalBytesRead, buffer.Length - totalBytesRead, cancellationToken).ConfigureAwait(false)) > 0)
+                {
+                    totalBytesRead += bytesRead;
+
+                    // If we're at the end of the buffer, check the next byte to see if we're done.
+                    if (totalBytesRead == buffer.Length)
+                    {
+                        var nextByte = stream.ReadByte();
+                        if (nextByte == -1)
+                        {
+                            break;
+                        }
+
+                        // We're not done yet. Resize the buffer and write the byte we just read.
+                        Array.Resize(ref buffer, buffer.Length * 2);
+                        buffer[totalBytesRead] = (byte)nextByte;
+                        totalBytesRead++;
+                    }
+                }
+
+                if (totalBytesRead != buffer.Length)
+                {
+                    Array.Resize(ref buffer, totalBytesRead);
+                }
+            }
+
+            return new MemoryStream(buffer);
+        }
+
+        public static Task<MSB.Execution.ProjectInstance> BuildProjectAsync(
+            MSB.Evaluation.Project project, DiagnosticLog log, CancellationToken cancellationToken)
+        {
+            var targets = new[] { "Compile", "CoreCompile" };
+
+            return BuildProjectAsync(project, targets, log, cancellationToken);
+        }
+
+        private static async Task<MSB.Execution.ProjectInstance> BuildProjectAsync(
+            MSB.Evaluation.Project project, string[] targets, DiagnosticLog log, CancellationToken cancellationToken)
+        {
+            // create a project instance to be executed by build engine.
+            // The executed project will hold the final model of the project after execution via msbuild.
+            var projectInstance = project.CreateProjectInstance();
+
+            // Verify targets
+            foreach (var target in targets)
+            {
+                if (!projectInstance.Targets.ContainsKey(target))
+                {
+                    log.Add(string.Format(WorkspaceMSBuildResources.Project_does_not_contain_0_target, target), projectInstance.FullPath);
+                    return projectInstance;
+                }
+            }
+
+            var buildParameters = new MSB.Execution.BuildParameters(project.ProjectCollection);
+
+            // capture errors that are output in the build log
+            var logger = new MSBuildDiagnosticLogger(log, projectInstance.FullPath)
+            {
+                Verbosity = MSB.Framework.LoggerVerbosity.Normal
+            };
+
+            buildParameters.Loggers = new MSB.Framework.ILogger[] { logger };
+
+            var buildRequestData = new MSB.Execution.BuildRequestData(projectInstance, targets);
+
+            var result = await BuildAsync(buildParameters, buildRequestData, cancellationToken).ConfigureAwait(false);
+
+            if (result.OverallResult == MSB.Execution.BuildResultCode.Failure)
+            {
+                if (result.Exception != null)
+                {
+                    log.Add(result.Exception, projectInstance.FullPath);
+                }
+            }
+
+            return projectInstance;
+        }
+
+        // this lock is static because we are using the default build manager, and there is only one per process
+        private static readonly SemaphoreSlim s_buildManagerLock = new SemaphoreSlim(initialCount: 1);
+
+        private static async Task<MSB.Execution.BuildResult> BuildAsync(MSB.Execution.BuildParameters parameters, MSB.Execution.BuildRequestData requestData, CancellationToken cancellationToken)
+        {
+            // only allow one build to use the default build manager at a time
+            using (await s_buildManagerLock.DisposableWaitAsync(cancellationToken).ConfigureAwait(continueOnCapturedContext: false))
+            {
+                return await BuildAsync(MSB.Execution.BuildManager.DefaultBuildManager, parameters, requestData, cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
+            }
+        }
+
+        private static Task<MSB.Execution.BuildResult> BuildAsync(MSB.Execution.BuildManager buildManager, MSB.Execution.BuildParameters parameters, MSB.Execution.BuildRequestData requestData, CancellationToken cancellationToken)
+        {
+            var taskSource = new TaskCompletionSource<MSB.Execution.BuildResult>();
+
+            buildManager.BeginBuild(parameters);
+
+            // enable cancellation of build
+            CancellationTokenRegistration registration = default;
+            if (cancellationToken.CanBeCanceled)
+            {
+                registration = cancellationToken.Register(() =>
+                {
+                    try
+                    {
+                        buildManager.CancelAllSubmissions();
+                        buildManager.EndBuild();
+                        registration.Dispose();
+                    }
+                    finally
+                    {
+                        taskSource.TrySetCanceled();
+                    }
+                });
+            }
+
+            // execute build async
+            try
+            {
+                buildManager.PendBuildRequest(requestData).ExecuteAsync(sub =>
+                {
+                    // when finished
+                    try
+                    {
+                        var result = sub.BuildResult;
+                        buildManager.EndBuild();
+                        registration.Dispose();
+                        taskSource.TrySetResult(result);
+                    }
+                    catch (Exception e)
+                    {
+                        taskSource.TrySetException(e);
+                    }
+                }, null);
+            }
+            catch (Exception e)
+            {
+                taskSource.SetException(e);
+            }
+
+            return taskSource.Task;
+        }
+    }
+}
