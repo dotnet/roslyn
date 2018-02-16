@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Options;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
@@ -62,7 +63,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     RaiseDocumentDiagnosticsIfNeeded(document, stateSet, kind, result.OldItems, result.Items);
                 }
 
-                FireAndForgetReportAnalyzerPerformance(document, analyzerDriverOpt, cancellationToken);
+                var asyncToken = Owner.Listener.BeginAsyncOperation(nameof(AnalyzeDocumentForKindAsync));
+                var _ = FireAndForgetReportAnalyzerPerformanceAsync(document, analyzerDriverOpt, cancellationToken).CompletesAsyncOperation(asyncToken);
             }
             catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {
@@ -434,7 +436,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             RaiseDiagnosticsRemoved(projectId, nullSolution, stateSet, raiseEvents);
         }
 
-        private async void FireAndForgetReportAnalyzerPerformance(Document document, CompilationWithAnalyzers analyzerDriverOpt, CancellationToken cancellationToken)
+        private async Task FireAndForgetReportAnalyzerPerformanceAsync(Document document, CompilationWithAnalyzers analyzerDriverOpt, CancellationToken cancellationToken)
         {
             try
             {

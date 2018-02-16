@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
 
@@ -24,13 +25,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         // internal for testing
         internal class InProcOrRemoteHostAnalyzerRunner
         {
-            private readonly IDiagnosticAnalyzerService _owner;
+            private readonly DiagnosticAnalyzerService _owner;
             private readonly AbstractHostDiagnosticUpdateSource _hostDiagnosticUpdateSourceOpt;
 
             // TODO: this should be removed once we move options down to compiler layer
             private readonly ConcurrentDictionary<string, ValueTuple<OptionSet, CustomAsset>> _lastOptionSetPerLanguage;
 
-            public InProcOrRemoteHostAnalyzerRunner(IDiagnosticAnalyzerService owner, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource)
+            public InProcOrRemoteHostAnalyzerRunner(DiagnosticAnalyzerService owner, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource)
             {
                 _owner = owner;
                 _hostDiagnosticUpdateSourceOpt = hostDiagnosticUpdateSource;
@@ -103,7 +104,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var analysisResult = await analyzerDriver.GetAnalysisResultAsync(cancellationToken).ConfigureAwait(false);
 
                 // if remote host is there, report performance data
-                FireAndForgetReportAnalyzerPerformance(project, client, analysisResult, cancellationToken);
+                var asyncToken = _owner.Listener.BeginAsyncOperation(nameof(AnalyzeInProcAsync));
+                var _ = FireAndForgetReportAnalyzerPerformanceAsync(project, client, analysisResult, cancellationToken).CompletesAsyncOperation(asyncToken);
 
                 // get compiler result builder map
                 var builderMap = analysisResult.ToResultBuilderMap(project, version, analyzerDriver.Compilation, analyzerDriver.Analyzers, cancellationToken);
@@ -111,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return DiagnosticAnalysisResultMap.Create(builderMap.ToImmutableDictionary(kv => kv.Key, kv => new DiagnosticAnalysisResult(kv.Value)), analysisResult.AnalyzerTelemetryInfo);
             }
 
-            private async void FireAndForgetReportAnalyzerPerformance(Project project, RemoteHostClient client, AnalysisResult analysisResult, CancellationToken cancellationToken)
+            private async Task FireAndForgetReportAnalyzerPerformanceAsync(Project project, RemoteHostClient client, AnalysisResult analysisResult, CancellationToken cancellationToken)
             {
                 if (client == null)
                 {

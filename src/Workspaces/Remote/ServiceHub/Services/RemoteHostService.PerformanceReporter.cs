@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Remote
                         // when we want to find out VS performance issue that could be caused by analyzer
                         if (newAnalyzer)
                         {
-                            _logger.TraceEvent(TraceEventType.Error, 0, $"[{badAnalyzerInfo.AnalyzerId} ({badAnalyzerInfo.AnalyzerIdHash})] LOF: {badAnalyzerInfo.LOF}, Mean: {badAnalyzerInfo.Average}, Stddev: {badAnalyzerInfo.AdjustedStandardDeviation}");
+                            _logger.TraceEvent(TraceEventType.Error, 0, $"[{badAnalyzerInfo.AnalyzerId} ({badAnalyzerInfo.AnalyzerIdHash})] LOF: {badAnalyzerInfo.LOF}, Avg: {badAnalyzerInfo.Average}, Stddev: {badAnalyzerInfo.AdjustedStandardDeviation}");
                         }
                     }
                 }

@@ -21,14 +21,14 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
         private static readonly Func<IEnumerable<AnalyzerPerformanceInfo>, int, string> s_snapshotLogger = SnapshotLogger;
 
         private const double DefaultMinLOFValue = 20;
-        private const double DefaultMeanThreshold = 100;
+        private const double DefaultAverageThreshold = 100;
         private const double DefaultStddevThreshold = 100;
 
         private const int SampleSize = 300;
         private const double K_Value_Ratio = 2D / 3D;
 
         private readonly double _minLOFValue;
-        private readonly double _meanThreshold;
+        private readonly double _averageThreshold;
         private readonly double _stddevThreshold;
 
         private readonly object _gate;
@@ -38,15 +38,15 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
         public event EventHandler SnapshotAdded;
 
         public PerformanceTrackerService() :
-            this(DefaultMinLOFValue, DefaultMeanThreshold, DefaultStddevThreshold)
+            this(DefaultMinLOFValue, DefaultAverageThreshold, DefaultStddevThreshold)
         {
         }
 
         // internal for testing
-        internal PerformanceTrackerService(double minLOFValue, double meanThreshold, double stddevThreshold)
+        internal PerformanceTrackerService(double minLOFValue, double averageThreshold, double stddevThreshold)
         {
             _minLOFValue = minLOFValue;
-            _meanThreshold = meanThreshold;
+            _averageThreshold = averageThreshold;
             _stddevThreshold = stddevThreshold;
 
             _gate = new object();
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 
         public void GenerateReport(List<ExpensiveAnalyzerInfo> badAnalyzers)
         {
-            using (var pooledRaw = SharedPools.Default<Dictionary<string, (double mean, double stddev)>>().GetPooledObject())
+            using (var pooledRaw = SharedPools.Default<Dictionary<string, (double average, double stddev)>>().GetPooledObject())
             {
                 var rawPerformanceData = pooledRaw.Object;
 
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                     return;
                 }
 
-                using (var generator = new ReportGenerator(this, _minLOFValue, _meanThreshold, _stddevThreshold, badAnalyzers))
+                using (var generator = new ReportGenerator(this, _minLOFValue, _averageThreshold, _stddevThreshold, badAnalyzers))
                 {
                     generator.Report(rawPerformanceData);
                 }
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
         private sealed class ReportGenerator : IDisposable, IComparer<ExpensiveAnalyzerInfo>
         {
             private readonly double _minLOFValue;
-            private readonly double _meanThreshold;
+            private readonly double _averageThreshold;
             private readonly double _stddevThreshold;
 
             private readonly PerformanceTrackerService _owner;
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             public ReportGenerator(
                 PerformanceTrackerService owner,
                 double minLOFValue,
-                double meanThreshold,
+                double averageThreshold,
                 double stddevThreshold,
                 List<ExpensiveAnalyzerInfo> badAnalyzers)
             {
@@ -161,13 +161,13 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                 _owner = owner;
 
                 _minLOFValue = minLOFValue;
-                _meanThreshold = meanThreshold;
+                _averageThreshold = averageThreshold;
                 _stddevThreshold = stddevThreshold;
 
                 _badAnalyzers = badAnalyzers;
             }
 
-            public void Report(Dictionary<string, (double mean, double stddev)> rawPerformanceData)
+            public void Report(Dictionary<string, (double average, double stddev)> rawPerformanceData)
             {
                 // this is implementation of  https://en.wikipedia.org/wiki/Local_outlier_factor
                 // see the wiki for more information
@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                     // if result performance is lower than our threshold, don't need to calcuate
                     // LOF value for the analyzer
                     var rawData = rawPerformanceData[analyzerId];
-                    if (rawData.mean <= _meanThreshold && rawData.stddev <= _stddevThreshold)
+                    if (rawData.average <= _averageThreshold && rawData.stddev <= _stddevThreshold)
                     {
                         continue;
                     }
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                     }
 
                     // report found possible bad analyzers
-                    _badAnalyzers.Add(new ExpensiveAnalyzerInfo(_owner.AllowTelemetry(analyzerId), analyzerId, lof_value.Value, rawData.mean, rawData.stddev));
+                    _badAnalyzers.Add(new ExpensiveAnalyzerInfo(_owner.AllowTelemetry(analyzerId), analyzerId, lof_value.Value, rawData.average, rawData.stddev));
                 }
 
                 _badAnalyzers.Sort(this);
@@ -332,7 +332,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                 return kDistances;
             }
 
-            private List<List<double>> GetAllDistances(List<(double normaliedMean, double normalizedStddev)> normalizedMap)
+            private List<List<double>> GetAllDistances(List<(double normaliedAverage, double normalizedStddev)> normalizedMap)
             {
                 var analyzerCount = normalizedMap.Count;
                 var allDistances = GetPooledListAndSetCapacity<List<double>>(analyzerCount);
@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                     for (var colIndex = 0; colIndex < analyzerCount; colIndex++)
                     {
                         var colAnalyzer = normalizedMap[colIndex];
-                        var distance = Math.Sqrt(Math.Pow(colAnalyzer.normaliedMean - rowAnalyzer.normaliedMean, 2) +
+                        var distance = Math.Sqrt(Math.Pow(colAnalyzer.normaliedAverage - rowAnalyzer.normaliedAverage, 2) +
                                                  Math.Pow(colAnalyzer.normalizedStddev - rowAnalyzer.normalizedStddev, 2));
 
                         rowDistances[colIndex] = distance;
@@ -357,30 +357,30 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                 return allDistances;
             }
 
-            private List<(double normaliedMean, double normalizedStddev)> GetNormalizedPerformanceMap(
-                List<string> analyzerIdIndex, Dictionary<string, (double mean, double stddev)> rawPerformanceData)
+            private List<(double normaliedAverage, double normalizedStddev)> GetNormalizedPerformanceMap(
+                List<string> analyzerIdIndex, Dictionary<string, (double average, double stddev)> rawPerformanceData)
             {
-                var (meanMin, meanMax) = (rawPerformanceData.Values.Select(kv => kv.mean).Min(), rawPerformanceData.Values.Select(kv => kv.mean).Max());
-                var meanDelta = meanMax - meanMin;
+                var (averageMin, averageMax) = (rawPerformanceData.Values.Select(kv => kv.average).Min(), rawPerformanceData.Values.Select(kv => kv.average).Max());
+                var averageDelta = averageMax - averageMin;
 
                 var (stddevMin, stddevMax) = (rawPerformanceData.Values.Select(kv => kv.stddev).Min(), rawPerformanceData.Values.Select(kv => kv.stddev).Max());
                 var stddevDelta = stddevMax - stddevMin;
 
                 // make sure delta is not 0
-                meanDelta = meanDelta == 0 ? 1 : meanDelta;
+                averageDelta = averageDelta == 0 ? 1 : averageDelta;
                 stddevDelta = stddevDelta == 0 ? 1 : stddevDelta;
 
-                // calculate normalized mean and stddev and convert analyzerId string to index
+                // calculate normalized average and stddev and convert analyzerId string to index
                 var analyzerCount = analyzerIdIndex.Count;
-                var normalizedMap = GetPooledListAndSetCapacity<(double normaliedMean, double normalizedStddev)>(analyzerCount);
+                var normalizedMap = GetPooledListAndSetCapacity<(double normalizedAverage, double normalizedStddev)>(analyzerCount);
 
                 for (var index = 0; index < analyzerCount; index++)
                 {
                     var value = rawPerformanceData[analyzerIdIndex[index]];
-                    var normalizedMean = (value.mean - meanMin) / meanDelta;
+                    var normalizedAverage = (value.average - averageMin) / averageDelta;
                     var normalizedStddev = (value.stddev - stddevMin) / stddevDelta;
 
-                    normalizedMap[index] = (normalizedMean, normalizedStddev);
+                    normalizedMap[index] = (normalizedAverage, normalizedStddev);
                 }
 
                 return normalizedMap;

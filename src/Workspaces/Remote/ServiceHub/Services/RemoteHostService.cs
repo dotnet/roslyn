@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal partial class RemoteHostService : ServiceHubServiceBase, IRemoteHostService
     {
-        private readonly static TimeSpan s_reportIntervalInMinutes = TimeSpan.FromMinutes(2);
+        private readonly static TimeSpan s_reportInterval = TimeSpan.FromMinutes(2);
 
         // it is saved here more on debugging purpose.
         private static Func<FunctionId, bool> s_logChecker = _ => false;
@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.Remote
             var diagnosticAnalyzerPerformanceTracker = SolutionService.PrimaryWorkspace.Services.GetService<IPerformanceTrackerService>();
             if (diagnosticAnalyzerPerformanceTracker != null)
             {
-                _performanceReporter = new PerformanceReporter(Logger, diagnosticAnalyzerPerformanceTracker, s_reportIntervalInMinutes, ShutdownCancellationToken);
+                _performanceReporter = new PerformanceReporter(Logger, diagnosticAnalyzerPerformanceTracker, s_reportInterval, ShutdownCancellationToken);
             }
         }
 

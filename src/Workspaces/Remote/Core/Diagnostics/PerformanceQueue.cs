@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             }
         }
 
-        public void GetPerformanceData(Dictionary<string, (double mean, double stddev)> aggregatedPerformanceDataPerAnalyzer)
+        public void GetPerformanceData(Dictionary<string, (double average, double stddev)> aggregatedPerformanceDataPerAnalyzer)
         {
             if (_snapshots.Count < MinSampleSize)
             {
@@ -96,20 +96,20 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                     }
 
                     // set performance data
-                    aggregatedPerformanceDataPerAnalyzer[reverseMap[assignedAnalyzerNumber]] = GetMeanAndAdjustedStandardDeviation(list);
+                    aggregatedPerformanceDataPerAnalyzer[reverseMap[assignedAnalyzerNumber]] = GetAverageAndAdjustedStandardDeviation(list);
 
                     list.Clear();
                 }
             }
         }
 
-        private (double mean, double stddev) GetMeanAndAdjustedStandardDeviation(List<double> data)
+        private (double average, double stddev) GetAverageAndAdjustedStandardDeviation(List<double> data)
         {
-            var mean = data.Average();
-            var stddev = Math.Sqrt(data.Select(ms => Math.Pow(ms - mean, 2)).Average());
+            var average = data.Average();
+            var stddev = Math.Sqrt(data.Select(ms => Math.Pow(ms - average, 2)).Average());
             var squareLength = Math.Sqrt(data.Count);
 
-            return (mean, stddev / squareLength);
+            return (average, stddev / squareLength);
         }
 
         private class Snapshot

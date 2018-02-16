@@ -81,7 +81,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
 
             to = Math.Min(to, dataCount);
 
-            var service = new PerformanceTrackerService(minLOFValue: 0, meanThreshold: 0, stddevThreshold: 0);
+            var service = new PerformanceTrackerService(minLOFValue: 0, averageThreshold: 0, stddevThreshold: 0);
 
             for (var i = 0; i < to; i++)
             {

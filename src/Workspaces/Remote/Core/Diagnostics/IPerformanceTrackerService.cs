@@ -24,13 +24,13 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
         public readonly double Average;
         public readonly double AdjustedStandardDeviation;
 
-        public ExpensiveAnalyzerInfo(bool builtIn, string analyzerId, double lof_value, double mean, double stddev) : this()
+        public ExpensiveAnalyzerInfo(bool builtIn, string analyzerId, double lof_value, double average, double stddev) : this()
         {
             BuiltIn = builtIn;
             AnalyzerId = analyzerId;
             AnalyzerIdHash = analyzerId.GetHashCode().ToString();
             LOF = lof_value;
-            Average = mean;
+            Average = average;
             AdjustedStandardDeviation = stddev;
         }
 
