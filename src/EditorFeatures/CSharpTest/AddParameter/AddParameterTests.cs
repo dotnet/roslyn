@@ -1654,22 +1654,7 @@ namespace N
         </Document>
     </Project>
 </Workspace>";
-            var fix =
-@"
-<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"">
-        <MetadataReferenceFromSource Language=""C#"" CommonReferences=""true"">
-            <Document FilePath=""ReferencedDocument"">
-namespace N
-{
-    public class BaseClass
-    {
-        public virtual void M() { }
-    }
-}
-            </Document>
-        </MetadataReferenceFromSource>
-        <Document FilePath=""TestDocument"">
+            var fixedDocumentWithoutConflictAnnotation = @"
 namespace N
 {
     public class Derived: BaseClass
@@ -1684,11 +1669,25 @@ namespace N
         }
     }
 }
-        </Document>
-    </Project>
-</Workspace>";
-            await TestInRegularAndScriptAsync(code, fix, index: 0);
-            await TestInRegularAndScriptAsync(code, fix, index: 1);
+        ";
+            var fixedDocumentWithConflictAnnotation = @"
+namespace N
+{
+    public class Derived: BaseClass
+    {
+        public override void M({|Conflict:int v|}) { }
+    }
+    public class DerivedDerived: Derived
+    {
+        public void M2()
+        {
+            M(1);
+        }
+    }
+}
+        ";
+            await TestInRegularAndScriptAsync(code, fixedDocumentWithoutConflictAnnotation, index: 0);
+            await TestInRegularAndScriptAsync(code, fixedDocumentWithConflictAnnotation, index: 1);
         }
 
         [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
