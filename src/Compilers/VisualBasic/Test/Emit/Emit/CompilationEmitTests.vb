@@ -373,10 +373,10 @@ End Class"
                     Dim reader = assembly.GetMetadataReader()
                     Dim attributes = reader.GetAssemblyDefinition().GetCustomAttributes()
                     AssertEx.Equal(
-                        {"MemberReference:Void System.Runtime.CompilerServices.CompilationRelaxationsAttribute.ctor(Int32)",
-                            "MemberReference:Void System.Runtime.CompilerServices.RuntimeCompatibilityAttribute.ctor()",
-                            "MemberReference:Void System.Diagnostics.DebuggableAttribute.ctor(DebuggingModes)",
-                            "MemberReference:Void System.Runtime.CompilerServices.ReferenceAssemblyAttribute.ctor()"
+                        {"MemberReference:Void System.Runtime.CompilerServices.CompilationRelaxationsAttribute..ctor(Int32)",
+                            "MemberReference:Void System.Runtime.CompilerServices.RuntimeCompatibilityAttribute..ctor()",
+                            "MemberReference:Void System.Diagnostics.DebuggableAttribute..ctor(DebuggingModes)",
+                            "MemberReference:Void System.Runtime.CompilerServices.ReferenceAssemblyAttribute..ctor()"
                         },
                         attributes.Select(Function(a) MetadataReaderUtils.Dump(reader, reader.GetCustomAttribute(a).Constructor)))
                 End Sub
@@ -412,10 +412,10 @@ End Class"
                     Dim reader = assembly.GetMetadataReader()
                     Dim attributes = reader.GetAssemblyDefinition().GetCustomAttributes()
                     AssertEx.Equal(
-                        {"MemberReference:Void System.Runtime.CompilerServices.CompilationRelaxationsAttribute.ctor(Int32)",
-                            "MemberReference:Void System.Runtime.CompilerServices.RuntimeCompatibilityAttribute.ctor()",
-                            "MemberReference:Void System.Diagnostics.DebuggableAttribute.ctor(DebuggingModes)",
-                            "MemberReference:Void System.Runtime.CompilerServices.ReferenceAssemblyAttribute.ctor()"
+                        {"MemberReference:Void System.Runtime.CompilerServices.CompilationRelaxationsAttribute..ctor(Int32)",
+                            "MemberReference:Void System.Runtime.CompilerServices.RuntimeCompatibilityAttribute..ctor()",
+                            "MemberReference:Void System.Diagnostics.DebuggableAttribute..ctor(DebuggingModes)",
+                            "MemberReference:Void System.Runtime.CompilerServices.ReferenceAssemblyAttribute..ctor()"
                         },
                         attributes.Select(Function(a) MetadataReaderUtils.Dump(reader, reader.GetCustomAttribute(a).Constructor)))
                 End Sub
