@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.MSBuild.Build;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MSBuild
@@ -450,7 +451,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                             // We don't have a full project loader, but we can try to use project evaluation to get the output file path.
                             // If that works, we can check to see if the output path is in the metadata references. If it is, we're done:
                             // Leave the metadata reference and don't create a project reference.
-                            var outputFilePath = await ProjectFileLoader.GetOutputFilePathAsync(fullPath, _globalProperties, cancellationToken).ConfigureAwait(false);
+                            var outputFilePath = await ProjectBuildManager.TryGetOutputFilePathAsync(fullPath, _globalProperties, cancellationToken).ConfigureAwait(false);
                             if (!string.IsNullOrEmpty(outputFilePath) &&
                                 metadataReferenceSet.Contains(outputFilePath) &&
                                 File.Exists(outputFilePath))

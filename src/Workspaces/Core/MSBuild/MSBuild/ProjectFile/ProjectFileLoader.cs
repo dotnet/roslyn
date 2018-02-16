@@ -32,19 +32,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
             return this.CreateProjectFile(project, log);
         }
 
-        public static async Task<string> GetOutputFilePathAsync(string path, IDictionary<string, string> globalProperties, CancellationToken cancellationToken)
-        {
-            var (project, _) = await ProjectBuildManager.LoadProjectAsync(path, globalProperties, cancellationToken).ConfigureAwait(false);
-            return project?.GetPropertyValue("TargetPath") ?? string.Empty;
-        }
-
-        public static IProjectFileLoader GetLoaderForProjectTypeGuid(Workspace workspace, Guid guid)
-        {
-            return workspace.Services.FindLanguageServices<IProjectFileLoader>(
-                d => d.GetEnumerableMetadata<string>("ProjectTypeGuid").Any(g => guid == new Guid(g)))
-                .FirstOrDefault();
-        }
-
         public static IProjectFileLoader GetLoaderForProjectFileExtension(Workspace workspace, string extension)
         {
             return workspace.Services.FindLanguageServices<IProjectFileLoader>(

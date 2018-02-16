@@ -113,6 +113,13 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
             return new MemoryStream(buffer);
         }
 
+        public static async Task<string> TryGetOutputFilePathAsync(
+            string path, IDictionary<string, string> globalProperties, CancellationToken cancellationToken)
+        {
+            var (project, _) = await LoadProjectAsync(path, globalProperties, cancellationToken).ConfigureAwait(false);
+            return project?.GetPropertyValue("TargetPath");
+        }
+
         public static Task<MSB.Execution.ProjectInstance> BuildProjectAsync(
             MSB.Evaluation.Project project, DiagnosticLog log, CancellationToken cancellationToken)
         {
