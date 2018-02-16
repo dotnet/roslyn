@@ -223,7 +223,8 @@ namespace Microsoft.CodeAnalysis.AddParameter
 
         private static string GetCodeFixTitle(IMethodSymbol methodToUpdate, IEnumerable<string> parameters)
         {
-            var signature = $"{methodToUpdate.Name}({string.Join(", ", parameters)})";
+            var methodPrefix = methodToUpdate.IsConstructor() ? "" : $"{methodToUpdate.ContainingType.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat)}.";
+            var signature = $"{methodPrefix}{methodToUpdate.Name}({string.Join(", ", parameters)})";
             var title = string.Format(FeaturesResources.Add_parameter_to_0, signature);
             return title;
         }
