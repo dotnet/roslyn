@@ -535,6 +535,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (this.IsConst && _constantTuple == null)
                 {
+                    var value = Microsoft.CodeAnalysis.ConstantValue.Bad;
                     var initValueNodeLocation = _initializer.Value.Location;
                     var diagnostics = DiagnosticBag.GetInstance();
                     Debug.Assert(inProgress != this);
@@ -545,7 +546,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         boundInitValue = inProgressBinder.BindVariableOrAutoPropInitializer(_initializer, this.RefKind, type, diagnostics);
                     }
 
-                    ConstantValue value = ConstantValueUtils.GetAndValidateConstantValue(boundInitValue, this, type, initValueNodeLocation, diagnostics);
+                    value = ConstantValueUtils.GetAndValidateConstantValue(boundInitValue, this, type, initValueNodeLocation, diagnostics);
                     Interlocked.CompareExchange(ref _constantTuple, new EvaluatedConstant(value, diagnostics.ToReadOnlyAndFree()), null);
                 }
             }
@@ -554,11 +555,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (this.IsConst && inProgress == this)
                 {
-                    var diag = new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_CircConstValue, this), node.GetLocation());
-                    diagnostics?.Add(diag);
+                    if (diagnostics != null)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_CircConstValue, node.GetLocation(), this);
+                    }
 
-                    Interlocked.CompareExchange(ref _constantTuple, new EvaluatedConstant(CodeAnalysis.ConstantValue.Bad, ImmutableArray.Create<Diagnostic>(diag)), null);
-                    return CodeAnalysis.ConstantValue.Bad;
+                    return Microsoft.CodeAnalysis.ConstantValue.Bad;
                 }
 
                 MakeConstantTuple(inProgress, boundInitValue: null);
