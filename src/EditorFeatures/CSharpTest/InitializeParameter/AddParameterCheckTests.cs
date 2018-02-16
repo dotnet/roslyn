@@ -829,7 +829,7 @@ class C
 {
     public C()
     {
-        Func<string, int> f = [||]s => { return 0; }
+        Func<string, int> f = [||]s => { return 0; };
     }
 }",
 @"
@@ -839,7 +839,15 @@ class C
 {
     public C()
     {
-        Func<string, int> f = s => { if (s == null) { throw new ArgumentNullException(nameof(s)); } return 0; }
+        Func<string, int> f = s =>
+        {
+            if (s == null)
+            {
+                throw new ArgumentNullException(nameof(s));
+            }
+
+            return 0;
+        };
     }
 }");
         }
@@ -855,7 +863,7 @@ class C
 {
     public C()
     {
-        Func<string, int> f = ([||]string s) => { return 0; }
+        Func<string, int> f = ([||]string s) => { return 0; };
     }
 }",
 @"
@@ -865,7 +873,15 @@ class C
 {
     public C()
     {
-        Func<string, int> f = (string s) => { if (s == null) { throw new ArgumentNullException(nameof(s)); } return 0; }
+        Func<string, int> f = (string s) =>
+        {
+            if (s == null)
+            {
+                throw new ArgumentNullException(nameof(s));
+            }
+
+            return 0;
+        };
     }
 }");
         }
@@ -881,7 +897,7 @@ class C
 {
     public C()
     {
-        Func<string, int> f = delegate ([||]string s) { return 0; }
+        Func<string, int> f = delegate ([||]string s) { return 0; };
     }
 }",
 @"
@@ -891,7 +907,15 @@ class C
 {
     public C()
     {
-        Func<string, int> f = delegate (string s) { if (s == null) { throw new ArgumentNullException(nameof(s)); } return 0; }
+        Func<string, int> f = delegate (string s)
+        {
+            if (s == null)
+            {
+                throw new ArgumentNullException(nameof(s));
+            }
+
+            return 0;
+        };
     }
 }");
         }
