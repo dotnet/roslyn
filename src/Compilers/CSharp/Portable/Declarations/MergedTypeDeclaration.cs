@@ -103,7 +103,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 foreach (var decl in this.Declarations)
                 {
                     if (decl.AnyMemberHasExtensionMethodSyntax)
+                    {
                         return true;
+                    }
                 }
 
                 return false;
@@ -117,7 +119,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 foreach (var decl in this.Declarations)
                 {
                     if (decl.AnyMemberHasAttributes)
+                    {
                         return true;
+                    }
                 }
 
                 return false;
@@ -150,7 +154,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         SourceLocation loc = decl.NameLocation;
                         if (loc != null)
+                        {
                             builder.Add(loc);
+                        }
                     }
                     return builder.ToImmutableAndFree();
                 }

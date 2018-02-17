@@ -166,8 +166,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 : ImmutableArray.Create<LocalSymbol>(boundTemp.LocalSymbol);
 
             ArrayBuilder<BoundExpression> sideEffects = ArrayBuilder<BoundExpression>.GetInstance(2); //max size
-            if (clearCall != null) sideEffects.Add(clearCall);
-            if (tempAssignment != null) sideEffects.Add(tempAssignment);
+            if (clearCall != null)
+            {
+                sideEffects.Add(clearCall);
+            }
+
+            if (tempAssignment != null)
+            {
+                sideEffects.Add(tempAssignment);
+            }
+
             Debug.Assert(sideEffects.Any(), "Otherwise, we shouldn't be building a sequence");
 
             return new BoundSequence(syntax, tempSymbols, sideEffects.ToImmutableAndFree(), marshalCall, marshalCall.Type);

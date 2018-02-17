@@ -212,7 +212,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     switch (name)
                     {
                         case "-": // csi -- script.csx
-                            if (value != null) break;
+                            if (value != null)
+                            {
+                                break;
+                            }
 
                             // Indicates that the remaining arguments should not be treated as options.
                             optionsEnded = true;
@@ -220,12 +223,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         case "i":
                         case "i+":
-                            if (value != null) break;
+                            if (value != null)
+                            {
+                                break;
+                            }
+
                             interactiveMode = true;
                             continue;
 
                         case "i-":
-                            if (value != null) break;
+                            if (value != null)
+                            {
+                                break;
+                            }
+
                             interactiveMode = false;
                             continue;
 
@@ -312,7 +323,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         case "checked-":
                             if (value != null)
+                            {
                                 break;
+                            }
 
                             checkOverflow = false;
                             continue;
@@ -413,7 +426,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         case "refonly":
                             if (value != null)
+                            {
                                 break;
+                            }
 
                             refOnly = true;
                             continue;
@@ -643,7 +658,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case "debug+":
                             //guard against "debug+:xx"
                             if (value != null)
+                            {
                                 break;
+                            }
 
                             emitPdb = true;
                             debugPlus = true;
@@ -651,7 +668,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         case "debug-":
                             if (value != null)
+                            {
                                 break;
+                            }
 
                             emitPdb = false;
                             debugPlus = false;
@@ -662,7 +681,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case "o+":
                         case "optimize+":
                             if (value != null)
+                            {
                                 break;
+                            }
 
                             optimize = true;
                             continue;
@@ -670,7 +691,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case "o-":
                         case "optimize-":
                             if (value != null)
+                            {
                                 break;
+                            }
 
                             optimize = false;
                             continue;
@@ -678,14 +701,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case "deterministic":
                         case "deterministic+":
                             if (value != null)
+                            {
                                 break;
+                            }
 
                             deterministic = true;
                             continue;
 
                         case "deterministic-":
                             if (value != null)
+                            {
                                 break;
+                            }
+
                             deterministic = false;
                             continue;
 
@@ -694,7 +722,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case "p+":
                         case "parallel+":
                             if (value != null)
+                            {
                                 break;
+                            }
 
                             concurrentBuild = true;
                             continue;
@@ -702,7 +732,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case "p-":
                         case "parallel-":
                             if (value != null)
+                            {
                                 break;
+                            }
 
                             concurrentBuild = false;
                             continue;
@@ -814,14 +846,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case "unsafe":
                         case "unsafe+":
                             if (value != null)
+                            {
                                 break;
+                            }
 
                             allowUnsafe = true;
                             continue;
 
                         case "unsafe-":
                             if (value != null)
+                            {
                                 break;
+                            }
 
                             allowUnsafe = false;
                             continue;
@@ -930,14 +966,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case "highentropyva":
                         case "highentropyva+":
                             if (value != null)
+                            {
                                 break;
+                            }
 
                             highEntropyVA = true;
                             continue;
 
                         case "highentropyva-":
                             if (value != null)
+                            {
                                 break;
+                            }
 
                             highEntropyVA = false;
                             continue;
@@ -1008,7 +1048,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         case "utf8output":
                             if (value != null)
+                            {
                                 break;
+                            }
 
                             utf8output = true;
                             continue;
@@ -1029,7 +1071,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         case "fullpaths":
                             if (value != null)
+                            {
                                 break;
+                            }
 
                             printFullPaths = true;
                             continue;
@@ -1093,14 +1137,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case "nostdlib":
                         case "nostdlib+":
                             if (value != null)
+                            {
                                 break;
+                            }
 
                             noStdLib = true;
                             continue;
 
                         case "nostdlib-":
                             if (value != null)
+                            {
                                 break;
+                            }
 
                             noStdLib = false;
                             continue;
@@ -1839,7 +1887,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // Rewrite the existing value with the latest one unless it is for /nowarn.
                     if (existing != ReportDiagnostic.Suppress)
+                    {
                         d[id] = kind;
+                    }
                 }
                 else
                 {

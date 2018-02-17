@@ -349,9 +349,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override int GetHashCode()
         {
             if (this.Locations.Length > 0)
+            {
                 return this.Locations.First().GetHashCode();
+            }
             else
+            {
                 return Name.GetHashCode();
+            }
         }
 
         internal override bool RequiresCompletion

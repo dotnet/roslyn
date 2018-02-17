@@ -241,9 +241,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return RewriteDelegateOperation(syntax, operatorKind, loweredLeft, loweredRight, type, SpecialMember.System_Delegate__op_Inequality);
 
                     case BinaryOperatorKind.LogicalBoolAnd:
-                        if (loweredRight.ConstantValue == ConstantValue.True) return loweredLeft;
-                        if (loweredLeft.ConstantValue == ConstantValue.True) return loweredRight;
-                        if (loweredLeft.ConstantValue == ConstantValue.False) return loweredLeft;
+                        if (loweredRight.ConstantValue == ConstantValue.True)
+                        {
+                            return loweredLeft;
+                        }
+
+                        if (loweredLeft.ConstantValue == ConstantValue.True)
+                        {
+                            return loweredRight;
+                        }
+
+                        if (loweredLeft.ConstantValue == ConstantValue.False)
+                        {
+                            return loweredLeft;
+                        }
 
                         if (loweredRight.Kind == BoundKind.Local || loweredRight.Kind == BoundKind.Parameter)
                         {
@@ -253,9 +264,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                         goto default;
 
                     case BinaryOperatorKind.LogicalBoolOr:
-                        if (loweredRight.ConstantValue == ConstantValue.False) return loweredLeft;
-                        if (loweredLeft.ConstantValue == ConstantValue.False) return loweredRight;
-                        if (loweredLeft.ConstantValue == ConstantValue.True) return loweredLeft;
+                        if (loweredRight.ConstantValue == ConstantValue.False)
+                        {
+                            return loweredLeft;
+                        }
+
+                        if (loweredLeft.ConstantValue == ConstantValue.False)
+                        {
+                            return loweredRight;
+                        }
+
+                        if (loweredLeft.ConstantValue == ConstantValue.True)
+                        {
+                            return loweredLeft;
+                        }
 
                         if (loweredRight.Kind == BoundKind.Local || loweredRight.Kind == BoundKind.Parameter)
                         {
@@ -265,8 +287,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                         goto default;
 
                     case BinaryOperatorKind.BoolAnd:
-                        if (loweredRight.ConstantValue == ConstantValue.True) return loweredLeft;
-                        if (loweredLeft.ConstantValue == ConstantValue.True) return loweredRight;
+                        if (loweredRight.ConstantValue == ConstantValue.True)
+                        {
+                            return loweredLeft;
+                        }
+
+                        if (loweredLeft.ConstantValue == ConstantValue.True)
+                        {
+                            return loweredRight;
+                        }
 
                         // Note that we are using IsDefaultValue instead of False.
                         // That is just to catch cases like default(bool) or others resulting in 
@@ -286,43 +315,84 @@ namespace Microsoft.CodeAnalysis.CSharp
                         goto default;
 
                     case BinaryOperatorKind.BoolOr:
-                        if (loweredRight.ConstantValue == ConstantValue.False) return loweredLeft;
-                        if (loweredLeft.ConstantValue == ConstantValue.False) return loweredRight;
+                        if (loweredRight.ConstantValue == ConstantValue.False)
+                        {
+                            return loweredLeft;
+                        }
+
+                        if (loweredLeft.ConstantValue == ConstantValue.False)
+                        {
+                            return loweredRight;
+                        }
+
                         goto default;
 
                     case BinaryOperatorKind.BoolEqual:
-                        if (loweredLeft.ConstantValue == ConstantValue.True) return loweredRight;
-                        if (loweredRight.ConstantValue == ConstantValue.True) return loweredLeft;
+                        if (loweredLeft.ConstantValue == ConstantValue.True)
+                        {
+                            return loweredRight;
+                        }
+
+                        if (loweredRight.ConstantValue == ConstantValue.True)
+                        {
+                            return loweredLeft;
+                        }
 
                         if (loweredLeft.ConstantValue == ConstantValue.False)
+                        {
                             return MakeUnaryOperator(UnaryOperatorKind.BoolLogicalNegation, syntax, null, loweredRight, loweredRight.Type);
+                        }
 
                         if (loweredRight.ConstantValue == ConstantValue.False)
+                        {
                             return MakeUnaryOperator(UnaryOperatorKind.BoolLogicalNegation, syntax, null, loweredLeft, loweredLeft.Type);
+                        }
 
                         goto default;
 
                     case BinaryOperatorKind.BoolNotEqual:
-                        if (loweredLeft.ConstantValue == ConstantValue.False) return loweredRight;
-                        if (loweredRight.ConstantValue == ConstantValue.False) return loweredLeft;
+                        if (loweredLeft.ConstantValue == ConstantValue.False)
+                        {
+                            return loweredRight;
+                        }
+
+                        if (loweredRight.ConstantValue == ConstantValue.False)
+                        {
+                            return loweredLeft;
+                        }
 
                         if (loweredLeft.ConstantValue == ConstantValue.True)
+                        {
                             return MakeUnaryOperator(UnaryOperatorKind.BoolLogicalNegation, syntax, null, loweredRight, loweredRight.Type);
+                        }
 
                         if (loweredRight.ConstantValue == ConstantValue.True)
+                        {
                             return MakeUnaryOperator(UnaryOperatorKind.BoolLogicalNegation, syntax, null, loweredLeft, loweredLeft.Type);
+                        }
 
                         goto default;
 
                     case BinaryOperatorKind.BoolXor:
-                        if (loweredLeft.ConstantValue == ConstantValue.False) return loweredRight;
-                        if (loweredRight.ConstantValue == ConstantValue.False) return loweredLeft;
+                        if (loweredLeft.ConstantValue == ConstantValue.False)
+                        {
+                            return loweredRight;
+                        }
+
+                        if (loweredRight.ConstantValue == ConstantValue.False)
+                        {
+                            return loweredLeft;
+                        }
 
                         if (loweredLeft.ConstantValue == ConstantValue.True)
+                        {
                             return MakeUnaryOperator(UnaryOperatorKind.BoolLogicalNegation, syntax, null, loweredRight, loweredRight.Type);
+                        }
 
                         if (loweredRight.ConstantValue == ConstantValue.True)
+                        {
                             return MakeUnaryOperator(UnaryOperatorKind.BoolLogicalNegation, syntax, null, loweredLeft, loweredLeft.Type);
+                        }
 
                         goto default;
 

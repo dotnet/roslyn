@@ -772,7 +772,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BinaryOperatorKind.NotEqual:
                     // Spec violation: can't lift unless the types match.
                     // The spec doesn't require this, but dev11 does and it reduces ambiguity in some cases.
-                    if (left != right) return LiftingResult.NotLifted;
+                    if (left != right)
+                    {
+                        return LiftingResult.NotLifted;
+                    }
+
                     goto case BinaryOperatorKind.GreaterThan;
                 case BinaryOperatorKind.GreaterThan:
                 case BinaryOperatorKind.GreaterThanOrEqual:

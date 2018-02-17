@@ -70,7 +70,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         private static string GenerateTemplateArgs(int arity)
         {
-            if (arity == 0) return string.Empty;
+            if (arity == 0)
+            {
+                return string.Empty;
+            }
+
             return string.Format("<{0}>", string.Join(",", TemplateArgEnumerable.Instance.Take(arity)));
         }
 

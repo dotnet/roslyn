@@ -250,7 +250,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             foreach (var decl in this.declaration.Declarations)
             {
                 Tuple<NamedTypeSymbol, ImmutableArray<NamedTypeSymbol>> one = MakeOneDeclaredBases(newBasesBeingResolved, decl, diagnostics);
-                if ((object)one == null) continue;
+                if ((object)one == null)
+                {
+                    continue;
+                }
 
                 var partBase = one.Item1;
                 var partInterfaces = one.Item2;

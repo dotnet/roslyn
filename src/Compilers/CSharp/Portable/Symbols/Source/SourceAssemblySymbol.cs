@@ -189,7 +189,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 if (lazyAssemblyIdentity == null)
+                {
                     Interlocked.CompareExchange(ref lazyAssemblyIdentity, ComputeIdentity(), null);
+                }
 
                 return lazyAssemblyIdentity;
             }
@@ -710,7 +712,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             EnsureAttributesAreBound();
 
             if (!this.Identity.IsStrongName)
+            {
                 return;
+            }
 
             if (_lazyInternalsVisibleToMap != null)
             {
@@ -1412,7 +1416,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     netModuleAttributesBag.SetEarlyDecodedWellKnownAttributeData(null);
                     netModuleAttributesBag.SetDecodedWellKnownAttributeData(wellKnownData);
                     netModuleAttributesBag.SetAttributes(attributesFromNetModules);
-                    if (netModuleAttributesBag.IsEmpty) netModuleAttributesBag = CustomAttributesBag<CSharpAttributeData>.Empty;
+                    if (netModuleAttributesBag.IsEmpty)
+                    {
+                        netModuleAttributesBag = CustomAttributesBag<CSharpAttributeData>.Empty;
+                    }
                 }
                 else
                 {
@@ -1926,7 +1933,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             EnsureAttributesAreBound();
 
             if (_lazyInternalsVisibleToMap == null)
+            {
                 return SpecializedCollections.EmptyEnumerable<ImmutableArray<byte>>();
+            }
 
             ConcurrentDictionary<ImmutableArray<byte>, Tuple<Location, string>> result = null;
 
@@ -1951,13 +1960,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     if (!potentialGiverOfAccess.GetInternalsVisibleToPublicKeys(this.Name).IsEmpty())
                     {
                         if (_optimisticallyGrantedInternalsAccess == null)
+                        {
                             Interlocked.CompareExchange(ref _optimisticallyGrantedInternalsAccess, new ConcurrentDictionary<AssemblySymbol, bool>(), null);
+                        }
 
                         _optimisticallyGrantedInternalsAccess.TryAdd(potentialGiverOfAccess, true);
                         return true;
                     }
                     else
+                    {
                         return false;
+                    }
                 }
             }
 
@@ -2540,7 +2553,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private static string DefaultValue(TypeSymbol type)
         {
             // TODO: localize these strings
-            if (type.IsReferenceType) return "null";
+            if (type.IsReferenceType)
+            {
+                return "null";
+            }
+
             switch (type.SpecialType)
             {
                 case SpecialType.System_Boolean:

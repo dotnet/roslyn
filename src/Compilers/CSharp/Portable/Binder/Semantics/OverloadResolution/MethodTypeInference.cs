@@ -410,7 +410,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert((object)type != null);
 
-            if (type.TypeKind != TypeKind.TypeParameter) return false;
+            if (type.TypeKind != TypeKind.TypeParameter)
+            {
+                return false;
+            }
 
             TypeParameterSymbol typeParameter = (TypeParameterSymbol)type;
             int ordinal = typeParameter.Ordinal;

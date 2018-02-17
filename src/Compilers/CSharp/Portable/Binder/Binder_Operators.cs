@@ -1628,12 +1628,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (kind)
             {
                 case BinaryOperatorKind.ObjectEqual:
-                    if (valueLeft.IsNull) return valueRight.IsNull;
-                    if (valueRight.IsNull) return false;
+                    if (valueLeft.IsNull)
+                    {
+                        return valueRight.IsNull;
+                    }
+
+                    if (valueRight.IsNull)
+                    {
+                        return false;
+                    }
+
                     break;
                 case BinaryOperatorKind.ObjectNotEqual:
-                    if (valueLeft.IsNull) return !valueRight.IsNull;
-                    if (valueRight.IsNull) return true;
+                    if (valueLeft.IsNull)
+                    {
+                        return !valueRight.IsNull;
+                    }
+
+                    if (valueRight.IsNull)
+                    {
+                        return true;
+                    }
+
                     break;
                 case BinaryOperatorKind.DoubleAddition:
                     return valueLeft.DoubleValue + valueRight.DoubleValue;

@@ -927,7 +927,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression VisitObjectCreationContinued(BoundExpression creation, BoundExpression initializerExpressionOpt)
         {
             var result = creation;
-            if (initializerExpressionOpt == null) return result;
+            if (initializerExpressionOpt == null)
+            {
+                return result;
+            }
+
             InitializerKind initializerKind;
             var init = VisitInitializer(initializerExpressionOpt, out initializerKind);
             switch (initializerKind)

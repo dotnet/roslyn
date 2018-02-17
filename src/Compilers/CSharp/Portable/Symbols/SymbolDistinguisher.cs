@@ -80,7 +80,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void MakeDescriptions()
         {
-            if (!_lazyDescriptions.IsDefault) return;
+            if (!_lazyDescriptions.IsDefault)
+            {
+                return;
+            }
 
             string description0 = _symbol0.ToDisplayString();
             string description1 = _symbol1.ToDisplayString();
@@ -126,7 +129,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (!_lazyDescriptions.IsDefault) return;
+            if (!_lazyDescriptions.IsDefault)
+            {
+                return;
+            }
 
             ImmutableInterlocked.InterlockedInitialize(ref _lazyDescriptions, ImmutableArray.Create(description0, description1));
         }

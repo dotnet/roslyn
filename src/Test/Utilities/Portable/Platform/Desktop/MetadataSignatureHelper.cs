@@ -34,9 +34,20 @@ namespace Roslyn.Test.Utilities.Desktop
         {
             if (showGenericConstraints && type.IsGenericParameter)
             {
-                if (type.GenericParameterAttributes.HasFlag(GenericParameterAttributes.ReferenceTypeConstraint)) sb.Append("class ");
-                if (type.GenericParameterAttributes.HasFlag(GenericParameterAttributes.NotNullableValueTypeConstraint)) sb.Append("valuetype ");
-                if (type.GenericParameterAttributes.HasFlag(GenericParameterAttributes.DefaultConstructorConstraint)) sb.Append(".ctor ");
+                if (type.GenericParameterAttributes.HasFlag(GenericParameterAttributes.ReferenceTypeConstraint))
+                {
+                    sb.Append("class ");
+                }
+
+                if (type.GenericParameterAttributes.HasFlag(GenericParameterAttributes.NotNullableValueTypeConstraint))
+                {
+                    sb.Append("valuetype ");
+                }
+
+                if (type.GenericParameterAttributes.HasFlag(GenericParameterAttributes.DefaultConstructorConstraint))
+                {
+                    sb.Append(".ctor ");
+                }
 
                 var genericConstraints = type.GetGenericParameterConstraints();
                 if (genericConstraints.Length > 0)
@@ -146,14 +157,32 @@ namespace Roslyn.Test.Utilities.Desktop
         {
             List<string> list = new List<string>();
 
-            if ((attributes & ParameterAttributes.Optional) != 0) list.Add("[opt]");
-            if ((attributes & ParameterAttributes.In) != 0) list.Add("[in]");
-            if ((attributes & ParameterAttributes.Out) != 0) list.Add("[out]");
+            if ((attributes & ParameterAttributes.Optional) != 0)
+            {
+                list.Add("[opt]");
+            }
+
+            if ((attributes & ParameterAttributes.In) != 0)
+            {
+                list.Add("[in]");
+            }
+
+            if ((attributes & ParameterAttributes.Out) != 0)
+            {
+                list.Add("[out]");
+            }
 
             if (all)
             {
-                if ((attributes & ParameterAttributes.HasFieldMarshal) != 0) list.Add("marshal");
-                if ((attributes & ParameterAttributes.HasDefault) != 0) list.Add("default");
+                if ((attributes & ParameterAttributes.HasFieldMarshal) != 0)
+                {
+                    list.Add("marshal");
+                }
+
+                if ((attributes & ParameterAttributes.HasDefault) != 0)
+                {
+                    list.Add("default");
+                }
             }
 
             sb.Append(list.Join(" "));
@@ -164,12 +193,22 @@ namespace Roslyn.Test.Utilities.Desktop
         {
             List<string> list = new List<string>();
 
-            if ((attributes & PropertyAttributes.SpecialName) != 0) list.Add("specialname");
-            if ((attributes & PropertyAttributes.RTSpecialName) != 0) list.Add("rtspecialname");
+            if ((attributes & PropertyAttributes.SpecialName) != 0)
+            {
+                list.Add("specialname");
+            }
+
+            if ((attributes & PropertyAttributes.RTSpecialName) != 0)
+            {
+                list.Add("rtspecialname");
+            }
 
             if (all)
             {
-                if ((attributes & PropertyAttributes.HasDefault) != 0) list.Add("default");
+                if ((attributes & PropertyAttributes.HasDefault) != 0)
+                {
+                    list.Add("default");
+                }
             }
 
             sb.Append(list.Join(" "));
@@ -180,8 +219,15 @@ namespace Roslyn.Test.Utilities.Desktop
         {
             List<string> list = new List<string>();
 
-            if ((attributes & EventAttributes.SpecialName) != 0) list.Add("specialname");
-            if ((attributes & EventAttributes.RTSpecialName) != 0) list.Add("rtspecialname");
+            if ((attributes & EventAttributes.SpecialName) != 0)
+            {
+                list.Add("specialname");
+            }
+
+            if ((attributes & EventAttributes.RTSpecialName) != 0)
+            {
+                list.Add("rtspecialname");
+            }
 
             sb.Append(list.Join(" "));
             return list.Count > 0;
@@ -207,18 +253,52 @@ namespace Roslyn.Test.Utilities.Desktop
             sb.Append(visibility);
             sb.Append((attributes & FieldAttributes.Static) != 0 ? " static" : " instance");
 
-            if ((attributes & FieldAttributes.InitOnly) != 0) sb.Append(" initonly");
-            if ((attributes & FieldAttributes.Literal) != 0) sb.Append(" literal");
-            if ((attributes & FieldAttributes.NotSerialized) != 0) sb.Append(" notserialized");
-            if ((attributes & FieldAttributes.SpecialName) != 0) sb.Append(" specialname");
-            if ((attributes & FieldAttributes.RTSpecialName) != 0) sb.Append(" rtspecialname");
+            if ((attributes & FieldAttributes.InitOnly) != 0)
+            {
+                sb.Append(" initonly");
+            }
+
+            if ((attributes & FieldAttributes.Literal) != 0)
+            {
+                sb.Append(" literal");
+            }
+
+            if ((attributes & FieldAttributes.NotSerialized) != 0)
+            {
+                sb.Append(" notserialized");
+            }
+
+            if ((attributes & FieldAttributes.SpecialName) != 0)
+            {
+                sb.Append(" specialname");
+            }
+
+            if ((attributes & FieldAttributes.RTSpecialName) != 0)
+            {
+                sb.Append(" rtspecialname");
+            }
 
             if (all)
             {
-                if ((attributes & FieldAttributes.PinvokeImpl) != 0) sb.Append(" pinvokeimpl");
-                if ((attributes & FieldAttributes.HasFieldMarshal) != 0) sb.Append(" marshal");
-                if ((attributes & FieldAttributes.HasDefault) != 0) sb.Append(" default");
-                if ((attributes & FieldAttributes.HasFieldRVA) != 0) sb.Append(" rva");
+                if ((attributes & FieldAttributes.PinvokeImpl) != 0)
+                {
+                    sb.Append(" pinvokeimpl");
+                }
+
+                if ((attributes & FieldAttributes.HasFieldMarshal) != 0)
+                {
+                    sb.Append(" marshal");
+                }
+
+                if ((attributes & FieldAttributes.HasDefault) != 0)
+                {
+                    sb.Append(" default");
+                }
+
+                if ((attributes & FieldAttributes.HasFieldRVA) != 0)
+                {
+                    sb.Append(" rva");
+                }
             }
 
             return sb;
@@ -243,22 +323,64 @@ namespace Roslyn.Test.Utilities.Desktop
 
             sb.Append(visibility);
 
-            if ((attributes & MethodAttributes.HideBySig) != 0) sb.Append(" hidebysig");
-            if ((attributes & MethodAttributes.NewSlot) != 0) sb.Append(" newslot");
-            if ((attributes & MethodAttributes.CheckAccessOnOverride) != 0) sb.Append(" strict");
-            if ((attributes & MethodAttributes.SpecialName) != 0) sb.Append(" specialname");
-            if ((attributes & MethodAttributes.RTSpecialName) != 0) sb.Append(" rtspecialname");
-            if ((attributes & MethodAttributes.RequireSecObject) != 0) sb.Append(" reqsecobj");
-            if ((attributes & MethodAttributes.UnmanagedExport) != 0) sb.Append(" unmanagedexp");
-            if ((attributes & MethodAttributes.Abstract) != 0) sb.Append(" abstract");
-            if ((attributes & MethodAttributes.Virtual) != 0) sb.Append(" virtual");
-            if ((attributes & MethodAttributes.Final) != 0) sb.Append(" final");
+            if ((attributes & MethodAttributes.HideBySig) != 0)
+            {
+                sb.Append(" hidebysig");
+            }
+
+            if ((attributes & MethodAttributes.NewSlot) != 0)
+            {
+                sb.Append(" newslot");
+            }
+
+            if ((attributes & MethodAttributes.CheckAccessOnOverride) != 0)
+            {
+                sb.Append(" strict");
+            }
+
+            if ((attributes & MethodAttributes.SpecialName) != 0)
+            {
+                sb.Append(" specialname");
+            }
+
+            if ((attributes & MethodAttributes.RTSpecialName) != 0)
+            {
+                sb.Append(" rtspecialname");
+            }
+
+            if ((attributes & MethodAttributes.RequireSecObject) != 0)
+            {
+                sb.Append(" reqsecobj");
+            }
+
+            if ((attributes & MethodAttributes.UnmanagedExport) != 0)
+            {
+                sb.Append(" unmanagedexp");
+            }
+
+            if ((attributes & MethodAttributes.Abstract) != 0)
+            {
+                sb.Append(" abstract");
+            }
+
+            if ((attributes & MethodAttributes.Virtual) != 0)
+            {
+                sb.Append(" virtual");
+            }
+
+            if ((attributes & MethodAttributes.Final) != 0)
+            {
+                sb.Append(" final");
+            }
 
             sb.Append((attributes & MethodAttributes.Static) != 0 ? " static" : " instance");
 
             if (all)
             {
-                if ((attributes & MethodAttributes.PinvokeImpl) != 0) sb.Append(" pinvokeimpl");
+                if ((attributes & MethodAttributes.PinvokeImpl) != 0)
+                {
+                    sb.Append(" pinvokeimpl");
+                }
             }
 
             return sb;
@@ -282,13 +404,40 @@ namespace Roslyn.Test.Utilities.Desktop
             sb.Append(" ");
             sb.Append((attributes & MethodImplAttributes.Unmanaged) == MethodImplAttributes.Unmanaged ? "unmanaged" : "managed");
 
-            if ((attributes & MethodImplAttributes.PreserveSig) != 0) sb.Append(" preservesig");
-            if ((attributes & MethodImplAttributes.ForwardRef) != 0) sb.Append(" forwardref");
-            if ((attributes & MethodImplAttributes.InternalCall) != 0) sb.Append(" internalcall");
-            if ((attributes & MethodImplAttributes.Synchronized) != 0) sb.Append(" synchronized");
-            if ((attributes & MethodImplAttributes.NoInlining) != 0) sb.Append(" noinlining");
-            if ((attributes & MethodImplAttributes.AggressiveInlining) != 0) sb.Append(" aggressiveinlining");
-            if ((attributes & MethodImplAttributes.NoOptimization) != 0) sb.Append(" nooptimization");
+            if ((attributes & MethodImplAttributes.PreserveSig) != 0)
+            {
+                sb.Append(" preservesig");
+            }
+
+            if ((attributes & MethodImplAttributes.ForwardRef) != 0)
+            {
+                sb.Append(" forwardref");
+            }
+
+            if ((attributes & MethodImplAttributes.InternalCall) != 0)
+            {
+                sb.Append(" internalcall");
+            }
+
+            if ((attributes & MethodImplAttributes.Synchronized) != 0)
+            {
+                sb.Append(" synchronized");
+            }
+
+            if ((attributes & MethodImplAttributes.NoInlining) != 0)
+            {
+                sb.Append(" noinlining");
+            }
+
+            if ((attributes & MethodImplAttributes.AggressiveInlining) != 0)
+            {
+                sb.Append(" aggressiveinlining");
+            }
+
+            if ((attributes & MethodImplAttributes.NoOptimization) != 0)
+            {
+                sb.Append(" nooptimization");
+            }
 
             return sb;
         }
@@ -333,24 +482,57 @@ namespace Roslyn.Test.Utilities.Desktop
                     throw new InvalidOperationException();
             }
 
-            if ((attributes & TypeAttributes.Interface) != 0) sb.Append("interface ");
+            if ((attributes & TypeAttributes.Interface) != 0)
+            {
+                sb.Append("interface ");
+            }
 
             sb.Append(visibility);
 
-            if ((attributes & TypeAttributes.Abstract) != 0) sb.Append(" abstract");
+            if ((attributes & TypeAttributes.Abstract) != 0)
+            {
+                sb.Append(" abstract");
+            }
 
             sb.Append(" ");
             sb.Append(layout);
             sb.Append(" ");
             sb.Append(stringFormat);
 
-            if ((attributes & TypeAttributes.Import) != 0) sb.Append(" import");
-            if ((attributes & TypeAttributes.WindowsRuntime) != 0) sb.Append(" windowsruntime");
-            if ((attributes & TypeAttributes.Sealed) != 0) sb.Append(" sealed");
-            if ((attributes & TypeAttributes.Serializable) != 0) sb.Append(" serializable");
-            if ((attributes & TypeAttributes.BeforeFieldInit) != 0) sb.Append(" beforefieldinit");
-            if ((attributes & TypeAttributes.SpecialName) != 0) sb.Append(" specialname");
-            if ((attributes & TypeAttributes.RTSpecialName) != 0) sb.Append(" rtspecialname");
+            if ((attributes & TypeAttributes.Import) != 0)
+            {
+                sb.Append(" import");
+            }
+
+            if ((attributes & TypeAttributes.WindowsRuntime) != 0)
+            {
+                sb.Append(" windowsruntime");
+            }
+
+            if ((attributes & TypeAttributes.Sealed) != 0)
+            {
+                sb.Append(" sealed");
+            }
+
+            if ((attributes & TypeAttributes.Serializable) != 0)
+            {
+                sb.Append(" serializable");
+            }
+
+            if ((attributes & TypeAttributes.BeforeFieldInit) != 0)
+            {
+                sb.Append(" beforefieldinit");
+            }
+
+            if ((attributes & TypeAttributes.SpecialName) != 0)
+            {
+                sb.Append(" specialname");
+            }
+
+            if ((attributes & TypeAttributes.RTSpecialName) != 0)
+            {
+                sb.Append(" rtspecialname");
+            }
 
             return sb;
         }
@@ -433,18 +615,65 @@ namespace Roslyn.Test.Utilities.Desktop
             sb.Append(")");
 
             var implFlags = constructor.GetMethodImplementationFlags();
-            if (implFlags.HasFlag(MethodImplAttributes.IL)) sb.Append(" cil");
-            if (implFlags.HasFlag(MethodImplAttributes.ForwardRef)) sb.Append(" forwardref");
-            if (implFlags.HasFlag(MethodImplAttributes.InternalCall)) sb.Append(" internalcall");
-            if (implFlags.HasFlag(MethodImplAttributes.Managed)) sb.Append(" managed");
-            if (implFlags.HasFlag(MethodImplAttributes.Native)) sb.Append(" native");
-            if (implFlags.HasFlag(MethodImplAttributes.NoInlining)) sb.Append(" noinlining");
-            if (implFlags.HasFlag(MethodImplAttributes.NoOptimization)) sb.Append(" nooptimization");
-            if (implFlags.HasFlag(MethodImplAttributes.OPTIL)) sb.Append(" optil");
-            if (implFlags.HasFlag(MethodImplAttributes.PreserveSig)) sb.Append(" preservesig");
-            if (implFlags.HasFlag(MethodImplAttributes.Runtime)) sb.Append(" runtime");
-            if (implFlags.HasFlag(MethodImplAttributes.Synchronized)) sb.Append(" synchronized");
-            if (implFlags.HasFlag(MethodImplAttributes.Unmanaged)) sb.Append(" unmanaged");
+            if (implFlags.HasFlag(MethodImplAttributes.IL))
+            {
+                sb.Append(" cil");
+            }
+
+            if (implFlags.HasFlag(MethodImplAttributes.ForwardRef))
+            {
+                sb.Append(" forwardref");
+            }
+
+            if (implFlags.HasFlag(MethodImplAttributes.InternalCall))
+            {
+                sb.Append(" internalcall");
+            }
+
+            if (implFlags.HasFlag(MethodImplAttributes.Managed))
+            {
+                sb.Append(" managed");
+            }
+
+            if (implFlags.HasFlag(MethodImplAttributes.Native))
+            {
+                sb.Append(" native");
+            }
+
+            if (implFlags.HasFlag(MethodImplAttributes.NoInlining))
+            {
+                sb.Append(" noinlining");
+            }
+
+            if (implFlags.HasFlag(MethodImplAttributes.NoOptimization))
+            {
+                sb.Append(" nooptimization");
+            }
+
+            if (implFlags.HasFlag(MethodImplAttributes.OPTIL))
+            {
+                sb.Append(" optil");
+            }
+
+            if (implFlags.HasFlag(MethodImplAttributes.PreserveSig))
+            {
+                sb.Append(" preservesig");
+            }
+
+            if (implFlags.HasFlag(MethodImplAttributes.Runtime))
+            {
+                sb.Append(" runtime");
+            }
+
+            if (implFlags.HasFlag(MethodImplAttributes.Synchronized))
+            {
+                sb.Append(" synchronized");
+            }
+
+            if (implFlags.HasFlag(MethodImplAttributes.Unmanaged))
+            {
+                sb.Append(" unmanaged");
+            }
         }
 
         static private void AppendPropertyInfo(PropertyInfo property, StringBuilder sb)
@@ -482,8 +711,15 @@ namespace Roslyn.Test.Utilities.Desktop
                 sb.Append("writeonly ");
             }
 
-            if (property.Attributes.HasFlag(PropertyAttributes.SpecialName)) sb.Append("specialname ");
-            if (property.Attributes.HasFlag(PropertyAttributes.RTSpecialName)) sb.Append("rtspecialname ");
+            if (property.Attributes.HasFlag(PropertyAttributes.SpecialName))
+            {
+                sb.Append("specialname ");
+            }
+
+            if (property.Attributes.HasFlag(PropertyAttributes.RTSpecialName))
+            {
+                sb.Append("rtspecialname ");
+            }
 
             var propertyAccessors = property.GetAccessors();
             if (propertyAccessors.Length > 0)
@@ -530,19 +766,65 @@ namespace Roslyn.Test.Utilities.Desktop
                 sb.Append(") ");
             }
 
-            if (field.IsPrivate) sb.Append("private ");
-            if (field.IsPublic) sb.Append("public ");
-            if (field.IsFamily) sb.Append("family ");
-            if (field.IsAssembly) sb.Append("assembly ");
-            if (field.IsFamilyOrAssembly) sb.Append("famorassem ");
-            if (field.IsFamilyAndAssembly) sb.Append("famandassem ");
+            if (field.IsPrivate)
+            {
+                sb.Append("private ");
+            }
 
-            if (field.IsInitOnly) sb.Append("initonly ");
-            if (field.IsLiteral) sb.Append("literal ");
-            if (field.IsNotSerialized) sb.Append("notserialized ");
-            if (field.Attributes.HasFlag(FieldAttributes.SpecialName)) sb.Append("specialname ");
-            if (field.Attributes.HasFlag(FieldAttributes.RTSpecialName)) sb.Append("rtspecialname ");
-            if (field.IsPinvokeImpl) sb.Append("pinvokeimpl ");
+            if (field.IsPublic)
+            {
+                sb.Append("public ");
+            }
+
+            if (field.IsFamily)
+            {
+                sb.Append("family ");
+            }
+
+            if (field.IsAssembly)
+            {
+                sb.Append("assembly ");
+            }
+
+            if (field.IsFamilyOrAssembly)
+            {
+                sb.Append("famorassem ");
+            }
+
+            if (field.IsFamilyAndAssembly)
+            {
+                sb.Append("famandassem ");
+            }
+
+            if (field.IsInitOnly)
+            {
+                sb.Append("initonly ");
+            }
+
+            if (field.IsLiteral)
+            {
+                sb.Append("literal ");
+            }
+
+            if (field.IsNotSerialized)
+            {
+                sb.Append("notserialized ");
+            }
+
+            if (field.Attributes.HasFlag(FieldAttributes.SpecialName))
+            {
+                sb.Append("specialname ");
+            }
+
+            if (field.Attributes.HasFlag(FieldAttributes.RTSpecialName))
+            {
+                sb.Append("rtspecialname ");
+            }
+
+            if (field.IsPinvokeImpl)
+            {
+                sb.Append("pinvokeimpl ");
+            }
 
             sb.Append(field.IsStatic ? "static " : "instance ");
             AppendType(field.FieldType, sb);
@@ -565,8 +847,15 @@ namespace Roslyn.Test.Utilities.Desktop
                 sb.Append(" ");
             }
 
-            if (@event.Attributes.HasFlag(EventAttributes.SpecialName)) sb.Append("specialname ");
-            if (@event.Attributes.HasFlag(EventAttributes.RTSpecialName)) sb.Append("rtspecialname ");
+            if (@event.Attributes.HasFlag(EventAttributes.SpecialName))
+            {
+                sb.Append("specialname ");
+            }
+
+            if (@event.Attributes.HasFlag(EventAttributes.RTSpecialName))
+            {
+                sb.Append("rtspecialname ");
+            }
 
             AppendType(@event.EventHandlerType, sb);
             sb.Append(" ");

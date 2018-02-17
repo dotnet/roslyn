@@ -367,7 +367,9 @@ namespace Microsoft.CodeAnalysis
             for (var node = this; node != null; node = node.Parent)
             {
                 if (node.IsStructuredTrivia)
+                {
                     return true;
+                }
             }
 
             return false;
@@ -825,9 +827,16 @@ namespace Microsoft.CodeAnalysis
                 {
                     var parent = node.Parent;
                     // NOTE: We care about FullSpan equality, but FullWidth is cheaper and equivalent.
-                    if (parent == null || parent.FullWidth != node.FullWidth) break;
+                    if (parent == null || parent.FullWidth != node.FullWidth)
+                    {
+                        break;
+                    }
                     // prefer child over compilation unit
-                    if (parent == cuRoot) break;
+                    if (parent == cuRoot)
+                    {
+                        break;
+                    }
+
                     node = parent;
                 }
             }

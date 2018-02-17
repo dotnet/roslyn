@@ -77,7 +77,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(member >= 0 && member < WellKnownMember.Count);
 
             // Test hook: if a member is marked missing, then return null.
-            if (IsMemberMissing(member)) return null;
+            if (IsMemberMissing(member))
+            {
+                return null;
+            }
 
             if (_lazyWellKnownTypeMembers == null || ReferenceEquals(_lazyWellKnownTypeMembers[(int)member], ErrorTypeSymbol.UnknownResultType))
             {

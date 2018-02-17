@@ -87,8 +87,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public void Free()
             {
-                if (_locals != null) _locals.Free();
-                if (_statements != null) _statements.Free();
+                if (_locals != null)
+                {
+                    _locals.Free();
+                }
+
+                if (_statements != null)
+                {
+                    _statements.Free();
+                }
             }
 
             internal void Include(BoundSpillSequenceBuilder other)
@@ -371,7 +378,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             goto default;
                         }
 
-                        if (refKind == RefKind.None) goto default;
+                        if (refKind == RefKind.None)
+                        {
+                            goto default;
+                        }
 
                         var receiver = Spill(builder, field.ReceiverOpt, fieldSymbol.ContainingType.IsValueType ? refKind : RefKind.None);
                         return field.Update(receiver, fieldSymbol, field.ConstantValueOpt, field.ResultKind, field.Type);
@@ -722,7 +732,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundKind.FieldAccess:
                         var field = (BoundFieldAccess)left;
                         // static fields are directly assignable, LHS is not on the stack, nothing to spill
-                        if (field.FieldSymbol.IsStatic) break;
+                        if (field.FieldSymbol.IsStatic)
+                        {
+                            break;
+                        }
 
                         // instance fields are directly assignable, but receiver is pushed, so need to spill that.
                         var receiver = VisitExpression(ref leftBuilder, field.ReceiverOpt);
@@ -858,9 +871,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return UpdateExpression(conditionBuilder, node.Update(node.IsRef, condition, consequence, alternative, node.ConstantValueOpt, node.Type));
             }
 
-            if (conditionBuilder == null) conditionBuilder = new BoundSpillSequenceBuilder();
-            if (consequenceBuilder == null) consequenceBuilder = new BoundSpillSequenceBuilder();
-            if (alternativeBuilder == null) alternativeBuilder = new BoundSpillSequenceBuilder();
+            if (conditionBuilder == null)
+            {
+                conditionBuilder = new BoundSpillSequenceBuilder();
+            }
+
+            if (consequenceBuilder == null)
+            {
+                consequenceBuilder = new BoundSpillSequenceBuilder();
+            }
+
+            if (alternativeBuilder == null)
+            {
+                alternativeBuilder = new BoundSpillSequenceBuilder();
+            }
 
             if (node.Type.SpecialType == SpecialType.System_Void)
             {
@@ -979,10 +1003,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return UpdateExpression(receiverBuilder, node.Update(receiver, node.HasValueMethodOpt, whenNotNull, whenNullOpt, node.Id, node.Type));
             }
 
-            if (receiverBuilder == null) receiverBuilder = new BoundSpillSequenceBuilder();
-            if (whenNotNullBuilder == null) whenNotNullBuilder = new BoundSpillSequenceBuilder();
-            if (whenNullBuilder == null) whenNullBuilder = new BoundSpillSequenceBuilder();
+            if (receiverBuilder == null)
+            {
+                receiverBuilder = new BoundSpillSequenceBuilder();
+            }
 
+            if (whenNotNullBuilder == null)
+            {
+                whenNotNullBuilder = new BoundSpillSequenceBuilder();
+            }
+
+            if (whenNullBuilder == null)
+            {
+                whenNullBuilder = new BoundSpillSequenceBuilder();
+            }
 
             BoundExpression condition;
             if (receiver.Type.IsReferenceType || receiver.Type.IsValueType || receiverRefKind == RefKind.None)

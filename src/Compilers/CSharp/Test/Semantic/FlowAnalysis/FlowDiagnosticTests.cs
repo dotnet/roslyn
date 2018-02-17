@@ -150,7 +150,9 @@ class Program
             var comp = CreateStandardCompilation(program);
             int[] count = new int[4];
             foreach (var e in this.FlowDiagnostics(comp))
+            {
                 count[(int)e.Severity]++;
+            }
 
             Assert.Equal(0, count[(int)DiagnosticSeverity.Error]);
             Assert.Equal(1, count[(int)DiagnosticSeverity.Warning]);
@@ -178,7 +180,9 @@ class Program
             var comp = CreateStandardCompilation(program);
             int[] count = new int[4];
             foreach (var e in this.FlowDiagnostics(comp))
+            {
                 count[(int)e.Severity]++;
+            }
 
             Assert.Equal(0, count[(int)DiagnosticSeverity.Error]);
             Assert.Equal(2, count[(int)DiagnosticSeverity.Warning]);
@@ -347,7 +351,9 @@ class Program
 
             int[] count = new int[4];
             foreach (var e in this.FlowDiagnostics(comp))
+            {
                 count[(int)e.Severity]++;
+            }
 
             Assert.Equal(0, count[(int)DiagnosticSeverity.Error]);
             Assert.Equal(1, count[(int)DiagnosticSeverity.Warning]);
@@ -381,7 +387,11 @@ class Program
             foreach (var e in this.FlowDiagnostics(comp))
             {
                 count[(int)e.Severity]++;
-                if (!warnings.ContainsKey(e.Code)) warnings[e.Code] = 0;
+                if (!warnings.ContainsKey(e.Code))
+                {
+                    warnings[e.Code] = 0;
+                }
+
                 warnings[e.Code] += 1;
             }
 

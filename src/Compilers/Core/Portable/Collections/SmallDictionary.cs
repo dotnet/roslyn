@@ -176,7 +176,10 @@ namespace Microsoft.CodeAnalysis
 #if DEBUG
             public static int AssertBalanced(AvlNode V)
             {
-                if (V == null) return 0;
+                if (V == null)
+                {
+                    return 0;
+                }
 
                 int a = AssertBalanced(V.Left);
                 int b = AssertBalanced(V.Right);

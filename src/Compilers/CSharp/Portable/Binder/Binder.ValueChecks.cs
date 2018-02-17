@@ -207,7 +207,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics.Add(expr.Syntax, useSiteDiagnostics);
                 Symbol otherSymbol = null;
                 bool resolvedToMethodGroup = resolution.MethodGroup != null;
-                if (!expr.HasAnyErrors) diagnostics.AddRange(resolution.Diagnostics); // Suppress cascading.
+                if (!expr.HasAnyErrors)
+                {
+                    diagnostics.AddRange(resolution.Diagnostics); // Suppress cascading.
+                }
+
                 hasResolutionErrors = resolution.HasAnyErrors;
                 if (hasResolutionErrors)
                 {

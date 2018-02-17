@@ -662,7 +662,10 @@ namespace Roslyn.Utilities
             foreach (var kv in pathMap)
             {
                 var oldPrefix = kv.Key;
-                if (!(oldPrefix?.Length > 0)) continue;
+                if (!(oldPrefix?.Length > 0))
+                {
+                    continue;
+                }
 
                 // oldPrefix always ends with a path separator, so there's no need to check if it was a partial match
                 // e.g. for the map /goo=/bar and filename /goooo

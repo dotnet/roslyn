@@ -92,7 +92,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             Binder binder)
         {
             if (!originalMethods.IsEmpty)
+            {
                 resultKind = resultKind.WorseResultKind(LookupResultKind.OverloadResolutionFailure);
+            }
 
             Debug.Assert(arguments.IsDefaultOrEmpty || (object)receiverOpt != (object)arguments[0]);
 

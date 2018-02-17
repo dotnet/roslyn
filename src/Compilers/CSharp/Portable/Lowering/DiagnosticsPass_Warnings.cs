@@ -137,7 +137,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             while (receiver.Kind == BoundKind.Conversion)
             {
                 BoundConversion conversion = (BoundConversion)receiver;
-                if (conversion.ExplicitCastInCode) break;
+                if (conversion.ExplicitCastInCode)
+                {
+                    break;
+                }
+
                 receiver = conversion.Operand;
             }
 
@@ -148,7 +152,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var interlocked = _compilation.GetWellKnownType(WellKnownType.System_Threading_Interlocked);
             if ((object)interlocked != null && interlocked == method.ContainingType)
+            {
                 return true;
+            }
 
             return false;
         }
@@ -233,11 +239,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (method.ParameterCount != arguments.Length ||
                 (object)method.ContainingType == null ||
                 !method.ContainingType.IsComImport)
+            {
                 return false;
+            }
 
             for (int i = 0; i < arguments.Length; i++)
             {
-                if (method.Parameters[i].RefKind != RefKind.None && (argumentRefKindsOpt.IsDefault || argumentRefKindsOpt[i] == RefKind.None)) return true;
+                if (method.Parameters[i].RefKind != RefKind.None && (argumentRefKindsOpt.IsDefault || argumentRefKindsOpt[i] == RefKind.None))
+                {
+                    return true;
+                }
             }
 
             return false;
@@ -327,18 +338,34 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static bool ConvertedHasEqual(BinaryOperatorKind oldOperatorKind, BoundNode node, out TypeSymbol type)
         {
             type = null;
-            if (node.Kind != BoundKind.Conversion) return false;
+            if (node.Kind != BoundKind.Conversion)
+            {
+                return false;
+            }
+
             var conv = (BoundConversion)node;
-            if (conv.ExplicitCastInCode) return false;
+            if (conv.ExplicitCastInCode)
+            {
+                return false;
+            }
+
             NamedTypeSymbol nt = conv.Operand.Type as NamedTypeSymbol;
-            if ((object)nt == null || !nt.IsReferenceType) return false;
+            if ((object)nt == null || !nt.IsReferenceType)
+            {
+                return false;
+            }
+
             string opName = (oldOperatorKind == BinaryOperatorKind.ObjectEqual) ? WellKnownMemberNames.EqualityOperatorName : WellKnownMemberNames.InequalityOperatorName;
             for (var t = nt; (object)t != null; t = t.BaseTypeNoUseSiteDiagnostics)
             {
                 foreach (var sym in t.GetMembers(opName))
                 {
                     MethodSymbol op = sym as MethodSymbol;
-                    if ((object)op == null || op.MethodKind != MethodKind.UserDefinedOperator) continue;
+                    if ((object)op == null || op.MethodKind != MethodKind.UserDefinedOperator)
+                    {
+                        continue;
+                    }
+
                     var parameters = op.GetParameters();
                     if (parameters.Length == 2 && parameters[0].Type == t && parameters[1].Type == t)
                     {
@@ -803,7 +830,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // CS0458: The result of the expression is always 'null' of type '{0}'
                     if ((node.Left.NullableNeverHasValue() && node.Right.IsNullableNonBoolean()) ||
                         (node.Left.IsNullableNonBoolean() && node.Right.NullableNeverHasValue()))
+                    {
                         Error(ErrorCode.WRN_AlwaysNull, node, node.Type);
+                    }
+
                     break;
                 default:
                     // CS0458: The result of the expression is always 'null' of type '{0}'

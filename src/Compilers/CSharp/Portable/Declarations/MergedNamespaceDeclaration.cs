@@ -64,7 +64,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         SourceLocation loc = decl.NameLocation;
                         if (loc != null)
+                        {
                             builder.Add(loc);
+                        }
                     }
                     return builder.ToImmutableAndFree();
                 }

@@ -99,7 +99,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void ResolveLabel(BoundNode node, LabelSymbol label)
         {
-            if (node.Syntax != null && RegionContains(node.Syntax.Span)) _labelsInside.Add(label);
+            if (node.Syntax != null && RegionContains(node.Syntax.Span))
+            {
+                _labelsInside.Add(label);
+            }
         }
 
         protected override void EnterRegion()

@@ -5624,7 +5624,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 foreach (var s in symbols)
                 {
                     var m = s as MethodSymbol;
-                    if ((object)m != null) builder.Add(m);
+                    if ((object)m != null)
+                    {
+                        builder.Add(m);
+                    }
                 }
                 var methods = builder.ToImmutableAndFree();
 
@@ -5851,7 +5854,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         for (int i = methodGroup.Methods.Count - 1; i >= 0; i--)
                         {
-                            if ((object)methodGroup.Methods[i].ReduceExtensionMethod(left.Type) == null) methodGroup.Methods.RemoveAt(i);
+                            if ((object)methodGroup.Methods[i].ReduceExtensionMethod(left.Type) == null)
+                            {
+                                methodGroup.Methods.RemoveAt(i);
+                            }
                         }
                     }
 

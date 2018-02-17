@@ -6321,7 +6321,9 @@ class C
             //Open as data
             IntPtr lib = LoadLibraryEx(Path.Combine(dir.Path, outputFileName), IntPtr.Zero, 0x00000002);
             if (lib == IntPtr.Zero)
+            {
                 throw new Win32Exception(Marshal.GetLastWin32Error());
+            }
 
             const string resourceType = "#24";
             var resourceId = outputKind == OutputKind.DynamicallyLinkedLibrary ? "#2" : "#1";

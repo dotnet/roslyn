@@ -34,7 +34,9 @@ namespace Roslyn.Test.Utilities
         {
             // Validate arguments
             if (numberOfThreads < 1)
+            {
                 throw new ArgumentOutOfRangeException(nameof(numberOfThreads));
+            }
 
             // Initialize the tasks collection
             _tasks = new BlockingCollection<Task>();
@@ -117,7 +119,9 @@ namespace Roslyn.Test.Utilities
 
                 // Wait for all threads to finish processing tasks
                 foreach (var thread in _threads)
+                {
                     thread.Join();
+                }
 
                 // Cleanup
                 _tasks.Dispose();

@@ -353,7 +353,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                 // Given a local function map, we need to generate capture
                 // expressions for each local func at each depth
                 foreach (var method in MakeMethodsWithLayout(localFuncLayout))
+                {
                     yield return method;
+                }
             }
         }
 

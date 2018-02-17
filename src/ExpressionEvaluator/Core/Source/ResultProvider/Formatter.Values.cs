@@ -259,7 +259,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             foreach (var field in fields)
             {
                 var fieldValue = field.Value;
-                if (fieldValue == 0) continue; // Otherwise, we'd tack the zero flag onto everything.
+                if (fieldValue == 0)
+                {
+                    continue; // Otherwise, we'd tack the zero flag onto everything.
+                }
 
                 if ((remaining & fieldValue) == fieldValue)
                 {
@@ -267,7 +270,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
                     usedFields.Add(field);
 
-                    if (remaining == 0) break;
+                    if (remaining == 0)
+                    {
+                        break;
+                    }
                 }
             }
 

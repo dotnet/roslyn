@@ -348,10 +348,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                     DependencyObject child = VisualTreeHelper.GetChild(rootObject, i);
 
                     if (child != null && child is T)
+                    {
                         yield return (T)child;
+                    }
 
                     foreach (T descendant in FindDescendants<T>(child))
+                    {
                         yield return descendant;
+                    }
                 }
             }
         }

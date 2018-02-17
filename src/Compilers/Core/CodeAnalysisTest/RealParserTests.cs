@@ -376,7 +376,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
         private static void TestRoundTripDouble(ulong bits)
         {
             double d = BitConverter.Int64BitsToDouble((long)bits);
-            if (double.IsInfinity(d) || double.IsNaN(d)) return;
+            if (double.IsInfinity(d) || double.IsNaN(d))
+            {
+                return;
+            }
+
             string s = InvariantToString(d);
             CheckOneDouble(s, bits);
         }
@@ -400,7 +404,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
         private static void CheckOneDouble(string s, double expected)
         {
             double actual;
-            if (!RealParser.TryParseDouble(s, out actual)) actual = 1.0 / 0.0;
+            if (!RealParser.TryParseDouble(s, out actual))
+            {
+                actual = 1.0 / 0.0;
+            }
+
             if (!actual.Equals(expected))
             {
                 throw new Exception($@"
@@ -447,7 +455,11 @@ Error for double input ""{s}""
                 {
                     continue;
                 }
-                if (f == 0) continue;
+                if (f == 0)
+                {
+                    continue;
+                }
+
                 uint bits = FloatToInt32Bits(f);
                 TestRoundTripFloat(bits - 1);
                 TestRoundTripFloat(bits);
@@ -466,7 +478,11 @@ Error for double input ""{s}""
                 {
                     continue;
                 }
-                if (f == 0) continue;
+                if (f == 0)
+                {
+                    continue;
+                }
+
                 uint bits = FloatToInt32Bits(f);
                 TestRoundTripFloat(bits - 1);
                 TestRoundTripFloat(bits);
@@ -556,7 +572,11 @@ Error for double input ""{s}""
         private static void TestRoundTripFloat(uint bits)
         {
             float d = Int32BitsToFloat(bits);
-            if (float.IsInfinity(d) || float.IsNaN(d)) return;
+            if (float.IsInfinity(d) || float.IsNaN(d))
+            {
+                return;
+            }
+
             string s = InvariantToString(d);
             CheckOneFloat(s, bits);
         }
@@ -564,7 +584,10 @@ Error for double input ""{s}""
         private static void TestRoundTripFloat(float d)
         {
             string s = InvariantToString(d);
-            if (s != "NaN" && s != "Infinity") CheckOneFloat(s, d);
+            if (s != "NaN" && s != "Infinity")
+            {
+                CheckOneFloat(s, d);
+            }
         }
 
         private static void CheckOneFloat(string s, uint expectedBits)
@@ -575,7 +598,11 @@ Error for double input ""{s}""
         private static void CheckOneFloat(string s, float expected)
         {
             float actual;
-            if (!RealParser.TryParseFloat(s, out actual)) actual = 1.0f / 0.0f;
+            if (!RealParser.TryParseFloat(s, out actual))
+            {
+                actual = 1.0f / 0.0f;
+            }
+
             if (!actual.Equals(expected))
             {
                 throw new Exception($@"Error for float input ""{s}""

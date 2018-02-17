@@ -363,7 +363,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public sealed override bool Equals(object symbol)
         {
-            if ((object)this == symbol) return true;
+            if ((object)this == symbol)
+            {
+                return true;
+            }
 
             var lambda = symbol as LambdaSymbol;
             return (object)lambda != null

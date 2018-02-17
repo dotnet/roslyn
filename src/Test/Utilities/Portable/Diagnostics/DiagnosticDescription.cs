@@ -196,18 +196,26 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var d = obj as DiagnosticDescription;
 
             if (d == null)
+            {
                 return false;
+            }
 
             if (!_code.Equals(d._code))
+            {
                 return false;
+            }
 
             if (_isWarningAsError != d._isWarningAsError)
+            {
                 return false;
+            }
 
             if (!_ignoreArgumentsWhenComparing)
             {
                 if (_squiggledText != d._squiggledText)
+                {
                     return false;
+                }
             }
 
             if (_startPosition != null)
@@ -224,7 +232,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             if (_syntaxPredicate != null)
             {
                 if (d._location == null)
+                {
                     return false;
+                }
 
                 if (!_syntaxPredicate(d._location.SourceTree.GetRoot().FindToken(_location.SourceSpan.Start, true).Parent))
                 {
@@ -237,7 +247,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             if (d._syntaxPredicate != null)
             {
                 if (_location == null)
+                {
                     return false;
+                }
 
                 if (!d._syntaxPredicate(_location.SourceTree.GetRoot().FindToken(_location.SourceSpan.Start, true).Parent))
                 {
@@ -250,18 +262,24 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             // If ignoring arguments, we can skip the rest of this method.
             if (_ignoreArgumentsWhenComparing || d._ignoreArgumentsWhenComparing)
+            {
                 return true;
+            }
 
             // Only validation of arguments should happen between here and the end of this method.
             if (_arguments == null)
             {
                 if (d._arguments != null)
+                {
                     return false;
+                }
             }
             else // _arguments != null
             {
                 if (d._arguments == null)
+                {
                     return false;
+                }
 
                 // we'll compare the arguments as strings
                 var args1 = GetArgumentsAsStrings();
@@ -269,12 +287,16 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 if (_argumentOrderDoesNotMatter || d._argumentOrderDoesNotMatter)
                 {
                     if (args1.Count() != args2.Count() || !args1.SetEquals(args2))
+                    {
                         return false;
+                    }
                 }
                 else
                 {
                     if (!args1.SequenceEqual(args2))
+                    {
                         return false;
+                    }
                 }
             }
 
@@ -291,7 +313,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             hashCode = Hash.Combine(_squiggledText, hashCode);
             hashCode = Hash.Combine(_arguments, hashCode);
             if (_startPosition != null)
+            {
                 hashCode = Hash.Combine(hashCode, _startPosition.Value.GetHashCode());
+            }
+
             return hashCode;
         }
 

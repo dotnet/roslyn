@@ -547,7 +547,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 useSiteDiagnostics: ref useSiteDiagnostics, allowUnexpandedForm: allowUnexpandedForm);
             diagnostics.Add(expression, useSiteDiagnostics);
 
-            if (!methodGroup.HasAnyErrors) diagnostics.AddRange(resolution.Diagnostics); // Suppress cascading.
+            if (!methodGroup.HasAnyErrors)
+            {
+                diagnostics.AddRange(resolution.Diagnostics); // Suppress cascading.
+            }
 
             if (resolution.HasAnyErrors)
             {
@@ -1399,7 +1402,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // look for a parameter by that name
                 foreach (var parameter in parameterList)
                 {
-                    if (parameter.Name == name) return parameter.Type;
+                    if (parameter.Name == name)
+                    {
+                        return parameter.Type;
+                    }
                 }
 
                 return null;
@@ -1564,7 +1570,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.BaseExpression:
                 case SyntaxKind.PredefinedType:
                     name = "";
-                    if (top) goto default;
+                    if (top)
+                    {
+                        goto default;
+                    }
+
                     return true;
                 default:
                     {

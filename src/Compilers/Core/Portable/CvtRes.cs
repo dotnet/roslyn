@@ -58,7 +58,9 @@ namespace Microsoft.CodeAnalysis
 
             //RC.EXE output starts with a resource that contains no data.
             if (initial32Bits != 0)
+            {
                 throw new ResourceException("Stream does not begin with a null resource and is not in .RES format.");
+            }
 
             stream.Position = startPos;
 
@@ -170,7 +172,9 @@ namespace Microsoft.CodeAnalysis
         private static void ConfirmSectionValues(SectionHeader hdr, long fileSize)
         {
             if ((long)hdr.PointerToRawData + hdr.SizeOfRawData > fileSize)
+            {
                 throw new ResourceException(CodeAnalysisResources.CoffResourceInvalidSectionSize);
+            }
         }
 
         static internal Microsoft.Cci.ResourceSection ReadWin32ResourcesFromCOFF(Stream stream)
@@ -195,7 +199,9 @@ namespace Microsoft.CodeAnalysis
             }
 
             if (foundCount != 2)
+            {
                 throw new ResourceException(CodeAnalysisResources.CoffResourceMissingSection);
+            }
 
             ConfirmSectionValues(rsrc1, stream.Length);
             ConfirmSectionValues(rsrc2, stream.Length);
@@ -216,7 +222,9 @@ namespace Microsoft.CodeAnalysis
                 var relocLastAddress = checked(rsrc1.PointerToRelocations + (rsrc1.NumberOfRelocations * SizeOfRelocationEntry));
 
                 if (relocLastAddress > stream.Length)
+                {
                     throw new ResourceException(CodeAnalysisResources.CoffResourceInvalidRelocation);
+                }
             }
             catch (OverflowException)
             {
@@ -251,7 +259,9 @@ namespace Microsoft.CodeAnalysis
                 var lastSymAddress = checked(peHeaders.CoffHeader.PointerToSymbolTable + peHeaders.CoffHeader.NumberOfSymbols * ImageSizeOfSymbol);
 
                 if (lastSymAddress > stream.Length)
+                {
                     throw new ResourceException(CodeAnalysisResources.CoffResourceInvalidSymbol);
+                }
             }
             catch (OverflowException)
             {
@@ -264,7 +274,9 @@ namespace Microsoft.CodeAnalysis
             for (int i = 0; i < relocationSymbolIndices.Length; i++)
             {
                 if (relocationSymbolIndices[i] > peHeaders.CoffHeader.NumberOfSymbols)
+                {
                     throw new ResourceException(CodeAnalysisResources.CoffResourceInvalidRelocation);
+                }
 
                 var offsetOfSymbol = peHeaders.CoffHeader.PointerToSymbolTable + relocationSymbolIndices[i] * ImageSizeOfSymbol;
 
@@ -279,7 +291,9 @@ namespace Microsoft.CodeAnalysis
 
                 if (symType != IMAGE_SYM_TYPE_NULL ||
                     symSection != 3)  //3rd section is .rsrc$02
+                {
                     throw new ResourceException(CodeAnalysisResources.CoffResourceInvalidSymbol);
+                }
 
                 //perform relocation. We are concatenating the contents of .rsrc$02 (the raw resource data)
                 //on to the end of .rsrc$01 (the directory tree) to yield the final resource section for the image.
@@ -318,15 +332,21 @@ namespace Microsoft.CodeAnalysis
             //read magic reserved WORD
             var reserved = iconReader.ReadUInt16();
             if (reserved != 0)
+            {
                 throw new ResourceException(CodeAnalysisResources.IconStreamUnexpectedFormat);
+            }
 
             var type = iconReader.ReadUInt16();
             if (type != 1)
+            {
                 throw new ResourceException(CodeAnalysisResources.IconStreamUnexpectedFormat);
+            }
 
             var count = iconReader.ReadUInt16();
             if (count == 0)
+            {
                 throw new ResourceException(CodeAnalysisResources.IconStreamUnexpectedFormat);
+            }
 
             var iconDirEntries = new ICONDIRENTRY[count];
             for (ushort i = 0; i < count; i++)
@@ -617,21 +637,54 @@ namespace Microsoft.CodeAnalysis
 
             private IEnumerable<KeyValuePair<string, string>> GetVerStrings()
             {
-                if (_commentsContents != null) yield return new KeyValuePair<string, string>("Comments", _commentsContents);
-                if (_companyNameContents != null) yield return new KeyValuePair<string, string>("CompanyName", _companyNameContents);
-                if (_fileDescriptionContents != null) yield return new KeyValuePair<string, string>("FileDescription", _fileDescriptionContents);
+                if (_commentsContents != null)
+                {
+                    yield return new KeyValuePair<string, string>("Comments", _commentsContents);
+                }
+
+                if (_companyNameContents != null)
+                {
+                    yield return new KeyValuePair<string, string>("CompanyName", _companyNameContents);
+                }
+
+                if (_fileDescriptionContents != null)
+                {
+                    yield return new KeyValuePair<string, string>("FileDescription", _fileDescriptionContents);
+                }
 
                 yield return new KeyValuePair<string, string>("FileVersion", _fileVersionContents);
 
-                if (_internalNameContents != null) yield return new KeyValuePair<string, string>("InternalName", _internalNameContents);
-                if (_legalCopyrightContents != null) yield return new KeyValuePair<string, string>("LegalCopyright", _legalCopyrightContents);
-                if (_legalTrademarksContents != null) yield return new KeyValuePair<string, string>("LegalTrademarks", _legalTrademarksContents);
-                if (_originalFileNameContents != null) yield return new KeyValuePair<string, string>("OriginalFilename", _originalFileNameContents);
-                if (_productNameContents != null) yield return new KeyValuePair<string, string>("ProductName", _productNameContents);
+                if (_internalNameContents != null)
+                {
+                    yield return new KeyValuePair<string, string>("InternalName", _internalNameContents);
+                }
+
+                if (_legalCopyrightContents != null)
+                {
+                    yield return new KeyValuePair<string, string>("LegalCopyright", _legalCopyrightContents);
+                }
+
+                if (_legalTrademarksContents != null)
+                {
+                    yield return new KeyValuePair<string, string>("LegalTrademarks", _legalTrademarksContents);
+                }
+
+                if (_originalFileNameContents != null)
+                {
+                    yield return new KeyValuePair<string, string>("OriginalFilename", _originalFileNameContents);
+                }
+
+                if (_productNameContents != null)
+                {
+                    yield return new KeyValuePair<string, string>("ProductName", _productNameContents);
+                }
 
                 yield return new KeyValuePair<string, string>("ProductVersion", _productVersionContents);
 
-                if (_assemblyVersionContents != null) yield return new KeyValuePair<string, string>("Assembly Version", _assemblyVersionContents.ToString());
+                if (_assemblyVersionContents != null)
+                {
+                    yield return new KeyValuePair<string, string>("Assembly Version", _assemblyVersionContents.ToString());
+                }
             }
 
             private uint FileType { get { return (_isDll) ? VFT_DLL : VFT_APP; } }

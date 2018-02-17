@@ -197,7 +197,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // overload resolution without knowing whether 'ref' can be omitted (which is what this
             // method is used to determine).  Since there is no intuitive reason to disallow
             // omitting 'ref' for static methods, we'll drop the restriction on TypeExpression.
-            if (expressionOpt == null) return false;
+            if (expressionOpt == null)
+            {
+                return false;
+            }
 
             TypeSymbol receiverType = expressionOpt.Type;
             return (object)receiverType != null && receiverType.Kind == SymbolKind.NamedType && ((NamedTypeSymbol)receiverType).IsComImport;

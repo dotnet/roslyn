@@ -92,7 +92,9 @@ namespace Microsoft.CodeAnalysis
                 {
                     //if there's a dot and no following digits, it's an error in the native compiler.
                     if (str.Length == index + 1)
+                    {
                         return false;
+                    }
 
                     major = str.Substring(0, index);
                     minor = str.Substring(index + 1);
@@ -152,7 +154,9 @@ namespace Microsoft.CodeAnalysis
         internal static SubsystemVersion Default(OutputKind outputKind, Platform platform)
         {
             if (platform == Platform.Arm)
+            {
                 return Windows8;
+            }
 
             switch (outputKind)
             {

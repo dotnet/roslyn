@@ -169,7 +169,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             for (SyntaxKind kind = InternalSyntax.SyntaxToken.FirstTokenWithWellKnownText; kind <= InternalSyntax.SyntaxToken.LastTokenWithWellKnownText; kind++)
             {
-                if (!SyntaxFacts.IsAnyToken(kind)) continue;
+                if (!SyntaxFacts.IsAnyToken(kind))
+                {
+                    continue;
+                }
 
                 var defaultText = SyntaxFacts.GetText(kind);
                 var actualRed = SyntaxFactory.Token(SyntaxTriviaList.Create(SyntaxFactory.ElasticMarker), kind, defaultText, defaultText, SyntaxTriviaList.Create(SyntaxFactory.ElasticMarker));
@@ -186,7 +189,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             for (SyntaxKind kind = InternalSyntax.SyntaxToken.FirstTokenWithWellKnownText; kind <= InternalSyntax.SyntaxToken.LastTokenWithWellKnownText; kind++)
             {
-                if (!SyntaxFacts.IsAnyToken(kind)) continue;
+                if (!SyntaxFacts.IsAnyToken(kind))
+                {
+                    continue;
+                }
 
                 var defaultText = SyntaxFacts.GetText(kind);
                 var text = ToXmlEntities(defaultText);

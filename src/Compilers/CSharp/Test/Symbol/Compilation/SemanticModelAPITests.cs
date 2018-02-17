@@ -3890,11 +3890,15 @@ namespace N
         private static void GetExpressionSyntax(SyntaxNode node, List<ExpressionSyntax> exprSynList)
         {
             if (node is ExpressionSyntax)
+            {
                 exprSynList.Add(node as ExpressionSyntax);
+            }
 
             foreach (var child in node.ChildNodesAndTokens())
                 if (child.IsNode)
+                {
                     GetExpressionSyntax(child.AsNode(), exprSynList);
+                }
         }
         #endregion
 

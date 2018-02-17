@@ -407,14 +407,37 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private bool MightContainReferences(TypeSymbol type)
         {
-            if (type.IsReferenceType || type.TypeKind == TypeKind.TypeParameter) return true; // type parameter or reference type
-            if (type.TypeKind != TypeKind.Struct) return false; // enums, etc
-            if (type.SpecialType == SpecialType.System_TypedReference) return true;
-            if (type.SpecialType != SpecialType.None) return false; // int, etc
-            if (!type.IsFromCompilation(this.CompilationState.ModuleBuilderOpt.Compilation)) return true; // perhaps from ref assembly
+            if (type.IsReferenceType || type.TypeKind == TypeKind.TypeParameter)
+            {
+                return true; // type parameter or reference type
+            }
+
+            if (type.TypeKind != TypeKind.Struct)
+            {
+                return false; // enums, etc
+            }
+
+            if (type.SpecialType == SpecialType.System_TypedReference)
+            {
+                return true;
+            }
+
+            if (type.SpecialType != SpecialType.None)
+            {
+                return false; // int, etc
+            }
+
+            if (!type.IsFromCompilation(this.CompilationState.ModuleBuilderOpt.Compilation))
+            {
+                return true; // perhaps from ref assembly
+            }
+
             foreach (var f in _emptyStructTypeCache.GetStructInstanceFields(type))
             {
-                if (MightContainReferences(f.Type)) return true;
+                if (MightContainReferences(f.Type))
+                {
+                    return true;
+                }
             }
             return false;
         }
@@ -542,7 +565,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (field.FieldSymbol.IsStatic)
                         {
                             // the address of a static field, and the value of a readonly static field, is stable
-                            if (isRef || field.FieldSymbol.IsReadOnly) return expr;
+                            if (isRef || field.FieldSymbol.IsReadOnly)
+                            {
+                                return expr;
+                            }
+
                             goto default;
                         }
 
@@ -644,7 +671,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode Visit(BoundNode node)
         {
-            if (node == null) return node;
+            if (node == null)
+            {
+                return node;
+            }
+
             var oldSyntax = F.Syntax;
             F.Syntax = node.Syntax;
             var result = base.Visit(node);

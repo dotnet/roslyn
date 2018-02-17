@@ -109,7 +109,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             foreach (var n in _namespacesToMerge)
             {
                 if (n.IsFromCompilation(compilation))
+                {
                     return n;
+                }
             }
 
             return null;

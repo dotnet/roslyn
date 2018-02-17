@@ -402,10 +402,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool Equals(object obj)
         {
-            if ((object)this == obj) return true;
+            if ((object)this == obj)
+            {
+                return true;
+            }
 
             SubstitutedMethodSymbol other = obj as SubstitutedMethodSymbol;
-            if ((object)other == null) return false;
+            if ((object)other == null)
+            {
+                return false;
+            }
 
             if ((object)this.OriginalDefinition != (object)other.OriginalDefinition &&
                 this.OriginalDefinition != other.OriginalDefinition)
@@ -415,7 +421,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // This checks if the methods have the same definition and the type parameters on the containing types have been
             // substituted in the same way.
-            if (this.ContainingType != other.ContainingType) return false;
+            if (this.ContainingType != other.ContainingType)
+            {
+                return false;
+            }
 
             // If both are declarations, then we don't need to check type arguments
             // If exactly one is a declaration, then they re not equal

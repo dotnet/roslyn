@@ -87,17 +87,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                 VisitFinallyBlock(node.FinallyBlockOpt, ref unsetInFinally);                
                 foreach (var pend in tryAndCatchPending.PendingBranches)
                 {
-                    if (pend.Branch == null) continue; // a tracked exception
+                    if (pend.Branch == null)
+                    {
+                        continue; // a tracked exception
+                    }
+
                     if (pend.Branch.Kind != BoundKind.YieldReturnStatement)
                     {
                         UnionWith(ref pend.State, ref this.State);
-                        if (trackUnassignments) IntersectWith(ref pend.State, ref unsetInFinally);
+                        if (trackUnassignments)
+                        {
+                            IntersectWith(ref pend.State, ref unsetInFinally);
+                        }
                     }
                 }
 
                 RestorePending(tryAndCatchPending);
                 UnionWith(ref endState, ref this.State);
-                if (trackUnassignments) IntersectWith(ref endState, ref unsetInFinally);
+                if (trackUnassignments)
+                {
+                    IntersectWith(ref endState, ref unsetInFinally);
+                }
             }
 
             SetState(endState);

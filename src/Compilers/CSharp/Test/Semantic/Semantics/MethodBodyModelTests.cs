@@ -123,7 +123,11 @@ class Program
             foreach (var e in comp.GetDiagnostics())
             {
                 count[(int)e.Severity]++;
-                if (!errors.ContainsKey(e.Code)) errors[e.Code] = 0;
+                if (!errors.ContainsKey(e.Code))
+                {
+                    errors[e.Code] = 0;
+                }
+
                 errors[e.Code] += 1;
             }
 

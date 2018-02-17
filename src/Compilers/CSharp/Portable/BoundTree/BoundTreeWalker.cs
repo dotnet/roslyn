@@ -34,7 +34,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             // variable.  So that we can make sense of x in this
             // context, we store the unoptimized form and visit this extra argument.
             var qc = unoptimizedForm as BoundQueryClause;
-            if (qc != null) unoptimizedForm = qc.Value;
+            if (qc != null)
+            {
+                unoptimizedForm = qc.Value;
+            }
+
             var call = unoptimizedForm as BoundCall;
             if (call != null && (object)call.Method != null)
             {

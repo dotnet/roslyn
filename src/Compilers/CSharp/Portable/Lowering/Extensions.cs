@@ -123,7 +123,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(expr != null);
             if (expr.Type.IsNullableType() && expr.Type.GetNullableUnderlyingType().SpecialType != SpecialType.System_Boolean)
+            {
                 return true;
+            }
+
             return false;
         }
     }

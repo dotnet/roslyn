@@ -895,7 +895,9 @@ public class G<T>
             foreach (MethodSymbol m in mems)
             {
                 if (m.MethodKind == MethodKind.Constructor)
+                {
                     continue;
+                }
 
                 Assert.NotNull(m.AssociatedSymbol);
                 Assert.NotEqual(MethodKind.Ordinary, m.MethodKind);

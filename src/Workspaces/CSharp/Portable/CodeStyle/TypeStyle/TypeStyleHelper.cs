@@ -221,10 +221,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
         private static ITypeSymbol UnwrapTupleType(ITypeSymbol symbol)
         {
             if (symbol is null)
+            {
                 return null;
+            }
 
             if (!(symbol is INamedTypeSymbol namedTypeSymbol))
+            {
                 return symbol;
+            }
 
             return namedTypeSymbol.TupleUnderlyingType ?? symbol;
         }

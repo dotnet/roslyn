@@ -201,7 +201,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 locals.Add(cachedThis);
             }
 
-            if ((object)_exprRetValue != null) locals.Add(_exprRetValue);
+            if ((object)_exprRetValue != null)
+            {
+                locals.Add(_exprRetValue);
+            }
 
             var newBody =
                 F.SequencePoint(

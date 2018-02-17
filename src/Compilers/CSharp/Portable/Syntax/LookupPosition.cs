@@ -403,9 +403,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 case SyntaxKind.LocalFunctionStatement:
                     LocalFunctionStatementSyntax localFunctionStmt = (LocalFunctionStatementSyntax)statement;
                     if (localFunctionStmt.Body != null)
+                    {
                         return GetFirstExcludedToken(localFunctionStmt.Body);
+                    }
+
                     if (localFunctionStmt.SemicolonToken != default(SyntaxToken))
+                    {
                         return localFunctionStmt.SemicolonToken;
+                    }
+
                     return localFunctionStmt.ParameterList.GetLastToken();
                 default:
                     throw ExceptionUtilities.UnexpectedValue(statement.Kind());

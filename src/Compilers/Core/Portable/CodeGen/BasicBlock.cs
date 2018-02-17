@@ -366,17 +366,29 @@ namespace Microsoft.CodeAnalysis.CodeGen
                     {
                         // check for next block branching to the same location with the same branch instruction
                         // in such case we can simply drop through.
-                        if (TryOptimizeSameAsNext(next, ref delta)) return true;
+                        if (TryOptimizeSameAsNext(next, ref delta))
+                        {
+                            return true;
+                        }
 
                         // check for unconditional branch to the next block or to return
-                        if (TryOptimizeBranchToNextOrRet(next, ref delta)) return true;
+                        if (TryOptimizeBranchToNextOrRet(next, ref delta))
+                        {
+                            return true;
+                        }
 
                         // check for branch over uncond branch
-                        if (TryOptimizeBranchOverUncondBranch(next, ref delta)) return true;
+                        if (TryOptimizeBranchOverUncondBranch(next, ref delta))
+                        {
+                            return true;
+                        }
 
                         // check for conditional branch to equivalent blocks
                         // in such case we can simply pop condition arguments and drop through.
-                        if (TryOptimizeBranchToEquivalent(next, ref delta)) return true;
+                        if (TryOptimizeBranchToEquivalent(next, ref delta))
+                        {
+                            return true;
+                        }
                     }
                 }
 

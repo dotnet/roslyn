@@ -159,7 +159,10 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             // for the purpose of this function consider that 
             // null nodes, tokens and trivias are cached somewhere else.
             // TODO: should use slotCount
-            if (child == null || child.SlotCount == 0) return true;
+            if (child == null || child.SlotCount == 0)
+            {
+                return true;
+            }
 
             int hash = child.GetCacheHash();
             int idx = hash & CacheMask;

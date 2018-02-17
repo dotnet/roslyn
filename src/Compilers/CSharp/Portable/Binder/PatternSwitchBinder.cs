@@ -40,7 +40,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal override BoundStatement BindSwitchExpressionAndSections(SwitchStatementSyntax node, Binder originalBinder, DiagnosticBag diagnostics)
         {
             // If it is a valid C# 6 switch statement, we use the old binder to bind it.
-            if (!UseV7SwitchBinder) return base.BindSwitchExpressionAndSections(node, originalBinder, diagnostics);
+            if (!UseV7SwitchBinder)
+            {
+                return base.BindSwitchExpressionAndSections(node, originalBinder, diagnostics);
+            }
 
             Debug.Assert(SwitchSyntax.Equals(node));
 

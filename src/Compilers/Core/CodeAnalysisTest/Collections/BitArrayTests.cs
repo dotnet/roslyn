@@ -24,9 +24,17 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
                 for (int b = -1; b < 2; b++) // number of bits more or less than that number of words
                 {
                     int n = BitVector.BitsPerWord * a + b;
-                    if (n < 0) continue;
+                    if (n < 0)
+                    {
+                        continue;
+                    }
+
                     BitVector arr = BitVector.AllSet(n);
-                    if (n > 0) Assert.True(arr[n - 1]);
+                    if (n > 0)
+                    {
+                        Assert.True(arr[n - 1]);
+                    }
+
                     Assert.False(arr[n]);
                 }
             }
@@ -39,7 +47,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             var r2 = new Random(seed);
 
             for (int capacity = 0; capacity < maxBits; capacity++)
+            {
                 CheckRandomDataCore(r1, r2, capacity);
+            }
 
             for (int i = 0; i < rounds; i++)
             {
@@ -54,11 +64,16 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             BitVector d = BitVector.Create(capacity);
             Assert.Equal(capacity, d.Capacity);
             for (int i1 = 0; i1 < capacity; i1++)
+            {
                 d[i1] = r1.NextBool();
+            }
+
             Assert.Equal(capacity, d.Capacity);
 
             for (int i2 = 0; i2 < capacity; i2++)
+            {
                 Assert.Equal(d[i2], r2.NextBool());
+            }
         }
 
         [Fact]
@@ -66,7 +81,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         {
             var r = new Random(seed);
             for (int capacity = 0; capacity < maxBits; capacity++)
+            {
                 CheckIntersectionCore(capacity, r);
+            }
+
             for (int i = 0; i < rounds; i++)
             {
                 CheckIntersectionCore(r.Next(maxBits), r);

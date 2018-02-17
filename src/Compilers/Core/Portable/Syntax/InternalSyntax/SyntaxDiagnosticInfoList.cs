@@ -25,7 +25,9 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             while (enumerator.MoveNext())
             {
                 if (predicate(enumerator.Current))
+                {
                     return true;
+                }
             }
 
             return false;

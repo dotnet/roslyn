@@ -388,7 +388,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 var newCaseType = this.SpeculativeSemanticModel.GetTypeInfo(previousReplacedNode, this.CancellationToken).Type;
 
                 if (originalCaseType == newCaseType)
+                {
                     return false;
+                }
 
                 var oldSwitchStatement = (SwitchStatementSyntax)originalCaseSwitchLabel.Parent.Parent;
                 var newSwitchStatement = (SwitchStatementSyntax)newCaseSwitchLabel.Parent.Parent;

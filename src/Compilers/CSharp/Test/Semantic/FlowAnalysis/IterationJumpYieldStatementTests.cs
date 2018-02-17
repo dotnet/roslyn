@@ -1157,9 +1157,13 @@ class Test
             foreach (var ctrlFlow in ctrlFlowAnalysis)
             {
                 if (reachable[idx])
+                {
                     Assert.True(ctrlFlow.EndPointIsReachable);
+                }
                 else
+                {
                     Assert.False(ctrlFlow.EndPointIsReachable);
+                }
 
                 Assert.Equal(bkcount[idx], ctrlFlow.ExitPoints.Count());
 

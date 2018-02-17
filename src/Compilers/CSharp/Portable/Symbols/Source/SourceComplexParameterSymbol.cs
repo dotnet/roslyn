@@ -723,20 +723,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private bool IsOnPartialImplementation(AttributeSyntax node)
         {
             var method = ContainingSymbol as MethodSymbol;
-            if ((object)method == null) return false;
+            if ((object)method == null)
+            {
+                return false;
+            }
+
             var impl = method.IsPartialImplementation() ? method : method.PartialImplementationPart;
-            if ((object)impl == null) return false;
+            if ((object)impl == null)
+            {
+                return false;
+            }
+
             var paramList =
                 node     // AttributeSyntax
                 .Parent  // AttributeListSyntax
                 .Parent  // ParameterSyntax
                 .Parent as ParameterListSyntax; // ParameterListSyntax
-            if (paramList == null) return false;
+            if (paramList == null)
+            {
+                return false;
+            }
+
             var methDecl = paramList.Parent as MethodDeclarationSyntax;
-            if (methDecl == null) return false;
+            if (methDecl == null)
+            {
+                return false;
+            }
+
             foreach (var r in impl.DeclaringSyntaxReferences)
             {
-                if (r.GetSyntax() == methDecl) return true;
+                if (r.GetSyntax() == methDecl)
+                {
+                    return true;
+                }
             }
             return false;
         }

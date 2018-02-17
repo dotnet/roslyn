@@ -1461,7 +1461,9 @@ ulong.MinValue --> 0";
 
             // return constantValue.Value ?? "null";
             if (constantValue.Value == null)
+            {
                 return "null";
+            }
 
             return TestHelpers.GetCultureInvariantString(constantValue.Value);
         }
@@ -2987,7 +2989,9 @@ void f() { if () const int i = 0; }
             var s = new BoundTreeSequencer();
             s.Visit(root);
             foreach (var node in s._list)
+            {
                 yield return node;
+            }
         }
 
         private readonly List<BoundNode> _list;

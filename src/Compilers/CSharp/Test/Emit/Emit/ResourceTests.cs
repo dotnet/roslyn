@@ -53,7 +53,9 @@ public class Maine
             {
                 lib = LoadLibraryEx(exe.Path, IntPtr.Zero, 0x00000002);
                 if (lib == IntPtr.Zero)
+                {
                     throw new Win32Exception(Marshal.GetLastWin32Error());
+                }
 
                 //the manifest and version primitives are tested elsewhere. This is to test that the default
                 //values are passed to the primitives that assemble the resources.
@@ -143,7 +145,9 @@ class C
             {
                 lib = LoadLibraryEx(exe.Path, IntPtr.Zero, 0x00000002);
                 if (lib == IntPtr.Zero)
+                {
                     throw new Win32Exception(Marshal.GetLastWin32Error());
+                }
 
                 //the manifest and version primitives are tested elsewhere. This is to test that the resources
                 //we expect are present. Also need to check that the actual contents of at least one of the resources

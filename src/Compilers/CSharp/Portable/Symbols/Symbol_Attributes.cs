@@ -352,7 +352,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     AddDeclarationDiagnostics(diagnostics);
                 }
                 lazyAttributesStoredOnThisThread = true;
-                if (lazyCustomAttributesBag.IsEmpty) lazyCustomAttributesBag = CustomAttributesBag<CSharpAttributeData>.Empty;
+                if (lazyCustomAttributesBag.IsEmpty)
+                {
+                    lazyCustomAttributesBag = CustomAttributesBag<CSharpAttributeData>.Empty;
+                }
             }
 
             Debug.Assert(lazyCustomAttributesBag.IsSealed);

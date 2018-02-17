@@ -36,7 +36,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     // Ignore directives with errors (i.e., Unrecognized #pragma directive) and
                     // directives inside disabled code (by #if and #endif)
                     if (!w.DisableOrRestoreKeyword.IsMissing && !w.WarningKeyword.IsMissing && w.IsActive)
+                    {
                         directiveList.Add(w);
+                    }
                 }
             }
         }
@@ -78,7 +80,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     {
                         var currentErrorCode = currentDirective.ErrorCodes[x];
                         if (currentErrorCode.IsMissing || currentErrorCode.ContainsDiagnostics)
+                        {
                             continue;
+                        }
 
                         var errorId = string.Empty;
                         if (currentErrorCode.Kind() == SyntaxKind.NumericLiteralExpression)

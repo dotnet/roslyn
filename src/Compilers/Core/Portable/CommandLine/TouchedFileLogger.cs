@@ -28,7 +28,11 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public void AddRead(string path)
         {
-            if (path == null) throw new ArgumentNullException(path);
+            if (path == null)
+            {
+                throw new ArgumentNullException(path);
+            }
+
             _readFiles.Add(path);
         }
 
@@ -38,7 +42,11 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public void AddWritten(string path)
         {
-            if (path == null) throw new ArgumentNullException(path);
+            if (path == null)
+            {
+                throw new ArgumentNullException(path);
+            }
+
             _writtenFiles.Add(path);
         }
 

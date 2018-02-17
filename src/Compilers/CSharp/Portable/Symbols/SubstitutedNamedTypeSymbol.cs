@@ -250,7 +250,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public sealed override ImmutableArray<Symbol> GetMembers(string name)
         {
-            if (_unbound) return StaticCast<Symbol>.From(GetTypeMembers(name));
+            if (_unbound)
+            {
+                return StaticCast<Symbol>.From(GetTypeMembers(name));
+            }
 
             ImmutableArray<Symbol> result;
             var cache = _lazyMembersByNameCache;
@@ -302,7 +305,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override ImmutableArray<Symbol> GetEarlyAttributeDecodingMembers(string name)
         {
-            if (_unbound) return GetMembers(name);
+            if (_unbound)
+            {
+                return GetMembers(name);
+            }
 
             var builder = ArrayBuilder<Symbol>.GetInstance();
             foreach (var t in OriginalDefinition.GetEarlyAttributeDecodingMembers(name))

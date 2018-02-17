@@ -188,7 +188,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             IVTConclusion result;
             if (AssembliesToWhichInternalAccessHasBeenDetermined.TryGetValue(potentialGiverOfAccess, out result))
+            {
                 return result;
+            }
 
             result = IVTConclusion.NoRelationshipClaimed;
 
@@ -220,7 +222,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 if (_assembliesToWhichInternalAccessHasBeenAnalyzed == null)
+                {
                     Interlocked.CompareExchange(ref _assembliesToWhichInternalAccessHasBeenAnalyzed, new ConcurrentDictionary<AssemblySymbol, IVTConclusion>(), null);
+                }
+
                 return _assembliesToWhichInternalAccessHasBeenAnalyzed;
             }
         }

@@ -2164,9 +2164,13 @@ class Program
             Assert.NotNull(type.GetMembers("Public").SingleOrDefault());
             var member = type.GetMembers("Internal").SingleOrDefault();
             if (isFromSource)
+            {
                 Assert.NotNull(member);
+            }
             else
+            {
                 Assert.Null(member);
+            }
         }
 
         [WorkItem(90, "https://github.com/dotnet/roslyn/issues/90")]

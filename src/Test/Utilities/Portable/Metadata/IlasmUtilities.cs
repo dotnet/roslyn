@@ -51,7 +51,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public static void IlasmTempAssembly(string declarations, bool appendDefaultHeader, bool includePdb, out string assemblyPath, out string pdbPath)
         {
-            if (declarations == null) throw new ArgumentNullException(nameof(declarations));
+            if (declarations == null)
+            {
+                throw new ArgumentNullException(nameof(declarations));
+            }
 
             using (var sourceFile = new DisposableFile(extension: ".il"))
             {
