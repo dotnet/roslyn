@@ -38,7 +38,7 @@ public class Test
                 Assert.True(typeParameter.HasUnmanagedTypeConstraint);
 
                 Assert.Null(module.ContainingAssembly.GetTypeByMetadataName(AttributeDescription.CodeAnalysisEmbeddedAttribute.FullName));
-                AssertReferencedIsUnmanagedAttribute(Accessibility.Public, typeParameter.GetAttributes(), module.ContainingAssembly.Name);
+                AssertReferencedIsUnmanagedAttribute(Accessibility.Public, typeParameter, module.ContainingAssembly.Name);
             });
         }
 
@@ -62,12 +62,12 @@ public class Test<T> where T : unmanaged
                 Assert.True(typeParameter.HasUnmanagedTypeConstraint);
 
                 Assert.Null(module.ContainingAssembly.GetTypeByMetadataName(AttributeDescription.CodeAnalysisEmbeddedAttribute.FullName));
-                AssertReferencedIsUnmanagedAttribute(Accessibility.Public, typeParameter.GetAttributes(), module.ContainingAssembly.Name);
+                AssertReferencedIsUnmanagedAttribute(Accessibility.Public, typeParameter, module.ContainingAssembly.Name);
             });
         }
 
         [Fact]
-        public void AttributeUsedIfExists_FromReference_Method_Dll()
+        public void AttributeUsedIfExists_FromReference_Method_Reference()
         {
             var reference = CreateStandardCompilation(@"
 namespace System.Runtime.CompilerServices
@@ -88,13 +88,13 @@ public class Test
                 Assert.True(typeParameter.HasValueTypeConstraint);
                 Assert.True(typeParameter.HasUnmanagedTypeConstraint);
 
-                AssertReferencedIsUnmanagedAttribute(Accessibility.Public, typeParameter.GetAttributes(), reference.Display);
+                AssertReferencedIsUnmanagedAttribute(Accessibility.Public, typeParameter, reference.Display);
                 AssertNoIsUnmanagedAttributeExists(module.ContainingAssembly);
             });
         }
 
         [Fact]
-        public void AttributeUsedIfExists_FromReference_Class_Dll()
+        public void AttributeUsedIfExists_FromReference_Class_Reference()
         {
             var reference = CreateStandardCompilation(@"
 namespace System.Runtime.CompilerServices
@@ -114,7 +114,7 @@ public class Test<T> where T : unmanaged
                 Assert.True(typeParameter.HasValueTypeConstraint);
                 Assert.True(typeParameter.HasUnmanagedTypeConstraint);
 
-                AssertReferencedIsUnmanagedAttribute(Accessibility.Public, typeParameter.GetAttributes(), reference.Display);
+                AssertReferencedIsUnmanagedAttribute(Accessibility.Public, typeParameter, reference.Display);
                 AssertNoIsUnmanagedAttributeExists(module.ContainingAssembly);
             });
         }
@@ -141,7 +141,7 @@ public class Test
                 Assert.True(typeParameter.HasValueTypeConstraint);
                 Assert.True(typeParameter.HasUnmanagedTypeConstraint);
 
-                AssertReferencedIsUnmanagedAttribute(Accessibility.Public, typeParameter.GetAttributes(), reference.Display);
+                AssertReferencedIsUnmanagedAttribute(Accessibility.Public, typeParameter, reference.Display);
                 AssertNoIsUnmanagedAttributeExists(module.ContainingAssembly);
             });
         }
@@ -167,7 +167,7 @@ public class Test<T> where T : unmanaged
                 Assert.True(typeParameter.HasValueTypeConstraint);
                 Assert.True(typeParameter.HasUnmanagedTypeConstraint);
 
-                AssertReferencedIsUnmanagedAttribute(Accessibility.Public, typeParameter.GetAttributes(), reference.Display);
+                AssertReferencedIsUnmanagedAttribute(Accessibility.Public, typeParameter, reference.Display);
                 AssertNoIsUnmanagedAttributeExists(module.ContainingAssembly);
             });
         }
@@ -188,7 +188,7 @@ public class Test
                 Assert.True(typeParameter.HasValueTypeConstraint);
                 Assert.True(typeParameter.HasUnmanagedTypeConstraint);
 
-                AssertReferencedIsUnmanagedAttribute(Accessibility.Internal, typeParameter.GetAttributes(), module.ContainingAssembly.Name);
+                AssertReferencedIsUnmanagedAttribute(Accessibility.Internal, typeParameter, module.ContainingAssembly.Name);
             });
         }
 
@@ -207,7 +207,7 @@ public class Test<T> where T : unmanaged
                 Assert.True(typeParameter.HasValueTypeConstraint);
                 Assert.True(typeParameter.HasUnmanagedTypeConstraint);
 
-                AssertReferencedIsUnmanagedAttribute(Accessibility.Internal, typeParameter.GetAttributes(), module.ContainingAssembly.Name);
+                AssertReferencedIsUnmanagedAttribute(Accessibility.Internal, typeParameter, module.ContainingAssembly.Name);
             });
         }
 
@@ -416,7 +416,7 @@ public class Test2<T> : Test1<T> where T : unmanaged { }
                 Assert.True(typeParameter.HasValueTypeConstraint);
                 Assert.True(typeParameter.HasUnmanagedTypeConstraint);
 
-                AssertReferencedIsUnmanagedAttribute(Accessibility.Internal, typeParameter.GetAttributes(), module.ContainingAssembly.Name);
+                AssertReferencedIsUnmanagedAttribute(Accessibility.Internal, typeParameter, module.ContainingAssembly.Name);
             });
         }
 
@@ -466,7 +466,7 @@ public class Test1<T> where T : unmanaged
                 Assert.True(typeParameter.HasValueTypeConstraint);
                 Assert.True(typeParameter.HasUnmanagedTypeConstraint);
 
-                AssertReferencedIsUnmanagedAttribute(Accessibility.Internal, typeParameter.GetAttributes(), module.ContainingAssembly.Name);
+                AssertReferencedIsUnmanagedAttribute(Accessibility.Internal, typeParameter, module.ContainingAssembly.Name);
             });
 
             var code2 = @"
@@ -480,7 +480,7 @@ public class Test2<T> : Test1<T> where T : unmanaged
                 Assert.True(typeParameter.HasValueTypeConstraint);
                 Assert.True(typeParameter.HasUnmanagedTypeConstraint);
 
-                AssertReferencedIsUnmanagedAttribute(Accessibility.Internal, typeParameter.GetAttributes(), module.ContainingAssembly.Name);
+                AssertReferencedIsUnmanagedAttribute(Accessibility.Internal, typeParameter, module.ContainingAssembly.Name);
             });
         }
 
@@ -550,9 +550,11 @@ class Test<T> where T : unmanaged
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "T").WithArguments("System.Runtime.CompilerServices.IsUnmanagedAttribute", ".ctor").WithLocation(6, 12));
         }
 
-        private void AssertReferencedIsUnmanagedAttribute(Accessibility accessibility, ImmutableArray<CSharpAttributeData> attributes, string assemblyName)
+        internal static void AssertReferencedIsUnmanagedAttribute(Accessibility accessibility, TypeParameterSymbol typeParameter, string assemblyName)
         {
-            var attributeType = attributes.Single().AttributeClass;
+            var attributes = ((PEModuleSymbol)typeParameter.ContainingModule).GetCustomAttributesForToken(((PETypeParameterSymbol)typeParameter).Handle);
+            NamedTypeSymbol attributeType = attributes.Single().AttributeClass;
+
             Assert.Equal("IsUnmanagedAttribute", attributeType.Name);
             Assert.Equal(assemblyName, attributeType.ContainingAssembly.Name);
             Assert.Equal(accessibility, attributeType.DeclaredAccessibility);

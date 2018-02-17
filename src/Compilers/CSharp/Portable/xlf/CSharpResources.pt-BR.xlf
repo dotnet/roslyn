@@ -8631,8 +8631,8 @@ Para incorporar informações de tipo de interoperabilidade para os dois assembl
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnmanagedConstraintWithLocalFunctions">
-        <source>Using unmanaged constraint on local functions type parameters is not supported.</source>
-        <target state="new">Using unmanaged constraint on local functions type parameters is not supported.</target>
+        <source>Using 'unmanaged' constraint on local functions type parameters is not supported.</source>
+        <target state="new">Using 'unmanaged' constraint on local functions type parameters is not supported.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConWithUnmanagedCon">

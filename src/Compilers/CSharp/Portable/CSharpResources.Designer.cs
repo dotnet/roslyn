@@ -9746,7 +9746,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Using unmanaged constraint on local functions type parameters is not supported..
+        ///   Looks up a localized string similar to Using &apos;unmanaged&apos; constraint on local functions type parameters is not supported..
         /// </summary>
         internal static string ERR_UnmanagedConstraintWithLocalFunctions {
             get {

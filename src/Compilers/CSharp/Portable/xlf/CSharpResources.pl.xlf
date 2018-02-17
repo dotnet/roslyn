@@ -8631,8 +8631,8 @@ Aby usunąć ostrzeżenie, możesz zamiast tego użyć opcji /reference (ustaw w
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnmanagedConstraintWithLocalFunctions">
-        <source>Using unmanaged constraint on local functions type parameters is not supported.</source>
-        <target state="new">Using unmanaged constraint on local functions type parameters is not supported.</target>
+        <source>Using 'unmanaged' constraint on local functions type parameters is not supported.</source>
+        <target state="new">Using 'unmanaged' constraint on local functions type parameters is not supported.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConWithUnmanagedCon">
