@@ -66,6 +66,56 @@ class C
         }
 
         [Fact]
+        public void TestMissingGreaterThanToken()
+        {
+            var text = @"
+            class Class1
+            {
+                public static IEnumerable<(String Value, String Description) GetAllValues(Type t)
+                {
+                    if (!t.IsEnum)
+                        throw new ArgumentException(""no good"");
+
+                    return Enum.GetValues(t).Cast<Enum>().Select(e => (e.ToString(), e.ToString()));
+                }
+            }";
+
+            var file = this.ParseTree(text);
+
+            Assert.NotNull(file);
+            Assert.Equal(text, file.ToFullString());
+            file.Errors().Verify(
+                // error CS1003: Syntax error, '>' expected
+                Diagnostic(ErrorCode.ERR_SyntaxError).WithArguments(">", "")
+            );
+        }
+
+        [Fact]
+        public void TestMissingCommaAndGreaterThanToken()
+        {
+            var text = @"
+            class Class1
+            {
+                public static IEnumerable<T U test(Type t)
+                {
+                    return null;
+                }
+            }";
+
+            var file = this.ParseTree(text);
+
+            Assert.NotNull(file);
+            Assert.Equal(text, file.ToFullString());
+            file.Errors().Verify(
+                // error CS1003: Syntax error, ',' expected
+                Diagnostic(ErrorCode.ERR_SyntaxError).WithArguments(",", ""),
+                                // error CS1003: Syntax error, '>' expected
+                Diagnostic(ErrorCode.ERR_SyntaxError).WithArguments(">", "")
+
+            );
+        }
+
+        [Fact]
         public void TestGlobalAttributeGarbageAfterLocation()
         {
             var text = "[assembly: $";
