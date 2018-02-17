@@ -58,15 +58,15 @@ using System;
 
 static unsafe class C
 {
-    static void Print(byte* p)
+    static void Print(uint* p)
     {
         for (int i = 0; i < 3; i++)
-            Console.Write(p[i]);
+            Console.Write(p[i].ToString(""x""));
     }
 
     static void Main()
     {
-        byte* p = stackalloc byte[3] { 42, 42, 42 };
+        var p = stackalloc[] { 0xffffffff, 0xffffffff, 0xffffffff };
         Print(p);
     }
 }
@@ -74,19 +74,19 @@ static unsafe class C
             CompileAndVerify(text,
                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_3),
                 options: TestOptions.UnsafeReleaseExe,
-                verify: Verification.Fails, expectedOutput: @"424242").VerifyIL("C.Main",
+                verify: Verification.Fails, expectedOutput: @"ffffffffffffffffffffffff").VerifyIL("C.Main",
 @"{
-  // Code size       16 (0x10)
+  // Code size       21 (0x15)
   .maxstack  4
-  IL_0000:  ldc.i4.3
-  IL_0001:  conv.u
-  IL_0002:  localloc
-  IL_0004:  dup
-  IL_0005:  ldc.i4.s   42
-  IL_0007:  ldc.i4.3
-  IL_0008:  initblk
-  IL_000a:  call       ""void C.Print(byte*)""
-  IL_000f:  ret
+  IL_0000:  ldc.i4.s   12
+  IL_0002:  conv.u
+  IL_0003:  localloc
+  IL_0005:  dup
+  IL_0006:  ldc.i4     0xff
+  IL_000b:  ldc.i4.s   12
+  IL_000d:  initblk
+  IL_000f:  call       ""void C.Print(uint*)""
+  IL_0014:  ret
 }");
         }
 
