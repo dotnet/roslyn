@@ -204,7 +204,6 @@
     <Rule Id="SA1500" Action="None" />
     <Rule Id="SA1501" Action="None" />
     <Rule Id="SA1502" Action="None" />
-    <Rule Id="SA1503" Action="None" />
     <Rule Id="SA1504" Action="None" />
     <Rule Id="SA1505" Action="None" />
     <Rule Id="SA1506" Action="None" />
@@ -220,7 +219,6 @@
     <Rule Id="SA1516" Action="None" />
     <Rule Id="SA1517" Action="None" />
     <Rule Id="SA1518" Action="None" />
-    <Rule Id="SA1519" Action="None" />
     <Rule Id="SA1520" Action="None" />
     <Rule Id="SA1600" Action="None" />
     <Rule Id="SA1601" Action="None" />
