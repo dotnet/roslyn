@@ -894,7 +894,7 @@ class Program
             Assert.False(type.IsReadOnly);
 
             // S1 from image
-            var clientComp = CreateStandardCompilation("", references: new[] { comp.EmitToImageReference() });
+            var clientComp = CreateCompilation("", references: new[] { comp.EmitToImageReference() });
             NamedTypeSymbol s1 = clientComp.GetTypeByMetadataName("Program+S1");
             Assert.True(s1.IsReadOnly);
             Assert.Empty(s1.GetAttributes());

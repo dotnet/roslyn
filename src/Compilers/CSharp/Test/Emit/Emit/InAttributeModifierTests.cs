@@ -35,10 +35,10 @@ public class Test
     }
 }";
 
-            var verifier = CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5");
+            var verifier = CompileAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "5");
             verifyParameter(verifier.Compilation);
 
-            verifier = CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5");
+            verifier = CompileAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "5");
             verifyParameter(verifier.Compilation);
 
             void verifyParameter(Compilation comp)
