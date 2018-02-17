@@ -68,6 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 if (exprFullText.StartsWith(startComment, StringComparison.Ordinal))
                 {
                     if (exprFullText.Contains(endComment))
+                    {
                         if (exprFullText.EndsWith(endComment, StringComparison.Ordinal))
                         {
                             return exprSyntax;
@@ -76,6 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         {
                             continue;
                         }
+                    }
                     else
                     {
                         return exprSyntax;
@@ -85,6 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 if (exprFullText.EndsWith(endComment, StringComparison.Ordinal))
                 {
                     if (exprFullText.Contains(startComment))
+                    {
                         if (exprFullText.StartsWith(startComment, StringComparison.Ordinal))
                         {
                             return exprSyntax;
@@ -93,6 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         {
                             continue;
                         }
+                    }
                     else
                     {
                         return exprSyntax;

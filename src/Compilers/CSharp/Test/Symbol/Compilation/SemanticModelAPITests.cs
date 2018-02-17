@@ -3895,10 +3895,12 @@ namespace N
             }
 
             foreach (var child in node.ChildNodesAndTokens())
+            {
                 if (child.IsNode)
                 {
                     GetExpressionSyntax(child.AsNode(), exprSynList);
                 }
+            }
         }
         #endregion
 

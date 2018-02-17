@@ -1915,11 +1915,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     Debug.Assert(conclusion != IVTConclusion.NoRelationshipClaimed);
 
                     if (conclusion == IVTConclusion.PublicKeyDoesntMatch)
+                    {
                         bag.Add(ErrorCode.ERR_FriendRefNotEqualToThis, NoLocation.Singleton,
                                                                       otherAssembly.Identity);
+                    }
                     else if (conclusion == IVTConclusion.OneSignedOneNot)
+                    {
                         bag.Add(ErrorCode.ERR_FriendRefSigningMismatch, NoLocation.Singleton,
                                                                       otherAssembly.Identity);
+                    }
                 }
             }
         }
