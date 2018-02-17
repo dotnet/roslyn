@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             var cancellationToken = context.CancellationToken;
 
             var service = document.GetLanguageService<IGoToDefinitionSymbolService>();
-            var (symbol, span) = await service.GetSymbolAndBoundSpanAsync(document, position, cancellationToken).ConfigureAwait(false);
+            var (symbol, span) = await service.GetSymbolAndBoundSpanAsync(document, position, includeLiterals: false, cancellationToken).ConfigureAwait(false);
 
             if (symbol == null)
             {

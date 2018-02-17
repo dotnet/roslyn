@@ -150,6 +150,34 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
             Test(workspace)
         End Sub
 
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestCSharpLiteralGoToDefinition()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            int x = 1$$23;
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestCSharpStringLiteralGoToDefinition()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            string x = "wo$$ow";
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
         <WorkItem(3589, "https://github.com/dotnet/roslyn/issues/3589")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
         Public Sub TestCSharpGoToDefinitionOnAnonymousMember()
@@ -1450,6 +1478,34 @@ class D
             Class OtherClass
                 Dim obj As Some$$Class
             End Class
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestVisualBasicLiteralGoToDefinition()
+            Dim workspace =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+            Dim x as Integer = 12$$3
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestVisualBasicStringLiteralGoToDefinition()
+            Dim workspace =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+            Dim x as String = "wo$$ow"
         </Document>
     </Project>
 </Workspace>
