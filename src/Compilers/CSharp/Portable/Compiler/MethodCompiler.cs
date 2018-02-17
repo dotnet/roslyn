@@ -1564,6 +1564,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)sourceMethod != null)
             {
                 var constructorSyntax = sourceMethod.SyntaxNode as ConstructorDeclarationSyntax;
+                (BlockSyntax, ArrowExpressionClauseSyntax) bodies = sourceMethod.Bodies;
+                var bodySyntax = (SyntaxNode)bodies.Item1 ?? bodies.Item2;
 
                 // Static constructor can't have any this/base call
                 if (method.MethodKind == MethodKind.StaticConstructor &&
@@ -1577,7 +1579,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (sourceMethod.IsExtern)
                 {
-                    if (sourceMethod.BodySyntax == null && constructorSyntax?.Initializer == null)
+                    if (bodySyntax == null && constructorSyntax?.Initializer == null)
                     {
                         // Generate warnings only if we are not generating ERR_ExternHasBody or ERR_ExternHasConstructorInitializer errors
                         GenerateExternalMethodWarnings(sourceMethod, diagnostics);
@@ -1594,8 +1596,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var compilation = method.DeclaringCompilation;
                 var factory = compilation.GetBinderFactory(sourceMethod.SyntaxTree);
-
-                var bodySyntax = sourceMethod.BodySyntax;
 
                 if (bodySyntax != null)
                 {

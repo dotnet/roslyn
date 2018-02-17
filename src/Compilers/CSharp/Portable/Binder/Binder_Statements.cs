@@ -520,7 +520,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (ImplicitReturnIsOkay(localSymbol))
                     {
-                        block = FlowAnalysisPass.AppendImplicitReturn(block, localSymbol, node.Body);
+                        block = FlowAnalysisPass.AppendImplicitReturn(block, localSymbol);
                     }
                     else
                     {

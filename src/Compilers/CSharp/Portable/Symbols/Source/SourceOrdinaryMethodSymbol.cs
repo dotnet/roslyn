@@ -72,8 +72,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DiagnosticBag diagnostics) :
             base(containingType,
                  syntax.GetReference(),
-                 // Prefer a block body if both exist
-                 syntax.Body?.GetReference() ?? syntax.ExpressionBody?.GetReference(),
                  location)
         {
             _name = name;
@@ -367,7 +365,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            CheckModifiers(location, diagnostics);
+            CheckModifiers((syntax.Body ?? (SyntaxNode)syntax.ExpressionBody) != null, location, diagnostics);
         }
 
         // This is also used for async lambdas.  Probably not the best place to locate this method, but where else could it go?
@@ -590,8 +588,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
+                MethodDeclarationSyntax declaration;
                 return this.IsPartial
-                    && this.BodySyntax == null;
+                    && (declaration = GetSyntax()).Body == null && declaration.ExpressionBody == null;
             }
         }
 
@@ -602,8 +601,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
+                MethodDeclarationSyntax declaration;
                 return this.IsPartial
-                    && this.BodySyntax != null;
+                    && ((declaration = GetSyntax()).Body ?? (SyntaxNode)declaration.ExpressionBody) != null;
             }
         }
 
@@ -866,7 +866,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result.ToImmutableAndFree();
         }
 
-        private void CheckModifiers(Location location, DiagnosticBag diagnostics)
+        private void CheckModifiers(bool hasBody, Location location, DiagnosticBag diagnostics)
         {
             const DeclarationModifiers partialMethodInvalidModifierMask = (DeclarationModifiers.AccessibilityMask & ~DeclarationModifiers.Private) |
                      DeclarationModifiers.Virtual |
@@ -945,11 +945,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // '{0}' is a new virtual member in sealed class '{1}'
                 diagnostics.Add(ErrorCode.ERR_NewVirtualInSealed, location, this, ContainingType);
             }
-            else if (bodySyntaxReferenceOpt == null && IsAsync)
+            else if (!hasBody && IsAsync)
             {
                 diagnostics.Add(ErrorCode.ERR_BadAsyncLacksBody, location);
             }
-            else if (bodySyntaxReferenceOpt == null && !IsExtern && !IsAbstract && !IsPartial && !IsExpressionBodied)
+            else if (!hasBody && !IsExtern && !IsAbstract && !IsPartial && !IsExpressionBodied)
             {
                 diagnostics.Add(ErrorCode.ERR_ConcreteMissingBody, location, this);
             }
