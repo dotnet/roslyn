@@ -3384,16 +3384,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var refKinds = analyzedArguments.RefKinds.ToImmutableOrNull();
                     var argsToParamsOpt = memberResolutionResult.Result.ArgsToParamsOpt;
 
-                    hasErrors |= !CheckInvocationArgMixing(
-                        nonNullSyntax,
-                        resultMember,
-                        receiver,
-                        resultMember.Parameters, 
-                        arguments, 
-                        refKinds, 
-                        argsToParamsOpt, 
-                        this.LocalScopeDepth, 
-                        diagnostics);
+                    if (!hasErrors)
+                    {
+                        hasErrors = !CheckInvocationArgMixing(
+                            nonNullSyntax,
+                            resultMember,
+                            receiver,
+                            resultMember.Parameters,
+                            arguments,
+                            refKinds,
+                            argsToParamsOpt,
+                            this.LocalScopeDepth,
+                            diagnostics);
+                    }
 
                     return new BoundCall(
                         nonNullSyntax,
@@ -4279,7 +4282,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (implicitReceiver.Type.IsDynamic())
             {
-                var hasErrors = ReportBadDynamicArguments(elementInitializer, boundElementInitializerExpressions, diagnostics, queryClause: null);
+                var hasErrors = ReportBadDynamicArguments(elementInitializer, boundElementInitializerExpressions, refKinds: default, diagnostics, queryClause: null);
 
                 return new BoundDynamicCollectionElementInitializer(
                     elementInitializer,
@@ -4436,15 +4439,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (overloadResolutionResult.HasAnyApplicableMember)
                 {
                     var argArray = BuildArgumentsForDynamicInvocation(analyzedArguments, diagnostics);
+                    var refKindsArray = analyzedArguments.RefKinds.ToImmutableOrNull();
 
-                    hasErrors &= ReportBadDynamicArguments(node, argArray, diagnostics, queryClause: null);
+                    hasErrors &= ReportBadDynamicArguments(node, argArray, refKindsArray, diagnostics, queryClause: null);
 
                     result = new BoundDynamicObjectCreationExpression(
                         node,
                         typeName,
                         argArray,
                         analyzedArguments.GetNames(),
-                        analyzedArguments.RefKinds.ToImmutableOrNull(),
+                        refKindsArray,
                         boundInitializerOpt,
                         overloadResolutionResult.GetAllApplicableMembers(),
                         type,
@@ -4497,16 +4501,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var arguments = analyzedArguments.Arguments.ToImmutable();
                 var refKinds = analyzedArguments.RefKinds.ToImmutableOrNull();
                 var argToParams = memberResolutionResult.Result.ArgsToParamsOpt;
-                hasError |= !CheckInvocationArgMixing(
-                    node,
-                    method,
-                    null,
-                    method.Parameters,
-                    arguments,
-                    refKinds,
-                    argToParams,
-                    this.LocalScopeDepth,
-                    diagnostics);
+
+                if (!hasError)
+                {
+                    hasError = !CheckInvocationArgMixing(
+                        node,
+                        method,
+                        null,
+                        method.Parameters,
+                        arguments,
+                        refKinds,
+                        argToParams,
+                        this.LocalScopeDepth,
+                        diagnostics);
+                }
 
                 result = new BoundObjectCreationExpression(
                     node,
@@ -6718,15 +6726,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var argArray = BuildArgumentsForDynamicInvocation(arguments, diagnostics);
+            var refKindsArray = arguments.RefKinds.ToImmutableOrNull();
 
-            hasErrors &= ReportBadDynamicArguments(syntax, argArray, diagnostics, queryClause: null);
+            hasErrors &= ReportBadDynamicArguments(syntax, argArray, refKindsArray, diagnostics, queryClause: null);
 
             return new BoundDynamicIndexerAccess(
                 syntax,
                 receiverOpt,
                 argArray,
                 arguments.GetNames(),
-                arguments.RefKinds.ToImmutableOrNull(),
+                refKindsArray,
                 applicableProperties,
                 AssemblySymbol.DynamicType,
                 hasErrors);
@@ -6821,16 +6830,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var arguments = analyzedArguments.Arguments.ToImmutable();
-                gotError |= !CheckInvocationArgMixing(
-                    syntax,
-                    property,
-                    receiver,
-                    property.Parameters,
-                    arguments,
-                    argumentRefKinds,
-                    argsToParams,
-                    this.LocalScopeDepth,
-                    diagnostics);
+
+                if (!gotError)
+                {
+                    gotError = !CheckInvocationArgMixing(
+                        syntax,
+                        property,
+                        receiver,
+                        property.Parameters,
+                        arguments,
+                        argumentRefKinds,
+                        argsToParams,
+                        this.LocalScopeDepth,
+                        diagnostics);
+                }
 
                 propertyAccess = new BoundIndexerAccess(
                     syntax,

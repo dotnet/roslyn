@@ -115,6 +115,7 @@
     <PackageReference Include="xunit" Version="$(xunitVersion)" />
     <PackageReference Include="xunit.analyzers" Version="$(xunitanalyzersVersion)" />
     <PackageReference Include="xunit.runner.console" Version="$(xunitrunnerconsoleVersion)" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="$(xunitrunnervisualstudioVersion)" />
 
     <!-- This reference is necessary to pull down the assemblies we compile + run against 
          in the compiler layer when running on CoreClr. Don't actually want to reference 

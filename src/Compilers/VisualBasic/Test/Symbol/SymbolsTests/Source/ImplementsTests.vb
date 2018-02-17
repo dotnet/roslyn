@@ -2510,7 +2510,7 @@ BC31035: Interface 'IFoo' is not implemented by this class.
         Public Sub GenericInterface()
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib(
     <compilation name="SimpleImplementation">
-        <file name="a.vb">
+        <file name="a.vb"><![CDATA[
 Option Strict On
 Imports System.Collections.Generic
 
@@ -2529,8 +2529,12 @@ Class Outer(Of X)
         Public Sub M2(b As List(Of Y), c As X) Implements Outer(Of X).IFoo(Of X, List(Of Y)).SayItWithStyle
         End Sub
     End Class
+
+    <System.Serializable>
+    Class FooS(Of T, U)
+    End Class
 End Class
-    </file>
+    ]]></file>
     </compilation>)
 
             Dim globalNS = comp.GlobalNamespace
@@ -2540,6 +2544,13 @@ End Class
             Dim outerOfX = DirectCast(globalNS.GetMembers("Outer").First(), NamedTypeSymbol)
             Dim outerOfInt = outerOfX.Construct(comp.GetSpecialType(SpecialType.System_Int32))
             Dim iFooOfIntTU = DirectCast(outerOfInt.GetMembers("IFoo").First(), NamedTypeSymbol)
+            Assert.IsType(Of SubstitutedNamedType.SpecializedGenericType)(iFooOfIntTU)
+            Assert.False(DirectCast(iFooOfIntTU, INamedTypeSymbol).IsSerializable)
+
+            Dim fooSOfIntTU = DirectCast(outerOfInt.GetMembers("FooS").First(), NamedTypeSymbol)
+            Assert.IsType(Of SubstitutedNamedType.SpecializedGenericType)(fooSOfIntTU)
+            Assert.True(DirectCast(fooSOfIntTU, INamedTypeSymbol).IsSerializable)
+
             Dim iFooOfIntIntListOfString = iFooOfIntTU.Construct(comp.GetSpecialType(SpecialType.System_Int32), listOfString)
             Dim fooOfIntY = DirectCast(outerOfInt.GetMembers("Foo").First(), NamedTypeSymbol)
             Dim fooOfIntString = fooOfIntY.Construct(comp.GetSpecialType(SpecialType.System_String))

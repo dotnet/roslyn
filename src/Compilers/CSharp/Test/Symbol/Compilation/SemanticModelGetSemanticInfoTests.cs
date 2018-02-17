@@ -1642,7 +1642,7 @@ class C
             Assert.Equal(TypeKind.Class, semanticInfo.ConvertedType.TypeKind);
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
-            Assert.Equal("C @this", semanticInfo.Symbol.ToTestDisplayString());
+            Assert.Equal("C this", semanticInfo.Symbol.ToTestDisplayString());
             Assert.Equal(SymbolKind.Parameter, semanticInfo.Symbol.Kind);
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
 
@@ -2577,14 +2577,13 @@ class Program
 
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
-            Assert.Equal("Program @this", semanticInfo.CandidateSymbols[0].ToTestDisplayString());
+            Assert.Equal("Program this", semanticInfo.CandidateSymbols[0].ToTestDisplayString());
             Assert.Equal(CandidateReason.StaticInstanceMismatch, semanticInfo.CandidateReason);
 
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
 
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
-
 
         [Fact]
         public void Constructor1()
@@ -10398,7 +10397,7 @@ class MyClass
             Assert.Equal(CandidateReason.NotReferencable, semanticInfo.CandidateReason);
             var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal(1, sortedCandidates.Length);
-            Assert.Equal("MyClass @this", sortedCandidates[0].ToTestDisplayString());
+            Assert.Equal("MyClass this", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.Parameter, sortedCandidates[0].Kind);
 
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
@@ -10428,7 +10427,7 @@ class MyClass
             Assert.Equal(CandidateReason.NotReferencable, semanticInfo.CandidateReason);
             var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal(1, sortedCandidates.Length);
-            Assert.Equal("MyClass @this", sortedCandidates[0].ToTestDisplayString());
+            Assert.Equal("MyClass this", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.Parameter, sortedCandidates[0].Kind);
 
             Assert.Equal(0, semanticInfo.MethodGroup.Length);

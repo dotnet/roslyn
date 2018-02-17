@@ -1849,7 +1849,7 @@ class C
                     expr: "F(() => y)",
                     error: out error,
                     testData: testData);
-                Assert.Equal(error, "error CS1628: Cannot use ref or out parameter 'y' inside an anonymous method, lambda expression, or query expression");
+                Assert.Equal(error, "error CS1628: Cannot use ref, out, or in parameter 'y' inside an anonymous method, lambda expression, query expression, or local function");
             });
         }
 

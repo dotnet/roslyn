@@ -78,6 +78,35 @@ class C
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(24184, "https://github.com/dotnet/roslyn/issues/24184")>
+        Public Async Function FindReferences_DeconstructionInAnotherDocument() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+public static class Extensions
+{
+    public void {|Definition:Decons$$truct|}(this C c, out int x1, out int x2) { x1 = 1; x2 = 2; }
+}
+        </Document>
+        <Document>
+class C
+{
+    public void M()
+    {
+        [|var (x1, x2)|] = this;
+        foreach ([|var (y1, y2)|] in new[] { this }) { }
+        [|(x1, (x2, _))|] = (1, this);
+        (x1, x2) = (1, 2);
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         <WorkItem(18963, "https://github.com/dotnet/roslyn/issues/18963")>
         Public Async Function FindReferences_ForEachDeconstructionOnItsOwn() As Task
             Dim input =

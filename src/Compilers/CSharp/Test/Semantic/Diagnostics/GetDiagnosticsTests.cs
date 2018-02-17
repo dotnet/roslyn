@@ -120,12 +120,12 @@ class C
             var hidden = diag.WithSeverity(DiagnosticSeverity.Hidden);
             Assert.Equal(DiagnosticSeverity.Hidden, hidden.Severity);
             Assert.Equal(DiagnosticSeverity.Warning, hidden.DefaultSeverity);
-            Assert.Equal(4, hidden.WarningLevel);
+            Assert.Equal(1, hidden.WarningLevel);
 
             var info = diag.WithSeverity(DiagnosticSeverity.Info);
             Assert.Equal(DiagnosticSeverity.Info, info.Severity);
             Assert.Equal(DiagnosticSeverity.Warning, info.DefaultSeverity);
-            Assert.Equal(4, info.WarningLevel);
+            Assert.Equal(1, info.WarningLevel);
         }
 
         [Fact, WorkItem(7446, "https://github.com/dotnet/roslyn/issues/7446")]
@@ -399,6 +399,23 @@ namespace N1
 
             Assert.True(diagnostics[0].Location.SourceTree.Equals(syntaxTree1));
             Assert.True(diagnostics[1].Location.SourceTree.Equals(syntaxTree2));
+        }
+
+        [Fact]
+        [WorkItem(24351, "https://github.com/dotnet/roslyn/issues/24351")]
+        public void GettingDeclarationDiagnosticsForATreeShouldNotFreezeCompilation()
+        {
+            var parseOptions = new CSharpParseOptions(LanguageVersion.Latest);
+            var tree1 = Parse(string.Empty, options: parseOptions);
+            var tree2 = Parse("ref struct X {}", options: parseOptions);
+
+            var compilation = CreateStandardCompilation(new[] { tree1, tree2 });
+
+            // Verify diagnostics for the first tree. This should have sealed the attributes
+            compilation.GetSemanticModel(tree1).GetDeclarationDiagnostics().Verify();
+
+            // Verify diagnostics for the second tree. This should have triggered the assert
+            compilation.GetSemanticModel(tree2).GetDeclarationDiagnostics().Verify();
         }
     }
 }

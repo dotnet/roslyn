@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
@@ -432,6 +433,93 @@ End Class
 
             ' Verify attributes from source .
             CompileAndVerify(source, sourceSymbolValidator:=attributeValidator)
+        End Sub
+
+        <Fact>
+        <WorkItem(3898, "https://github.com/dotnet/roslyn/issues/3898")>
+        Sub SerializableFromPE()
+            Dim lib_vb =
+<compilation>
+    <file name="attr.vb"><![CDATA[
+Imports System
+<Serializable, Bob>
+Public Class C
+End Class
+
+<AttributeUsage(AttributeTargets.Class)>
+Public Class BobAttribute
+    Inherits Attribute
+End Class
+    ]]></file>
+</compilation>
+            Dim lib_comp = CreateCompilationWithMscorlibAndVBRuntime(lib_vb)
+
+            Dim typeC As INamedTypeSymbol = lib_comp.GetTypeByMetadataName("C")
+            AssertEx.SetEqual({"System.SerializableAttribute", "BobAttribute"}, typeC.GetAttributes().Select(Function(a) a.ToString()))
+            Assert.True(typeC.IsSerializable)
+
+            Dim typeBobAttribute As INamedTypeSymbol = lib_comp.GetTypeByMetadataName("BobAttribute")
+            Assert.False(typeBobAttribute.IsSerializable)
+
+            Dim empty_vb =
+<compilation>
+    <file name="attr.vb"></file>
+</compilation>
+
+            Dim client1 = CreateCompilationWithMscorlibAndVBRuntime(empty_vb, additionalRefs:={lib_comp.ToMetadataReference()})
+
+            Dim typeC1 As INamedTypeSymbol = client1.GetTypeByMetadataName("C")
+            AssertEx.SetEqual({"System.SerializableAttribute", "BobAttribute"}, typeC1.GetAttributes().Select(Function(a) a.ToString()))
+            Assert.True(typeC1.IsSerializable)
+
+            Dim typeBobAttribute1 As INamedTypeSymbol = client1.GetTypeByMetadataName("BobAttribute")
+            Assert.False(typeBobAttribute1.IsSerializable)
+
+            Dim client2 = CreateCompilationWithMscorlibAndVBRuntime(empty_vb, additionalRefs:={lib_comp.EmitToImageReference()})
+
+            Dim typeC2 As INamedTypeSymbol = client2.GetTypeByMetadataName("C")
+            AssertEx.SetEqual({"BobAttribute"}, typeC2.GetAttributes().Select(Function(a) a.ToString()))
+            Assert.True(typeC2.IsSerializable)
+
+            Dim typeBobAttribute2 As INamedTypeSymbol = client2.GetTypeByMetadataName("BobAttribute")
+            Assert.False(typeBobAttribute2.IsSerializable)
+        End Sub
+
+        <Fact>
+        <WorkItem(3898, "https://github.com/dotnet/roslyn/issues/3898")>
+        Sub SerializableSubstitutedType()
+            Dim lib_vb =
+<compilation>
+    <file name="attr.vb"><![CDATA[
+Imports System
+
+<Serializable>
+Public Class C(Of T)
+End Class
+
+' Not serializable
+Public Class D(Of T)
+End Class
+
+Public Class C2
+    Inherits C(Of Integer)
+End Class
+Public Class D2
+    Inherits D(Of Integer)
+End Class
+            ]]></file>
+</compilation>
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(lib_vb)
+
+            Dim cOfInt = comp.GetTypeByMetadataName("C2").BaseType()
+            Assert.IsType(GetType(SubstitutedNamedType.ConstructedInstanceType), cOfInt)
+            Assert.True(DirectCast(cOfInt, INamedTypeSymbol).IsSerializable)
+            Assert.True(DirectCast(cOfInt.ConstructedFrom, INamedTypeSymbol).IsSerializable)
+
+            Dim dOfInt = comp.GetTypeByMetadataName("D2").BaseType()
+            Assert.IsType(GetType(SubstitutedNamedType.ConstructedInstanceType), dOfInt)
+            Assert.False(DirectCast(dOfInt, INamedTypeSymbol).IsSerializable)
+            Assert.False(DirectCast(dOfInt.ConstructedFrom, INamedTypeSymbol).IsSerializable)
         End Sub
 
         <WorkItem(217740, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217740")>
@@ -2986,6 +3074,243 @@ BC30662: Attribute 'NonSerializedAttribute' cannot be applied to 'e2' because th
      ~~~~~~~~~~~~~
 ]]></expected>)
         End Sub
+
+        <Fact>
+        <WorkItem(3898, "https://github.com/dotnet/roslyn/issues/3898")>
+        Public Sub TestIsSerializableProperty()
+            Dim missing =
+<compilation>
+    <file name="missing.vb"><![CDATA[
+Public Class TopLevel
+    Public Class Nested
+    End Class
+End Class
+Public Class TopLevel(Of T)
+    Public Class Nested(Of U)
+    End Class
+End Class
+Public Class Constructed(Of T)
+End Class
+]]></file>
+</compilation>
+
+            Dim source =
+<compilation>
+    <file name="source.vb"><![CDATA[
+Public Class C(Of T)
+    Public Class Nested
+    End Class
+End Class
+
+<System.Serializable>
+Public Class CS(Of T)
+    <System.Serializable>
+    Public Class NestedS
+    End Class
+
+    Public Class Nested(Of U)
+    End Class
+
+    <System.Serializable>
+    Public Class NestedS(Of U)
+    End Class
+End Class
+
+Public Class SubstitutedNested
+    Inherits C(Of Integer).Nested
+End Class
+Public Class SubstitutedNestedS
+    Inherits CS(Of Integer).NestedS
+End Class
+
+Public Class Constructed
+    Inherits C(Of Integer)
+End Class
+Public Class ConstructedS
+    Inherits CS(Of Integer)
+End Class
+Public Class MissingTopLevel
+    Inherits TopLevel
+End Class
+Public Class MissingNested
+    Inherits TopLevel.Nested
+End Class
+Public Class MissingConstructed
+    Inherits Constructed(Of Integer)
+End Class
+
+Public Class MissingSubstitutedNested(Of T, U)
+    Inherits TopLevel(Of T).Nested(Of U)
+End Class
+
+Public Class SpecializedGenericType
+    Inherits CS(Of Integer).Nested(Of Integer)
+End Class
+Public Class SpecializedGenericTypeS
+    Inherits CS(Of Integer).NestedS(Of Integer)
+End Class
+
+Namespace System
+    <System.Serializable>
+    Public Structure ValueTuple(Of T1, T2)
+    End Structure
+
+    Public Class InNamespace
+    End Class
+
+    <System.Serializable>
+    Public Class InNamespaceS
+    End Class
+End Namespace
+
+Public Class ValueTupleS
+    Function M() As (Integer, Integer)
+        Throw New System.Exception()
+    End Function
+End Class
+]]></file>
+</compilation>
+
+            Dim errors =
+<compilation>
+    <file name="errors.vb"><![CDATA[
+Public Class ExtendedError
+    Inherits ExtendedErrorBase
+End Class
+]]></file>
+</compilation>
+            Dim lib1 = CreateCompilationWithMscorlib45AndVBRuntime(missing)
+            lib1.VerifyDiagnostics()
+            Dim comp = CreateCompilationWithMscorlib45AndVBRuntime(source, additionalRefs:={lib1.EmitToImageReference()})
+            comp.VerifyDiagnostics()
+            Dim comp2 = CreateCompilationWithMscorlib45AndVBRuntime(errors, additionalRefs:={comp.EmitToImageReference()})
+
+            Dim substitutedNested = comp.GetTypeByMetadataName("SubstitutedNested").BaseType()
+            Assert.IsType(Of SubstitutedNamedType.SpecializedNonGenericType)(substitutedNested)
+            Assert.False(DirectCast(substitutedNested, INamedTypeSymbol).IsSerializable)
+
+            Dim substitutedNestedS = comp.GetTypeByMetadataName("SubstitutedNestedS").BaseType()
+            Assert.IsType(Of SubstitutedNamedType.SpecializedNonGenericType)(substitutedNestedS)
+            Assert.True(DirectCast(substitutedNestedS, INamedTypeSymbol).IsSerializable)
+
+            Dim specialized = comp.GetTypeByMetadataName("SpecializedGenericType").BaseType()
+            Assert.IsType(Of SubstitutedNamedType.ConstructedSpecializedGenericType)(specialized)
+            Assert.False(DirectCast(specialized, INamedTypeSymbol).IsSerializable)
+
+            Dim specializedS = comp.GetTypeByMetadataName("SpecializedGenericTypeS").BaseType()
+            Assert.IsType(Of SubstitutedNamedType.ConstructedSpecializedGenericType)(specializedS)
+            Assert.True(DirectCast(specializedS, INamedTypeSymbol).IsSerializable)
+
+            Dim valueTupleS = DirectCast(comp.GetTypeByMetadataName("ValueTupleS").GetMember("M"), SourceMemberMethodSymbol).ReturnType
+            Assert.IsType(Of TupleTypeSymbol)(valueTupleS)
+            Assert.True(DirectCast(valueTupleS, INamedTypeSymbol).IsSerializable)
+
+            Dim constructed = comp.GetTypeByMetadataName("Constructed").BaseType()
+            Assert.IsType(Of SubstitutedNamedType.ConstructedInstanceType)(constructed)
+            Assert.False(DirectCast(constructed, INamedTypeSymbol).IsSerializable)
+
+            Dim constructedPE = comp2.GetTypeByMetadataName("Constructed").BaseType().ConstructedFrom
+            Assert.IsType(Of PENamedTypeSymbol)(constructedPE)
+            Assert.False(DirectCast(constructedPE, INamedTypeSymbol).IsSerializable)
+
+            Dim constructedFrom = constructed.ConstructedFrom
+            Assert.IsType(Of SourceNamedTypeSymbol)(constructedFrom)
+            Assert.False(DirectCast(constructedFrom, INamedTypeSymbol).IsSerializable)
+
+            Dim constructedS = comp.GetTypeByMetadataName("ConstructedS").BaseType()
+            Assert.IsType(Of SubstitutedNamedType.ConstructedInstanceType)(constructedS)
+            Assert.True(DirectCast(constructedS, INamedTypeSymbol).IsSerializable)
+
+            Dim constructedSPE = comp2.GetTypeByMetadataName("ConstructedS").BaseType().ConstructedFrom
+            Assert.IsType(Of PENamedTypeSymbol)(constructedSPE)
+            Assert.True(DirectCast(constructedSPE, INamedTypeSymbol).IsSerializable)
+
+            Dim constructedFromS = constructedS.ConstructedFrom
+            Assert.IsType(Of SourceNamedTypeSymbol)(constructedFromS)
+            Assert.True(DirectCast(constructedFromS, INamedTypeSymbol).IsSerializable)
+
+            Dim extendedError = comp2.GetTypeByMetadataName("ExtendedError").BaseType()
+            Assert.IsType(Of ExtendedErrorTypeSymbol)(extendedError)
+            Assert.False(DirectCast(extendedError, INamedTypeSymbol).IsSerializable)
+
+            Dim topLevel = comp2.GetTypeByMetadataName("MissingTopLevel").BaseType()
+            Assert.IsType(Of MissingMetadataTypeSymbol.TopLevel)(topLevel)
+            Assert.False(DirectCast(topLevel, INamedTypeSymbol).IsSerializable)
+
+            Dim nested = comp2.GetTypeByMetadataName("MissingNested").BaseType()
+            Assert.IsType(Of MissingMetadataTypeSymbol.Nested)(nested)
+            Assert.False(DirectCast(nested, INamedTypeSymbol).IsSerializable)
+
+            Dim constructedError = comp2.GetTypeByMetadataName("MissingConstructed").BaseType()
+            Assert.IsType(Of SubstitutedErrorType)(constructedError)
+            Assert.False(DirectCast(constructedError, INamedTypeSymbol).IsSerializable)
+
+            Dim nestedSubstitutedError = comp2.GetTypeByMetadataName("MissingSubstitutedNested`2").BaseType().ConstructedFrom
+            Assert.IsType(Of SubstitutedErrorType)(nestedSubstitutedError)
+            Assert.False(DirectCast(nestedSubstitutedError, INamedTypeSymbol).IsSerializable)
+
+            Dim script = CreateCompilation("", parseOptions:=TestOptions.Script)
+            Dim scriptClass = script.GetTypeByMetadataName("Script")
+            Assert.IsType(Of ImplicitNamedTypeSymbol)(scriptClass)
+            Assert.False(DirectCast(scriptClass, INamedTypeSymbol).IsSerializable)
+
+            Dim inNamespace = comp2.GetTypeByMetadataName("System.InNamespace")
+            Assert.IsType(Of PENamedTypeSymbolWithEmittedNamespaceName)(inNamespace)
+            Assert.False(DirectCast(inNamespace, INamedTypeSymbol).IsSerializable)
+
+            Dim inNamespaceS = comp2.GetTypeByMetadataName("System.InNamespaceS")
+            Assert.IsType(Of PENamedTypeSymbolWithEmittedNamespaceName)(inNamespaceS)
+            Assert.True(DirectCast(inNamespaceS, INamedTypeSymbol).IsSerializable)
+        End Sub
+
+        <Fact>
+        <WorkItem(3898, "https://github.com/dotnet/roslyn/issues/3898")>
+        Public Sub TestAttributeWithNestedUnboundGeneric()
+            Dim library =
+    <file name="Library.vb"><![CDATA[
+Namespace ClassLibrary1
+    <System.Serializable>
+    Public Class C1(Of T1)
+    End Class
+End Namespace
+]]>
+    </file>
+
+            Dim compilation1 = VisualBasicCompilation.Create("library.dll",
+                                                             {VisualBasicSyntaxTree.ParseText(library.Value)},
+                                                             {MscorlibRef},
+                                                             TestOptions.ReleaseDll)
+
+            Dim classLibrary = MetadataReference.CreateFromImage(compilation1.EmitToArray())
+
+            Dim source =
+        <compilation>
+            <file name="TestAttributeWithNestedUnboundGeneric.vb"><![CDATA[
+Imports System
+
+Class A
+    Inherits Attribute
+
+    Public Sub New(o As Object)
+    End Sub
+End Class
+
+<A(GetType(ClassLibrary1.C1(Of )))>
+Module Module1
+    Sub Main()
+    End Sub
+End Module
+]]>
+            </file>
+        </compilation>
+            Dim compilation2 = CreateCompilationWithMscorlibAndReferences(source, {SystemRef, MsvbRef, classLibrary})
+            compilation2.VerifyDiagnostics()
+
+            Dim gt = compilation2.GetTypeByMetadataName("Module1").GetAttributes().First().CommonConstructorArguments.First()
+            Dim arg = DirectCast(gt.Value, UnboundGenericType)
+            Assert.True(DirectCast(arg, INamedTypeSymbol).IsSerializable)
+        End Sub
+
 #End Region
 
 #Region "AttributeUsageAttribute"
