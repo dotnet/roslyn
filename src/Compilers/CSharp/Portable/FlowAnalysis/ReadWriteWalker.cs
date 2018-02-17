@@ -106,7 +106,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)variable == null)
             {
                 return;
-            } (IsInside ? _writtenInside : _writtenOutside).Add(variable);
+            }
+
+            (IsInside ? _writtenInside : _writtenOutside).Add(variable);
             base.NoteWrite(variable, value, read);
         }
 
