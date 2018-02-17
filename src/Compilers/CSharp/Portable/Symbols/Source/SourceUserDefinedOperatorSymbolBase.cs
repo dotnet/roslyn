@@ -23,15 +23,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             string name,
             SourceMemberContainerTypeSymbol containingType,
             Location location,
-            SyntaxReference syntaxReference,
-            SyntaxReference bodySyntaxReference,
-            SyntaxTokenList modifiersSyntax,
-            DiagnosticBag diagnostics,
-            bool isExpressionBodied) :
-            base(containingType, syntaxReference, bodySyntaxReference, location)
+            BaseMethodDeclarationSyntax syntax,
+            DiagnosticBag diagnostics) :
+            base(containingType, syntax.GetReference(), location)
         {
             _name = name;
-            _isExpressionBodied = isExpressionBodied;
+            _isExpressionBodied = syntax.Body == null && syntax.ExpressionBody != null;
 
             var defaultAccess = DeclarationModifiers.Private;
             var allowedModifiers =
@@ -42,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             bool modifierErrors;
             var declarationModifiers = ModifierUtils.MakeAndCheckNontypeMemberModifiers(
-                modifiersSyntax, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors);
+                syntax.Modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors);
 
             this.CheckUnsafeModifier(declarationModifiers, diagnostics);
 
@@ -80,11 +77,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // SPEC: its operator body consists of a semicolon. For expression-bodied
             // SPEC: operators, the body is an expression. For all other operators,
             // SPEC: the operator body consists of a block...
-            if (bodySyntaxReference != null && IsExtern)
+            bool hasBody = (syntax.Body ?? (SyntaxNode)syntax.ExpressionBody) != null;
+            if (hasBody && IsExtern)
             {
                 diagnostics.Add(ErrorCode.ERR_ExternHasBody, location, this);
             }
-            else if (bodySyntaxReference == null && !IsExtern && !IsAbstract && !IsPartial)
+            else if (!hasBody && !IsExtern && !IsAbstract && !IsPartial)
             {
                 // Do not report that the body is missing if the operator is marked as
                 // partial or abstract; we will already have given an error for that so
