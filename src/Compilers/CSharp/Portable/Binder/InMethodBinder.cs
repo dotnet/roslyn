@@ -241,7 +241,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(oldLocation != newLocation || oldLocation == Location.None || newLocation.SourceTree?.GetRoot().ContainsDiagnostics == true,
                 "same nonempty location refers to different symbols?");
 #else
-            if (oldLocation == newLocation) return false;
+            if (oldLocation == newLocation)
+            {
+                return false;
+            }
 #endif
             SymbolKind parameterKind = parameter.Kind;
 
