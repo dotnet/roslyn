@@ -425,7 +425,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (this.ConversionKind)
             {
                 case ConversionKind.Identity:
-                case ConversionKind.IdentityValue:
                 // NOTE: even explicit float/double identity conversion does not have side
                 // effects since it does not throw
                 case ConversionKind.ImplicitNumeric:

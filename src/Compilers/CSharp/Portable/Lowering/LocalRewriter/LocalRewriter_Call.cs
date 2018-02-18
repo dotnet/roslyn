@@ -317,7 +317,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 case ConversionKind.ExplicitNumeric:
                                 case ConversionKind.ExplicitReference:
                                 case ConversionKind.Identity:
-                                case ConversionKind.IdentityValue:
                                 case ConversionKind.ImplicitEnumeration:
                                 case ConversionKind.ImplicitNullable:
                                 case ConversionKind.ImplicitNumeric:

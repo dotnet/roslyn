@@ -42,9 +42,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 case ConversionKind.Identity:
                     EmitIdentityConversion(conversion);
                     break;
-                case ConversionKind.IdentityValue:
-                    // noop
-                    return;
                 case ConversionKind.ImplicitNumeric:
                 case ConversionKind.ExplicitNumeric:
                     EmitNumericConversion(conversion);

@@ -633,10 +633,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var operand = Visit(node.Operand);
                         return node.ExplicitCastInCode ? Convert(operand, node.Type, false) : operand;
                     }
-                case ConversionKind.IdentityValue:
-                    {
-                        return Visit(node.Operand);
-                    }
                 case ConversionKind.ImplicitNullable:
                     if (node.Operand.Type.IsNullableType())
                     {
