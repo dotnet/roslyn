@@ -587,6 +587,22 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             return result;
         }
 
+        public override BoundNode VisitConversion(BoundConversion node)
+        {
+            var context = _context == ExprContext.Sideeffects && !node.ConversionHasSideEffects() ?
+                            ExprContext.Sideeffects :
+                            ExprContext.Value;
+
+            return node.Update(
+                this.VisitExpression(node.Operand, context),
+                node.Conversion,
+                node.IsBaseConversion,
+                node.Checked,
+                node.ExplicitCastInCode,
+                node.ConstantValue,
+                node.Type);
+        }
+
         public override BoundNode VisitBlock(BoundBlock node)
         {
             Debug.Assert(EvalStackIsEmpty(), "entering blocks when evaluation stack is not empty?");

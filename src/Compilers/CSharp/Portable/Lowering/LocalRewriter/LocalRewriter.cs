@@ -186,6 +186,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                     visited.Type.Equals(node.Type, TypeCompareKind.IgnoreDynamicAndTupleNames) ||
                     IsUnusedDeconstruction(node));
 
+            if (visited != null & visited != node)
+            {
+                if (!CanBePassedByReference(node) && CanBePassedByReference(visited))
+                {
+                    visited = RefAccessMustMakeCopy(visited);
+                }
+            }
+
+            return visited;
+        }
+
+        private static BoundExpression RefAccessMustMakeCopy(BoundExpression visited)
+        {
+            visited = new BoundConversion(
+                        visited.Syntax,
+                        visited,
+                        Conversion.IdentityValue,
+                        @checked: false,
+                        explicitCastInCode: true,
+                        constantValueOpt: null,
+                        type: visited.Type)
+            { WasCompilerGenerated = true };
+
             return visited;
         }
 
@@ -519,68 +542,133 @@ namespace Microsoft.CodeAnalysis.CSharp
             return rhs.IsDefaultValue();
         }
 
-        /// <summary>
-        /// Receivers of struct methods are required to be at least RValues but can be assignable variables.
-        /// Whether the mutations from the method are propagated back to the 
-        /// receiver instance is conditional on whether the receiver is a variable that can be assigned. 
-        /// If not, then the invocation is performed on a copy.
-        /// 
-        /// An inconvenient situation may arise when the receiver is an RValue expression (like a ternary operator),
-        /// which is trivially reduced during lowering to one of its operands and 
-        /// such operand happens to be an assignable variable (like a local). That operation alone would 
-        /// expose the operand to mutations while it would not be exposed otherwise.
-        /// I.E. the transformation becomes semantically observable.
-        /// 
-        /// To prevent such situations, we will wrap the operand into a node whose only 
-        /// purpose is to never be an assignable expression.
-        /// </summary>
-        private static BoundExpression EnsureNotAssignableIfUsedAsMethodReceiver(BoundExpression expr)
+        // There are two situations in which the language permits passing rvalues by reference. 
+        // (technically there are 4, but we can ignore COM and dynamic here, since that results in byval semantics regardless of the parameter ref kind)
+        //
+        // #1: Receiver of a struct/generic method call.
+        //
+        // The language only requires that receivers of method calls must be readable (RValues are ok).
+        //
+        // However the underlying implementation passes receivers of struct methods by reference.
+        // In such situations it may be possible for the call to cause or observe writes to the receiver variable.
+        // As a result it is not valid to replace receiver variable with a reference to it or the other way around.
+        // 
+        // Example1:
+        //        static int x = 123;
+        //        async static Task<string> Test1()
+        //        {
+        //            // cannot capture "x" by value, since write in M1 is observable
+        //            return x.ToString(await M1());
+        //        }
+        //
+        //        async static Task<string> M1()
+        //        {
+        //            x = 42;
+        //            await Task.Yield();
+        //            return "";
+        //        }
+        //
+        // Example2:
+        //        static int x = 123;
+        //        static string Test1()
+        //        {
+        //            // cannot replace value of "x" with a reference to "x"
+        //            // since that would make the method see the mutations in M1();
+        //            return (x + 0).ToString(M1());
+        //        }
+        //
+        //        static string M1()
+        //        {
+        //            x = 42;
+        //            return "";
+        //        }
+        //
+        // #2: Ordinary byval argument passed to an "in" parameter.
+        // 
+        // The language only requires that ordinary byval arguments must be readable (RValues are ok).
+        // However if the target parameter is an "in" parameter, the underlying implementation passes by reference.
+        //
+        // Example:
+        //        static int x = 123;
+        //        static void Main(string[] args)
+        //        {
+        //            // cannot replace value of "x" with a direct reference to x
+        //            // since Test will see unexpected changes due to aliasing.
+        //            Test(x + 0);
+        //        }
+        //
+        //        static void Test(in int y)
+        //        {
+        //            Console.WriteLine(y);
+        //            x = 42;
+        //            Console.WriteLine(y);
+        //        }
+        //
+        // NB: The readonliness is not considered here. 
+        //     We only care about possible introduction of aliasing. I.E. RValue->LValue change.
+        //     Even if we start with a readonly variable, it cannot be lowered into a writeable one,
+        //     with one exception - spilling of the value into a local, which is ok.
+        //
+        internal static bool CanBePassedByReference(BoundExpression expr)
         {
-            // Leave as-is where receiver mutations cannot happen.
-            if (!WouldBeAssignableIfUsedAsMethodReceiver(expr))
-            {
-                return expr;
-            }
-
-            return new BoundConversion(
-                expr.Syntax,
-                expr,
-                Conversion.IdentityValue,
-                @checked: false,
-                explicitCastInCode: true,
-                constantValueOpt: null,
-                type: expr.Type)
-            { WasCompilerGenerated = true };
-        }
-
-        internal static bool WouldBeAssignableIfUsedAsMethodReceiver(BoundExpression receiver)
-        {
-            // - reference type receivers are byval
-            // - special value types (int32, Nullable<T>, . .) do not have mutating members
-            if (receiver.Type.IsReferenceType ||
-                receiver.Type.OriginalDefinition.SpecialType != SpecialType.None)
+            if (expr.ConstantValue != null)
             {
                 return false;
             }
 
-            switch (receiver.Kind)
+            switch (expr.Kind)
             {
                 case BoundKind.Parameter:
                 case BoundKind.Local:
                 case BoundKind.ArrayAccess:
                 case BoundKind.ThisReference:
-                case BoundKind.BaseReference:
                 case BoundKind.PointerIndirectionOperator:
+                case BoundKind.PointerElementAccess:
                 case BoundKind.RefValueOperator:
                 case BoundKind.PseudoVariable:
-                case BoundKind.FieldAccess:
+                case BoundKind.DiscardExpression:
                     return true;
 
+                case BoundKind.DeconstructValuePlaceholder:
+                    // is this always a proxy for a temp local?
+                    return true;
+
+                case BoundKind.EventAccess:
+                    var eventAccess = (BoundEventAccess)expr;
+                    if (eventAccess.IsUsableAsField)
+                    {
+                        return eventAccess.EventSymbol.IsStatic ||
+                            CanBePassedByReference(eventAccess.ReceiverOpt);
+                    }
+
+                    return false;
+
+                case BoundKind.FieldAccess:
+                    var fieldAccess = (BoundFieldAccess)expr;
+                    if (!fieldAccess.FieldSymbol.IsStatic)
+                    {
+                        return CanBePassedByReference(fieldAccess.ReceiverOpt);
+                    }
+
+                    return true;
+
+                case BoundKind.Sequence:
+                    return CanBePassedByReference(((BoundSequence)expr).Value);
+
+                case BoundKind.AssignmentOperator:
+                    return ((BoundAssignmentOperator)expr).IsRef;
+
                 case BoundKind.ConditionalOperator:
-                    return ((BoundConditionalOperator)receiver).IsRef;
+                    return ((BoundConditionalOperator)expr).IsRef;
 
                 case BoundKind.Call:
-                    return ((BoundCall)receiver).Method.RefKind == RefKind.Ref;
+                    return ((BoundCall)expr).Method.RefKind != RefKind.None;
+
+                case BoundKind.PropertyAccess:
+                    return ((BoundPropertyAccess)expr).PropertySymbol.RefKind != RefKind.None;
+
+                case BoundKind.IndexerAccess:
+                    return ((BoundIndexerAccess)expr).Indexer.RefKind != RefKind.None;
             }
 
             return false;

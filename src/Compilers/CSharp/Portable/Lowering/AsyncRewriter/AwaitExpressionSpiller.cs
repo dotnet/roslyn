@@ -823,9 +823,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var receiverBuilder = new BoundSpillSequenceBuilder();
 
                 receiver = node.ReceiverOpt;
-                var refKind = node.Method.ContainingType.IsReadOnly?
-                                                    RefKind.In:
-                                                    ReceiverSpillRefKind(receiver);
+                RefKind refKind = ReceiverSpillRefKind(receiver);
 
                 receiver = Spill(receiverBuilder, VisitExpression(ref receiverBuilder, receiver), refKind: refKind);
                 receiverBuilder.Include(builder);
@@ -837,9 +835,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static RefKind ReceiverSpillRefKind(BoundExpression receiver)
         {
-            return LocalRewriter.WouldBeAssignableIfUsedAsMethodReceiver(receiver) ?
-                RefKind.Ref :
-                RefKind.None;
+            var result = RefKind.None;
+            if (!receiver.Type.IsReferenceType && LocalRewriter.CanBePassedByReference(receiver))
+            {
+                result = receiver.Type.IsReadOnly ?
+                                                RefKind.In :
+                                                RefKind.Ref;
+            }
+
+            return result;
         }
 
         public override BoundNode VisitConditionalOperator(BoundConditionalOperator node)

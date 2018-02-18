@@ -21,9 +21,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     _builder.EmitOpCode(ILOpCode.Conv_u);
                     EmitPopIfUnused(used);
                     return;
-                case ConversionKind.IdentityValue:
-                    EmitExpressionCore(conversion.Operand, used);
-                    return;
             }
 
             if (!used && !conversion.ConversionHasSideEffects())
@@ -45,6 +42,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 case ConversionKind.Identity:
                     EmitIdentityConversion(conversion);
                     break;
+                case ConversionKind.IdentityValue:
+                    // noop
+                    return;
                 case ConversionKind.ImplicitNumeric:
                 case ConversionKind.ExplicitNumeric:
                     EmitNumericConversion(conversion);
