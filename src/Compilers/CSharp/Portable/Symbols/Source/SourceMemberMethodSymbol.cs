@@ -169,9 +169,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // some symbols may not have a syntax (e.g. lambdas, synthesized event accessors)
         protected readonly SyntaxReference syntaxReferenceOpt;
 
-        // some symbols may not have a body syntax (e.g. abstract and extern members, primary constructors, synthesized event accessors, etc.)
-        protected readonly SyntaxReference bodySyntaxReferenceOpt;
-
         protected ImmutableArray<Location> locations;
         protected string lazyDocComment;
 
@@ -191,19 +188,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _cachedDiagnostics;
         }
 
-        protected SourceMemberMethodSymbol(NamedTypeSymbol containingType, SyntaxReference syntaxReferenceOpt, SyntaxReference bodySyntaxReferenceOpt, Location location)
-            : this(containingType, syntaxReferenceOpt, bodySyntaxReferenceOpt, ImmutableArray.Create(location))
+        protected SourceMemberMethodSymbol(NamedTypeSymbol containingType, SyntaxReference syntaxReferenceOpt, Location location)
+            : this(containingType, syntaxReferenceOpt, ImmutableArray.Create(location))
         {
         }
 
-        protected SourceMemberMethodSymbol(NamedTypeSymbol containingType, SyntaxReference syntaxReferenceOpt, SyntaxReference bodySyntaxReferenceOpt, ImmutableArray<Location> locations)
+        protected SourceMemberMethodSymbol(NamedTypeSymbol containingType, SyntaxReference syntaxReferenceOpt, ImmutableArray<Location> locations)
         {
             Debug.Assert((object)containingType != null);
             Debug.Assert(!locations.IsEmpty);
 
             _containingType = containingType;
             this.syntaxReferenceOpt = syntaxReferenceOpt;
-            this.bodySyntaxReferenceOpt = bodySyntaxReferenceOpt;
             this.locations = locations;
         }
 
@@ -537,11 +533,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #region Syntax
 
-        internal SyntaxNode BodySyntax
+        internal (BlockSyntax, ArrowExpressionClauseSyntax) Bodies
         {
             get
             {
-                return (this.bodySyntaxReferenceOpt == null) ? null : this.bodySyntaxReferenceOpt.GetSyntax();
+                switch (SyntaxNode)
+                {
+                    case BaseMethodDeclarationSyntax method:
+                        return (method.Body, method.ExpressionBody);
+
+                    case AccessorDeclarationSyntax accessor:
+                        return (accessor.Body, accessor.ExpressionBody);
+
+                    case ArrowExpressionClauseSyntax arrowExpression:
+                        Debug.Assert(arrowExpression.Parent.Kind() == SyntaxKind.PropertyDeclaration ||
+                                     arrowExpression.Parent.Kind() == SyntaxKind.IndexerDeclaration ||
+                                     this is SynthesizedClosureMethod);
+                        return (null, arrowExpression);
+
+                    case BlockSyntax block:
+                        Debug.Assert(this is SynthesizedClosureMethod);
+                        return (block, null);
+
+                    default:
+                        return (null, null);
+                }
             }
         }
 
@@ -1594,14 +1610,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
         {
-            // Method without body doesn't declare locals.
-            Debug.Assert(this.BodySyntax != null);
-            Debug.Assert(this.BodySyntax.SyntaxTree == localTree);
+            Debug.Assert(this.SyntaxNode.SyntaxTree == localTree);
+
+            (BlockSyntax, ArrowExpressionClauseSyntax) bodies = Bodies;
+            CSharpSyntaxNode bodySyntax = null;
 
             // All locals are declared within the body of the method.
-            Debug.Assert(this.BodySyntax.Span.Contains(localPosition));
+            if (bodies.Item1?.Span.Contains(localPosition) == true)
+            {
+                bodySyntax = bodies.Item1;
+            }
+            else if (bodies.Item2?.Span.Contains(localPosition) == true)
+            {
+                bodySyntax = bodies.Item2;
+            }
+            else
+            {
+                // Method without body doesn't declare locals.
+                Debug.Assert(bodySyntax != null);
+                return -1;
+            }
 
-            return localPosition - this.BodySyntax.SpanStart;
+            return localPosition - bodySyntax.SpanStart;
         }
     }
 }

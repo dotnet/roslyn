@@ -129,7 +129,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 _boundBody = boundBody;
             }
 
-            _methodBodySyntaxOpt = (method as SourceMemberMethodSymbol)?.BodySyntax;
+            var sourceMethod = method as SourceMemberMethodSymbol;
+            (BlockSyntax, ArrowExpressionClauseSyntax) bodies = sourceMethod?.Bodies ?? default;
+            _methodBodySyntaxOpt = (SyntaxNode)bodies.Item1 ?? bodies.Item2 ?? sourceMethod?.SyntaxNode;
         }
 
         private bool IsDebugPlus()
