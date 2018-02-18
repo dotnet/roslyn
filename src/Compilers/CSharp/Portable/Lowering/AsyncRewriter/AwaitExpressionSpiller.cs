@@ -906,6 +906,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     type: node.Type));
         }
 
+        public override BoundNode VisitPassByCopy(BoundPassByCopy node)
+        {
+            BoundSpillSequenceBuilder builder = null;
+            var expression = VisitExpression(ref builder, node.Expression);
+            return UpdateExpression(
+                builder,
+                node.Update(
+                    expression,
+                    type: node.Type));
+        }
+
         public override BoundNode VisitMethodGroup(BoundMethodGroup node)
         {
             throw ExceptionUtilities.Unreachable;

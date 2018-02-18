@@ -603,6 +603,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 node.Type);
         }
 
+        public override BoundNode VisitPassByCopy(BoundPassByCopy node)
+        {
+            var context = _context == ExprContext.Sideeffects ?
+                            ExprContext.Sideeffects :
+                            ExprContext.Value;
+
+            return node.Update(
+                this.VisitExpression(node.Expression, context),
+                node.Type);
+        }
+
         public override BoundNode VisitBlock(BoundBlock node)
         {
             Debug.Assert(EvalStackIsEmpty(), "entering blocks when evaluation stack is not empty?");

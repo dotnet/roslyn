@@ -199,15 +199,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static BoundExpression RefAccessMustMakeCopy(BoundExpression visited)
         {
-            visited = new BoundConversion(
+            visited = new BoundPassByCopy(
                         visited.Syntax,
                         visited,
-                        Conversion.IdentityValue,
-                        @checked: false,
-                        explicitCastInCode: true,
-                        constantValueOpt: null,
-                        type: visited.Type)
-            { WasCompilerGenerated = true };
+                        type: visited.Type);
 
             return visited;
         }

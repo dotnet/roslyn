@@ -296,6 +296,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // A ref to a local variable or formal parameter is safe to reorder; it
                         // never has a side effect or consumes one.
                         return kind != RefKind.None;
+                    case BoundKind.PassByCopy:
+                        return IsSafeForReordering(((BoundPassByCopy)current).Expression, kind);
                     case BoundKind.Conversion:
                         {
                             BoundConversion conv = (BoundConversion)current;
