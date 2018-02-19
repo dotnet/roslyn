@@ -488,6 +488,8 @@ class C
     public void MyMethod(in int x) { }
 }
 ";
+
+            await VerifyItemExistsAsync(text, "MyMethod(in int)");
         }
     }
 }
