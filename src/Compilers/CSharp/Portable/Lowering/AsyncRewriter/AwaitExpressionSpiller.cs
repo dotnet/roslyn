@@ -958,7 +958,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return UpdateExpression(leftBuilder, _F.Local(tmp));
             }
 
-            return UpdateExpression(builder, node.Update(left, right, node.LeftConversion, node.Type));
+            return UpdateExpression(builder, node.Update(left, right, node.LeftConversion, node.OperatorResultKind, node.Type));
         }
 
         public override BoundNode VisitLoweredConditionalAccess(BoundLoweredConditionalAccess node)
