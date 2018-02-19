@@ -879,7 +879,7 @@ class Program : IReadOnlyCollection<int,string>
                 Punctuation.CloseCurly);
         }
 
-       /* [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact(Skip = "Extension method usage doesn't seem to work."), Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task TestExtensionMethodUsage()
         {
             await TestAsync(
@@ -932,6 +932,6 @@ class C
                 Punctuation.Semicolon,
                 Punctuation.CloseCurly,
                 Punctuation.CloseCurly);
-        }                */
+        }
     }
 }
