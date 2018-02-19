@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -60,16 +60,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                 var context = new MockFindUsagesContext();
                 var presenter = new MockStreamingFindUsagesPresenter(context);
 
-                var waiter = new AsynchronousOperationListener();
-                var waiters =
-                    SpecializedCollections.SingletonEnumerable(
-                        new Lazy<IAsynchronousOperationListener, FeatureMetadata>(
-                        () => waiter, new FeatureMetadata(new Dictionary<string, object>() { { "FeatureName", FeatureAttribute.FindReferences } })));
+                var listenerProvider = new AsynchronousOperationListenerProvider();
 
                 var handler = new FindReferencesCommandHandler(
                     TestWaitIndicator.Default,
                     SpecializedCollections.SingletonEnumerable(new Lazy<IStreamingFindUsagesPresenter>(() => presenter)),
-                    waiters);
+                    listenerProvider);
 
                 var textView = workspace.Documents[0].GetTextView();
                 textView.Caret.MoveTo(new SnapshotPoint(textView.TextSnapshot, 7));
@@ -77,6 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                     textView,
                     textView.TextBuffer), () => { });
 
+                var waiter = listenerProvider.GetWaiter(FeatureAttribute.FindReferences);
                 await waiter.CreateWaitTask();
                 AssertResult(context.Result, "C.C()", "class C");
             }
