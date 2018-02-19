@@ -897,6 +897,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 using (var asyncToken = _owner.OperationListener.BeginAsyncOperation(nameof(GetSuggestedActionCategoriesAsync)))
                 {
                     var document = range.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
+                    if (document == null)
+                    {
+                        return null;
+                    }
+
                     using (var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken))
                     {
                         var linkedToken = linkedTokenSource.Token;
