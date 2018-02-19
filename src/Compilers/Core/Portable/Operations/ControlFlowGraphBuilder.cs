@@ -1615,11 +1615,8 @@ namespace Microsoft.CodeAnalysis.Operations
                     // We can't use the IdentifierToken as the syntax for the local reference, so we use the
                     // entire declarator as the node
                     var localRef = new LocalReferenceExpression(localSymbol, isDeclaration: true, semanticModel: null, declarator.Syntax, localSymbol.Type, constantValue: default, isImplicit: true);
-                    // PROTOTYPE(dataflow): We'd like to remove ExpressionStatements from the CFG altogether,
-                    // as they're useless when all you need to do is look to see if the parent is null
                     var assignment = new SimpleAssignmentExpression(localRef, isRef: localSymbol.IsRef, initializer, semanticModel: null, assignmentSyntax, localRef.Type, constantValue: default, isImplicit: true);
-                    var statement = new ExpressionStatement(assignment, semanticModel: null, assignmentSyntax, type: null, constantValue: default, isImplicit: true);
-                    AddStatement(statement);
+                    AddStatement(assignment);
                 }
             }
         }
