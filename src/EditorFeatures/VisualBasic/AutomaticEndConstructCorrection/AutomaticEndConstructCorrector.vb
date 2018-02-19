@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.Host
@@ -139,7 +139,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrect
                 Return False
             End If
 
-            Dim root = _previousDocument.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken)
+            Dim root = _previousDocument.GetSyntaxRootSynchronously(cancellationToken)
             token = root.FindToken(textChange.OldPosition)
 
             If Not IsChangeOnCorrectToken(token) Then
@@ -150,8 +150,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrect
         End Function
 
         Private Shared Function IsChangeOnSameLine(snapshot As ITextSnapshot, change As ITextChange) As Boolean
-            ' changes on same line
-            Return snapshot.GetLineNumberFromPosition(change.NewPosition) = snapshot.GetLineNumberFromPosition(change.NewEnd)
+            Return snapshot.AreOnSameLine(change.NewPosition, change.NewEnd)
         End Function
 
         Private Function IsChangeOnCorrectToken(token As SyntaxToken) As Boolean
@@ -198,12 +197,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrect
             End If
 
             Dim beginNode = token.Parent.Parent.TypeSwitch(
-                        Function(context As TypeBlockSyntax) context.BlockStatement,
-                        Function(context As EnumBlockSyntax) context.EnumStatement,
-                        Function(context As NamespaceBlockSyntax) context.NamespaceStatement,
-                        Function(context As MethodBlockBaseSyntax) context.BlockStatement,
-                        Function(context As MultiLineLambdaExpressionSyntax) context.SubOrFunctionHeader,
-                        Function(dontCare As SyntaxNode) CType(Nothing, SyntaxNode))
+                Function(context As TypeBlockSyntax) context.BlockStatement,
+                Function(context As EnumBlockSyntax) context.EnumStatement,
+                Function(context As NamespaceBlockSyntax) context.NamespaceStatement,
+                Function(context As MethodBlockBaseSyntax) context.BlockStatement,
+                Function(context As MultiLineLambdaExpressionSyntax) context.SubOrFunctionHeader,
+                Function(dontCare As SyntaxNode) CType(Nothing, SyntaxNode))
 
             If beginNode Is Nothing Then
                 Return New SyntaxToken()
@@ -233,12 +232,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrect
             End If
 
             Return token.Parent.Parent.TypeSwitch(
-                        Function(context As TypeBlockSyntax) context.EndBlockStatement.BlockKeyword,
-                        Function(context As EnumBlockSyntax) context.EndEnumStatement.BlockKeyword,
-                        Function(context As NamespaceBlockSyntax) context.EndNamespaceStatement.BlockKeyword,
-                        Function(context As MethodBlockBaseSyntax) context.EndBlockStatement.BlockKeyword,
-                        Function(context As MultiLineLambdaExpressionSyntax) context.EndSubOrFunctionStatement.BlockKeyword,
-                        Function(dontCare As SyntaxNode) New SyntaxToken())
+                Function(context As TypeBlockSyntax) context.EndBlockStatement.BlockKeyword,
+                Function(context As EnumBlockSyntax) context.EndEnumStatement.BlockKeyword,
+                Function(context As NamespaceBlockSyntax) context.EndNamespaceStatement.BlockKeyword,
+                Function(context As MethodBlockBaseSyntax) context.EndBlockStatement.BlockKeyword,
+                Function(context As MultiLineLambdaExpressionSyntax) context.EndSubOrFunctionStatement.BlockKeyword,
+                Function(dontCare As SyntaxNode) New SyntaxToken())
         End Function
 
         Private Function IsChangeOnBeginToken(token As SyntaxToken) As Boolean
@@ -260,24 +259,24 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrect
             ' turns out in malformed code, parser would pair some constructs together even if user wouldn't consider them being
             ' paired. So, rather than the feature being very naive, we will make sure begin construct have at least some valid shape.
             Return node.TypeSwitch(
-                        Function(context As TypeStatementSyntax) Not context.Identifier.IsMissing,
-                        Function(context As EnumStatementSyntax) Not context.Identifier.IsMissing,
-                        Function(context As NamespaceStatementSyntax) context.Name IsNot Nothing,
-                        Function(context As MethodStatementSyntax) Not context.Identifier.IsMissing,
-                        Function(context As AccessorStatementSyntax) Not context.DeclarationKeyword.IsMissing,
-                        Function(context As LambdaHeaderSyntax) True,
-                        Function(dontCare As SyntaxNode) False)
+                Function(context As TypeStatementSyntax) Not context.Identifier.IsMissing,
+                Function(context As EnumStatementSyntax) Not context.Identifier.IsMissing,
+                Function(context As NamespaceStatementSyntax) context.Name IsNot Nothing,
+                Function(context As MethodStatementSyntax) Not context.Identifier.IsMissing,
+                Function(context As AccessorStatementSyntax) Not context.DeclarationKeyword.IsMissing,
+                Function(context As LambdaHeaderSyntax) True,
+                Function(dontCare As SyntaxNode) False)
         End Function
 
         Private Function GetBeginToken(node As SyntaxNode) As SyntaxToken
             Return node.TypeSwitch(
-                        Function(context As TypeStatementSyntax) context.DeclarationKeyword,
-                        Function(context As EnumStatementSyntax) context.EnumKeyword,
-                        Function(context As NamespaceStatementSyntax) context.NamespaceKeyword,
-                        Function(context As MethodStatementSyntax) context.DeclarationKeyword,
-                        Function(context As LambdaHeaderSyntax) context.DeclarationKeyword,
-                        Function(context As AccessorStatementSyntax) context.DeclarationKeyword,
-                        Function(dontCare As SyntaxNode) New SyntaxToken())
+                Function(context As TypeStatementSyntax) context.DeclarationKeyword,
+                Function(context As EnumStatementSyntax) context.EnumKeyword,
+                Function(context As NamespaceStatementSyntax) context.NamespaceKeyword,
+                Function(context As MethodStatementSyntax) context.DeclarationKeyword,
+                Function(context As LambdaHeaderSyntax) context.DeclarationKeyword,
+                Function(context As AccessorStatementSyntax) context.DeclarationKeyword,
+                Function(dontCare As SyntaxNode) New SyntaxToken())
         End Function
 
         Private Function IsChangeOnCorrectText(snapshot As ITextSnapshot, position As Integer) As Boolean

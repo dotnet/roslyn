@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Suppression
 
             public class CSharpFixMultiplePragmaWarningSuppressionTests : CSharpFixMultipleSuppressionTests
             {
-                private string FixMultipleActionEquivalenceKey => FeaturesResources.SuppressWithPragma;
+                private string FixMultipleActionEquivalenceKey => FeaturesResources.in_Source;
 
                 [Fact]
                 [Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
@@ -155,7 +155,7 @@ class Class2
     </Project>
 </Workspace>";
 
-                    await TestAsync(input, expected, compareTokens: false, fixAllActionEquivalenceKey: FixMultipleActionEquivalenceKey);
+                    await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey: FixMultipleActionEquivalenceKey);
                 }
             }
 

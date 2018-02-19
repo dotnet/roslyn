@@ -1,31 +1,35 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.Test.Utilities;
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using Xunit;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Roslyn.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
-using System.Diagnostics;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
 {
+    [CompilerTrait(CompilerFeature.Determinism)]
     public class DeterministicTests : EmitMetadataTestBase
     {
         private Guid CompiledGuid(string source, string assemblyName, bool debug)
         {
+            return CompiledGuid(source, assemblyName, options: debug ? TestOptions.DebugExe : TestOptions.ReleaseExe);
+        }
+
+        private Guid CompiledGuid(string source, string assemblyName, CSharpCompilationOptions options, EmitOptions emitOptions = null)
+        {
             var compilation = CreateCompilation(source,
                 assemblyName: assemblyName,
                 references: new[] { MscorlibRef },
-                options: (debug ? TestOptions.DebugExe : TestOptions.ReleaseExe).WithDeterministic(true));
+                options: options.WithDeterministic(true));
 
             Guid result = default(Guid);
-            base.CompileAndVerify(compilation, validator: a =>
+            base.CompileAndVerify(compilation, emitOptions: emitOptions, validator: a =>
             {
                 var module = a.Modules[0];
                 result = module.GetModuleVersionIdOrThrow();
@@ -34,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
             return result;
         }
 
-        private ImmutableArray<byte> EmitDeterministic(string source, Platform platform, DebugInformationFormat pdbFormat, bool optimize)
+        private (ImmutableArray<byte> pe, ImmutableArray<byte> pdb) EmitDeterministic(string source, Platform platform, DebugInformationFormat pdbFormat, bool optimize)
         {
             var options = (optimize ? TestOptions.ReleaseExe : TestOptions.DebugExe).WithPlatform(platform).WithDeterministic(true);
 
@@ -47,7 +51,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
                 Thread.Sleep(TimeSpan.FromSeconds(1));
             }
 
-            return compilation.EmitToArray(EmitOptions.Default.WithDebugInformationFormat(pdbFormat), pdbStream: new MemoryStream());
+            var pdbStream = (pdbFormat == DebugInformationFormat.Embedded) ? null : new MemoryStream();
+
+            return (pe: compilation.EmitToArray(EmitOptions.Default.WithDebugInformationFormat(pdbFormat), pdbStream: pdbStream), 
+                    pdb: (pdbStream ?? new MemoryStream()).ToImmutable());
         }
 
         [Fact, WorkItem(4578, "https://github.com/dotnet/roslyn/issues/4578")]
@@ -64,8 +71,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
                 references: new[] { MscorlibRef },
                 options: TestOptions.DebugDll.WithDeterministic(false));
 
-            var resultDeterministic = compilationDeterministic.Emit(Stream.Null, Stream.Null);
-            var resultNonDeterministic = compilationNonDeterministic.Emit(Stream.Null, Stream.Null);
+            var resultDeterministic = compilationDeterministic.Emit(Stream.Null, pdbStream: Stream.Null);
+            var resultNonDeterministic = compilationNonDeterministic.Emit(Stream.Null, pdbStream: Stream.Null);
 
             Assert.False(resultDeterministic.Success);
             Assert.True(resultNonDeterministic.Success);
@@ -100,6 +107,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
             // adding the debug option should change the MVID
             Assert.NotEqual(mvid1, mvid5);
             Assert.NotEqual(mvid3, mvid7);
+        }
+
+        [Fact]
+        public void RefAssembly()
+        {
+            var source =
+@"class Program
+{
+    public static void Main(string[] args) {}
+    CHANGE
+}";
+            var emitRefAssembly = EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(false);
+
+            var mvid1 = CompiledGuid(source.Replace("CHANGE", ""), "X1", TestOptions.DebugDll, emitRefAssembly);
+            var mvid2 = CompiledGuid(source.Replace("CHANGE", "private void M() { }"), "X1", TestOptions.DebugDll, emitRefAssembly);
+            Assert.Equal(mvid1, mvid2);
         }
 
         const string CompareAllBytesEmitted_Source = @"
@@ -142,11 +165,13 @@ namespace N
             {
                 var result1 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.AnyCpu32BitPreferred, pdbFormat, optimize: true);
                 var result2 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.AnyCpu32BitPreferred, pdbFormat, optimize: true);
-                AssertEx.Equal(result1, result2);
+                AssertEx.Equal(result1.pe, result2.pe);
+                AssertEx.Equal(result1.pdb, result2.pdb);
 
                 var result3 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.X64, pdbFormat, optimize: true);
                 var result4 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.X64, pdbFormat, optimize: true);
-                AssertEx.Equal(result3, result4);
+                AssertEx.Equal(result3.pe, result4.pe);
+                AssertEx.Equal(result3.pdb, result4.pdb);
             }
         }
 
@@ -162,11 +187,13 @@ namespace N
             {
                 var result1 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.AnyCpu32BitPreferred, pdbFormat, optimize: false);
                 var result2 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.AnyCpu32BitPreferred, pdbFormat, optimize: false);
-                AssertEx.Equal(result1, result2);
+                AssertEx.Equal(result1.pe, result2.pe);
+                AssertEx.Equal(result1.pdb, result2.pdb);
 
                 var result3 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.X64, pdbFormat, optimize: false);
                 var result4 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.X64, pdbFormat, optimize: false);
-                AssertEx.Equal(result3, result4);
+                AssertEx.Equal(result3.pe, result4.pe);
+                AssertEx.Equal(result3.pdb, result4.pdb);
             }
         }
 
@@ -180,6 +207,77 @@ namespace N
                                                        new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithDeterministic(true));
             var output = new WriteOnlyStream();
             compilation.Emit(output);
+        }
+
+        [Fact, WorkItem(11990, "https://github.com/dotnet/roslyn/issues/11990")]
+        public void ForwardedTypesAreEmittedInADeterministicOrder()
+        {
+            var forwardedToCode = @"
+namespace Namespace2 {
+    public class GenericType1<T> {}
+    public class GenericType3<T> {}
+    public class GenericType2<T> {}
+}
+namespace Namespace1 {
+    public class Type3 {}
+    public class Type2 {}
+    public class Type1 {}
+}
+namespace Namespace4 {
+    namespace Embedded {
+        public class Type2 {}
+        public class Type1 {}
+    }
+}
+namespace Namespace3 {
+    public class GenericType {}
+    public class GenericType<T> {}
+    public class GenericType<T, U> {}
+}
+";
+            var forwardedToCompilation = CreateCompilation(forwardedToCode);
+            var forwardedToReference = new CSharpCompilationReference(forwardedToCompilation);
+
+            var forwardingCode = @"
+using System.Runtime.CompilerServices;
+[assembly: TypeForwardedTo(typeof(Namespace2.GenericType1<int>))]
+[assembly: TypeForwardedTo(typeof(Namespace2.GenericType3<int>))]
+[assembly: TypeForwardedTo(typeof(Namespace2.GenericType2<int>))]
+[assembly: TypeForwardedTo(typeof(Namespace1.Type3))]
+[assembly: TypeForwardedTo(typeof(Namespace1.Type2))]
+[assembly: TypeForwardedTo(typeof(Namespace1.Type1))]
+[assembly: TypeForwardedTo(typeof(Namespace4.Embedded.Type2))]
+[assembly: TypeForwardedTo(typeof(Namespace4.Embedded.Type1))]
+[assembly: TypeForwardedTo(typeof(Namespace3.GenericType))]
+[assembly: TypeForwardedTo(typeof(Namespace3.GenericType<int>))]
+[assembly: TypeForwardedTo(typeof(Namespace3.GenericType<int, int>))]
+";
+
+            var forwardingCompilation = CreateStandardCompilation(forwardingCode, new MetadataReference[] { forwardedToReference });
+
+            var sortedFullNames = new string[]
+            {
+                "Namespace1.Type1",
+                "Namespace1.Type2",
+                "Namespace1.Type3",
+                "Namespace2.GenericType1`1",
+                "Namespace2.GenericType2`1",
+                "Namespace2.GenericType3`1",
+                "Namespace3.GenericType",
+                "Namespace3.GenericType`1",
+                "Namespace3.GenericType`2",
+                "Namespace4.Embedded.Type1",
+                "Namespace4.Embedded.Type2"
+            };
+
+            using (var stream = forwardingCompilation.EmitToStream())
+            {
+                using (var block = ModuleMetadata.CreateFromStream(stream))
+                {
+                    var metadataFullNames = MetadataValidation.GetExportedTypesFullNames(block.MetadataReader);
+                    Assert.Equal(sortedFullNames, metadataFullNames);
+                }
+            }
         }
 
         [Fact]

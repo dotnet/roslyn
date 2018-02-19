@@ -3,6 +3,7 @@
 Imports System.Collections.Immutable
 Imports System.Diagnostics
 Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -36,8 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             RestoreUnstructuredExceptionHandlingContext(node, saveState)
 
-            Return RewriteWithBlockStatements(node.Body,
-                                              node.Syntax,
+            Return RewriteWithBlockStatements(node,
                                               ShouldGenerateUnstructuredExceptionHandlingResumeCode(node),
                                               result.Locals,
                                               result.Initializers,
@@ -45,26 +45,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                               result.Expression)
         End Function
 
-        Private Function RewriteWithBlockStatements(block As BoundBlock,
-                                                    syntax As VisualBasicSyntaxNode,
+        Private Function RewriteWithBlockStatements(node As BoundWithStatement,
                                                     generateUnstructuredExceptionHandlingResumeCode As Boolean,
                                                     locals As ImmutableArray(Of LocalSymbol),
                                                     initializers As ImmutableArray(Of BoundExpression),
                                                     placeholder As BoundValuePlaceholderBase,
                                                     replaceWith As BoundExpression) As BoundBlock
-            Debug.Assert(block IsNot Nothing)
-            Debug.Assert(syntax IsNot Nothing)
             Debug.Assert(Not locals.IsDefault)
             Debug.Assert(Not initializers.IsDefault)
             Debug.Assert(placeholder IsNot Nothing)
             Debug.Assert(replaceWith IsNot Nothing)
 
+            Dim block As BoundBlock = node.Body
+            Dim syntax As SyntaxNode = node.Syntax
+
             ' We need to create a new Block with locals, initialization 
             ' statements, bound block and optional clean-up statements
             Dim initStatements = ArrayBuilder(Of BoundStatement).GetInstance
+            Dim instrument As Boolean = Me.Instrument(node) AndAlso syntax.Kind = SyntaxKind.WithBlock
 
-            If generateDebugInfo AndAlso syntax.Kind = SyntaxKind.WithBlock Then
-                initStatements.Add(New BoundSequencePoint(DirectCast(syntax, WithBlockSyntax).WithStatement, Nothing))
+            If instrument Then
+                Dim prologue = _instrumenterOpt.CreateWithStatementPrologue(node)
+                If prologue IsNot Nothing Then
+                    initStatements.Add(prologue)
+                End If
             End If
 
             If generateUnstructuredExceptionHandlingResumeCode Then
@@ -83,46 +87,47 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             initStatements.Add(DirectCast(Visit(block), BoundStatement))
             RemovePlaceholderReplacement(placeholder)
 
-            If generateDebugInfo AndAlso syntax.Kind = SyntaxKind.WithBlock Then
-                initStatements.Add(New BoundSequencePoint(DirectCast(syntax, WithBlockSyntax).EndWithStatement, Nothing))
+            If instrument Then
+                Dim epilogue = _instrumenterOpt.CreateWithStatementEpilogue(node)
+                If epilogue IsNot Nothing Then
+                    initStatements.Add(epilogue)
+                End If
             End If
 
             If generateUnstructuredExceptionHandlingResumeCode Then
                 initStatements.Add(RegisterUnstructuredExceptionHandlingNonThrowingResumeTarget(syntax))
             End If
 
-            'TODO: what is the purpose of this? 
-            '      Is this code adding dead-stores that optimizer will most likely remove?
-            '      Also, what happens if the temps are lifted into a closure and are still alive?
-            '      
             ' Cleanup code for locals which need it
-            For Each _local In locals
-                Dim localType As TypeSymbol = _local.Type
+            If Not node.Binder.ExpressionIsAccessedFromNestedLambda Then
+                For Each _local In locals
+                    Dim localType As TypeSymbol = _local.Type
 
-                ' Only for locals of reference type or type parameter type or non-primitive structs 
-                If Not _local.IsByRef AndAlso LocalOrFieldNeedsToBeCleanedUp(localType) Then
-                    initStatements.Add(
-                        New BoundExpressionStatement(
-                            syntax,
-                            VisitExpression(
-                                New BoundAssignmentOperator(
-                                    syntax,
-                                    New BoundLocal(syntax, _local, isLValue:=True, type:=localType).MakeCompilerGenerated(),
-                                    New BoundConversion(
+                    ' Only for locals of reference type or type parameter type or non-primitive structs 
+                    If Not _local.IsByRef AndAlso LocalOrFieldNeedsToBeCleanedUp(localType) Then
+                        initStatements.Add(
+                            New BoundExpressionStatement(
+                                syntax,
+                                VisitExpression(
+                                    New BoundAssignmentOperator(
                                         syntax,
-                                        New BoundLiteral(syntax, ConstantValue.Nothing, Nothing).MakeCompilerGenerated(),
-                                        ConversionKind.WideningNothingLiteral,
-                                        checked:=False,
-                                        explicitCastInCode:=False,
-                                        type:=localType).MakeCompilerGenerated(),
-                                    suppressObjectClone:=True,
-                                    Type:=localType
-                                ).MakeCompilerGenerated()
-                            )
-                        ).MakeCompilerGenerated()
-                    )
-                End If
-            Next
+                                        New BoundLocal(syntax, _local, isLValue:=True, type:=localType).MakeCompilerGenerated(),
+                                        New BoundConversion(
+                                            syntax,
+                                            New BoundLiteral(syntax, ConstantValue.Nothing, Nothing).MakeCompilerGenerated(),
+                                            ConversionKind.WideningNothingLiteral,
+                                            checked:=False,
+                                            explicitCastInCode:=False,
+                                            type:=localType).MakeCompilerGenerated(),
+                                        suppressObjectClone:=True,
+                                        type:=localType
+                                    ).MakeCompilerGenerated()
+                                )
+                            ).MakeCompilerGenerated()
+                        )
+                    End If
+                Next
+            End If
 
             ' Create a new block
             Dim newBlock As New BoundBlock(syntax, Nothing, locals, initStatements.ToImmutableAndFree())

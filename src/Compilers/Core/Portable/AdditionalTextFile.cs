@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Threading;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -42,14 +41,14 @@ namespace Microsoft.CodeAnalysis
         /// Returns a <see cref="SourceText"/> with the contents of this file, or <c>null</c> if
         /// there were errors reading the file.
         /// </summary>
-        public override SourceText GetText(CancellationToken cancellationToken = default(CancellationToken))
+        public override SourceText GetText(CancellationToken cancellationToken = default)
         {
             lock (_lockObject)
             {
                 if (_text == null)
                 {
                     var diagnostics = new List<DiagnosticInfo>();
-                    _text = _compiler.ReadFileContent(_sourceFile, diagnostics);
+                    _text = _compiler.TryReadFileContent(_sourceFile, diagnostics);
                     _diagnostics = diagnostics;
                 }
             }

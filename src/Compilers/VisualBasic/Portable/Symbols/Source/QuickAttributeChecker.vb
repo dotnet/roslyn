@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             _nameToAttributeMap(name) = newAttributes Or current
 
-            ' We allow "Foo" to bind to "FooAttribute".
+            ' We allow "Goo" to bind to "GooAttribute".
             If name.EndsWith("Attribute", StringComparison.OrdinalIgnoreCase) Then
                 _nameToAttributeMap(name.Substring(0, name.Length - "Attribute".Length)) = newAttributes Or current
             End If
@@ -131,5 +131,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Extension = 1 << 0
         Obsolete = 1 << 1
         MyGroupCollection = 1 << 2
+        TypeIdentifier = 1 << 3
     End Enum
 End Namespace

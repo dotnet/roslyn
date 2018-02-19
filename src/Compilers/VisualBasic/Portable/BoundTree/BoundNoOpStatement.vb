@@ -9,11 +9,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
     Friend Partial Class BoundNoOpStatement
 
-        Public Sub New(syntax As VisualBasicSyntaxNode)
+        Public Sub New(syntax As SyntaxNode)
             MyClass.New(syntax, NoOpStatementFlavor.Default)
         End Sub
 
-        Public Sub New(syntax As VisualBasicSyntaxNode, hasErrors As Boolean)
+        Public Sub New(syntax As SyntaxNode, hasErrors As Boolean)
             MyClass.New(syntax, NoOpStatementFlavor.Default, hasErrors)
         End Sub
 

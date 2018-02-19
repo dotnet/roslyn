@@ -2,15 +2,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.CSharp.Utilities;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
@@ -22,28 +14,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             bool placeSystemNamespaceFirst,
             params SyntaxAnnotation[] annotations)
         {
-            if (!usingDirectives.Any())
+            if (usingDirectives.Count == 0)
             {
                 return namespaceDeclaration;
             }
 
-            var specialCaseSystem = placeSystemNamespaceFirst;
-            var comparer = specialCaseSystem
-                ? UsingsAndExternAliasesDirectiveComparer.SystemFirstInstance
-                : UsingsAndExternAliasesDirectiveComparer.NormalInstance;
+            var newUsings = new List<UsingDirectiveSyntax>();
+            newUsings.AddRange(namespaceDeclaration.Usings);
+            newUsings.AddRange(usingDirectives);
 
-            var usings = new List<UsingDirectiveSyntax>();
-            usings.AddRange(namespaceDeclaration.Usings);
-            usings.AddRange(usingDirectives);
+            newUsings.SortUsingDirectives(namespaceDeclaration.Usings, placeSystemNamespaceFirst);
+            newUsings = newUsings.Select(u => u.WithAdditionalAnnotations(annotations)).ToList();
 
-            if (namespaceDeclaration.Usings.IsSorted(comparer))
-            {
-                usings.Sort(comparer);
-            }
-
-            usings = usings.Select(u => u.WithAdditionalAnnotations(annotations)).ToList();
-            var newNamespace = namespaceDeclaration.WithUsings(usings.ToSyntaxList());
-
+            var newNamespace = namespaceDeclaration.WithUsings(newUsings.ToSyntaxList());
             return newNamespace;
         }
     }

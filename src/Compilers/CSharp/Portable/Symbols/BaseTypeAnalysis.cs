@@ -1,87 +1,70 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal static class BaseTypeAnalysis
     {
-        // let's keep up to 16 hashsets so that we do not need to allocate them over and over.
-        // we do not allocate hashsets recursively, so even for big hierarchies, one hashset is sufficient
-        // We may need more than one in a case of running this analysis concurrently, so we will keep up to 16
-        // which seems plenty for this scenario.
-        private static readonly ObjectPool<HashSet<Symbol>> s_hsPool =
-            new ObjectPool<HashSet<Symbol>>(() => new HashSet<Symbol>(ReferenceEqualityComparer.Instance), 16);
-
-        internal static bool ClassDependsOn(TypeSymbol depends, TypeSymbol on)
+        internal static bool ClassDependsOn(NamedTypeSymbol depends, NamedTypeSymbol on)
         {
-            if ((object)depends == null || (object)on == null)
-            {
-                return false;
-            }
+            Debug.Assert((object)depends != null);
+            Debug.Assert((object)on != null);
+            Debug.Assert(on.IsDefinition);
 
-            var hs = s_hsPool.Allocate();
+            var hs = PooledHashSet<Symbol>.GetInstance();
             ClassDependsClosure(depends, depends.DeclaringCompilation, hs);
 
-            var result = hs.Contains(on.OriginalDefinition);
-            hs.Clear();
-            s_hsPool.Free(hs);
+            var result = hs.Contains(on);
+            hs.Free();
 
             return result;
         }
 
-        private static void ClassDependsClosure(TypeSymbol type, CSharpCompilation currentCompilation, HashSet<Symbol> partialClosure)
+        private static void ClassDependsClosure(NamedTypeSymbol type, CSharpCompilation currentCompilation, HashSet<Symbol> partialClosure)
         {
             if ((object)type == null)
             {
                 return;
             }
 
-            var namedType = type.OriginalDefinition as NamedTypeSymbol;
-            if ((object)namedType != null && partialClosure.Add(namedType))
+            type = type.OriginalDefinition;
+            if (partialClosure.Add(type))
             {
-                ClassDependsClosure(namedType.GetDeclaredBaseType(null), currentCompilation, partialClosure);
+                ClassDependsClosure(type.GetDeclaredBaseType(null), currentCompilation, partialClosure);
 
                 // containment is interesting only for the current compilation
-                if (currentCompilation != null && namedType.IsFromCompilation(currentCompilation))
+                if (currentCompilation != null && type.IsFromCompilation(currentCompilation))
                 {
-                    ClassDependsClosure(namedType.ContainingType, currentCompilation, partialClosure);
+                    ClassDependsClosure(type.ContainingType, currentCompilation, partialClosure);
                 }
             }
         }
 
-        internal static bool StructDependsOn(TypeSymbol depends, NamedTypeSymbol on)
+        internal static bool StructDependsOn(NamedTypeSymbol depends, NamedTypeSymbol on)
         {
-            if ((object)depends == null || (object)on == null)
-            {
-                return false;
-            }
+            Debug.Assert((object)depends != null);
+            Debug.Assert((object)on != null);
+            Debug.Assert(on.IsDefinition);
 
-            var hs = s_hsPool.Allocate();
+            var hs = PooledHashSet<Symbol>.GetInstance();
             StructDependsClosure(depends, hs, on);
 
             var result = hs.Contains(on);
-            hs.Clear();
-            s_hsPool.Free(hs);
+            hs.Free();
 
             return result;
         }
 
-        private static void StructDependsClosure(TypeSymbol type, HashSet<Symbol> partialClosure, NamedTypeSymbol on)
+        private static void StructDependsClosure(NamedTypeSymbol type, HashSet<Symbol> partialClosure, NamedTypeSymbol on)
         {
-            if ((object)type == null)
-            {
-                return;
-            }
+            Debug.Assert((object)type != null);
 
-            var nt = type as NamedTypeSymbol;
-            if ((object)nt != null && ReferenceEquals(nt.OriginalDefinition, on))
+            if ((object)type.OriginalDefinition == on)
             {
                 // found a possibly expanding cycle, for example
                 //     struct X<T> { public T t; }
@@ -90,7 +73,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 partialClosure.Add(on);
                 return;
             }
-            if ((object)nt != null && partialClosure.Add(nt))
+
+            if (partialClosure.Add(type))
             {
                 foreach (var member in type.GetMembersUnordered())
                 {
@@ -100,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         continue;
                     }
 
-                    StructDependsClosure(field.Type, partialClosure, on);
+                    StructDependsClosure((NamedTypeSymbol)field.Type, partialClosure, on);
                 }
             }
         }
@@ -134,41 +118,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // Otherwise, we have to build and inspect the closure of depended-upon types.
-            HashSet<Symbol> closure = s_hsPool.Allocate();
-            bool result = DependsOnDefinitelyManagedType(type, closure);
-            closure.Clear();
-            s_hsPool.Free(closure);
+            var hs = PooledHashSet<Symbol>.GetInstance();
+            bool result = DependsOnDefinitelyManagedType(type, hs);
+            hs.Free();
             return result;
         }
 
         private static bool DependsOnDefinitelyManagedType(NamedTypeSymbol type, HashSet<Symbol> partialClosure)
         {
-            Debug.Assert(!ReferenceEquals(type, null));
+            Debug.Assert((object)type != null);
 
             // NOTE: unlike in StructDependsClosure, we don't have to check for expanding cycles,
             // because as soon as we see something with non-zero arity we kick out (generic => managed).
             if (partialClosure.Add(type))
             {
-                foreach (var member in type.GetMembersUnordered())
+                foreach (var member in type.GetInstanceFieldsAndEvents())
                 {
                     // Only instance fields (including field-like events) affect the outcome.
-                    if (member.IsStatic)
-                    {
-                        continue;
-                    }
-
-                    FieldSymbol field = null;
-
+                    FieldSymbol field;
                     switch (member.Kind)
                     {
                         case SymbolKind.Field:
                             field = (FieldSymbol)member;
-                            Debug.Assert(ReferenceEquals(field.AssociatedSymbol as EventSymbol, null),
+                            Debug.Assert((object)(field.AssociatedSymbol as EventSymbol) == null,
                                 "Didn't expect to find a field-like event backing field in the member list.");
                             break;
                         case SymbolKind.Event:
                             field = ((EventSymbol)member).AssociatedField;
                             break;
+                        default:
+                            throw ExceptionUtilities.UnexpectedValue(member.Kind);
                     }
 
                     if ((object)field == null)
@@ -275,29 +254,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal static bool InterfaceDependsOn(TypeSymbol depends, TypeSymbol on)
+        internal static bool InterfaceDependsOn(NamedTypeSymbol depends, NamedTypeSymbol on)
         {
-            if ((object)depends == null || (object)on == null)
-            {
-                return false;
-            }
+            Debug.Assert((object)depends != null);
+            Debug.Assert((object)on != null);
+            Debug.Assert(on.IsDefinition);
 
-            var hs = s_hsPool.Allocate();
+            var hs = PooledHashSet<Symbol>.GetInstance();
             InterfaceDependsClosure(depends, hs);
 
-            var result = hs.Contains(on.OriginalDefinition);
-            hs.Clear();
-            s_hsPool.Free(hs);
+            var result = hs.Contains(on);
+            hs.Free();
 
             return result;
         }
 
-        private static void InterfaceDependsClosure(TypeSymbol type, HashSet<Symbol> partialClosure)
+        private static void InterfaceDependsClosure(NamedTypeSymbol type, HashSet<Symbol> partialClosure)
         {
-            var nt = type.OriginalDefinition as NamedTypeSymbol;
-            if ((object)nt != null && partialClosure.Add(nt))
+            type = type.OriginalDefinition;
+            if (partialClosure.Add(type))
             {
-                foreach (var bt in nt.GetDeclaredInterfaces(null))
+                foreach (var bt in type.GetDeclaredInterfaces(null))
                 {
                     InterfaceDependsClosure(bt, partialClosure);
                     // containment is not interesting for interfaces as they cannot nest in C#

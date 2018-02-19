@@ -1,5 +1,6 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
@@ -94,36 +95,36 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
             Return Sub(value) codeElement.Type = value
         End Function
 
-        Protected Async Function TestIsConstant(code As XElement, expected As Boolean) As Threading.Tasks.Task
-            Await TestElement(code,
+        Protected Sub TestIsConstant(code As XElement, expected As Boolean)
+            TestElement(code,
                 Sub(codeElement)
                     Assert.Equal(expected, codeElement.IsConstant)
                 End Sub)
-        End Function
+        End Sub
 
-        Protected Async Function TestSetIsConstant(code As XElement, expectedCode As XElement, value As Boolean) As Threading.Tasks.Task
+        Protected Async Function TestSetIsConstant(code As XElement, expectedCode As XElement, value As Boolean) As Task
             Await TestSetIsConstant(code, expectedCode, value, NoThrow(Of Boolean)())
         End Function
 
-        Protected Async Function TestSetIsConstant(code As XElement, expectedCode As XElement, value As Boolean, action As SetterAction(Of Boolean)) As Threading.Tasks.Task
+        Protected Async Function TestSetIsConstant(code As XElement, expectedCode As XElement, value As Boolean, action As SetterAction(Of Boolean)) As Task
             Await TestElementUpdate(code, expectedCode,
                 Sub(codeElement)
                     action(value, Sub(v) codeElement.IsConstant = v)
                 End Sub)
         End Function
 
-        Protected Async Function TestInitExpression(code As XElement, expected As Object) As Threading.Tasks.Task
-            Await TestElement(code,
+        Protected Sub TestInitExpression(code As XElement, expected As Object)
+            TestElement(code,
                 Sub(codeElement)
                     Assert.Equal(expected, codeElement.InitExpression)
                 End Sub)
-        End Function
+        End Sub
 
-        Protected Async Function TestSetInitExpression(code As XElement, expectedCode As XElement, value As Object) As Threading.Tasks.Task
+        Protected Async Function TestSetInitExpression(code As XElement, expectedCode As XElement, value As Object) As Task
             Await TestSetInitExpression(code, expectedCode, value, NoThrow(Of Object)())
         End Function
 
-        Protected Async Function TestSetInitExpression(code As XElement, expectedCode As XElement, value As Object, action As SetterAction(Of Object)) As Threading.Tasks.Task
+        Protected Async Function TestSetInitExpression(code As XElement, expectedCode As XElement, value As Object, action As SetterAction(Of Object)) As Task
             Await TestElementUpdate(code, expectedCode,
                 Sub(codeElement)
                     action(value, Sub(v) codeElement.InitExpression = v)

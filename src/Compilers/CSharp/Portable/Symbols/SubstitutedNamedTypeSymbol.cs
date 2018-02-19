@@ -8,8 +8,10 @@ using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -19,18 +21,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// Either a SubstitutedNestedTypeSymbol or a ConstructedNamedTypeSymbol, which share in common that they
     /// have type parameters substituted.
     /// </summary>
-    internal abstract class SubstitutedNamedTypeSymbol : NamedTypeSymbol
+    internal abstract class SubstitutedNamedTypeSymbol : WrappedNamedTypeSymbol
     {
         private static readonly Func<Symbol, NamedTypeSymbol, Symbol> s_symbolAsMemberFunc = SymbolExtensions.SymbolAsMember;
 
         private readonly bool _unbound;
-        private readonly NamedTypeSymbol _originalDefinition;
         private readonly TypeMap _inputMap;
 
         // The container of a substituted named type symbol is typically a named type or a namespace. 
         // However, in some error-recovery scenarios it might be some other container. For example,
-        // consider "int Foo = 123; Foo<string> x = null;" What is the type of x? We construct an error
-        // type symbol of arity one associated with local variable symbol Foo; when we construct
+        // consider "int Goo = 123; Goo<string> x = null;" What is the type of x? We construct an error
+        // type symbol of arity one associated with local variable symbol Goo; when we construct
         // that error type symbol with <string>, the resulting substituted named type symbol has
         // the same containing symbol as the local: it is contained in the method.
         private readonly Symbol _newContainer;
@@ -45,9 +46,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private ConcurrentCache<string, ImmutableArray<Symbol>> _lazyMembersByNameCache;
 
         protected SubstitutedNamedTypeSymbol(Symbol newContainer, TypeMap map, NamedTypeSymbol originalDefinition, NamedTypeSymbol constructedFrom = null, bool unbound = false)
+            : base(originalDefinition)
         {
             Debug.Assert(originalDefinition.IsDefinition);
-            _originalDefinition = originalDefinition;
+            Debug.Assert(!originalDefinition.IsErrorType());
             _newContainer = newContainer;
             _inputMap = map;
             _unbound = unbound;
@@ -98,14 +100,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<TypeParameterSymbol> typeParameters;
 
             // We're creating a new unconstructed Method from another; alpha-rename type parameters.
-            var newMap = _inputMap.WithAlphaRename(_originalDefinition, this, out typeParameters);
+            var newMap = _inputMap.WithAlphaRename(OriginalDefinition, this, out typeParameters);
 
             var prevMap = Interlocked.CompareExchange(ref _lazyMap, newMap, null);
             if (prevMap != null)
             {
                 // There is a race with another thread who has already set the map
                 // need to ensure that typeParameters, matches the map
-                typeParameters = prevMap.SubstituteTypeParameters(_originalDefinition.TypeParameters);
+                typeParameters = prevMap.SubstituteTypeParameters(OriginalDefinition.TypeParameters);
             }
 
             ImmutableInterlocked.InterlockedCompareExchange(ref _lazyTypeParameters, typeParameters, default(ImmutableArray<TypeParameterSymbol>));
@@ -125,77 +127,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public sealed override string Name
-        {
-            get { return _originalDefinition.Name; }
-        }
-
-        internal sealed override bool MangleName
-        {
-            get { return _originalDefinition.MangleName; }
-        }
-
-        public override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            return _originalDefinition.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);
-        }
-
-        internal sealed override bool HasSpecialName
-        {
-            get { return _originalDefinition.HasSpecialName; }
-        }
-
-        public sealed override int Arity
-        {
-            get { return _originalDefinition.Arity; }
-        }
-
-        public sealed override Accessibility DeclaredAccessibility
-        {
-            get { return _originalDefinition.DeclaredAccessibility; }
-        }
-
-        public sealed override ImmutableArray<Location> Locations
-        {
-            get { return _originalDefinition.Locations; }
-        }
-
-        public sealed override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
-        {
-            get { return _originalDefinition.DeclaringSyntaxReferences; }
-        }
-
         public sealed override SymbolKind Kind
         {
-            get { return _originalDefinition.Kind; }
+            get { return OriginalDefinition.Kind; }
         }
 
         public sealed override NamedTypeSymbol OriginalDefinition
         {
-            get { return _originalDefinition; }
-        }
-
-        public sealed override TypeKind TypeKind
-        {
-            get { return _originalDefinition.TypeKind; }
-        }
-
-        internal sealed override bool IsInterface
-        {
-            get { return _originalDefinition.IsInterface; }
-        }
-
-        public sealed override bool IsStatic
-        {
-            get { return _originalDefinition.IsStatic; }
-        }
-
-        public sealed override bool IsImplicitlyDeclared
-        {
-            get
-            {
-                return _originalDefinition.IsImplicitlyDeclared;
-            }
+            get { return _underlyingType; }
         }
 
         internal sealed override NamedTypeSymbol GetDeclaredBaseType(ConsList<Symbol> basesBeingResolved)
@@ -226,60 +165,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             throw ExceptionUtilities.Unreachable;
         }
 
-        protected sealed override ImmutableArray<NamedTypeSymbol> MakeAllInterfaces()
-        {
-            // Because declared types will have been checked for "uniqueness of implemented interfaces" (C# 4 spec, 13.4.2),
-            // we are guaranteed that none of these substitutions collide in a correct program.  Consequently, we can simply
-            // substitute the original interfaces.
-            return _unbound ? ImmutableArray<NamedTypeSymbol>.Empty : Map.SubstituteNamedTypes(OriginalDefinition.AllInterfacesNoUseSiteDiagnostics);
-        }
-
         public sealed override IEnumerable<string> MemberNames
         {
             get
             {
-                return _unbound ? new List<string>(GetTypeMembersUnordered().Select(s => s.Name).Distinct()) : _originalDefinition.MemberNames;
+                return _unbound ? new List<string>(GetTypeMembersUnordered().Select(s => s.Name).Distinct()) : OriginalDefinition.MemberNames;
             }
-        }
-
-        public sealed override bool IsSealed
-        {
-            get { return _originalDefinition.IsSealed; }
-        }
-
-        public sealed override bool IsAbstract
-        {
-            get { return _originalDefinition.IsAbstract; }
         }
 
         public sealed override ImmutableArray<CSharpAttributeData> GetAttributes()
         {
-            return _originalDefinition.GetAttributes();
-        }
-
-        public sealed override bool MightContainExtensionMethods
-        {
-            get { return _originalDefinition.MightContainExtensionMethods; }
+            return OriginalDefinition.GetAttributes();
         }
 
         internal sealed override ImmutableArray<NamedTypeSymbol> GetTypeMembersUnordered()
         {
-            return _originalDefinition.GetTypeMembersUnordered().SelectAsArray((t, self) => t.AsMember(self), this);
+            return OriginalDefinition.GetTypeMembersUnordered().SelectAsArray((t, self) => t.AsMember(self), this);
         }
 
         public sealed override ImmutableArray<NamedTypeSymbol> GetTypeMembers()
         {
-            return _originalDefinition.GetTypeMembers().SelectAsArray((t, self) => t.AsMember(self), this);
+            return OriginalDefinition.GetTypeMembers().SelectAsArray((t, self) => t.AsMember(self), this);
         }
 
         public sealed override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name)
         {
-            return _originalDefinition.GetTypeMembers(name).SelectAsArray((t, self) => t.AsMember(self), this);
+            return OriginalDefinition.GetTypeMembers(name).SelectAsArray((t, self) => t.AsMember(self), this);
         }
 
         public sealed override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name, int arity)
         {
-            return _originalDefinition.GetTypeMembers(name, arity).SelectAsArray((t, self) => t.AsMember(self), this);
+            return OriginalDefinition.GetTypeMembers(name, arity).SelectAsArray((t, self) => t.AsMember(self), this);
         }
 
         public sealed override ImmutableArray<Symbol> GetMembers()
@@ -289,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (_unbound)
             {
                 // Preserve order of members.
-                foreach (var t in _originalDefinition.GetMembers())
+                foreach (var t in OriginalDefinition.GetMembers())
                 {
                     if (t.Kind == SymbolKind.NamedType)
                     {
@@ -299,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                foreach (var t in _originalDefinition.GetMembers())
+                foreach (var t in OriginalDefinition.GetMembers())
                 {
                     builder.Add(t.SymbolAsMember(this));
                 }
@@ -314,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (_unbound)
             {
-                foreach (var t in _originalDefinition.GetMembersUnordered())
+                foreach (var t in OriginalDefinition.GetMembersUnordered())
                 {
                     if (t.Kind == SymbolKind.NamedType)
                     {
@@ -324,7 +240,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                foreach (var t in _originalDefinition.GetMembersUnordered())
+                foreach (var t in OriginalDefinition.GetMembersUnordered())
                 {
                     builder.Add(t.SymbolAsMember(this));
                 }
@@ -349,7 +265,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private ImmutableArray<Symbol> GetMembersWorker(string name)
         {
-            var originalMembers = _originalDefinition.GetMembers(name);
+            var originalMembers = OriginalDefinition.GetMembers(name);
             if (originalMembers.IsDefaultOrEmpty)
             {
                 return originalMembers;
@@ -382,7 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return _unbound
                 ? GetMembers()
-                : _originalDefinition.GetEarlyAttributeDecodingMembers().SelectAsArray(s_symbolAsMemberFunc, this);
+                : OriginalDefinition.GetEarlyAttributeDecodingMembers().SelectAsArray(s_symbolAsMemberFunc, this);
         }
 
         internal override ImmutableArray<Symbol> GetEarlyAttributeDecodingMembers(string name)
@@ -390,7 +306,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (_unbound) return GetMembers(name);
 
             var builder = ArrayBuilder<Symbol>.GetInstance();
-            foreach (var t in _originalDefinition.GetEarlyAttributeDecodingMembers(name))
+            foreach (var t in OriginalDefinition.GetEarlyAttributeDecodingMembers(name))
             {
                 builder.Add(t.SymbolAsMember(this));
             }
@@ -402,7 +318,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return _originalDefinition.EnumUnderlyingType;
+                return OriginalDefinition.EnumUnderlyingType;
             }
         }
 
@@ -423,62 +339,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool IsComImport
         {
-            get { return _originalDefinition.IsComImport; }
+            get { return OriginalDefinition.IsComImport; }
         }
 
         internal sealed override NamedTypeSymbol ComImportCoClass
         {
-            get { return _originalDefinition.ComImportCoClass; }
+            get { return OriginalDefinition.ComImportCoClass; }
         }
 
-        internal sealed override bool ShouldAddWinRTMembers
+        internal override IEnumerable<MethodSymbol> GetMethodsToEmit()
         {
-            get { return _originalDefinition.ShouldAddWinRTMembers; }
+            throw ExceptionUtilities.Unreachable;
         }
 
-        internal sealed override bool IsWindowsRuntimeImport
+        internal override IEnumerable<EventSymbol> GetEventsToEmit()
         {
-            get { return _originalDefinition.IsWindowsRuntimeImport; }
+            throw ExceptionUtilities.Unreachable;
         }
 
-        internal sealed override TypeLayout Layout
+        internal override IEnumerable<PropertySymbol> GetPropertiesToEmit()
         {
-            get { return _originalDefinition.Layout; }
+            throw ExceptionUtilities.Unreachable;
         }
 
-        internal override CharSet MarshallingCharSet
+        internal override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(PEModuleBuilder moduleBuilder)
         {
-            get { return _originalDefinition.MarshallingCharSet; }
-        }
-
-        internal sealed override bool IsSerializable
-        {
-            get { return _originalDefinition.IsSerializable; }
-        }
-
-        internal sealed override bool HasDeclarativeSecurity
-        {
-            get { return _originalDefinition.HasDeclarativeSecurity; }
-        }
-
-        internal sealed override IEnumerable<Microsoft.Cci.SecurityAttribute> GetSecurityInformation()
-        {
-            return _originalDefinition.GetSecurityInformation();
-        }
-
-        internal sealed override ImmutableArray<string> GetAppliedConditionalSymbols()
-        {
-            return _originalDefinition.GetAppliedConditionalSymbols();
-        }
-
-        internal override ObsoleteAttributeData ObsoleteAttributeData
-        {
-            get { return _originalDefinition.ObsoleteAttributeData; }
-        }
-
-        internal override AttributeUsageInfo GetAttributeUsageInfo()
-        {
-            return _originalDefinition.GetAttributeUsageInfo();
+            throw ExceptionUtilities.Unreachable;
         }
     }
 }

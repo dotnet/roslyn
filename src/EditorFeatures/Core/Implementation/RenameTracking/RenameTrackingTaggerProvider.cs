@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
     [TagType(typeof(RenameTrackingTag))]
     [TagType(typeof(IErrorTag))]
     [ContentType(ContentTypeNames.RoslynContentType)]
+    [ContentType(ContentTypeNames.XamlContentType)]
     [TextViewRole(PredefinedTextViewRoles.Editable)]
     internal sealed partial class RenameTrackingTaggerProvider : ITaggerProvider
     {
@@ -46,14 +47,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             IInlineRenameService inlineRenameService,
             IDiagnosticAnalyzerService diagnosticAnalyzerService,
             [ImportMany] IEnumerable<IRefactorNotifyService> refactorNotifyServices,
-            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
+            IAsynchronousOperationListenerProvider listenerProvider)
         {
             _undoHistoryRegistry = undoHistoryRegistry;
             _waitIndicator = waitIndicator;
             _inlineRenameService = inlineRenameService;
             _refactorNotifyServices = refactorNotifyServices;
             _diagnosticAnalyzerService = diagnosticAnalyzerService;
-            _asyncListener = new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.RenameTracking);
+            _asyncListener = listenerProvider.GetListener(FeatureAttribute.RenameTracking);
         }
 
         public ITagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
@@ -77,12 +78,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             if (workspace.IsDocumentOpen(documentId))
             {
                 var document = workspace.CurrentSolution.GetDocument(documentId);
-
-                SourceText text;
-                StateMachine stateMachine;
                 ITextBuffer textBuffer;
                 if (document != null &&
-                    document.TryGetText(out text))
+                    document.TryGetText(out var text))
                 {
                     textBuffer = text.Container.TryGetTextBuffer();
                     if (textBuffer == null)
@@ -91,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                                                             document.Name, text.Container.GetType().FullName, text.ToString()));
                     }
 
-                    if (textBuffer.Properties.TryGetProperty(typeof(StateMachine), out stateMachine))
+                    if (textBuffer.Properties.TryGetProperty(typeof(StateMachine), out StateMachine stateMachine))
                     {
                         if (visible)
                         {
@@ -113,13 +111,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             try
             {
                 // This can run on a background thread.
-                SourceText text;
-                StateMachine stateMachine;
                 if (tree != null &&
-                    tree.TryGetText(out text))
+                    tree.TryGetText(out var text))
                 {
                     var textBuffer = text.Container.TryGetTextBuffer();
-                    if (textBuffer != null && textBuffer.Properties.TryGetProperty(typeof(StateMachine), out stateMachine))
+                    if (textBuffer != null && textBuffer.Properties.TryGetProperty(typeof(StateMachine), out StateMachine stateMachine))
                     {
                         return await stateMachine.GetDiagnostic(tree, diagnosticDescriptor, cancellationToken).ConfigureAwait(false);
                     }
@@ -143,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             // This can run on a background thread.
 
             var message = string.Format(
-                EditorFeaturesResources.RenameTo,
+                EditorFeaturesResources.Rename_0_to_1,
                 diagnostic.Properties[RenameTrackingDiagnosticAnalyzer.RenameFromPropertyKey],
                 diagnostic.Properties[RenameTrackingDiagnosticAnalyzer.RenameToPropertyKey]);
 
@@ -176,30 +172,26 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             {
                 return isRenamableIdentifierTask.WaitAndGetResult(cancellationToken) != TriggerIdentifierKind.NotRenamable;
             }
-            catch (AggregateException e) when (e.InnerException is OperationCanceledException)
+            catch (OperationCanceledException e) when (e.CancellationToken != cancellationToken || cancellationToken == CancellationToken.None)
             {
                 // We passed in a different cancellationToken, so if there's a race and 
-                // isRenamableIdentifierTask was cancelled, we'll get an AggregateException
+                // isRenamableIdentifierTask was cancelled, we'll get a OperationCanceledException
                 return false;
             }
         }
 
         internal static bool CanInvokeRename(Document document)
         {
-            SourceText text;
-            StateMachine stateMachine;
             ITextBuffer textBuffer;
-            TrackingSession unused;
-
-            if (document == null || !document.TryGetText(out text))
+            if (document == null || !document.TryGetText(out var text))
             {
                 return false;
             }
 
             textBuffer = text.Container.TryGetTextBuffer();
             return textBuffer != null &&
-                textBuffer.Properties.TryGetProperty(typeof(StateMachine), out stateMachine) &&
-                stateMachine.CanInvokeRename(out unused);
+                textBuffer.Properties.TryGetProperty(typeof(StateMachine), out StateMachine stateMachine) &&
+                stateMachine.CanInvokeRename(out var unused);
         }
     }
 }

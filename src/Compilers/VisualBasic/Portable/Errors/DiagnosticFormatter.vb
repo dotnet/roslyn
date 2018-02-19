@@ -14,12 +14,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Friend Overrides Function FormatSourceSpan(span As LinePositionSpan, formatter As IFormatProvider) As String
-            Return String.Format("({0}) ", span.Start.Line + 1)
+            Return "(" & (span.Start.Line + 1).ToString() & ") "
         End Function
 
         ''' <summary>
         ''' Gets the current DiagnosticFormatter instance.
         ''' </summary>
-        Public Shared Shadows ReadOnly Property Instance As VisualBasicDiagnosticFormatter = New VisualBasicDiagnosticFormatter()
+        Public Shared Shadows ReadOnly Property Instance As New VisualBasicDiagnosticFormatter()
     End Class
 End Namespace

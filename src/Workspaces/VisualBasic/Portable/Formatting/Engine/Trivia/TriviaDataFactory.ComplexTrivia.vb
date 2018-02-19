@@ -81,6 +81,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
                 Debug.Assert(Me.SecondTokenIsFirstTokenOnLine OrElse beginningOfNewLine)
 
+                If Me.OptionSet.GetOption(FormattingOptions.UseTabs, LanguageNames.VisualBasic) Then
+                    Return True
+                End If
+
                 Return CodeShapeAnalyzer.ShouldFormatMultiLine(context, beginningOfNewLine, list)
             End Function
 

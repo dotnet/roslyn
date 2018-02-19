@@ -31,8 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 if (syntaxToken.Kind() == SyntaxKind.IdentifierToken)
                 {
                     var identifier = syntaxToken.ValueText;
-                    List<SyntaxToken> list;
-                    if (!_map.TryGetValue(identifier, out list))
+                    if (!_map.TryGetValue(identifier, out var list))
                     {
                         list = new List<SyntaxToken>();
                         _map.Add(identifier, list);

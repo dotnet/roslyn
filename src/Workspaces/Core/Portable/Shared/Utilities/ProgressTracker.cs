@@ -2,14 +2,13 @@
 
 using System;
 using System.Threading;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities
 {
     /// <summary>
     /// Utility class that can be used to track the progress of an operation in a threadsafe manner.
     /// </summary>
-    internal class ProgressTracker
+    internal class ProgressTracker : IProgressTracker
     {
         private int _completedItems;
         private int _totalItems;
@@ -26,21 +25,9 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             _updateActionOpt = updateActionOpt;
         }
 
-        public int CompletedItems
-        {
-            get
-            {
-                return _completedItems;
-            }
-        }
+        public int CompletedItems => _completedItems;
 
-        public int TotalItems
-        {
-            get
-            {
-                return _totalItems;
-            }
-        }
+        public int TotalItems => _totalItems;
 
         public void AddItems(int count)
         {
@@ -51,6 +38,13 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         public void ItemCompleted()
         {
             Interlocked.Increment(ref _completedItems);
+            Update();
+        }
+
+        public void Clear()
+        {
+            _totalItems = 0;
+            _completedItems = 0;
             Update();
         }
 

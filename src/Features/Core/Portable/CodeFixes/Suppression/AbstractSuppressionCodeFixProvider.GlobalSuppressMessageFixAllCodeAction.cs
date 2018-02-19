@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
@@ -160,8 +161,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     return;
                 }
 
-                List<Diagnostic> diagnosticsForSymbol;
-                if (!diagnosticsMapBuilder.TryGetValue(targetSymbol, out diagnosticsForSymbol))
+                if (!diagnosticsMapBuilder.TryGetValue(targetSymbol, out var diagnosticsForSymbol))
                 {
                     diagnosticsForSymbol = new List<Diagnostic>();
                     diagnosticsMapBuilder.Add(targetSymbol, diagnosticsForSymbol);
@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             private static ImmutableArray<Diagnostic> GetUniqueDiagnostics(List<Diagnostic> diagnostics)
             {
                 var uniqueIds = new HashSet<string>();
-                var uniqueDiagnostics = ImmutableArray.CreateBuilder<Diagnostic>();
+                var uniqueDiagnostics = ArrayBuilder<Diagnostic>.GetInstance();
                 foreach (var diagnostic in diagnostics)
                 {
                     if (uniqueIds.Add(diagnostic.Id))
@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     }
                 }
 
-                return uniqueDiagnostics.ToImmutable();
+                return uniqueDiagnostics.ToImmutableAndFree();
             }
         }
     }

@@ -72,12 +72,14 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 }
             }
 
-            // Second, load all of the assemblies upfront.
+            // Register analyzers and their dependencies upfront, 
+            // so that assembly references can be resolved:
             foreach (var resolvedPath in resolvedPaths)
             {
                 loader.AddDependencyLocation(resolvedPath);
             }
 
+            // Load all analyzer assemblies:
             var loadedAssemblies = new List<Assembly>();
             foreach (var resolvedPath in resolvedPaths)
             {

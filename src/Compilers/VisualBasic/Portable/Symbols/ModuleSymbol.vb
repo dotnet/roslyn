@@ -161,6 +161,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Friend MustOverride Function GetReferencedAssemblySymbols() As ImmutableArray(Of AssemblySymbol) ' TODO: Remove this method and make ReferencedAssemblySymbols property abstract instead.
 
+        Friend Function GetReferencedAssemblySymbol(referencedAssemblyIndex As Integer) As AssemblySymbol
+            Dim referencedAssemblies = GetReferencedAssemblySymbols()
+            If referencedAssemblyIndex < referencedAssemblies.Length Then
+                Return referencedAssemblies(referencedAssemblyIndex)
+            End If
+
+            ' This module must be a corlib where the original metadata contains assembly
+            ' references (see https://github.com/dotnet/roslyn/issues/13275).
+            Dim assembly = ContainingAssembly
+            If assembly IsNot assembly.CorLibrary Then
+                Throw New ArgumentOutOfRangeException(NameOf(referencedAssemblyIndex))
+            End If
+
+            Return Nothing
+        End Function
+
         ''' <summary>
         ''' A helper method for ReferenceManager to set assembly identities for assemblies
         ''' referenced by this module and corresponding AssemblySymbols.

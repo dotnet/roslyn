@@ -16,24 +16,30 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return symbol.MethodKind.IsPropertyAccessor();
         }
 
-        protected override async Task<IEnumerable<ISymbol>> DetermineCascadedSymbolsAsync(IMethodSymbol symbol, Solution solution, IImmutableSet<Project> projects, CancellationToken cancellationToken)
+        protected override async Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
+            SymbolAndProjectId<IMethodSymbol> symbolAndProjectId,
+            Solution solution,
+            IImmutableSet<Project> projects,
+            CancellationToken cancellationToken)
         {
-            var result = await base.DetermineCascadedSymbolsAsync(symbol, solution, projects, cancellationToken).ConfigureAwait(false);
+            var result = await base.DetermineCascadedSymbolsAsync(
+                symbolAndProjectId, solution, projects, cancellationToken).ConfigureAwait(false);
 
+            var symbol = symbolAndProjectId.Symbol;
             if (symbol.AssociatedSymbol != null)
             {
-                result = result.Concat(symbol.AssociatedSymbol);
+                result = result.Add(symbolAndProjectId.WithSymbol(symbol.AssociatedSymbol));
             }
 
             return result;
         }
 
-        protected override Task<IEnumerable<Document>> DetermineDocumentsToSearchAsync(IMethodSymbol symbol, Project project, IImmutableSet<Document> documents, CancellationToken cancellationToken)
+        protected override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(IMethodSymbol symbol, Project project, IImmutableSet<Document> documents, CancellationToken cancellationToken)
         {
             return FindDocumentsAsync(project, documents, cancellationToken, symbol.Name);
         }
 
-        protected override Task<IEnumerable<ReferenceLocation>> FindReferencesInDocumentAsync(IMethodSymbol symbol, Document document, CancellationToken cancellationToken)
+        protected override Task<ImmutableArray<ReferenceLocation>> FindReferencesInDocumentAsync(IMethodSymbol symbol, Document document, CancellationToken cancellationToken)
         {
             return FindReferencesInDocumentUsingSymbolNameAsync(symbol, document, cancellationToken);
         }

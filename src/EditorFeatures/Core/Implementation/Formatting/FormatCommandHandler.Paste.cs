@@ -3,6 +3,7 @@
 using System;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Commands;
+using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Formatting.Rules;
@@ -23,8 +24,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
         public void ExecuteCommand(PasteCommandArgs args, Action nextHandler)
         {
             _waitIndicator.Wait(
-                title: EditorFeaturesResources.FormatPaste,
-                message: EditorFeaturesResources.FormattingPastedText,
+                title: EditorFeaturesResources.Format_Paste,
+                message: EditorFeaturesResources.Formatting_pasted_text,
                 allowCancel: true,
                 action: c => ExecuteCommandWorker(args, nextHandler, c.CancellationToken));
         }
@@ -40,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                 return;
             }
 
-            if (!args.SubjectBuffer.GetOption(FeatureOnOffOptions.FormatOnPaste) ||
+            if (!args.SubjectBuffer.GetFeatureOnOffOption(FeatureOnOffOptions.FormatOnPaste) ||
                 !caretPosition.HasValue)
             {
                 return;

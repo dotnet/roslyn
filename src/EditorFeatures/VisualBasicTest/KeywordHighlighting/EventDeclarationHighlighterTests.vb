@@ -1,6 +1,5 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.KeywordHighlighting
@@ -15,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.KeywordHighlightin
         Public Async Function TestEventSample1_1() As Task
             Await TestAsync(<Text>
 Class C
-{|Cursor:[|Public Event|]|} Foo() [|Implements|] I1.Foo
+{|Cursor:[|Public Event|]|} Goo() [|Implements|] I1.Goo
 End Class</Text>)
         End Function
 
@@ -23,7 +22,7 @@ End Class</Text>)
         Public Async Function TestEventSample1_2() As Task
             Await TestAsync(<Text>
 Class C
-[|Public Event|] Foo() {|Cursor:[|Implements|]|} I1.Foo
+[|Public Event|] Goo() {|Cursor:[|Implements|]|} I1.Goo
 End Class</Text>)
         End Function
     End Class

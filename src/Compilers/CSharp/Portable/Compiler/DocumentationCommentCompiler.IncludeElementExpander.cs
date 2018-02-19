@@ -12,6 +12,7 @@ using System.Xml;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -159,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // attached to a new parent, it is copied and its annotations are dropped.
                 Debug.Assert(builder == null || builder.All(node => node.Parent == null));
 
-                return builder == null ? SpecializedCollections.EmptyArray<XNode>() : builder.ToArrayAndFree();
+                return builder == null ? Array.Empty<XNode>() : builder.ToArrayAndFree();
             }
 
             // CONSIDER: could add a depth count and just not rewrite below that depth.
@@ -364,7 +365,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             else
                             {
                                 commentMessage = null;
-                                return SpecializedCollections.EmptyArray<XNode>();
+                                return Array.Empty<XNode>();
                             }
                         }
 
@@ -406,7 +407,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         else
                         {
                             commentMessage = null;
-                            return SpecializedCollections.EmptyArray<XNode>();
+                            return Array.Empty<XNode>();
                         }
                     }
                 }
@@ -423,7 +424,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            private string MakeCommentMessage(Location location, MessageID messageId)
+            private static string MakeCommentMessage(Location location, MessageID messageId)
             {
                 if (location.IsInSource)
                 {

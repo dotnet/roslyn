@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="additionalFiles">A set of additional non-code text files that can be used by analyzers.</param>
         public AnalyzerOptions(ImmutableArray<AdditionalText> additionalFiles)
         {
-            this.AdditionalFiles = additionalFiles.IsDefault ? ImmutableArray<AdditionalText>.Empty : additionalFiles;
+            this.AdditionalFiles = additionalFiles.NullToEmpty();
         }
 
         /// <summary>

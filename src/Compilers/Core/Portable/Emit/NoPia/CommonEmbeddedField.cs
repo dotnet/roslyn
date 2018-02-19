@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.CodeGen;
 
 namespace Microsoft.CodeAnalysis.Emit.NoPia
 {
@@ -45,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 }
             }
 
-            protected abstract Cci.IMetadataConstant GetCompileTimeValue(EmitContext context);
+            protected abstract MetadataConstant GetCompileTimeValue(EmitContext context);
             protected abstract bool IsCompileTimeConstant { get; }
             protected abstract bool IsNotSerialized { get; }
             protected abstract bool IsReadOnly { get; }
@@ -59,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             protected abstract Cci.TypeMemberVisibility Visibility { get; }
             protected abstract string Name { get; }
 
-            Cci.IMetadataConstant Cci.IFieldDefinition.GetCompileTimeValue(EmitContext context)
+            MetadataConstant Cci.IFieldDefinition.GetCompileTimeValue(EmitContext context)
             {
                 return GetCompileTimeValue(context);
             }
@@ -144,12 +145,11 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 }
             }
 
-            uint Cci.IFieldDefinition.Offset
+            int Cci.IFieldDefinition.Offset
             {
                 get
                 {
-                    var offset = TypeLayoutOffset;
-                    return (uint)(offset ?? 0);
+                    return TypeLayoutOffset ?? 0;
                 }
             }
 

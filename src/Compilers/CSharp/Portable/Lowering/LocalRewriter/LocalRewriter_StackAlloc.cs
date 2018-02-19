@@ -2,18 +2,63 @@
 
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed partial class LocalRewriter
     {
-        public override BoundNode VisitStackAllocArrayCreation(BoundStackAllocArrayCreation node)
+        public override BoundNode VisitConvertedStackAllocExpression(BoundConvertedStackAllocExpression stackAllocNode)
         {
-            BoundExpression rewrittenCount = VisitExpression(node.Count);
+            return VisitStackAllocArrayCreation(stackAllocNode);
+        }
 
+        public override BoundNode VisitStackAllocArrayCreation(BoundStackAllocArrayCreation stackAllocNode)
+        {
+            var rewrittenCount = VisitExpression(stackAllocNode.Count);
+            var type = stackAllocNode.Type;
+
+            if (rewrittenCount.ConstantValue?.Int32Value == 0)
+            {
+                // either default(span) or nullptr
+                return _factory.Default(type);
+            }
+
+            var elementType = stackAllocNode.ElementType;
+
+            if (type.IsPointerType())
+            {
+                var stackSize = RewriteStackAllocCountToSize(rewrittenCount, elementType);
+                return new BoundConvertedStackAllocExpression(stackAllocNode.Syntax, elementType, stackSize, stackAllocNode.Type);
+            }
+            else if (type.OriginalDefinition == _compilation.GetWellKnownType(WellKnownType.System_Span_T))
+            {
+                var spanType = (NamedTypeSymbol)stackAllocNode.Type;
+                var sideEffects = ArrayBuilder<BoundExpression>.GetInstance();
+                var locals = ArrayBuilder<LocalSymbol>.GetInstance();
+                var countTemp = CaptureExpressionInTempIfNeeded(rewrittenCount, sideEffects, locals);
+                var stackSize = RewriteStackAllocCountToSize(countTemp, elementType);
+                stackAllocNode = new BoundConvertedStackAllocExpression(stackAllocNode.Syntax, elementType, stackSize, spanType);
+
+                var spanCtor = (MethodSymbol)_compilation.GetWellKnownTypeMember(WellKnownMember.System_Span_T__ctor).SymbolAsMember(spanType);
+                var ctorCall = _factory.New(spanCtor, stackAllocNode, countTemp);
+
+                return new BoundSequence(
+                    syntax: stackAllocNode.Syntax,
+                    locals: locals.ToImmutableAndFree(),
+                    sideEffects: sideEffects.ToImmutableAndFree(),
+                    value: ctorCall,
+                    type: spanType);
+            }
+            else
+            {
+                throw ExceptionUtilities.UnexpectedValue(type);
+            }
+        }
+
+        private BoundExpression RewriteStackAllocCountToSize(BoundExpression countExpression, TypeSymbol elementType)
+        {
             // From ILGENREC::genExpr:
             // EDMAURER always perform a checked multiply regardless of the context.
             // localloc takes an unsigned native int. When a user specifies a negative
@@ -31,14 +76,42 @@ namespace Microsoft.CodeAnalysis.CSharp
             // from int32 to native uint is emitted as conv_i.  The behavior we want to emulate is to re-interpret
             // (i.e. unchecked) an int32 as unsigned (i.e. uint32) and then convert it to a native uint *without* sign
             // extension.
-            BoundExpression convertedCount = _factory.Convert(uintType, rewrittenCount, Conversion.ExplicitNumeric);
+
+            BoundExpression sizeOfExpression = _factory.Sizeof(elementType);
+
+            var sizeConst = sizeOfExpression.ConstantValue;
+            if (sizeConst != null)
+            {
+                int size = sizeConst.Int32Value;
+                Debug.Assert(size > 0);
+
+                // common case: stackalloc int[123]
+                var countConst = countExpression.ConstantValue;
+                if (countConst != null)
+                {
+                    var count = countConst.Int32Value;
+                    long folded = unchecked((uint)count * size);
+
+                    if (folded < uint.MaxValue)
+                    {
+                        return _factory.Convert(uintPtrType, _factory.Literal((uint)folded), Conversion.IntegerToPointer);
+                    }
+                }
+            }
+            
+            BoundExpression convertedCount = _factory.Convert(uintType, countExpression, Conversion.ExplicitNumeric);
             convertedCount = _factory.Convert(uintPtrType, convertedCount, Conversion.IntegerToPointer);
 
-            BoundExpression sizeOfExpression = _factory.Sizeof(((PointerTypeSymbol)node.Type).PointedAtType);
+            // another common case: stackalloc byte[x]
+            if (sizeConst?.Int32Value == 1)
+            {
+                return convertedCount;
+            }
+
             BinaryOperatorKind multiplicationKind = BinaryOperatorKind.Checked | BinaryOperatorKind.UIntMultiplication; //"UInt" just to make it unsigned
             BoundExpression product = _factory.Binary(multiplicationKind, uintPtrType, convertedCount, sizeOfExpression);
 
-            return node.Update(product, node.Type);
+            return product;
         }
     }
 }

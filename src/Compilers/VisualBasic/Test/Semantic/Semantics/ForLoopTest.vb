@@ -378,7 +378,7 @@ Public Class MyClass1
     End Property
     Public Shared Sub Main()
     End Sub
-    Public Sub Foo()
+    Public Sub Goo()
         For i As Integer = P1(30 + i) To 30
         Next
     End Sub

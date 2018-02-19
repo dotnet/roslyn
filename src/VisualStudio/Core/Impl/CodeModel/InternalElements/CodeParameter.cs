@@ -1,10 +1,11 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Collections;
+using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Roslyn.Utilities;
@@ -13,7 +14,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
 {
     [ComVisible(true)]
     [ComDefaultInterface(typeof(EnvDTE80.CodeParameter2))]
-    public sealed class CodeParameter : AbstractCodeElement, EnvDTE.CodeParameter, EnvDTE80.CodeParameter2
+    public sealed class CodeParameter : AbstractCodeElement, EnvDTE.CodeParameter, EnvDTE80.CodeParameter2, IParameterKind
     {
         internal static EnvDTE.CodeParameter Create(
             CodeModelState state,
@@ -44,7 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
 
         private void UpdateNodeAndReacquireParentNodeKey<T>(Action<SyntaxNode, T> parameterUpdater, T value)
         {
-            Action<SyntaxNode, T> updater = (n, v) =>
+            void updater(SyntaxNode n, T v)
             {
                 var parentNode = _parentHandle.Value.LookupNode();
                 var parentNodePath = new SyntaxPath(parentNode);
@@ -52,7 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
                 parameterUpdater(n, v);
 
                 _parentHandle.Value.ReacquireNodeKey(parentNodePath, CancellationToken.None);
-            };
+            }
 
             UpdateNode(updater, value);
         }
@@ -88,8 +89,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
                 return false;
             }
 
-            SyntaxNode parameterNode;
-            if (!CodeModelService.TryGetParameterNode(parentNode, _name, out parameterNode))
+            if (!CodeModelService.TryGetParameterNode(parentNode, _name, out var parameterNode))
             {
                 return false;
             }
@@ -186,6 +186,84 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
             {
                 return FileCodeModel.AddAttribute(LookupNode(), name, value, position);
             });
+        }
+
+        void IParameterKind.SetParameterPassingMode(PARAMETER_PASSING_MODE passingMode)
+        {
+            this.ParameterKind = this.CodeModelService.UpdateParameterKind(ParameterKind, passingMode);
+        }
+
+        void IParameterKind.SetParameterArrayDimensions(int dimensions)
+        {
+            var type = this.ParameterSymbol.Type;
+            var compilation = this.FileCodeModel.GetCompilation();
+
+            var elementType = type is IArrayTypeSymbol
+                ? ((IArrayTypeSymbol)type).ElementType
+                : type;
+
+            // The original C# implementation had a weird behavior where it wold allow setting array dimensions
+            // to 0 to create an array with a single rank.
+            var rank = Math.Max(dimensions, 1);
+            var newType = compilation.CreateArrayTypeSymbol(elementType, rank);
+
+            this.Type = CodeTypeRef.Create(this.State, this, GetProjectId(), newType);
+        }
+
+        int IParameterKind.GetParameterArrayCount()
+        {
+            var arrayType = this.ParameterSymbol.Type as IArrayTypeSymbol;
+            var count = 0;
+
+            while (arrayType != null)
+            {
+                count++;
+                arrayType = arrayType.ElementType as IArrayTypeSymbol;
+            }
+
+            return count;
+        }
+
+        int IParameterKind.GetParameterArrayDimensions(int index)
+        {
+            if (index < 0)
+            {
+                throw Exceptions.ThrowEInvalidArg();
+            }
+
+            var arrayType = this.ParameterSymbol.Type as IArrayTypeSymbol;
+            var count = 0;
+
+            while (count < index && arrayType != null)
+            {
+                count++;
+                arrayType = arrayType.ElementType as IArrayTypeSymbol;
+            }
+
+            if (arrayType == null)
+            {
+                throw Exceptions.ThrowEInvalidArg();
+            }
+
+            return arrayType.Rank;
+        }
+
+        PARAMETER_PASSING_MODE IParameterKind.GetParameterPassingMode()
+        {
+            var parameterKind = this.ParameterKind;
+
+            if ((parameterKind & EnvDTE80.vsCMParameterKind.vsCMParameterKindRef) != 0)
+            {
+                return PARAMETER_PASSING_MODE.cmParameterTypeInOut;
+            }
+            else if ((parameterKind & EnvDTE80.vsCMParameterKind.vsCMParameterKindOut) != 0)
+            {
+                return PARAMETER_PASSING_MODE.cmParameterTypeOut;
+            }
+            else
+            {
+                return PARAMETER_PASSING_MODE.cmParameterTypeIn;
+            }
         }
     }
 }

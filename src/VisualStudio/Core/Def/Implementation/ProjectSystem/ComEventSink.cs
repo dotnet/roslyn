@@ -17,18 +17,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var connectionPointContainer = obj as IConnectionPointContainer;
             if (connectionPointContainer == null)
             {
-                throw new ArgumentException("Not an IConnectionPointContainer", "obj");
+                throw new ArgumentException("Not an IConnectionPointContainer", nameof(obj));
             }
 
-            IConnectionPoint connectionPoint;
-            connectionPointContainer.FindConnectionPoint(typeof(T).GUID, out connectionPoint);
+            connectionPointContainer.FindConnectionPoint(typeof(T).GUID, out var connectionPoint);
             if (connectionPoint == null)
             {
                 throw new InvalidOperationException("Could not find connection point for " + typeof(T).FullName);
             }
 
-            uint cookie;
-            connectionPoint.Advise(sink, out cookie);
+            connectionPoint.Advise(sink, out var cookie);
 
             return new ComEventSinkImpl(connectionPoint, cookie);
         }

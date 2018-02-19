@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities.Desktop;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -58,20 +59,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata
                         result.Append(" ");
                         result.Append(member);
 
-                        if (namedType.BaseType != null)
+                        if (namedType.BaseType() != null)
                         {
                             result.AppendLine();
                             result.Append(memberIndent);
                             result.Append("       extends ");
-                            result.Append(namedType.BaseType);
+                            result.Append(namedType.BaseType());
                         }
 
-                        if (namedType.Interfaces.Length > 0)
+                        if (namedType.Interfaces().Length > 0)
                         {
                             result.AppendLine();
                             result.Append(memberIndent);
                             result.Append("       implements ");
-                            result.Append(string.Join(", ", namedType.Interfaces));
+                            result.Append(string.Join(", ", namedType.Interfaces()));
                         }
 
                         result.AppendLine();

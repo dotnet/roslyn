@@ -1,10 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Utilities
 {
@@ -76,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                     return compare;
                 }
 
-                // Foo goes before Foo<T>
+                // Goo goes before Goo<T>
                 return -1;
             }
             else if (x is GenericNameSyntax && y is IdentifierNameSyntax)
@@ -87,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                     return compare;
                 }
 
-                // Foo<T> goes after Foo
+                // Goo<T> goes after Goo
                 return 1;
             }
 

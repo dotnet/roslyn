@@ -163,7 +163,7 @@ public class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        public void TestVisualBasicReferenceToZeroWidthNodeInStructuredTrivia()
+        public async System.Threading.Tasks.Task TestVisualBasicReferenceToZeroWidthNodeInStructuredTriviaAsync()
         {
             var solution = CreateSingleFileVisualBasicSolution(@"
 #If (True Or ) Then
@@ -172,7 +172,7 @@ End Class
 #End If
 ");
 
-            var tree = solution.Projects.First().Documents.First().GetSyntaxTreeAsync().Result;
+            var tree = await solution.Projects.First().Documents.First().GetSyntaxTreeAsync();
 
             // find binary node that is part of #if directive
             var binary = tree.GetRoot().DescendantNodes(descendIntoTrivia: true).OfType<VB.Syntax.BinaryExpressionSyntax>().First();

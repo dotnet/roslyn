@@ -25,6 +25,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.InlineRename
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     [ExportWorkspaceServiceFactory(typeof(IInlineRenameUndoManager), ServiceLayer.Host), Shared]
     internal sealed class VisualStudioInlineRenameUndoManagerServiceFactory : IWorkspaceServiceFactory
     {
@@ -109,12 +111,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InlineRename
 
             public void CreateStartRenameUndoTransaction(Workspace workspace, ITextBuffer subjectBuffer, InlineRenameSession inlineRenameSession)
             {
-                var startRenameUndoPrimitive = new RenameUndoPrimitive(EditorFeaturesResources.StartRename);
+                var startRenameUndoPrimitive = new RenameUndoPrimitive(EditorFeaturesResources.Start_Rename);
                 var textUndoHistoryService = workspace.Services.GetService<ITextUndoHistoryWorkspaceService>();
-                ITextUndoHistory undoHistory;
-                Contract.ThrowIfFalse(textUndoHistoryService.TryGetTextUndoHistory(workspace, subjectBuffer, out undoHistory));
-                ITextBuffer primaryBuffer;
-                Contract.ThrowIfFalse(undoHistory.Properties.TryGetProperty(typeof(ITextBuffer), out primaryBuffer));
+                Contract.ThrowIfFalse(textUndoHistoryService.TryGetTextUndoHistory(workspace, subjectBuffer, out var undoHistory));
+                Contract.ThrowIfFalse(undoHistory.Properties.TryGetProperty(typeof(ITextBuffer), out ITextBuffer primaryBuffer));
                 var undoManager = GetUndoManager(primaryBuffer);
 
                 UndoManagers[subjectBuffer] = new BufferUndoState() { UndoManager = undoManager, TextUndoHistory = undoHistory, StartRenameSessionUndoPrimitive = startRenameUndoPrimitive, UndoHistoryBuffer = primaryBuffer };
@@ -130,7 +130,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InlineRename
 
                 var adapter = _editorAdaptersFactoryService.GetBufferAdapter(this.UndoManagers[subjectBuffer].UndoHistoryBuffer);
                 var compoundAction = adapter as IVsCompoundAction;
-                compoundAction.OpenCompoundAction(EditorFeaturesResources.StartRename);
+                compoundAction.OpenCompoundAction(EditorFeaturesResources.Start_Rename);
                 applyEdit();
                 compoundAction.CloseCompoundAction();
 
@@ -147,8 +147,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InlineRename
                 // There are crashes from Windows Error Reporting that indicate the BufferUndoState
                 // may be being unavailable here when inline rename has been dismissed due to an
                 // external workspace change. See bug #1167415.
-                BufferUndoState bufferUndoState;
-                if (!this.UndoManagers.TryGetValue(subjectBuffer, out bufferUndoState))
+                if (!this.UndoManagers.TryGetValue(subjectBuffer, out var bufferUndoState))
                 {
                     return;
                 }
@@ -200,8 +199,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InlineRename
                 var adapter = _editorAdaptersFactoryService.GetBufferAdapter(subjectBuffer);
                 if (adapter != null)
                 {
-                    IOleUndoManager manager = null;
-                    if (ErrorHandler.Succeeded(adapter.GetUndoManager(out manager)))
+                    if (ErrorHandler.Succeeded(adapter.GetUndoManager(out var manager)))
                     {
                         return manager;
                     }
@@ -212,10 +210,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InlineRename
 
             private IEnumerable<IOleUndoUnit> GetUndoUnits(IOleUndoManager undoManager)
             {
-                IEnumOleUndoUnits undoUnitEnumerator;
 
                 // Unfortunately, EnumUndoable returns the units in oldest-first order.
-                undoManager.EnumUndoable(out undoUnitEnumerator);
+                undoManager.EnumUndoable(out var undoUnitEnumerator);
                 if (undoUnitEnumerator == null)
                 {
                     yield break;
@@ -225,8 +222,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InlineRename
                 while (true)
                 {
                     IOleUndoUnit[] fetchedUndoUnits = new IOleUndoUnit[BatchSize];
-                    uint fetchedCount = 0;
-                    undoUnitEnumerator.Next(BatchSize, fetchedUndoUnits, out fetchedCount);
+                    undoUnitEnumerator.Next(BatchSize, fetchedUndoUnits, out var fetchedCount);
                     for (int i = 0; i < fetchedCount; i++)
                     {
                         yield return fetchedUndoUnits[i];

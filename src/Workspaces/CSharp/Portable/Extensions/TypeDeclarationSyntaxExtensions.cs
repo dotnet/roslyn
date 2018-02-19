@@ -26,9 +26,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     return ((InterfaceDeclarationSyntax)node).AddMembers(members);
                 case SyntaxKind.StructDeclaration:
                     return ((StructDeclarationSyntax)node).AddMembers(members);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(node.Kind());
             }
-
-            throw ExceptionUtilities.Unreachable;
         }
 
         public static TypeDeclarationSyntax WithMembers(
@@ -42,9 +42,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     return ((InterfaceDeclarationSyntax)node).WithMembers(members);
                 case SyntaxKind.StructDeclaration:
                     return ((StructDeclarationSyntax)node).WithMembers(members);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(node.Kind());
             }
-
-            throw ExceptionUtilities.Unreachable;
         }
 
         public static TypeDeclarationSyntax WithAttributeLists(
@@ -58,9 +58,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     return ((InterfaceDeclarationSyntax)node).WithAttributeLists(attributes);
                 case SyntaxKind.StructDeclaration:
                     return ((StructDeclarationSyntax)node).WithAttributeLists(attributes);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(node.Kind());
             }
-
-            throw ExceptionUtilities.Unreachable;
         }
 
         public static TypeDeclarationSyntax WithIdentifier(
@@ -74,9 +74,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     return ((InterfaceDeclarationSyntax)node).WithIdentifier(identifier);
                 case SyntaxKind.StructDeclaration:
                     return ((StructDeclarationSyntax)node).WithIdentifier(identifier);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(node.Kind());
             }
-
-            throw ExceptionUtilities.Unreachable;
         }
 
         public static TypeDeclarationSyntax WithModifiers(
@@ -90,9 +90,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     return ((InterfaceDeclarationSyntax)node).WithModifiers(modifiers);
                 case SyntaxKind.StructDeclaration:
                     return ((StructDeclarationSyntax)node).WithModifiers(modifiers);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(node.Kind());
             }
-
-            throw ExceptionUtilities.Unreachable;
         }
 
         public static TypeDeclarationSyntax WithTypeParameterList(
@@ -106,9 +106,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     return ((InterfaceDeclarationSyntax)node).WithTypeParameterList(list);
                 case SyntaxKind.StructDeclaration:
                     return ((StructDeclarationSyntax)node).WithTypeParameterList(list);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(node.Kind());
             }
-
-            throw ExceptionUtilities.Unreachable;
         }
 
         public static TypeDeclarationSyntax WithBaseList(
@@ -122,9 +122,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     return ((InterfaceDeclarationSyntax)node).WithBaseList(list);
                 case SyntaxKind.StructDeclaration:
                     return ((StructDeclarationSyntax)node).WithBaseList(list);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(node.Kind());
             }
-
-            throw ExceptionUtilities.Unreachable;
         }
 
         public static TypeDeclarationSyntax WithConstraintClauses(
@@ -138,9 +138,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     return ((InterfaceDeclarationSyntax)node).WithConstraintClauses(constraintClauses);
                 case SyntaxKind.StructDeclaration:
                     return ((StructDeclarationSyntax)node).WithConstraintClauses(constraintClauses);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(node.Kind());
             }
-
-            throw ExceptionUtilities.Unreachable;
         }
 
         public static TypeDeclarationSyntax WithOpenBraceToken(
@@ -154,9 +154,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     return ((InterfaceDeclarationSyntax)node).WithOpenBraceToken(openBrace);
                 case SyntaxKind.StructDeclaration:
                     return ((StructDeclarationSyntax)node).WithOpenBraceToken(openBrace);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(node.Kind());
             }
-
-            throw ExceptionUtilities.Unreachable;
         }
 
         public static TypeDeclarationSyntax WithCloseBraceToken(
@@ -170,9 +170,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     return ((InterfaceDeclarationSyntax)node).WithCloseBraceToken(closeBrace);
                 case SyntaxKind.StructDeclaration:
                     return ((StructDeclarationSyntax)node).WithCloseBraceToken(closeBrace);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(node.Kind());
             }
-
-            throw ExceptionUtilities.Unreachable;
         }
 
         public static IList<bool> GetInsertionIndices(this TypeDeclarationSyntax destination, CancellationToken cancellationToken)
@@ -239,8 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 {
                     foreach (var syntaxRef in typeSymbol.DeclaringSyntaxReferences)
                     {
-                        var typeDecl = syntaxRef.GetSyntax(cancellationToken) as TypeDeclarationSyntax;
-                        if (typeDecl != null && typeDecl.BaseList != null)
+                        if (syntaxRef.GetSyntax(cancellationToken) is TypeDeclarationSyntax typeDecl && typeDecl.BaseList != null)
                         {
                             baseListTypes = baseListTypes.Concat(typeDecl.BaseList.Types);
                         }
@@ -304,16 +303,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static TypeDeclarationSyntax EnsureOpenAndCloseBraceTokens(
             this TypeDeclarationSyntax typeDeclaration)
         {
-            SyntaxToken openBrace, closeBrace;
-            EnsureAndGetBraceTokens(typeDeclaration, typeDeclaration.Members.Count > 0, out openBrace, out closeBrace);
+            EnsureAndGetBraceTokens(typeDeclaration, typeDeclaration.Members.Count > 0, out var openBrace, out var closeBrace);
             return typeDeclaration.WithOpenBraceToken(openBrace).WithCloseBraceToken(closeBrace);
         }
 
         public static EnumDeclarationSyntax EnsureOpenAndCloseBraceTokens(
             this EnumDeclarationSyntax typeDeclaration)
         {
-            SyntaxToken openBrace, closeBrace;
-            EnsureAndGetBraceTokens(typeDeclaration, typeDeclaration.Members.Count > 0, out openBrace, out closeBrace);
+            EnsureAndGetBraceTokens(typeDeclaration, typeDeclaration.Members.Count > 0, out var openBrace, out var closeBrace);
             return typeDeclaration.WithOpenBraceToken(openBrace).WithCloseBraceToken(closeBrace);
         }
     }

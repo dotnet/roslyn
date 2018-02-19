@@ -117,10 +117,10 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="1001" xml:space="preserve">
+  <data name="Visual_CSharp_Script" xml:space="preserve">
     <value>Visual C# Script</value>
   </data>
-  <data name="1002" xml:space="preserve">
+  <data name="An_empty_CSharp_script_file" xml:space="preserve">
     <value>An empty C# script file.</value>
   </data>
 </root>

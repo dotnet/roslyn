@@ -202,8 +202,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interop
                 _deadKeySet.Remove(key);
             }
 
-            WeakComHandle<TValue, TValue> handle;
-            if (_table.TryGetValue(key, out handle))
+            if (_table.TryGetValue(key, out var handle))
             {
                 _table.Remove(key);
                 return handle.ComAggregateObject;
@@ -222,9 +221,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interop
         public bool TryGetValue(TKey key, out TValue value)
         {
             this.AssertIsForeground();
-
-            WeakComHandle<TValue, TValue> handle;
-            if (_table.TryGetValue(key, out handle))
+            if (_table.TryGetValue(key, out var handle))
             {
                 value = handle.ComAggregateObject;
                 return value != null;

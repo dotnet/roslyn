@@ -4,6 +4,7 @@ Imports System.Collections.Immutable
 Imports System.Diagnostics
 Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -426,10 +427,57 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         <Extension()>
-        Public Function CheckConstraints(
+        Public Sub CheckConstraints(
+                                    tuple As TupleTypeSymbol,
+                                    syntaxNode As SyntaxNode,
+                                    elementLocations As ImmutableArray(Of Location),
+                                    diagnostics As DiagnosticBag)
+            Dim type As NamedTypeSymbol = tuple.TupleUnderlyingType
+            If Not RequiresChecking(type) Then
+                Return
+            End If
+
+            If syntaxNode.HasErrors Then
+                Return
+            End If
+
+            Dim diagnosticsBuilder = ArrayBuilder(Of TypeParameterDiagnosticInfo).GetInstance()
+            Dim underlyingTupleTypeChain = ArrayBuilder(Of NamedTypeSymbol).GetInstance
+            TupleTypeSymbol.GetUnderlyingTypeChain(type, underlyingTupleTypeChain)
+
+            Dim offset As Integer = 0
+            For Each underlyingTuple In underlyingTupleTypeChain
+                Dim useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo) = Nothing
+                CheckTypeConstraints(underlyingTuple, diagnosticsBuilder, useSiteDiagnosticsBuilder)
+
+                If useSiteDiagnosticsBuilder IsNot Nothing Then
+                    diagnosticsBuilder.AddRange(useSiteDiagnosticsBuilder)
+                End If
+
+                For Each diagnostic In diagnosticsBuilder
+                    Dim ordinal = diagnostic.TypeParameter.Ordinal
+
+                    ' If this is the TRest type parameter, we report it on 
+                    ' the entire type syntax as it does not map to any tuple element.
+                    Dim location = If(ordinal = TupleTypeSymbol.RestIndex, syntaxNode.Location, elementLocations(ordinal + offset))
+                    diagnostics.Add(diagnostic.DiagnosticInfo, location)
+                Next
+
+                diagnosticsBuilder.Clear()
+
+                offset += TupleTypeSymbol.RestIndex
+            Next
+
+            underlyingTupleTypeChain.Free()
+            diagnosticsBuilder.Free()
+        End Sub
+
+        <Extension()>
+        Public Function CheckConstraintsForNonTuple(
                                         type As NamedTypeSymbol,
                                         typeArgumentsSyntax As SeparatedSyntaxList(Of TypeSyntax),
                                         diagnostics As DiagnosticBag) As Boolean
+            Debug.Assert(Not type.IsTupleType)
             Debug.Assert(typeArgumentsSyntax.Count = type.Arity)
             If Not RequiresChecking(type) Then
                 Return True
@@ -458,6 +506,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                         type As NamedTypeSymbol,
                                         diagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo),
                                         <[In], Out> ByRef useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo)) As Boolean
+            ' We do not report element locations in method parameters and return types
+            ' so we will simply unwrap the type if it was a tuple. We are relying on
+            ' TypeSymbolExtensions.VisitType to dig into the "Rest" tuple so that they
+            ' will be recursively unwrapped as well.
+            type = DirectCast(type.GetTupleUnderlyingTypeOrSelf(), NamedTypeSymbol)
+
             If Not RequiresChecking(type) Then
                 Return True
             End If
@@ -1030,7 +1084,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(constraintType IsNot Nothing)
             For Each constraint In constraints
                 Dim type = constraint.TypeConstraint
-                If (type IsNot Nothing) AndAlso constraintType.IsSameTypeIgnoringCustomModifiers(type) Then
+                If (type IsNot Nothing) AndAlso constraintType.IsSameTypeIgnoringAll(type) Then
                     Return True
                 End If
             Next

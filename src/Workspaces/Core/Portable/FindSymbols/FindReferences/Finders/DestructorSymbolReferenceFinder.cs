@@ -15,30 +15,30 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return symbol.MethodKind == MethodKind.Destructor;
         }
 
-        protected override Task<IEnumerable<ISymbol>> DetermineCascadedSymbolsAsync(
-            IMethodSymbol symbol,
+        protected override Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
+            SymbolAndProjectId<IMethodSymbol> symbol,
             Solution solution,
             IImmutableSet<Project> projects,
             CancellationToken cancellationToken)
         {
-            return SpecializedTasks.EmptyEnumerable<ISymbol>();
+            return SpecializedTasks.EmptyImmutableArray<SymbolAndProjectId>();
         }
 
-        protected override Task<IEnumerable<Document>> DetermineDocumentsToSearchAsync(
+        protected override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
             IMethodSymbol symbol,
             Project project,
             IImmutableSet<Document> documents,
             CancellationToken cancellationToken)
         {
-            return SpecializedTasks.EmptyEnumerable<Document>();
+            return SpecializedTasks.EmptyImmutableArray<Document>();
         }
 
-        protected override Task<IEnumerable<ReferenceLocation>> FindReferencesInDocumentAsync(
+        protected override Task<ImmutableArray<ReferenceLocation>> FindReferencesInDocumentAsync(
             IMethodSymbol methodSymbol,
             Document document,
             CancellationToken cancellationToken)
         {
-            return SpecializedTasks.EmptyEnumerable<ReferenceLocation>();
+            return SpecializedTasks.EmptyImmutableArray<ReferenceLocation>();
         }
     }
 }

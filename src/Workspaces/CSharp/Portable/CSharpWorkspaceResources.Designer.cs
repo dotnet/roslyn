@@ -64,81 +64,82 @@ namespace Microsoft.CodeAnalysis.CSharp {
         /// <summary>
         ///   Looks up a localized string similar to Cannot retrieve the Span of a null syntax reference..
         /// </summary>
-        internal static string CannotRetrieveTheSpanOfA {
+        internal static string Cannot_retrieve_the_Span_of_a_null_syntax_reference {
             get {
-                return ResourceManager.GetString("CannotRetrieveTheSpanOfA", resourceCulture);
+                return ResourceManager.GetString("Cannot_retrieve_the_Span_of_a_null_syntax_reference", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Expected string or char literal.
         /// </summary>
-        internal static string ExpectedStringOrCharLiteral {
+        internal static string Expected_string_or_char_literal {
             get {
-                return ResourceManager.GetString("ExpectedStringOrCharLiteral", resourceCulture);
+                return ResourceManager.GetString("Expected_string_or_char_literal", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Implement Interface.
         /// </summary>
-        internal static string ImplementInterface {
+        internal static string Implement_Interface {
             get {
-                return ResourceManager.GetString("ImplementInterface", resourceCulture);
+                return ResourceManager.GetString("Implement_Interface", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Namespace can not be added in this destination..
         /// </summary>
-        internal static string NamespaceCanNotBeAddedIn {
+        internal static string Namespace_can_not_be_added_in_this_destination {
             get {
-                return ResourceManager.GetString("NamespaceCanNotBeAddedIn", resourceCulture);
+                return ResourceManager.GetString("Namespace_can_not_be_added_in_this_destination", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to No available location found to add statements to..
         /// </summary>
-        internal static string NoAvailableLocationFoundTo {
+        internal static string No_available_location_found_to_add_statements_to {
             get {
-                return ResourceManager.GetString("NoAvailableLocationFoundTo", resourceCulture);
+                return ResourceManager.GetString("No_available_location_found_to_add_statements_to", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Node does not descend from root..
         /// </summary>
-        internal static string NodeDoesNotDescendFromRoo {
+        internal static string Node_does_not_descend_from_root {
             get {
-                return ResourceManager.GetString("NodeDoesNotDescendFromRoo", resourceCulture);
+                return ResourceManager.GetString("Node_does_not_descend_from_root", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Node not in parent&apos;s child list.
         /// </summary>
-        internal static string NodeNotInParentsChildLis {
+        internal static string Node_not_in_parent_s_child_list {
             get {
-                return ResourceManager.GetString("NodeNotInParentsChildLis", resourceCulture);
+                return ResourceManager.GetString("Node_not_in_parent_s_child_list", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Only attributes, constructor initializers, expressions or statements can be made explicit.
         /// </summary>
-        internal static string OnlyAttributesConstructorI {
+        internal static string Only_attributes_constructor_initializers_expressions_or_statements_can_be_made_explicit {
             get {
-                return ResourceManager.GetString("OnlyAttributesConstructorI", resourceCulture);
+                return ResourceManager.GetString("Only_attributes_constructor_initializers_expressions_or_statements_can_be_made_ex" +
+                        "plicit", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Trivia is not associated with token.
         /// </summary>
-        internal static string TriviaIsNotAssociatedWith {
+        internal static string Trivia_is_not_associated_with_token {
             get {
-                return ResourceManager.GetString("TriviaIsNotAssociatedWith", resourceCulture);
+                return ResourceManager.GetString("Trivia_is_not_associated_with_token", resourceCulture);
             }
         }
     }

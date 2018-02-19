@@ -85,7 +85,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return new SymbolDeclaredCompilationEvent(this, model);
         }
 
-        private static SymbolDisplayFormat s_displayFormat = SymbolDisplayFormat.FullyQualifiedFormat;
         public override string ToString()
         {
             var name = this.Symbol.Name;

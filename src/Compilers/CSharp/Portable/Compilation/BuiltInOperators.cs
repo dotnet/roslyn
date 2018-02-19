@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using System.Collections.Generic;
 
@@ -776,13 +777,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            var leftConversion = Conversions.ClassifyConversion(leftType, rightType, ref useSiteDiagnostics);
+            var leftConversion = Conversions.ClassifyConversionFromType(leftType, rightType, ref useSiteDiagnostics);
             if (leftConversion.IsIdentity || leftConversion.IsReference)
             {
                 return true;
             }
 
-            var rightConversion = Conversions.ClassifyConversion(rightType, leftType, ref useSiteDiagnostics);
+            var rightConversion = Conversions.ClassifyConversionFromType(rightType, leftType, ref useSiteDiagnostics);
             if (rightConversion.IsIdentity || rightConversion.IsReference)
             {
                 return true;

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -12,6 +12,8 @@ using VSLangProj140;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     internal partial class AnalyzersFolderItem : BaseItem
     {
         private readonly Workspace _workspace;
@@ -25,7 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             ProjectId projectId,
             IVsHierarchyItem parentItem,
             IContextMenuController contextMenuController)
-            : base(SolutionExplorerShim.AnalyzersFolderItem_Name)
+            : base(SolutionExplorerShim.Analyzers)
         {
             _workspace = workspace;
             _projectId = projectId;
@@ -91,8 +93,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 return null;
             }
 
-            EnvDTE.Project project = null;
-            if (hierarchy.TryGetProject(out project))
+            if (hierarchy.TryGetProject(out var project))
             {
                 var vsproject = project.Object as VSProject3;
                 return vsproject;

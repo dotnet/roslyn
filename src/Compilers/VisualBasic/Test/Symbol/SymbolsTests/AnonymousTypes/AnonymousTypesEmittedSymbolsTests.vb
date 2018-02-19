@@ -734,7 +734,7 @@ End Module
 
 #End Region
 
-        <Fact, WorkItem(1319, "https: //github.com/dotnet/roslyn/issues/1319")>
+        <Fact, WorkItem(1319, "https://github.com/dotnet/roslyn/issues/1319")>
         Public Sub MultipleNetmodulesWithAnonymousTypes()
             Dim compilationDef1 =
     <compilation>

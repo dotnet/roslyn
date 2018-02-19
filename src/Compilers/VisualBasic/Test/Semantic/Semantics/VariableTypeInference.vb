@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 #Region "InferenceErrors"
         <Fact>
         Public Sub TestSelfInferenceCycleError()
-            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Foo.Bar")
+            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Goo.Bar")
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     <compilation>
@@ -55,7 +55,7 @@ BC42104: Variable 'i' is used before it has been assigned a value. A null refere
 
         <Fact>
         Public Sub TestMultiVariableInferenceCycleError()
-            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Foo.Bar")
+            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Goo.Bar")
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     <compilation>
@@ -86,7 +86,7 @@ BC32000: Local variable 'j' cannot be referred to before it is declared.
 
         <Fact>
         Public Sub TestArrayInferenceRankError()
-            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Foo.Bar")
+            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Goo.Bar")
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     <compilation>
@@ -119,7 +119,7 @@ BC30414: Value of type 'Integer()' cannot be converted to 'Object(*,*)' because 
 
         <Fact>
         Public Sub TestArrayInferenceNonNullableElementError()
-            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Foo.Bar")
+            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Goo.Bar")
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     <compilation>
@@ -153,7 +153,7 @@ BC30333: Value of type 'Integer()' cannot be converted to 'Object()' because 'In
 
         <Fact>
         Public Sub TestNullableIdentifierWithArrayExpression()
-            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Foo.Bar")
+            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Goo.Bar")
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     <compilation>
@@ -184,7 +184,7 @@ BC36628: A nullable type cannot be inferred for variable 'x'.
 
         <Fact>
         Public Sub TestArrayIdentifierWithScalarExpression()
-            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Foo.Bar")
+            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Goo.Bar")
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     <compilation>
@@ -217,7 +217,7 @@ BC30311: Value of type 'Integer' cannot be converted to 'Object()'.
 
         <Fact>
         Public Sub TestNullableIdentifierWithScalarReferenceType()
-            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Foo.Bar")
+            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Goo.Bar")
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     <compilation>
@@ -249,7 +249,7 @@ BC36628: A nullable type cannot be inferred for variable 'x'.
 
         <Fact>
         Public Sub TestInferOffPrimitiveTypes()
-            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Foo.Bar")
+            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Goo.Bar")
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     <compilation>
@@ -286,7 +286,7 @@ BC36628: A nullable type cannot be inferred for variable 'x'.
 
         <Fact>
         Public Sub TestInferOnPrimitiveTypes()
-            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Foo.Bar")
+            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Goo.Bar")
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     <compilation>
@@ -323,7 +323,7 @@ BC36628: A nullable type cannot be inferred for variable 'x'.
 
         <Fact>
         Public Sub TestDontInferStaticLocal()
-            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Foo.Bar")
+            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Goo.Bar")
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     <compilation>
@@ -353,7 +353,7 @@ BC36628: A nullable type cannot be inferred for variable 'x'.
 
         <Fact>
         Public Sub TestInferNullableArrayOfInteger()
-            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Foo.Bar")
+            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Goo.Bar")
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     <compilation>
@@ -384,7 +384,7 @@ BC36628: A nullable type cannot be inferred for variable 'x'.
 
         <Fact>
         Public Sub TestArrayInference()
-            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Foo.Bar")
+            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Goo.Bar")
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     <compilation>
@@ -421,7 +421,7 @@ BC36628: A nullable type cannot be inferred for variable 'x'.
         <WorkItem(542371, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542371")>
         <Fact>
         Public Sub TestOptionInferWithOptionStrict()
-            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Foo.Bar")
+            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Goo.Bar")
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
@@ -463,7 +463,7 @@ BC30209: Option Strict On requires all variable declarations to have an 'As' cla
 
         <Fact>
         Public Sub TestErrorsForLocalsWithoutAsClause()
-            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Foo.Bar")
+            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Goo.Bar")
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
@@ -527,7 +527,7 @@ BC30209: Option Strict On requires all variable declarations to have an 'As' cla
         <Fact()>
         Public Sub TestErrorsForLocalsWithoutAsClauseStaticLocals()
             'Static Locals do not type infer
-            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Foo.Bar")
+            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Goo.Bar")
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
@@ -593,7 +593,7 @@ BC30209: Option Strict On requires all variable declarations to have an 'As' cla
         <WorkItem(542402, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542402")>
         <Fact>
         Public Sub TestCircularDeclarationReference()
-            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Foo.Bar")
+            Dim options = TestOptions.ReleaseDll.WithRootNamespace("Goo.Bar")
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>

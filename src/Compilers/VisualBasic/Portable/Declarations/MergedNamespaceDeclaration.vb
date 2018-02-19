@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports Microsoft.CodeAnalysis.PooledObjects
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ' An invariant of a merged declaration is that all of its children
@@ -9,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Inherits MergedNamespaceOrTypeDeclaration
 
         Private ReadOnly _declarations As ImmutableArray(Of SingleNamespaceDeclaration)
-        Private ReadOnly _multipleSpellings As Boolean  ' true if the namespace is spelling with multiple different case-insensitive spellings ("Namespace FOO" and "Namespace foo")
+        Private ReadOnly _multipleSpellings As Boolean  ' true if the namespace is spelling with multiple different case-insensitive spellings ("Namespace GOO" and "Namespace goo")
         Private _children As ImmutableArray(Of MergedNamespaceOrTypeDeclaration)
 
         Private Sub New(declarations As ImmutableArray(Of SingleNamespaceDeclaration))
@@ -27,11 +28,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Shared Function Create(ParamArray declarations As SingleNamespaceDeclaration()) As MergedNamespaceDeclaration
             Return New MergedNamespaceDeclaration(declarations.AsImmutableOrNull)
-        End Function
-
-        Public Shared Function Create(mergedDeclaration As MergedNamespaceDeclaration,
-                                      declaration As SingleNamespaceDeclaration) As MergedNamespaceDeclaration
-            Return New MergedNamespaceDeclaration(mergedDeclaration._declarations.Add(declaration))
         End Function
 
         Public Overrides ReadOnly Property Kind As DeclarationKind
@@ -161,7 +157,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         ' Is this declaration merged from declarations with different case-sensitive spellings
-        ' (i.e., "Namespace FOO" and "Namespace foo".
+        ' (i.e., "Namespace GOO" and "Namespace goo".
         Public ReadOnly Property HasMultipleSpellings As Boolean
             Get
                 Return _multipleSpellings

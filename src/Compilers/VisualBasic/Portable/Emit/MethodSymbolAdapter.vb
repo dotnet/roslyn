@@ -3,6 +3,7 @@
 Imports System.Collections.Immutable
 Imports System.Reflection
 Imports Microsoft.CodeAnalysis.Emit
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -172,9 +173,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property ISignatureRefCustomModifiers As ImmutableArray(Of Cci.ICustomModifier) Implements Cci.ISignature.RefCustomModifiers
+            Get
+                Return Me.RefCustomModifiers.As(Of Cci.ICustomModifier)
+            End Get
+        End Property
+
         Private ReadOnly Property ISignatureReturnValueIsByRef As Boolean Implements Cci.ISignature.ReturnValueIsByRef
             Get
-                Return False
+                Return ReturnsByRef
             End Get
         End Property
 
@@ -451,12 +458,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private ReadOnly Property IMethodDefinitionReturnValueAttributes As IEnumerable(Of Cci.ICustomAttribute) Implements Cci.IMethodDefinition.ReturnValueAttributes
-            Get
-                CheckDefinitionInvariant()
-                Return GetCustomAttributesToEmit(Me.GetReturnTypeAttributes(), synthesized:=Nothing, isReturnType:=True, emittingAssemblyAttributesInNetModule:=False)
-            End Get
-        End Property
+        Private Function IMethodDefinitionGetReturnValueAttributes(context As EmitContext) As IEnumerable(Of Cci.ICustomAttribute) Implements Cci.IMethodDefinition.GetReturnValueAttributes
+            CheckDefinitionInvariant()
+
+            Dim userDefined As ImmutableArray(Of VisualBasicAttributeData)
+            Dim synthesized As ArrayBuilder(Of SynthesizedAttributeData) = Nothing
+
+            userDefined = Me.GetReturnTypeAttributes()
+            Me.AddSynthesizedReturnTypeAttributes(synthesized)
+
+            ' Note that callers of this method (CCI and ReflectionEmitter) have to enumerate 
+            ' all items of the returned iterator, otherwise the synthesized ArrayBuilder may leak.
+            Return GetCustomAttributesToEmit(userDefined, synthesized, isReturnType:=True, emittingAssemblyAttributesInNetModule:=False)
+        End Function
 
         Private ReadOnly Property IMethodDefinitionReturnValueIsMarshalledExplicitly As Boolean Implements Cci.IMethodDefinition.ReturnValueIsMarshalledExplicitly
             Get

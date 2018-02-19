@@ -2,11 +2,12 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
-using System.Globalization;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
+using System.Diagnostics;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -14,14 +15,14 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected sealed class NodeMapBuilder : BoundTreeWalkerWithStackGuard
         {
-            private NodeMapBuilder(OrderPreservingMultiDictionary<CSharpSyntaxNode, BoundNode> map, CSharpSyntaxNode thisSyntaxNodeOnly)
+            private NodeMapBuilder(OrderPreservingMultiDictionary<SyntaxNode, BoundNode> map, SyntaxNode thisSyntaxNodeOnly)
             {
                 _map = map;
                 _thisSyntaxNodeOnly = thisSyntaxNodeOnly;
             }
 
-            private readonly OrderPreservingMultiDictionary<CSharpSyntaxNode, BoundNode> _map;
-            private readonly CSharpSyntaxNode _thisSyntaxNodeOnly;
+            private readonly OrderPreservingMultiDictionary<SyntaxNode, BoundNode> _map;
+            private readonly SyntaxNode _thisSyntaxNodeOnly;
 
             /// <summary>
             /// Walks the bound tree and adds all non compiler generated bound nodes whose syntax matches the given one
@@ -30,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// <param name="root">The root of the bound tree.</param>
             /// <param name="map">The cache.</param>
             /// <param name="node">The syntax node where to add bound nodes for.</param>
-            public static void AddToMap(BoundNode root, Dictionary<CSharpSyntaxNode, ImmutableArray<BoundNode>> map, CSharpSyntaxNode node = null)
+            public static void AddToMap(BoundNode root, Dictionary<SyntaxNode, ImmutableArray<BoundNode>> map, SyntaxNode node = null)
             {
                 Debug.Assert(node == null || root == null || !(root.Syntax is StatementSyntax), "individually added nodes are not supposed to be statements.");
 
@@ -40,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
                 }
 
-                var additionMap = OrderPreservingMultiDictionary<CSharpSyntaxNode, BoundNode>.GetInstance();
+                var additionMap = OrderPreservingMultiDictionary<SyntaxNode, BoundNode>.GetInstance();
                 var builder = new NodeMapBuilder(additionMap, node);
                 builder.Visit(root);
 
@@ -48,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (map.ContainsKey(key))
                     {
-#if DEBUG
+#if DEBUG && PATTERNS_FIXED
                         // It's possible that AddToMap was previously called with a subtree of root.  If this is the case,
                         // then we'll see an entry in the map.  Since the incremental binder should also have seen the
                         // pre-existing map entry, the entry in addition map should be identical.
@@ -242,6 +243,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 this.Visit(node.Value);
                 VisitUnoptimizedForm(node);
+                return null;
+            }
+
+            public override BoundNode VisitRangeVariable(BoundRangeVariable node)
+            {
                 return null;
             }
 

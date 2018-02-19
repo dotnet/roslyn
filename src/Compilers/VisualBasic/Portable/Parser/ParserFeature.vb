@@ -29,17 +29,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         PartialModules
         PartialInterfaces
         ImplementingReadonlyOrWriteonlyPropertyWithReadwrite
+        DigitSeparators
+        BinaryLiterals
+        Tuples
+        InferredTupleNames
+        LeadingDigitSeparator
+        NonTrailingNamedArguments
+        PrivateProtected
     End Enum
 
     Friend Module FeatureExtensions
-        <Extension>
-        Friend Function GetFeatureFlag(feature As Feature) As String
-            Select Case feature
-
-                Case Else
-                    Return Nothing
-            End Select
-        End Function
 
         <Extension>
         Friend Function GetLanguageVersion(feature As Feature) As LanguageVersion
@@ -74,6 +73,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                      Feature.PartialInterfaces,
                      Feature.ImplementingReadonlyOrWriteonlyPropertyWithReadwrite
                     Return LanguageVersion.VisualBasic14
+
+                Case Feature.Tuples,
+                    Feature.BinaryLiterals,
+                    Feature.DigitSeparators
+                    Return LanguageVersion.VisualBasic15
+
+                Case Feature.InferredTupleNames
+                    Return LanguageVersion.VisualBasic15_3
+
+                Case Feature.LeadingDigitSeparator,
+                    Feature.NonTrailingNamedArguments,
+                    Feature.PrivateProtected
+                    Return LanguageVersion.VisualBasic15_5
 
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(feature)
@@ -130,6 +142,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return ERRID.FEATURE_PartialInterfaces
                 Case Feature.ImplementingReadonlyOrWriteonlyPropertyWithReadwrite
                     Return ERRID.FEATURE_ImplementingReadonlyOrWriteonlyPropertyWithReadwrite
+                Case Feature.DigitSeparators
+                    Return ERRID.FEATURE_DigitSeparators
+                Case Feature.BinaryLiterals
+                    Return ERRID.FEATURE_BinaryLiterals
+                Case Feature.Tuples
+                    Return ERRID.FEATURE_Tuples
+                Case Feature.LeadingDigitSeparator
+                    Return ERRID.FEATURE_LeadingDigitSeparator
+                Case Feature.PrivateProtected
+                    Return ERRID.FEATURE_PrivateProtected
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(feature)
             End Select

@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         LambdaMethod = 'b',
         LambdaDisplayClass = 'c',
         StateMachineType = 'd',
+        LocalFunction = 'g', // note collision with Deprecated_InitializerLocal, however this one is only used for method names
 
         // Used by EnC:
         AwaiterField = 'u',

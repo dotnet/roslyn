@@ -3,20 +3,18 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
 {
     internal class CodeGenerationConstructedNamedTypeSymbol : CodeGenerationAbstractNamedTypeSymbol
     {
         private readonly CodeGenerationAbstractNamedTypeSymbol _constructedFrom;
-        private readonly IList<ITypeSymbol> _typeArguments;
+        private readonly ImmutableArray<ITypeSymbol> _typeArguments;
 
         public CodeGenerationConstructedNamedTypeSymbol(
             CodeGenerationAbstractNamedTypeSymbol constructedFrom,
-            IList<ITypeSymbol> typeArguments,
-            IList<CodeGenerationAbstractNamedTypeSymbol> typeMembers)
+            ImmutableArray<ITypeSymbol> typeArguments,
+            ImmutableArray<CodeGenerationAbstractNamedTypeSymbol> typeMembers)
             : base(constructedFrom.ContainingType, constructedFrom.GetAttributes(),
                    constructedFrom.DeclaredAccessibility, constructedFrom.Modifiers,
                    constructedFrom.Name, constructedFrom.SpecialType, typeMembers)
@@ -26,87 +24,29 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             _typeArguments = typeArguments;
         }
 
-        public override ImmutableArray<ITypeSymbol> TypeArguments
-        {
-            get
-            {
-                return ImmutableArray.CreateRange(_typeArguments);
-            }
-        }
+        public override ImmutableArray<ITypeSymbol> TypeArguments => _typeArguments;
 
-        public override int Arity
-        {
-            get
-            {
-                return _constructedFrom.Arity;
-            }
-        }
+        public override int Arity => _constructedFrom.Arity;
 
-        public override bool IsGenericType
-        {
-            get
-            {
-                return _constructedFrom.IsGenericType;
-            }
-        }
+        public override bool IsGenericType => _constructedFrom.IsGenericType;
 
-        public override bool IsUnboundGenericType
-        {
-            get
-            {
-                return false;
-            }
-        }
+        public override bool IsUnboundGenericType => false;
 
-        public override bool IsScriptClass
-        {
-            get
-            {
-                return _constructedFrom.IsScriptClass;
-            }
-        }
+        public override bool IsScriptClass => _constructedFrom.IsScriptClass;
 
-        public override bool IsImplicitClass
-        {
-            get
-            {
-                return _constructedFrom.IsImplicitClass;
-            }
-        }
+        public override bool IsImplicitClass => _constructedFrom.IsImplicitClass;
 
-        public override IEnumerable<string> MemberNames
-        {
-            get
-            {
-                return _constructedFrom.MemberNames;
-            }
-        }
+        public override IEnumerable<string> MemberNames => _constructedFrom.MemberNames;
 
-        public override IMethodSymbol DelegateInvokeMethod
-        {
-            get
-            {
+        public override IMethodSymbol DelegateInvokeMethod =>
                 // NOTE(cyrusn): remember to Construct the result if we implement this.
-                return null;
-            }
-        }
+                null;
 
-        public override INamedTypeSymbol EnumUnderlyingType
-        {
-            get
-            {
+        public override INamedTypeSymbol EnumUnderlyingType =>
                 // NOTE(cyrusn): remember to Construct the result if we implement this.
-                return null;
-            }
-        }
+                null;
 
-        public override INamedTypeSymbol ConstructedFrom
-        {
-            get
-            {
-                return _constructedFrom;
-            }
-        }
+        public override INamedTypeSymbol ConstructedFrom => _constructedFrom;
 
         public override INamedTypeSymbol ConstructUnboundGenericType()
         {
@@ -146,25 +86,13 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return ImmutableArray.CreateRange(_constructedFrom.TypeMembers.Cast<INamedTypeSymbol>());
         }
 
-        public override TypeKind TypeKind
-        {
-            get
-            {
-                return _constructedFrom.TypeKind;
-            }
-        }
+        public override TypeKind TypeKind => _constructedFrom.TypeKind;
 
         protected override CodeGenerationSymbol Clone()
         {
             return new CodeGenerationConstructedNamedTypeSymbol(_constructedFrom, _typeArguments, this.TypeMembers);
         }
 
-        public override ImmutableArray<ITypeParameterSymbol> TypeParameters
-        {
-            get
-            {
-                return _constructedFrom.TypeParameters;
-            }
-        }
+        public override ImmutableArray<ITypeParameterSymbol> TypeParameters => _constructedFrom.TypeParameters;
     }
 }

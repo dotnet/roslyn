@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Threading;
@@ -19,10 +19,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             _context = context;
         }
 
-        public override string Title
-        {
-            get { return FeaturesResources.ChangeSignature; }
-        }
+        public override string Title => FeaturesResources.Change_signature;
 
         public override object GetOptions(CancellationToken cancellationToken)
         {
@@ -31,8 +28,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
         protected override Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
         {
-            var changeSignatureOptions = options as ChangeSignatureOptionsResult;
-            if (changeSignatureOptions != null && !changeSignatureOptions.IsCancelled)
+            if (options is ChangeSignatureOptionsResult changeSignatureOptions && !changeSignatureOptions.IsCancelled)
             {
                 var changeSignatureResult = _changeSignatureService.ChangeSignatureWithContext(_context, changeSignatureOptions, cancellationToken);
 

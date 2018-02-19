@@ -5,6 +5,8 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection;
 using System.Reflection.Metadata;
+using Microsoft.CodeAnalysis.Debugging;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -200,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// <summary>
         /// Gets all scopes that contain variables.
         /// </summary>
-        internal ImmutableArray<Cci.StateMachineHoistedLocalScope> GetHoistedLocalScopes()
+        internal ImmutableArray<StateMachineHoistedLocalScope> GetHoistedLocalScopes()
         {
             // The hoisted local scopes are enumerated and returned here, sorted by variable "index",
             // which is a number appearing after the "__" at the end of the field's name.  The index should
@@ -878,7 +880,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                     for (int i = blockFirstMarker; i <= blockLastMarker; i++)
                     {
                         int blockOffset = _allocatedILMarkers[i].BlockOffset;
-                        int absoluteOffset = writer.Position + blockOffset;
+                        int absoluteOffset = writer.Count + blockOffset;
                         _allocatedILMarkers[i] = new ILMarker() { BlockOffset = blockOffset, AbsoluteOffset = absoluteOffset };
                     }
                 }
@@ -922,7 +924,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                             int curBlockEnd = block.Start + block.TotalSize;
                             int offset = target - curBlockEnd;
 
-                            if (block.BranchCode.BranchOperandSize() == 1)
+                            if (block.BranchCode.GetBranchOperandSize() == 1)
                             {
                                 sbyte btOffset = (sbyte)offset;
                                 Debug.Assert(btOffset == offset);
@@ -1155,11 +1157,6 @@ namespace Microsoft.CodeAnalysis.CodeGen
             _scopeManager.CloseScope(this);
         }
 
-        internal void OpenStateMachineScope()
-        {
-            OpenLocalScope(ScopeType.StateMachineVariable);
-        }
-
         internal void DefineUserDefinedStateMachineHoistedLocal(int slotIndex)
         {
             // Add user-defined local into the current scope.
@@ -1167,19 +1164,12 @@ namespace Microsoft.CodeAnalysis.CodeGen
             _scopeManager.AddUserHoistedLocal(slotIndex);
         }
 
-        internal void CloseStateMachineScope()
-        {
-            _scopeManager.ClosingScope(this);
-            EndBlock(); // blocks should not cross scope boundaries.
-            _scopeManager.CloseScope(this);
-        }
-
         /// <summary>
         /// Puts local variable into current scope.
         /// </summary>
         internal void AddLocalToScope(LocalDefinition local)
         {
-            HasDynamicLocal |= local.IsDynamic;
+            HasDynamicLocal |= !local.DynamicTransformFlags.IsEmpty;
             _scopeManager.AddLocal(local);
         }
 
@@ -1188,7 +1178,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// </summary>
         internal void AddLocalConstantToScope(LocalConstantDefinition localConstant)
         {
-            HasDynamicLocal |= localConstant.IsDynamic;
+            HasDynamicLocal |= !localConstant.DynamicTransformFlags.IsEmpty;
             _scopeManager.AddLocalConstant(localConstant);
         }
 

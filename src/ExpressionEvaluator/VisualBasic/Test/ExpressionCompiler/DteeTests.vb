@@ -3,6 +3,7 @@
 Imports System.Collections.Immutable
 Imports System.IO
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Debugging
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -121,7 +122,7 @@ End Namespace
                     Dim lazyAssemblyReaders = MakeLazyAssemblyReaders(runtime)
 
                     Dim evalContext = CreateMethodContext(runtime, s_dteeEntryPointName, lazyAssemblyReaders:=lazyAssemblyReaders)
-                    Dim compContext = evalContext.CreateCompilationContext(MakeDummySyntax())
+                    Dim compContext = evalContext.CreateCompilationContext(withSyntax:=True)
 
                     Dim rootNamespace As NamespaceSymbol = Nothing
                     Dim currentNamespace As NamespaceSymbol = Nothing
@@ -382,7 +383,7 @@ End Namespace
             Dim lazyAssemblyReaders = MakeLazyAssemblyReaders(runtimeInstance)
 
             Dim evalContext = CreateMethodContext(runtimeInstance, s_dteeEntryPointName, lazyAssemblyReaders:=lazyAssemblyReaders)
-            Dim compContext = evalContext.CreateCompilationContext(MakeDummySyntax())
+            Dim compContext = evalContext.CreateCompilationContext(withSyntax:=True)
 
             Dim rootNamespace As NamespaceSymbol = Nothing
             Dim currentNamespace As NamespaceSymbol = Nothing
@@ -397,10 +398,6 @@ End Namespace
             Assert.Null(xmlNamespaces)
             AssertEx.SetEqual(typesAndNamespaces.Select(Function(tn) tn.NamespaceOrType.ToTestDisplayString()), "root", "root.N1", "root.N2", "root.N3")
         End Sub
-
-        Private Shared Function MakeDummySyntax() As Syntax.ExecutableStatementSyntax
-            Return VisualBasicSyntaxTree.ParseText("?Nothing").GetRoot().DescendantNodes().OfType(Of Syntax.ExecutableStatementSyntax)().Single()
-        End Function
 
         Private Shared Function MakeLazyAssemblyReaders(runtimeInstance As RuntimeInstance) As Lazy(Of ImmutableArray(Of AssemblyReaders))
             Return New Lazy(Of ImmutableArray(Of AssemblyReaders))(

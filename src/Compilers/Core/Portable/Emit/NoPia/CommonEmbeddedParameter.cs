@@ -3,6 +3,8 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Emit.NoPia
@@ -51,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             }
 
             protected abstract bool HasDefaultValue { get; }
-            protected abstract Cci.IMetadataConstant GetDefaultValue(EmitContext context);
+            protected abstract MetadataConstant GetDefaultValue(EmitContext context);
             protected abstract bool IsIn { get; }
             protected abstract bool IsOut { get; }
             protected abstract bool IsOptional { get; }
@@ -61,14 +63,14 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             protected abstract string Name { get; }
             protected abstract Cci.IParameterTypeInformation UnderlyingParameterTypeInformation { get; }
             protected abstract ushort Index { get; }
-            protected abstract IEnumerable<TAttributeData> GetCustomAttributesToEmit(TModuleCompilationState compilationState);
+            protected abstract IEnumerable<TAttributeData> GetCustomAttributesToEmit(TPEModuleBuilder moduleBuilder);
 
             private bool IsTargetAttribute(TAttributeData attrData, AttributeDescription description)
             {
                 return TypeManager.IsTargetAttribute(UnderlyingParameter, attrData, description);
             }
 
-            private ImmutableArray<TAttributeData> GetAttributes(TModuleCompilationState compilationState, TSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
+            private ImmutableArray<TAttributeData> GetAttributes(TPEModuleBuilder moduleBuilder, TSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
             {
                 var builder = ArrayBuilder<TAttributeData>.GetInstance();
 
@@ -78,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 // The constructors might be missing (for example, in metadata case) and doing lookup
                 // will ensure that we report appropriate errors.
 
-                foreach (var attrData in GetCustomAttributesToEmit(compilationState))
+                foreach (var attrData in GetCustomAttributesToEmit(moduleBuilder))
                 {
                     if (IsTargetAttribute(attrData, AttributeDescription.ParamArrayAttribute))
                     {
@@ -130,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 }
             }
 
-            Cci.IMetadataConstant Cci.IParameterDefinition.GetDefaultValue(EmitContext context)
+            MetadataConstant Cci.IParameterDefinition.GetDefaultValue(EmitContext context)
             {
                 return GetDefaultValue(context);
             }
@@ -188,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 if (_lazyAttributes.IsDefault)
                 {
                     var diagnostics = DiagnosticBag.GetInstance();
-                    var attributes = GetAttributes((TModuleCompilationState)context.ModuleBuilder.CommonModuleCompilationState, (TSyntaxNode)context.SyntaxNodeOpt, diagnostics);
+                    var attributes = GetAttributes((TPEModuleBuilder)context.Module, (TSyntaxNode)context.SyntaxNodeOpt, diagnostics);
 
                     if (ImmutableInterlocked.InterlockedInitialize(ref _lazyAttributes, attributes))
                     {
@@ -233,11 +235,11 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 }
             }
 
-            ushort Cci.IParameterTypeInformation.CountOfCustomModifiersPrecedingByRef
+            ImmutableArray<Cci.ICustomModifier> Cci.IParameterTypeInformation.RefCustomModifiers
             {
                 get
                 {
-                    return UnderlyingParameterTypeInformation.CountOfCustomModifiersPrecedingByRef;
+                    return UnderlyingParameterTypeInformation.RefCustomModifiers;
                 }
             }
 

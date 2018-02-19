@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
 using System.Threading;
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         private bool IsConstructorInitializerContext(CSharpSyntaxContext context)
         {
             // cases:
-            //   Foo() : |
+            //   Goo() : |
 
             var token = context.TargetToken;
 
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         private static bool IsExtensionMethodParameterContext(CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
             // TODO(cyrusn): lambda/anon methods can have out/ref parameters
-            if (!context.SyntaxTree.IsParameterModifierContext(context.Position, context.LeftToken, cancellationToken, allowableIndex: 0))
+            if (!context.SyntaxTree.IsParameterModifierContext(context.Position, context.LeftToken, cancellationToken, isThisKeyword: true))
             {
                 return false;
             }
@@ -91,6 +91,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             }
 
             return true;
+        }
+
+        protected override bool ShouldPreselect(CSharpSyntaxContext context, CancellationToken cancellationToken)
+        {
+            var outerType = context.SemanticModel.GetEnclosingNamedType(context.Position, cancellationToken);
+            return context.InferredTypes.Any(t => t == outerType);
         }
     }
 }

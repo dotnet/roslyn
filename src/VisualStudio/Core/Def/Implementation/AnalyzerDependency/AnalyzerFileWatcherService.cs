@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -28,6 +28,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private readonly Dictionary<string, DateTime> _assemblyUpdatedTimesUtc = new Dictionary<string, DateTime>(StringComparer.OrdinalIgnoreCase);
 
         private readonly object _guard = new object();
+
+        private readonly DiagnosticDescriptor _analyzerChangedRule = new DiagnosticDescriptor(
+            id: IDEDiagnosticIds.AnalyzerChangedId,
+            title: ServicesVSResources.AnalyzerChangedOnDisk,
+            messageFormat: ServicesVSResources.The_analyzer_assembly_0_has_changed_Diagnostics_may_be_incorrect_until_Visual_Studio_is_restarted,
+            category: FeaturesResources.Roslyn_HostError,
+            defaultSeverity: DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
 
         [ImportingConstructor]
         public AnalyzerFileWatcherService(
@@ -67,21 +75,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         private void RaiseAnalyzerChangedWarning(ProjectId projectId, string analyzerPath)
         {
-            string message = string.Format(ServicesVSResources.WRN_AnalyzerChangedMessage, analyzerPath);
-
-            DiagnosticData data = new DiagnosticData(
-                IDEDiagnosticIds.AnalyzerChangedId,
-                FeaturesResources.ErrorCategory,
-                message,
-                ServicesVSResources.WRN_AnalyzerChangedMessage,
-                severity: DiagnosticSeverity.Warning,
-                isEnabledByDefault: true,
-                warningLevel: 0,
-                workspace: _workspace,
-                projectId: projectId,
-                title: ServicesVSResources.WRN_AnalyzerChangedTitle);
-
-            _updateSource.UpdateDiagnosticsForProject(projectId, Tuple.Create(s_analyzerChangedErrorId, analyzerPath), SpecializedCollections.SingletonEnumerable(data));
+            var messageArguments = new string[] { analyzerPath };
+            if (DiagnosticData.TryCreate(_analyzerChangedRule, messageArguments, projectId, _workspace, out var diagnostic))
+            {
+                _updateSource.UpdateDiagnosticsForProject(projectId, Tuple.Create(s_analyzerChangedErrorId, analyzerPath), SpecializedCollections.SingletonEnumerable(diagnostic));
+            }
         }
 
         private DateTime? GetLastUpdateTimeUtc(string fullPath)
@@ -107,8 +105,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             lock (_guard)
             {
-                FileChangeTracker tracker;
-                if (!_fileChangeTrackers.TryGetValue(filePath, out tracker))
+                if (!_fileChangeTrackers.TryGetValue(filePath, out var tracker))
                 {
                     tracker = new FileChangeTracker(_fileChangeService, filePath);
                     tracker.UpdatedOnDisk += Tracker_UpdatedOnDisk;
@@ -143,7 +140,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             // Traverse the chain of requesting assemblies to get back to the original analyzer
             // assembly.
-            var projectsWithAnalyzer = _workspace.ProjectTracker.Projects.Where(p => p.CurrentProjectAnalyzersContains(filePath)).ToArray();
+            var projectsWithAnalyzer = _workspace.DeferredState.ProjectTracker.ImmutableProjects.Where(p => p.CurrentProjectAnalyzersContains(filePath)).ToArray();
             foreach (var project in projectsWithAnalyzer)
             {
                 RaiseAnalyzerChangedWarning(project.Id, filePath);

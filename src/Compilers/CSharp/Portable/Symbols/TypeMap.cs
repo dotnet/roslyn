@@ -4,10 +4,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -34,11 +32,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // mapping contents are read-only hereafter
         }
 
-        internal TypeMap(SmallDictionary<TypeParameterSymbol, TypeWithModifiers> mapping)
+        private TypeMap(SmallDictionary<TypeParameterSymbol, TypeWithModifiers> mapping)
             : base(new SmallDictionary<TypeParameterSymbol, TypeWithModifiers>(mapping, ReferenceEqualityComparer.Instance))
         {
             // mapping contents are read-only hereafter
-            Debug.Assert(!mapping.Keys.Any(tp => tp is SubstitutedTypeParameterSymbol));
         }
 
         private static SmallDictionary<TypeParameterSymbol, TypeWithModifiers> ForType(NamedTypeSymbol containingType)
@@ -48,6 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 new SmallDictionary<TypeParameterSymbol, TypeWithModifiers>(substituted.TypeSubstitution.Mapping, ReferenceEqualityComparer.Instance) :
                 new SmallDictionary<TypeParameterSymbol, TypeWithModifiers>(ReferenceEqualityComparer.Instance);
         }
+
         internal TypeMap(NamedTypeSymbol containingType, ImmutableArray<TypeParameterSymbol> typeParameters, ImmutableArray<TypeWithModifiers> typeArguments)
             : base(ForType(containingType))
         {
@@ -102,13 +100,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // class or method for a lambda appearing in a generic method.
             bool synthesized = !ReferenceEquals(oldTypeParameters[0].ContainingSymbol.OriginalDefinition, newOwner.OriginalDefinition);
 
+            int ordinal = 0;
             foreach (var tp in oldTypeParameters)
             {
                 var newTp = synthesized ?
-                    new SynthesizedSubstitutedTypeParameterSymbol(newOwner, result, tp) :
-                    new SubstitutedTypeParameterSymbol(newOwner, result, tp);
+                    new SynthesizedSubstitutedTypeParameterSymbol(newOwner, result, tp, ordinal) :
+                    new SubstitutedTypeParameterSymbol(newOwner, result, tp, ordinal);
                 result.Mapping.Add(tp, new TypeWithModifiers(newTp));
                 newTypeParametersBuilder.Add(newTp);
+                ordinal++;
             }
 
             newTypeParameters = newTypeParametersBuilder.ToImmutableAndFree();
@@ -125,6 +125,55 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(oldOwner.ConstructedFrom == oldOwner);
             return WithAlphaRename(oldOwner.OriginalDefinition.TypeParameters, newOwner, out newTypeParameters);
+        }
+
+        internal TypeMap WithConcatAlphaRename(
+            MethodSymbol oldOwner,
+            Symbol newOwner,
+            out ImmutableArray<TypeParameterSymbol> newTypeParameters,
+            out ImmutableArray<TypeParameterSymbol> oldTypeParameters,
+            MethodSymbol stopAt = null)
+        {
+            Debug.Assert(oldOwner.ConstructedFrom == oldOwner);
+            Debug.Assert(stopAt == null || stopAt.ConstructedFrom == stopAt);
+
+            // Build the array up backwards, then reverse it.
+            // The following example goes through the do-loop in order M3, M2, M1
+            // but the type parameters have to be <T1, T2, T3, T4>
+            // void M1<T1>() {
+            //   void M2<T2, T3>() {
+            //     void M3<T4>() {
+            //     }
+            //   }
+            // }
+            // However, if stopAt is M1, then the type parameters would be <T2, T3, T4>
+            // That is, stopAt's type parameters are excluded - the parameters are in the range (stopAt, oldOwner]
+            // A null stopAt means "include everything"
+            var parameters = ArrayBuilder<TypeParameterSymbol>.GetInstance();
+            while (oldOwner != null && oldOwner != stopAt)
+            {
+                var currentParameters = oldOwner.OriginalDefinition.TypeParameters;
+
+                for (int i = currentParameters.Length - 1; i >= 0; i--)
+                {
+                    parameters.Add(currentParameters[i]);
+                }
+
+                oldOwner = oldOwner.ContainingSymbol.OriginalDefinition as MethodSymbol;
+            }
+            parameters.ReverseContents();
+
+            // Ensure that if stopAt was provided, it actually was in the chain and we stopped at it.
+            // If not provided, both should be null (if stopAt != null && oldOwner == null, then it wasn't in the chain).
+            // Alternately, we were inside a field initializer, in which case we were to stop at the constructor,
+            // but never made it that far because we encountered the field in the ContainingSymbol chain.
+            Debug.Assert(
+                stopAt == oldOwner ||
+                stopAt?.MethodKind == MethodKind.StaticConstructor ||
+                stopAt?.MethodKind == MethodKind.Constructor);
+
+            oldTypeParameters = parameters.ToImmutableAndFree();
+            return WithAlphaRename(oldTypeParameters, newOwner, out newTypeParameters);
         }
 
         private static SmallDictionary<TypeParameterSymbol, TypeWithModifiers> ConstructMapping(ImmutableArray<TypeParameterSymbol> from, ImmutableArray<TypeWithModifiers> to)
@@ -146,20 +195,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return mapping;
         }
 
-        public ImmutableArray<ImmutableArray<CustomModifier>> GetTypeArgumentsCustomModifiersFor(NamedTypeSymbol originalDefinition)
+        public ImmutableArray<CustomModifier> GetTypeArgumentsCustomModifiersFor(TypeParameterSymbol originalDefinition)
         {
             Debug.Assert((object)originalDefinition != null);
             Debug.Assert(originalDefinition.IsDefinition);
-            Debug.Assert(originalDefinition.Arity > 0);
-
-            var result = ArrayBuilder<ImmutableArray<CustomModifier>>.GetInstance(originalDefinition.Arity);
-
-            foreach (TypeParameterSymbol tp in originalDefinition.TypeArguments)
-            {
-                result.Add(SubstituteTypeParameter(tp).CustomModifiers);
-            }
-
-            return result.ToImmutableAndFree();
+            return SubstituteTypeParameter(originalDefinition).CustomModifiers;
         }
     }
 }

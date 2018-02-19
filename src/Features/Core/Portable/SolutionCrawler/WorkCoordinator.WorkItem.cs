@@ -1,6 +1,7 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 
@@ -99,19 +100,14 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 private ImmutableHashSet<IIncrementalAnalyzer> Union(ImmutableHashSet<IIncrementalAnalyzer> analyzers)
                 {
-                    if (this.Analyzers.IsEmpty && analyzers.IsEmpty)
+                    if (analyzers.IsEmpty)
                     {
                         return this.Analyzers;
                     }
 
-                    if (this.Analyzers.IsEmpty && !analyzers.IsEmpty)
+                    if (this.Analyzers.IsEmpty)
                     {
                         return analyzers;
-                    }
-
-                    if (!this.Analyzers.IsEmpty && analyzers.IsEmpty)
-                    {
-                        return this.Analyzers;
                     }
 
                     return this.Analyzers.Union(analyzers);
@@ -161,6 +157,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         this.Analyzers,
                         this.IsRetry,
                         asyncToken);
+                }
+
+                public override string ToString()
+                {
+                    return $"{DocumentId?.ToString() ?? ProjectId.ToString()}, ({InvocationReasons.ToString()}), LowPriority:{IsLowPriority}, ActiveMember:{ActiveMember != null}, Retry:{IsRetry}, ({string.Join("|", Analyzers.Select(a => a.GetType().Name))})";
                 }
             }
         }

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.ComponentModel.Composition;
 using System.Threading;
@@ -12,7 +12,6 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
 {
@@ -28,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
 
         protected override void TryCompleteTag(ITextView textView, ITextBuffer subjectBuffer, Document document, SnapshotPoint position, CancellationToken cancellationToken)
         {
-            var tree = document.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var tree = document.GetSyntaxTreeSynchronously(cancellationToken);
             var token = tree.FindTokenOnLeftOfPosition(position, cancellationToken, includeDocumentationComments: true);
 
             if (token.IsKind(SyntaxKind.GreaterThanToken))
@@ -96,8 +95,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
 
         private bool HasUnmatchedIdenticalParent(XmlElementStartTagSyntax parentStartTag)
         {
-            var grandParentElement = parentStartTag.Parent.Parent as XmlElementSyntax;
-            if (grandParentElement != null)
+            if (parentStartTag.Parent.Parent is XmlElementSyntax grandParentElement)
             {
                 if (grandParentElement.StartTag.Name.LocalName.ValueText == parentStartTag.Name.LocalName.ValueText)
                 {

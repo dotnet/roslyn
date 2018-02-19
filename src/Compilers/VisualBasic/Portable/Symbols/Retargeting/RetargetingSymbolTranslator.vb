@@ -5,6 +5,7 @@ Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports System.Collections.ObjectModel
 Imports Microsoft.Cci
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -149,7 +150,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             Private Function RetargetNamedTypeDefinition(type As NamedTypeSymbol, options As RetargetOptions) As NamedTypeSymbol
                 Debug.Assert(type Is type.OriginalDefinition)
 
-                ' Before we do anything else, check if we need to do special retargeting
+                If type.IsTupleType Then
+                    Dim newUnderlyingType = Retarget(type.TupleUnderlyingType, options)
+
+                    If newUnderlyingType.IsTupleOrCompatibleWithTupleOfCardinality(type.TupleElementTypes.Length) Then
+                        Return DirectCast(type, TupleTypeSymbol).WithUnderlyingType(newUnderlyingType)
+                    Else
+                        Return newUnderlyingType
+                    End If
+                End If
+
+                ' Check if we need to do special retargeting
                 ' for primitive type references encoded with enum values in metadata signatures.
                 If (options = RetargetOptions.RetargetPrimitiveTypesByTypeCode) Then
                     Dim typeCode As PrimitiveTypeCode = type.PrimitiveTypeCode
@@ -413,10 +424,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
                         Dim args = genericType.TypeArgumentsNoUseSiteDiagnostics
 
                         If genericType.HasTypeArgumentsCustomModifiers Then
-                            Dim modifiers = genericType.TypeArgumentsCustomModifiers
-
                             For i As Integer = 0 To arity - 1
-                                oldArguments.Add(New TypeWithModifiers(args(i), modifiers(i)))
+                                oldArguments.Add(New TypeWithModifiers(args(i), genericType.GetTypeArgumentCustomModifiers(i)))
                             Next
                         Else
                             For i As Integer = 0 To arity - 1
@@ -539,6 +548,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
 
                     Case SymbolKind.ErrorType, SymbolKind.NamedType
                         Dim namedType = DirectCast(symbol, NamedTypeSymbol)
+                        If namedType.IsTupleType Then
+                            namedType = namedType.TupleUnderlyingType
+                        End If
 
                         If symbol.OriginalDefinition.ContainingModule Is _retargetingModule.UnderlyingModule AndAlso
                             namedType.IsExplicitDefinitionOfNoPiaLocalType Then
@@ -587,30 +599,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             End Function
 
             Friend Function RetargetModifiers(oldModifiers As ImmutableArray(Of CustomModifier), ByRef modifiersHaveChanged As Boolean) As ImmutableArray(Of CustomModifier)
-                Dim i As Integer
-                Dim count As Integer = oldModifiers.Length
-                modifiersHaveChanged = False
+                Dim newModifiers As ArrayBuilder(Of CustomModifier) = Nothing
 
-                If count <> 0 Then
-                    Dim newModifiers As CustomModifier() = New CustomModifier(count - 1) {}
+                For i As Integer = 0 To oldModifiers.Length - 1 Step 1
+                    Dim newModifier As NamedTypeSymbol = Retarget(DirectCast(oldModifiers(i).Modifier, NamedTypeSymbol), RetargetOptions.RetargetPrimitiveTypesByName) ' should be retargeted by name
 
-                    For i = 0 To count - 1 Step 1
-                        Dim newModifier As NamedTypeSymbol = Retarget(DirectCast(oldModifiers(i).Modifier, NamedTypeSymbol), RetargetOptions.RetargetPrimitiveTypesByName) ' should be retargeted by name
-
-                        If Not newModifier.Equals(oldModifiers(i).Modifier) Then
-                            modifiersHaveChanged = True
-                            newModifiers(i) = If(oldModifiers(i).IsOptional,
-                                                VisualBasicCustomModifier.CreateOptional(newModifier),
-                                                VisualBasicCustomModifier.CreateRequired(newModifier))
-                        Else
-                            newModifiers(i) = oldModifiers(i)
+                    If Not newModifier.Equals(oldModifiers(i).Modifier) Then
+                        If newModifiers Is Nothing Then
+                            newModifiers = ArrayBuilder(Of CustomModifier).GetInstance(oldModifiers.Length)
+                            newModifiers.AddRange(oldModifiers, i)
                         End If
-                    Next
 
-                    Return newModifiers.AsImmutableOrNull()
-                End If
+                        newModifiers.Add(If(oldModifiers(i).IsOptional,
+                                                VisualBasicCustomModifier.CreateOptional(newModifier),
+                                                VisualBasicCustomModifier.CreateRequired(newModifier)))
+                    ElseIf newModifiers IsNot Nothing Then
+                        newModifiers.Add(oldModifiers(i))
+                    End If
+                Next
 
-                Return oldModifiers
+                Debug.Assert(newModifiers Is Nothing OrElse newModifiers.Count = oldModifiers.Length)
+                modifiersHaveChanged = (newModifiers IsNot Nothing)
+                Return If(modifiersHaveChanged, newModifiers.ToImmutableAndFree(), oldModifiers)
             End Function
 
             Friend Function RetargetModifiers(oldModifiers As ImmutableArray(Of CustomModifier), ByRef lazyCustomModifiers As ImmutableArray(Of CustomModifier)) As ImmutableArray(Of CustomModifier)
@@ -618,11 +628,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
                     Dim modifiersHaveChanged As Boolean
                     Dim newModifiers = RetargetModifiers(oldModifiers, modifiersHaveChanged)
 
-                    If Not modifiersHaveChanged Then
-                        newModifiers = oldModifiers
-                    End If
-
                     ImmutableInterlocked.InterlockedCompareExchange(lazyCustomModifiers, newModifiers, Nothing)
+                End If
+
+                Return lazyCustomModifiers
+            End Function
+
+            Friend Function RetargetModifiers(
+                oldTypeModifiers As ImmutableArray(Of CustomModifier),
+                oldRefModifiers As ImmutableArray(Of CustomModifier),
+                ByRef lazyCustomModifiers As CustomModifiersTuple
+            ) As CustomModifiersTuple
+                If lazyCustomModifiers Is Nothing Then
+                    Dim modifiersHaveChanged As Boolean
+                    Dim newTypeModifiers = RetargetModifiers(oldTypeModifiers, modifiersHaveChanged)
+                    Dim newRefModifiers = RetargetModifiers(oldRefModifiers, modifiersHaveChanged)
+
+                    Threading.Interlocked.CompareExchange(lazyCustomModifiers, CustomModifiersTuple.Create(newTypeModifiers, newRefModifiers), Nothing)
                 End If
 
                 Return lazyCustomModifiers
@@ -921,6 +943,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
                         targetParamsBuilder.Add(New SignatureOnlyParameterSymbol(
                                                 translator.Retarget(param.Type, RetargetOptions.RetargetPrimitiveTypesByTypeCode),
                                                 translator.RetargetModifiers(param.CustomModifiers, modifiersHaveChanged),
+                                                translator.RetargetModifiers(param.RefCustomModifiers, modifiersHaveChanged),
                                                 param.ExplicitDefaultConstantValue, param.IsParamArray,
                                                 param.IsByRef, param.IsOut, param.IsOptional))
                     Next
@@ -933,8 +956,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
                                                                      method.CallingConvention,
                                                                      IndexedTypeParameterSymbol.Take(method.Arity),
                                                                      targetParamsBuilder.ToImmutableAndFree(),
+                                                                     method.ReturnsByRef,
                                                                      translator.Retarget(method.ReturnType, RetargetOptions.RetargetPrimitiveTypesByTypeCode),
                                                                      translator.RetargetModifiers(method.ReturnTypeCustomModifiers, modifiersHaveChanged),
+                                                                     translator.RetargetModifiers(method.RefCustomModifiers, modifiersHaveChanged),
                                                                      ImmutableArray(Of MethodSymbol).Empty)
 
                     For Each retargetedMember As Symbol In retargetedType.GetMembers(method.Name)
@@ -1028,6 +1053,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
                     targetParamsBuilder.Add(New SignatureOnlyParameterSymbol(
                                             Retarget(param.Type, RetargetOptions.RetargetPrimitiveTypesByTypeCode),
                                             RetargetModifiers(param.CustomModifiers, modifiersHaveChanged),
+                                            RetargetModifiers(param.RefCustomModifiers, modifiersHaveChanged),
                                             If(param.HasExplicitDefaultValue, param.ExplicitDefaultConstantValue, Nothing), param.IsParamArray,
                                             param.IsByRef, param.IsOut, param.IsOptional))
                 Next
@@ -1037,8 +1063,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
                                                                      [property].IsReadOnly,
                                                                      [property].IsWriteOnly,
                                                                      targetParamsBuilder.ToImmutableAndFree(),
+                                                                     [property].ReturnsByRef,
                                                                      Retarget([property].Type, RetargetOptions.RetargetPrimitiveTypesByTypeCode),
-                                                                     RetargetModifiers([property].TypeCustomModifiers, modifiersHaveChanged))
+                                                                     RetargetModifiers([property].TypeCustomModifiers, modifiersHaveChanged),
+                                                                     RetargetModifiers([property].RefCustomModifiers, modifiersHaveChanged))
 
                 For Each retargetedMember As Symbol In retargetedType.GetMembers([property].Name)
                     If retargetedMember.Kind = SymbolKind.Property Then

@@ -1,11 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     /// <summary>
     /// A version of ITableDataSource who knows how to connect them to Roslyn solution crawler for live information.
     /// </summary>
@@ -14,6 +17,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         public AbstractRoslynTableDataSource(Workspace workspace) : base(workspace)
         {
             ConnectToSolutionCrawlerService(workspace);
+        }
+
+        protected ImmutableArray<DocumentId> GetDocumentsWithSameFilePath(Solution solution, DocumentId documentId)
+        {
+            var document = solution.GetDocument(documentId);
+            if (document == null)
+            {
+                return ImmutableArray<DocumentId>.Empty;
+            }
+
+            return solution.GetDocumentIdsWithFilePath(document.FilePath);
         }
 
         private void ConnectToSolutionCrawlerService(Workspace workspace)
@@ -26,25 +40,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             }
 
             var reporter = crawlerService.GetProgressReporter(workspace);
+            reporter.ProgressChanged += OnSolutionCrawlerProgressChanged;
 
             // set initial value
-            IsStable = !reporter.InProgress;
-
-            ChangeStableState(stable: IsStable);
-
-            reporter.Started += OnSolutionCrawlerStarted;
-            reporter.Stopped += OnSolutionCrawlerStopped;
+            SolutionCrawlerProgressChanged(reporter.InProgress);
         }
 
-        private void OnSolutionCrawlerStarted(object sender, EventArgs e)
+        private void OnSolutionCrawlerProgressChanged(object sender, bool running)
         {
-            IsStable = false;
-            ChangeStableState(IsStable);
+            SolutionCrawlerProgressChanged(running);
         }
 
-        private void OnSolutionCrawlerStopped(object sender, EventArgs e)
+        private void SolutionCrawlerProgressChanged(bool running)
         {
-            IsStable = true;
+            IsStable = !running;
             ChangeStableState(IsStable);
         }
     }

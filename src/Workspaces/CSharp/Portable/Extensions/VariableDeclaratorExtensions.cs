@@ -10,8 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
     {
         public static TypeSyntax GetVariableType(this VariableDeclaratorSyntax declarator)
         {
-            var variableDeclaration = declarator.Parent as VariableDeclarationSyntax;
-            if (variableDeclaration != null)
+            if (declarator.Parent is VariableDeclarationSyntax variableDeclaration)
             {
                 return variableDeclaration.Type;
             }

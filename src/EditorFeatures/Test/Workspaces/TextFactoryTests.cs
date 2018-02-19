@@ -109,7 +109,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 {
                     var text = reader.ReadToEnd();
 
-                    var mockSnapshot = new Mock<ITextSnapshot>();
+                    var mockImage = new Mock<ITextImage>();
+                    mockImage.Setup(i => i.GetText(It.IsAny<Span>())).Returns(text);
+
+                    var mockSnapshot = new Mock<ITextSnapshot2>();
+                    mockSnapshot.Setup(s => s.TextImage).Returns(mockImage.Object);
                     mockSnapshot.Setup(s => s.GetText()).Returns(text);
 
                     var mockTextBuffer = new Mock<ITextBuffer>();

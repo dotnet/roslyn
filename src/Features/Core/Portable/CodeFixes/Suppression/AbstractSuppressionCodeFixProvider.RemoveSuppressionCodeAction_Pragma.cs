@@ -1,7 +1,6 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -81,11 +80,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                         add = true;
                     }
 
-                    Func<SyntaxToken, TextSpan, Task<SyntaxToken>> getNewStartToken = (startToken, currentDiagnosticSpan) => includeStartTokenChange
+                    Task<SyntaxToken> getNewStartToken(SyntaxToken startToken, TextSpan currentDiagnosticSpan) => includeStartTokenChange
                         ? GetNewTokenWithModifiedPragmaAsync(startToken, currentDiagnosticSpan, add, toggle, indexOfLeadingPragmaDisableToRemove, isStartToken: true)
                         : Task.FromResult(startToken);
 
-                    Func<SyntaxToken, TextSpan, Task<SyntaxToken>> getNewEndToken = (endToken, currentDiagnosticSpan) => includeEndTokenChange
+                    Task<SyntaxToken> getNewEndToken(SyntaxToken endToken, TextSpan currentDiagnosticSpan) => includeEndTokenChange
                         ? GetNewTokenWithModifiedPragmaAsync(endToken, currentDiagnosticSpan, add, toggle, indexOfTrailingPragmaEnableToRemove, isStartToken: false)
                         : Task.FromResult(endToken);
 
@@ -119,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     var triviaList = GetTriviaListForSuppression(token, isStartToken, fixer);
 
                     var diagnosticSpan = diagnostic.Location.SourceSpan;
-                    Func<SyntaxTrivia, bool> shouldIncludeTrivia = t => isStartToken ? t.FullSpan.End <= diagnosticSpan.Start : t.FullSpan.Start >= diagnosticSpan.End;
+                    bool shouldIncludeTrivia(SyntaxTrivia t) => isStartToken ? t.FullSpan.End <= diagnosticSpan.Start : t.FullSpan.Start >= diagnosticSpan.End;
                     var filteredTriviaList = triviaList.Where(shouldIncludeTrivia);
                     if (isStartToken)
                     {
@@ -129,8 +128,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 
                     foreach (var trivia in filteredTriviaList)
                     {
-                        bool isEnableDirective, hasMultipleIds;
-                        if (fixer.IsAnyPragmaDirectiveForId(trivia, diagnostic.Id, out isEnableDirective, out hasMultipleIds))
+                        if (fixer.IsAnyPragmaDirectiveForId(trivia, diagnostic.Id, out var isEnableDirective, out var hasMultipleIds))
                         {
                             if (hasMultipleIds)
                             {
@@ -174,9 +172,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 
                 private Task<SyntaxToken> GetNewTokenWithRemovedOrToggledPragmaAsync(SyntaxToken token, int indexOfTriviaToRemoveOrToggle, bool isStartToken, bool toggle)
                 {
-                    var result = isStartToken
-                        ? GetNewTokenWithPragmaUnsuppress(token, indexOfTriviaToRemoveOrToggle, _diagnostic, Fixer, isStartToken, toggle)
-                        : GetNewTokenWithPragmaUnsuppress(token, indexOfTriviaToRemoveOrToggle, _diagnostic, Fixer, isStartToken, toggle);
+                    var result = GetNewTokenWithPragmaUnsuppress(token, indexOfTriviaToRemoveOrToggle, _diagnostic, Fixer, isStartToken, toggle);
 
                     return Task.FromResult(result);
                 }
@@ -190,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     if (toggle)
                     {
                         var triviaToToggle = triviaList.ElementAt(indexOfTriviaToRemoveOrToggle);
-                        Contract.ThrowIfFalse(triviaToToggle != default(SyntaxTrivia));
+                        Contract.ThrowIfFalse(triviaToToggle != default);
                         var toggledTrivia = fixer.TogglePragmaDirective(triviaToToggle);
                         triviaList = triviaList.Replace(triviaToToggle, toggledTrivia);
                     }

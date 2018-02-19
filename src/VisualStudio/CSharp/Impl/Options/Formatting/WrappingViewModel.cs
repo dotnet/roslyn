@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using Microsoft.CodeAnalysis;
@@ -13,22 +13,17 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
     /// </summary>
     internal class WrappingViewModel : AbstractOptionPreviewViewModel
     {
-        internal override bool ShouldPersistOption(OptionKey key)
-        {
-            return key.Option.Feature == CSharpFormattingOptions.WrappingFeatureName;
-        }
-
-        private static readonly string s_blockPreview = @"
+        private const string s_blockPreview = @"
 class C
 {
 //[
-    public int Foo { get; set; }
+    public int Goo { get; set; }
 //]    
 }";
 
-        private static readonly string s_declarationPreview = @"
+        private const string s_declarationPreview = @"
 class C{
-    void foo()
+    void goo()
     {
 //[
         int i = 0; string name = ""John"";
@@ -38,8 +33,8 @@ class C{
 
         public WrappingViewModel(OptionSet options, IServiceProvider serviceProvider) : base(options, serviceProvider, LanguageNames.CSharp)
         {
-            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.WrappingPreserveSingleLine, CSharpVSResources.WrappingPreserveSingleLine, s_blockPreview, this, options));
-            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.WrappingKeepStatementsOnSingleLine, CSharpVSResources.WrappingKeepStatementsOnSingleLine, s_declarationPreview, this, options));
+            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.WrappingPreserveSingleLine, CSharpVSResources.Leave_block_on_single_line, s_blockPreview, this, options));
+            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.WrappingKeepStatementsOnSingleLine, CSharpVSResources.Leave_statements_and_member_declarations_on_the_same_line, s_declarationPreview, this, options));
         }
     }
 }

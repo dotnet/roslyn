@@ -4,6 +4,7 @@ Imports System.Collections.ObjectModel
 Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.Collections
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -36,6 +37,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             ' for debugger expressions, we should use this SyntaxTree.
             Dim syntaxTree = expression.CreateSyntaxTree()
             diagnostics.AddRange(syntaxTree.GetDiagnostics())
+
+            If diagnostics.HasAnyErrors Then
+                Return Nothing
+            End If
 
             ' Any Diagnostic spans produced in binding will be offset by the length of the "target" expression text.
             ' If we want to support live squiggles in debugger windows, SemanticModel, etc, we'll want to address this.
@@ -180,7 +185,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 options:=Nothing,
                 [imports]:=Nothing,
                 attributes:=Nothing,
-                members:=InternalSyntax.SyntaxList.List(statement),
+                members:=Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList.List(statement),
                 endOfFileToken:=InternalSyntax.SyntaxFactory.EndOfFileToken)
         End Function
 

@@ -57,7 +57,7 @@ public class Test
     IL_0023:  brfalse.s  IL_002b
     IL_0025:  ldloc.0
     IL_0026:  call       ""void System.Threading.Monitor.Exit(object)""
-    IL_002b:  endfinally
+   ~IL_002b:  endfinally
   }
  -IL_002c:  ldstr      ""After""
   IL_0031:  call       ""void System.Console.WriteLine(string)""
@@ -112,7 +112,7 @@ public class Test
     IL_0027:  brfalse.s  IL_002f
     IL_0029:  ldloc.0
     IL_002a:  call       ""void System.Threading.Monitor.Exit(object)""
-    IL_002f:  endfinally
+   ~IL_002f:  endfinally
   }
  -IL_0030:  ldstr      ""After""
   IL_0035:  call       ""void System.Console.WriteLine(string)""
@@ -387,7 +387,7 @@ public class Test
     IL_0027:  brfalse.s  IL_002f
     IL_0029:  ldloc.0
     IL_002a:  call       ""void System.Threading.Monitor.Exit(object)""
-    IL_002f:  endfinally
+   ~IL_002f:  endfinally
   }
  -IL_0030:  ldstr      ""After""
   IL_0035:  call       ""void System.Console.WriteLine(string)""
@@ -1101,7 +1101,7 @@ class Test
 class Test
 {
     private object syncroot = new object();
-    public void foo()
+    public void goo()
     {
         lock (syncroot)
         {
@@ -1112,7 +1112,7 @@ class Test
     }
 }
 ";
-            CompileAndVerify(text).VerifyIL("Test.foo", @"
+            CompileAndVerify(text).VerifyIL("Test.goo", @"
 {
   // Code size       57 (0x39)
   .maxstack  2
@@ -1209,7 +1209,7 @@ class Test
 {
     public static void Main()
     { }
-    public IEnumerable<int> Foo()
+    public IEnumerable<int> Goo()
     {
         lock (new object())
         {
@@ -1846,7 +1846,7 @@ class C
         System.Threading.Thread[] t = new System.Threading.Thread[20];
         for (int i = 0; i < 20; i++)
         {
-            t[i] = new System.Threading.Thread(p.foo);
+            t[i] = new System.Threading.Thread(p.goo);
             t[i].Start();
         }
         for (int i = 0; i < 20; i++)
@@ -1861,7 +1861,7 @@ class D
 {
     private object syncroot = new object();
     public int s;
-    public void foo()
+    public void goo()
     {
         lock (syncroot)
         {
@@ -1894,7 +1894,7 @@ class C1
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
             compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Enter);
 
             CompileAndVerify(compilation, expectedOutput: "Inside lock.");
@@ -1915,7 +1915,7 @@ class C1
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
             compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Enter2);
 
             CompileAndVerify(compilation, expectedOutput: "Inside lock.");
@@ -1936,7 +1936,7 @@ class C1
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
             compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Enter);
             compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Enter2);
 
@@ -1965,7 +1965,7 @@ class C1
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
             compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Exit);
 
             compilation.VerifyEmitDiagnostics(
@@ -1993,7 +1993,7 @@ class C1
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
             compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Enter);
             compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Enter2);
             compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Exit);
@@ -2029,7 +2029,7 @@ class C1
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
             compilation.MakeTypeMissing(WellKnownType.System_Threading_Monitor);
 
             compilation.VerifyEmitDiagnostics(

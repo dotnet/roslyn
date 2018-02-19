@@ -1,9 +1,10 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.Linq;
+using System.Collections.Immutable;
 using System.Threading;
-using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
 {
@@ -23,39 +24,28 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
             }
 
             protected override ITypeSymbol DetermineReturnTypeWorker(CancellationToken cancellationToken)
-            {
-                if (State.IsInConditionalAccessExpression)
-                {
-                    return _methodSymbol.ReturnType.RemoveNullableIfPresent();
-                }
+                => _methodSymbol.ReturnType;
 
-                return _methodSymbol.ReturnType;
-            }
+            protected override RefKind DetermineRefKind(CancellationToken cancellationToken)
+                => _methodSymbol.RefKind;
 
-            public override IList<ITypeParameterSymbol> DetermineTypeParameters(CancellationToken cancellationToken)
-            {
-                return _methodSymbol.TypeParameters;
-            }
+            protected override ImmutableArray<ITypeParameterSymbol> DetermineTypeParametersWorker(CancellationToken cancellationToken)
+                => _methodSymbol.TypeParameters;
 
-            protected override IList<RefKind> DetermineParameterModifiers(CancellationToken cancellationToken)
-            {
-                return _methodSymbol.Parameters.Select(p => p.RefKind).ToList();
-            }
+            protected override ImmutableArray<RefKind> DetermineParameterModifiers(CancellationToken cancellationToken)
+                => _methodSymbol.Parameters.SelectAsArray(p => p.RefKind);
 
-            protected override IList<bool> DetermineParameterOptionality(CancellationToken cancellationToken)
-            {
-                return _methodSymbol.Parameters.Select(p => p.IsOptional).ToList();
-            }
+            protected override ImmutableArray<bool> DetermineParameterOptionality(CancellationToken cancellationToken)
+                => _methodSymbol.Parameters.SelectAsArray(p => p.IsOptional);
 
-            protected override IList<ITypeSymbol> DetermineParameterTypes(CancellationToken cancellationToken)
-            {
-                return _methodSymbol.Parameters.Select(p => p.Type).ToList();
-            }
+            protected override ImmutableArray<ITypeSymbol> DetermineParameterTypes(CancellationToken cancellationToken)
+                => _methodSymbol.Parameters.SelectAsArray(p => p.Type);
 
-            protected override IList<string> DetermineParameterNames(CancellationToken cancellationToken)
-            {
-                return _methodSymbol.Parameters.Select(p => p.Name).ToList();
-            }
+            protected override ImmutableArray<ParameterName> DetermineParameterNames(CancellationToken cancellationToken)
+                => _methodSymbol.Parameters.SelectAsArray(p => new ParameterName(p.Name, isFixed: true));
+
+            protected override ImmutableArray<ITypeSymbol> DetermineTypeArguments(CancellationToken cancellationToken)
+                => ImmutableArray<ITypeSymbol>.Empty;
         }
     }
 }

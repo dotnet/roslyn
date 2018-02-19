@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection;
+using System;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -104,6 +105,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
+        public override RefKind RefKind
+        {
+            get { return RefKind.None; }
+        }
+
         public override bool IsVirtual
         {
             get { return false; }
@@ -135,6 +141,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         public override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers
+        {
+            get { return ImmutableArray<CustomModifier>.Empty; }
+        }
+
+        public override ImmutableArray<CustomModifier> RefCustomModifiers
         {
             get { return ImmutableArray<CustomModifier>.Empty; }
         }
@@ -230,14 +241,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             out TypeSymbol resultType,
             out TypeSymbol returnType)
         {
-            var submissionReturnType = compilation.SubmissionReturnType ?? typeof(object);
+            var submissionReturnTypeOpt = compilation.ScriptCompilationInfo?.ReturnTypeOpt;
             var taskT = compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T);
             var useSiteDiagnostic = taskT.GetUseSiteDiagnostic();
             if (useSiteDiagnostic != null)
             {
                 diagnostics.Add(useSiteDiagnostic, NoLocation.Singleton);
             }
-            resultType = compilation.GetTypeByReflectionType(submissionReturnType, diagnostics);
+            // If no explicit return type is set on ScriptCompilationInfo, default to
+            // System.Object from the target corlib. This allows cross compiling scripts
+            // to run on a target corlib that may differ from the host compiler's corlib.
+            // cf. https://github.com/dotnet/roslyn/issues/8506
+            resultType = (object)submissionReturnTypeOpt == null
+                ? compilation.GetSpecialType(SpecialType.System_Object)
+                : compilation.GetTypeByReflectionType(submissionReturnTypeOpt, diagnostics);
             returnType = taskT.Construct(resultType);
         }
     }

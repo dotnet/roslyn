@@ -2,8 +2,7 @@
 
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -71,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 }
                             }
 
-                            if (_entryPointCandidates != null && method.IsEntryPointCandidate)
+                            if (method.IsEntryPointCandidate)
                             {
                                 _entryPointCandidates.Add(method);
                             }

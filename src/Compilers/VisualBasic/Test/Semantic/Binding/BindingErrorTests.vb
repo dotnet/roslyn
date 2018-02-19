@@ -8118,7 +8118,7 @@ BC30518: Overload resolution failed because no accessible 'sub1' can be called w
         <file name="a.vb">
 Option Strict On
 Option Infer On
-
+Imports System
 Imports System.Threading.Tasks
 
 Public Module Program
@@ -18778,8 +18778,10 @@ BC41007: Attribute 'Conditional' is only valid on 'Sub' declarations.
         End Sub
 
         <Fact()>
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <WorkItem(23282, "https://github.com/dotnet/roslyn/issues/23282")>
         Public Sub BC41998WRN_RecursiveAddHandlerCall()
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     <compilation name="RecursiveAddHandlerCall">
         <file name="a.vb">
             Module M1
@@ -18811,7 +18813,72 @@ BC41998: Statement recursively calls the containing 'RaiseEvent' for event 't'.
                         RaiseEvent t()
                         ~~~~~~~~~~~~~~
                  </errors>
-            CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
+            CompilationUtils.AssertTheseDiagnostics(compilation, expectedErrors1)
+
+            Dim tree = compilation.SyntaxTrees.Single()
+            Dim model = compilation.GetSemanticModel(tree)
+
+            Dim add = tree.GetRoot().DescendantNodes().OfType(Of AddRemoveHandlerStatementSyntax)().First()
+
+            Assert.Equal("AddHandler t, AddressOf test_d1", add.ToString())
+
+            compilation.VerifyOperationTree(add, expectedOperationTree:=
+            <![CDATA[
+IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'AddHandler  ... sOf test_d1')
+  Expression: 
+    IEventAssignmentOperation (EventAdd) (OperationKind.EventAssignment, Type: null, IsImplicit) (Syntax: 'AddHandler  ... sOf test_d1')
+      Event Reference: 
+        IEventReferenceOperation: Event M1.t As M1.test_x (Static) (OperationKind.EventReference, Type: M1.test_x) (Syntax: 't')
+          Instance Receiver: 
+            null
+      Handler: 
+        IDelegateCreationOperation (OperationKind.DelegateCreation, Type: M1.test_x, IsImplicit) (Syntax: 'AddressOf test_d1')
+          Target: 
+            IMethodReferenceOperation: Sub M1.test_d1() (Static) (OperationKind.MethodReference, Type: null) (Syntax: 'AddressOf test_d1')
+              Instance Receiver: 
+                null
+]]>.Value)
+
+            Assert.Equal("Event M1.t As M1.test_x", model.GetSymbolInfo(add.EventExpression).Symbol.ToTestDisplayString())
+
+            Dim remove = tree.GetRoot().DescendantNodes().OfType(Of AddRemoveHandlerStatementSyntax)().Last()
+
+            Assert.Equal("RemoveHandler t, AddressOf test_d1", remove.ToString())
+
+            compilation.VerifyOperationTree(remove, expectedOperationTree:=
+            <![CDATA[
+IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'RemoveHandl ... sOf test_d1')
+  Expression: 
+    IEventAssignmentOperation (EventRemove) (OperationKind.EventAssignment, Type: null, IsImplicit) (Syntax: 'RemoveHandl ... sOf test_d1')
+      Event Reference: 
+        IEventReferenceOperation: Event M1.t As M1.test_x (Static) (OperationKind.EventReference, Type: M1.test_x) (Syntax: 't')
+          Instance Receiver: 
+            null
+      Handler: 
+        IDelegateCreationOperation (OperationKind.DelegateCreation, Type: M1.test_x, IsImplicit) (Syntax: 'AddressOf test_d1')
+          Target: 
+            IMethodReferenceOperation: Sub M1.test_d1() (Static) (OperationKind.MethodReference, Type: null) (Syntax: 'AddressOf test_d1')
+              Instance Receiver: 
+                null
+]]>.Value)
+
+            Assert.Equal("Event M1.t As M1.test_x", model.GetSymbolInfo(remove.EventExpression).Symbol.ToTestDisplayString())
+
+            Dim raise = tree.GetRoot().DescendantNodes().OfType(Of RaiseEventStatementSyntax)().Single()
+
+            Assert.Equal("RaiseEvent t()", raise.ToString())
+
+            compilation.VerifyOperationTree(raise, expectedOperationTree:=
+            <![CDATA[
+IRaiseEventOperation (OperationKind.RaiseEvent, Type: null) (Syntax: 'RaiseEvent t()')
+  Event Reference: 
+    IEventReferenceOperation: Event M1.t As M1.test_x (Static) (OperationKind.EventReference, Type: M1.test_x) (Syntax: 't')
+      Instance Receiver: 
+        null
+  Arguments(0)
+]]>.Value)
+
+            Assert.Equal("Event M1.t As M1.test_x", model.GetSymbolInfo(raise.Name).Symbol.ToTestDisplayString())
         End Sub
 
         <Fact()>
@@ -22051,7 +22118,7 @@ End Class
     {TestReferences.SymbolsTests.NoPia.NoPIAGenericsAsm1})
             compilation1.AssertTheseDiagnostics(
 <errors>
-BC36924: Type 'List(Of FooStruct)' cannot be used across assembly boundaries because it has a generic type parameter that is an embedded interop type.
+BC36924: Type 'List(Of FooStruct)' cannot be used across assembly boundaries because it has a generic type argument that is an embedded interop type.
     Dim _myclass As MyClass1 = Nothing
                     ~~~~~~~~
 </errors>)
@@ -22074,10 +22141,10 @@ End Class
     {TestReferences.SymbolsTests.NoPia.NoPIAGenericsAsm1})
             compilation1.AssertTheseDiagnostics(
 <errors>
-BC36924: Type 'List(Of FooStruct)' cannot be used across assembly boundaries because it has a generic type parameter that is an embedded interop type.
+BC36924: Type 'List(Of FooStruct)' cannot be used across assembly boundaries because it has a generic type argument that is an embedded interop type.
         Dim _myclass = MyClass1.Class1Foo
                        ~~~~~~~~
-BC36924: Type 'List(Of FooStruct)' cannot be used across assembly boundaries because it has a generic type parameter that is an embedded interop type.
+BC36924: Type 'List(Of FooStruct)' cannot be used across assembly boundaries because it has a generic type argument that is an embedded interop type.
         Dim _myclass = MyClass1.Class1Foo
                        ~~~~~~~~~~~~~~~~~~
 </errors>)
@@ -22100,7 +22167,7 @@ End Class
     {TestReferences.SymbolsTests.NoPia.NoPIAGenericsAsm1})
             compilation1.AssertTheseDiagnostics(
 <errors>
-BC36924: Type 'List(Of FooStruct)' cannot be used across assembly boundaries because it has a generic type parameter that is an embedded interop type.
+BC36924: Type 'List(Of FooStruct)' cannot be used across assembly boundaries because it has a generic type argument that is an embedded interop type.
         Dim _myclass = directcast(nothing, MyClass1)
                                            ~~~~~~~~
 </errors>)
@@ -22169,16 +22236,13 @@ Module Module1
 
 End Module
     </file>
-    </compilation>)
+    </compilation>, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15))
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC30518: Overload resolution failed because no accessible 'M1' can be called with these arguments:
-        M1(x:=2, 3) 'BIND:"M1(x:=2, 3)"
-        ~~
-BC30241: Named argument expected.
+BC30241: Named argument expected. Please use language version 15.5 or greater to use non-trailing named arguments.
         M1(x:=2, 3) 'BIND:"M1(x:=2, 3)"
                  ~
-BC30241: Named argument expected.
+BC30241: Named argument expected. Please use language version 15.5 or greater to use non-trailing named arguments.
         M2(x:=2, 3)
                  ~
 </expected>)
@@ -25966,6 +26030,119 @@ BC36716: Visual Basic 12.0 does not support implementing read-only or write-only
 BC36716: Visual Basic 12.0 does not support implementing read-only or write-only property with read-write property.
     Public Property Test2 As String Implements IReadOnly.Test2
                                                ~~~~~~~~~~~~~~~
+</expected>)
+        End Sub
+
+        <Fact(), WorkItem(13617, "https://github.com/dotnet/roslyn/issues/13617")>
+        Public Sub MissingTypeArgumentInGenericExtensionMethod()
+            Dim source =
+    <compilation>
+        <file name="a.vb"><![CDATA[
+Imports System
+Imports System.Runtime.CompilerServices
+
+Module FooExtensions
+    <Extension()>
+    Public Function ExtensionMethod0(ByVal obj As Object)
+        Return GetType(Object)
+    End Function
+    <Extension()>
+    Public Function ExtensionMethod1(Of T)(ByVal obj As Object)
+        Return GetType(T)
+    End Function
+    <Extension()>
+    Public Function ExtensionMethod2(Of T1, T2)(ByVal obj As Object)
+        Return GetType(T1)
+    End Function
+End Module
+
+Module Module1
+    Sub Main()
+        Dim omittedArg0 As Type = "string literal".ExtensionMethod0(Of )()
+        Dim omittedArg1 As Type = "string literal".ExtensionMethod1(Of )()
+        Dim omittedArg2 As Type = "string literal".ExtensionMethod2(Of )()
+        
+        Dim omittedArgFunc0 As Func(Of Object) = "string literal".ExtensionMethod0(Of )
+        Dim omittedArgFunc1 As Func(Of Object) = "string literal".ExtensionMethod1(Of )
+        Dim omittedArgFunc2 As Func(Of Object) = "string literal".ExtensionMethod2(Of )
+
+        Dim moreArgs0 As Type = "string literal".ExtensionMethod0(Of Integer)()
+        Dim moreArgs1 As Type = "string literal".ExtensionMethod1(Of Integer, Boolean)()
+        Dim moreArgs2 As Type = "string literal".ExtensionMethod2(Of Integer, Boolean, String)()
+
+        Dim lessArgs1 As Type = "string literal".ExtensionMethod1()
+        Dim lessArgs2 As Type = "string literal".ExtensionMethod2(Of Integer)()
+
+        Dim nonExistingMethod0 As Type = "string literal".ExtensionMethodNotFound0()
+        Dim nonExistingMethod1 As Type = "string literal".ExtensionMethodNotFound1(Of Integer)()
+        Dim nonExistingMethod2 As Type = "string literal".ExtensionMethodNotFound2(Of Integer, String)()
+
+        Dim exactArgs0 As Type = "string literal".ExtensionMethod0()
+        Dim exactArgs1 As Type = "string literal".ExtensionMethod1(Of Integer)()
+        Dim exactArgs2 As Type = "string literal".ExtensionMethod2(Of Integer, Boolean)()
+    End Sub
+End Module
+        ]]></file>
+    </compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef})
+
+            CompilationUtils.AssertTheseDiagnostics(compilation,
+<expected>
+BC36907: Extension method 'Public Function ExtensionMethod0() As Object' defined in 'FooExtensions' is not generic (or has no free type parameters) and so cannot have type arguments.
+        Dim omittedArg0 As Type = "string literal".ExtensionMethod0(Of )()
+                                                                   ~~~~~
+BC30182: Type expected.
+        Dim omittedArg0 As Type = "string literal".ExtensionMethod0(Of )()
+                                                                       ~
+BC30182: Type expected.
+        Dim omittedArg1 As Type = "string literal".ExtensionMethod1(Of )()
+                                                                       ~
+BC36590: Too few type arguments to extension method 'Public Function ExtensionMethod2(Of T1, T2)() As Object' defined in 'FooExtensions'.
+        Dim omittedArg2 As Type = "string literal".ExtensionMethod2(Of )()
+                                                                   ~~~~~
+BC30182: Type expected.
+        Dim omittedArg2 As Type = "string literal".ExtensionMethod2(Of )()
+                                                                       ~
+BC36907: Extension method 'Public Function ExtensionMethod0() As Object' defined in 'FooExtensions' is not generic (or has no free type parameters) and so cannot have type arguments.
+        Dim omittedArgFunc0 As Func(Of Object) = "string literal".ExtensionMethod0(Of )
+                                                                                  ~~~~~
+BC30182: Type expected.
+        Dim omittedArgFunc0 As Func(Of Object) = "string literal".ExtensionMethod0(Of )
+                                                                                      ~
+BC30182: Type expected.
+        Dim omittedArgFunc1 As Func(Of Object) = "string literal".ExtensionMethod1(Of )
+                                                                                      ~
+BC36590: Too few type arguments to extension method 'Public Function ExtensionMethod2(Of T1, T2)() As Object' defined in 'FooExtensions'.
+        Dim omittedArgFunc2 As Func(Of Object) = "string literal".ExtensionMethod2(Of )
+                                                                                  ~~~~~
+BC30182: Type expected.
+        Dim omittedArgFunc2 As Func(Of Object) = "string literal".ExtensionMethod2(Of )
+                                                                                      ~
+BC36907: Extension method 'Public Function ExtensionMethod0() As Object' defined in 'FooExtensions' is not generic (or has no free type parameters) and so cannot have type arguments.
+        Dim moreArgs0 As Type = "string literal".ExtensionMethod0(Of Integer)()
+                                                                 ~~~~~~~~~~~~
+BC36591: Too many type arguments to extension method 'Public Function ExtensionMethod1(Of T)() As Object' defined in 'FooExtensions'.
+        Dim moreArgs1 As Type = "string literal".ExtensionMethod1(Of Integer, Boolean)()
+                                                                 ~~~~~~~~~~~~~~~~~~~~~
+BC36591: Too many type arguments to extension method 'Public Function ExtensionMethod2(Of T1, T2)() As Object' defined in 'FooExtensions'.
+        Dim moreArgs2 As Type = "string literal".ExtensionMethod2(Of Integer, Boolean, String)()
+                                                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC36589: Type parameter 'T' for extension method 'Public Function ExtensionMethod1(Of T)() As Object' defined in 'FooExtensions' cannot be inferred.
+        Dim lessArgs1 As Type = "string literal".ExtensionMethod1()
+                                                 ~~~~~~~~~~~~~~~~
+BC36590: Too few type arguments to extension method 'Public Function ExtensionMethod2(Of T1, T2)() As Object' defined in 'FooExtensions'.
+        Dim lessArgs2 As Type = "string literal".ExtensionMethod2(Of Integer)()
+                                                                 ~~~~~~~~~~~~
+BC30456: 'ExtensionMethodNotFound0' is not a member of 'String'.
+        Dim nonExistingMethod0 As Type = "string literal".ExtensionMethodNotFound0()
+                                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30456: 'ExtensionMethodNotFound1' is not a member of 'String'.
+        Dim nonExistingMethod1 As Type = "string literal".ExtensionMethodNotFound1(Of Integer)()
+                                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30456: 'ExtensionMethodNotFound2' is not a member of 'String'.
+        Dim nonExistingMethod2 As Type = "string literal".ExtensionMethodNotFound2(Of Integer, String)()
+                                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </expected>)
         End Sub
 

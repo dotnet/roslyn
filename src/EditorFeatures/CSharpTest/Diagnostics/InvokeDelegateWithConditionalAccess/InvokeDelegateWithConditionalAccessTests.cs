@@ -1,11 +1,8 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Test.Utilities;
@@ -13,23 +10,20 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDelegateWithConditionalAccess
 {
-    public class InvokeDelegateWithConditionalAccessTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public partial class InvokeDelegateWithConditionalAccessTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
-        internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
-        {
-            return new Tuple<DiagnosticAnalyzer, CodeFixProvider>(
-                new InvokeDelegateWithConditionalAccessAnalyzer(),
-                new InvokeDelegateWithConditionalAccessCodeFixProvider());
-        }
+        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+            => (new InvokeDelegateWithConditionalAccessAnalyzer(), new InvokeDelegateWithConditionalAccessCodeFixProvider());
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
         public async Task Test1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     System.Action a;
-    void Foo()
+
+    void Goo()
     {
         [||]var v = a;
         if (v != null)
@@ -38,11 +32,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
         }
     }
 }",
-@"
-class C
+@"class C
 {
     System.Action a;
-    void Foo()
+
+    void Goo()
     {
         a?.Invoke();
     }
@@ -50,13 +44,90 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
-        public async Task TestInvertedIf()
+        public async Task TestOnIf()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     System.Action a;
-    void Foo()
+
+    void Goo()
+    {
+        var v = a;
+        [||]if (v != null)
+        {
+            v();
+        }
+    }
+}",
+@"class C
+{
+    System.Action a;
+
+    void Goo()
+    {
+        a?.Invoke();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
+        public async Task TestOnInvoke()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    System.Action a;
+
+    void Goo()
+    {
+        var v = a;
+        if (v != null)
+        {
+            [||]v();
+        }
+    }
+}",
+@"class C
+{
+    System.Action a;
+
+    void Goo()
+    {
+        a?.Invoke();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
+        [WorkItem(13226, "https://github.com/dotnet/roslyn/issues/13226")]
+        public async Task TestMissingBeforeCSharp6()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    System.Action a;
+
+    void Goo()
+    {
+        [||]var v = a;
+        if (v != null)
+        {
+            v();
+        }
+    }
+}", new TestParameters(CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
+        public async Task TestInvertedIf()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    System.Action a;
+
+    void Goo()
     {
         [||]var v = a;
         if (null != v)
@@ -65,11 +136,11 @@ class C
         }
     }
 }",
-@"
-class C
+@"class C
 {
     System.Action a;
-    void Foo()
+
+    void Goo()
     {
         a?.Invoke();
     }
@@ -79,22 +150,23 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
         public async Task TestIfWithNoBraces()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     System.Action a;
-    void Foo()
+
+    void Goo()
     {
         [||]var v = a;
         if (null != v)
             v();
     }
 }",
-@"
-class C
+@"class C
 {
     System.Action a;
-    void Foo()
+
+    void Goo()
     {
         a?.Invoke();
     }
@@ -104,11 +176,12 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
         public async Task TestWithComplexExpression()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     System.Action a;
-    void Foo()
+
+    void Goo()
     {
         bool b = true;
         [||]var v = b ? a : null;
@@ -118,11 +191,11 @@ class C
         }
     }
 }",
-@"
-class C
+@"class C
 {
     System.Action a;
-    void Foo()
+
+    void Goo()
     {
         bool b = true;
         (b ? a : null)?.Invoke();
@@ -133,18 +206,21 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
         public async Task TestMissingWithElseClause()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     System.Action a;
-    void Foo()
+
+    void Goo()
     {
         [||]var v = a;
         if (v != null)
         {
             v();
         }
-        else {}
+        else
+        {
+        }
     }
 }");
         }
@@ -152,11 +228,12 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
         public async Task TestMissingOnDeclarationWithMultipleVariables()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     System.Action a;
-    void Foo()
+
+    void Goo()
     {
         [||]var v = a, x = a;
         if (v != null)
@@ -174,11 +251,12 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
         public async Task TestLocationWhereOfferedWithMultipleVariables()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     System.Action a;
-    void Foo()
+
+    void Goo()
     {
         var v = a, x = a;
         [||]if (v != null)
@@ -190,7 +268,8 @@ class C
 @"class C
 {
     System.Action a;
-    void Foo()
+
+    void Goo()
     {
         var v = a, x = a;
         v?.Invoke();
@@ -205,11 +284,12 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
         public async Task TestMissingOnDeclarationIfUsedOutside()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     System.Action a;
-    void Foo()
+
+    void Goo()
     {
         [||]var v = a;
         if (v != null)
@@ -230,11 +310,12 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
         public async Task TestLocationWhereOfferedIfUsedOutside()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     System.Action a;
-    void Foo()
+
+    void Goo()
     {
         var v = a;
         [||]if (v != null)
@@ -248,7 +329,8 @@ class C
 @"class C
 {
     System.Action a;
-    void Foo()
+
+    void Goo()
     {
         var v = a;
         v?.Invoke();
@@ -261,13 +343,13 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
         public async Task TestSimpleForm1()
         {
-            await TestAsync(
-@"
-using System;
+            await TestInRegularAndScriptAsync(
+@"using System;
 
 class C
 {
     public event EventHandler E;
+
     void M()
     {
         [||]if (this.E != null)
@@ -276,12 +358,43 @@ class C
         }
     }
 }",
-@"
-using System;
+@"using System;
 
 class C
 {
     public event EventHandler E;
+
+    void M()
+    {
+        this.E?.Invoke(this, EventArgs.Empty);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
+        public async Task TestSimpleForm2()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    public event EventHandler E;
+
+    void M()
+    {
+        if (this.E != null)
+        {
+            [||]this.E(this, EventArgs.Empty);
+        }
+    }
+}",
+@"using System;
+
+class C
+{
+    public event EventHandler E;
+
     void M()
     {
         this.E?.Invoke(this, EventArgs.Empty);
@@ -292,13 +405,13 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
         public async Task TestInElseClause1()
         {
-            await TestAsync(
-@"
-using System;
+            await TestInRegularAndScriptAsync(
+@"using System;
 
 class C
 {
     public event EventHandler E;
+
     void M()
     {
         if (true != true)
@@ -310,12 +423,12 @@ class C
         }
     }
 }",
-@"
-using System;
+@"using System;
 
 class C
 {
     public event EventHandler E;
+
     void M()
     {
         if (true != true)
@@ -332,13 +445,13 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
         public async Task TestInElseClause2()
         {
-            await TestAsync(
-@"
-using System;
+            await TestInRegularAndScriptAsync(
+@"using System;
 
 class C
 {
     public event EventHandler E;
+
     void M()
     {
         if (true != true)
@@ -348,12 +461,12 @@ class C
             this.E(this, EventArgs.Empty);
     }
 }",
-@"
-using System;
+@"using System;
 
 class C
 {
     public event EventHandler E;
+
     void M()
     {
         if (true != true)
@@ -367,11 +480,11 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
         public async Task TestTrivia1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     System.Action a;
-    void Foo()
+    void Goo()
     {
         // Comment
         [||]var v = a;
@@ -384,22 +497,22 @@ class C
 @"class C
 {
     System.Action a;
-    void Foo()
+    void Goo()
     {
         // Comment
         a?.Invoke();
     }
-}", compareTokens: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
         public async Task TestTrivia2()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     System.Action a;
-    void Foo()
+    void Goo()
     {
         // Comment
         [||]if (a != null)
@@ -411,12 +524,12 @@ class C
 @"class C
 {
     System.Action a;
-    void Foo()
+    void Goo()
     {
         // Comment
         a?.Invoke();
     }
-}", compareTokens: false);
+}");
         }
 
         /// <remarks>
@@ -425,11 +538,12 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
         public async Task TestFixOfferedOnIf()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     System.Action a;
-    void Foo()
+
+    void Goo()
     {
         var v = a;
         [||]if (v != null)
@@ -438,11 +552,11 @@ class C
         }
     }
 }",
-@"
-class C
+@"class C
 {
     System.Action a;
-    void Foo()
+
+    void Goo()
     {
         a?.Invoke();
     }
@@ -455,11 +569,12 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
         public async Task TestFixOfferedInsideIf()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     System.Action a;
-    void Foo()
+
+    void Goo()
     {
         var v = a;
         if (v != null)
@@ -468,11 +583,11 @@ class C
         }
     }
 }",
-@"
-class C
+@"class C
 {
     System.Action a;
-    void Foo()
+
+    void Goo()
     {
         a?.Invoke();
     }
@@ -482,11 +597,12 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
         public async Task TestMissingOnConditionalInvocation()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     System.Action a;
-    void Foo()
+
+    void Goo()
     {
         [||]var v = a;
         v?.Invoke();
@@ -497,11 +613,12 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
         public async Task TestMissingOnConditionalInvocation2()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     System.Action a;
-    void Foo()
+
+    void Goo()
     {
         var v = a;
         [||]v?.Invoke();
@@ -512,11 +629,12 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
         public async Task TestMissingOnConditionalInvocation3()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     System.Action a;
-    void Foo()
+
+    void Goo()
     {
         [||]a?.Invoke();
     }
@@ -526,11 +644,12 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
         public async Task TestMissingOnNonNullCheckExpressions()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     System.Action a;
-    void Foo()
+
+    void Goo()
     {
         var v = a;
         if (v == a)
@@ -544,11 +663,12 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
         public async Task TestMissingOnNonNullCheckExpressions2()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     System.Action a;
-    void Foo()
+
+    void Goo()
     {
         var v = a;
         if (v == null)
@@ -566,11 +686,12 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
         public async Task TestLocalNotImmediatelyPrecedingNullCheckAndInvokePattern()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     System.Action a;
-    void Foo()
+
+    void Goo()
     {
         [||]var v = a;
         int x;
@@ -589,11 +710,12 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
         public async Task TestLocalDNotImmediatelyPrecedingNullCheckAndInvokePattern2()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     System.Action a;
-    void Foo()
+
+    void Goo()
     {
         var v = a;
         int x;
@@ -606,7 +728,8 @@ class C
 @"class C
 {
     System.Action a;
-    void Foo()
+
+    void Goo()
     {
         var v = a;
         int x;
@@ -618,11 +741,12 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
         public async Task TestMissingOnFunc()
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     System.Func<int> a;
-    int Foo()
+
+    int Goo()
     {
         var v = a;
         [||]if (v != null)

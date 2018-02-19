@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.Composition
@@ -16,8 +16,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Completion
         Inherits CSharpSnippetInfoService
 
         <ImportingConstructor>
-        Friend Sub New(<ImportMany> asyncListeners As IEnumerable(Of Lazy(Of IAsynchronousOperationListener, FeatureMetadata)))
-            MyBase.New(Nothing, asyncListeners)
+        Friend Sub New(listenerProvider As IAsynchronousOperationListenerProvider)
+            MyBase.New(Nothing, listenerProvider)
         End Sub
 
         Friend Sub SetSnippetShortcuts(newSnippetShortcuts As String())

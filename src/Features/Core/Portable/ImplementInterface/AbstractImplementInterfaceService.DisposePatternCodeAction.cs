@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -48,7 +49,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             var unimplementedMembers = explicitly ? state.UnimplementedExplicitMembers : state.UnimplementedMembers;
             var idisposable = TryGetSymbolForIDisposable(state.Model.Compilation);
             return (idisposable != null) &&
-                   unimplementedMembers.Any(m => m.Item1.Equals(idisposable)) &&
+                   unimplementedMembers.Any(m => m.type.Equals(idisposable)) &&
                    this.CanImplementDisposePattern(state.ClassOrStructType, state.ClassOrStructDecl);
         }
 
@@ -86,22 +87,23 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 {
                     if (Explicitly)
                     {
-                        return FeaturesResources.ImplementInterfaceExplicitlyWithDisposePattern;
+                        return FeaturesResources.Implement_interface_explicitly_with_Dispose_pattern;
                     }
                     else
                     {
-                        return FeaturesResources.ImplementInterfaceWithDisposePattern;
+                        return FeaturesResources.Implement_interface_with_Dispose_pattern;
                     }
                 }
             }
 
             private static readonly SyntaxAnnotation s_implementingTypeAnnotation = new SyntaxAnnotation("ImplementingType");
+
             public override async Task<Document> GetUpdatedDocumentAsync(
-                    Document document,
-                    IList<Tuple<INamedTypeSymbol, IList<ISymbol>>> unimplementedMembers,
-                    INamedTypeSymbol classOrStructType,
-                    SyntaxNode classOrStructDecl,
-                    CancellationToken cancellationToken)
+                Document document,
+                ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> unimplementedMembers,
+                INamedTypeSymbol classOrStructType,
+                SyntaxNode classOrStructDecl,
+                CancellationToken cancellationToken)
             {
                 var result = document;
                 var compilation = await result.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
@@ -122,11 +124,11 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 // plate code required for implementing the dispose pattern.
                 var idisposable = TryGetSymbolForIDisposable(compilation);
                 result = await base.GetUpdatedDocumentAsync(
-                                            result,
-                                            unimplementedMembers.Where(m => !m.Item1.Equals(idisposable)).ToList(),
-                                            classOrStructType,
-                                            classOrStructDecl,
-                                            cancellationToken).ConfigureAwait(false);
+                    result,
+                    unimplementedMembers.WhereAsArray(m => !m.type.Equals(idisposable)),
+                    classOrStructType,
+                    classOrStructDecl,
+                    cancellationToken).ConfigureAwait(false);
 
                 // Now append the dispose pattern implementation.
                 root = await result.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);

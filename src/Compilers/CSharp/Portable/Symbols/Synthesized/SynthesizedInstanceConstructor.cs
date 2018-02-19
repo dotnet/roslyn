@@ -140,12 +140,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ContainingType.Locations; }
         }
 
+        public override RefKind RefKind
+        {
+            get { return RefKind.None; }
+        }
+
         public sealed override TypeSymbol ReturnType
         {
             get { return ContainingAssembly.GetSpecialType(SpecialType.System_Void); }
         }
 
         public sealed override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers
+        {
+            get { return ImmutableArray<CustomModifier>.Empty; }
+        }
+
+        public override ImmutableArray<CustomModifier> RefCustomModifiers
         {
             get { return ImmutableArray<CustomModifier>.Empty; }
         }
@@ -256,6 +266,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return containingType.CalculateSyntaxOffsetInSynthesizedConstructor(localPosition, localTree, isStatic: false);
         }
 
+        internal sealed override DiagnosticInfo GetUseSiteDiagnostic()
+        {
+            return ReturnType.GetUseSiteDiagnostic();
+        }
         #endregion
     }
 }

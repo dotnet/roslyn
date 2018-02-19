@@ -8,14 +8,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
 {
     internal class EditorErrorReportingService : IErrorReportingService
     {
-        public void ShowErrorInfoForCodeFix(string codefixName, Action OnEnableClicked, Action OnEnableAndIgnoreClicked, Action OnClose)
+        public void ShowDetailedErrorInfo(Exception exception)
         {
-            ShowErrorInfo($"{codefixName} crashed", OnClose);
+            Logger.Log(FunctionId.Extension_Exception, exception.StackTrace);
         }
 
-        public void ShowErrorInfo(string title, Action OnClose)
+        public void ShowErrorInfoInActiveView(string message, params InfoBarUI[] items)
         {
-            Logger.Log(FunctionId.Extension_Exception, title);
+            ShowGlobalErrorInfo(message, items);
+        }
+
+        public void ShowGlobalErrorInfo(string message, params InfoBarUI[] items)
+        {
+            Logger.Log(FunctionId.Extension_Exception, message);
         }
     }
 }

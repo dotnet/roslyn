@@ -36,6 +36,21 @@ namespace Microsoft.CodeAnalysis
         bool IsWithEvents { get; }
 
         /// <summary>
+        /// Returns true if this property returns by reference.
+        /// </summary>
+        bool ReturnsByRef { get; }
+
+        /// <summary>
+        /// Returns true if this property returns by reference a readonly variable.
+        /// </summary>
+        bool ReturnsByRefReadonly { get; }
+
+        /// <summary>
+        /// Returns the RefKind of the property.
+        /// </summary>
+        RefKind RefKind { get; }
+
+        /// <summary>
         /// The type of the property. 
         /// </summary>
         ITypeSymbol Type { get; }
@@ -76,6 +91,11 @@ namespace Microsoft.CodeAnalysis
         /// Properties imported from metadata can explicitly implement more than one property.
         /// </remarks>
         ImmutableArray<IPropertySymbol> ExplicitInterfaceImplementations { get; }
+
+        /// <summary>
+        /// Custom modifiers associated with the ref modifier, or an empty array if there are none.
+        /// </summary>
+        ImmutableArray<CustomModifier> RefCustomModifiers { get; }
 
         /// <summary>
         /// The list of custom modifiers, if any, associated with the type of the property. 

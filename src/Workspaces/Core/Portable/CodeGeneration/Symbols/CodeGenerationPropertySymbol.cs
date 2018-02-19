@@ -1,16 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
 {
     internal class CodeGenerationPropertySymbol : CodeGenerationSymbol, IPropertySymbol
     {
+        private RefKind _refKind;
         public ITypeSymbol Type { get; }
         public bool IsIndexer { get; }
 
@@ -22,24 +19,24 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public CodeGenerationPropertySymbol(
             INamedTypeSymbol containingType,
-            IList<AttributeData> attributes,
+            ImmutableArray<AttributeData> attributes,
             Accessibility declaredAccessibility,
             DeclarationModifiers modifiers,
             ITypeSymbol type,
-            IPropertySymbol explicitInterfaceSymbolOpt,
+            RefKind refKind,
+            ImmutableArray<IPropertySymbol> explicitInterfaceImplementations,
             string name,
             bool isIndexer,
-            IList<IParameterSymbol> parametersOpt,
+            ImmutableArray<IParameterSymbol> parametersOpt,
             IMethodSymbol getMethod,
             IMethodSymbol setMethod)
             : base(containingType, attributes, declaredAccessibility, modifiers, name)
         {
             this.Type = type;
+            this._refKind = refKind;
             this.IsIndexer = isIndexer;
-            this.Parameters = parametersOpt.AsImmutableOrEmpty();
-            this.ExplicitInterfaceImplementations = explicitInterfaceSymbolOpt == null
-                ? ImmutableArray.Create<IPropertySymbol>()
-                : ImmutableArray.Create(explicitInterfaceSymbolOpt);
+            this.Parameters = parametersOpt.NullToEmpty();
+            this.ExplicitInterfaceImplementations = explicitInterfaceImplementations.NullToEmpty();
             this.GetMethod = getMethod;
             this.SetMethod = setMethod;
         }
@@ -48,8 +45,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             var result = new CodeGenerationPropertySymbol(
                 this.ContainingType, this.GetAttributes(), this.DeclaredAccessibility,
-                this.Modifiers, this.Type, this.ExplicitInterfaceImplementations.FirstOrDefault(),
-                this.Name, this.IsIndexer, this.Parameters.IsDefault ? null : (IList<IParameterSymbol>)this.Parameters,
+                this.Modifiers, this.Type, this.RefKind, this.ExplicitInterfaceImplementations,
+                this.Name, this.IsIndexer, this.Parameters,
                 this.GetMethod, this.SetMethod);
             CodeGenerationPropertyInfo.Attach(result,
                 CodeGenerationPropertyInfo.GetIsNew(this),
@@ -59,70 +56,32 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return result;
         }
 
-        public override SymbolKind Kind
-        {
-            get
-            {
-                return SymbolKind.Property;
-            }
-        }
+        public override SymbolKind Kind => SymbolKind.Property;
 
         public override void Accept(SymbolVisitor visitor)
-        {
-            visitor.VisitProperty(this);
-        }
+            => visitor.VisitProperty(this);
 
         public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
-        {
-            return visitor.VisitProperty(this);
-        }
+            => visitor.VisitProperty(this);
 
-        public bool IsReadOnly
-        {
-            get
-            {
-                return this.GetMethod != null && this.SetMethod == null;
-            }
-        }
+        public bool IsReadOnly => this.GetMethod != null && this.SetMethod == null;
 
-        public bool IsWriteOnly
-        {
-            get
-            {
-                return this.GetMethod == null && this.SetMethod != null;
-            }
-        }
+        public bool IsWriteOnly => this.GetMethod == null && this.SetMethod != null;
 
-        public new IPropertySymbol OriginalDefinition
-        {
-            get
-            {
-                return this;
-            }
-        }
+        public new IPropertySymbol OriginalDefinition => this;
 
-        public IPropertySymbol OverriddenProperty
-        {
-            get
-            {
-                return null;
-            }
-        }
+        public RefKind RefKind => this._refKind;
 
-        public bool IsWithEvents
-        {
-            get
-            {
-                return false;
-            }
-        }
+        public bool ReturnsByRef => this._refKind == RefKind.Ref;
 
-        public ImmutableArray<CustomModifier> TypeCustomModifiers
-        {
-            get
-            {
-                return ImmutableArray.Create<CustomModifier>();
-            }
-        }
+        public bool ReturnsByRefReadonly => this._refKind == RefKind.RefReadOnly;
+
+        public IPropertySymbol OverriddenProperty => null;
+
+        public bool IsWithEvents => false;
+
+        public ImmutableArray<CustomModifier> RefCustomModifiers => ImmutableArray<CustomModifier>.Empty;
+
+        public ImmutableArray<CustomModifier> TypeCustomModifiers => ImmutableArray<CustomModifier>.Empty;
     }
 }

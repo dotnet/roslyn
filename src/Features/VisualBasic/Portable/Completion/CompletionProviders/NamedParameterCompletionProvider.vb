@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.Threading
@@ -9,74 +9,84 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
+Imports Microsoft.CodeAnalysis.ErrorReporting
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     Partial Friend Class NamedParameterCompletionProvider
-        Inherits CompletionListProvider
+        Inherits CommonCompletionProvider
 
         Friend Const s_colonEquals As String = ":="
 
-        Public Overrides Function IsTriggerCharacter(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
+        Friend Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
             Return CompletionUtilities.IsDefaultTriggerCharacter(text, characterPosition, options)
         End Function
 
-        Public Overrides Async Function ProduceCompletionListAsync(context As CompletionListContext) As Task
-            Dim document = context.Document
-            Dim position = context.Position
-            Dim cancellationToken = context.CancellationToken
+        Public Overrides Async Function ProvideCompletionsAsync(context As CompletionContext) As Task
+            Try
+                Dim document = context.Document
+                Dim position = context.Position
+                Dim cancellationToken = context.CancellationToken
 
-            Dim syntaxTree = Await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(False)
-            If syntaxTree.IsInNonUserCode(position, cancellationToken) OrElse
-                syntaxTree.IsInSkippedText(position, cancellationToken) Then
-                Return
-            End If
+                Dim syntaxTree = Await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(False)
+                If syntaxTree.IsInNonUserCode(position, cancellationToken) OrElse
+                    syntaxTree.IsInSkippedText(position, cancellationToken) Then
+                    Return
+                End If
 
-            Dim token = syntaxTree.GetTargetToken(position, cancellationToken)
+                Dim token = syntaxTree.GetTargetToken(position, cancellationToken)
 
-            If Not token.IsKind(SyntaxKind.OpenParenToken, SyntaxKind.CommaToken) Then
-                Return
-            End If
+                If Not token.IsKind(SyntaxKind.OpenParenToken, SyntaxKind.CommaToken) Then
+                    Return
+                End If
 
-            Dim argumentList = TryCast(token.Parent, ArgumentListSyntax)
-            If argumentList Is Nothing Then
-                Return
-            End If
+                Dim argumentList = TryCast(token.Parent, ArgumentListSyntax)
+                If argumentList Is Nothing Then
+                    Return
+                End If
 
-            If token.Kind = SyntaxKind.CommaToken Then
-                For Each n In argumentList.Arguments.GetWithSeparators()
-                    If n.IsNode AndAlso DirectCast(n.AsNode(), ArgumentSyntax).IsNamed Then
-                        context.MakeExclusive(True)
-                        Exit For
+                If token.Kind = SyntaxKind.CommaToken Then
+                    ' Consider refining this logic to mandate completion with an argument name, if preceded by an out-of-position name
+                    ' See https://github.com/dotnet/roslyn/issues/20657
+                    Dim languageVersion = DirectCast(document.Project.ParseOptions, VisualBasicParseOptions).LanguageVersion
+                    If languageVersion < LanguageVersion.VisualBasic15_5 AndAlso token.IsMandatoryNamedParameterPosition() Then
+                        context.IsExclusive = True
                     End If
+                End If
+
+                Dim semanticModel = Await document.GetSemanticModelForNodeAsync(argumentList, cancellationToken).ConfigureAwait(False)
+                Dim parameterLists = GetParameterLists(semanticModel, position, argumentList.Parent, cancellationToken)
+                If parameterLists Is Nothing Then
+                    Return
+                End If
+
+                Dim existingNamedParameters = GetExistingNamedParameters(argumentList, position)
+                parameterLists = parameterLists.Where(Function(p) IsValid(p, existingNamedParameters))
+
+                Dim unspecifiedParameters = parameterLists.SelectMany(Function(pl) pl).
+                                                           Where(Function(p) Not existingNamedParameters.Contains(p.Name))
+
+                Dim text = Await document.GetTextAsync(cancellationToken).ConfigureAwait(False)
+
+                For Each parameter In unspecifiedParameters
+                    context.AddItem(SymbolCompletionItem.CreateWithSymbolId(
+                        displayText:=parameter.Name & s_colonEquals,
+                        insertionText:=parameter.Name.ToIdentifierToken().ToString() & s_colonEquals,
+                        symbols:=ImmutableArray.Create(parameter),
+                        contextPosition:=position,
+                        rules:=s_itemRules))
                 Next
-            End If
+            Catch e As Exception When FatalError.ReportWithoutCrashUnlessCanceled(e)
+                ' nop
+            End Try
+        End Function
 
-            Dim semanticModel = Await document.GetSemanticModelForNodeAsync(argumentList, cancellationToken).ConfigureAwait(False)
-            Dim parameterLists = GetParameterLists(semanticModel, position, argumentList.Parent, cancellationToken)
-            If parameterLists Is Nothing Then
-                Return
-            End If
+        ' Typing : or = should not filter the list, but they should commit the list.
+        Private Shared s_itemRules As CompletionItemRules = CompletionItemRules.Default.
+            WithFilterCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, ":"c, "="c)).
+            WithCommitCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Add, ":"c, "="c))
 
-            Dim existingNamedParameters = GetExistingNamedParameters(argumentList, position)
-            parameterLists = parameterLists.Where(Function(p) IsValid(p, existingNamedParameters))
-
-            Dim unspecifiedParameters = parameterLists.SelectMany(Function(pl) pl).
-                                                       Where(Function(p) Not existingNamedParameters.Contains(p.Name))
-
-            Dim text = Await document.GetTextAsync(cancellationToken).ConfigureAwait(False)
-
-            For Each parameter In unspecifiedParameters
-                context.AddItem(
-                    New SymbolCompletionItem(
-                        Me,
-                        parameter.Name & s_colonEquals,
-                        parameter.Name.ToIdentifierToken().ToString() & s_colonEquals,
-                        CompletionUtilities.GetTextChangeSpan(text, position),
-                        position,
-                        {parameter}.ToList(),
-                        Await VisualBasicSyntaxContext.CreateContextAsync(document.Project.Solution.Workspace, semanticModel, position, cancellationToken).ConfigureAwait(False),
-                        rules:=ItemRules.Instance))
-            Next
+        Protected Overrides Function GetDescriptionWorkerAsync(document As Document, item As CompletionItem, cancellationToken As CancellationToken) As Task(Of CompletionDescription)
+            Return SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken)
         End Function
 
         Private Function IsValid(parameterList As ImmutableArray(Of ISymbol), existingNamedParameters As ISet(Of String)) As Boolean
@@ -194,5 +204,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             invocableNode = Nothing
             argumentList = Nothing
         End Sub
+
+        Protected Overrides Function GetTextChangeAsync(selectedItem As CompletionItem, ch As Char?, cancellationToken As CancellationToken) As Task(Of TextChange?)
+            Dim symbolItem = selectedItem
+            Dim insertionText = SymbolCompletionItem.GetInsertionText(selectedItem)
+            Dim change As TextChange
+            If ch.HasValue AndAlso ch.Value = ":"c Then
+                change = New TextChange(symbolItem.Span, insertionText.Substring(0, insertionText.Length - s_colonEquals.Length))
+            ElseIf ch.HasValue AndAlso ch.Value = "="c Then
+                change = New TextChange(selectedItem.Span, insertionText.Substring(0, insertionText.Length - (s_colonEquals.Length - 1)))
+            Else
+                change = New TextChange(symbolItem.Span, insertionText)
+            End If
+            Return Task.FromResult(Of TextChange?)(change)
+        End Function
     End Class
 End Namespace

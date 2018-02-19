@@ -6,12 +6,13 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
+    [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     internal abstract partial class BoundNode
     {
         private readonly BoundKind _kind;
         private BoundNodeAttributes _attributes;
 
-        public readonly CSharpSyntaxNode Syntax;
+        public readonly SyntaxNode Syntax;
 
         [Flags()]
         private enum BoundNodeAttributes : byte
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #endif
         }
 
-        protected BoundNode(BoundKind kind, CSharpSyntaxNode syntax)
+        protected BoundNode(BoundKind kind, SyntaxNode syntax)
         {
             Debug.Assert(kind == BoundKind.SequencePoint || kind == BoundKind.SequencePointExpression || syntax != null);
 
@@ -35,8 +36,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Syntax = syntax;
         }
 
-        protected BoundNode(BoundKind kind, CSharpSyntaxNode syntax, bool hasErrors) :
-            this(kind, syntax)
+        protected BoundNode(BoundKind kind, SyntaxNode syntax, bool hasErrors) 
+            : this(kind, syntax)
         {
             if (hasErrors)
             {
@@ -87,8 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                var syntax = Syntax;
-                return syntax == null ? null : syntax.SyntaxTree;
+                return Syntax?.SyntaxTree;
             }
         }
 
@@ -162,5 +162,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return TreeDumper.DumpCompact(BoundTreeDumperNodeProducer.MakeTree(this));
         }
 #endif
+
+        internal string GetDebuggerDisplay()
+        {
+            var result = GetType().Name;
+            if (Syntax != null)
+            {
+                result += " " + Syntax.ToString();
+            }
+            return result;
+        }
     }
 }

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -12,7 +12,7 @@ using Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Progression
 {
-    [GraphProvider(Name = "CSharpRoslynProvider", IntellisenseType = Guids.CSharpProjectRootIdString)]
+    [GraphProvider(Name = "CSharpRoslynProvider", ProjectCapability = "CSharp")]
     internal sealed class CSharpGraphProvider : AbstractGraphProvider
     {
         [ImportingConstructor]
@@ -20,8 +20,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Progression
             IGlyphService glyphService,
             SVsServiceProvider serviceProvider,
             IProgressionPrimaryWorkspaceProvider workspaceProvider,
-            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners) :
-            base(glyphService, serviceProvider, workspaceProvider.PrimaryWorkspace, asyncListeners)
+            IAsynchronousOperationListenerProvider listenerProvider) :
+            base(glyphService, serviceProvider, workspaceProvider.PrimaryWorkspace, listenerProvider)
         {
         }
     }

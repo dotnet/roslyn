@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// A dictionary that maps strings to all known spellings of that string. Can be used to
     /// efficiently store the set of known type names for a module for both VB and C# while also
-    /// answering questions like "do you have a type called Foo" in either a case sensitive or
+    /// answering questions like "do you have a type called Goo" in either a case sensitive or
     /// insensitive manner.
     /// </summary>
     internal partial class IdentifierCollection

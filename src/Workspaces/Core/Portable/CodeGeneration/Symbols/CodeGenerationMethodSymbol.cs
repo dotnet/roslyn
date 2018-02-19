@@ -1,86 +1,49 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
 {
     internal partial class CodeGenerationMethodSymbol : CodeGenerationAbstractMethodSymbol
     {
-        private readonly ITypeSymbol _returnType;
-        private readonly ImmutableArray<ITypeParameterSymbol> _typeParameters;
-        private readonly ImmutableArray<IParameterSymbol> _parameters;
-        private readonly ImmutableArray<IMethodSymbol> _explicitInterfaceImplementations;
-        private readonly MethodKind _methodKind;
+        public override ITypeSymbol ReturnType { get; }
+        public override ImmutableArray<ITypeParameterSymbol> TypeParameters { get; }
+        public override ImmutableArray<IParameterSymbol> Parameters { get; }
+        public override ImmutableArray<IMethodSymbol> ExplicitInterfaceImplementations { get; }
+        public override MethodKind MethodKind { get; }
 
         public CodeGenerationMethodSymbol(
             INamedTypeSymbol containingType,
-            IList<AttributeData> attributes,
+            ImmutableArray<AttributeData> attributes,
             Accessibility declaredAccessibility,
             DeclarationModifiers modifiers,
             ITypeSymbol returnType,
-            IMethodSymbol explicitInterfaceSymbolOpt,
+            RefKind refKind,
+            ImmutableArray<IMethodSymbol> explicitInterfaceImplementations,
             string name,
-            IList<ITypeParameterSymbol> typeParameters,
-            IList<IParameterSymbol> parameters,
-            IList<AttributeData> returnTypeAttributes,
+            ImmutableArray<ITypeParameterSymbol> typeParameters,
+            ImmutableArray<IParameterSymbol> parameters,
+            ImmutableArray<AttributeData> returnTypeAttributes,
             MethodKind methodKind = MethodKind.Ordinary)
             : base(containingType, attributes, declaredAccessibility, modifiers, name, returnTypeAttributes)
         {
-            _returnType = returnType;
-            _typeParameters = typeParameters.AsImmutableOrEmpty();
-            _parameters = parameters.AsImmutableOrEmpty();
-            _explicitInterfaceImplementations = explicitInterfaceSymbolOpt == null
-                ? ImmutableArray.Create<IMethodSymbol>()
-                : ImmutableArray.Create(explicitInterfaceSymbolOpt);
+            this.ReturnType = returnType;
+            this.RefKind = refKind;
+            this.TypeParameters = typeParameters.NullToEmpty();
+            this.Parameters = parameters.NullToEmpty();
+            this.MethodKind = methodKind;
 
+            this.ExplicitInterfaceImplementations = explicitInterfaceImplementations.NullToEmpty();
             this.OriginalDefinition = this;
-            _methodKind = methodKind;
-        }
-
-        public override ITypeSymbol ReturnType
-        {
-            get
-            {
-                return _returnType;
-            }
-        }
-
-        public override ImmutableArray<ITypeParameterSymbol> TypeParameters
-        {
-            get
-            {
-                return _typeParameters;
-            }
-        }
-
-        public override ImmutableArray<IParameterSymbol> Parameters
-        {
-            get
-            {
-                return _parameters;
-            }
-        }
-
-        public override ImmutableArray<IMethodSymbol> ExplicitInterfaceImplementations
-        {
-            get
-            {
-                return _explicitInterfaceImplementations;
-            }
         }
 
         protected override CodeGenerationSymbol Clone()
         {
             var result = new CodeGenerationMethodSymbol(this.ContainingType,
                 this.GetAttributes(), this.DeclaredAccessibility, this.Modifiers,
-                this.ReturnType, this.ExplicitInterfaceImplementations.FirstOrDefault(),
+                this.ReturnType, this.RefKind, this.ExplicitInterfaceImplementations,
                 this.Name, this.TypeParameters, this.Parameters, this.GetReturnTypeAttributes());
 
             CodeGenerationMethodInfo.Attach(result,
@@ -94,61 +57,37 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return result;
         }
 
-        public override int Arity
-        {
-            get
-            {
-                return this.TypeParameters.Length;
-            }
-        }
+        public override int Arity => this.TypeParameters.Length;
 
         public override bool ReturnsVoid
+            => this.ReturnType == null || this.ReturnType.SpecialType == SpecialType.System_Void;
+
+        public override bool ReturnsByRef
         {
             get
             {
-                return this.ReturnType == null || this.ReturnType.SpecialType == SpecialType.System_Void;
+                return RefKind == RefKind.Ref;
             }
         }
+
+        public override bool ReturnsByRefReadonly
+        {
+            get
+            {
+                return RefKind == RefKind.RefReadOnly;
+            }
+        }
+
+        public override RefKind RefKind { get; }
 
         public override ImmutableArray<ITypeSymbol> TypeArguments
-        {
-            get
-            {
-                return this.TypeParameters.As<ITypeSymbol>();
-            }
-        }
+            => this.TypeParameters.As<ITypeSymbol>();
 
-        public override IMethodSymbol ConstructedFrom
-        {
-            get
-            {
-                return this;
-            }
-        }
+        public override IMethodSymbol ConstructedFrom => this;
 
-        public override IMethodSymbol OverriddenMethod
-        {
-            get
-            {
-                return null;
-            }
-        }
+        public override IMethodSymbol OverriddenMethod => null;
 
-        public override IMethodSymbol ReducedFrom
-        {
-            get
-            {
-                return null;
-            }
-        }
-
-        public override MethodKind MethodKind
-        {
-            get
-            {
-                return _methodKind;
-            }
-        }
+        public override IMethodSymbol ReducedFrom => null;
 
         public override ITypeSymbol GetTypeInferredDuringReduction(ITypeParameterSymbol reducedFromTypeParameter)
         {
@@ -160,20 +99,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return null;
         }
 
-        public override IMethodSymbol PartialImplementationPart
-        {
-            get
-            {
-                return null;
-            }
-        }
+        public override IMethodSymbol PartialImplementationPart => null;
 
-        public override IMethodSymbol PartialDefinitionPart
-        {
-            get
-            {
-                return null;
-            }
-        }
+        public override IMethodSymbol PartialDefinitionPart => null;
     }
 }

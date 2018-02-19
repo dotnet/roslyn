@@ -38,11 +38,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
 
         public override void VisitBlock(BlockSyntax node)
         {
+            VisitBlockStatements(node, node.Statements);
+        }
+
+        private void VisitBlockStatements(SyntaxNode node, IEnumerable<SyntaxNode> statements)
+        {
             var tokens = new List<SyntaxToken>();
 
             // We want to collect any variable declarations that are in the block
             // before visiting nested statements
-            foreach (var statement in node.Statements)
+            foreach (var statement in statements)
             {
                 if (statement.Kind() == SyntaxKind.LocalDeclarationStatement)
                 {
@@ -181,6 +186,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             _tracker.AddIdentifier(node.Identifier);
             VisitQueryInternal(null, node.Body);
             _tracker.RemoveIdentifier(node.Identifier);
+        }
+
+        public override void VisitSwitchStatement(SwitchStatementSyntax node)
+        {
+            var statements = node.ChildNodes().Where(x => x.IsKind(SyntaxKind.SwitchSection)).SelectMany(x => x.ChildNodes());
+
+            VisitBlockStatements(node, statements);
         }
 
         public IEnumerable<SyntaxToken> ConflictingTokens

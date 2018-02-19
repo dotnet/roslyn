@@ -1,5 +1,6 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeGeneration
@@ -12,6 +13,7 @@ Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Shared.Options
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
@@ -29,8 +31,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
             End Get
         End Property
 
-        Protected Overrides Function GenerateParameterNames(semanticModel As SemanticModel, arguments As IList(Of ArgumentSyntax)) As IList(Of String)
-            Return semanticModel.GenerateParameterNames(arguments)
+        Protected Overrides Function GenerateParameterNames(semanticModel As SemanticModel, arguments As IList(Of ArgumentSyntax), cancellationToken As CancellationToken) As IList(Of ParameterName)
+            Return semanticModel.GenerateParameterNames(arguments, reservedNames:=Nothing, cancellationToken:=cancellationToken)
         End Function
 
         Protected Overrides Function GetLeftSideOfDot(simpleName As SimpleNameSyntax) As ExpressionSyntax
@@ -180,26 +182,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
                     generateTypeServiceStateOptions.IsMembersWithModule = True
                 End If
 
-                ' Case : Class Foo(of T as MyType)
+                ' Case : Class Goo(of T as MyType)
                 If nameOrMemberAccessExpression.GetAncestors(Of TypeConstraintSyntax).Any() Then
                     generateTypeServiceStateOptions.IsClassInterfaceTypes = True
                     Return True
                 End If
 
-                ' Case : Custom Event E As Foo
-                ' Case : Public Event F As Foo
+                ' Case : Custom Event E As Goo
+                ' Case : Public Event F As Goo
                 If nameOrMemberAccessExpression.GetAncestors(Of EventStatementSyntax)().Any() Then
-                    ' Case : Foo
+                    ' Case : Goo
                     ' Only Delegate
                     If simpleName.Parent IsNot Nothing AndAlso TypeOf simpleName.Parent IsNot QualifiedNameSyntax Then
                         generateTypeServiceStateOptions.IsDelegateOnly = True
                         Return True
                     End If
 
-                    ' Case : Something.Foo ...
+                    ' Case : Something.Goo ...
                     If TypeOf nameOrMemberAccessExpression Is QualifiedNameSyntax Then
 
-                        ' Case : NSOrSomething.GenType.Foo
+                        ' Case : NSOrSomething.GenType.Goo
                         If nextToken.IsKind(SyntaxKind.DotToken) Then
                             If nameOrMemberAccessExpression.Parent IsNot Nothing AndAlso TypeOf nameOrMemberAccessExpression.Parent Is QualifiedNameSyntax Then
                                 Return True
@@ -259,7 +261,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
                 End If
             End If
 
-            ' New MyDelegate(AddressOf foo)
+            ' New MyDelegate(AddressOf goo)
             ' New NS.MyDelegate(Function(n) n)
             If TypeOf nameOrMemberAccessExpression.Parent Is ObjectCreationExpressionSyntax Then
                 Dim objectCreationExpressionOpt = DirectCast(nameOrMemberAccessExpression.Parent, ObjectCreationExpressionSyntax)
@@ -316,7 +318,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
                     If variableDeclarator.Initializer IsNot Nothing AndAlso variableDeclarator.Initializer.Value IsNot Nothing Then
                         Dim expression = variableDeclarator.Initializer.Value
                         If expression.IsKind(SyntaxKind.AddressOfExpression) Then
-                            ' ... = AddressOf Foo
+                            ' ... = AddressOf Goo
                             generateTypeServiceStateOptions.DelegateCreationMethodSymbol = GetMemberGroupIfPresent(semanticModel, DirectCast(expression, UnaryExpressionSyntax).Operand, cancellationToken)
                         Else
                             If TypeOf expression Is LambdaExpressionSyntax Then
@@ -334,12 +336,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
                         End If
                     End If
                 ElseIf TypeOf nameOrMemberAccessExpression.Parent Is CastExpressionSyntax Then
-                    ' Case: Dim s1 = DirectCast(AddressOf foo, Myy)
-                    '       Dim s2 = TryCast(AddressOf foo, Myy)
-                    '       Dim s3 = CType(AddressOf foo, Myy)
+                    ' Case: Dim s1 = DirectCast(AddressOf goo, Myy)
+                    '       Dim s2 = TryCast(AddressOf goo, Myy)
+                    '       Dim s3 = CType(AddressOf goo, Myy)
                     Dim expressionToBeCasted = DirectCast(nameOrMemberAccessExpression.Parent, CastExpressionSyntax).Expression
                     If expressionToBeCasted.IsKind(SyntaxKind.AddressOfExpression) Then
-                        ' ... = AddressOf Foo
+                        ' ... = AddressOf Goo
                         generateTypeServiceStateOptions.DelegateCreationMethodSymbol = GetMemberGroupIfPresent(semanticModel, DirectCast(expressionToBeCasted, UnaryExpressionSyntax).Operand, cancellationToken)
                     End If
                 End If
@@ -367,7 +369,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
 
         Protected Overloads Overrides Function GetTypeParameters(state As State,
                                                                  semanticModel As SemanticModel,
-                                                                 cancellationToken As CancellationToken) As IList(Of ITypeParameterSymbol)
+                                                                 cancellationToken As CancellationToken) As ImmutableArray(Of ITypeParameterSymbol)
             If TypeOf state.SimpleName Is GenericNameSyntax Then
                 Dim genericName = DirectCast(state.SimpleName, GenericNameSyntax)
                 Dim typeArguments = If(state.SimpleName.Arity = genericName.TypeArgumentList.Arguments.Count,
@@ -376,7 +378,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
                 Return Me.GetTypeParameters(state, semanticModel, typeArguments, cancellationToken)
             End If
 
-            Return SpecializedCollections.EmptyList(Of ITypeParameterSymbol)()
+            Return ImmutableArray(Of ITypeParameterSymbol).Empty
         End Function
 
         Protected Overrides Function IsInVariableTypeContext(expression As Microsoft.CodeAnalysis.VisualBasic.Syntax.ExpressionSyntax) As Boolean
@@ -628,7 +630,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
                 Return updatedSolution
             End If
 
-            Dim placeSystemNamespaceFirst = document.Project.Solution.Workspace.Options.GetOption(OrganizerOptions.PlaceSystemNamespaceFirst, document.Project.Language)
+            Dim documentOptions = Await document.GetOptionsAsync(cancellationToken).ConfigureAwait(False)
+            Dim placeSystemNamespaceFirst = documentOptions.GetOption(GenerationOptions.PlaceSystemNamespaceFirst)
+
             Dim root As SyntaxNode = Nothing
             If (modifiedRoot Is Nothing) Then
                 root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
@@ -688,16 +692,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
 
         Private Function GenerateProperty(propertyName As SimpleNameSyntax, typeSymbol As ITypeSymbol) As IPropertySymbol
             Return CodeGenerationSymbolFactory.CreatePropertySymbol(
-                            attributes:=SpecializedCollections.EmptyList(Of AttributeData),
-                            accessibility:=Accessibility.Public,
-                            modifiers:=New DeclarationModifiers(),
-                            explicitInterfaceSymbol:=Nothing,
-                            name:=propertyName.ToString,
-                            type:=typeSymbol,
-                            parameters:=Nothing,
-                            getMethod:=Nothing,
-                            setMethod:=Nothing,
-                            isIndexer:=False)
+                attributes:=ImmutableArray(Of AttributeData).Empty,
+                accessibility:=Accessibility.Public,
+                modifiers:=New DeclarationModifiers(),
+                explicitInterfaceImplementations:=Nothing,
+                name:=propertyName.ToString,
+                type:=typeSymbol,
+                refKind:=RefKind.None,
+                parameters:=Nothing,
+                getMethod:=Nothing,
+                setMethod:=Nothing,
+                isIndexer:=False)
         End Function
 
         Friend Overrides Function TryGenerateProperty(propertyName As SimpleNameSyntax,
@@ -706,14 +711,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
                                                       cancellationToken As CancellationToken,
                                                       ByRef propertySymbol As IPropertySymbol) As Boolean
             propertySymbol = Nothing
+
             Dim typeSymbol = GetPropertyType(propertyName, semanticModel, typeInferenceService, cancellationToken)
             If typeSymbol Is Nothing OrElse TypeOf typeSymbol Is IErrorTypeSymbol Then
                 propertySymbol = GenerateProperty(propertyName, semanticModel.Compilation.ObjectType)
-                Return True
+                Return propertySymbol IsNot Nothing
             End If
 
             propertySymbol = GenerateProperty(propertyName, typeSymbol)
-            Return True
+            Return propertySymbol IsNot Nothing
         End Function
 
         Friend Overrides Function GetDelegatingConstructor(document As SemanticDocument,

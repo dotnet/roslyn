@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Design;
 using Microsoft.VisualStudio.Shell.Interop;
 
@@ -18,19 +19,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     [ExportWorkspaceServiceFactory(typeof(IFrameworkAssemblyPathResolver), ServiceLayer.Host), Shared]
     internal sealed class VisualStudiorFrameworkAssemblyPathResolverFactory : IWorkspaceServiceFactory
     {
+        private readonly IServiceProvider _serviceProvider;
+
+        [ImportingConstructor]
+        public VisualStudiorFrameworkAssemblyPathResolverFactory(SVsServiceProvider serviceProvider)
+        {
+            _serviceProvider = serviceProvider;
+        }
+
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
-            return new Service(workspaceServices.Workspace as VisualStudioWorkspaceImpl);
+            return new Service(workspaceServices.Workspace as VisualStudioWorkspace, _serviceProvider);
         }
 
         private sealed class Service : ForegroundThreadAffinitizedObject, IFrameworkAssemblyPathResolver
         {
-            private readonly VisualStudioWorkspaceImpl _workspace;
+            private readonly VisualStudioWorkspace _workspace;
+            private readonly IServiceProvider _serviceProvider;
 
-            public Service(VisualStudioWorkspaceImpl workspace)
+            public Service(VisualStudioWorkspace workspace, IServiceProvider serviceProvider)
                 : base(assertIsForeground: false)
             {
                 _workspace = workspace;
+                _serviceProvider = serviceProvider;
             }
 
             public string ResolveAssemblyPath(
@@ -46,8 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     // Codebase specifies where the assembly is on disk.  However, it's in 
                     // full URI format (i.e. file://c:/...). This will allow us to get the 
                     // actual local in the normal path format.
-                    Uri uri;
-                    if (Uri.TryCreate(assembly.CodeBase, UriKind.RelativeOrAbsolute, out uri) &&
+                    if (Uri.TryCreate(assembly.CodeBase, UriKind.RelativeOrAbsolute, out var uri) &&
                         this.CanResolveType(assembly, fullyQualifiedTypeName))
                     {
                         return uri.LocalPath;
@@ -106,10 +116,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     return null;
                 }
 
-                IVsHierarchy hierarchy;
-                string targetMoniker;
-                if (!_workspace.TryGetHierarchy(projectId, out hierarchy) ||
-                    !hierarchy.TryGetProperty((__VSHPROPID)__VSHPROPID4.VSHPROPID_TargetFrameworkMoniker, out targetMoniker) ||
+                IVsHierarchy hierarchy = _workspace.GetHierarchy(projectId);
+                if (hierarchy == null ||
+                    !hierarchy.TryGetProperty((__VSHPROPID)__VSHPROPID4.VSHPROPID_TargetFrameworkMoniker, out string targetMoniker) ||
                     targetMoniker == null)
                 {
                     return null;
@@ -143,9 +152,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 try
                 {
                     var frameworkProvider = new VsTargetFrameworkProvider(
-                        _workspace.GetVsService<SVsFrameworkMultiTargeting, IVsFrameworkMultiTargeting>(),
+                        (IVsFrameworkMultiTargeting)_serviceProvider.GetService(typeof(SVsFrameworkMultiTargeting)),
                         targetMoniker,
-                        _workspace.GetVsService<SVsSmartOpenScope, IVsSmartOpenScope>());
+                        (IVsSmartOpenScope)_serviceProvider.GetService(typeof(SVsSmartOpenScope)));
                     return frameworkProvider.GetReflectionAssembly(new AssemblyName(assemblyName));
                 }
                 catch (InvalidOperationException)

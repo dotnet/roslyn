@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis
                 var newText = oldText.WithChanges(adjustedChanges);
 
                 var warningText = GetConflictCommentText(
-                    string.Format(WorkspacesResources.UnmergedChangeFromProject, projectName),
+                    string.Format(WorkspacesResources.Unmerged_change_from_project_0, projectName),
                     TrimBlankLines(oldText),
                     TrimBlankLines(newText));
 

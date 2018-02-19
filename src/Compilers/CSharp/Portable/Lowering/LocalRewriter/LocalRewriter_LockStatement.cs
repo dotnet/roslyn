@@ -40,10 +40,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // so that the same object is passed to both Monitor.Enter and Monitor.Exit.
                 argumentType = _compilation.GetSpecialType(SpecialType.System_Object);
 
-                rewrittenArgument = MakeConversion(
+                rewrittenArgument = MakeConversionNode(
                     rewrittenArgument.Syntax,
                     rewrittenArgument,
-                    ConversionKind.Boxing,
+                    Conversion.Boxing,
                     argumentType,
                     @checked: false,
                     constantValueOpt: rewrittenArgument.ConstantValue);
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                exitCallExpr = new BoundBadExpression(lockSyntax, LookupResultKind.NotInvocable, ImmutableArray<Symbol>.Empty, ImmutableArray.Create<BoundNode>(boundLockTemp), ErrorTypeSymbol.UnknownResultType);
+                exitCallExpr = new BoundBadExpression(lockSyntax, LookupResultKind.NotInvocable, ImmutableArray<Symbol>.Empty, ImmutableArray.Create<BoundExpression>(boundLockTemp), ErrorTypeSymbol.UnknownResultType);
             }
 
             BoundStatement exitCall = new BoundExpressionStatement(lockSyntax, exitCallExpr);
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     lockSyntax,
                     ImmutableArray.Create(boundLockTemp.LocalSymbol, boundLockTakenTemp.LocalSymbol),
                     ImmutableArray.Create(
-                        MakeInitialLockSequencePoint(boundLockTempInit, lockSyntax),
+                        InstrumentLockTargetCapture(node, boundLockTempInit),
                         boundLockTakenTempInit,
                         new BoundTryStatement(
                             lockSyntax,
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    enterCallExpr = new BoundBadExpression(lockSyntax, LookupResultKind.NotInvocable, ImmutableArray<Symbol>.Empty, ImmutableArray.Create<BoundNode>(boundLockTemp), ErrorTypeSymbol.UnknownResultType);
+                    enterCallExpr = new BoundBadExpression(lockSyntax, LookupResultKind.NotInvocable, ImmutableArray<Symbol>.Empty, ImmutableArray.Create<BoundExpression>(boundLockTemp), ErrorTypeSymbol.UnknownResultType);
                 }
 
                 BoundStatement enterCall = new BoundExpressionStatement(
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     lockSyntax,
                     ImmutableArray.Create(boundLockTemp.LocalSymbol),
                     ImmutableArray.Create(
-                        MakeInitialLockSequencePoint(boundLockTempInit, lockSyntax),
+                        InstrumentLockTargetCapture(node, boundLockTempInit),
                         enterCall,
                         new BoundTryStatement(
                             lockSyntax,
@@ -181,11 +181,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundStatement MakeInitialLockSequencePoint(BoundStatement statement, LockStatementSyntax lockSyntax)
+        private BoundStatement InstrumentLockTargetCapture(BoundLockStatement original, BoundStatement lockTargetCapture)
         {
-            return this.GenerateDebugInfo ?
-                new BoundSequencePointWithSpan(lockSyntax, statement, TextSpan.FromBounds(lockSyntax.LockKeyword.SpanStart, lockSyntax.CloseParenToken.Span.End)) :
-                statement;
+            return this.Instrument ?
+                _instrumenter.InstrumentLockTargetCapture(original, lockTargetCapture) :
+                lockTargetCapture;
         }
     }
 }

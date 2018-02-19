@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.IncorrectExitContinue
 
             Public Overrides ReadOnly Property Title As String
                 Get
-                    Return String.Format(FeaturesResources.ChangeTo, _invalidToken.ValueText, SyntaxFacts.GetText(BlockKindToKeywordKind(_createBlockKind)))
+                    Return String.Format(FeaturesResources.Change_0_to_1, _invalidToken.ValueText, SyntaxFacts.GetText(BlockKindToKeywordKind(_createBlockKind)))
                 End Get
             End Property
 

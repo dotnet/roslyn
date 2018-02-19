@@ -1,10 +1,9 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Option Strict Off
-
-Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.SimplifyTypeNames
@@ -99,7 +98,7 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Await TestAsync(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=fixAllActionId)
+            Await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey:=fixAllActionId, options:=PreferIntrinsicPredefinedTypeEverywhere())
         End Function
 
         <Fact>
@@ -190,7 +189,7 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Await TestAsync(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=fixAllActionId)
+            Await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey:=fixAllActionId, options:=PreferIntrinsicPredefinedTypeEverywhere())
         End Function
 
         <Fact>
@@ -281,14 +280,14 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Await TestAsync(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=fixAllActionId)
+            Await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey:=fixAllActionId, options:=PreferIntrinsicPredefinedTypeEverywhere())
         End Function
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
         Public Async Function TestFixAllInSolution_RemoveMe() As Task
-            Dim fixAllActionId = SimplifyTypeNamesCodeFixProvider.GetCodeActionId(IDEDiagnosticIds.SimplifyThisOrMeDiagnosticId, Nothing)
+            Dim fixAllActionId = SimplifyTypeNamesCodeFixProvider.GetCodeActionId(IDEDiagnosticIds.RemoveQualificationDiagnosticId, Nothing)
 
             Dim input = <Workspace>
                             <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
@@ -488,7 +487,7 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Await TestAsync(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=fixAllActionId)
+            Await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey:=fixAllActionId)
         End Function
 
         <Fact>
@@ -719,7 +718,86 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Await TestAsync(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=fixAllActionId)
+            Await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey:=fixAllActionId)
         End Function
+
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)>
+        <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
+        Public Async Function TestFixAllInSolution_RemoveMemberAccessQualification() As Task
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
+        <Document><![CDATA[
+Imports System
+
+Class C
+    Property SomeProperty As Integer
+    Property OtherProperty As Integer
+
+    Sub M()
+        {|FixAllInSolution:Me.SomeProperty|} = 1
+        Dim x = Me.OtherProperty
+    End Sub
+End Class]]>
+        </Document>
+        <Document><![CDATA[
+Imports System
+
+Class D
+    Property StringProperty As String
+    field As Integer
+
+    Sub N()
+        Me.StringProperty = String.Empty
+        Me.field = 0 ' ensure qualification isn't removed
+    End Sub
+End Class]]>
+        </Document>
+    </Project>
+</Workspace>.ToString()
+
+            Dim expected =
+<Workspace>
+    <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
+        <Document><![CDATA[
+Imports System
+
+Class C
+    Property SomeProperty As Integer
+    Property OtherProperty As Integer
+
+    Sub M()
+        SomeProperty = 1
+        Dim x = OtherProperty
+    End Sub
+End Class]]>
+        </Document>
+        <Document><![CDATA[
+Imports System
+
+Class D
+    Property StringProperty As String
+    field As Integer
+
+    Sub N()
+        StringProperty = String.Empty
+        Me.field = 0 ' ensure qualification isn't removed
+    End Sub
+End Class]]>
+        </Document>
+    </Project>
+</Workspace>.ToString()
+
+            Dim options = OptionsSet(
+                SingleOption(CodeStyleOptions.QualifyPropertyAccess, False, NotificationOption.Suggestion),
+                SingleOption(CodeStyleOptions.QualifyFieldAccess, True, NotificationOption.Suggestion))
+            Await TestInRegularAndScriptAsync(
+                initialMarkup:=input,
+                expectedMarkup:=expected,
+                options:=options,
+                fixAllActionEquivalenceKey:=VBFeaturesResources.Remove_Me_qualification)
+        End Function
+
     End Class
 End Namespace

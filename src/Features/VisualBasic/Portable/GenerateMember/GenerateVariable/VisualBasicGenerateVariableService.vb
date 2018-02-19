@@ -1,10 +1,9 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
-Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
@@ -112,7 +111,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateVariable
             Return expression.CanReplaceWithLValue(semanticModel, cancellationToken)
         End Function
 
-        Protected Overrides Function TryConvertToLocalDeclaration(type As ITypeSymbol, identifierToken As SyntaxToken, options As OptionSet, ByRef newRoot As SyntaxNode) As Boolean
+        Protected Overrides Function TryConvertToLocalDeclaration(type As ITypeSymbol, identifierToken As SyntaxToken, options As OptionSet, semanticModel As SemanticModel, cancellationToken As CancellationToken, ByRef newRoot As SyntaxNode) As Boolean
             Return False
         End Function
     End Class

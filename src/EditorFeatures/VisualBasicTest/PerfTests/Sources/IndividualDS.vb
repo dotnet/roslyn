@@ -558,7 +558,7 @@ Public Class IndividualDS
                 Return Me.eventAction
             End Get
         End Property
-        Public Sub Foo()
+        Public Sub Goo()
             For i0 As Integer = 1 To 100
                 Console.WriteLine(i0)
             Next

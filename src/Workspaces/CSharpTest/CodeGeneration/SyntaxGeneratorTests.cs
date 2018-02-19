@@ -3,16 +3,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editting
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
 {
     public class SyntaxGeneratorTests
     {
@@ -161,8 +159,8 @@ public class MyAttribute : Attribute { public MyAttribute(E value) { } }",
             VerifySyntax<AttributeListSyntax>(_g.Attribute(GetAttributeData(
 @"using System; 
 public class MyAttribute : Attribute { public MyAttribute(Type value) { } }",
-@"[MyAttribute(typeof(MyAttribute))]")),
-@"[global::MyAttribute(typeof (global::MyAttribute))]");
+@"[MyAttribute(typeof (MyAttribute))]")),
+@"[global::MyAttribute(typeof(global::MyAttribute))]");
 
             VerifySyntax<AttributeListSyntax>(_g.Attribute(GetAttributeData(
 @"using System; 
@@ -223,6 +221,15 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
             VerifySyntax<TypeSyntax>(_g.ArrayTypeExpression(_g.ArrayTypeExpression(_g.IdentifierName("x"))), "x[][]");
             VerifySyntax<TypeSyntax>(_g.NullableTypeExpression(_g.IdentifierName("x")), "x?");
             VerifySyntax<TypeSyntax>(_g.NullableTypeExpression(_g.NullableTypeExpression(_g.IdentifierName("x"))), "x?");
+
+            var intType = _emptyCompilation.GetSpecialType(SpecialType.System_Int32);
+            VerifySyntax<TupleElementSyntax>(_g.TupleElementExpression(_g.IdentifierName("x")), "x");
+            VerifySyntax<TupleElementSyntax>(_g.TupleElementExpression(_g.IdentifierName("x"), "y"), "x y");
+            VerifySyntax<TupleElementSyntax>(_g.TupleElementExpression(intType), "global::System.Int32");
+            VerifySyntax<TupleElementSyntax>(_g.TupleElementExpression(intType, "y"), "global::System.Int32 y");
+            VerifySyntax<TypeSyntax>(_g.TupleTypeExpression(_g.TupleElementExpression(_g.IdentifierName("x")), _g.TupleElementExpression(_g.IdentifierName("y"))), "(x, y)");
+            VerifySyntax<TypeSyntax>(_g.TupleTypeExpression(new[] { intType, intType }), "(global::System.Int32, global::System.Int32)");
+            VerifySyntax<TypeSyntax>(_g.TupleTypeExpression(new[] { intType, intType }, new[] { "x", "y" }), "(global::System.Int32 x, global::System.Int32 y)");
         }
 
         [Fact]
@@ -257,7 +264,7 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
             VerifySyntax<QualifiedNameSyntax>(_g.TypeExpression(genericType), "global::System.Collections.Generic.IEnumerable<T>");
 
             var arrayType = _emptyCompilation.CreateArrayTypeSymbol(_emptyCompilation.GetSpecialType(SpecialType.System_Int32));
-            VerifySyntax<ArrayTypeSyntax>(_g.TypeExpression(arrayType), "System.Int32[]");
+            VerifySyntax<ArrayTypeSyntax>(_g.TypeExpression(arrayType), "global::System.Int32[]");
         }
 
         [Fact]
@@ -343,7 +350,7 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
 
             VerifySyntax<ObjectCreationExpressionSyntax>(
                 _g.ObjectCreationExpression(listOfIntType, _g.IdentifierName("y")),
-                "new global::System.Collections.Generic.List<System.Int32>(y)");  // should this be 'int' or if not shouldn't it have global::?
+                "new global::System.Collections.Generic.List<global::System.Int32>(y)");  // should this be 'int' or if not shouldn't it have global::?
         }
 
         [Fact]
@@ -386,7 +393,7 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
         {
             VerifySyntax<BinaryExpressionSyntax>(_g.IsTypeExpression(_g.IdentifierName("x"), _g.IdentifierName("y")), "(x) is y");
             VerifySyntax<BinaryExpressionSyntax>(_g.TryCastExpression(_g.IdentifierName("x"), _g.IdentifierName("y")), "(x) as y");
-            VerifySyntax<TypeOfExpressionSyntax>(_g.TypeOfExpression(_g.IdentifierName("x")), "typeof (x)");
+            VerifySyntax<TypeOfExpressionSyntax>(_g.TypeOfExpression(_g.IdentifierName("x")), "typeof(x)");
         }
 
         [Fact]
@@ -435,6 +442,22 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
         }
 
         [Fact]
+        public void TestAddHandlerExpressions()
+        {
+            VerifySyntax<AssignmentExpressionSyntax>(
+                _g.AddEventHandler(_g.IdentifierName("@event"), _g.IdentifierName("handler")),
+                "@event += (handler)");
+        }
+
+        [Fact]
+        public void TestSubtractHandlerExpressions()
+        {
+            VerifySyntax<AssignmentExpressionSyntax>(
+                _g.RemoveEventHandler(_g.IdentifierName("@event"),
+                _g.IdentifierName("handler")), "@event -= (handler)");
+        }
+
+        [Fact]
         public void TestAwaitExpressions()
         {
             VerifySyntax<AwaitExpressionSyntax>(_g.AwaitExpression(_g.IdentifierName("x")), "await x");
@@ -444,6 +467,17 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
         public void TestNameOfExpressions()
         {
             VerifySyntax<InvocationExpressionSyntax>(_g.NameOfExpression(_g.IdentifierName("x")), "nameof(x)");
+        }
+
+        [Fact]
+        public void TestTupleExpression()
+        {
+            VerifySyntax<TupleExpressionSyntax>(_g.TupleExpression(
+                new[] { _g.IdentifierName("x"), _g.IdentifierName("y") }), "(x, y)");
+
+            VerifySyntax<TupleExpressionSyntax>(_g.TupleExpression(
+                new[] { _g.Argument("goo", RefKind.None, _g.IdentifierName("x")),
+                        _g.Argument("bar", RefKind.None, _g.IdentifierName("y")) }), "(goo: x, bar: y)");
         }
 
         [Fact]
@@ -548,6 +582,14 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
             VerifySyntax<UsingStatementSyntax>(
                 _g.UsingStatement(_g.IdentifierName("x"), "y", _g.IdentifierName("z"), new[] { _g.IdentifierName("q") }),
                 "using (x y = z)\r\n{\r\n    q;\r\n}");
+        }
+
+        [Fact]
+        public void TestLockStatements()
+        {
+            VerifySyntax<LockStatementSyntax>(
+                _g.LockStatement(_g.IdentifierName("x"), new[] { _g.IdentifierName("y") }),
+                "lock (x)\r\n{\r\n    y;\r\n}");
         }
 
         [Fact]
@@ -743,109 +785,109 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
 
             VerifySyntax<OperatorDeclarationSyntax>(
                 _g.OperatorDeclaration(OperatorKind.Addition, parameters, returnType),
-                "bool operator +(System.Int32 p0, System.String p1)\r\n{\r\n}");
+                "bool operator +(global::System.Int32 p0, global::System.String p1)\r\n{\r\n}");
 
             VerifySyntax<OperatorDeclarationSyntax>(
                 _g.OperatorDeclaration(OperatorKind.BitwiseAnd, parameters, returnType),
-                "bool operator &(System.Int32 p0, System.String p1)\r\n{\r\n}");
+                "bool operator &(global::System.Int32 p0, global::System.String p1)\r\n{\r\n}");
 
             VerifySyntax<OperatorDeclarationSyntax>(
                 _g.OperatorDeclaration(OperatorKind.BitwiseOr, parameters, returnType),
-                "bool operator |(System.Int32 p0, System.String p1)\r\n{\r\n}");
+                "bool operator |(global::System.Int32 p0, global::System.String p1)\r\n{\r\n}");
 
             VerifySyntax<OperatorDeclarationSyntax>(
                 _g.OperatorDeclaration(OperatorKind.Decrement, parameters, returnType),
-                "bool operator --(System.Int32 p0, System.String p1)\r\n{\r\n}");
+                "bool operator --(global::System.Int32 p0, global::System.String p1)\r\n{\r\n}");
 
             VerifySyntax<OperatorDeclarationSyntax>(
                 _g.OperatorDeclaration(OperatorKind.Division, parameters, returnType),
-                "bool operator /(System.Int32 p0, System.String p1)\r\n{\r\n}");
+                "bool operator /(global::System.Int32 p0, global::System.String p1)\r\n{\r\n}");
 
             VerifySyntax<OperatorDeclarationSyntax>(
                 _g.OperatorDeclaration(OperatorKind.Equality, parameters, returnType),
-                "bool operator ==(System.Int32 p0, System.String p1)\r\n{\r\n}");
+                "bool operator ==(global::System.Int32 p0, global::System.String p1)\r\n{\r\n}");
 
             VerifySyntax<OperatorDeclarationSyntax>(
                 _g.OperatorDeclaration(OperatorKind.ExclusiveOr, parameters, returnType),
-                "bool operator ^(System.Int32 p0, System.String p1)\r\n{\r\n}");
+                "bool operator ^(global::System.Int32 p0, global::System.String p1)\r\n{\r\n}");
 
             VerifySyntax<OperatorDeclarationSyntax>(
                 _g.OperatorDeclaration(OperatorKind.False, parameters, returnType),
-                "bool operator false (System.Int32 p0, System.String p1)\r\n{\r\n}");
+                "bool operator false (global::System.Int32 p0, global::System.String p1)\r\n{\r\n}");
 
             VerifySyntax<OperatorDeclarationSyntax>(
                 _g.OperatorDeclaration(OperatorKind.GreaterThan, parameters, returnType),
-                "bool operator>(System.Int32 p0, System.String p1)\r\n{\r\n}");
+                "bool operator>(global::System.Int32 p0, global::System.String p1)\r\n{\r\n}");
 
             VerifySyntax<OperatorDeclarationSyntax>(
                 _g.OperatorDeclaration(OperatorKind.GreaterThanOrEqual, parameters, returnType),
-                "bool operator >=(System.Int32 p0, System.String p1)\r\n{\r\n}");
+                "bool operator >=(global::System.Int32 p0, global::System.String p1)\r\n{\r\n}");
 
             VerifySyntax<OperatorDeclarationSyntax>(
                 _g.OperatorDeclaration(OperatorKind.Increment, parameters, returnType),
-                "bool operator ++(System.Int32 p0, System.String p1)\r\n{\r\n}");
+                "bool operator ++(global::System.Int32 p0, global::System.String p1)\r\n{\r\n}");
 
             VerifySyntax<OperatorDeclarationSyntax>(
                 _g.OperatorDeclaration(OperatorKind.Inequality, parameters, returnType),
-                "bool operator !=(System.Int32 p0, System.String p1)\r\n{\r\n}");
+                "bool operator !=(global::System.Int32 p0, global::System.String p1)\r\n{\r\n}");
 
             VerifySyntax<OperatorDeclarationSyntax>(
                 _g.OperatorDeclaration(OperatorKind.LeftShift, parameters, returnType),
-                "bool operator <<(System.Int32 p0, System.String p1)\r\n{\r\n}");
+                "bool operator <<(global::System.Int32 p0, global::System.String p1)\r\n{\r\n}");
 
             VerifySyntax<OperatorDeclarationSyntax>(
                 _g.OperatorDeclaration(OperatorKind.LessThan, parameters, returnType),
-                "bool operator <(System.Int32 p0, System.String p1)\r\n{\r\n}");
+                "bool operator <(global::System.Int32 p0, global::System.String p1)\r\n{\r\n}");
 
             VerifySyntax<OperatorDeclarationSyntax>(
                 _g.OperatorDeclaration(OperatorKind.LessThanOrEqual, parameters, returnType),
-                "bool operator <=(System.Int32 p0, System.String p1)\r\n{\r\n}");
+                "bool operator <=(global::System.Int32 p0, global::System.String p1)\r\n{\r\n}");
 
             VerifySyntax<OperatorDeclarationSyntax>(
                 _g.OperatorDeclaration(OperatorKind.LogicalNot, parameters, returnType),
-                "bool operator !(System.Int32 p0, System.String p1)\r\n{\r\n}");
+                "bool operator !(global::System.Int32 p0, global::System.String p1)\r\n{\r\n}");
 
             VerifySyntax<OperatorDeclarationSyntax>(
                 _g.OperatorDeclaration(OperatorKind.Modulus, parameters, returnType),
-                "bool operator %(System.Int32 p0, System.String p1)\r\n{\r\n}");
+                "bool operator %(global::System.Int32 p0, global::System.String p1)\r\n{\r\n}");
 
             VerifySyntax<OperatorDeclarationSyntax>(
                 _g.OperatorDeclaration(OperatorKind.Multiply, parameters, returnType),
-                "bool operator *(System.Int32 p0, System.String p1)\r\n{\r\n}");
+                "bool operator *(global::System.Int32 p0, global::System.String p1)\r\n{\r\n}");
 
             VerifySyntax<OperatorDeclarationSyntax>(
                 _g.OperatorDeclaration(OperatorKind.OnesComplement, parameters, returnType),
-                "bool operator ~(System.Int32 p0, System.String p1)\r\n{\r\n}");
+                "bool operator ~(global::System.Int32 p0, global::System.String p1)\r\n{\r\n}");
 
             VerifySyntax<OperatorDeclarationSyntax>(
                 _g.OperatorDeclaration(OperatorKind.RightShift, parameters, returnType),
-                "bool operator >>(System.Int32 p0, System.String p1)\r\n{\r\n}");
+                "bool operator >>(global::System.Int32 p0, global::System.String p1)\r\n{\r\n}");
 
             VerifySyntax<OperatorDeclarationSyntax>(
                 _g.OperatorDeclaration(OperatorKind.Subtraction, parameters, returnType),
-                "bool operator -(System.Int32 p0, System.String p1)\r\n{\r\n}");
+                "bool operator -(global::System.Int32 p0, global::System.String p1)\r\n{\r\n}");
 
             VerifySyntax<OperatorDeclarationSyntax>(
                 _g.OperatorDeclaration(OperatorKind.True, parameters, returnType),
-                "bool operator true (System.Int32 p0, System.String p1)\r\n{\r\n}");
+                "bool operator true (global::System.Int32 p0, global::System.String p1)\r\n{\r\n}");
 
             VerifySyntax<OperatorDeclarationSyntax>(
                 _g.OperatorDeclaration(OperatorKind.UnaryNegation, parameters, returnType),
-                "bool operator -(System.Int32 p0, System.String p1)\r\n{\r\n}");
+                "bool operator -(global::System.Int32 p0, global::System.String p1)\r\n{\r\n}");
 
             VerifySyntax<OperatorDeclarationSyntax>(
                 _g.OperatorDeclaration(OperatorKind.UnaryPlus, parameters, returnType),
-                "bool operator +(System.Int32 p0, System.String p1)\r\n{\r\n}");
+                "bool operator +(global::System.Int32 p0, global::System.String p1)\r\n{\r\n}");
 
             // Conversion operators
 
             VerifySyntax<ConversionOperatorDeclarationSyntax>(
                 _g.OperatorDeclaration(OperatorKind.ImplicitConversion, parameters, returnType),
-                "implicit operator bool (System.Int32 p0, System.String p1)\r\n{\r\n}");
+                "implicit operator bool (global::System.Int32 p0, global::System.String p1)\r\n{\r\n}");
 
             VerifySyntax<ConversionOperatorDeclarationSyntax>(
                 _g.OperatorDeclaration(OperatorKind.ExplicitConversion, parameters, returnType),
-                "explicit operator bool (System.Int32 p0, System.String p1)\r\n{\r\n}");
+                "explicit operator bool (global::System.Int32 p0, global::System.String p1)\r\n{\r\n}");
         }
 
         [Fact]
@@ -871,7 +913,7 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                 _g.ConstructorDeclaration("c",
                     parameters: new[] { _g.ParameterDeclaration("p", _g.IdentifierName("t")) },
                     baseConstructorArguments: new[] { _g.IdentifierName("p") }),
-                "c(t p): base (p)\r\n{\r\n}");
+                "c(t p): base(p)\r\n{\r\n}");
         }
 
         [Fact]
@@ -1212,11 +1254,11 @@ public interface IFace
 
             VerifySyntax<InterfaceDeclarationSyntax>(
                 _g.InterfaceDeclaration("i", members: new[] { _g.CustomEventDeclaration("ep", _g.IdentifierName("t"), accessibility: Accessibility.Public, modifiers: DeclarationModifiers.Static) }),
-                "interface i\r\n{\r\n    event t ep\r\n    {\r\n        add;\r\n        remove;\r\n    }\r\n}");
+                "interface i\r\n{\r\n    event t ep;\r\n}");
 
             VerifySyntax<InterfaceDeclarationSyntax>(
                 _g.InterfaceDeclaration("i", members: new[] { _g.EventDeclaration("ef", _g.IdentifierName("t"), accessibility: Accessibility.Public, modifiers: DeclarationModifiers.Static) }),
-                "interface i\r\n{\r\n    event t ef\r\n    {\r\n        add;\r\n        remove;\r\n    }\r\n}");
+                "interface i\r\n{\r\n    event t ef;\r\n}");
 
             VerifySyntax<InterfaceDeclarationSyntax>(
                 _g.InterfaceDeclaration("i", members: new[] { _g.FieldDeclaration("f", _g.IdentifierName("t"), accessibility: Accessibility.Public, modifiers: DeclarationModifiers.Sealed) }),
@@ -1572,13 +1614,13 @@ public class C { } // end").Members[0];
                 _g.WithTypeConstraint(
                     _g.WithTypeParameters(_g.MethodDeclaration("m", modifiers: DeclarationModifiers.Abstract), "a"),
                     "a", _g.IdentifierName("b")),
-                "abstract void m<a>()where a : b;");
+                "abstract void m<a>()\r\n    where a : b;");
 
             VerifySyntax<MethodDeclarationSyntax>(
                 _g.WithTypeConstraint(
                     _g.WithTypeParameters(_g.MethodDeclaration("m", modifiers: DeclarationModifiers.Abstract), "a"),
                     "a", _g.IdentifierName("b"), _g.IdentifierName("c")),
-                "abstract void m<a>()where a : b, c;");
+                "abstract void m<a>()\r\n    where a : b, c;");
 
             VerifySyntax<MethodDeclarationSyntax>(
                 _g.WithTypeConstraint(
@@ -1598,43 +1640,43 @@ public class C { } // end").Members[0];
                         _g.WithTypeParameters(_g.MethodDeclaration("m", modifiers: DeclarationModifiers.Abstract), "a", "x"),
                         "a", _g.IdentifierName("b"), _g.IdentifierName("c")),
                     "x", _g.IdentifierName("y")),
-                "abstract void m<a, x>()where a : b, c where x : y;");
+                "abstract void m<a, x>()\r\n    where a : b, c where x : y;");
 
             VerifySyntax<MethodDeclarationSyntax>(
                 _g.WithTypeConstraint(
                     _g.WithTypeParameters(_g.MethodDeclaration("m", modifiers: DeclarationModifiers.Abstract), "a"),
                     "a", SpecialTypeConstraintKind.Constructor),
-                "abstract void m<a>()where a : new ();");
+                "abstract void m<a>()\r\n    where a : new();");
 
             VerifySyntax<MethodDeclarationSyntax>(
                 _g.WithTypeConstraint(
                     _g.WithTypeParameters(_g.MethodDeclaration("m", modifiers: DeclarationModifiers.Abstract), "a"),
                     "a", SpecialTypeConstraintKind.ReferenceType),
-                "abstract void m<a>()where a : class;");
+                "abstract void m<a>()\r\n    where a : class;");
 
             VerifySyntax<MethodDeclarationSyntax>(
                 _g.WithTypeConstraint(
                     _g.WithTypeParameters(_g.MethodDeclaration("m", modifiers: DeclarationModifiers.Abstract), "a"),
                     "a", SpecialTypeConstraintKind.ValueType),
-                "abstract void m<a>()where a : struct;");
+                "abstract void m<a>()\r\n    where a : struct;");
 
             VerifySyntax<MethodDeclarationSyntax>(
                 _g.WithTypeConstraint(
                     _g.WithTypeParameters(_g.MethodDeclaration("m", modifiers: DeclarationModifiers.Abstract), "a"),
                     "a", SpecialTypeConstraintKind.ReferenceType | SpecialTypeConstraintKind.Constructor),
-                "abstract void m<a>()where a : class, new ();");
+                "abstract void m<a>()\r\n    where a : class, new();");
 
             VerifySyntax<MethodDeclarationSyntax>(
                 _g.WithTypeConstraint(
                     _g.WithTypeParameters(_g.MethodDeclaration("m", modifiers: DeclarationModifiers.Abstract), "a"),
                     "a", SpecialTypeConstraintKind.ReferenceType | SpecialTypeConstraintKind.ValueType),
-                "abstract void m<a>()where a : class;");
+                "abstract void m<a>()\r\n    where a : class;");
 
             VerifySyntax<MethodDeclarationSyntax>(
                 _g.WithTypeConstraint(
                     _g.WithTypeParameters(_g.MethodDeclaration("m", modifiers: DeclarationModifiers.Abstract), "a"),
                     "a", SpecialTypeConstraintKind.ReferenceType, _g.IdentifierName("b"), _g.IdentifierName("c")),
-                "abstract void m<a>()where a : class, b, c;");
+                "abstract void m<a>()\r\n    where a : class, b, c;");
 
             // type declarations
             VerifySyntax<ClassDeclarationSyntax>(
@@ -1667,7 +1709,7 @@ public class C { } // end").Members[0];
                         _g.DelegateDeclaration("d"),
                         "a", "b"),
                     "a", _g.IdentifierName("x")),
-            "delegate void d<a, b>()where a : x;");
+            "delegate void d<a, b>()\r\n    where a : x;");
         }
 
         [Fact]
@@ -1677,11 +1719,7 @@ public class C { } // end").Members[0];
                 _g.Declaration(_emptyCompilation.GetTypeByMetadataName("System.ComponentModel.INotifyPropertyChanged")),
 @"public interface INotifyPropertyChanged
 {
-    event global::System.ComponentModel.PropertyChangedEventHandler PropertyChanged
-    {
-        add;
-        remove;
-    }
+    event global::System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
 }");
         }
         #endregion
@@ -2232,6 +2270,48 @@ public class C
 
             newProp = _g.ReplaceNode(prop, setAccessor, _g.WithAccessibility(setAccessor, Accessibility.Public));
             Assert.Equal(Accessibility.Public, _g.GetAccessibility(_g.GetAccessor(newProp, DeclarationKind.SetAccessor)));
+        }
+
+        [Fact]
+        public void TestAccessorDeclarations2()
+        {
+            VerifySyntax<PropertyDeclarationSyntax>(
+                _g.WithAccessorDeclarations(_g.PropertyDeclaration("p", _g.IdentifierName("x"))),
+                "x p\r\n{\r\n}");
+
+            VerifySyntax<PropertyDeclarationSyntax>(
+                _g.WithAccessorDeclarations(
+                    _g.PropertyDeclaration("p", _g.IdentifierName("x")),
+                    _g.GetAccessorDeclaration(Accessibility.NotApplicable, new[] { _g.ReturnStatement() })),
+                "x p\r\n{\r\n    get\r\n    {\r\n        return;\r\n    }\r\n}");
+
+
+            VerifySyntax<PropertyDeclarationSyntax>(
+                _g.WithAccessorDeclarations(
+                    _g.PropertyDeclaration("p", _g.IdentifierName("x")),
+                    _g.GetAccessorDeclaration(Accessibility.Protected, new[] { _g.ReturnStatement() })),
+                "x p\r\n{\r\n    protected get\r\n    {\r\n        return;\r\n    }\r\n}");
+
+            VerifySyntax<PropertyDeclarationSyntax>(
+                _g.WithAccessorDeclarations(
+                    _g.PropertyDeclaration("p", _g.IdentifierName("x")),
+                    _g.SetAccessorDeclaration(Accessibility.Protected, new[] { _g.ReturnStatement() })),
+                "x p\r\n{\r\n    protected set\r\n    {\r\n        return;\r\n    }\r\n}");
+
+            VerifySyntax<IndexerDeclarationSyntax>(
+                _g.WithAccessorDeclarations(_g.IndexerDeclaration(new[] { _g.ParameterDeclaration("p", _g.IdentifierName("t")) }, _g.IdentifierName("x"))),
+                "x this[t p]\r\n{\r\n}");
+
+            VerifySyntax<IndexerDeclarationSyntax>(
+                _g.WithAccessorDeclarations(_g.IndexerDeclaration(new[] { _g.ParameterDeclaration("p", _g.IdentifierName("t")) }, _g.IdentifierName("x")),
+                    _g.GetAccessorDeclaration(Accessibility.Protected, new[] { _g.ReturnStatement() })),
+                "x this[t p]\r\n{\r\n    protected get\r\n    {\r\n        return;\r\n    }\r\n}");
+
+            VerifySyntax<IndexerDeclarationSyntax>(
+                _g.WithAccessorDeclarations(
+                    _g.IndexerDeclaration(new[] { _g.ParameterDeclaration("p", _g.IdentifierName("t")) }, _g.IdentifierName("x")),
+                    _g.SetAccessorDeclaration(Accessibility.Protected, new[] { _g.ReturnStatement() })),
+                "x this[t p]\r\n{\r\n    protected set\r\n    {\r\n        return;\r\n    }\r\n}");
         }
 
         [Fact]

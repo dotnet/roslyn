@@ -3,6 +3,7 @@
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -200,8 +201,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim targetForInference As UnboundLambda.TargetSignature = target
 
                     If Not targetForInference.ReturnType.IsVoidType() Then
-                        targetForInference = New UnboundLambda.TargetSignature(targetForInference.ParameterTypes, targetForInference.IsByRef,
-                                                                               Compilation.GetSpecialType(SpecialType.System_Void)) ' No need to report use-site error.
+                        targetForInference = New UnboundLambda.TargetSignature(targetForInference.ParameterTypes, targetForInference.ParameterIsByRef,
+                                                                               Compilation.GetSpecialType(SpecialType.System_Void), ' No need to report use-site error.
+                                                                               returnsByRef:=False)
                     End If
 
                     Dim typeInfo As KeyValuePair(Of TypeSymbol, ImmutableArray(Of Diagnostic)) = source.InferReturnType(targetForInference)
@@ -324,7 +326,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Private ReadOnly _lambdaSymbol As LambdaSymbol
             Private ReadOnly _isIterator As Boolean
-            Private _delegatRelaxationLevel As ConversionKind = ConversionKind.DelegateRelaxationLevelNone
+            Private _delegateRelaxationLevel As ConversionKind = ConversionKind.DelegateRelaxationLevelNone
             Private _seenReturnWithAValue As Boolean
             Private _useSiteDiagnostics As HashSet(Of DiagnosticInfo)
 
@@ -345,7 +347,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 visitor.VisitBlock(lambdaBlock)
                 seenReturnWithAValue = visitor._seenReturnWithAValue
                 useSiteDiagnostics = visitor._useSiteDiagnostics
-                Return visitor._delegatRelaxationLevel
+                Return visitor._delegateRelaxationLevel
             End Function
 
             Public Overrides Function Visit(node As BoundNode) As BoundNode
@@ -383,8 +385,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim returnRelaxation As ConversionKind = Conversions.DetermineDelegateRelaxationLevelForLambdaReturn(node.ExpressionOpt, _useSiteDiagnostics)
 
-                If returnRelaxation > _delegatRelaxationLevel Then
-                    _delegatRelaxationLevel = returnRelaxation
+                If returnRelaxation > _delegateRelaxationLevel Then
+                    _delegateRelaxationLevel = returnRelaxation
                 End If
 
                 Return Nothing
@@ -394,8 +396,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If _isIterator Then
                     Dim returnRelaxation As ConversionKind = Conversions.DetermineDelegateRelaxationLevelForLambdaReturn(node.Expression, _useSiteDiagnostics)
 
-                    If returnRelaxation > _delegatRelaxationLevel Then
-                        _delegatRelaxationLevel = returnRelaxation
+                    If returnRelaxation > _delegateRelaxationLevel Then
+                        _delegateRelaxationLevel = returnRelaxation
                     End If
                 End If
 
@@ -426,7 +428,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 #End If
             Dim lambdaSyntax = lambdaSymbol.Syntax
             Dim bodyBinder = lambdaBinder.GetBinder(lambdaSyntax)
-            Dim endSyntax As VisualBasicSyntaxNode = lambdaSyntax
+            Dim endSyntax As SyntaxNode = lambdaSyntax
 
             Dim block As BoundBlock
 
@@ -476,8 +478,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim singleLineLambdaSyntax = DirectCast(lambdaSyntax, SingleLineLambdaExpressionSyntax)
                     Dim statement = DirectCast(singleLineLambdaSyntax.Body, StatementSyntax)
 
-                    Dim boundStatement As BoundStatement
-
                     If statement.Kind = SyntaxKind.LocalDeclarationStatement Then
                         ' A local declaration is not allowed in a single line lambda as the top level statement.  Report the error here because it is legal
                         ' to have a single line if which contains a local declaration.  If the error reporting is done in BindStatement then all local 
@@ -485,18 +485,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         ' Bind local declaration, discard diagnostics
                         Dim ignoredDiagnostics = DiagnosticBag.GetInstance()
-                        boundStatement = bodyBinder.BindBlock(lambdaSyntax, singleLineLambdaSyntax.Statements, ignoredDiagnostics).MakeCompilerGenerated()
+                        block = bodyBinder.BindBlock(lambdaSyntax, singleLineLambdaSyntax.Statements, ignoredDiagnostics).MakeCompilerGenerated()
                         ignoredDiagnostics.Free()
 
                         ' Generate a diagnostic and a bad statement node
                         ReportDiagnostic(diagnostics, statement, ERRID.ERR_SubDisallowsStatement)
-                        boundStatement = New BoundBadStatement(statement, ImmutableArray.Create(Of BoundNode)(boundStatement), hasErrors:=True)
                     Else
-                        boundStatement = bodyBinder.BindBlock(lambdaSyntax, singleLineLambdaSyntax.Statements, diagnostics).MakeCompilerGenerated()
+                        block = bodyBinder.BindBlock(lambdaSyntax, singleLineLambdaSyntax.Statements, diagnostics).MakeCompilerGenerated()
                     End If
-
-                    block = New BoundBlock(lambdaSyntax, Nothing, ImmutableArray(Of LocalSymbol).Empty,
-                                           ImmutableArray.Create(boundStatement), boundStatement.HasErrors).MakeCompilerGenerated()
 
                 Case SyntaxKind.MultiLineFunctionLambdaExpression,
                      SyntaxKind.MultiLineSubLambdaExpression
@@ -528,18 +524,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     localBuilder.Add(localForFunctionValue)
 
                     Dim returnLabel = New BoundLabelStatement(endSyntax, bodyBinder.GetReturnLabel())
-                    Dim boundLocal = New BoundLocal(endSyntax, localForFunctionValue, isLValue:=False, type:=localForFunctionValue.Type)
+                    Dim boundLocal = New BoundLocal(endSyntax, localForFunctionValue, isLValue:=False, type:=localForFunctionValue.Type).MakeCompilerGenerated()
                     Dim returnStmt = New BoundReturnStatement(endSyntax, boundLocal, Nothing, Nothing)
 
                     If lambdaSyntax.Kind = SyntaxKind.SingleLineFunctionLambdaExpression OrElse endSyntax Is lambdaSyntax Then
                         returnLabel.SetWasCompilerGenerated()
-                        boundLocal.SetWasCompilerGenerated()
                         returnStmt.SetWasCompilerGenerated()
                     End If
 
                     statements.Add(returnLabel)
                     statements.Add(returnStmt)
-
 
                 Case SyntaxKind.SingleLineSubLambdaExpression,
                     SyntaxKind.MultiLineSubLambdaExpression
@@ -783,11 +777,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim diagnostics = DiagnosticBag.GetInstance()
 
             ' Using Void as return type, because BuildBoundLambdaParameters doesn't use it and it is as good as any other value.
-            Dim targetSignature As New UnboundLambda.TargetSignature(ImmutableArray(Of ParameterSymbol).Empty, Compilation.GetSpecialType(SpecialType.System_Void))
+            Dim targetSignature As New UnboundLambda.TargetSignature(ImmutableArray(Of ParameterSymbol).Empty, Compilation.GetSpecialType(SpecialType.System_Void), returnsByRef:=False)
             Dim parameters As ImmutableArray(Of BoundLambdaParameterSymbol) = BuildBoundLambdaParameters(source, targetSignature, diagnostics)
 
             Dim returnTypeInfo As KeyValuePair(Of TypeSymbol, ImmutableArray(Of Diagnostic))
-            returnTypeInfo = source.InferReturnType(New UnboundLambda.TargetSignature(StaticCast(Of ParameterSymbol).From(parameters), targetSignature.ReturnType))
+            returnTypeInfo = source.InferReturnType(New UnboundLambda.TargetSignature(StaticCast(Of ParameterSymbol).From(parameters), targetSignature.ReturnType, targetSignature.ReturnsByRef))
             Dim returnType As TypeSymbol = returnTypeInfo.Key
 
             If Not returnTypeInfo.Value.IsDefaultOrEmpty Then
@@ -873,11 +867,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If source.ReturnType IsNot Nothing Then
                     commonReturnType = If(source.IsFunctionLambda AndAlso source.ReturnType.IsVoidType(), LambdaSymbol.ReturnTypeVoidReplacement, source.ReturnType)
                 ElseIf commonReturnType Is Nothing OrElse commonReturnType Is LambdaSymbol.ErrorRecoveryInferenceError Then
-                    commonReturnType = source.InferReturnType(New UnboundLambda.TargetSignature(commonParameterTypes.AsImmutableOrNull(), isByRef, Compilation.GetSpecialType(SpecialType.System_Void))).Key
+                    commonReturnType = source.InferReturnType(New UnboundLambda.TargetSignature(commonParameterTypes.AsImmutableOrNull(),
+                                                                                                isByRef,
+                                                                                                Compilation.GetSpecialType(SpecialType.System_Void),
+                                                                                                returnsByRef:=False)).Key
                 End If
 
                 Interlocked.CompareExchange(source.BindingCache.ErrorRecoverySignature,
-                                            New UnboundLambda.TargetSignature(commonParameterTypes.AsImmutableOrNull(), isByRef, commonReturnType),
+                                            New UnboundLambda.TargetSignature(commonParameterTypes.AsImmutableOrNull(), isByRef, commonReturnType, returnsByRef:=False),
                                             Nothing)
             End If
 
@@ -888,7 +885,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If result Is Nothing Then
                 result = candidate
             ElseIf result IsNot LambdaSymbol.ErrorRecoveryInferenceError Then
-                If Not result.IsSameTypeIgnoringCustomModifiers(candidate) Then
+                If Not result.IsSameTypeIgnoringAll(candidate) Then
                     result = LambdaSymbol.ErrorRecoveryInferenceError
                 End If
             End If
@@ -1016,7 +1013,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New KeyValuePair(Of TypeSymbol, ImmutableArray(Of Diagnostic))(lambdaReturnType, diagnostics.ToReadOnlyAndFree())
         End Function
 
-        Private Shared Function LambdaHeaderErrorNode(source As UnboundLambda) As VisualBasicSyntaxNode
+        Private Shared Function LambdaHeaderErrorNode(source As UnboundLambda) As SyntaxNode
             Dim lambdaSyntax = TryCast(source.Syntax, LambdaExpressionSyntax)
 
             If lambdaSyntax IsNot Nothing Then
@@ -1103,7 +1100,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             _functionValue = CreateFunctionValueLocal(lambdaSymbol)
         End Sub
 
-        Private Function CreateFunctionValueLocal(lambdaSymbol As LambdaSymbol) As LocalSymbol
+        Private Shared Function CreateFunctionValueLocal(lambdaSymbol As LambdaSymbol) As LocalSymbol
             ' synthesized lambdas may not result from a LambdaExpressionSyntax (e.g. an AddressOf expression that 
             ' needs relaxation). In this case there will be no need to create a local here, this is done when generating the 
             ' lambda body.

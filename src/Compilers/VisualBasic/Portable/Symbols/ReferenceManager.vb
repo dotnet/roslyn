@@ -3,6 +3,7 @@
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.Collections
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
@@ -309,7 +310,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         modules,
                         resolutionDiagnostics)
 
-                    Dim assemblyBeingBuiltData As New AssemblyDataForAssemblyBeingBuilt(New AssemblyIdentity(name:=SimpleAssemblyName), referencedAssemblies, modules)
+                    Dim assemblyBeingBuiltData As New AssemblyDataForAssemblyBeingBuilt(New AssemblyIdentity(name:=SimpleAssemblyName, noThrow:=True), referencedAssemblies, modules)
                     Dim explicitAssemblyData = referencedAssemblies.Insert(0, assemblyBeingBuiltData)
 
                     ' Let's bind all the references and resolve missing one (if resolver is available)

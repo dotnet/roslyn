@@ -1,9 +1,9 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.Runtime.CompilerServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Shared.Collections
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -13,6 +13,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         Public Function IsParentKind(node As SyntaxNode, kind As SyntaxKind) As Boolean
             Return node IsNot Nothing AndAlso
                    node.Parent.IsKind(kind)
+        End Function
+
+        <Extension()>
+        Public Function IsParentKind(node As SyntaxNode, kind1 As SyntaxKind, kind2 As SyntaxKind) As Boolean
+            Return node IsNot Nothing AndAlso
+                   IsKind(node.Parent, kind1, kind2)
+        End Function
+
+        <Extension()>
+        Public Function IsParentKind(node As SyntaxNode, kind1 As SyntaxKind, kind2 As SyntaxKind, kind3 As SyntaxKind) As Boolean
+            Return node IsNot Nothing AndAlso
+                   IsKind(node.Parent, kind1, kind2, kind3)
         End Function
 
         <Extension()>
@@ -176,68 +188,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Return Contract.FailWithReturn(Of SyntaxList(Of StatementSyntax))("unknown statements container!")
         End Function
 
-        ' Matches the following:
-        '
-        ' (whitespace* newline)+ 
-        Private ReadOnly s_oneOrMoreBlankLines As Matcher(Of SyntaxTrivia)
-
-        ' Matches the following:
-        '
-        ' (whitespace* comment whitespace* newline)+ OneOrMoreBlankLines
-        Private ReadOnly s_bannerMatcher As Matcher(Of SyntaxTrivia)
-
-        ' Used to match the following:
-        '
-        ' <start-of-file> (whitespace* comment whitespace* newline)+ blankLine*
-        Private ReadOnly s_fileBannerMatcher As Matcher(Of SyntaxTrivia)
-
-        Sub New()
-            Dim whitespace = Matcher.Repeat(Match(SyntaxKind.WhitespaceTrivia, "\\b"))
-            Dim endOfLine = Match(SyntaxKind.EndOfLineTrivia, "\\n")
-            Dim singleBlankLine = Matcher.Sequence(whitespace, endOfLine)
-
-            Dim comment = Match(SyntaxKind.CommentTrivia, "'")
-            Dim commentLine = Matcher.Sequence(whitespace, comment, whitespace, endOfLine)
-
-            s_oneOrMoreBlankLines = Matcher.OneOrMore(singleBlankLine)
-            s_bannerMatcher =
-                Matcher.Sequence(
-                    Matcher.OneOrMore(commentLine),
-                    s_oneOrMoreBlankLines)
-            s_fileBannerMatcher =
-                Matcher.Sequence(
-                    Matcher.OneOrMore(commentLine),
-                    Matcher.Repeat(singleBlankLine))
-        End Sub
-
-        Private Function Match(kind As SyntaxKind, description As String) As Matcher(Of SyntaxTrivia)
-            Return Matcher.Single(Of SyntaxTrivia)(Function(t) t.Kind = kind, description)
+        <Extension()>
+        Friend Function IsAsyncSupportedFunctionSyntax(node As SyntaxNode) As Boolean
+            Select Case node?.Kind()
+                Case _
+                SyntaxKind.FunctionBlock,
+                SyntaxKind.SubBlock,
+                SyntaxKind.MultiLineFunctionLambdaExpression,
+                SyntaxKind.MultiLineSubLambdaExpression,
+                SyntaxKind.SingleLineFunctionLambdaExpression,
+                SyntaxKind.SingleLineSubLambdaExpression
+                    Return True
+            End Select
+            Return False
         End Function
 
         <Extension()>
-        Friend Function IsMultiLineLambda(lambda As LambdaExpressionSyntax) As Boolean
-            Return lambda.Kind = SyntaxKind.MultiLineSubLambdaExpression OrElse
-                   lambda.Kind = SyntaxKind.MultiLineFunctionLambdaExpression
-        End Function
-
-        <Extension()>
-        Friend Function WithPrependedLeadingTrivia(Of T As SyntaxNode)(node As T, ParamArray trivia As SyntaxTrivia()) As T
-            Return node.WithPrependedLeadingTrivia(DirectCast(trivia, IEnumerable(Of SyntaxTrivia)))
-        End Function
-
-        <Extension()>
-        Friend Function WithPrependedLeadingTrivia(Of T As SyntaxNode)(node As T, trivia As IEnumerable(Of SyntaxTrivia)) As T
-            Return DirectCast(node.WithLeadingTrivia(trivia.Concat(node.GetLeadingTrivia())), T)
-        End Function
-
-        <Extension()>
-        Friend Function WithAppendedTrailingTrivia(Of T As SyntaxNode)(node As T, ParamArray trivia As SyntaxTrivia()) As T
-            Return node.WithAppendedTrailingTrivia(DirectCast(trivia, IEnumerable(Of SyntaxTrivia)))
-        End Function
-
-        <Extension()>
-        Friend Function WithAppendedTrailingTrivia(Of T As SyntaxNode)(node As T, trivia As IEnumerable(Of SyntaxTrivia)) As T
-            Return DirectCast(node.WithTrailingTrivia(node.GetTrailingTrivia().Concat(trivia)), T)
+        Friend Function IsMultiLineLambda(node As SyntaxNode) As Boolean
+            Return SyntaxFacts.IsMultiLineLambdaExpression(node.Kind())
         End Function
 
         <Extension()>
@@ -272,12 +240,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         <Extension()>
-        Public Function ConvertToSingleLine(Of TNode As SyntaxNode)(node As TNode) As TNode
+        Public Function ConvertToSingleLine(Of TNode As SyntaxNode)(node As TNode, Optional useElasticTrivia As Boolean = False) As TNode
             If node Is Nothing Then
                 Return node
             End If
 
-            Dim rewriter = New SingleLineRewriter()
+            Dim rewriter = New SingleLineRewriter(useElasticTrivia)
             Return DirectCast(rewriter.Visit(node), TNode)
         End Function
 
@@ -304,7 +272,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     ' this node that belongs to a span of pp directives that
                     ' is not entirely contained within the node.  i.e.:
                     '
-                    '   void Foo() {
+                    '   void Goo() {
                     '      #if ...
                     '   }
                     '
@@ -321,7 +289,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     ' We have a PP directive before us.  i.e.:
                     ' 
                     '   #if ...
-                    '      void Foo() {
+                    '      void Goo() {
                     '
                     ' That means we start a new group that is contained between
                     ' the above directive and the following directive.
@@ -352,30 +320,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         ''' 
         ''' i.e. The following returns false:
         ''' 
-        '''   void Foo() {
+        '''   void Goo() {
         ''' #if true
         ''' #endif
         '''   }
         ''' 
         ''' #if true
-        '''   void Foo() {
+        '''   void Goo() {
         '''   }
         ''' #endif
         ''' 
         ''' but these return true:
         ''' 
         ''' #if true
-        '''   void Foo() {
+        '''   void Goo() {
         ''' #endif
         '''   }
         ''' 
-        '''   void Foo() {
+        '''   void Goo() {
         ''' #if true
         '''   }
         ''' #endif
         ''' 
         ''' #if true
-        '''   void Foo() {
+        '''   void Goo() {
         ''' #else
         '''   }
         ''' #endif
@@ -387,20 +355,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         ''' </summary>
         <Extension()>
         Public Function ContainsInterleavedDirective(node As SyntaxNode, cancellationToken As CancellationToken) As Boolean
-            ' Check if this node contains a start or end pp construct whose
-            ' matching construct is not contained within this node.  If so, 
-            ' this node must be pinned and cannot move.
-            '
-            ' Also, keep track of those spans so that if we see #else/#elif we
-            ' can tell if they belong to a pp span that is entirely within the
-            ' node.
-            Dim span = node.Span
-            Return node.DescendantTokens().Any(Function(token) ContainsInterleavedDirective(span, token, cancellationToken))
+            Return VisualBasicSyntaxFactsService.Instance.ContainsInterleavedDirective(node, cancellationToken)
         End Function
 
-        Private Function ContainsInterleavedDirective(
-            textSpan As TextSpan,
+        <Extension>
+        Public Function ContainsInterleavedDirective(
             token As SyntaxToken,
+            textSpan As TextSpan,
             cancellationToken As CancellationToken) As Boolean
 
             Return ContainsInterleavedDirective(textSpan, token.LeadingTrivia, cancellationToken) OrElse
@@ -457,95 +418,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Return False
         End Function
 
-
         <Extension()>
-        Public Function GetLeadingBlankLines(Of TSyntaxNode As SyntaxNode)(node As TSyntaxNode) As IEnumerable(Of SyntaxTrivia)
-            Dim blankLines As IEnumerable(Of SyntaxTrivia) = Nothing
-            node.GetNodeWithoutLeadingBlankLines(blankLines)
-            Return blankLines
+        Public Function GetLeadingBlankLines(Of TSyntaxNode As SyntaxNode)(node As TSyntaxNode) As ImmutableArray(Of SyntaxTrivia)
+            Return VisualBasicSyntaxFactsService.Instance.GetLeadingBlankLines(node)
         End Function
 
         <Extension()>
         Public Function GetNodeWithoutLeadingBlankLines(Of TSyntaxNode As SyntaxNode)(node As TSyntaxNode) As TSyntaxNode
-            Dim blankLines As IEnumerable(Of SyntaxTrivia) = Nothing
-            Return node.GetNodeWithoutLeadingBlankLines(blankLines)
+            Return VisualBasicSyntaxFactsService.Instance.GetNodeWithoutLeadingBlankLines(node)
         End Function
 
         <Extension()>
-        Public Function GetNodeWithoutLeadingBlankLines(Of TSyntaxNode As SyntaxNode)(
-            node As TSyntaxNode, ByRef strippedTrivia As IEnumerable(Of SyntaxTrivia)) As TSyntaxNode
-
-            Dim leadingTriviaToKeep = New List(Of SyntaxTrivia)(node.GetLeadingTrivia())
-
-            Dim index = 0
-            s_oneOrMoreBlankLines.TryMatch(leadingTriviaToKeep, index)
-
-            strippedTrivia = New List(Of SyntaxTrivia)(leadingTriviaToKeep.Take(index))
-
-            Return DirectCast(node.WithLeadingTrivia(leadingTriviaToKeep.Skip(index)), TSyntaxNode)
+        Public Function GetNodeWithoutLeadingBlankLines(Of TSyntaxNode As SyntaxNode)(node As TSyntaxNode, ByRef strippedTrivia As ImmutableArray(Of SyntaxTrivia)) As TSyntaxNode
+            Return VisualBasicSyntaxFactsService.Instance.GetNodeWithoutLeadingBlankLines(node, strippedTrivia)
         End Function
 
         <Extension()>
-        Public Function GetLeadingBannerAndPreprocessorDirectives(Of TSyntaxNode As SyntaxNode)(node As TSyntaxNode) As IEnumerable(Of SyntaxTrivia)
-            Dim leadingTrivia As IEnumerable(Of SyntaxTrivia) = Nothing
-            node.GetNodeWithoutLeadingBannerAndPreprocessorDirectives(leadingTrivia)
-            Return leadingTrivia
+        Public Function GetLeadingBannerAndPreprocessorDirectives(Of TSyntaxNode As SyntaxNode)(node As TSyntaxNode) As ImmutableArray(Of SyntaxTrivia)
+            Return VisualBasicSyntaxFactsService.Instance.GetLeadingBannerAndPreprocessorDirectives(node)
         End Function
 
         <Extension()>
         Public Function GetNodeWithoutLeadingBannerAndPreprocessorDirectives(Of TSyntaxNode As SyntaxNode)(node As TSyntaxNode) As TSyntaxNode
-            Dim strippedTrivia As IEnumerable(Of SyntaxTrivia) = Nothing
-            Return node.GetNodeWithoutLeadingBannerAndPreprocessorDirectives(strippedTrivia)
+            Return VisualBasicSyntaxFactsService.Instance.GetNodeWithoutLeadingBannerAndPreprocessorDirectives(node)
         End Function
 
         <Extension()>
-        Public Function GetNodeWithoutLeadingBannerAndPreprocessorDirectives(Of TSyntaxNode As SyntaxNode)(
-            node As TSyntaxNode,
-            ByRef strippedTrivia As IEnumerable(Of SyntaxTrivia)) As TSyntaxNode
-
-            Dim leadingTrivia = node.GetLeadingTrivia()
-
-            ' Rules for stripping trivia: 
-            ' 1) If there is a pp directive, then it (and all preceding trivia) *must* be stripped.
-            '    This rule supersedes all other rules.
-            ' 2) If there is a doc comment, it cannot be stripped.  Even if there is a doc comment,
-            '    followed by 5 new lines, then the doc comment still must stay with the node.  This
-            '    rule does *not* supersede rule 1.
-            ' 3) Single line comments in a group (i.e. with no blank lines between them) belong to
-            '    the node *iff* there is no blank line between it and the following trivia.
-
-            Dim leadingTriviaToStrip, leadingTriviaToKeep As List(Of SyntaxTrivia)
-
-            Dim ppIndex = -1
-            For i = leadingTrivia.Count - 1 To 0 Step -1
-                If SyntaxFacts.IsPreprocessorDirective(leadingTrivia(i).Kind) Then
-                    ppIndex = i
-                    Exit For
-                End If
-            Next
-
-            If ppIndex <> -1 Then
-                ' We have a pp directive.  it (and all previous trivia) must be stripped.
-                leadingTriviaToStrip = New List(Of SyntaxTrivia)(leadingTrivia.Take(ppIndex + 1))
-                leadingTriviaToKeep = New List(Of SyntaxTrivia)(leadingTrivia.Skip(ppIndex + 1))
-            Else
-                leadingTriviaToKeep = New List(Of SyntaxTrivia)(leadingTrivia)
-                leadingTriviaToStrip = New List(Of SyntaxTrivia)()
-            End If
-
-            ' Now, consume as many banners as we can.  s_fileBannerMatcher will only be matched at
-            ' the start of the file.
-            Dim index = 0
-            While (
-                s_oneOrMoreBlankLines.TryMatch(leadingTriviaToKeep, index) OrElse
-                s_bannerMatcher.TryMatch(leadingTriviaToKeep, index) OrElse
-                (node.FullSpan.Start = 0 AndAlso s_fileBannerMatcher.TryMatch(leadingTriviaToKeep, index)))
-            End While
-
-            leadingTriviaToStrip.AddRange(leadingTriviaToKeep.Take(index))
-
-            strippedTrivia = leadingTriviaToStrip
-            Return DirectCast(node.WithLeadingTrivia(leadingTriviaToKeep.Skip(index)), TSyntaxNode)
+        Public Function GetNodeWithoutLeadingBannerAndPreprocessorDirectives(Of TSyntaxNode As SyntaxNode)(node As TSyntaxNode, ByRef strippedTrivia As ImmutableArray(Of SyntaxTrivia)) As TSyntaxNode
+            Return VisualBasicSyntaxFactsService.Instance.GetNodeWithoutLeadingBannerAndPreprocessorDirectives(node, strippedTrivia)
         End Function
 
         ''' <summary>
@@ -862,35 +762,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         <Extension()>
-        Public Function GetBraces(node As SyntaxNode) As ValueTuple(Of SyntaxToken, SyntaxToken)
+        Public Function GetBraces(node As SyntaxNode) As (openBrace As SyntaxToken, closeBrace As SyntaxToken)
             Return node.TypeSwitch(
-                Function(n As TypeParameterMultipleConstraintClauseSyntax) ValueTuple.Create(n.OpenBraceToken, n.CloseBraceToken),
-                Function(n As ObjectMemberInitializerSyntax) ValueTuple.Create(n.OpenBraceToken, n.CloseBraceToken),
-                Function(n As CollectionInitializerSyntax) ValueTuple.Create(n.OpenBraceToken, n.CloseBraceToken),
-                Function(n As SyntaxNode) CType(Nothing, ValueTuple(Of SyntaxToken, SyntaxToken)))
+                Function(n As TypeParameterMultipleConstraintClauseSyntax) (n.OpenBraceToken, n.CloseBraceToken),
+                Function(n As ObjectMemberInitializerSyntax) (n.OpenBraceToken, n.CloseBraceToken),
+                Function(n As CollectionInitializerSyntax) (n.OpenBraceToken, n.CloseBraceToken),
+                Function(n As SyntaxNode) CType(Nothing, (SyntaxToken, SyntaxToken)))
         End Function
 
         <Extension()>
         Public Function GetParentheses(node As SyntaxNode) As ValueTuple(Of SyntaxToken, SyntaxToken)
             Return node.TypeSwitch(
-                Function(n As TypeParameterListSyntax) ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                Function(n As ParameterListSyntax) ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                Function(n As ArrayRankSpecifierSyntax) ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                Function(n As ParenthesizedExpressionSyntax) ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                Function(n As GetTypeExpressionSyntax) ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                Function(n As GetXmlNamespaceExpressionSyntax) ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                Function(n As CTypeExpressionSyntax) ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                Function(n As DirectCastExpressionSyntax) ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                Function(n As TryCastExpressionSyntax) ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                Function(n As PredefinedCastExpressionSyntax) ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                Function(n As BinaryConditionalExpressionSyntax) ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                Function(n As TernaryConditionalExpressionSyntax) ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                Function(n As ArgumentListSyntax) ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                Function(n As FunctionAggregationSyntax) ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                Function(n As TypeArgumentListSyntax) ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                Function(n As ExternalSourceDirectiveTriviaSyntax) ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                Function(n As ExternalChecksumDirectiveTriviaSyntax) ValueTuple.Create(n.OpenParenToken, n.CloseParenToken),
-                Function(n As SyntaxNode) CType(Nothing, ValueTuple(Of SyntaxToken, SyntaxToken)))
+                Function(n As TypeParameterListSyntax) (n.OpenParenToken, n.CloseParenToken),
+                Function(n As ParameterListSyntax) (n.OpenParenToken, n.CloseParenToken),
+                Function(n As ArrayRankSpecifierSyntax) (n.OpenParenToken, n.CloseParenToken),
+                Function(n As ParenthesizedExpressionSyntax) (n.OpenParenToken, n.CloseParenToken),
+                Function(n As GetTypeExpressionSyntax) (n.OpenParenToken, n.CloseParenToken),
+                Function(n As GetXmlNamespaceExpressionSyntax) (n.OpenParenToken, n.CloseParenToken),
+                Function(n As CTypeExpressionSyntax) (n.OpenParenToken, n.CloseParenToken),
+                Function(n As DirectCastExpressionSyntax) (n.OpenParenToken, n.CloseParenToken),
+                Function(n As TryCastExpressionSyntax) (n.OpenParenToken, n.CloseParenToken),
+                Function(n As PredefinedCastExpressionSyntax) (n.OpenParenToken, n.CloseParenToken),
+                Function(n As BinaryConditionalExpressionSyntax) (n.OpenParenToken, n.CloseParenToken),
+                Function(n As TernaryConditionalExpressionSyntax) (n.OpenParenToken, n.CloseParenToken),
+                Function(n As ArgumentListSyntax) (n.OpenParenToken, n.CloseParenToken),
+                Function(n As FunctionAggregationSyntax) (n.OpenParenToken, n.CloseParenToken),
+                Function(n As TypeArgumentListSyntax) (n.OpenParenToken, n.CloseParenToken),
+                Function(n As ExternalSourceDirectiveTriviaSyntax) (n.OpenParenToken, n.CloseParenToken),
+                Function(n As ExternalChecksumDirectiveTriviaSyntax) (n.OpenParenToken, n.CloseParenToken),
+                Function(n As SyntaxNode) CType(Nothing, (SyntaxToken, SyntaxToken)))
         End Function
 
         <Extension>
@@ -1093,6 +993,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             End While
 
             Return Nothing
+        End Function
+
+        <Extension>
+        Public Function IsInExpressionTree(node As SyntaxNode,
+                                           semanticModel As SemanticModel,
+                                           expressionTypeOpt As INamedTypeSymbol,
+                                           cancellationToken As CancellationToken) As Boolean
+
+            If expressionTypeOpt IsNot Nothing Then
+                Dim current = node
+                While current IsNot Nothing
+                    If SyntaxFacts.IsSingleLineLambdaExpression(current.Kind) OrElse
+                       SyntaxFacts.IsMultiLineLambdaExpression(current.Kind) Then
+                        Dim TypeInfo = semanticModel.GetTypeInfo(current, cancellationToken)
+                        If expressionTypeOpt.Equals(TypeInfo.ConvertedType?.OriginalDefinition) Then
+                            Return True
+                        End If
+                    End If
+
+                    current = current.Parent
+                End While
+            End If
+
+            Return False
         End Function
     End Module
 End Namespace

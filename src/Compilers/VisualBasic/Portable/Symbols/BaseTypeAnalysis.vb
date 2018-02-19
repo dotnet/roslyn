@@ -2,6 +2,7 @@
 
 Imports System.Text
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
@@ -187,10 +188,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private Function GetDependenceChain(visited As HashSet(Of Symbol),
                                                root As SourceNamedTypeSymbol,
                                                current As TypeSymbol) As ConsList(Of DependencyDesc)
-
             Debug.Assert(root.OriginalDefinition = root, "root must not be a substitution")
 
-            If current Is Nothing Then
+            If current Is Nothing OrElse current.Kind = SymbolKind.ErrorType Then
                 Return Nothing
             End If
 

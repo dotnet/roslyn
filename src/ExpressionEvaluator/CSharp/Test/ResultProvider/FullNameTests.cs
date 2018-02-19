@@ -1,10 +1,11 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
+using Microsoft.VisualStudio.Debugger.ComponentInterfaces;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Roslyn.Test.Utilities;
@@ -14,6 +15,66 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 {
     public class FullNameTests : CSharpResultProviderTestBase
     {
+        [Fact]
+        public void Null()
+        {
+            IDkmClrFullNameProvider fullNameProvider = new CSharpFormatter();
+            var inspectionContext = CreateDkmInspectionContext();
+            Assert.Equal("null", fullNameProvider.GetClrExpressionForNull(inspectionContext));
+        }
+
+        [Fact]
+        public void This()
+        {
+            IDkmClrFullNameProvider fullNameProvider = new CSharpFormatter();
+            var inspectionContext = CreateDkmInspectionContext();
+            Assert.Equal("this", fullNameProvider.GetClrExpressionForThis(inspectionContext));
+        }
+
+        [Fact]
+        public void ArrayIndex()
+        {
+            IDkmClrFullNameProvider fullNameProvider = new CSharpFormatter();
+            var inspectionContext = CreateDkmInspectionContext();
+            Assert.Equal("[]", fullNameProvider.GetClrArrayIndexExpression(inspectionContext, new string[0]));
+            Assert.Equal("[]", fullNameProvider.GetClrArrayIndexExpression(inspectionContext, new[] { "" }));
+            Assert.Equal("[ ]", fullNameProvider.GetClrArrayIndexExpression(inspectionContext, new[] { " " }));
+            Assert.Equal("[1]", fullNameProvider.GetClrArrayIndexExpression(inspectionContext, new[] { "1" }));
+            Assert.Equal("[[], 2, 3]", fullNameProvider.GetClrArrayIndexExpression(inspectionContext, new[] { "[]", "2", "3" }));
+            Assert.Equal("[, , ]", fullNameProvider.GetClrArrayIndexExpression(inspectionContext, new[] { "", "", "" }));
+        }
+
+        [Fact]
+        public void Cast()
+        {
+            var source =
+@"class C
+{
+}";
+            var runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlib(GetAssembly(source)));
+            using (runtime.Load())
+            {
+                IDkmClrFullNameProvider fullNameProvider = new CSharpFormatter();
+                var inspectionContext = CreateDkmInspectionContext();
+                var type = runtime.GetType("C");
+
+                Assert.Equal("(C)o", fullNameProvider.GetClrCastExpression(inspectionContext, "o", type, null, DkmClrCastExpressionOptions.None));
+                Assert.Equal("o as C", fullNameProvider.GetClrCastExpression(inspectionContext, "o", type, null, DkmClrCastExpressionOptions.ConditionalCast));
+                Assert.Equal("(C)(o)", fullNameProvider.GetClrCastExpression(inspectionContext, "o", type, null, DkmClrCastExpressionOptions.ParenthesizeArgument));
+                Assert.Equal("(o) as C", fullNameProvider.GetClrCastExpression(inspectionContext, "o", type, null, DkmClrCastExpressionOptions.ParenthesizeArgument | DkmClrCastExpressionOptions.ConditionalCast));
+                Assert.Equal("((C)o)", fullNameProvider.GetClrCastExpression(inspectionContext, "o", type, null, DkmClrCastExpressionOptions.ParenthesizeEntireExpression));
+                Assert.Equal("(o as C)", fullNameProvider.GetClrCastExpression(inspectionContext, "o", type, null, DkmClrCastExpressionOptions.ParenthesizeEntireExpression | DkmClrCastExpressionOptions.ConditionalCast));
+                Assert.Equal("((C)(o))", fullNameProvider.GetClrCastExpression(inspectionContext, "o", type, null, DkmClrCastExpressionOptions.ParenthesizeEntireExpression | DkmClrCastExpressionOptions.ParenthesizeArgument));
+                Assert.Equal("((o) as C)", fullNameProvider.GetClrCastExpression(inspectionContext, "o", type, null, DkmClrCastExpressionOptions.ParenthesizeEntireExpression | DkmClrCastExpressionOptions.ParenthesizeArgument | DkmClrCastExpressionOptions.ConditionalCast));
+
+                // Some of the same tests with "..." as the expression ("..." is used
+                // by the debugger when the expression cannot be determined).
+                Assert.Equal("(C)...", fullNameProvider.GetClrCastExpression(inspectionContext, "...", type, null, DkmClrCastExpressionOptions.None));
+                Assert.Equal("... as C", fullNameProvider.GetClrCastExpression(inspectionContext, "...", type, null, DkmClrCastExpressionOptions.ConditionalCast));
+                Assert.Equal("(... as C)", fullNameProvider.GetClrCastExpression(inspectionContext, "...", type, null, DkmClrCastExpressionOptions.ParenthesizeEntireExpression | DkmClrCastExpressionOptions.ConditionalCast));
+            }
+        }
+
         [Fact]
         public void RootComment()
         {
@@ -72,7 +133,7 @@ class C
 
             root = FormatResult("M(a, b), raw", value); // non-specifier comma
             Assert.Equal("M(a, b), raw", root.FullName);
-            Assert.Equal("(M(a, b)).F", GetChildren(root).Single().FullName); // parens not required
+            Assert.Equal("M(a, b).F", GetChildren(root).Single().FullName);
 
             root = FormatResult("a, raw1", value); // alpha-numeric
             Assert.Equal("a, raw1", root.FullName);
@@ -129,7 +190,7 @@ class C
             Assert.Equal("(a + b).F", GetChildren(root).Single().FullName);
 
             root = FormatResult(" M( ) ; ;", value);
-            Assert.Equal("(M( )).F", GetChildren(root).Single().FullName);
+            Assert.Equal("M( ).F", GetChildren(root).Single().FullName);
         }
 
         [Fact]
@@ -429,7 +490,7 @@ namespace @namespace
         public void MangledNames_ExplicitInterfaceImplementation()
         {
             var il = @"
-.class interface public abstract auto ansi 'I<>Mangled'
+.class interface public abstract auto ansi 'abstract.I<>Mangled'
 {
   .method public hidebysig newslot specialname abstract virtual 
           instance int32  get_P() cil managed
@@ -438,18 +499,18 @@ namespace @namespace
 
   .property instance int32 P()
   {
-    .get instance int32 'I<>Mangled'::get_P()
+    .get instance int32 'abstract.I<>Mangled'::get_P()
   }
-} // end of class 'I<>Mangled'
+} // end of class 'abstract.I<>Mangled'
 
 .class public auto ansi beforefieldinit C
        extends [mscorlib]System.Object
-       implements 'I<>Mangled'
+       implements 'abstract.I<>Mangled'
 {
   .method private hidebysig newslot specialname virtual final 
-          instance int32  'I<>Mangled.get_P'() cil managed
+          instance int32  'abstract.I<>Mangled.get_P'() cil managed
   {
-    .override 'I<>Mangled'::get_P
+    .override 'abstract.I<>Mangled'::get_P
     ldc.i4.1
     ret
   }
@@ -462,14 +523,14 @@ namespace @namespace
     ret
   }
 
-  .property instance int32 'I<>Mangled.P'()
+  .property instance int32 'abstract.I<>Mangled.P'()
   {
-    .get instance int32 C::'I<>Mangled.get_P'()
+    .get instance int32 C::'abstract.I<>Mangled.get_P'()
   }
 
   .property instance int32 P()
   {
-    .get instance int32 C::'I<>Mangled.get_P'()
+    .get instance int32 C::'abstract.I<>Mangled.get_P'()
   }
 } // end of class C
 ";
@@ -483,8 +544,8 @@ namespace @namespace
 
             var root = FormatResult("instance", value);
             Verify(GetChildren(root),
-                EvalResult("I<>Mangled.P", "1", "int", null, DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Property, DkmEvaluationResultAccessType.Private),
-                EvalResult("P", "1", "int", "instance.P", DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Property, DkmEvaluationResultAccessType.Private));
+                EvalResult("P", "1", "int", "instance.P", DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Property, DkmEvaluationResultAccessType.Private),
+                EvalResult("abstract.I<>Mangled.P", "1", "int", null, DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Property, DkmEvaluationResultAccessType.Private));
         }
 
         [Fact]

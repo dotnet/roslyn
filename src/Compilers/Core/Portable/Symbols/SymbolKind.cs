@@ -101,5 +101,10 @@ namespace Microsoft.CodeAnalysis
         /// Symbol is a preprocessing/conditional compilation constant.
         /// </summary>
         Preprocessing = 18,
+
+        /// <summary>
+        /// Symbol represents a value that is discarded, e.g. in M(out _)
+        /// </summary>
+        Discard = 19,
     }
 }

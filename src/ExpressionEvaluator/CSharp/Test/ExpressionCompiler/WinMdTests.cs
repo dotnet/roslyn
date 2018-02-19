@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
     {
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(
+            var compilation0 = CreateStandardCompilation(
                 source,
                 options: TestOptions.DebugDll,
                 assemblyName: ExpressionCompilerUtilities.GenerateUniqueName(),
@@ -79,7 +79,7 @@ class C
     {
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(
+            var compilation0 = CreateStandardCompilation(
                 source,
                 options: TestOptions.DebugDll,
                 assemblyName: ExpressionCompilerUtilities.GenerateUniqueName(),
@@ -173,7 +173,7 @@ class C
     {
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source, compileReferences, TestOptions.DebugDll);
+            var compilation0 = CreateStandardCompilation(source, compileReferences, TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtimeReferences, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -252,7 +252,7 @@ class C
     {
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(source, WinRtRefs, TestOptions.DebugDll);
+            var compilation = CreateStandardCompilation(source, WinRtRefs, TestOptions.DebugDll);
             WithRuntimeInstance(compilation, new[] { MscorlibRef }.Concat(ExpressionCompilerTestHelpers.GetRuntimeWinMds("Windows.Storage", "Windows.Foundation.Collections")), runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -302,7 +302,7 @@ class C
     {
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(source, WinRtRefs, TestOptions.DebugDll);
+            var compilation = CreateStandardCompilation(source, WinRtRefs, TestOptions.DebugDll);
             WithRuntimeInstance(compilation, new[] { MscorlibRef }.Concat(ExpressionCompilerTestHelpers.GetRuntimeWinMds("Windows.Foundation", "Windows.UI", "Windows.UI.Xaml")), runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -336,7 +336,7 @@ class C
     {
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(source, WinRtRefs, TestOptions.DebugDll);
+            var compilation = CreateStandardCompilation(source, WinRtRefs, TestOptions.DebugDll);
             WithRuntimeInstance(compilation, new[] { MscorlibRef }.Concat(ExpressionCompilerTestHelpers.GetRuntimeWinMds("Windows.UI", "Windows.UI.Xaml")), runtime =>
             {
                 string errorMessage;

@@ -9,87 +9,109 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Telemetry
     /// </summary>
     public sealed class AnalyzerTelemetryInfo
     {
-        private readonly AnalyzerActionCounts _actionCounts;
-
         /// <summary>
         /// Count of registered compilation start actions.
         /// </summary>
-        public int CompilationStartActionsCount => _actionCounts.CompilationStartActionsCount;
+        public int CompilationStartActionsCount { get; set; } = 0;
 
         /// <summary>
         /// Count of registered compilation end actions.
         /// </summary>
-        public int CompilationEndActionsCount => _actionCounts.CompilationEndActionsCount;
+        public int CompilationEndActionsCount { get; set; } = 0;
 
         /// <summary>
         /// Count of registered compilation actions.
         /// </summary>
-        public int CompilationActionsCount => _actionCounts.CompilationActionsCount;
+        public int CompilationActionsCount { get; set; } = 0;
 
         /// <summary>
         /// Count of registered syntax tree actions.
         /// </summary>
-        public int SyntaxTreeActionsCount => _actionCounts.SyntaxTreeActionsCount;
+        public int SyntaxTreeActionsCount { get; set; } = 0;
 
         /// <summary>
         /// Count of registered semantic model actions.
         /// </summary>
-        public int SemanticModelActionsCount => _actionCounts.SemanticModelActionsCount;
+        public int SemanticModelActionsCount { get; set; } = 0;
 
         /// <summary>
         /// Count of registered symbol actions.
         /// </summary>
-        public int SymbolActionsCount => _actionCounts.SymbolActionsCount;
+        public int SymbolActionsCount { get; set; } = 0;
 
         /// <summary>
         /// Count of registered syntax node actions.
         /// </summary>
-        public int SyntaxNodeActionsCount => _actionCounts.SyntaxNodeActionsCount;
+        public int SyntaxNodeActionsCount { get; set; } = 0;
 
         /// <summary>
         /// Count of registered code block start actions.
         /// </summary>
-        public int CodeBlockStartActionsCount => _actionCounts.CodeBlockStartActionsCount;
+        public int CodeBlockStartActionsCount { get; set; } = 0;
 
         /// <summary>
         /// Count of registered code block end actions.
         /// </summary>
-        public int CodeBlockEndActionsCount => _actionCounts.CodeBlockEndActionsCount;
+        public int CodeBlockEndActionsCount { get; set; } = 0;
 
         /// <summary>
         /// Count of registered code block actions.
         /// </summary>
-        public int CodeBlockActionsCount => _actionCounts.CodeBlockActionsCount;
+        public int CodeBlockActionsCount { get; set; } = 0;
 
         /// <summary>
         /// Count of registered operation actions.
         /// </summary>
-        public int OperationActionsCount => _actionCounts.OperationActionsCount;
+        public int OperationActionsCount { get; set; } = 0;
 
         /// <summary>
         /// Count of registered operation block start actions.
         /// </summary>
-        public int OperationBlockStartActionsCount => _actionCounts.OperationBlockStartActionsCount;
+        public int OperationBlockStartActionsCount { get; set; } = 0;
 
         /// <summary>
         /// Count of registered operation block end actions.
         /// </summary>
-        public int OperationBlockEndActionsCount => _actionCounts.OperationBlockEndActionsCount;
+        public int OperationBlockEndActionsCount { get; set; } = 0;
 
         /// <summary>
         /// Count of registered operation block actions.
         /// </summary>
-        public int OperationBlockActionsCount => _actionCounts.OperationBlockActionsCount;
+        public int OperationBlockActionsCount { get; set; } = 0;
 
         /// <summary>
         /// Total execution time.
         /// </summary>
-        public TimeSpan ExecutionTime { get; }
+        public TimeSpan ExecutionTime { get; set; } = TimeSpan.Zero;
 
         internal AnalyzerTelemetryInfo(AnalyzerActionCounts actionCounts, TimeSpan executionTime)
         {
-            _actionCounts = actionCounts;
+            CompilationStartActionsCount = actionCounts.CompilationStartActionsCount;
+            CompilationEndActionsCount = actionCounts.CompilationEndActionsCount;
+            CompilationActionsCount = actionCounts.CompilationActionsCount;
+
+            SyntaxTreeActionsCount = actionCounts.SyntaxTreeActionsCount;
+            SemanticModelActionsCount = actionCounts.SemanticModelActionsCount;
+            SymbolActionsCount = actionCounts.SymbolActionsCount;
+            SyntaxNodeActionsCount = actionCounts.SyntaxNodeActionsCount;
+
+            CodeBlockStartActionsCount = actionCounts.CodeBlockStartActionsCount;
+            CodeBlockEndActionsCount = actionCounts.CodeBlockEndActionsCount;
+            CodeBlockActionsCount = actionCounts.CodeBlockActionsCount;
+
+            OperationActionsCount = actionCounts.OperationActionsCount;
+            OperationBlockStartActionsCount = actionCounts.OperationBlockStartActionsCount;
+            OperationBlockEndActionsCount = actionCounts.OperationBlockEndActionsCount;
+            OperationBlockActionsCount = actionCounts.OperationBlockActionsCount;
+
             ExecutionTime = executionTime;
+        }
+
+        /// <summary>
+        /// Create telemetry info for a specific analyzer, such as count of registered actions, the total execution time, etc.
+        /// </summary>
+        public AnalyzerTelemetryInfo()
+        {
         }
     }
 }

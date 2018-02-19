@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -6,7 +6,9 @@ Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.IncorrectExitContinue
+#Disable Warning RS1016 ' Code fix providers should provide FixAll support. https://github.com/dotnet/roslyn/issues/23528
     Partial Friend Class IncorrectExitContinueCodeFixProvider
+#Enable Warning RS1016
         Private Class AddKeywordCodeAction
             Inherits CodeAction
 
@@ -30,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.IncorrectExitContinue
 
             Public Overrides ReadOnly Property Title As String
                 Get
-                    Return String.Format(VBFeaturesResources.Insert, SyntaxFacts.GetText(BlockKindToKeywordKind(_createBlockKind)))
+                    Return String.Format(VBFeaturesResources.Insert_0, SyntaxFacts.GetText(BlockKindToKeywordKind(_createBlockKind)))
                 End Get
             End Property
 

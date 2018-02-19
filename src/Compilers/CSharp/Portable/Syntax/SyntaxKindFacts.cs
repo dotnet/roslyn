@@ -195,6 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.InterpolatedStringTextToken:
                 case SyntaxKind.InterpolatedStringEndToken:
                 case SyntaxKind.LoadKeyword:
+                case SyntaxKind.UnderscoreToken:
                     return true;
                 default:
                     return false;
@@ -213,6 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.MultiLineDocumentationCommentTrivia:
                 case SyntaxKind.DisabledTextTrivia:
                 case SyntaxKind.DocumentationCommentExteriorTrivia:
+                case SyntaxKind.ConflictMarkerTrivia:
                     return true;
                 default:
                     return IsPreprocessorDirective(kind);
@@ -294,6 +296,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.PointerType:
                 case SyntaxKind.NullableType:
                 case SyntaxKind.PredefinedType:
+                case SyntaxKind.TupleType:
                     return true;
                 default:
                     return IsName(kind);
@@ -410,6 +413,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.PostDecrementExpression;
                 default:
                     return SyntaxKind.None;
+            }
+        }
+
+        internal static bool IsIncrementOrDecrementOperator(SyntaxKind token)
+        {
+            switch (token)
+            {
+                case SyntaxKind.PlusPlusToken:
+                case SyntaxKind.MinusMinusToken:
+                    return true;
+                default:
+                    return false;
             }
         }
 
@@ -1076,6 +1091,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.AsyncKeyword:
                 case SyntaxKind.AwaitKeyword:
                 case SyntaxKind.WhenKeyword:
+                case SyntaxKind.UnderscoreToken:
                     return true;
                 default:
                     return false;
@@ -1175,6 +1191,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.WhenKeyword;
                 case "nameof":
                     return SyntaxKind.NameOfKeyword;
+                case "_":
+                    return SyntaxKind.UnderscoreToken;
                 default:
                     return SyntaxKind.None;
             }
@@ -1564,20 +1582,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "typevar";
                 case SyntaxKind.GlobalKeyword:
                     return "global";
+                case SyntaxKind.NameOfKeyword:
+                    return "nameof";
                 case SyntaxKind.AsyncKeyword:
                     return "async";
                 case SyntaxKind.AwaitKeyword:
                     return "await";
                 case SyntaxKind.WhenKeyword:
                     return "when";
-                case SyntaxKind.NameOfKeyword:
-                    return "nameof";
                 case SyntaxKind.InterpolatedVerbatimStringStartToken:
                     return "$@\"";
                 case SyntaxKind.InterpolatedStringStartToken:
                     return "$\"";
                 case SyntaxKind.InterpolatedStringEndToken:
                     return "\"";
+                case SyntaxKind.UnderscoreToken:
+                    return "_";
                 default:
                     return string.Empty;
             }

@@ -8,7 +8,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal enum MessageID
     {
+        None = 0,
         MessageBase = 1200,
+
         IDS_SK_METHOD = MessageBase + 2000,
         IDS_SK_TYPE = MessageBase + 2001,
         IDS_SK_NAMESPACE = MessageBase + 2002,
@@ -22,6 +24,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_SK_ALIAS = MessageBase + 2010,
         //IDS_SK_EXTERNALIAS = MessageBase + 2011,
         IDS_SK_LABEL = MessageBase + 2012,
+        IDS_SK_CONSTRUCTOR = MessageBase + 2013,
+
         IDS_NULL = MessageBase + 10001,
         //IDS_RELATEDERROR = MessageBase + 10002,
         //IDS_RELATEDWARNING = MessageBase + 10003,
@@ -55,6 +59,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureDefault = MessageBase + 12525,
         IDS_FeatureNullable = MessageBase + 12528,
         IDS_Lambda = MessageBase + 12531,
+        IDS_FeaturePatternMatching = MessageBase + 12532,
+        IDS_FeatureThrowExpression = MessageBase + 12533,
 
         IDS_FeatureImplicitArray = MessageBase + 12557,
         IDS_FeatureImplicitLocal = MessageBase + 12558,
@@ -112,6 +118,34 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_OperationCausedStackOverflow = MessageBase + 12703,
         IDS_AwaitInCatchAndFinally = MessageBase + 12704,
         IDS_FeatureReadonlyAutoImplementedProperties = MessageBase + 12705,
+        IDS_FeatureBinaryLiteral = MessageBase + 12706,
+        IDS_FeatureDigitSeparator = MessageBase + 12707,
+        IDS_FeatureLocalFunctions = MessageBase + 12708,
+
+        IDS_FeatureRefLocalsReturns = MessageBase + 12710,
+        IDS_FeatureTuples = MessageBase + 12711,
+        IDS_FeatureOutVar = MessageBase + 12713,
+
+        // IDS_FeatureIOperation = MessageBase + 12714,
+        IDS_FeatureExpressionBodiedAccessor = MessageBase + 12715,
+        IDS_FeatureExpressionBodiedDeOrConstructor = MessageBase + 12716,
+        IDS_ThrowExpression = MessageBase + 12717,
+        IDS_FeatureDefaultLiteral = MessageBase + 12718,
+        IDS_FeatureInferredTupleNames = MessageBase + 12719,
+        IDS_FeatureGenericPatternMatching = MessageBase + 12720,
+        IDS_FeatureAsyncMain = MessageBase + 12721,
+        IDS_LangVersions = MessageBase +  12722,
+
+        IDS_FeatureLeadingDigitSeparator = MessageBase + 12723,
+        IDS_FeatureNonTrailingNamedArguments = MessageBase + 12724,
+
+        IDS_FeatureReadOnlyReferences = MessageBase + 12725,
+        IDS_FeatureRefStructs = MessageBase + 12726,
+        IDS_FeatureReadOnlyStructs = MessageBase + 12727,
+        IDS_FeatureRefExtensionMethods = MessageBase + 12728,
+        IDS_StackAllocExpression = MessageBase + 12729,
+        IDS_FeaturePrivateProtected = MessageBase + 12730,
+        IDS_FeatureRefConditional = MessageBase + 12731,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -145,21 +179,43 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new LocalizableErrorArgument(id);
         }
 
-        internal static string RequiredFeature(this MessageID feature)
-        {
-            switch (feature)
-            {
-                default:
-                    return null;
-            }
-        }
-
         internal static LanguageVersion RequiredVersion(this MessageID feature)
         {
             // Based on CSourceParser::GetFeatureUsage from SourceParser.cpp.
             // Checks are in the LanguageParser unless otherwise noted.
             switch (feature)
             {
+                // C# 7.2 features.
+                case MessageID.IDS_FeatureNonTrailingNamedArguments: // semantic check
+                case MessageID.IDS_FeatureLeadingDigitSeparator:
+                case MessageID.IDS_FeaturePrivateProtected:
+                case MessageID.IDS_FeatureReadOnlyReferences:
+                case MessageID.IDS_FeatureRefStructs:
+                case MessageID.IDS_FeatureReadOnlyStructs:
+                case MessageID.IDS_FeatureRefExtensionMethods:
+                case MessageID.IDS_FeatureRefConditional:
+                    return LanguageVersion.CSharp7_2;
+
+                // C# 7.1 features.
+                case MessageID.IDS_FeatureAsyncMain:
+                case MessageID.IDS_FeatureDefaultLiteral:
+                case MessageID.IDS_FeatureInferredTupleNames:
+                case MessageID.IDS_FeatureGenericPatternMatching:
+                    return LanguageVersion.CSharp7_1;
+
+                // C# 7 features.
+                case MessageID.IDS_FeatureBinaryLiteral:
+                case MessageID.IDS_FeatureDigitSeparator:
+                case MessageID.IDS_FeatureLocalFunctions:
+                case MessageID.IDS_FeatureRefLocalsReturns:
+                case MessageID.IDS_FeaturePatternMatching:
+                case MessageID.IDS_FeatureThrowExpression:
+                case MessageID.IDS_FeatureTuples:
+                case MessageID.IDS_FeatureOutVar:
+                case MessageID.IDS_FeatureExpressionBodiedAccessor:
+                case MessageID.IDS_FeatureExpressionBodiedDeOrConstructor:
+                    return LanguageVersion.CSharp7;
+
                 // C# 6 features.
                 case MessageID.IDS_FeatureExceptionFilter:
                 case MessageID.IDS_FeatureAutoPropertyInitializer:

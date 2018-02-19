@@ -1,6 +1,5 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
@@ -13,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             MyBase.New(workspaceFixture)
         End Sub
 
-        Friend Overrides Function CreateCompletionProvider() As CompletionListProvider
+        Friend Overrides Function CreateCompletionProvider() As CompletionProvider
             Return New ObjectCreationCompletionProvider()
         End Function
 
@@ -99,6 +98,99 @@ End Namespace
 ]]></Text>.Value
 
             Await VerifyItemExistsAsync(markup, "N.S")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(2644, "https://github.com/dotnet/roslyn/issues/2644")>
+        Public Async Function InPropertyWithSameNameAsGenericTypeArgument1() As Task
+            Dim markup = <Text><![CDATA[
+Imports System.Collections.Generic
+Namespace Namespace1
+    Module Program
+        Public Bar As List(Of Bar)
+
+        Sub Main()
+            Bar = New $$
+        End Sub
+    End Module
+
+    Class Bar
+    End Class
+End Namespace
+]]></Text>.Value
+
+            Await VerifyItemExistsAsync(markup, "List(Of Bar)")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(2644, "https://github.com/dotnet/roslyn/issues/2644")>
+        Public Async Function InPropertyWithSameNameAsGenericTypeArgument2() As Task
+            Dim markup = <Text><![CDATA[
+Imports System.Collections.Generic
+Namespace Namespace1
+    Module Program
+        Public Bar As List(Of Bar) = New $$
+    End Module
+
+    Class Bar
+    End Class
+End Namespace
+]]></Text>.Value
+
+            Await VerifyItemExistsAsync(markup, "List(Of Bar)")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(2644, "https://github.com/dotnet/roslyn/issues/2644")>
+        Public Async Function InPropertyWithSameNameAsGenericTypeArgument3() As Task
+            Dim markup = <Text><![CDATA[
+Namespace Namespace1
+    Module Program
+        Public A As C(Of B)
+        Public B As C(Of A)
+
+        Sub M()
+            A = New $$
+        End Sub
+    End Module
+
+    Class A
+    End Class
+
+    Class B
+    End Class
+
+    Class C(Of T)
+    End Class
+End Namespace
+]]></Text>.Value
+
+            Await VerifyItemExistsAsync(markup, "C(Of B)")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(21674, "https://github.com/dotnet/roslyn/issues/21674")>
+        Public Async Function PropertyWithSameNameAsOtherType() As Task
+            Dim markup = <Text><![CDATA[
+Namespace Namespace1
+    Module Program
+        Public Property A() As B
+        Public Property B() As A
+
+        Sub M()
+            B = New $$
+        End Sub
+    End Module
+
+    Class A
+    End Class
+
+    Class B
+    End Class
+End Namespace
+]]></Text>.Value
+
+            Await VerifyItemExistsAsync(markup, "A")
         End Function
     End Class
 End Namespace

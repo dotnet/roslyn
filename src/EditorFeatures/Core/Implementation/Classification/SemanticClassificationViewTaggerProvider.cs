@@ -11,8 +11,10 @@ using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -29,8 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
     /// </summary>
     [Export(typeof(IViewTaggerProvider))]
     [TagType(typeof(IClassificationTag))]
-    [ContentType(ContentTypeNames.CSharpContentType)]
-    [ContentType(ContentTypeNames.VisualBasicContentType)]
+    [ContentType(ContentTypeNames.RoslynContentType)]
     internal partial class SemanticClassificationViewTaggerProvider : AsynchronousViewTaggerProvider<IClassificationTag>
     {
         private readonly ISemanticChangeNotificationService _semanticChangeNotificationService;
@@ -41,15 +42,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         protected override TaggerTextChangeBehavior TextChangeBehavior => TaggerTextChangeBehavior.TrackTextChanges;
         protected override IEnumerable<Option<bool>> Options => SpecializedCollections.SingletonEnumerable(InternalFeatureOnOffOptions.SemanticColorizer);
 
-        private IEditorClassificationService _classificationService;
-
         [ImportingConstructor]
         public SemanticClassificationViewTaggerProvider(
             IForegroundNotificationService notificationService,
             ISemanticChangeNotificationService semanticChangeNotificationService,
             ClassificationTypeMap typeMap,
-            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
-            : base(new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.Classification), notificationService)
+            IAsynchronousOperationListenerProvider listenerProvider)
+            : base(listenerProvider.GetListener(FeatureAttribute.Classification), notificationService)
         {
             _semanticChangeNotificationService = semanticChangeNotificationService;
             _typeMap = typeMap;
@@ -92,16 +91,32 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             Debug.Assert(context.SpansToTag.IsSingle());
 
             var spanToTag = context.SpansToTag.Single();
+
+            var task1 = ProduceTagsAsync(context, spanToTag, WorkspaceClassificationDelegationService.Instance);
+            var task2 = ProduceTagsAsync(context, spanToTag, EditorClassificationDelegationService.Instance);
+
+            return Task.WhenAll(task1, task2);
+        }
+
+        private Task ProduceTagsAsync<TClassificationService>(
+            TaggerContext<IClassificationTag> context,
+            DocumentSnapshotSpan spanToTag,
+            IClassificationDelegationService<TClassificationService> delegationService)
+            where TClassificationService : class, ILanguageService
+        {
             var document = spanToTag.Document;
 
-            if (document == null)
+            // Attempt to get a classification service which will actually produce the results.
+            // If we can't (because we have no Document, or because the language doesn't support
+            // this service), then bail out immediately.
+            var classificationService = document?.GetLanguageService<TClassificationService>();
+            if (classificationService == null)
             {
                 return SpecializedTasks.EmptyTask;
             }
 
-            _classificationService = _classificationService ?? document.Project.LanguageServices.GetService<IEditorClassificationService>();
-
-            return SemanticClassificationUtilities.ProduceTagsAsync(context, spanToTag, _classificationService, _typeMap);
+            return SemanticClassificationUtilities.ProduceTagsAsync(
+                context, spanToTag, delegationService, classificationService, _typeMap);
         }
     }
 }

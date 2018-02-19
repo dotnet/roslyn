@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 */
 ",
                 header,
-                WorkspacesResources.AddedHeader,
+                WorkspacesResources.Added_colon,
                 afterString);
             }
             else if (afterString == null)
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 */
 ",
                 header,
-                WorkspacesResources.RemovedHeader,
+                WorkspacesResources.Removed_colon,
                 beforeString);
             }
             else
@@ -53,9 +53,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 */
 ",
                 header,
-                WorkspacesResources.BeforeHeader,
+                WorkspacesResources.Before_colon,
                 beforeString,
-                WorkspacesResources.AfterHeader,
+                WorkspacesResources.After_colon,
                 afterString);
             }
         }

@@ -21,16 +21,20 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <summary>
         /// The symbol definition that these are references to.
         /// </summary>
-        public ISymbol Definition { get; }
+        public ISymbol Definition => DefinitionAndProjectId.Symbol;
+
+        internal SymbolAndProjectId DefinitionAndProjectId { get; }
 
         /// <summary>
         /// The set of reference locations in the solution.
         /// </summary>
         public IEnumerable<ReferenceLocation> Locations { get; }
 
-        internal ReferencedSymbol(ISymbol definition, IEnumerable<ReferenceLocation> locations)
+        internal ReferencedSymbol(
+            SymbolAndProjectId definitionAndProjectId,
+            IEnumerable<ReferenceLocation> locations)
         {
-            this.Definition = definition;
+            this.DefinitionAndProjectId = definitionAndProjectId;
             this.Locations = (locations ?? SpecializedCollections.EmptyEnumerable<ReferenceLocation>()).ToReadOnlyCollection();
         }
 

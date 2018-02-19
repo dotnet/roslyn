@@ -1,176 +1,306 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis;
 
 namespace Roslyn.Utilities
 {
-    /// <summary>
-    /// A class that reads both primitive values and non-cyclical object graphs from a stream that was constructed using 
-    /// the ObjectWriter class.
-    /// </summary>
-    internal sealed class ObjectReader : ObjectReaderWriterBase, IDisposable
-    {
-        private readonly BinaryReader _reader;
-        private readonly ObjectReaderData _dataMap;
-        private readonly ObjectBinder _binder;
+#if COMPILERCORE
+    using Resources = CodeAnalysisResources;
+#else
+    using Resources = WorkspacesResources;
+#endif
 
-        internal ObjectReader(
+    using EncodingKind = ObjectWriter.EncodingKind;
+
+    /// <summary>
+    /// An <see cref="ObjectReader"/> that deserializes objects from a byte stream.
+    /// </summary>
+    internal sealed partial class ObjectReader : IDisposable
+    {
+        /// <summary>
+        /// We start the version at something reasonably random.  That way an older file, with 
+        /// some random start-bytes, has little chance of matching our version.  When incrementing
+        /// this version, just change VersionByte2.
+        /// </summary>
+        internal const byte VersionByte1 = 0b10101010;
+        internal const byte VersionByte2 = 0b00001001;
+
+        private readonly BinaryReader _reader;
+        private readonly CancellationToken _cancellationToken;
+
+        /// <summary>
+        /// Map of reference id's to deserialized objects.
+        ///
+        /// These are not readonly because they're structs and we mutate them.
+        /// </summary>
+        private ReaderReferenceMap<object> _objectReferenceMap;
+        private ReaderReferenceMap<string> _stringReferenceMap;
+
+        /// <summary>
+        /// Copy of the global binder data that maps from Types to the appropriate reading-function
+        /// for that type.  Types register functions directly with <see cref="ObjectBinder"/>, but 
+        /// that means that <see cref="ObjectBinder"/> is both static and locked.  This gives us 
+        /// local copy we can work with without needing to worry about anyone else mutating.
+        /// </summary>
+        private readonly ObjectBinderSnapshot _binderSnapshot;
+
+        private int _recursionDepth;
+
+        /// <summary>
+        /// Creates a new instance of a <see cref="ObjectReader"/>.
+        /// </summary>
+        /// <param name="stream">The stream to read objects from.</param>
+        /// <param name="cancellationToken"></param>
+        private ObjectReader(
             Stream stream,
-            ObjectReaderData defaultData = null,
-            ObjectBinder binder = null)
+            CancellationToken cancellationToken)
         {
             // String serialization assumes both reader and writer to be of the same endianness.
             // It can be adjusted for BigEndian if needed.
             Debug.Assert(BitConverter.IsLittleEndian);
 
             _reader = new BinaryReader(stream, Encoding.UTF8);
-            _dataMap = new ObjectReaderData(defaultData);
-            _binder = binder;
+            _objectReferenceMap = ReaderReferenceMap<object>.Create();
+            _stringReferenceMap = ReaderReferenceMap<string>.Create();
+
+            // Capture a copy of the current static binder state.  That way we don't have to 
+            // access any locks while we're doing our processing.
+            _binderSnapshot = ObjectBinder.GetSnapshot();
+
+            _cancellationToken = cancellationToken;
+        }
+
+        /// <summary>
+        /// Attempts to create a <see cref="ObjectReader"/> from the provided <paramref name="stream"/>.
+        /// If the <paramref name="stream"/> does not start with a valid header, then <code>null</code> will
+        /// be returned.
+        /// </summary>
+        public static ObjectReader TryGetReader(
+            Stream stream,
+            CancellationToken cancellationToken = default)
+        {
+            if (stream == null)
+            {
+                return null;
+            }
+
+            if (stream.ReadByte() != VersionByte1 ||
+                stream.ReadByte() != VersionByte2)
+            {
+                return null;
+            }
+
+            return new ObjectReader(stream, cancellationToken);
         }
 
         public void Dispose()
         {
-            _dataMap.Dispose();
+            _objectReferenceMap.Dispose();
+            _stringReferenceMap.Dispose();
+            _recursionDepth = 0;
         }
 
-        /// <summary>
-        /// Read a Boolean value from the stream. This value must have been written using <see cref="ObjectWriter.WriteBoolean(bool)"/>.
-        /// </summary>
-        public bool ReadBoolean()
+        public bool ReadBoolean() => _reader.ReadBoolean();
+        public byte ReadByte() => _reader.ReadByte();
+        // read as ushort because BinaryWriter fails on chars that are unicode surrogates
+        public char ReadChar() => (char)_reader.ReadUInt16();
+        public decimal ReadDecimal() => _reader.ReadDecimal();
+        public double ReadDouble() => _reader.ReadDouble();
+        public float ReadSingle() => _reader.ReadSingle();
+        public int ReadInt32() => _reader.ReadInt32();
+        public long ReadInt64() => _reader.ReadInt64();
+        public sbyte ReadSByte() => _reader.ReadSByte();
+        public short ReadInt16() => _reader.ReadInt16();
+        public uint ReadUInt32() => _reader.ReadUInt32();
+        public ulong ReadUInt64() => _reader.ReadUInt64();
+        public ushort ReadUInt16() => _reader.ReadUInt16();
+        public string ReadString() => ReadStringValue();
+
+        public Guid ReadGuid()
         {
-            return _reader.ReadBoolean();
+            var accessor = new ObjectWriter.GuidAccessor
+            {
+                Low64 = ReadInt64(),
+                High64 = ReadInt64()
+            };
+
+            return accessor.Guid;
         }
 
-        /// <summary>
-        /// Read a Byte value from the stream. This value must have been written using <see cref="ObjectWriter.WriteByte(byte)"/>.
-        /// </summary>
-        public byte ReadByte()
+        public object ReadValue()
         {
-            return _reader.ReadByte();
+            var oldDepth = _recursionDepth;
+            _recursionDepth++;
+
+            object value;
+            if (_recursionDepth % ObjectWriter.MaxRecursionDepth == 0)
+            {
+                // If we're recursing too deep, move the work to another thread to do so we
+                // don't blow the stack.
+                var task = Task.Factory.StartNew(
+                    () => ReadValueWorker(),
+                    _cancellationToken,
+                    TaskCreationOptions.LongRunning,
+                    TaskScheduler.Default);
+
+                // We must not proceed until the additional task completes. After returning from a read, the underlying
+                // stream providing access to raw memory will be closed; if this occurs before the separate thread
+                // completes its read then an access violation can occur attempting to read from unmapped memory.
+                //
+                // CANCELLATION: If cancellation is required, DO NOT attempt to cancel the operation by cancelling this
+                // wait. Cancellation must only be implemented by modifying 'task' to cancel itself in a timely manner
+                // so the wait can complete.
+                value = task.GetAwaiter().GetResult();
+            }
+            else
+            {
+                value = ReadValueWorker();
+            }
+
+            _recursionDepth--;
+            Debug.Assert(oldDepth == _recursionDepth);
+
+            return value;
         }
 
-        /// <summary>
-        /// Read a Char value from the stream. This value must have been written using <see cref="ObjectWriter.WriteChar(char)"/>.
-        /// </summary>
-        public char ReadChar()
+        private object ReadValueWorker()
         {
-            // char was written as UInt16 because BinaryWriter fails on characters that are unicode surrogates.
-            return (char)_reader.ReadUInt16();
+            var kind = (EncodingKind)_reader.ReadByte();
+            switch (kind)
+            {
+                case EncodingKind.Null: return null;
+                case EncodingKind.Boolean_True: return true;
+                case EncodingKind.Boolean_False: return false;
+                case EncodingKind.Int8: return _reader.ReadSByte();
+                case EncodingKind.UInt8: return _reader.ReadByte();
+                case EncodingKind.Int16: return _reader.ReadInt16();
+                case EncodingKind.UInt16: return _reader.ReadUInt16();
+                case EncodingKind.Int32: return _reader.ReadInt32();
+                case EncodingKind.Int32_1Byte: return (int)_reader.ReadByte();
+                case EncodingKind.Int32_2Bytes: return (int)_reader.ReadUInt16();
+                case EncodingKind.Int32_0:
+                case EncodingKind.Int32_1:
+                case EncodingKind.Int32_2:
+                case EncodingKind.Int32_3:
+                case EncodingKind.Int32_4:
+                case EncodingKind.Int32_5:
+                case EncodingKind.Int32_6:
+                case EncodingKind.Int32_7:
+                case EncodingKind.Int32_8:
+                case EncodingKind.Int32_9:
+                case EncodingKind.Int32_10:
+                    return (int)kind - (int)EncodingKind.Int32_0;
+                case EncodingKind.UInt32: return _reader.ReadUInt32();
+                case EncodingKind.UInt32_1Byte: return (uint)_reader.ReadByte();
+                case EncodingKind.UInt32_2Bytes: return (uint)_reader.ReadUInt16();
+                case EncodingKind.UInt32_0:
+                case EncodingKind.UInt32_1:
+                case EncodingKind.UInt32_2:
+                case EncodingKind.UInt32_3:
+                case EncodingKind.UInt32_4:
+                case EncodingKind.UInt32_5:
+                case EncodingKind.UInt32_6:
+                case EncodingKind.UInt32_7:
+                case EncodingKind.UInt32_8:
+                case EncodingKind.UInt32_9:
+                case EncodingKind.UInt32_10:
+                    return (uint)((int)kind - (int)EncodingKind.UInt32_0);
+                case EncodingKind.Int64: return _reader.ReadInt64();
+                case EncodingKind.UInt64: return _reader.ReadUInt64();
+                case EncodingKind.Float4: return _reader.ReadSingle();
+                case EncodingKind.Float8: return _reader.ReadDouble();
+                case EncodingKind.Decimal: return _reader.ReadDecimal();
+                case EncodingKind.Char:
+                    // read as ushort because BinaryWriter fails on chars that are unicode surrogates
+                    return (char)_reader.ReadUInt16();
+                case EncodingKind.StringUtf8:
+                case EncodingKind.StringUtf16:
+                case EncodingKind.StringRef_4Bytes:
+                case EncodingKind.StringRef_1Byte:
+                case EncodingKind.StringRef_2Bytes:
+                    return ReadStringValue(kind);
+                case EncodingKind.ObjectRef_4Bytes: return _objectReferenceMap.GetValue(_reader.ReadInt32());
+                case EncodingKind.ObjectRef_1Byte: return _objectReferenceMap.GetValue(_reader.ReadByte());
+                case EncodingKind.ObjectRef_2Bytes: return _objectReferenceMap.GetValue(_reader.ReadUInt16());
+                case EncodingKind.Object: return ReadObject();
+                case EncodingKind.DateTime: return DateTime.FromBinary(_reader.ReadInt64());
+                case EncodingKind.Array:
+                case EncodingKind.Array_0:
+                case EncodingKind.Array_1:
+                case EncodingKind.Array_2:
+                case EncodingKind.Array_3:
+                    return ReadArray(kind);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(kind);
+            }
         }
 
         /// <summary>
-        /// Read a Decimal value from the stream. This value must have been written using <see cref="ObjectWriter.WriteDecimal(decimal)"/>.
+        /// An reference-id to object map, that can share base data efficiently.
         /// </summary>
-        public decimal ReadDecimal()
+        private struct ReaderReferenceMap<T> where T : class
         {
-            return _reader.ReadDecimal();
+            private readonly List<T> _values;
+
+            internal static readonly ObjectPool<List<T>> s_objectListPool
+                = new ObjectPool<List<T>>(() => new List<T>(20));
+
+            private ReaderReferenceMap(List<T> values)
+                => _values = values;
+
+            public static ReaderReferenceMap<T> Create()
+                => new ReaderReferenceMap<T>(s_objectListPool.Allocate());
+
+            public void Dispose()
+            {
+                _values.Clear();
+                s_objectListPool.Free(_values);
+            }
+
+
+            public int GetNextObjectId()
+            {
+                var id = _values.Count;
+                _values.Add(null);
+                return id;
+            }
+
+            public void AddValue(T value)
+                => _values.Add(value);
+
+            public void AddValue(int index, T value)
+                => _values[index] = value;
+
+            public T GetValue(int referenceId)
+                => _values[referenceId];
         }
 
-        /// <summary>
-        /// Read a Double value from the stream. This value must have been written using <see cref="ObjectWriter.WriteDouble(double)"/>.
-        /// </summary>
-        public double ReadDouble()
-        {
-            return _reader.ReadDouble();
-        }
-
-        /// <summary>
-        /// Read a Single value from the stream. This value must have been written using <see cref="ObjectWriter.WriteSingle(float)"/>.
-        /// </summary>
-        public float ReadSingle()
-        {
-            return _reader.ReadSingle();
-        }
-
-        /// <summary>
-        /// Read a Int32 value from the stream. This value must have been written using <see cref="ObjectWriter.WriteInt32(int)"/>.
-        /// </summary>
-        public int ReadInt32()
-        {
-            return _reader.ReadInt32();
-        }
-
-        /// <summary>
-        /// Read a Int64 value from the stream. This value must have been written using <see cref="ObjectWriter.WriteInt64(long)"/>.
-        /// </summary>
-        public long ReadInt64()
-        {
-            return _reader.ReadInt64();
-        }
-
-        /// <summary>
-        /// Read a SByte value from the stream. This value must have been written using <see cref="ObjectWriter.WriteSByte(sbyte)"/>.
-        /// </summary>
-        public sbyte ReadSByte()
-        {
-            return _reader.ReadSByte();
-        }
-
-        /// <summary>
-        /// Read a Int16 value from the stream. This value must have been written using <see cref="ObjectWriter.WriteInt16(short)"/>.
-        /// </summary>
-        public short ReadInt16()
-        {
-            return _reader.ReadInt16();
-        }
-
-        /// <summary>
-        /// Read a UInt32 value from the stream. This value must have been written using <see cref="ObjectWriter.WriteUInt32(uint)"/>.
-        /// </summary>
-        public uint ReadUInt32()
-        {
-            return _reader.ReadUInt32();
-        }
-
-        /// <summary>
-        /// Read a UInt64 value from the stream. This value must have been written using <see cref="ObjectWriter.WriteUInt64(ulong)"/>.
-        /// </summary>
-        public ulong ReadUInt64()
-        {
-            return _reader.ReadUInt64();
-        }
-
-        /// <summary>
-        /// Read a UInt16 value from the stream. This value must have been written using <see cref="ObjectWriter.WriteUInt16(ushort)"/>.
-        /// </summary>
-        public ushort ReadUInt16()
-        {
-            return _reader.ReadUInt16();
-        }
-
-        /// <summary>
-        /// Read a DateTime value from the stream. This value must have been written using the <see cref="ObjectWriter.WriteDateTime(DateTime)"/>.
-        /// </summary>
-        public DateTime ReadDateTime()
-        {
-            return DateTime.FromBinary(this.ReadInt64());
-        }
-
-        /// <summary>
-        /// Read a compressed 30-bit integer value from the stream. This value must have been written using <see cref="ObjectWriter.WriteCompressedUInt(uint)"/>.
-        /// </summary>
-        public uint ReadCompressedUInt()
+        internal uint ReadCompressedUInt()
         {
             var info = _reader.ReadByte();
-            byte marker = (byte)(info & ByteMarkerMask);
-            byte byte0 = (byte)(info & ~ByteMarkerMask);
+            byte marker = (byte)(info & ObjectWriter.ByteMarkerMask);
+            byte byte0 = (byte)(info & ~ObjectWriter.ByteMarkerMask);
 
-            if (marker == Byte1Marker)
+            if (marker == ObjectWriter.Byte1Marker)
             {
                 return byte0;
             }
 
-            if (marker == Byte2Marker)
+            if (marker == ObjectWriter.Byte2Marker)
             {
                 var byte1 = _reader.ReadByte();
                 return (((uint)byte0) << 8) | byte1;
             }
 
-            if (marker == Byte4Marker)
+            if (marker == ObjectWriter.Byte4Marker)
             {
                 var byte1 = _reader.ReadByte();
                 var byte2 = _reader.ReadByte();
@@ -182,105 +312,27 @@ namespace Roslyn.Utilities
             throw ExceptionUtilities.UnexpectedValue(marker);
         }
 
-        /// <summary>
-        /// Read a value from the stream. The value must have been written using ObjectWriter.WriteValue.
-        /// </summary>
-        public object ReadValue()
+        private string ReadStringValue()
         {
-            var kind = (DataKind)_reader.ReadByte();
-            switch (kind)
-            {
-                case DataKind.Null:
-                    return null;
-                case DataKind.Boolean_T:
-                    return Boxes.BoxedTrue;
-                case DataKind.Boolean_F:
-                    return Boxes.BoxedFalse;
-                case DataKind.Int8:
-                    return _reader.ReadSByte();
-                case DataKind.UInt8:
-                    return _reader.ReadByte();
-                case DataKind.Int16:
-                    return _reader.ReadInt16();
-                case DataKind.UInt16:
-                    return _reader.ReadUInt16();
-                case DataKind.Int32:
-                    return _reader.ReadInt32();
-                case DataKind.Int32_B:
-                    return (int)_reader.ReadByte();
-                case DataKind.Int32_S:
-                    return (int)_reader.ReadUInt16();
-                case DataKind.Int32_Z:
-                    return Boxes.BoxedInt32Zero;
-                case DataKind.UInt32:
-                    return _reader.ReadUInt32();
-                case DataKind.Int64:
-                    return _reader.ReadInt64();
-                case DataKind.UInt64:
-                    return _reader.ReadUInt64();
-                case DataKind.Float4:
-                    return _reader.ReadSingle();
-                case DataKind.Float8:
-                    return _reader.ReadDouble();
-                case DataKind.Decimal:
-                    return _reader.ReadDecimal();
-                case DataKind.DateTime:
-                    return this.ReadDateTime();
-                case DataKind.Char:
-                    return this.ReadChar();
-                case DataKind.StringUtf8:
-                case DataKind.StringUtf16:
-                case DataKind.StringRef:
-                case DataKind.StringRef_B:
-                case DataKind.StringRef_S:
-                    return ReadString(kind);
-                case DataKind.Object_W:
-                case DataKind.ObjectRef:
-                case DataKind.ObjectRef_B:
-                case DataKind.ObjectRef_S:
-                    return ReadObject(kind);
-                case DataKind.Type:
-                case DataKind.TypeRef:
-                case DataKind.TypeRef_B:
-                case DataKind.TypeRef_S:
-                    return ReadType(kind);
-                case DataKind.Enum:
-                    return ReadEnum();
-                case DataKind.Array:
-                case DataKind.Array_0:
-                case DataKind.Array_1:
-                case DataKind.Array_2:
-                case DataKind.Array_3:
-                    return ReadArray(kind);
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(kind);
-            }
+            var kind = (EncodingKind)_reader.ReadByte();
+            return kind == EncodingKind.Null ? null : ReadStringValue(kind);
         }
 
-        /// <summary>
-        /// Read a String value from the stream. This value must have been written using ObjectWriter.WriteString.
-        /// </summary>
-        public string ReadString()
-        {
-            var kind = (DataKind)_reader.ReadByte();
-            return kind == DataKind.Null ? null : ReadString(kind);
-        }
-
-        private string ReadString(DataKind kind)
+        private string ReadStringValue(EncodingKind kind)
         {
             switch (kind)
             {
-                case DataKind.StringRef_B:
-                    return (string)_dataMap.GetValue(_reader.ReadByte());
+                case EncodingKind.StringRef_1Byte:
+                    return _stringReferenceMap.GetValue(_reader.ReadByte());
 
-                case DataKind.StringRef_S:
-                    return (string)_dataMap.GetValue(_reader.ReadUInt16());
+                case EncodingKind.StringRef_2Bytes:
+                    return _stringReferenceMap.GetValue(_reader.ReadUInt16());
 
-                case DataKind.StringRef:
-                    return (string)_dataMap.GetValue(_reader.ReadInt32());
+                case EncodingKind.StringRef_4Bytes:
+                    return _stringReferenceMap.GetValue(_reader.ReadInt32());
 
-                case DataKind.StringUtf16:
-                case DataKind.StringUtf8:
+                case EncodingKind.StringUtf16:
+                case EncodingKind.StringUtf8:
                     return ReadStringLiteral(kind);
 
                 default:
@@ -288,18 +340,16 @@ namespace Roslyn.Utilities
             }
         }
 
-        private unsafe string ReadStringLiteral(DataKind kind)
+        private unsafe string ReadStringLiteral(EncodingKind kind)
         {
-            int id = _dataMap.GetNextId();
             string value;
-            if (kind == DataKind.StringUtf8)
+            if (kind == EncodingKind.StringUtf8)
             {
                 value = _reader.ReadString();
             }
             else
             {
                 // This is rare, just allocate UTF16 bytes for simplicity.
-
                 int characterCount = (int)ReadCompressedUInt();
                 byte[] bytes = _reader.ReadBytes(characterCount * sizeof(char));
                 fixed (byte* bytesPtr = bytes)
@@ -308,25 +358,25 @@ namespace Roslyn.Utilities
                 }
             }
 
-            _dataMap.AddValue(id, value);
+            _stringReferenceMap.AddValue(value);
             return value;
         }
 
-        private Array ReadArray(DataKind kind)
+        private Array ReadArray(EncodingKind kind)
         {
             int length;
             switch (kind)
             {
-                case DataKind.Array_0:
+                case EncodingKind.Array_0:
                     length = 0;
                     break;
-                case DataKind.Array_1:
+                case EncodingKind.Array_1:
                     length = 1;
                     break;
-                case DataKind.Array_2:
+                case EncodingKind.Array_2:
                     length = 2;
                     break;
-                case DataKind.Array_3:
+                case EncodingKind.Array_3:
                     length = 3;
                     break;
                 default:
@@ -334,170 +384,246 @@ namespace Roslyn.Utilities
                     break;
             }
 
-            Type elementType = this.ReadType();
-            Array array = Array.CreateInstance(elementType, length);
-            for (int i = 0; i < length; i++)
+            // SUBTLE: If it was a primitive array, only the EncodingKind byte of the element type was written, instead of encoding as a type.
+            var elementKind = (EncodingKind)_reader.ReadByte();
+
+            var elementType = ObjectWriter.s_reverseTypeMap[(int)elementKind];
+            if (elementType != null)
             {
-                var value = this.ReadValue();
-                array.SetValue(value, i);
+                return this.ReadPrimitiveTypeArrayElements(elementType, elementKind, length);
+            }
+            else
+            {
+                // custom type case
+                elementType = this.ReadTypeAfterTag();
+
+                // recursive: create instance and read elements next in stream
+                Array array = Array.CreateInstance(elementType, length);
+
+                for (int i = 0; i < length; ++i)
+                {
+                    var value = this.ReadValue();
+                    array.SetValue(value, i);
+                }
+
+                return array;
+            }
+        }
+
+        private Array ReadPrimitiveTypeArrayElements(Type type, EncodingKind kind, int length)
+        {
+            Debug.Assert(ObjectWriter.s_reverseTypeMap[(int)kind] == type);
+
+            // optimizations for supported array type by binary reader
+            if (type == typeof(byte)) { return _reader.ReadBytes(length); }
+            if (type == typeof(char)) { return _reader.ReadChars(length); }
+
+            // optimizations for string where object reader/writer has its own mechanism to
+            // reduce duplicated strings
+            if (type == typeof(string)) { return ReadStringArrayElements(CreateArray<string>(length)); }
+            if (type == typeof(bool)) { return ReadBooleanArrayElements(CreateArray<bool>(length)); }
+
+            // otherwise, read elements directly from underlying binary writer
+            switch (kind)
+            {
+                case EncodingKind.Int8: return ReadInt8ArrayElements(CreateArray<sbyte>(length));
+                case EncodingKind.Int16: return ReadInt16ArrayElements(CreateArray<short>(length));
+                case EncodingKind.Int32: return ReadInt32ArrayElements(CreateArray<int>(length));
+                case EncodingKind.Int64: return ReadInt64ArrayElements(CreateArray<long>(length));
+                case EncodingKind.UInt16: return ReadUInt16ArrayElements(CreateArray<ushort>(length));
+                case EncodingKind.UInt32: return ReadUInt32ArrayElements(CreateArray<uint>(length));
+                case EncodingKind.UInt64: return ReadUInt64ArrayElements(CreateArray<ulong>(length));
+                case EncodingKind.Float4: return ReadFloat4ArrayElements(CreateArray<float>(length));
+                case EncodingKind.Float8: return ReadFloat8ArrayElements(CreateArray<double>(length));
+                case EncodingKind.Decimal: return ReadDecimalArrayElements(CreateArray<decimal>(length));
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(kind);
+            }
+        }
+
+        private bool[] ReadBooleanArrayElements(bool[] array)
+        {
+            var wordLength = BitVector.WordsRequired(array.Length);
+
+            var count = 0;
+            for (var i = 0; i < wordLength; i++)
+            {
+                var word = _reader.ReadUInt32();
+
+                for (var p = 0; p < BitVector.BitsPerWord; p++)
+                {
+                    if (count >= array.Length)
+                    {
+                        return array;
+                    }
+
+                    array[count++] = BitVector.IsTrue(word, p);
+                }
             }
 
             return array;
         }
 
-        private Type ReadType()
+        private static T[] CreateArray<T>(int length)
         {
-            var kind = (DataKind)_reader.ReadByte();
-            return ReadType(kind);
-        }
-
-        private Type ReadType(DataKind kind)
-        {
-            switch (kind)
+            if (length == 0)
             {
-                case DataKind.TypeRef_B:
-                    return (Type)_dataMap.GetValue(_reader.ReadByte());
-
-                case DataKind.TypeRef_S:
-                    return (Type)_dataMap.GetValue(_reader.ReadUInt16());
-
-                case DataKind.TypeRef:
-                    return (Type)_dataMap.GetValue(_reader.ReadInt32());
-
-                case DataKind.Type:
-                    int id = _dataMap.GetNextId();
-                    var assemblyName = this.ReadString();
-                    var typeName = this.ReadString();
-
-                    if (_binder == null)
-                    {
-                        throw NoBinderException(typeName);
-                    }
-
-                    var type = _binder.GetType(assemblyName, typeName);
-                    _dataMap.AddValue(id, type);
-                    return type;
-
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(kind);
+                // quick check
+                return Array.Empty<T>();
+            }
+            else
+            {
+                return new T[length];
             }
         }
 
-        private object ReadEnum()
+        private string[] ReadStringArrayElements(string[] array)
         {
-            var enumType = this.ReadType();
-            var type = Enum.GetUnderlyingType(enumType);
-
-            if (type == typeof(int))
+            for (var i = 0; i < array.Length; i++)
             {
-                return Enum.ToObject(enumType, _reader.ReadInt32());
+                array[i] = this.ReadStringValue();
             }
 
-            if (type == typeof(short))
-            {
-                return Enum.ToObject(enumType, _reader.ReadInt16());
-            }
-
-            if (type == typeof(byte))
-            {
-                return Enum.ToObject(enumType, _reader.ReadByte());
-            }
-
-            if (type == typeof(long))
-            {
-                return Enum.ToObject(enumType, _reader.ReadInt64());
-            }
-
-            if (type == typeof(sbyte))
-            {
-                return Enum.ToObject(enumType, _reader.ReadSByte());
-            }
-
-            if (type == typeof(ushort))
-            {
-                return Enum.ToObject(enumType, _reader.ReadUInt16());
-            }
-
-            if (type == typeof(uint))
-            {
-                return Enum.ToObject(enumType, _reader.ReadUInt32());
-            }
-
-            if (type == typeof(ulong))
-            {
-                return Enum.ToObject(enumType, _reader.ReadUInt64());
-            }
-
-            throw ExceptionUtilities.UnexpectedValue(enumType);
+            return array;
         }
 
-        private object ReadObject(DataKind kind)
+        private sbyte[] ReadInt8ArrayElements(sbyte[] array)
         {
-            switch (kind)
+            for (var i = 0; i < array.Length; i++)
             {
-                case DataKind.ObjectRef_B:
-                    return _dataMap.GetValue(_reader.ReadByte());
-
-                case DataKind.ObjectRef_S:
-                    return _dataMap.GetValue(_reader.ReadUInt16());
-
-                case DataKind.ObjectRef:
-                    return _dataMap.GetValue(_reader.ReadInt32());
-
-                case DataKind.Object_W:
-                    return this.ReadReadableObject();
-
-                case DataKind.Array:
-                    return this.ReadArray(kind);
-
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(kind);
+                array[i] = _reader.ReadSByte();
             }
+
+            return array;
         }
 
-        private object ReadReadableObject()
+        private short[] ReadInt16ArrayElements(short[] array)
         {
-            int id = _dataMap.GetNextId();
+            for (var i = 0; i < array.Length; i++)
+            {
+                array[i] = _reader.ReadInt16();
+            }
 
-            Type type = this.ReadType();
-            var instance = CreateInstance(type);
+            return array;
+        }
 
-            _dataMap.AddValue(id, instance);
+        private int[] ReadInt32ArrayElements(int[] array)
+        {
+            for (var i = 0; i < array.Length; i++)
+            {
+                array[i] = _reader.ReadInt32();
+            }
+
+            return array;
+        }
+
+        private long[] ReadInt64ArrayElements(long[] array)
+        {
+            for (var i = 0; i < array.Length; i++)
+            {
+                array[i] = _reader.ReadInt64();
+            }
+
+            return array;
+        }
+
+        private ushort[] ReadUInt16ArrayElements(ushort[] array)
+        {
+            for (var i = 0; i < array.Length; i++)
+            {
+                array[i] = _reader.ReadUInt16();
+            }
+
+            return array;
+        }
+
+        private uint[] ReadUInt32ArrayElements(uint[] array)
+        {
+            for (var i = 0; i < array.Length; i++)
+            {
+                array[i] = _reader.ReadUInt32();
+            }
+
+            return array;
+        }
+
+        private ulong[] ReadUInt64ArrayElements(ulong[] array)
+        {
+            for (var i = 0; i < array.Length; i++)
+            {
+                array[i] = _reader.ReadUInt64();
+            }
+
+            return array;
+        }
+
+        private decimal[] ReadDecimalArrayElements(decimal[] array)
+        {
+            for (var i = 0; i < array.Length; i++)
+            {
+                array[i] = _reader.ReadDecimal();
+            }
+
+            return array;
+        }
+
+        private float[] ReadFloat4ArrayElements(float[] array)
+        {
+            for (var i = 0; i < array.Length; i++)
+            {
+                array[i] = _reader.ReadSingle();
+            }
+
+            return array;
+        }
+
+        private double[] ReadFloat8ArrayElements(double[] array)
+        {
+            for (var i = 0; i < array.Length; i++)
+            {
+                array[i] = _reader.ReadDouble();
+            }
+
+            return array;
+        }
+
+        public Type ReadType()
+        {
+            _reader.ReadByte();
+            return Type.GetType(ReadString());
+        }
+
+        private Type ReadTypeAfterTag()
+            => _binderSnapshot.GetTypeFromId(this.ReadInt32());
+
+        private object ReadObject()
+        {
+            var objectId = _objectReferenceMap.GetNextObjectId();
+
+            // reading an object may recurse.  So we need to grab our ID up front as we'll
+            // end up making our sub-objects before we make this object.
+
+            var typeReader = _binderSnapshot.GetTypeReaderFromId(this.ReadInt32());
+
+            // recursive: read and construct instance immediately from member elements encoding next in the stream
+            var instance = typeReader(this);
+            _objectReferenceMap.AddValue(objectId, instance);
             return instance;
         }
 
-        private object CreateInstance(Type type)
+        private static Exception DeserializationReadIncorrectNumberOfValuesException(string typeName)
         {
-            if (_binder == null)
-            {
-                return NoBinderException(type.FullName);
-            }
-
-            var reader = _binder.GetReader(type);
-            if (reader == null)
-            {
-                return NoReaderException(type.FullName);
-            }
-
-            return reader(this);
+            throw new InvalidOperationException(String.Format(Resources.Deserialization_reader_for_0_read_incorrect_number_of_values, typeName));
         }
 
-        private static Exception NoBinderException(string typeName)
+        private static Exception NoSerializationTypeException(string typeName)
         {
-#if COMPILERCORE
-            throw new InvalidOperationException(string.Format(CodeAnalysisResources.NoBinderException, typeName));
-#else
-            throw new InvalidOperationException(string.Format(Microsoft.CodeAnalysis.WorkspacesResources.NoBinderException, typeName));
-#endif
+            return new InvalidOperationException(string.Format(Resources.The_type_0_is_not_understood_by_the_serialization_binder, typeName));
         }
 
-        private static Exception NoReaderException(string typeName)
+        private static Exception NoSerializationReaderException(string typeName)
         {
-#if COMPILERCORE
-            throw new InvalidOperationException(string.Format(CodeAnalysisResources.NoReaderException, typeName));
-#else
-            throw new InvalidOperationException(string.Format(Microsoft.CodeAnalysis.WorkspacesResources.NoReaderException, typeName));
-#endif
+            return new InvalidOperationException(string.Format(Resources.Cannot_serialize_type_0, typeName));
         }
     }
 }

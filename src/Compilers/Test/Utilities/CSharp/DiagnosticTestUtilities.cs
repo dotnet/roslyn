@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Obsolete("Use VerifyDiagnostics", true)]
         public static void TestDiagnostics(string source, params string[] diagStrings)
         {
-            var comp = CSharpTestBase.CreateCompilationWithMscorlib(source);
+            var comp = CSharpTestBase.CreateStandardCompilation(source);
             var diagnostics = comp.GetDiagnostics();
             CompilingTestBase.TestDiagnostics(diagnostics, diagStrings);
         }
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Obsolete("Use VerifyDiagnostics", true)]
         public static void TestDiagnosticsExact(string source, params string[] diagStrings)
         {
-            var comp = CSharpTestBase.CreateCompilationWithMscorlib(source);
+            var comp = CSharpTestBase.CreateStandardCompilation(source);
             var diagnostics = comp.GetDiagnostics();
             Assert.Equal(diagStrings.Length, diagnostics.Length);
             CompilingTestBase.TestDiagnostics(diagnostics, diagStrings);
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         /// </summary>
         internal protected static CSharpCompilation VerifyErrorsAndGetCompilationWithMscorlib(string[] srcs, params ErrorDescription[] expectedErrorDesp)
         {
-            var comp = CSharpTestBase.CreateCompilationWithMscorlib(srcs);
+            var comp = CSharpTestBase.CreateStandardCompilation(srcs);
             var actualErrors = comp.GetDiagnostics();
             VerifyErrorCodes(actualErrors, expectedErrorDesp);
             return comp;
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                                              Column = lineSpan.IsValid ? lineSpan.StartLinePosition.Character + 1 : 0,
                                              IsWarning = e.Severity == DiagnosticSeverity.Warning,
                                              Parameters = (e.Arguments != null && e.Arguments.Count > 0 && e.Arguments[0] != null) ?
-                                                e.Arguments.Select(x => x != null ? x.ToString() : null).ToArray() : SpecializedCollections.EmptyArray<string>()
+                                                e.Arguments.Select(x => x != null ? x.ToString() : null).ToArray() : Array.Empty<string>()
                                          })
                                     orderby ae.Code, ae.Line, ae.Column
                                     select ae).ToList();
@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     Assert.True(experr.Column == acterr.Column, String.Format("Col {0}!={1}", experr.Column, acterr.Column));
                 }
 
-                Assert.Equal(experr.IsWarning, acterr.IsWarning);
+                Assert.True(experr.IsWarning == acterr.IsWarning, String.Format("IsWarning {0}!={1}", experr.IsWarning, acterr.IsWarning));
 
                 //if the expected contains parameters, validate those too.
                 if (experr.Parameters != null)

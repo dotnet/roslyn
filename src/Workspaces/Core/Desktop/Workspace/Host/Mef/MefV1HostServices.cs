@@ -64,9 +64,8 @@ namespace Microsoft.CodeAnalysis.Host.Mef
         /// </summary>
         public IEnumerable<Lazy<TExtension, TMetadata>> GetExports<TExtension, TMetadata>()
         {
-            IEnumerable exports;
             var key = new ExportKey(typeof(TExtension).AssemblyQualifiedName, typeof(TMetadata).AssemblyQualifiedName);
-            if (!_exportsMap.TryGetValue(key, out exports))
+            if (!_exportsMap.TryGetValue(key, out var exports))
             {
                 exports = ImmutableInterlocked.GetOrAdd(ref _exportsMap, key, _ =>
                 {
@@ -82,9 +81,8 @@ namespace Microsoft.CodeAnalysis.Host.Mef
         /// </summary>
         public IEnumerable<Lazy<TExtension>> GetExports<TExtension>()
         {
-            IEnumerable exports;
             var key = new ExportKey(typeof(TExtension).AssemblyQualifiedName, "");
-            if (!_exportsMap.TryGetValue(key, out exports))
+            if (!_exportsMap.TryGetValue(key, out var exports))
             {
                 exports = ImmutableInterlocked.GetOrAdd(ref _exportsMap, key, _ =>
                     _exportProvider.GetExports<TExtension>().ToImmutableArray());

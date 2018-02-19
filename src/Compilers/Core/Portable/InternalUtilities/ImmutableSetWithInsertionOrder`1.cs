@@ -44,13 +44,14 @@ namespace Roslyn.Utilities
 
         public ImmutableSetWithInsertionOrder<T> Remove(T value)
         {
-            // no reason to cause allocations if value is missing
-            if (!_map.ContainsKey(value))
+            var modifiedMap = _map.Remove(value);
+            if (modifiedMap == _map)
             {
+                // no reason to cause allocations if value is missing
                 return this;
             }
 
-            return this.Count == 1 ? Empty : new ImmutableSetWithInsertionOrder<T>(_map.Remove(value), _nextElementValue);
+            return this.Count == 1 ? Empty : new ImmutableSetWithInsertionOrder<T>(modifiedMap, _nextElementValue);
         }
 
         public IEnumerable<T> InInsertionOrder

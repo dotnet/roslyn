@@ -94,11 +94,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
+        ImmutableArray<Cci.ICustomModifier> Cci.ISignature.RefCustomModifiers
+        {
+            get
+            {
+                return UnderlyingMethod.RefCustomModifiers.As<Cci.ICustomModifier>();
+            }
+        }
+
         bool Cci.ISignature.ReturnValueIsByRef
         {
             get
             {
-                return UnderlyingMethod.ReturnType is ByRefReturnErrorTypeSymbol;
+                return UnderlyingMethod.RefKind.IsManagedReference();
             }
         }
 

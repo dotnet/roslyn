@@ -40,11 +40,47 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim originalMethodOrLambda = Me._currentMethodOrLambda
             Me._currentMethodOrLambda = node.LambdaSymbol
 
+            PopulateRangeVariableMapForQueryLambdaRewrite(node, _rangeVariableMap, _inExpressionLambda)
+
+            Dim save_createSequencePointsForTopLevelNonCompilerGeneratedExpressions = _instrumentTopLevelNonCompilerGeneratedExpressionsInQuery
+            Dim synthesizedKind As SynthesizedLambdaKind = node.LambdaSymbol.SynthesizedKind
+            Dim instrumentQueryLambdaBody As Boolean = synthesizedKind = SynthesizedLambdaKind.AggregateQueryLambda OrElse
+                                                       synthesizedKind = SynthesizedLambdaKind.LetVariableQueryLambda
+
+            _instrumentTopLevelNonCompilerGeneratedExpressionsInQuery = Not instrumentQueryLambdaBody
+
+            Dim rewrittenBody As BoundExpression = VisitExpressionNode(node.Expression)
+            Dim returnstmt = CreateReturnStatementForQueryLambdaBody(rewrittenBody, node)
+
+            If instrumentQueryLambdaBody AndAlso Instrument Then
+                returnstmt = _instrumenterOpt.InstrumentQueryLambdaBody(node, returnstmt)
+            End If
+
+            RemoveRangeVariables(node, _rangeVariableMap)
+
+            _instrumentTopLevelNonCompilerGeneratedExpressionsInQuery = save_createSequencePointsForTopLevelNonCompilerGeneratedExpressions
+
+            Me._hasLambdas = True
+
+            Dim result As BoundLambda = RewriteQueryLambda(returnstmt, node)
+
+            ' Done with lambda body rewrite, restore current lambda.
+            ' END LAMBDA REWRITE
+            Me._currentMethodOrLambda = originalMethodOrLambda
+
+            Return result
+        End Function
+
+        Friend Shared Sub PopulateRangeVariableMapForQueryLambdaRewrite(
+            node As BoundQueryLambda,
+            ByRef rangeVariableMap As Dictionary(Of RangeVariableSymbol, BoundExpression),
+            inExpressionLambda As Boolean)
+
             Dim nodeRangeVariables As ImmutableArray(Of RangeVariableSymbol) = node.RangeVariables
 
             If nodeRangeVariables.Length > 0 Then
-                If _rangeVariableMap Is Nothing Then
-                    _rangeVariableMap = New Dictionary(Of RangeVariableSymbol, BoundExpression)()
+                If rangeVariableMap Is Nothing Then
+                    rangeVariableMap = New Dictionary(Of RangeVariableSymbol, BoundExpression)()
                 End If
 
                 Dim firstUnmappedRangeVariable As Integer = 0
@@ -63,128 +99,50 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                        False,
                                                        parameter.Type)
 
-                    If isReservedName AndAlso Not String.Equals(parameterName, StringConstants.Group, StringComparison.Ordinal) Then
-                        ' Compound variable.
-                        ' Each range variable is an Anonymous Type property.
-                        Debug.Assert(parameterName.Equals(StringConstants.It) OrElse parameterName.Equals(StringConstants.It1) OrElse parameterName.Equals(StringConstants.It2))
-                        PopulateRangeVariableMapForAnonymousType(node.Syntax, paramRef, nodeRangeVariables, firstUnmappedRangeVariable)
+                    If isReservedName AndAlso IsCompoundVariableName(parameterName) Then
+                        If parameter.Type.IsErrorType() Then
+                            ' Skip adding variables to the range variable map and bail out for error case.
+                            Return
+                        Else
+                            ' Compound variable.
+                            ' Each range variable is an Anonymous Type property.
+                            PopulateRangeVariableMapForAnonymousType(node.Syntax, paramRef.MakeCompilerGenerated(), nodeRangeVariables, firstUnmappedRangeVariable, rangeVariableMap, inExpressionLambda)
+                        End If
                     Else
                         ' Simple case, range variable is a lambda parameter.
                         Debug.Assert(IdentifierComparison.Equals(parameterName, nodeRangeVariables(firstUnmappedRangeVariable).Name))
-                        _rangeVariableMap.Add(nodeRangeVariables(firstUnmappedRangeVariable), paramRef)
+                        rangeVariableMap.Add(nodeRangeVariables(firstUnmappedRangeVariable), paramRef)
                         firstUnmappedRangeVariable += 1
                     End If
                 Next
 
                 Debug.Assert(firstUnmappedRangeVariable = nodeRangeVariables.Length)
             End If
+        End Sub
 
-            Dim save_createSequencePointsForTopLevelNonCompilerGeneratedExpressions = _createSequencePointsForTopLevelNonCompilerGeneratedExpressions
-            Dim createSequencePoint As VisualBasicSyntaxNode = Nothing
-            Dim sequencePointSpan As TextSpan
-
-#If Not DEBUG Then
-            If GenerateDebugInfo Then
-#End If
-
-            Select Case node.LambdaSymbol.SynthesizedKind
-                Case SynthesizedLambdaKind.AggregateQueryLambda
-                    Dim aggregateClause = DirectCast(node.Syntax.Parent.Parent, AggregateClauseSyntax)
-
-                    If aggregateClause.AggregationVariables.Count = 1 Then
-                        ' We are dealing with a simple case of an Aggregate clause - a single aggregate
-                        ' function in the Into clause. This lambda is responsible for calculating that
-                        ' aggregate function. Actually, it includes all code generated for the entire
-                        ' Aggregate clause. We should create sequence point for the entire clause
-                        ' rather than sequence points for the top level expressions within the lambda.
-                        createSequencePoint = aggregateClause
-                        sequencePointSpan = aggregateClause.Span
-                    Else
-                        ' We should create sequence point that spans from beginning of the Aggregate clause 
-                        ' to the beginning of the Into clause because all that code is involved into group calculation.
-
-                        createSequencePoint = aggregateClause
-                        If aggregateClause.AdditionalQueryOperators.Count = 0 Then
-                            sequencePointSpan = TextSpan.FromBounds(aggregateClause.SpanStart,
-                                                                    aggregateClause.Variables.Last.Span.End)
-                        Else
-                            sequencePointSpan = TextSpan.FromBounds(aggregateClause.SpanStart,
-                                                                    aggregateClause.AdditionalQueryOperators.Last.Span.End)
-                        End If
-                    End If
-
-                Case SynthesizedLambdaKind.LetVariableQueryLambda
-                    ' We will apply sequence points to synthesized return statements if they are contained in LetClause
-                    Debug.Assert(node.Syntax.Parent.IsKind(SyntaxKind.ExpressionRangeVariable))
-
-                    createSequencePoint = node.Syntax
-                    sequencePointSpan = TextSpan.FromBounds(node.Syntax.SpanStart, node.Syntax.Span.End)
-            End Select
-
-            _createSequencePointsForTopLevelNonCompilerGeneratedExpressions = (createSequencePoint Is Nothing)
-#If Not DEBUG Then
-            End If
-#End If
-
-            Dim returnstmt As BoundStatement = New BoundReturnStatement(node.Syntax,
-                                                                        VisitExpressionNode(node.Expression),
-                                                                        Nothing,
-                                                                        Nothing)
-
-            If createSequencePoint IsNot Nothing AndAlso GenerateDebugInfo Then
-                returnstmt = New BoundSequencePointWithSpan(createSequencePoint, returnstmt, sequencePointSpan)
-            End If
-
-            _createSequencePointsForTopLevelNonCompilerGeneratedExpressions = save_createSequencePointsForTopLevelNonCompilerGeneratedExpressions
-
-            For Each rangeVar As RangeVariableSymbol In nodeRangeVariables
-                _rangeVariableMap.Remove(rangeVar)
-            Next
-
-            Dim lambdaBody = New BoundBlock(node.Syntax,
-                                            Nothing,
-                                            ImmutableArray(Of LocalSymbol).Empty,
-                                            ImmutableArray.Create(returnstmt))
-
-            Me._hasLambdas = True
-
-            Dim result As BoundLambda = New BoundLambda(node.Syntax,
-                                   node.LambdaSymbol,
-                                   lambdaBody,
-                                   ImmutableArray(Of Diagnostic).Empty,
-                                   Nothing,
-                                   ConversionKind.DelegateRelaxationLevelNone,
-                                   MethodConversionKind.Identity)
-
-            result.MakeCompilerGenerated()
-
-            ' Done with lambda body rewrite, restore current lambda.
-            ' END LAMBDA REWRITE
-            Me._currentMethodOrLambda = originalMethodOrLambda
-
-            Return result
-        End Function
-
-        Private Sub PopulateRangeVariableMapForAnonymousType(
-            syntax As VisualBasicSyntaxNode,
+        Private Shared Sub PopulateRangeVariableMapForAnonymousType(
+            syntax As SyntaxNode,
             anonymousTypeInstance As BoundExpression,
             rangeVariables As ImmutableArray(Of RangeVariableSymbol),
-            ByRef firstUnmappedRangeVariable As Integer
-        )
+            ByRef firstUnmappedRangeVariable As Integer,
+            rangeVariableMap As Dictionary(Of RangeVariableSymbol, BoundExpression),
+            inExpressionLambda As Boolean)
+
             Dim anonymousType = DirectCast(anonymousTypeInstance.Type, AnonymousTypeManager.AnonymousTypePublicSymbol)
 
             For Each propertyDef As PropertySymbol In anonymousType.Properties
                 Dim getCallOrPropertyAccess As BoundExpression = Nothing
-                If _inExpressionLambda Then
+                If inExpressionLambda Then
                     ' NOTE: If we are in context of a lambda to be converted to an expression tree we need to use PropertyAccess.
                     getCallOrPropertyAccess = New BoundPropertyAccess(syntax,
                                                                       propertyDef,
                                                                       Nothing,
                                                                       PropertyAccessKind.Get,
-                                                                      False,
-                                                                      anonymousTypeInstance,
-                                                                      ImmutableArray(Of BoundExpression).Empty,
-                                                                      propertyDef.Type)
+                                                                      isWriteable:=False,
+                                                                      isLValue:=False,
+                                                                      receiverOpt:=anonymousTypeInstance,
+                                                                      arguments:=ImmutableArray(Of BoundExpression).Empty,
+                                                                      type:=propertyDef.Type)
                 Else
                     Dim getter = propertyDef.GetMethod
                     getCallOrPropertyAccess = New BoundCall(syntax,
@@ -198,18 +156,60 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim propertyDefName As String = propertyDef.Name
 
-                If propertyDefName.StartsWith("$"c, StringComparison.Ordinal) AndAlso Not String.Equals(propertyDefName, StringConstants.Group, StringComparison.Ordinal) Then
+                If propertyDefName.StartsWith("$"c, StringComparison.Ordinal) AndAlso
+                   IsCompoundVariableName(propertyDefName) Then
                     ' Nested compound variable.
-                    Debug.Assert(propertyDefName.Equals(StringConstants.It) OrElse propertyDefName.Equals(StringConstants.It1) OrElse propertyDefName.Equals(StringConstants.It2))
-                    PopulateRangeVariableMapForAnonymousType(syntax, getCallOrPropertyAccess, rangeVariables, firstUnmappedRangeVariable)
-
+                    PopulateRangeVariableMapForAnonymousType(syntax, getCallOrPropertyAccess.MakeCompilerGenerated(), rangeVariables, firstUnmappedRangeVariable, rangeVariableMap, inExpressionLambda)
                 Else
                     Debug.Assert(IdentifierComparison.Equals(propertyDefName, rangeVariables(firstUnmappedRangeVariable).Name))
-                    _rangeVariableMap.Add(rangeVariables(firstUnmappedRangeVariable), getCallOrPropertyAccess)
+                    rangeVariableMap.Add(rangeVariables(firstUnmappedRangeVariable), getCallOrPropertyAccess)
                     firstUnmappedRangeVariable += 1
                 End If
             Next
         End Sub
+
+        Private Shared Function IsCompoundVariableName(name As String) As Boolean
+            Return name.Equals(StringConstants.It, StringComparison.Ordinal) OrElse
+                   name.Equals(StringConstants.It1, StringComparison.Ordinal) OrElse
+                   name.Equals(StringConstants.It2, StringComparison.Ordinal)
+        End Function
+
+        Friend Shared Function CreateReturnStatementForQueryLambdaBody(
+            rewrittenBody As BoundExpression,
+            originalNode As BoundQueryLambda,
+            Optional hasErrors As Boolean = False) As BoundStatement
+
+            Return New BoundReturnStatement(originalNode.Syntax,
+                                            rewrittenBody,
+                                            Nothing,
+                                            Nothing,
+                                            hasErrors).MakeCompilerGenerated()
+        End Function
+
+        Friend Shared Sub RemoveRangeVariables(originalNode As BoundQueryLambda, rangeVariableMap As Dictionary(Of RangeVariableSymbol, BoundExpression))
+            For Each rangeVar As RangeVariableSymbol In originalNode.RangeVariables
+                rangeVariableMap.Remove(rangeVar)
+            Next
+        End Sub
+
+        Friend Shared Function RewriteQueryLambda(rewrittenBody As BoundStatement, originalNode As BoundQueryLambda) As BoundLambda
+            Dim lambdaBody = New BoundBlock(originalNode.Syntax,
+                                            Nothing,
+                                            ImmutableArray(Of LocalSymbol).Empty,
+                                            ImmutableArray.Create(rewrittenBody)).MakeCompilerGenerated()
+
+            Dim result As BoundLambda = New BoundLambda(originalNode.Syntax,
+                                   originalNode.LambdaSymbol,
+                                   lambdaBody,
+                                   ImmutableArray(Of Diagnostic).Empty,
+                                   Nothing,
+                                   ConversionKind.DelegateRelaxationLevelNone,
+                                   MethodConversionKind.Identity)
+
+            result.MakeCompilerGenerated()
+
+            Return result
+        End Function
 
         Public Overrides Function VisitRangeVariable(node As BoundRangeVariable) As BoundNode
             Return _rangeVariableMap(node.RangeVariable)

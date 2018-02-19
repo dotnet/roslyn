@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case Accessibility.ProtectedOrFriend
                     Return "Protected Friend"
                 Case Accessibility.ProtectedAndFriend
-                    Return "Friend" ' TODO: This protection level has no equivalent in the language.
+                    Return "Private Protected"
                 Case Accessibility.Friend
                     Return "Friend"
                 Case Accessibility.Public

@@ -12,26 +12,22 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
     /// </summary>
     public struct CodeRefactoringContext
     {
-        private readonly Document _document;
-        private readonly TextSpan _span;
-        private readonly CancellationToken _cancellationToken;
-
         /// <summary>
         /// Document corresponding to the <see cref="CodeRefactoringContext.Span"/> to refactor.
         /// </summary>
-        public Document Document { get { return _document; } }
+        public Document Document { get; }
 
         /// <summary>
         /// Text span within the <see cref="CodeRefactoringContext.Document"/> to refactor.
         /// </summary>
-        public TextSpan Span { get { return _span; } }
-
-        private readonly Action<CodeAction> _registerRefactoring;
+        public TextSpan Span { get; }
 
         /// <summary>
         /// CancellationToken.
         /// </summary>
-        public CancellationToken CancellationToken { get { return _cancellationToken; } }
+        public CancellationToken CancellationToken { get; }
+
+        private readonly Action<CodeAction> _registerRefactoring;
 
         /// <summary>
         /// Creates a code refactoring context to be passed into <see cref="CodeRefactoringProvider.ComputeRefactoringsAsync(CodeRefactoringContext)"/> method.
@@ -42,20 +38,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             Action<CodeAction> registerRefactoring,
             CancellationToken cancellationToken)
         {
-            if (document == null)
-            {
-                throw new ArgumentNullException(nameof(document));
-            }
-
-            if (registerRefactoring == null)
-            {
-                throw new ArgumentNullException(nameof(registerRefactoring));
-            }
-
-            _document = document;
-            _span = span;
-            _registerRefactoring = registerRefactoring;
-            _cancellationToken = cancellationToken;
+            Document = document ?? throw new ArgumentNullException(nameof(document));
+            Span = span;
+            _registerRefactoring = registerRefactoring ?? throw new ArgumentNullException(nameof(registerRefactoring));
+            CancellationToken = cancellationToken;
         }
 
         /// <summary>

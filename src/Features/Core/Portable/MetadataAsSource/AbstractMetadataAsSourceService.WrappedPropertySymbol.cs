@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.DocumentationComments;
@@ -27,93 +27,35 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 }
             }
 
-            public IMethodSymbol GetMethod
-            {
-                get
-                {
-                    return _symbol.GetMethod;
-                }
-            }
+            public IMethodSymbol GetMethod => _symbol.GetMethod;
 
-            public bool IsIndexer
-            {
-                get
-                {
-                    return _symbol.IsIndexer;
-                }
-            }
+            public bool IsIndexer => _symbol.IsIndexer;
 
-            public bool IsReadOnly
-            {
-                get
-                {
-                    return _symbol.IsReadOnly;
-                }
-            }
+            public bool IsReadOnly => _symbol.IsReadOnly;
 
-            public bool IsWithEvents
-            {
-                get
-                {
-                    return _symbol.IsWithEvents;
-                }
-            }
+            public bool IsWithEvents => _symbol.IsWithEvents;
 
-            public bool IsWriteOnly
-            {
-                get
-                {
-                    return _symbol.IsWriteOnly;
-                }
-            }
+            public bool IsWriteOnly => _symbol.IsWriteOnly;
 
-            public IPropertySymbol OverriddenProperty
-            {
-                get
-                {
-                    return _symbol.OverriddenProperty;
-                }
-            }
+            public bool ReturnsByRef => _symbol.ReturnsByRef;
 
-            public ImmutableArray<IParameterSymbol> Parameters
-            {
-                get
-                {
-                    return _symbol.Parameters;
-                }
-            }
+            public bool ReturnsByRefReadonly => _symbol.ReturnsByRefReadonly;
 
-            public IMethodSymbol SetMethod
-            {
-                get
-                {
-                    return _symbol.SetMethod;
-                }
-            }
+            public RefKind RefKind => _symbol.RefKind;
 
-            public ITypeSymbol Type
-            {
-                get
-                {
-                    return _symbol.Type;
-                }
-            }
+            public IPropertySymbol OverriddenProperty => _symbol.OverriddenProperty;
 
-            public ImmutableArray<CustomModifier> TypeCustomModifiers
-            {
-                get
-                {
-                    return _symbol.TypeCustomModifiers;
-                }
-            }
+            public ImmutableArray<IParameterSymbol> Parameters => _symbol.Parameters;
 
-            ISymbol ISymbol.OriginalDefinition
-            {
-                get
-                {
-                    return _symbol.OriginalDefinition;
-                }
-            }
+            public IMethodSymbol SetMethod => _symbol.SetMethod;
+
+            public ITypeSymbol Type => _symbol.Type;
+
+            public ImmutableArray<CustomModifier> RefCustomModifiers => _symbol.RefCustomModifiers;
+
+            public ImmutableArray<CustomModifier> TypeCustomModifiers => _symbol.TypeCustomModifiers;
+
+            ISymbol ISymbol.OriginalDefinition => _symbol.OriginalDefinition;
 
             public new IPropertySymbol OriginalDefinition
             {

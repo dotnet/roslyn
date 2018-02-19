@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Globalization;
@@ -7,7 +8,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -70,15 +73,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return DiagnosticData.Create(project, diagnostic);
         }
 
-        public static async Task<IEnumerable<Diagnostic>> ToDiagnosticsAsync(this IEnumerable<DiagnosticData> diagnostics, Project project, CancellationToken cancellationToken)
+        public static async Task<ImmutableArray<Diagnostic>> ToDiagnosticsAsync(this IEnumerable<DiagnosticData> diagnostics, Project project, CancellationToken cancellationToken)
         {
-            var result = new List<Diagnostic>();
+            var result = ArrayBuilder<Diagnostic>.GetInstance();
             foreach (var diagnostic in diagnostics)
             {
                 result.Add(await diagnostic.ToDiagnosticAsync(project, cancellationToken).ConfigureAwait(false));
             }
 
-            return result;
+            return result.ToImmutableAndFree();
         }
 
         public static async Task<IList<Location>> ConvertLocationsAsync(
@@ -148,6 +151,65 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             var syntaxTree = document.SyntaxTree;
             return syntaxTree.GetLocation(dataLocation.SourceSpan ?? DiagnosticData.GetTextSpan(dataLocation, document.Text));
+        }
+
+        public static string GetAnalyzerId(this DiagnosticAnalyzer analyzer)
+        {
+            // Get the unique ID for given diagnostic analyzer.
+            var type = analyzer.GetType();
+            return GetAssemblyQualifiedName(type);
+        }
+
+        private static string GetAssemblyQualifiedName(Type type)
+        {
+            // AnalyzerFileReference now includes things like versions, public key as part of its identity. 
+            // so we need to consider them.
+            return type.AssemblyQualifiedName;
+        }
+
+        public static ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResultBuilder> ToResultBuilderMap(
+            this AnalysisResult analysisResult,
+            Project project, VersionStamp version, Compilation compilation, IEnumerable<DiagnosticAnalyzer> analyzers,
+            CancellationToken cancellationToken)
+        {
+            var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, DiagnosticAnalysisResultBuilder>();
+
+            ImmutableArray<Diagnostic> diagnostics;
+
+            foreach (var analyzer in analyzers)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var result = new DiagnosticAnalysisResultBuilder(project, version);
+
+                foreach (var (tree, diagnosticsByAnalyzerMap) in analysisResult.SyntaxDiagnostics)
+                {
+                    if (diagnosticsByAnalyzerMap.TryGetValue(analyzer, out diagnostics))
+                    {
+                        Contract.Requires(diagnostics.Length == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilation).Count());
+                        result.AddSyntaxDiagnostics(tree, diagnostics);
+                    }
+                }
+
+                foreach (var (tree, diagnosticsByAnalyzerMap) in analysisResult.SemanticDiagnostics)
+                {
+                    if (diagnosticsByAnalyzerMap.TryGetValue(analyzer, out diagnostics))
+                    {
+                        Contract.Requires(diagnostics.Length == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilation).Count());
+                        result.AddSemanticDiagnostics(tree, diagnostics);
+                    }
+                }
+
+                if (analysisResult.CompilationDiagnostics.TryGetValue(analyzer, out diagnostics))
+                {
+                    Contract.Requires(diagnostics.Length == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilation).Count());
+                    result.AddCompilationDiagnostics(diagnostics);
+                }
+
+                builder.Add(analyzer, result);
+            }
+
+            return builder.ToImmutable();
         }
     }
 }

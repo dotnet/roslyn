@@ -8,6 +8,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
@@ -87,7 +88,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
 
         public int GetConfirmation(out string pbstrConfirmation)
         {
-            pbstrConfirmation = EditorFeaturesResources.Apply;
+            pbstrConfirmation = EditorFeaturesResources.Apply2;
             return VSConstants.S_OK;
         }
 
@@ -187,7 +188,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
 
         public int GetTextViewDescription(out string pbstrTextViewDescription)
         {
-            pbstrTextViewDescription = EditorFeaturesResources.PreviewCodeChanges;
+            pbstrTextViewDescription = EditorFeaturesResources.Preview_Code_Changes_colon;
             return VSConstants.S_OK;
         }
 
@@ -257,17 +258,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
 
             var newText = "";
             var newTextPtr = Marshal.StringToHGlobalAuto(newText);
+            Marshal.ThrowExceptionForHR(adapter.GetBuffer(out var lines));
+            Marshal.ThrowExceptionForHR(lines.GetLastLineIndex(out var piLIne, out var piLineIndex));
+            Marshal.ThrowExceptionForHR(lines.GetLengthOfLine(piLineIndex, out var piLineLength));
 
-            IVsTextLines lines;
-            Marshal.ThrowExceptionForHR(adapter.GetBuffer(out lines));
-
-            int piLIne, piLineIndex;
-            Marshal.ThrowExceptionForHR(lines.GetLastLineIndex(out piLIne, out piLineIndex));
-
-            int piLineLength;
-            Marshal.ThrowExceptionForHR(lines.GetLengthOfLine(piLineIndex, out piLineLength));
-
-            Microsoft.VisualStudio.TextManager.Interop.TextSpan[] changes = default(Microsoft.VisualStudio.TextManager.Interop.TextSpan[]);
+            Microsoft.VisualStudio.TextManager.Interop.TextSpan[] changes = default;
 
             piLineLength = piLineLength > 0 ? piLineLength - 1 : 0;
 
@@ -283,7 +278,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             public override int GetText(out VSTREETEXTOPTIONS tto, out string ppszText)
             {
                 tto = VSTREETEXTOPTIONS.TTO_DEFAULT;
-                ppszText = ServicesVSResources.NoChanges;
+                ppszText = ServicesVSResources.No_Changes;
                 return VSConstants.S_OK;
             }
 

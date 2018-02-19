@@ -7,9 +7,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
     Friend Partial Class BoundLocalDeclaration
 
-        Public Sub New(syntax As VisualBasicSyntaxNode, localSymbol As LocalSymbol, initializerOpt As BoundExpression)
-            MyClass.New(syntax, localSymbol, initializerOpt, False, False)
+        Public Sub New(syntax As SyntaxNode, localSymbol As LocalSymbol, initializerOpt As BoundExpression)
+            MyClass.New(syntax, localSymbol, initializerOpt, Nothing, False, False)
         End Sub
+
+        Public ReadOnly Property InitializerOpt As BoundExpression
+            Get
+                Return If(DeclarationInitializerOpt, IdentifierInitializerOpt)
+            End Get
+        End Property
 
 #If DEBUG Then
         Private Sub Validate()
@@ -17,11 +23,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 InitializerOpt.AssertRValue()
 
+                Debug.Assert(DeclarationInitializerOpt IsNot IdentifierInitializerOpt)
+
                 If Not HasErrors Then
                     If InitializerOpt.Type Is Nothing Then
                         Debug.Assert(LocalSymbol.IsConst AndAlso InitializerOpt.IsStrictNothingLiteral())
                     Else
-                        Debug.Assert(LocalSymbol.Type.IsSameTypeIgnoringCustomModifiers(InitializerOpt.Type) OrElse InitializerOpt.Type.IsErrorType() OrElse
+                        Debug.Assert(LocalSymbol.Type.IsSameTypeIgnoringAll(InitializerOpt.Type) OrElse InitializerOpt.Type.IsErrorType() OrElse
                                      (LocalSymbol.IsConst AndAlso LocalSymbol.Type.SpecialType = SpecialType.System_Object AndAlso
                                       InitializerOpt.IsConstant AndAlso InitializerOpt.ConstantValueOpt.IsNothing))
                     End If

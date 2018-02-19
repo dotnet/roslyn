@@ -63,10 +63,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return normalizedPath;
             }
 
-            var directory = PathUtilities.GetDirectoryName(normalizedPath);
-            if (string.Compare(directory, 0, normalizedBaseDirectory, 0, normalizedBaseDirectory.Length, StringComparison.OrdinalIgnoreCase) == 0)
+            var normalizedDirectory = PathUtilities.GetDirectoryName(normalizedPath);
+            if (PathUtilities.IsSameDirectoryOrChildOf(normalizedDirectory, normalizedBaseDirectory))
             {
-                return normalizedPath.Substring(normalizedBaseDirectory.Length + 1);
+                return normalizedPath.Substring(
+                    PathUtilities.IsDirectorySeparator(normalizedBaseDirectory.Last())
+                        ? normalizedBaseDirectory.Length
+                        : normalizedBaseDirectory.Length + 1);
             }
 
             return normalizedPath;

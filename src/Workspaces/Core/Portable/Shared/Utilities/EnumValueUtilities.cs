@@ -6,7 +6,6 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities
@@ -80,43 +79,50 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
         private static IComparable Multiply(IComparable value, uint number)
         {
-            return value.TypeSwitch(
-                (long v) => unchecked((long)(v * number)),
-                (ulong v) => unchecked((ulong)(v * number)),
-                (int v) => unchecked((int)(v * number)),
-                (uint v) => unchecked((uint)(v * number)),
-                (short v) => unchecked((short)(v * number)),
-                (ushort v) => unchecked((ushort)(v * number)),
-                (sbyte v) => unchecked((sbyte)(v * number)),
-                (byte v) => unchecked((byte)(v * number)),
-                _ => (IComparable)null);
+            switch (value)
+            {
+                case long v: return unchecked((long)(v * number));
+                case ulong v: return unchecked((ulong)(v * number));
+                case int v: return unchecked((int)(v * number));
+                case uint v: return unchecked((uint)(v * number));
+                case short v: return unchecked((short)(v * number));
+                case ushort v: return unchecked((ushort)(v * number));
+                case sbyte v: return unchecked((sbyte)(v * number));
+                case byte v: return unchecked((byte)(v * number));
+                default: return null;
+            }
         }
 
         private static IComparable Add(IComparable value, uint number)
         {
-            return value.TypeSwitch(
-                (long v) => unchecked((long)(v + number)),
-                (ulong v) => unchecked((ulong)(v + number)),
-                (int v) => unchecked((int)(v + number)),
-                (uint v) => unchecked((uint)(v + number)),
-                (short v) => unchecked((short)(v + number)),
-                (ushort v) => unchecked((ushort)(v + number)),
-                (sbyte v) => unchecked((sbyte)(v + number)),
-                (byte v) => unchecked((byte)(v + number)),
-                _ => (IComparable)null);
+            switch (value)
+            {
+                case long v: return unchecked((long)(v + number));
+                case ulong v: return unchecked((ulong)(v + number));
+                case int v: return unchecked((int)(v + number));
+                case uint v: return unchecked((uint)(v + number));
+                case short v: return unchecked((short)(v + number));
+                case ushort v: return unchecked((ushort)(v + number));
+                case sbyte v: return unchecked((sbyte)(v + number));
+                case byte v: return unchecked((byte)(v + number));
+                default: return null;
+            }
         }
 
         private static bool GreaterThanOrEqualsZero(IComparable value)
         {
-            return value.TypeSwitch(
-                (long v) => v >= 0,
-                (ulong v) => v >= 0,
-                (int v) => v >= 0,
-                (uint v) => v >= 0,
-                (short v) => v >= 0,
-                (ushort v) => v >= 0,
-                (sbyte v) => v >= 0,
-                (byte v) => v >= 0);
+            switch (value)
+            {
+                case long v: return v >= 0;
+                case ulong v: return v >= 0;
+                case int v: return v >= 0;
+                case uint v: return v >= 0;
+                case short v: return v >= 0;
+                case ushort v: return v >= 0;
+                case sbyte v: return v >= 0;
+                case byte v: return v >= 0;
+                default: return false;
+            }
         }
 
         private static bool LooksLikeFlagsEnum(INamedTypeSymbol enumType, List<IComparable> existingConstants)

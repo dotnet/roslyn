@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -20,8 +20,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 private sealed class HighPriorityProcessor : IdleProcessor
                 {
                     private readonly IncrementalAnalyzerProcessor _processor;
-                    private readonly Lazy<ImmutableArray<IIncrementalAnalyzer>> _lazyAnalyzers;
                     private readonly AsyncDocumentWorkItemQueue _workItemQueue;
+
+                    private Lazy<ImmutableArray<IIncrementalAnalyzer>> _lazyAnalyzers;
 
                     // whether this processor is running or not
                     private Task _running;
@@ -43,28 +44,15 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         Start();
                     }
 
-                    private ImmutableArray<IIncrementalAnalyzer> Analyzers
-                    {
-                        get
-                        {
-                            return _lazyAnalyzers.Value;
-                        }
-                    }
+                    public Task Running => _running;
 
-                    public Task Running
-                    {
-                        get
-                        {
-                            return _running;
-                        }
-                    }
+                    public bool HasAnyWork => _workItemQueue.HasAnyWork;
 
-                    public bool HasAnyWork
+                    public void AddAnalyzer(IIncrementalAnalyzer analyzer)
                     {
-                        get
-                        {
-                            return _workItemQueue.HasAnyWork;
-                        }
+                        var analyzers = _lazyAnalyzers.Value;
+
+                        _lazyAnalyzers = new Lazy<ImmutableArray<IIncrementalAnalyzer>>(() => analyzers.Add(analyzer));
                     }
 
                     public void Enqueue(WorkItem item)
@@ -116,18 +104,14 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         {
                             // mark it as running
                             _running = source.Task;
-
                             // okay, there must be at least one item in the map
-
                             // see whether we have work item for the document
-                            WorkItem workItem;
-                            CancellationTokenSource documentCancellation;
-                            Contract.ThrowIfFalse(GetNextWorkItem(out workItem, out documentCancellation));
+                            Contract.ThrowIfFalse(GetNextWorkItem(out var workItem, out var documentCancellation));
 
                             var solution = _processor.CurrentSolution;
 
                             // okay now we have work to do
-                            await ProcessDocumentAsync(solution, this.Analyzers, workItem, documentCancellation).ConfigureAwait(false);
+                            await ProcessDocumentAsync(solution, _lazyAnalyzers.Value, workItem, documentCancellation).ConfigureAwait(false);
                         }
                         catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                         {
@@ -172,7 +156,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                         try
                         {
-                            using (Logger.LogBlock(FunctionId.WorkCoordinator_ProcessDocumentAsync, source.Token))
+                            using (Logger.LogBlock(FunctionId.WorkCoordinator_ProcessDocumentAsync, w => w.ToString(), workItem, source.Token))
                             {
                                 var cancellationToken = source.Token;
                                 var document = solution.GetDocument(documentId);
@@ -203,7 +187,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             SolutionCrawlerLogger.LogProcessActiveFileDocument(_processor._logAggregator, documentId.Id, processedEverything);
 
                             // remove one that is finished running
-                            _workItemQueue.RemoveCancellationSource(workItem.DocumentId);
+                            _workItemQueue.MarkWorkItemDoneFor(workItem.DocumentId);
                         }
                     }
 

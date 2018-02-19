@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -36,19 +37,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // no trivia
             if (!token.HasLeadingTrivia)
             {
-                Debug.Assert(this.TreeInfo.GetTextBetween(default(SyntaxToken), token).All(IsCSharpWhitespace));
+                Debug.Assert(this.TreeInfo.GetTextBetween(default, token).All(IsCSharpWhitespace));
                 return GetSpaceTriviaData(space: 0);
             }
 
             var result = Analyzer.Leading(token);
-            var info = GetWhitespaceOnlyTriviaInfo(default(SyntaxToken), token, result);
+            var info = GetWhitespaceOnlyTriviaInfo(default, token, result);
             if (info != null)
             {
-                Debug.Assert(this.TreeInfo.GetTextBetween(default(SyntaxToken), token).All(IsCSharpWhitespace));
+                Debug.Assert(this.TreeInfo.GetTextBetween(default, token).All(IsCSharpWhitespace));
                 return info;
             }
 
-            return new ComplexTrivia(this.OptionSet, this.TreeInfo, default(SyntaxToken), token);
+            return new ComplexTrivia(this.OptionSet, this.TreeInfo, default, token);
         }
 
         public override TriviaData CreateTrailingTrivia(SyntaxToken token)
@@ -56,19 +57,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // no trivia
             if (!token.HasTrailingTrivia)
             {
-                Debug.Assert(this.TreeInfo.GetTextBetween(token, default(SyntaxToken)).All(IsCSharpWhitespace));
+                Debug.Assert(this.TreeInfo.GetTextBetween(token, default).All(IsCSharpWhitespace));
                 return GetSpaceTriviaData(space: 0);
             }
 
             var result = Analyzer.Trailing(token);
-            var info = GetWhitespaceOnlyTriviaInfo(token, default(SyntaxToken), result);
+            var info = GetWhitespaceOnlyTriviaInfo(token, default, result);
             if (info != null)
             {
-                Debug.Assert(this.TreeInfo.GetTextBetween(token, default(SyntaxToken)).All(IsCSharpWhitespace));
+                Debug.Assert(this.TreeInfo.GetTextBetween(token, default).All(IsCSharpWhitespace));
                 return info;
             }
 
-            return new ComplexTrivia(this.OptionSet, this.TreeInfo, token, default(SyntaxToken));
+            return new ComplexTrivia(this.OptionSet, this.TreeInfo, token, default);
         }
 
         public override TriviaData Create(SyntaxToken token1, SyntaxToken token2)
@@ -93,12 +94,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         private bool ContainsOnlyWhitespace(Analyzer.AnalysisResult result)
         {
-            if (result.HasComments || result.HasPreprocessor || result.HasSkippedTokens || result.HasSkippedOrDisabledText)
-            {
-                return false;
-            }
-
-            return true;
+            return
+                !result.HasComments &&
+                !result.HasPreprocessor &&
+                !result.HasSkippedTokens &&
+                !result.HasSkippedOrDisabledText &&
+                !result.HasConflictMarker;
         }
 
         private TriviaData GetWhitespaceOnlyTriviaInfo(SyntaxToken token1, SyntaxToken token2, Analyzer.AnalysisResult result)

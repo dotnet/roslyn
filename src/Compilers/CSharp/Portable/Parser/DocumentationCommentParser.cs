@@ -7,6 +7,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
+    using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
+
     // TODO: The Xml parser recognizes most commonplace XML, according to the XML spec.
     // It does not recognize the following:
     //
@@ -66,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // It's possible that we finish parsing the xml, and we are still left in the middle
                 // of an Xml comment. For example,
                 //
-                //     /// <foo></foo></uhoh>
+                //     /// <goo></goo></uhoh>
                 //                    ^
                 // In this case, we stop at the caret. We need to ensure that we consume the remainder
                 // of the doc comment here, since otherwise we will return the lexer to the state
@@ -108,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     textTokens.Add(token);
                 }
 
-                var allRemainderText = SyntaxFactory.XmlText(textTokens.ToTokenList());
+                var allRemainderText = SyntaxFactory.XmlText(textTokens.ToList());
 
                 XmlParseErrorCode code = endTag ? XmlParseErrorCode.XML_EndTagNotExpected : XmlParseErrorCode.XML_ExpectedEndOfXml;
                 allRemainderText = WithAdditionalDiagnostics(allRemainderText, new XmlSyntaxDiagnosticInfo(0, 1, code));
@@ -414,7 +416,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     }
                     else
                     {
-                        list[list.Count - 1] = AddTrailingSkippedSyntax(list[list.Count - 1], badTokens.ToListNode());
+                        list[list.Count - 1] = AddTrailingSkippedSyntax((CSharpSyntaxNode)list[list.Count - 1], badTokens.ToListNode());
                     }
 
                     return result;
@@ -838,11 +840,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return WithAdditionalDiagnostics(node, new XmlSyntaxDiagnosticInfo(0, node.Width, code, args));
         }
 
-        private SyntaxToken WithXmlParseError<TNode>(SyntaxToken node, XmlParseErrorCode code)
-        {
-            return WithAdditionalDiagnostics(node, new XmlSyntaxDiagnosticInfo(0, node.Width, code));
-        }
-
         private SyntaxToken WithXmlParseError(SyntaxToken node, XmlParseErrorCode code, params string[] args)
         {
             return WithAdditionalDiagnostics(node, new XmlSyntaxDiagnosticInfo(0, node.Width, code, args));
@@ -934,23 +931,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             return result;
-        }
-
-        private CSharpSyntaxNode ConsumeBadTokens()
-        {
-            if (this.CurrentToken.Kind == SyntaxKind.BadToken)
-            {
-                var badTokens = _pool.Allocate<SyntaxToken>();
-                while (this.CurrentToken.Kind == SyntaxKind.BadToken)
-                {
-                    badTokens.Add(this.EatToken());
-                }
-                var result = badTokens.ToListNode();
-                _pool.Free(badTokens);
-                return result;
-            }
-
-            return null;
         }
 
         /// <summary>
@@ -1138,14 +1118,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var list = _pool.AllocateSeparated<CrefParameterSyntax>();
             try
             {
-                while (CurrentToken.Kind == SyntaxKind.CommaToken || IsPossibleCrefParameter)
+                while (CurrentToken.Kind == SyntaxKind.CommaToken || IsPossibleCrefParameter())
                 {
                     list.Add(ParseCrefParameter());
 
                     if (CurrentToken.Kind != closeKind)
                     {
                         SyntaxToken comma = EatToken(SyntaxKind.CommaToken);
-                        if (!comma.IsMissing || IsPossibleCrefParameter)
+                        if (!comma.IsMissing || IsPossibleCrefParameter())
                         {
                             // Only do this if it won't be last in the list.
                             list.AddSeparator(comma);
@@ -1176,20 +1156,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// <summary>
         /// True if the current token could be the beginning of a cref parameter.
         /// </summary>
-        private bool IsPossibleCrefParameter
+        private bool IsPossibleCrefParameter()
         {
-            get
+            SyntaxKind kind = this.CurrentToken.Kind;
+            switch (kind)
             {
-                SyntaxKind kind = this.CurrentToken.Kind;
-                switch (kind)
-                {
-                    case SyntaxKind.RefKeyword:
-                    case SyntaxKind.OutKeyword:
-                    case SyntaxKind.IdentifierToken:
-                        return true;
-                    default:
-                        return SyntaxFacts.IsPredefinedType(kind);
-                }
+                case SyntaxKind.RefKeyword:
+                case SyntaxKind.OutKeyword:
+                case SyntaxKind.InKeyword:
+                case SyntaxKind.IdentifierToken:
+                    return true;
+                default:
+                    return SyntaxFacts.IsPredefinedType(kind);
             }
         }
 
@@ -1201,17 +1179,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// </remarks>
         private CrefParameterSyntax ParseCrefParameter()
         {
-            SyntaxToken refOrOutOpt = null;
+            SyntaxToken refKindOpt = null;
             switch (CurrentToken.Kind)
             {
                 case SyntaxKind.RefKeyword:
                 case SyntaxKind.OutKeyword:
-                    refOrOutOpt = EatToken();
+                case SyntaxKind.InKeyword:
+                    refKindOpt = EatToken();
                     break;
             }
 
             TypeSyntax type = ParseCrefType(typeArgumentsMustBeIdentifiers: false);
-            return SyntaxFactory.CrefParameter(refOrOutOpt, type);
+            return SyntaxFactory.CrefParameter(refKindOpt, type);
         }
 
         /// <summary>

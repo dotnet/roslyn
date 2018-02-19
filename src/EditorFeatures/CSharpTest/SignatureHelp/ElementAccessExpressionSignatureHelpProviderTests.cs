@@ -1,10 +1,11 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.CSharp.SignatureHelp;
+using Microsoft.CodeAnalysis.CSharp.SignatureHelp;
 using Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.SignatureHelp;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -38,7 +39,7 @@ class C
 
 class D
 {
-    void Foo()
+    void Goo()
     {
         var c = new C();
         var x = [|c[$$|]];
@@ -47,6 +48,52 @@ class D
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
             expectedOrderedItems.Add(new SignatureHelpTestItem("string C[int a]", string.Empty, string.Empty, currentParameterIndex: 0));
+
+            await TestAsync(markup, expectedOrderedItems);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(24311, "https://github.com/dotnet/roslyn/issues/24311")]
+        public async Task TestInvocationWithParametersOn1_WithRefReturn()
+        {
+            var markup = @"
+class C
+{
+    public ref int this[int a]
+    {
+        get { throw null; }
+    }
+    void Goo(C c)
+    {
+        [|c[$$]|]
+    }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            expectedOrderedItems.Add(new SignatureHelpTestItem("ref int C[int a]", string.Empty, string.Empty, currentParameterIndex: 0));
+
+            await TestAsync(markup, expectedOrderedItems);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(24311, "https://github.com/dotnet/roslyn/issues/24311")]
+        public async Task TestInvocationWithParametersOn1_WithRefReadonlyReturn()
+        {
+            var markup = @"
+class C
+{
+    public ref readonly int this[int a]
+    {
+        get { throw null; }
+    }
+    void Goo(C c)
+    {
+        [|c[$$]|]
+    }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            expectedOrderedItems.Add(new SignatureHelpTestItem("ref readonly int C[int a]", string.Empty, string.Empty, currentParameterIndex: 0));
 
             await TestAsync(markup, expectedOrderedItems);
         }
@@ -67,7 +114,7 @@ class C
 
 class D
 {
-    void Foo()
+    void Goo()
     {
         C[] c = new C[1];
         c[0][$$
@@ -99,7 +146,7 @@ class C
 
 class D
 {
-    void Foo()
+    void Goo()
     {
         var c = new C();
         var x = [|c[$$|]];
@@ -127,7 +174,7 @@ class C
 
 class D
 {
-    void Foo()
+    void Goo()
     {
         var c = new C();
         var x = [|c[22, $$|]];
@@ -159,7 +206,7 @@ class C
 
 class D
 {
-    void Foo()
+    void Goo()
     {
         var c = new C();
         var x = [|c[22, $$|]];
@@ -187,7 +234,7 @@ class D
 
 class D
 {
-    void Foo()
+    void Goo()
     {
         var c = new C();
         var x = [|c[$$
@@ -215,7 +262,7 @@ class C
 
 class D
 {
-    void Foo()
+    void Goo()
     {
         var c = new C();
         var x = [|c[22, $$
@@ -247,7 +294,7 @@ class C
 
 class D
 {
-    void Foo()
+    void Goo()
     {
         var c = new C();
         var x = [|c[b: false, a: $$42|]];
@@ -276,7 +323,7 @@ class C
 
 class D
 {
-    void Foo()
+    void Goo()
     {
         var c = new C();
         var x = [|c[$$|]];
@@ -304,7 +351,7 @@ class C
 
 class D
 {
-    void Foo()
+    void Goo()
     {
         var c = new C();
         var x = [|c[42,$$|]];
@@ -332,7 +379,7 @@ class C
 
 class D
 {
-    void Foo()
+    void Goo()
     {
         var c = new C();
         var x = [|c[42, $$|]];
@@ -365,12 +412,12 @@ class Program
 {
     void M()
     {
-        new Foo()[$$
+        new Goo()[$$
     }
 }";
 
             var referencedCode = @"
-public class Foo
+public class Goo
 {
     [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Always)]
     public int this[int x]
@@ -380,7 +427,7 @@ public class Foo
     }
 }";
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem("int Foo[int x]", string.Empty, string.Empty, currentParameterIndex: 0));
+            expectedOrderedItems.Add(new SignatureHelpTestItem("int Goo[int x]", string.Empty, string.Empty, currentParameterIndex: 0));
 
             await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
                                                 referencedCode: referencedCode,
@@ -399,12 +446,12 @@ class Program
 {
     void M()
     {
-        new Foo()[$$
+        new Goo()[$$
     }
 }";
 
             var referencedCode = @"
-public class Foo
+public class Goo
 {
     [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)]
     public int this[int x]
@@ -414,7 +461,7 @@ public class Foo
     }
 }";
             var expectedOrderedItemsMetadataReference = new List<SignatureHelpTestItem>();
-            expectedOrderedItemsMetadataReference.Add(new SignatureHelpTestItem("int Foo[int x]", string.Empty, string.Empty, currentParameterIndex: 0));
+            expectedOrderedItemsMetadataReference.Add(new SignatureHelpTestItem("int Goo[int x]", string.Empty, string.Empty, currentParameterIndex: 0));
 
             await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
                                                 referencedCode: referencedCode,
@@ -433,12 +480,12 @@ class Program
 {
     void M()
     {
-        new Foo()[$$
+        new Goo()[$$
     }
 }";
 
             var referencedCode = @"
-public class Foo
+public class Goo
 {
     [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
     public int this[int x]
@@ -448,7 +495,7 @@ public class Foo
     }
 }";
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem("int Foo[int x]", string.Empty, string.Empty, currentParameterIndex: 0));
+            expectedOrderedItems.Add(new SignatureHelpTestItem("int Goo[int x]", string.Empty, string.Empty, currentParameterIndex: 0));
 
             await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
                 referencedCode: referencedCode,
@@ -476,12 +523,12 @@ class Program
 {
     void M()
     {
-        new Foo()[$$
+        new Goo()[$$
     }
 }";
 
             var referencedCode = @"
-public class Foo
+public class Goo
 {
     [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)]
     public int this[int x]
@@ -498,12 +545,12 @@ public class Foo
 }";
 
             var expectedOrderedItemsMetadataReference = new List<SignatureHelpTestItem>();
-            expectedOrderedItemsMetadataReference.Add(new SignatureHelpTestItem("int Foo[double d]", string.Empty, string.Empty, currentParameterIndex: 0));
+            expectedOrderedItemsMetadataReference.Add(new SignatureHelpTestItem("int Goo[double d]", string.Empty, string.Empty, currentParameterIndex: 0));
 
             var expectedOrderedItemsSameSolution = new List<SignatureHelpTestItem>
             {
-                new SignatureHelpTestItem("int Foo[double d]", string.Empty, string.Empty, currentParameterIndex: 0),
-                new SignatureHelpTestItem("int Foo[int x]", string.Empty, string.Empty, currentParameterIndex: 0),
+                new SignatureHelpTestItem("int Goo[double d]", string.Empty, string.Empty, currentParameterIndex: 0),
+                new SignatureHelpTestItem("int Goo[int x]", string.Empty, string.Empty, currentParameterIndex: 0),
             };
 
             await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
@@ -523,12 +570,12 @@ class Program
 {
     void M()
     {
-        new Foo()[$$
+        new Goo()[$$
     }
 }";
 
             var referencedCode = @"
-public class Foo
+public class Goo
 {
     public int this[int x]
     {
@@ -538,7 +585,7 @@ public class Foo
     }
 }";
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem("int Foo[int x]", string.Empty, string.Empty, currentParameterIndex: 0));
+            expectedOrderedItems.Add(new SignatureHelpTestItem("int Goo[int x]", string.Empty, string.Empty, currentParameterIndex: 0));
 
             await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
                                                 referencedCode: referencedCode,
@@ -557,12 +604,12 @@ class Program
 {
     void M()
     {
-        new Foo()[$$
+        new Goo()[$$
     }
 }";
 
             var referencedCode = @"
-public class Foo
+public class Goo
 {
     public int this[int x]
     {
@@ -572,7 +619,7 @@ public class Foo
     }
 }";
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem("int Foo[int x]", string.Empty, string.Empty, currentParameterIndex: 0));
+            expectedOrderedItems.Add(new SignatureHelpTestItem("int Goo[int x]", string.Empty, string.Empty, currentParameterIndex: 0));
 
             await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
                                                 referencedCode: referencedCode,
@@ -591,12 +638,12 @@ class Program
 {
     void M()
     {
-        new Foo()[$$
+        new Goo()[$$
     }
 }";
 
             var referencedCode = @"
-public class Foo
+public class Goo
 {
     public int this[int x]
     {
@@ -607,7 +654,7 @@ public class Foo
     }
 }";
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem("int Foo[int x]", string.Empty, string.Empty, currentParameterIndex: 0));
+            expectedOrderedItems.Add(new SignatureHelpTestItem("int Goo[int x]", string.Empty, string.Empty, currentParameterIndex: 0));
 
             await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
                                                 referencedCode: referencedCode,
@@ -682,11 +729,11 @@ End Class";
         public async Task FieldUnavailableInOneLinkedFile()
         {
             var markup = @"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"" PreprocessorSymbols=""FOO"">
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"" PreprocessorSymbols=""GOO"">
         <Document FilePath=""SourceDocument""><![CDATA[
 class C
 {
-#if FOO
+#if GOO
     public int this[int z]
     {
         get
@@ -695,7 +742,7 @@ class C
         }
     }
 #endif
-    void foo()
+    void goo()
     {
         var x = this[$$
     }
@@ -707,7 +754,7 @@ class C
         <Document IsLinkFile=""true"" LinkAssemblyName=""Proj1"" LinkFilePath=""SourceDocument""/>
     </Project>
 </Workspace>";
-            var expectedDescription = new SignatureHelpTestItem($"int C[int z]\r\n\r\n{string.Format(FeaturesResources.ProjectAvailability, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources.ProjectAvailability, "Proj2", FeaturesResources.NotAvailable)}\r\n\r\n{FeaturesResources.UseTheNavigationBarToSwitchContext}", currentParameterIndex: 0);
+            var expectedDescription = new SignatureHelpTestItem($"int C[int z]\r\n\r\n{string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available)}\r\n\r\n{FeaturesResources.You_can_use_the_navigation_bar_to_switch_context}", currentParameterIndex: 0);
             await VerifyItemWithReferenceWorkerAsync(markup, new[] { expectedDescription }, false);
         }
 
@@ -715,11 +762,11 @@ class C
         public async Task ExcludeFilesWithInactiveRegions()
         {
             var markup = @"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"" PreprocessorSymbols=""FOO,BAR"">
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"" PreprocessorSymbols=""GOO,BAR"">
         <Document FilePath=""SourceDocument""><![CDATA[
 class C
 {
-#if FOO
+#if GOO
     public int this[int z]
     {
         get
@@ -730,7 +777,7 @@ class C
 #endif
 
 #if BAR
-    void foo()
+    void goo()
     {
         var x = this[$$
     }
@@ -747,7 +794,7 @@ class C
     </Project>
 </Workspace>";
 
-            var expectedDescription = new SignatureHelpTestItem($"int C[int z]\r\n\r\n{string.Format(FeaturesResources.ProjectAvailability, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources.ProjectAvailability, "Proj3", FeaturesResources.NotAvailable)}\r\n\r\n{FeaturesResources.UseTheNavigationBarToSwitchContext}", currentParameterIndex: 0);
+            var expectedDescription = new SignatureHelpTestItem($"int C[int z]\r\n\r\n{string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources._0_1, "Proj3", FeaturesResources.Not_Available)}\r\n\r\n{FeaturesResources.You_can_use_the_navigation_bar_to_switch_context}", currentParameterIndex: 0);
             await VerifyItemWithReferenceWorkerAsync(markup, new[] { expectedDescription }, false);
         }
 
@@ -778,7 +825,7 @@ class C
 
 class D
 {
-    void Foo()
+    void Goo()
     {
         var c = new C();
         c[$$]
@@ -806,7 +853,7 @@ public class P
         }
     }
  
-    public void foo()
+    public void goo()
     {
         P p = null;
         p?[$$]
@@ -825,13 +872,43 @@ public class P
             public async Task NonIdentifierConditionalIndexer()
             {
                 var expected = new[] { new SignatureHelpTestItem("char string[int index]") };
-                await TestAsync(@"class C { void M() { """"?[$$ } }", expected); // inline with a string literal
-                await TestAsync(@"class C { void M() { """"?[/**/$$ } }", expected); // inline with a string literal and multiline comment
-                await TestAsync(@"class C { void M() { ("""")?[$$ } }", expected); // parenthesized expression
-                await TestAsync(@"class C { void M() { new System.String(' ', 1)?[$$ } }", expected); // new object expression
+                await TestAsync(
+@"class C
+{
+    void M()
+    {
+        """"?[$$ }
+}", expected); // inline with a string literal
+                await TestAsync(
+@"class C
+{
+    void M()
+    {
+        """"?[/**/$$ }
+}", expected); // inline with a string literal and multiline comment
+                await TestAsync(
+@"class C
+{
+    void M()
+    {
+        ("""")?[$$ }
+}", expected); // parenthesized expression
+                await TestAsync(
+@"class C
+{
+    void M()
+    {
+        new System.String(' ', 1)?[$$ }
+}", expected); // new object expression
 
                 // more complicated parenthesized expression
-                await TestAsync(@"class C { void M() { (null as System.Collections.Generic.List<int>)?[$$ } }", new[] { new SignatureHelpTestItem("int System.Collections.Generic.List<int>[int index]") });
+                await TestAsync(
+@"class C
+{
+    void M()
+    {
+        (null as System.Collections.Generic.List<int>)?[$$ }
+}", new[] { new SignatureHelpTestItem("int System.Collections.Generic.List<int>[int index]") });
             }
 
             [WorkItem(1067933, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067933")]
@@ -839,7 +916,7 @@ public class P
             public async Task InvokedWithNoToken()
             {
                 var markup = @"
-// foo[$$";
+// goo[$$";
 
                 await TestAsync(markup);
             }
@@ -866,6 +943,48 @@ class TestClass
 }
 ";
                 await TestAsync(markup, new[] { new SignatureHelpTestItem("int WithIndexer[int index]") }, usePreviousCharAsTrigger: true);
+            }
+
+            [WorkItem(20507, "https://github.com/dotnet/roslyn/issues/20507")]
+            [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+            public async Task InConditionalIndexingFollowedByMemberAccess()
+            {
+                var markup = @"
+class Indexable
+{
+    public Indexable this[int x] { get => null; }
+
+    Indexable Count;
+
+    static void Main(string[] args)
+    {
+        Indexable x;
+        x?[$$].Count;
+    }
+}
+";
+                await TestAsync(markup, new[] { new SignatureHelpTestItem("Indexable Indexable[int x]") }, usePreviousCharAsTrigger: false);
+            }
+
+            [WorkItem(20507, "https://github.com/dotnet/roslyn/issues/20507")]
+            [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+            public async Task InConditionalIndexingFollowedByConditionalAccess()
+            {
+                var markup = @"
+class Indexable
+{
+    public Indexable this[int x] { get => null; }
+
+    Indexable Count;
+
+    static void Main(string[] args)
+    {
+        Indexable x;
+        x?[$$].Count?.Count;
+    }
+}
+";
+                await TestAsync(markup, new[] { new SignatureHelpTestItem("Indexable Indexable[int x]") }, usePreviousCharAsTrigger: false);
             }
         }
     }

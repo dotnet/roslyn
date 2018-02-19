@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -9,6 +9,8 @@ Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Simplification
+Imports Microsoft.CodeAnalysis.Options
+Imports System.Collections.Immutable
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
     Partial Friend Class VisualBasicMethodExtractor
@@ -56,20 +58,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return Me.InsertionPoint.With(document).GetContext()
             End Function
 
-            Protected Overrides Function GenerateMethodDefinition(cancellationToken As CancellationToken) As OperationStatus(Of IMethodSymbol)
-                Dim result = CreateMethodBody(cancellationToken)
+            Protected Overrides Async Function GenerateMethodDefinitionAsync(cancellationToken As CancellationToken) As Task(Of OperationStatus(Of IMethodSymbol))
+                Dim result = Await CreateMethodBodyAsync(cancellationToken).ConfigureAwait(False)
                 Dim statements = result.Data
 
                 Dim methodSymbol = CodeGenerationSymbolFactory.CreateMethodSymbol(
-                    attributes:=SpecializedCollections.EmptyList(Of AttributeData)(),
+                    attributes:=ImmutableArray(Of AttributeData).Empty,
                     accessibility:=Accessibility.Private,
                     modifiers:=CreateMethodModifiers(),
                     returnType:=Me.AnalyzerResult.ReturnType,
-                    explicitInterfaceSymbol:=Nothing,
+                    refKind:=RefKind.None,
+                    explicitInterfaceImplementations:=Nothing,
                     name:=_methodName.ToString(),
                     typeParameters:=CreateMethodTypeParameters(cancellationToken),
                     parameters:=CreateMethodParameters(),
-                    statements:=statements.Cast(Of SyntaxNode).ToList())
+                    statements:=statements.Cast(Of SyntaxNode).ToImmutableArray())
 
                 Return result.With(
                     Me.MethodDefinitionAnnotation.AddAnnotationToSymbol(
@@ -102,9 +105,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Dim postProcessor = New PostProcessor(semanticModel, context.SpanStart)
                 Dim statements = SpecializedCollections.EmptyEnumerable(Of StatementSyntax)()
 
-                statements = AddSplitOrMoveDeclarationOutStatementsToCallSite(statements, cancellationToken)
+                statements = Await AddSplitOrMoveDeclarationOutStatementsToCallSiteAsync(statements, cancellationToken).ConfigureAwait(False)
                 statements = postProcessor.MergeDeclarationStatements(statements)
-                statements = AddAssignmentStatementToCallSite(statements, cancellationToken)
+                statements = Await AddAssignmentStatementToCallSiteAsync(statements, cancellationToken).ConfigureAwait(False)
                 statements = Await AddInvocationAtCallSiteAsync(statements, cancellationToken).ConfigureAwait(False)
                 statements = AddReturnIfUnreachable(statements, cancellationToken)
 
@@ -158,10 +161,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return New DeclarationModifiers(isStatic:=isShared, isAsync:=isAsync)
             End Function
 
-            Private Function CreateMethodBody(cancellationToken As CancellationToken) As OperationStatus(Of IEnumerable(Of StatementSyntax))
-
+            Private Async Function CreateMethodBodyAsync(cancellationToken As CancellationToken) As Task(Of OperationStatus(Of IEnumerable(Of StatementSyntax)))
                 Dim statements = GetInitialStatementsForMethodDefinitions()
-                statements = SplitOrMoveDeclarationIntoMethodDefinition(statements, cancellationToken)
+                statements = Await SplitOrMoveDeclarationIntoMethodDefinitionAsync(statements, cancellationToken).ConfigureAwait(False)
                 statements = MoveDeclarationOutFromMethodDefinition(statements, cancellationToken)
 
                 Dim emptyStatements = SpecializedCollections.EmptyEnumerable(Of StatementSyntax)()
@@ -272,12 +274,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return declarationStatements
             End Function
 
-            Private Function SplitOrMoveDeclarationIntoMethodDefinition(statements As IEnumerable(Of StatementSyntax), cancellationToken As CancellationToken) As IEnumerable(Of StatementSyntax)
+            Private Async Function SplitOrMoveDeclarationIntoMethodDefinitionAsync(statements As IEnumerable(Of StatementSyntax), cancellationToken As CancellationToken) As Task(Of IEnumerable(Of StatementSyntax))
                 Dim semanticModel = CType(Me.SemanticDocument.SemanticModel, SemanticModel)
                 Dim context = Me.InsertionPoint.GetContext()
                 Dim postProcessor = New PostProcessor(semanticModel, context.SpanStart)
 
-                Dim declStatements = CreateDeclarationStatements(AnalyzerResult.GetVariablesToSplitOrMoveIntoMethodDefinition(cancellationToken), cancellationToken)
+                Dim declStatements = Await CreateDeclarationStatementsAsync(AnalyzerResult.GetVariablesToSplitOrMoveIntoMethodDefinition(cancellationToken), cancellationToken).ConfigureAwait(False)
                 declStatements = postProcessor.MergeDeclarationStatements(declStatements)
 
                 Return declStatements.Concat(statements)
@@ -349,9 +351,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return identifier.CreateAssignmentExpressionStatementWithValue(rvalue)
             End Function
 
-            Protected Overrides Function CreateDeclarationStatement(variable As VariableInfo,
-                                                                    cancellationToken As CancellationToken,
-                                                                    Optional givenInitializer As ExpressionSyntax = Nothing) As StatementSyntax
+            Protected Overrides Function CreateDeclarationStatementAsync(
+                    variable As VariableInfo,
+                    givenInitializer As ExpressionSyntax,
+                    cancellationToken As CancellationToken) As Task(Of StatementSyntax)
 
                 Dim shouldInitializeWithNothing = (variable.GetDeclarationBehavior(cancellationToken) = DeclarationBehavior.MoveOut OrElse variable.GetDeclarationBehavior(cancellationToken) = DeclarationBehavior.SplitOut) AndAlso
                                                   (variable.ParameterModifier = ParameterBehavior.Out)
@@ -366,7 +369,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Dim equalsValue = If(initializer Is Nothing, Nothing, SyntaxFactory.EqualsValue(value:=initializer))
                 Dim declarators = SyntaxFactory.SingletonSeparatedList(SyntaxFactory.VariableDeclarator(names, SyntaxFactory.SimpleAsClause(type:=typeNode), equalsValue))
 
-                Return SyntaxFactory.LocalDeclarationStatement(modifiers, declarators)
+                Return Task.FromResult(Of StatementSyntax)(SyntaxFactory.LocalDeclarationStatement(modifiers, declarators))
             End Function
 
             Protected Overrides Async Function CreateGeneratedCodeAsync(status As OperationStatus, newDocument As SemanticDocument, cancellationToken As CancellationToken) As Task(Of GeneratedCode)

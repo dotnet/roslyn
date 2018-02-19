@@ -1,10 +1,10 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Runtime.CompilerServices
 Imports System.Threading.Thread
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.Syntax.InternalSyntax
 Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 
@@ -14,6 +14,10 @@ Public Class ScannerTests
 
     Private Function ScanOnce(str As String, Optional startStatement As Boolean = False) As SyntaxToken
         Return SyntaxFactory.ParseToken(str, startStatement:=startStatement)
+    End Function
+
+    Private Function ScanOnce(str As String, languageVersion As VisualBasic.LanguageVersion) As SyntaxToken
+        Return SyntaxFactory.ParseTokens(str, options:=New VisualBasicParseOptions(languageVersion:=languageVersion)).First()
     End Function
 
     Private Function AsString(tokens As IEnumerable(Of SyntaxToken)) As String
@@ -55,6 +59,332 @@ Public Class ScannerTests
 
         Return tokens
     End Function
+
+    <Fact>
+    Public Sub TestLessThanConflictMarker1()
+        ' Needs to be followed by a space.
+        Dim token = SyntaxFactory.ParseTokens("<<<<<<<").First()
+        Assert.Equal(SyntaxKind.LessThanLessThanToken, token.Kind())
+
+        ' Has to be the start of a line.
+        token = SyntaxFactory.ParseTokens(" <<<<<<<").First()
+        Assert.Equal(SyntaxKind.LessThanLessThanToken, token.Kind())
+        Assert.True(token.HasLeadingTrivia)
+        Assert.True(token.LeadingTrivia.Single().Kind() = SyntaxKind.WhitespaceTrivia)
+
+        ' Has to have at least seven characters.
+        token = SyntaxFactory.ParseTokens("<<<<<< ").First()
+        Assert.Equal(SyntaxKind.LessThanLessThanToken, token.Kind())
+
+        ' Start of line, seven characters, ends with space.
+        token = SyntaxFactory.ParseTokens("<<<<<<< ").First()
+        Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind())
+        Assert.True(token.HasLeadingTrivia)
+        Dim trivia = token.LeadingTrivia.Single()
+        Assert.True(trivia.Kind() = SyntaxKind.ConflictMarkerTrivia)
+
+        Assert.True(trivia.ContainsDiagnostics)
+        Dim err = trivia.Errors().First
+        Assert.Equal(ERRID.ERR_Merge_conflict_marker_encountered, err.Code)
+    End Sub
+
+    <Fact>
+    Public Sub TestLessThanConflictMarker2()
+        Dim token = SyntaxFactory.ParseTokens("{" & vbCrLf & "<<<<<<<").Skip(2).First()
+        Assert.Equal(SyntaxKind.LessThanLessThanToken, token.Kind())
+
+        token = SyntaxFactory.ParseTokens("{" & vbCrLf & " <<<<<<<").Skip(2).First()
+        Assert.Equal(SyntaxKind.LessThanLessThanToken, token.Kind())
+        Assert.True(token.HasLeadingTrivia)
+        Assert.True(token.LeadingTrivia.Single().Kind() = SyntaxKind.WhitespaceTrivia)
+
+        token = SyntaxFactory.ParseTokens("{" & vbCrLf & "<<<<<< ").Skip(2).First()
+        Assert.Equal(SyntaxKind.LessThanLessThanToken, token.Kind())
+
+        token = SyntaxFactory.ParseTokens("{" & vbCrLf & "<<<<<<< ").Skip(2).First()
+        Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind())
+        Assert.True(token.HasLeadingTrivia)
+        Dim trivia = token.LeadingTrivia.Single()
+        Assert.True(trivia.Kind() = SyntaxKind.ConflictMarkerTrivia)
+        Assert.True(trivia.SpanStart = 3)
+        Assert.True(trivia.Span.Length = 8)
+
+        Assert.True(trivia.ContainsDiagnostics)
+        Dim err = trivia.Errors().First
+        Assert.Equal(ERRID.ERR_Merge_conflict_marker_encountered, err.Code)
+    End Sub
+
+    <Fact>
+    Public Sub TestGreaterThanConflictMarker1()
+        ' Needs to be followed by a space.
+        Dim token = SyntaxFactory.ParseTokens(">>>>>>>").First()
+        Assert.Equal(SyntaxKind.GreaterThanGreaterThanToken, token.Kind())
+
+        ' Has to be the start of a line.
+        token = SyntaxFactory.ParseTokens(" >>>>>>>").First()
+        Assert.Equal(SyntaxKind.GreaterThanGreaterThanToken, token.Kind())
+        Assert.True(token.HasLeadingTrivia)
+        Assert.True(token.LeadingTrivia.Single().Kind() = SyntaxKind.WhitespaceTrivia)
+
+        ' Has to have at least seven characters.
+        token = SyntaxFactory.ParseTokens(">>>>>> ").First()
+        Assert.Equal(SyntaxKind.GreaterThanGreaterThanToken, token.Kind())
+
+        ' Start of line, seven characters, ends with space.
+        token = SyntaxFactory.ParseTokens(">>>>>>> ").First()
+        Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind())
+        Assert.True(token.HasLeadingTrivia)
+        Dim trivia = token.LeadingTrivia.Single()
+        Assert.True(trivia.Kind() = SyntaxKind.ConflictMarkerTrivia)
+
+        Assert.True(trivia.ContainsDiagnostics)
+        Dim err = trivia.Errors().First
+        Assert.Equal(ERRID.ERR_Merge_conflict_marker_encountered, err.Code)
+    End Sub
+
+    <Fact>
+    Public Sub TestGreaterThanConflictMarker2()
+        Dim token = SyntaxFactory.ParseTokens("{" & vbCrLf & ">>>>>>>").Skip(2).First()
+        Assert.Equal(SyntaxKind.GreaterThanGreaterThanToken, token.Kind())
+
+        token = SyntaxFactory.ParseTokens("{" & vbCrLf & " >>>>>>>").Skip(2).First()
+        Assert.Equal(SyntaxKind.GreaterThanGreaterThanToken, token.Kind())
+        Assert.True(token.HasLeadingTrivia)
+        Assert.True(token.LeadingTrivia.Single().Kind() = SyntaxKind.WhitespaceTrivia)
+
+        token = SyntaxFactory.ParseTokens("{" & vbCrLf & ">>>>>> ").Skip(2).First()
+        Assert.Equal(SyntaxKind.GreaterThanGreaterThanToken, token.Kind())
+
+        token = SyntaxFactory.ParseTokens("{" & vbCrLf & ">>>>>>> ").Skip(2).First()
+        Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind())
+        Assert.True(token.HasLeadingTrivia)
+        Dim trivia = token.LeadingTrivia.Single()
+        Assert.True(trivia.Kind() = SyntaxKind.ConflictMarkerTrivia)
+        Assert.True(trivia.SpanStart = 3)
+        Assert.True(trivia.Span.Length = 8)
+
+        Assert.True(trivia.ContainsDiagnostics)
+        Dim err = trivia.Errors().First
+        Assert.Equal(ERRID.ERR_Merge_conflict_marker_encountered, err.Code)
+    End Sub
+
+    <Fact>
+    Public Sub TestEqualsConflictMarker1()
+        ' Has to be the start of a line.
+        Dim token = SyntaxFactory.ParseTokens(" =======").First()
+        Assert.Equal(SyntaxKind.EqualsToken, token.Kind())
+        Assert.True(token.HasLeadingTrivia)
+        Assert.True(token.LeadingTrivia.Single().Kind() = SyntaxKind.WhitespaceTrivia)
+
+        ' Has to have at least seven characters.
+        token = SyntaxFactory.ParseTokens("====== ").First()
+        Assert.Equal(SyntaxKind.EqualsToken, token.Kind())
+
+        ' Start of line, seven characters
+        token = SyntaxFactory.ParseTokens("=======").First()
+        Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind())
+        Assert.True(token.HasLeadingTrivia)
+        Assert.True(token.LeadingTrivia.Single().Kind() = SyntaxKind.ConflictMarkerTrivia)
+
+        ' Start of line, seven characters
+        token = SyntaxFactory.ParseTokens("======= trailing chars").First()
+        Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind())
+        Assert.True(token.HasLeadingTrivia)
+        Dim trivia = token.LeadingTrivia.Single()
+        Assert.True(trivia.Kind() = SyntaxKind.ConflictMarkerTrivia)
+        Assert.Equal(trivia.Span.Length, 22)
+
+        Assert.True(trivia.ContainsDiagnostics)
+        Dim err = trivia.Errors().First
+        Assert.Equal(ERRID.ERR_Merge_conflict_marker_encountered, err.Code)
+
+        token = SyntaxFactory.ParseTokens("======= Trailing" & vbCrLf & "disabled text").First()
+        Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind())
+        Assert.True(token.HasLeadingTrivia)
+        Assert.Equal(3, token.LeadingTrivia.Count)
+        trivia = token.LeadingTrivia(0)
+        Assert.True(trivia.Kind() = SyntaxKind.ConflictMarkerTrivia)
+        Assert.Equal(trivia.Span.Length, 16)
+
+        Assert.True(trivia.ContainsDiagnostics)
+        err = trivia.Errors().First
+        Assert.Equal(ERRID.ERR_Merge_conflict_marker_encountered, err.Code)
+
+        trivia = token.LeadingTrivia(1)
+        Assert.True(trivia.Kind() = SyntaxKind.EndOfLineTrivia)
+        Assert.Equal(trivia.Span.Start, 16)
+        Assert.Equal(trivia.Span.Length, 2)
+
+        trivia = token.LeadingTrivia(2)
+        Assert.True(trivia.Kind() = SyntaxKind.DisabledTextTrivia)
+        Assert.Equal(trivia.Span.Start, 18)
+        Assert.Equal(trivia.Span.Length, 13)
+
+        token = SyntaxFactory.ParseTokens("======= Trailing" & vbCrLf & "disabled text" & vbCrLf & ">>>> still disabled").First()
+        Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind())
+        Assert.True(token.HasLeadingTrivia)
+        Assert.Equal(3, token.LeadingTrivia.Count)
+
+        trivia = token.LeadingTrivia(0)
+        Assert.True(trivia.Kind() = SyntaxKind.ConflictMarkerTrivia)
+        Assert.Equal(trivia.Span.Length, 16)
+
+        Assert.True(trivia.ContainsDiagnostics)
+        err = trivia.Errors().First
+        Assert.Equal(ERRID.ERR_Merge_conflict_marker_encountered, err.Code)
+
+        trivia = token.LeadingTrivia(1)
+        Assert.True(trivia.Kind() = SyntaxKind.EndOfLineTrivia)
+        Assert.Equal(trivia.Span.Length, 2)
+
+        trivia = token.LeadingTrivia(2)
+        Assert.True(trivia.Kind() = SyntaxKind.DisabledTextTrivia)
+        Assert.Equal(trivia.Span.Length, 34)
+
+
+        token = SyntaxFactory.ParseTokens("======= Trailing" & vbCrLf & "disabled text" & vbCrLf & ">>>>>>> Actually the end").First()
+        Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind())
+        Assert.True(token.HasLeadingTrivia)
+        Assert.Equal(token.LeadingTrivia.Count, 4)
+        Dim trivia1 = token.LeadingTrivia(0)
+        Assert.True(trivia1.Kind() = SyntaxKind.ConflictMarkerTrivia)
+        Assert.Equal(trivia1.Span.Length, 16)
+
+        Assert.True(trivia1.ContainsDiagnostics)
+        err = trivia1.Errors().First
+        Assert.Equal(ERRID.ERR_Merge_conflict_marker_encountered, err.Code)
+
+        Dim trivia2 = token.LeadingTrivia(1)
+        Assert.True(trivia2.Kind() = SyntaxKind.EndOfLineTrivia)
+        Assert.Equal(trivia2.Span.Start, 16)
+        Assert.Equal(trivia2.Span.Length, 2)
+
+        Dim trivia3 = token.LeadingTrivia(2)
+        Assert.True(trivia3.Kind() = SyntaxKind.DisabledTextTrivia)
+        Assert.Equal(trivia3.Span.Start, 18)
+        Assert.Equal(trivia3.Span.Length, 15)
+
+        Dim trivia4 = token.LeadingTrivia(3)
+        Assert.True(trivia4.Kind() = SyntaxKind.ConflictMarkerTrivia)
+        Assert.Equal(trivia4.Span.Start, 33)
+        Assert.Equal(trivia4.Span.Length, 24)
+
+        Assert.True(trivia4.ContainsDiagnostics)
+        err = trivia4.Errors().First
+        Assert.Equal(ERRID.ERR_Merge_conflict_marker_encountered, err.Code)
+    End Sub
+
+    <Fact>
+    Public Sub TestEqualsConflictMarker2()
+        ' Has to be the start of a line.
+        Dim token = SyntaxFactory.ParseTokens("{" & vbCrLf & " =======").Skip(2).First()
+        Assert.Equal(SyntaxKind.EqualsToken, token.Kind())
+        Assert.True(token.HasLeadingTrivia)
+        Assert.True(token.LeadingTrivia.Single().Kind() = SyntaxKind.WhitespaceTrivia)
+
+        ' Has to have at least seven characters.
+        token = SyntaxFactory.ParseTokens("{" & vbCrLf & "====== ").Skip(2).First()
+        Assert.Equal(SyntaxKind.EqualsToken, token.Kind())
+
+        ' Start of line, seven characters
+        token = SyntaxFactory.ParseTokens("{" & vbCrLf & "=======").Skip(2).First()
+        Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind())
+        Assert.True(token.HasLeadingTrivia)
+        Dim trivia = token.LeadingTrivia.Single()
+        Assert.True(trivia.Kind() = SyntaxKind.ConflictMarkerTrivia)
+
+        Assert.True(trivia.ContainsDiagnostics)
+        Dim err = trivia.Errors().First
+        Assert.Equal(ERRID.ERR_Merge_conflict_marker_encountered, err.Code)
+
+
+        ' Start of line, seven characters
+        token = SyntaxFactory.ParseTokens("{" & vbCrLf & "======= trailing chars").Skip(2).First()
+        Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind())
+        Assert.True(token.HasLeadingTrivia)
+        trivia = token.LeadingTrivia.Single()
+        Assert.True(trivia.Kind() = SyntaxKind.ConflictMarkerTrivia)
+        Assert.Equal(trivia.Span.Length, 22)
+
+        Assert.True(trivia.ContainsDiagnostics)
+        err = trivia.Errors().First
+        Assert.Equal(ERRID.ERR_Merge_conflict_marker_encountered, err.Code)
+
+        token = SyntaxFactory.ParseTokens("{" & vbCrLf & "======= Trailing" & vbCrLf & "disabled text").Skip(2).First()
+        Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind())
+        Assert.True(token.HasLeadingTrivia)
+        Assert.Equal(3, token.LeadingTrivia.Count)
+        trivia = token.LeadingTrivia(0)
+        Assert.True(trivia.Kind() = SyntaxKind.ConflictMarkerTrivia)
+        Assert.Equal(trivia.Span.Length, 16)
+
+        Assert.True(trivia.ContainsDiagnostics)
+        err = trivia.Errors().First
+        Assert.Equal(ERRID.ERR_Merge_conflict_marker_encountered, err.Code)
+
+        trivia = token.LeadingTrivia(1)
+        Assert.True(trivia.Kind() = SyntaxKind.EndOfLineTrivia)
+        Assert.Equal(trivia.Span.Start, 19)
+        Assert.Equal(trivia.Span.Length, 2)
+
+        trivia = token.LeadingTrivia(2)
+        Assert.True(trivia.Kind() = SyntaxKind.DisabledTextTrivia)
+        Assert.Equal(trivia.Span.Start, 21)
+        Assert.Equal(trivia.Span.Length, 13)
+
+        token = SyntaxFactory.ParseTokens("{" & vbCrLf & "======= Trailing" & vbCrLf & "disabled text" & vbCrLf & ">>>> still disabled").Skip(2).First()
+        Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind())
+        Assert.True(token.HasLeadingTrivia)
+        Assert.Equal(3, token.LeadingTrivia.Count)
+
+        trivia = token.LeadingTrivia(0)
+        Assert.True(trivia.Kind() = SyntaxKind.ConflictMarkerTrivia)
+        Assert.Equal(trivia.Span.Length, 16)
+
+        Assert.True(trivia.ContainsDiagnostics)
+        err = trivia.Errors().First
+        Assert.Equal(ERRID.ERR_Merge_conflict_marker_encountered, err.Code)
+
+        trivia = token.LeadingTrivia(1)
+        Assert.True(trivia.Kind() = SyntaxKind.EndOfLineTrivia)
+        Assert.Equal(trivia.Span.Length, 2)
+
+        trivia = token.LeadingTrivia(2)
+        Assert.True(trivia.Kind() = SyntaxKind.DisabledTextTrivia)
+        Assert.Equal(trivia.Span.Length, 34)
+
+
+        token = SyntaxFactory.ParseTokens("{" & vbCrLf & "======= Trailing" & vbCrLf & "disabled text" & vbCrLf & ">>>>>>> Actually the end").Skip(2).First()
+        Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind())
+        Assert.True(token.HasLeadingTrivia)
+        Assert.Equal(token.LeadingTrivia.Count, 4)
+        Dim trivia1 = token.LeadingTrivia(0)
+        Assert.True(trivia1.Kind() = SyntaxKind.ConflictMarkerTrivia)
+        Assert.Equal(trivia1.Span.Length, 16)
+
+        Assert.True(trivia1.ContainsDiagnostics)
+        err = trivia1.Errors().First
+        Assert.Equal(ERRID.ERR_Merge_conflict_marker_encountered, err.Code)
+
+        Dim trivia2 = token.LeadingTrivia(1)
+        Assert.True(trivia2.Kind() = SyntaxKind.EndOfLineTrivia)
+        Assert.Equal(trivia2.Span.Start, 19)
+        Assert.Equal(trivia2.Span.Length, 2)
+
+        Dim trivia3 = token.LeadingTrivia(2)
+        Assert.True(trivia3.Kind() = SyntaxKind.DisabledTextTrivia)
+        Assert.Equal(trivia3.Span.Start, 21)
+        Assert.Equal(trivia3.Span.Length, 15)
+
+        Dim trivia4 = token.LeadingTrivia(3)
+        Assert.True(trivia4.Kind() = SyntaxKind.ConflictMarkerTrivia)
+        Assert.Equal(trivia4.Span.Start, 36)
+        Assert.Equal(trivia4.Span.Length, 24)
+
+        Assert.True(trivia4.ContainsDiagnostics)
+        err = trivia4.Errors().First
+        Assert.Equal(ERRID.ERR_Merge_conflict_marker_encountered, err.Code)
+    End Sub
 
     <Fact>
     Public Sub Scanner_EndOfText()
@@ -180,22 +510,22 @@ Public Class ScannerTests
         tk = ScanOnce(" _'", startStatement:=True)
         Assert.Equal(SyntaxKind.BadToken, tk.Kind)
         Assert.Equal(" _'", tk.ToFullString())
-        Assert.Equal(30999, tk.Errors(0).Code)
+        Assert.Equal(30999, tk.Errors.First().Code)
 
         tk = ScanOnce(" _ rem", startStatement:=True)
         Assert.Equal(SyntaxKind.BadToken, tk.Kind)
         Assert.Equal(" _ rem", tk.ToFullString())
-        Assert.Equal(30999, tk.Errors(0).Code)
+        Assert.Equal(30999, tk.Errors.First().Code)
 
         tk = ScanOnce(" _ abc", startStatement:=True)
         Assert.Equal(SyntaxKind.BadToken, tk.Kind)
         Assert.Equal(" _ ", tk.ToFullString())
-        Assert.Equal(30203, tk.Errors(0).Code)
+        Assert.Equal(30203, tk.Errors.First().Code)
 
         Dim tks = ScanAllCheckDw(" _ rem")
         Assert.Equal(SyntaxKind.BadToken, tks(0).Kind)
         Assert.Equal(" _ rem", tks(0).ToFullString())
-        Assert.Equal(30999, tks(0).Errors(0).Code)
+        Assert.Equal(30999, tks(0).Errors.First().Code)
 
         tk = ScanOnce("_" & vbLf, startStatement:=True)
         Assert.Equal(SyntaxKind.EndOfFileToken, tk.Kind)
@@ -694,6 +1024,14 @@ End If]]>.Value,
         Assert.Equal(42, tk.Value)
         Assert.Equal(" 42 ", tk.ToFullString())
 
+        Str = " 4_2 "
+        tk = ScanOnce(Str)
+        Assert.Equal(SyntaxKind.IntegerLiteralToken, tk.Kind)
+        Assert.Equal(LiteralBase.Decimal, tk.GetBase())
+        Assert.Equal(42, tk.Value)
+        Assert.Equal(" 4_2 ", tk.ToFullString())
+        Assert.Equal(0, tk.Errors().Count)
+
         Str = " &H42L "
         tk = ScanOnce(Str)
         Assert.Equal(SyntaxKind.IntegerLiteralToken, tk.Kind)
@@ -701,12 +1039,76 @@ End If]]>.Value,
         Assert.Equal(&H42L, tk.Value)
         Assert.Equal(" &H42L ", tk.ToFullString())
 
+        Str = " &H4_2L "
+        tk = ScanOnce(Str)
+        Assert.Equal(SyntaxKind.IntegerLiteralToken, tk.Kind)
+        Assert.Equal(LiteralBase.Hexadecimal, tk.GetBase())
+        Assert.Equal(&H42L, tk.Value)
+        Assert.Equal(" &H4_2L ", tk.ToFullString())
+
+        Str = " &H_1 "
+        tk = ScanOnce(Str)
+        Assert.Equal(SyntaxKind.IntegerLiteralToken, tk.Kind)
+        Assert.Equal(LiteralBase.Hexadecimal, tk.GetBase())
+        Assert.Equal(&H1, tk.Value)
+        Assert.Equal(" &H_1 ", tk.ToFullString())
+
+        Str = " &B_1 "
+        tk = ScanOnce(Str)
+        Assert.Equal(SyntaxKind.IntegerLiteralToken, tk.Kind)
+        Assert.Equal(LiteralBase.Binary, tk.GetBase())
+        Assert.Equal(&B1, tk.Value)
+        Assert.Equal(" &B_1 ", tk.ToFullString())
+
+        Str = " &O_1 "
+        tk = ScanOnce(Str)
+        Assert.Equal(SyntaxKind.IntegerLiteralToken, tk.Kind)
+        Assert.Equal(LiteralBase.Octal, tk.GetBase())
+        Assert.Equal(&O1, tk.Value)
+        Assert.Equal(" &O_1 ", tk.ToFullString())
+
+        Str = " &H__1_1L "
+        tk = ScanOnce(Str)
+        Assert.Equal(SyntaxKind.IntegerLiteralToken, tk.Kind)
+        Assert.Equal(LiteralBase.Hexadecimal, tk.GetBase())
+        Assert.Equal(&H11L, tk.Value)
+        Assert.Equal(" &H__1_1L ", tk.ToFullString())
+
+        Str = " &B__1_1L "
+        tk = ScanOnce(Str)
+        Assert.Equal(SyntaxKind.IntegerLiteralToken, tk.Kind)
+        Assert.Equal(LiteralBase.Binary, tk.GetBase())
+        Assert.Equal(&B11L, tk.Value)
+        Assert.Equal(" &B__1_1L ", tk.ToFullString())
+
+        Str = " &O__1_1L "
+        tk = ScanOnce(Str)
+        Assert.Equal(SyntaxKind.IntegerLiteralToken, tk.Kind)
+        Assert.Equal(LiteralBase.Octal, tk.GetBase())
+        Assert.Equal(&O11L, tk.Value)
+        Assert.Equal(" &O__1_1L ", tk.ToFullString())
+
         Str = " &H42L &H42& "
         Dim tks = ScanAllCheckDw(Str)
         Assert.Equal(SyntaxKind.IntegerLiteralToken, tks(0).Kind)
         Assert.Equal(LiteralBase.Hexadecimal, tks(1).GetBase())
         Assert.Equal(&H42L, tks(1).Value)
         Assert.Equal(TypeCharacter.Long, tks(1).GetTypeCharacter())
+
+        Str = " &B1010L "
+        tk = ScanOnce(Str)
+        Assert.Equal(SyntaxKind.IntegerLiteralToken, tk.Kind)
+        Assert.Equal(LiteralBase.Binary, tk.GetBase())
+        Assert.Equal(&HAL, tk.Value)
+        Assert.Equal(" &B1010L ", tk.ToFullString())
+        Assert.Equal(0, tk.Errors().Count)
+        Str = " &B1_0_1_0L "
+        tk = ScanOnce(Str)
+        Assert.Equal(SyntaxKind.IntegerLiteralToken, tk.Kind)
+        Assert.Equal(LiteralBase.Binary, tk.GetBase())
+        Assert.Equal(&HAL, tk.Value)
+        Assert.Equal(" &B1_0_1_0L ", tk.ToFullString())
+        Assert.Equal(0, tk.Errors().Count)
     End Sub
 
     <Fact>
@@ -722,6 +1124,13 @@ End If]]>.Value,
         Assert.Equal(0.42, tk.Value)
         Assert.IsType(Of Double)(tk.Value)
         Assert.Equal(" 0.42 ", tk.ToFullString())
+
+        Str = " 0_0.4_2 "
+        tk = ScanOnce(Str)
+        Assert.Equal(SyntaxKind.FloatingLiteralToken, tk.Kind)
+        Assert.Equal(0.42, tk.Value)
+        Assert.IsType(Of Double)(tk.Value)
+        Assert.Equal(" 0_0.4_2 ", tk.ToFullString())
 
         Str = " 0.42# "
         tk = ScanOnce(Str)
@@ -822,6 +1231,22 @@ End If]]>.Value,
         Assert.Equal(30036, tk.GetSyntaxErrorsNoTree()(0).Code)
         Assert.Equal(0, CInt(tk.Value))
 
+        Str = "&B111111111111111111111111111111111I"
+        tk = ScanOnce(Str)
+        Assert.Equal(SyntaxKind.IntegerLiteralToken, tk.Kind)
+        Assert.Equal(30036, tk.GetSyntaxErrorsNoTree()(0).Code)
+        Assert.Equal(0, CInt(tk.Value))
+
+        Str = "&B11111111111111111111111111111111UI"
+        tk = ScanOnce(Str)
+        Assert.Equal(SyntaxKind.IntegerLiteralToken, tk.Kind)
+        Assert.Equal(&HFFFFFFFFUI, CUInt(tk.Value))
+
+        Str = "&B1111111111111111111111111111111I"
+        tk = ScanOnce(Str)
+        Assert.Equal(SyntaxKind.IntegerLiteralToken, tk.Kind)
+        Assert.Equal(&H7FFFFFFFI, CInt(tk.Value))
+
         Str = "1.7976931348623157E+308d"
         tk = ScanOnce(Str)
         Assert.Equal(SyntaxKind.DecimalLiteralToken, tk.Kind)
@@ -833,6 +1258,74 @@ End If]]>.Value,
         Assert.Equal(SyntaxKind.FloatingLiteralToken, tk.Kind)
         Assert.Equal(30036, tk.GetSyntaxErrorsNoTree()(0).Code)
         Assert.Equal(0.0F, tk.Value)
+    End Sub
+
+    <Fact>
+    Public Sub Scanner_UnderscoreWrongLocation()
+        Dim Str = "_1"
+        Dim tk = ScanOnce(Str)
+        Assert.Equal(SyntaxKind.IdentifierToken, tk.Kind)
+        Assert.Equal(0, tk.GetSyntaxErrorsNoTree().Count())
+
+        Str = "1_"
+        tk = ScanOnce(Str)
+        Assert.Equal(SyntaxKind.IntegerLiteralToken, tk.Kind)
+        Assert.Equal(30035, tk.GetSyntaxErrorsNoTree()(0).Code)
+        Assert.Equal(0, CInt(tk.Value))
+
+        Str = "&H1_"
+        tk = ScanOnce(Str)
+        Assert.Equal(SyntaxKind.IntegerLiteralToken, tk.Kind)
+        Assert.Equal(30035, tk.GetSyntaxErrorsNoTree()(0).Code)
+        Assert.Equal(0, CInt(tk.Value))
+
+        Str = "1_.1"
+        tk = ScanOnce(Str)
+        Assert.Equal(SyntaxKind.FloatingLiteralToken, tk.Kind)
+        Assert.Equal(30035, tk.GetSyntaxErrorsNoTree()(0).Code)
+        Assert.Equal(0, CInt(tk.Value))
+
+        Str = "1.1_"
+        tk = ScanOnce(Str)
+        Assert.Equal(SyntaxKind.FloatingLiteralToken, tk.Kind)
+        Assert.Equal(30035, tk.GetSyntaxErrorsNoTree()(0).Code)
+        Assert.Equal(0, CInt(tk.Value))
+
+        Str = "&H_"
+        tk = ScanOnce(Str)
+        Assert.Equal(SyntaxKind.IntegerLiteralToken, tk.Kind)
+        Dim errors = tk.Errors()
+        Assert.Equal(1, errors.Count)
+        Assert.Equal(30035, errors.First().Code)
+        Assert.Equal(0, CInt(tk.Value))
+
+        Str = "&H_2_"
+        tk = ScanOnce(Str)
+        Assert.Equal(SyntaxKind.IntegerLiteralToken, tk.Kind)
+        errors = tk.Errors()
+        Assert.Equal(1, errors.Count)
+        Assert.Equal(30035, errors.First().Code)
+        Assert.Equal(0, CInt(tk.Value))
+    End Sub
+
+    <Fact>
+    Public Sub Scanner_UnderscoreFeatureFlag()
+        Dim Str = "&H_1"
+        Dim tk = ScanOnce(Str, LanguageVersion.VisualBasic14)
+        Assert.Equal(SyntaxKind.IntegerLiteralToken, tk.Kind)
+        Dim errors = tk.Errors()
+        Assert.Equal(1, errors.Count)
+        Assert.Equal(36716, errors.First().Code)
+        Assert.Equal(1, CInt(tk.Value))
+
+        Str = "&H_123_456_789_ABC_DEF_123"
+        tk = ScanOnce(Str, LanguageVersion.VisualBasic14)
+        Assert.Equal(SyntaxKind.IntegerLiteralToken, tk.Kind)
+        errors = tk.Errors()
+        Assert.Equal(2, errors.Count)
+        Assert.Equal(30036, errors.ElementAt(0).Code)
+        Assert.Equal(36716, errors.ElementAt(1).Code)
+        Assert.Equal(0, CInt(tk.Value))
     End Sub
 
     <Fact>
@@ -998,13 +1491,13 @@ End If]]>.Value,
 
     <Fact>
     Public Sub Scanner_BracketedIdentToken()
-        Dim Str = "[Foo123]"
+        Dim Str = "[Goo123]"
         Dim tk = ScanOnce(Str)
         Assert.Equal(SyntaxKind.IdentifierToken, tk.Kind)
         Assert.True(tk.IsBracketed)
-        Assert.Equal("Foo123", tk.ValueText)
-        Assert.Equal("Foo123", tk.Value)
-        Assert.Equal("[Foo123]", tk.ToFullString())
+        Assert.Equal("Goo123", tk.ValueText)
+        Assert.Equal("Goo123", tk.Value)
+        Assert.Equal("[Goo123]", tk.ToFullString())
 
         Str = "[__]"
         tk = ScanOnce(Str)
@@ -1013,11 +1506,11 @@ End If]]>.Value,
         Assert.Equal("__", tk.ValueText)
         Assert.Equal("[__]", tk.ToFullString())
 
-        Str = "[Foo ]"
+        Str = "[Goo ]"
         tk = ScanOnce(Str)
         Assert.Equal(SyntaxKind.BadToken, tk.Kind)
         Assert.Equal(30034, tk.GetSyntaxErrorsNoTree()(0).Code)
-        Assert.Equal("[Foo ", tk.ToFullString())
+        Assert.Equal("[Goo ", tk.ToFullString())
 
         Str = "[]"
         tk = ScanOnce(Str)
@@ -1315,3 +1808,36 @@ End Class]]>)
         Assert.Equal(1, SyntaxFacts.MakeHalfWidthIdentifier(ChrW(65281)).Length)
     End Sub
 End Class
+
+Module SyntaxDiagnosticInfoListExtensions
+    <Extension>
+    Public Function Count(list As SyntaxDiagnosticInfoList) As Integer
+        Dim result = 0
+        For Each v In list
+            result += 1
+        Next
+        Return result
+    End Function
+
+    <Extension>
+    Public Function First(list As SyntaxDiagnosticInfoList) As DiagnosticInfo
+        For Each v In list
+            Return v
+        Next
+
+        Throw New InvalidOperationException()
+    End Function
+
+    <Extension>
+    Public Function ElementAt(list As SyntaxDiagnosticInfoList, index As Integer) As DiagnosticInfo
+        Dim i = 0
+        For Each v In list
+            If i = index Then
+                Return v
+            End If
+            i += 1
+        Next
+
+        Throw New IndexOutOfRangeException()
+    End Function
+End Module

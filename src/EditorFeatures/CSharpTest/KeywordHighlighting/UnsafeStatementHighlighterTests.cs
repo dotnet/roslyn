@@ -18,18 +18,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
         public async Task TestExample1_1()
         {
             await TestAsync(
-@"class C {
-    void M() {
+@"class C
+{
+    void M()
+    {
         int var1 = 5;
-        {|Cursor:[|unsafe|]|} {
+        {|Cursor:[|unsafe|]|}
+        {
             int* ptr1, ptr2;
             ptr1 = &var1;
             ptr2 = ptr1;
             *ptr2 = 20;
         }
     }
-}
-");
+}");
         }
     }
 }

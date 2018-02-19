@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.SymbolDisplay
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -7,7 +8,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend Class SymbolDisplayVisitor
-        Inherits AbstractSymbolDisplayVisitor(Of SemanticModel)
+        Inherits AbstractSymbolDisplayVisitor
 
         Private ReadOnly _escapeKeywordIdentifiers As Boolean
 
@@ -34,22 +35,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             semanticModelOpt As SemanticModel,
             positionOpt As Integer,
             escapeKeywordIdentifiers As Boolean,
-            isFirstSymbolVisited As Boolean)
+            isFirstSymbolVisited As Boolean,
+            Optional inNamespaceOrType As Boolean = False)
 
-            MyBase.New(builder, format, isFirstSymbolVisited, semanticModelOpt, positionOpt)
+            MyBase.New(builder, format, isFirstSymbolVisited, semanticModelOpt, positionOpt, inNamespaceOrType)
 
             Me._escapeKeywordIdentifiers = escapeKeywordIdentifiers
         End Sub
 
         ' in case the display of a symbol is different for a type that acts as a container, use this visitor
-        Protected Overrides Function MakeNotFirstVisitor() As AbstractSymbolDisplayVisitor(Of SemanticModel)
+        Protected Overrides Function MakeNotFirstVisitor(Optional inNamespaceOrType As Boolean = False) As AbstractSymbolDisplayVisitor
             Return New SymbolDisplayVisitor(
                     Me.builder,
-                        Me.format,
+                    Me.format,
                     Me.semanticModelOpt,
                     Me.positionOpt,
-                        Me._escapeKeywordIdentifiers,
-                    isFirstSymbolVisited:=False)
+                    Me._escapeKeywordIdentifiers,
+                    isFirstSymbolVisited:=False,
+                    inNamespaceOrType:=inNamespaceOrType)
         End Function
 
         Friend Function CreatePart(kind As SymbolDisplayPartKind,
@@ -181,10 +184,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim myCaseCorrectedNSName As String = symbol.Name
             Dim myCaseCorrectedParentNSName As String = String.Empty
 
-            If Not symbol.IsGlobalNamespace AndAlso myCaseCorrectedNSName.IsEmpty() Then
-                myCaseCorrectedNSName = StringConstants.NamedSymbolErrorName
-            End If
-
             If Not emittedName.IsEmpty Then
                 Dim nsIdx = emittedName.LastIndexOf("."c)
                 If nsIdx > -1 Then
@@ -243,7 +242,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Public Overrides Sub VisitLocal(symbol As ILocalSymbol)
-            builder.Add(CreatePart(SymbolDisplayPartKind.LocalName, symbol, symbol.Name, False))
+            ' Locals can be synthesized by the compiler in many cases (for example the implicit 
+            ' local in a function that has the same name as the containing function).  In some 
+            ' cases the locals are anonymous (for example, a similar local in an operator).  
+            '
+            ' These anonymous locals should not be exposed through public APIs.  However, for
+            ' testing purposes we occasionally may print them out.  In this case, give them 
+            ' a reasonable name so that tests can clearly describe what these are.
+            Dim name = If(symbol.Name, "<anonymous local>")
+            builder.Add(CreatePart(SymbolDisplayPartKind.LocalName, symbol, name, noEscaping:=False))
 
             If format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeType) Then
                 AddSpace()
@@ -309,7 +316,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         AddKeyword(SyntaxKind.PrivateKeyword)
                     Case Accessibility.Internal
                         AddKeyword(SyntaxKind.FriendKeyword)
-                    Case Accessibility.ProtectedAndInternal, Accessibility.Protected
+                    Case Accessibility.Protected
+                        AddKeyword(SyntaxKind.ProtectedKeyword)
+                    Case Accessibility.ProtectedAndInternal
+                        AddKeyword(SyntaxKind.PrivateKeyword)
+                        AddSpace()
                         AddKeyword(SyntaxKind.ProtectedKeyword)
                     Case Accessibility.ProtectedOrInternal
                         AddKeyword(SyntaxKind.ProtectedKeyword)

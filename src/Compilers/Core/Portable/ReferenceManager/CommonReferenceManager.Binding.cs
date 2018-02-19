@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -31,7 +32,7 @@ namespace Microsoft.CodeAnalysis
         /// </param>
         /// <param name="explicitReferences">
         /// An array of references passed to the compilation and resolved from #r directives.
-        /// May contain references that were skipped during resolution (they don't have a corresponding explicit assmebly).
+        /// May contain references that were skipped during resolution (they don't have a corresponding explicit assembly).
         /// </param>
         /// <param name="explicitReferenceMap">
         /// Maps index to <paramref name="explicitReferences"/> to an index of a resolved assembly or module in <paramref name="explicitAssemblies"/> or modules.
@@ -146,7 +147,7 @@ namespace Microsoft.CodeAnalysis
                 // What does similar mean?
                 // Similar means: 
                 // 1) The same references are resolved against the assemblies that we are given 
-                //   (or were found duiring implicit assembly resolution).
+                //   (or were found during implicit assembly resolution).
                 // 2) The same assembly is used as the COR library.
 
                 var boundInputs = new BoundInputAssembly[referenceBindings.Count];
@@ -230,7 +231,7 @@ namespace Microsoft.CodeAnalysis
             Dictionary<MetadataReference, MergedAliases> lazyAliasMap = null;
 
             // metadata references and corresponding bindings of their references, used to calculate a fixed point:
-            var referenceBindingsToProcess = ArrayBuilder<ValueTuple<MetadataReference, ArraySegment<AssemblyReferenceBinding>>>.GetInstance();
+            var referenceBindingsToProcess = ArrayBuilder<(MetadataReference, ArraySegment<AssemblyReferenceBinding>)>.GetInstance();
 
             // collect all missing identities, resolve the assemblies and bind their references against explicit definitions:
             GetInitialReferenceBindingsToProcess(explicitModules, explicitReferences, explicitReferenceMap, referenceBindings, totalReferencedAssemblyCount, referenceBindingsToProcess);
@@ -296,7 +297,7 @@ namespace Microsoft.CodeAnalysis
 
                         var referenceBinding = data.BindAssemblyReferences(explicitAssemblies, IdentityComparer);
                         referenceBindings.Add(referenceBinding);
-                        referenceBindingsToProcess.Push(ValueTuple.Create((MetadataReference)resolvedReference, new ArraySegment<AssemblyReferenceBinding>(referenceBinding)));
+                        referenceBindingsToProcess.Push((resolvedReference, new ArraySegment<AssemblyReferenceBinding>(referenceBinding)));
                     }
                 }
 
@@ -361,7 +362,7 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<ResolvedReference> explicitReferenceMap,
             ArrayBuilder<AssemblyReferenceBinding[]> referenceBindings,
             int totalReferencedAssemblyCount,
-            [Out]ArrayBuilder<ValueTuple<MetadataReference, ArraySegment<AssemblyReferenceBinding>>> result)
+            [Out]ArrayBuilder<(MetadataReference, ArraySegment<AssemblyReferenceBinding>)> result)
         {
             Debug.Assert(result.Count == 0);
 
@@ -376,9 +377,9 @@ namespace Microsoft.CodeAnalysis
                 var moduleReference = explicitReferences[explicitModuleToReferenceMap[moduleIndex]];
                 var moduleBindingsCount = explicitModules[moduleIndex].ReferencedAssemblies.Length;
 
-                result.Add(ValueTuple.Create(
-                    moduleReference,
-                    new ArraySegment<AssemblyReferenceBinding>(bindingsOfAssemblyBeingBuilt, bindingIndex, moduleBindingsCount)));
+                result.Add(
+                    (moduleReference,
+                     new ArraySegment<AssemblyReferenceBinding>(bindingsOfAssemblyBeingBuilt, bindingIndex, moduleBindingsCount)));
 
                 bindingIndex += moduleBindingsCount;
             }
@@ -395,16 +396,16 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 // +1 for the assembly being built
-                result.Add(ValueTuple.Create(
-                    explicitReferences[referenceIndex],
-                    new ArraySegment<AssemblyReferenceBinding>(referenceBindings[explicitReferenceMapping.Index + 1])));
+                result.Add(
+                    (explicitReferences[referenceIndex],
+                     new ArraySegment<AssemblyReferenceBinding>(referenceBindings[explicitReferenceMapping.Index + 1])));
             }
 
             // we have a reference binding for each module and for each referenced assembly:
             Debug.Assert(result.Count == explicitModules.Length + totalReferencedAssemblyCount);
         }
 
-        private ImmutableArray<int> CalculateModuleToReferenceMap(ImmutableArray<PEModule> modules, ImmutableArray<ResolvedReference> resolvedReferences)
+        private static ImmutableArray<int> CalculateModuleToReferenceMap(ImmutableArray<PEModule> modules, ImmutableArray<ResolvedReference> resolvedReferences)
         {
             if (modules.Length == 0)
             {

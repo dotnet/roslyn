@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion.Providers
@@ -63,15 +63,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
         Private Function GetToolTipForKeyword(keyword As String) As String
             Select Case keyword
                 Case "Region", "Class", "Structure", "Namespace", "Module"
-                    Return String.Format(VBFeaturesResources.EndBlockKeywordToolTip1, keyword)
+                    Return String.Format(VBFeaturesResources.Terminates_a_0_block, keyword)
                 Case "Interface", "Enum"
-                    Return String.Format(VBFeaturesResources.EndBlockKeywordToolTip2, keyword)
+                    Return String.Format(VBFeaturesResources.Terminates_an_0_block, keyword)
                 Case "Select"
-                    Return String.Format(VBFeaturesResources.EndStatementKeywordToolTip1, keyword & " Case")
+                    Return String.Format(VBFeaturesResources.Terminates_the_definition_of_a_0_statement, keyword & " Case")
                 Case "SyncLock", "Try", "Using", "While", "With", "Sub", "Function", "Set", "Get", "RemoveHandler", "RaiseEvent"
-                    Return String.Format(VBFeaturesResources.EndStatementKeywordToolTip1, keyword)
+                    Return String.Format(VBFeaturesResources.Terminates_the_definition_of_a_0_statement, keyword)
                 Case "If", "Operator", "AddHandler"
-                    Return String.Format(VBFeaturesResources.EndStatementKeywordToolTip2, keyword)
+                    Return String.Format(VBFeaturesResources.Terminates_the_definition_of_an_0_statement, keyword)
                 Case Else
                     Return String.Empty
             End Select

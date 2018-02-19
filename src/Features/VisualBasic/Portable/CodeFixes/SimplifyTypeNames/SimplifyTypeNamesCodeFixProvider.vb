@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.Threading
@@ -7,9 +7,9 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.VisualBasic.Extensions
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
 
@@ -22,7 +22,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
             Get
                 Return ImmutableArray.Create(IDEDiagnosticIds.SimplifyNamesDiagnosticId,
                     IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId,
-                    IDEDiagnosticIds.SimplifyThisOrMeDiagnosticId)
+                    IDEDiagnosticIds.RemoveQualificationDiagnosticId,
+                    IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInDeclarationsDiagnosticId,
+                    IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInMemberAccessDiagnosticId)
             End Get
         End Property
 
@@ -50,15 +52,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
             Dim cancellationToken = context.CancellationToken
 
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
-            Dim optionSet = document.Project.Solution.Workspace.Options
             Dim model = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
             Dim diagnosticId As String = Nothing
-            Dim node = GetNodeToSimplify(root, model, span, optionSet, diagnosticId, cancellationToken)
+            Dim documentOptions = Await document.GetOptionsAsync(cancellationToken).ConfigureAwait(False)
+            Dim node = GetNodeToSimplify(root, model, span, documentOptions, diagnosticId, cancellationToken)
             If node Is Nothing Then
                 Return
             End If
 
-            Dim id = GetCodeActionId(diagnosticId, node.ToString())
+            Dim id = GetCodeActionId(diagnosticId, node.ConvertToSingleLine().ToString())
             Dim title = id
             context.RegisterCodeFix(
                 New SimplifyTypeNameCodeAction(
@@ -71,16 +73,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
         Friend Shared Function GetCodeActionId(simplifyDiagnosticId As String, nodeText As String) As String
             Select Case simplifyDiagnosticId
                 Case IDEDiagnosticIds.SimplifyNamesDiagnosticId
-                    Return String.Format(VBFeaturesResources.SimplifyName, nodeText)
+                    Return String.Format(VBFeaturesResources.Simplify_name_0, nodeText)
 
                 Case IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId
-                    Return String.Format(VBFeaturesResources.SimplifyMemberAccess, nodeText)
+                    Return String.Format(VBFeaturesResources.Simplify_member_access_0, nodeText)
 
-                Case IDEDiagnosticIds.SimplifyThisOrMeDiagnosticId
-                    Return VBFeaturesResources.SimplifyMeQualification
+                Case IDEDiagnosticIds.RemoveQualificationDiagnosticId
+                    Return VBFeaturesResources.Remove_Me_qualification
+
+                Case IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInDeclarationsDiagnosticId 'TODO use dedicated resource strings?
+                    Return String.Format(VBFeaturesResources.Simplify_name_0, nodeText)
+
+                Case IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInMemberAccessDiagnosticId
+                    Return String.Format(VBFeaturesResources.Simplify_member_access_0, nodeText)
 
                 Case Else
-                    Throw ExceptionUtilities.Unreachable
+                    Throw ExceptionUtilities.UnexpectedValue(simplifyDiagnosticId)
             End Select
         End Function
 

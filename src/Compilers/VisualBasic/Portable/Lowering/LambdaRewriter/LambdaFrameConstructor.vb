@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
@@ -9,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Implements ISynthesizedMethodBodyImplementationSymbol
 
         Friend Sub New(
-            syntaxNode As VisualBasicSyntaxNode,
+            syntaxNode As SyntaxNode,
             containingType As LambdaFrame
         )
             MyBase.New(syntaxNode, containingType, WellKnownMemberNames.InstanceConstructorName, False)

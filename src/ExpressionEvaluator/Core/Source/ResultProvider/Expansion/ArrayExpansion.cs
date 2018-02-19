@@ -1,7 +1,9 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using Microsoft.VisualStudio.Debugger.Clr;
+using Microsoft.VisualStudio.Debugger.ComponentInterfaces;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Type = Microsoft.VisualStudio.Debugger.Metadata.Type;
@@ -42,7 +44,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         internal override void GetRows(
             ResultProvider resultProvider,
-            ArrayBuilder<EvalResultDataItem> rows,
+            ArrayBuilder<EvalResult> rows,
             DkmInspectionContext inspectionContext,
             EvalResultDataItem parent,
             DkmClrValue value,
@@ -64,7 +66,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             index += _count;
         }
 
-        private EvalResultDataItem GetRow(
+        private EvalResult GetRow(
             ResultProvider resultProvider,
             DkmInspectionContext inspectionContext,
             DkmClrValue value,
@@ -72,17 +74,17 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             EvalResultDataItem parent)
         {
             var indices = GetIndices(index);
-            var formatter = resultProvider.Formatter;
-            var name = formatter.GetArrayIndexExpression(indices);
+            var fullNameProvider = resultProvider.FullNameProvider;
+            var name = fullNameProvider.GetClrArrayIndexExpression(inspectionContext, GetIndicesAsStrings(indices));
             var element = value.GetArrayElement(indices, inspectionContext);
-            var fullName = GetFullName(parent, name, formatter);
+            var fullName = GetFullName(inspectionContext, parent, name, fullNameProvider);
             return resultProvider.CreateDataItem(
                 inspectionContext,
                 name,
                 typeDeclaringMemberAndInfo: default(TypeAndCustomInfo),
                 declaredTypeAndInfo: _elementTypeAndInfo,
                 value: element,
-                parent: parent,
+                useDebuggerDisplay: parent != null,
                 expansionFlags: ExpansionFlags.IncludeBaseMembers,
                 childShouldParenthesize: false,
                 fullName: fullName,
@@ -110,6 +112,17 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return indices;
         }
 
+        private static string[] GetIndicesAsStrings(int[] indices)
+        {
+            var n = indices.Length;
+            var strings = new string[n];
+            for (int i = 0; i < n; i++)
+            {
+                strings[i] = indices[i].ToString();
+            }
+            return strings;
+        }
+
         private static ReadOnlyCollection<int> CalculateDivisors(ReadOnlyCollection<int> sizes)
         {
             var n = sizes.Count;
@@ -127,7 +140,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return new ReadOnlyCollection<int>(divisors);
         }
 
-        private static string GetFullName(EvalResultDataItem parent, string name, Formatter formatter)
+        private static string GetFullName(DkmInspectionContext inspectionContext, EvalResultDataItem parent, string name, IDkmClrFullNameProvider fullNameProvider)
         {
             var parentFullName = parent.ChildFullNamePrefix;
             if (parentFullName == null)
@@ -137,19 +150,21 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             if (parent.ChildShouldParenthesize)
             {
-                parentFullName = $"({parentFullName})";
+                parentFullName = parentFullName.Parenthesize();
             }
-            var parentRuntimeType = parent.Value.Type.GetLmrType();
-            if (!parent.DeclaredTypeAndInfo.Type.Equals(parentRuntimeType))
+            var parentRuntimeType = parent.Value.Type;
+            if (!parent.DeclaredTypeAndInfo.Type.Equals(parentRuntimeType.GetLmrType()))
             {
-                bool sawInvalidIdentifier;
-                var parentTypeName = formatter.GetTypeName(new TypeAndCustomInfo(parentRuntimeType), escapeKeywordIdentifiers: true, sawInvalidIdentifier: out sawInvalidIdentifier);
-                if (sawInvalidIdentifier)
+                parentFullName = fullNameProvider.GetClrCastExpression(
+                    inspectionContext,
+                    parentFullName,
+                    parentRuntimeType,
+                    customTypeInfo: null,
+                    castExpressionOptions: DkmClrCastExpressionOptions.ParenthesizeEntireExpression);
+                if (parentFullName == null)
                 {
-                    return null; // Wouldn't be parseable.
+                    return null; // Contains invalid identifier.
                 }
-
-                parentFullName = formatter.GetCastExpression(parentFullName, parentTypeName, parenthesizeEntireExpression: true);
             }
             return parentFullName + name;
         }

@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -93,21 +93,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             End If
 
             Dim node = CType(Me.GetContainingScope(), SyntaxNode)
-            Return node.TypeSwitch(
-                Function(methodBlock As MethodBlockBaseSyntax) As Boolean
-                    If methodBlock.BlockStatement IsNot Nothing Then
-                        Return methodBlock.BlockStatement.Modifiers.Any(SyntaxKind.AsyncKeyword)
-                    End If
+            If TypeOf node Is MethodBlockBaseSyntax Then
+                Dim methodBlock = DirectCast(node, MethodBlockBaseSyntax)
+                If methodBlock.BlockStatement IsNot Nothing Then
+                    Return methodBlock.BlockStatement.Modifiers.Any(SyntaxKind.AsyncKeyword)
+                End If
 
-                    Return False
-                End Function,
-                Function(lambda As LambdaExpressionSyntax) As Boolean
-                    If lambda.SubOrFunctionHeader IsNot Nothing Then
-                        Return lambda.SubOrFunctionHeader.Modifiers.Any(SyntaxKind.AsyncKeyword)
-                    End If
+                Return False
+            ElseIf TypeOf node Is LambdaExpressionSyntax Then
+                Dim lambda = DirectCast(node, LambdaExpressionSyntax)
+                If lambda.SubOrFunctionHeader IsNot Nothing Then
+                    Return lambda.SubOrFunctionHeader.Modifiers.Any(SyntaxKind.AsyncKeyword)
+                End If
+            End If
 
-                    Return False
-                End Function)
+            Return False
         End Function
 
         Public Overrides Function GetContainingScope() As SyntaxNode

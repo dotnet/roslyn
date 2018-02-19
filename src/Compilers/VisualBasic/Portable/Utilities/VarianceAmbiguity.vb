@@ -116,7 +116,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                            ByRef causesAmbiguity As Boolean,
                                                            ByRef preventsAmbiguity As Boolean,
                                                            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo))
-            If Not typeArgument1.IsSameTypeIgnoringCustomModifiers(typeArgument2) Then
+            If Not typeArgument1.IsSameTypeIgnoringAll(typeArgument2) Then
                 Select Case variance
                     Case VarianceKind.In
                         Dim bothAreClasses = (typeArgument1.IsClassType() AndAlso typeArgument2.IsClassType())

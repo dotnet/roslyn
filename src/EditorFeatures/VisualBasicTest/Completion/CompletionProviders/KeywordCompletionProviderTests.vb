@@ -1,6 +1,5 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
@@ -13,29 +12,29 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             MyBase.New(workspaceFixture)
         End Sub
 
-        Friend Overrides Function CreateCompletionProvider() As CompletionListProvider
+        Friend Overrides Function CreateCompletionProvider() As CompletionProvider
             Return New KeywordCompletionProvider()
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function IsCommitCharacterTest() As Threading.Tasks.Task
-            Await VerifyCommonCommitCharactersAsync("$$", textTypedSoFar:="")
+        Public Async Function IsCommitCharacterTest() As Task
+            Await VerifyCommonCommitCharactersAsync("$$", textTypedSoFar:="C")
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function IsTextualTriggerCharacterTest() As Threading.Tasks.Task
-            Await TestCommonIsTextualTriggerCharacterAsync()
+        Public Sub IsTextualTriggerCharacterTest()
+            TestCommonIsTextualTriggerCharacter()
 
-            Await VerifyTextualTriggerCharacterAsync("foo$$(", shouldTriggerWithTriggerOnLettersEnabled:=True, shouldTriggerWithTriggerOnLettersDisabled:=True)
-        End Function
+            VerifyTextualTriggerCharacter("goo$$(", shouldTriggerWithTriggerOnLettersEnabled:=True, shouldTriggerWithTriggerOnLettersDisabled:=True)
+        End Sub
 
         <Fact(), Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function SendEnterThroughToEditorTest() As Threading.Tasks.Task
+        Public Async Function SendEnterThroughToEditorTest() As Task
             Await VerifySendEnterThroughToEditorAsync("$$", "Class", expected:=True)
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function InEmptyFile() As Threading.Tasks.Task
+        Public Async Function InEmptyFile() As Task
 
             Dim markup = "$$"
             Await VerifyAnyItemExistsAsync(markup)
@@ -100,15 +99,15 @@ End Class
         <Fact(), Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function TestUnionOfKeywordsFromBothFiles() As Task
             Dim markup = <Workspace>
-                             <Project Language="Visual Basic" CommonReferences="true" AssemblyName="Proj1" PreprocessorSymbols="FOO=true">
+                             <Project Language="Visual Basic" CommonReferences="true" AssemblyName="Proj1" PreprocessorSymbols="GOO=true">
                                  <Document FilePath="CurrentDocument.vb"><![CDATA[
 Class C
             Dim x As Integer
-#if FOO then
-    sub foo()
+#if GOO then
+    sub goo()
 #End If
         $$
-#If FOO Then
+#If GOO Then
     end sub
 
 #End If
@@ -182,7 +181,7 @@ End Class
 
         <WorkItem(4167, "https://github.com/dotnet/roslyn/issues/4167")>
         <Fact(), Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ImplementsAfterSub() As Threading.Tasks.Task
+        Public Async Function ImplementsAfterSub() As Task
             Dim code = "
 Interface I
 End Interface

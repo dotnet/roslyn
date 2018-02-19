@@ -1,10 +1,11 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Globalization;
-using Microsoft.CodeAnalysis.Options;
+using System.Threading;
+using Microsoft.CodeAnalysis.TodoComments;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
 {
@@ -45,8 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
                     continue;
                 }
 
-                int priority;
-                if (!int.TryParse(pair[1], NumberStyles.None, CultureInfo.InvariantCulture, out priority))
+                if (!int.TryParse(pair[1], NumberStyles.None, CultureInfo.InvariantCulture, out var priority))
                 {
                     continue;
                 }
@@ -71,10 +71,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
 
         private TokenInfo _lastTokenInfo;
 
-        public ImmutableArray<TodoCommentDescriptor> GetTokens(Workspace workspace)
+        public ImmutableArray<TodoCommentDescriptor> GetTokens(Document document, CancellationToken cancellationToken)
         {
-            var optionService = workspace.Services.GetService<IOptionService>();
-            var optionText = optionService.GetOption(TodoCommentOptions.TokenList);
+            var optionText = document.Project.Solution.Options.GetOption(TodoCommentOptions.TokenList);
 
             var lastInfo = _lastTokenInfo;
             if (lastInfo != null && lastInfo.OptionText == optionText)

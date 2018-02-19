@@ -2,8 +2,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
-Imports Microsoft.CodeAnalysis.CodeGen
-Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
@@ -135,6 +134,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 ' Insert an identity conversion if necessary.
                                 Debug.Assert(boundFirstArgument.Kind <> BoundKind.Conversion, "Associated wrong node with conversion?")
                                 boundFirstArgument = New BoundConversion(node, boundFirstArgument, ConversionKind.Identity, CheckOverflow, True, delegateType)
+                            ElseIf boundFirstArgument.Kind = BoundKind.Conversion Then
+                                Debug.Assert(Not boundFirstArgument.WasCompilerGenerated)
+                                Dim boundConversion = DirectCast(boundFirstArgument, BoundConversion)
+                                boundFirstArgument = boundConversion.Update(boundConversion.Operand,
+                                                                            boundConversion.ConversionKind,
+                                                                            boundConversion.Checked,
+                                                                            True, ' ExplicitCastInCode
+                                                                            boundConversion.ConstantValueOpt,
+                                                                            boundConversion.ExtendedInfoOpt,
+                                                                            boundConversion.Type)
                             End If
 
                             Return boundFirstArgument
@@ -144,7 +153,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     boundFirstArgument = New BoundBadExpression(argumentSyntax,
                                                                 LookupResultKind.Empty,
                                                                 ImmutableArray(Of Symbol).Empty,
-                                                                ImmutableArray(Of BoundNode).Empty,
+                                                                ImmutableArray(Of BoundExpression).Empty,
                                                                 ErrorTypeSymbol.UnknownResultType,
                                                                 hasErrors:=True)
                 End If
@@ -174,7 +183,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     boundArguments(argumentIndex) = New BoundBadExpression(argumentSyntax,
                                                                            LookupResultKind.Empty,
                                                                            ImmutableArray(Of Symbol).Empty,
-                                                                           ImmutableArray(Of BoundNode).Empty,
+                                                                           ImmutableArray(Of BoundExpression).Empty,
                                                                            ErrorTypeSymbol.UnknownResultType,
                                                                            hasErrors:=True)
                 End If
@@ -194,7 +203,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Return BadExpression(node,
-                                 ImmutableArray.Create(Of BoundNode)(DirectCast(boundArguments, BoundNode())),
+                                 ImmutableArray.Create(boundArguments),
                                  delegateType)
         End Function
 
@@ -236,7 +245,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 If delegateInvoke IsNot Nothing Then
 
-                    If addressOfExpression.Binder.ReportDelegateInvokeUseSiteError(diagnostics, syntaxTree, targetType, delegateInvoke) Then
+                    If ReportDelegateInvokeUseSiteError(diagnostics, syntaxTree, targetType, delegateInvoke) Then
                         methodConversions = methodConversions Or MethodConversionKind.Error_Unspecified
                     Else
 
@@ -292,7 +301,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     fromMethod.ContainingType.IsNullableType AndAlso
                     Not fromMethod.IsOverrides Then
 
-                    Dim addressOfSyntax As VisualBasicSyntaxNode = addressOfExpression.Syntax
+                    Dim addressOfSyntax As SyntaxNode = addressOfExpression.Syntax
                     Dim addressOfExpressionSyntax = DirectCast(addressOfExpression.Syntax, UnaryExpressionSyntax)
                     If (addressOfExpressionSyntax IsNot Nothing) Then
                         addressOfSyntax = addressOfExpressionSyntax.Operand
@@ -327,9 +336,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New DelegateResolutionResult(delegateConversions, fromMethod, methodConversions, diagnostics.ToReadOnlyAndFree())
         End Function
 
-        Friend Function ReportDelegateInvokeUseSiteError(
+        Friend Shared Function ReportDelegateInvokeUseSiteError(
             diagBag As DiagnosticBag,
-            syntax As VisualBasicSyntaxNode,
+            syntax As SyntaxNode,
             delegateType As TypeSymbol,
             invoke As MethodSymbol
         ) As Boolean
@@ -581,7 +590,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Debug.Assert(addressOfExpression.MethodGroup.ResultKind = LookupResultKind.Good)
                 End If
 
-                resolutionBinder.ReportDelegateBindingIncompatible(
+                ReportDelegateBindingIncompatible(
                     addressOfOperandSyntax,
                     toMethod.ContainingType,
                     DirectCast(bestSymbols(0), MethodSymbol),
@@ -633,9 +642,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' determine conversions based on return type
             Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
+            Dim targetMethodSymbol = DirectCast(analysisResult.Candidate.UnderlyingSymbol, MethodSymbol)
 
             If Not ignoreMethodReturnType Then
-                methodConversions = methodConversions Or Conversions.ClassifyMethodConversionBasedOnReturnType(analysisResult.Candidate.ReturnType, toMethod.ReturnType, useSiteDiagnostics)
+                methodConversions = methodConversions Or
+                                    Conversions.ClassifyMethodConversionBasedOnReturn(targetMethodSymbol.ReturnType, targetMethodSymbol.ReturnsByRef,
+                                                                                      toMethod.ReturnType, toMethod.ReturnsByRef, useSiteDiagnostics)
 
                 If diagnostics.Add(addressOfOperandSyntax, useSiteDiagnostics) Then
                     ' Suppress additional diagnostics 
@@ -647,7 +659,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Debug.Assert(toMethod.ParameterCount > 0)
 
                 ' special flag for ignoring all arguments (zero argument relaxation)
-                If analysisResult.Candidate.ParameterCount = 0 Then
+                If targetMethodSymbol.ParameterCount = 0 Then
                     methodConversions = methodConversions Or MethodConversionKind.AllArgumentsIgnored
                 Else
                     ' We can get here if all method's parameters are Optional/ParamArray, however, 
@@ -672,7 +684,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End If
 
-            Dim targetMethodSymbol = DirectCast(analysisResult.Candidate.UnderlyingSymbol, MethodSymbol)
+            ' Stubs for ByRef returning methods are not supported.
+            ' We could easily support a stub for the case when return value is dropped,
+            ' but enabling other kinds of stubs later can lead to breaking changes
+            ' because those relaxations could be "better".
+            If Not ignoreMethodReturnType AndAlso targetMethodSymbol.ReturnsByRef AndAlso
+               Conversions.IsDelegateRelaxationSupportedFor(methodConversions) AndAlso
+               Conversions.IsStubRequiredForMethodConversion(methodConversions) Then
+                methodConversions = methodConversions Or MethodConversionKind.Error_StubNotSupported
+            End If
 
             If Conversions.IsDelegateRelaxationSupportedFor(methodConversions) Then
                 Dim typeArgumentInferenceDiagnosticsOpt = analysisResult.TypeArgumentInferenceDiagnosticsOpt
@@ -687,7 +707,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 methodConversions = methodConversions Or MethodConversionKind.Error_Unspecified
             Else
-                addressOfExpression.Binder.ReportDelegateBindingIncompatible(
+                ReportDelegateBindingIncompatible(
                     addressOfOperandSyntax,
                     toMethod.ContainingType,
                     targetMethodSymbol,
@@ -707,8 +727,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New KeyValuePair(Of MethodSymbol, MethodConversionKind)(Nothing, methodConversions)
         End Function
 
-        Private Sub ReportDelegateBindingMismatchStrictOff(
-            syntax As VisualBasicSyntaxNode,
+        Private Shared Sub ReportDelegateBindingMismatchStrictOff(
+            syntax As SyntaxNode,
             delegateType As NamedTypeSymbol,
             targetMethodSymbol As MethodSymbol,
             diagnostics As DiagnosticBag
@@ -731,8 +751,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Sub
 
-        Private Sub ReportDelegateBindingIncompatible(
-            syntax As VisualBasicSyntaxNode,
+        Private Shared Sub ReportDelegateBindingIncompatible(
+            syntax As SyntaxNode,
             delegateType As NamedTypeSymbol,
             targetMethodSymbol As MethodSymbol,
             diagnostics As DiagnosticBag
@@ -1056,8 +1076,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function BuildDelegateRelaxationLambda(
-            syntaxNode As VisualBasicSyntaxNode,
-            methodGroupSyntax As VisualBasicSyntaxNode,
+            syntaxNode As SyntaxNode,
+            methodGroupSyntax As SyntaxNode,
             receiver As BoundExpression,
             targetMethod As MethodSymbol,
             typeArgumentsOpt As BoundTypeArguments,
@@ -1130,7 +1150,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="delegateRelaxation">Delegate relaxation to store within the new BoundLambda node.</param>
         ''' <param name="diagnostics"></param>
         Private Function BuildDelegateRelaxationLambda(
-            syntaxNode As VisualBasicSyntaxNode,
+            syntaxNode As SyntaxNode,
             delegateInvoke As MethodSymbol,
             methodGroup As BoundMethodGroup,
             delegateRelaxation As ConversionKind,

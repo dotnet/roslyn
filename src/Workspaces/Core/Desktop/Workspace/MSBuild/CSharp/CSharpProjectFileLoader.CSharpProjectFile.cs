@@ -5,14 +5,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Build.Execution;
-using Microsoft.Build.Framework;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.MSBuild;
 using Roslyn.Utilities;
 using MSB = Microsoft.Build;
@@ -23,8 +17,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private class CSharpProjectFile : ProjectFile
         {
-            public CSharpProjectFile(CSharpProjectFileLoader loader, MSB.Evaluation.Project project)
-                : base(loader, project)
+            public CSharpProjectFile(CSharpProjectFileLoader loader, MSB.Evaluation.Project project, string errorMessage)
+                : base(loader, project, errorMessage)
             {
             }
 
@@ -48,18 +42,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var compilerInputs = new CSharpCompilerInputs(this);
 
-                var executedProject = await this.BuildAsync("Csc", compilerInputs, cancellationToken).ConfigureAwait(false);
+                var buildInfo = await this.BuildAsync("Csc", compilerInputs, cancellationToken).ConfigureAwait(false);
 
-                if (!compilerInputs.Initialized)
+                if (!compilerInputs.Initialized && buildInfo.Project != null)
                 {
                     // if msbuild didn't reach the CSC task for some reason, attempt to initialize using the variables that were defined so far.
-                    this.InitializeFromModel(compilerInputs, executedProject);
+                    this.InitializeFromModel(compilerInputs, buildInfo.Project);
                 }
 
-                return CreateProjectFileInfo(compilerInputs, executedProject);
+                return CreateProjectFileInfo(compilerInputs, buildInfo);
             }
 
-            protected override ProjectFileReference CreateProjectFileReference(ProjectItemInstance reference)
+            protected override ProjectFileReference CreateProjectFileReference(MSB.Execution.ProjectItemInstance reference)
             {
                 var filePath = reference.EvaluatedInclude;
                 var aliases = GetAliases(reference);
@@ -67,9 +61,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new ProjectFileReference(filePath, aliases);
             }
 
-            private ProjectFileInfo CreateProjectFileInfo(CSharpCompilerInputs compilerInputs, MSB.Execution.ProjectInstance executedProject)
+            private ProjectFileInfo CreateProjectFileInfo(CSharpCompilerInputs compilerInputs, BuildInfo buildInfo)
             {
-                string projectDirectory = executedProject.Directory;
+                var outputPath = Path.Combine(this.GetOutputDirectory(), compilerInputs.OutputFileName);
+                var assemblyName = this.GetAssemblyName();
+
+                var project = buildInfo.Project;
+                if (project == null)
+                {
+                    return new ProjectFileInfo(
+                        outputPath,
+                        assemblyName,
+                        commandLineArgs: SpecializedCollections.EmptyEnumerable<string>(),
+                        documents: SpecializedCollections.EmptyEnumerable<DocumentFileInfo>(),
+                        additionalDocuments: SpecializedCollections.EmptyEnumerable<DocumentFileInfo>(),
+                        projectReferences: SpecializedCollections.EmptyEnumerable<ProjectFileReference>(),
+                        errorMessage: buildInfo.ErrorMessage);
+                }
+
+                string projectDirectory = project.Directory;
                 string directorySeparator = Path.DirectorySeparatorChar.ToString();
                 if (!projectDirectory.EndsWith(directorySeparator, StringComparison.OrdinalIgnoreCase))
                 {
@@ -77,16 +87,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var docs = compilerInputs.Sources
-                       .Where(s => !Path.GetFileName(s.ItemSpec).StartsWith("TemporaryGeneratedFile_", StringComparison.Ordinal))
-                       .Select(s => MakeDocumentFileInfo(projectDirectory, s))
-                       .ToImmutableArray();
+                        .Where(s => !Path.GetFileName(s.ItemSpec).StartsWith("TemporaryGeneratedFile_", StringComparison.Ordinal))
+                        .Select(s => MakeDocumentFileInfo(projectDirectory, s))
+                        .ToImmutableArray();
 
                 var additionalDocs = compilerInputs.AdditionalSources
                         .Select(s => MakeDocumentFileInfo(projectDirectory, s))
                         .ToImmutableArray();
-
-                var outputPath = Path.Combine(this.GetOutputDirectory(), compilerInputs.OutputFileName);
-                var assemblyName = this.GetAssemblyName();
 
                 return new ProjectFileInfo(
                     outputPath,
@@ -94,10 +101,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     compilerInputs.CommandLineArgs,
                     docs,
                     additionalDocs,
-                    this.GetProjectReferences(executedProject));
+                    this.GetProjectReferences(buildInfo.Project),
+                    buildInfo.ErrorMessage);
             }
 
-            private DocumentFileInfo MakeDocumentFileInfo(string projectDirectory, ITaskItem item)
+            private DocumentFileInfo MakeDocumentFileInfo(string projectDirectory, MSB.Framework.ITaskItem item)
             {
                 var filePath = GetDocumentFilePath(item);
                 var logicalPath = GetDocumentLogicalPath(item, projectDirectory);
@@ -106,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new DocumentFileInfo(filePath, logicalPath, isLinked, isGenerated);
             }
 
-            private ImmutableArray<string> GetAliases(ITaskItem item)
+            private ImmutableArray<string> GetAliases(MSB.Framework.ITaskItem item)
             {
                 var aliasesText = item.GetMetadata("Aliases");
 
@@ -181,19 +189,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 compilerInputs.SetAnalyzers(this.GetAnalyzerReferencesFromModel(executedProject).ToArray());
                 compilerInputs.SetAdditionalFiles(this.GetAdditionalFilesFromModel(executedProject).ToArray());
                 compilerInputs.SetSources(this.GetDocumentsFromModel(executedProject).ToArray());
-
-                string errorMessage;
-                int errorCode;
-                compilerInputs.EndInitialization(out errorMessage, out errorCode);
+                compilerInputs.EndInitialization(out var errorMessage, out var errorCode);
             }
 
             private class CSharpCompilerInputs :
-#if !MSBUILD12
                 MSB.Tasks.Hosting.ICscHostObject4,
                 MSB.Tasks.Hosting.IAnalyzerHostObject
-#else
-                MSB.Tasks.Hosting.ICscHostObject4
-#endif
             {
                 private readonly CSharpProjectFile _projectFile;
 
@@ -202,8 +203,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 internal string OutputDirectory { get; }
                 internal string OutputFileName { get; private set; }
                 internal List<string> CommandLineArgs { get; }
-                internal IEnumerable<ITaskItem> Sources { get; private set; }
-                internal IEnumerable<ITaskItem> AdditionalSources { get; private set; }
+                internal IEnumerable<MSB.Framework.ITaskItem> Sources { get; private set; }
+                internal IEnumerable<MSB.Framework.ITaskItem> AdditionalSources { get; private set; }
 
                 private bool _emitDebugInfo;
                 private string _debugType;
@@ -215,8 +216,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     _projectFile = projectFile;
                     this.CommandLineArgs = new List<string>();
-                    this.Sources = SpecializedCollections.EmptyEnumerable<ITaskItem>();
-                    this.AdditionalSources = SpecializedCollections.EmptyEnumerable<ITaskItem>();
+                    this.Sources = SpecializedCollections.EmptyEnumerable<MSB.Framework.ITaskItem>();
+                    this.AdditionalSources = SpecializedCollections.EmptyEnumerable<MSB.Framework.ITaskItem>();
                     this.ProjectDirectory = Path.GetDirectoryName(projectFile.FilePath);
                     this.OutputDirectory = projectFile.GetOutputDirectory();
                 }
@@ -250,6 +251,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         else if (string.Equals(_debugType, "full", StringComparison.OrdinalIgnoreCase))
                         {
                             this.CommandLineArgs.Add("/debug:full");
+                        }
+                        else if (string.Equals(_debugType, "portable", StringComparison.OrdinalIgnoreCase))
+                        {
+                            this.CommandLineArgs.Add("/debug:portable");
+                        }
+                        else if (string.Equals(_debugType, "embedded", StringComparison.OrdinalIgnoreCase))
+                        {
+                            this.CommandLineArgs.Add("/debug:embedded");
                         }
                     }
 
@@ -499,7 +508,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 }
 
-                public bool SetLinkResources(ITaskItem[] linkResources)
+                public bool SetLinkResources(MSB.Framework.ITaskItem[] linkResources)
                 {
                     if (linkResources != null && linkResources.Length > 0)
                     {
@@ -592,7 +601,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 }
 
-                public bool SetReferences(ITaskItem[] references)
+                public bool SetReferences(MSB.Framework.ITaskItem[] references)
                 {
                     if (references != null)
                     {
@@ -621,7 +630,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 }
 
-                public bool SetAnalyzers(ITaskItem[] analyzerReferences)
+                public bool SetAnalyzers(MSB.Framework.ITaskItem[] analyzerReferences)
                 {
                     if (analyzerReferences != null)
                     {
@@ -635,7 +644,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 }
 
-                public bool SetAdditionalFiles(ITaskItem[] additionalFiles)
+                public bool SetAdditionalFiles(MSB.Framework.ITaskItem[] additionalFiles)
                 {
                     if (additionalFiles != null && additionalFiles.Length > 0)
                     {
@@ -645,7 +654,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 }
 
-                public bool SetResources(ITaskItem[] resources)
+                public bool SetResources(MSB.Framework.ITaskItem[] resources)
                 {
                     if (resources != null && resources.Length > 0)
                     {
@@ -658,7 +667,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 }
 
-                public bool SetResponseFiles(ITaskItem[] responseFiles)
+                public bool SetResponseFiles(MSB.Framework.ITaskItem[] responseFiles)
                 {
                     if (responseFiles != null && responseFiles.Length > 0)
                     {
@@ -671,7 +680,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 }
 
-                public bool SetSources(ITaskItem[] sources)
+                public bool SetSources(MSB.Framework.ITaskItem[] sources)
                 {
                     if (sources != null && sources.Length > 0)
                     {
@@ -706,7 +715,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (treatWarningsAsErrors)
                     {
-                        this.CommandLineArgs.Add("/warningaserror");
+                        this.CommandLineArgs.Add("/warnaserror");
                     }
 
                     return true;

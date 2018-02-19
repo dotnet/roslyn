@@ -1,5 +1,7 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,16 +23,18 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
             private readonly bool _generateProperty;
             private readonly bool _isReadonly;
             private readonly bool _isConstant;
-            private readonly Document _document;
+            private readonly RefKind _refKind;
+            private readonly SemanticDocument _document;
             private readonly string _equivalenceKey;
 
             public GenerateVariableCodeAction(
                 TService service,
-                Document document,
+                SemanticDocument document,
                 State state,
                 bool generateProperty,
                 bool isReadonly,
-                bool isConstant)
+                bool isConstant,
+                RefKind refKind)
             {
                 _service = service;
                 _document = document;
@@ -38,65 +42,81 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 _generateProperty = generateProperty;
                 _isReadonly = isReadonly;
                 _isConstant = isConstant;
+                _refKind = refKind;
                 _equivalenceKey = Title;
             }
 
-            protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
+            protected override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {
-                var syntaxTree = await _document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                var solution = _document.Project.Solution;
+                var syntaxTree = _document.SyntaxTree;
                 var generateUnsafe = _state.TypeMemberType.IsUnsafe() &&
                                      !_state.IsContainedInUnsafeType;
 
+                var otions = new CodeGenerationOptions(
+                    afterThisLocation: _state.AfterThisLocation,
+                    beforeThisLocation: _state.BeforeThisLocation,
+                    contextLocation: _state.IdentifierToken.GetLocation());
+
                 if (_generateProperty)
                 {
-                    var getAccessor = CodeGenerationSymbolFactory.CreateAccessorSymbol(
-                        attributes: null,
+                    var getAccessor = CreateAccessor(DetermineMaximalAccessibility(_state), cancellationToken);
+                    var setAccessor = _isReadonly || _refKind != RefKind.None
+                        ? null 
+                        : CreateAccessor(DetermineMinimalAccessibility(_state), cancellationToken);
+
+                    var propertySymbol = CodeGenerationSymbolFactory.CreatePropertySymbol(
+                        attributes: default,
                         accessibility: DetermineMaximalAccessibility(_state),
-                        statements: null);
-                    var setAccessor = _isReadonly ? null : CodeGenerationSymbolFactory.CreateAccessorSymbol(
-                        attributes: null,
-                        accessibility: DetermineMinimalAccessibility(_state),
-                        statements: null);
+                        modifiers: new DeclarationModifiers(isStatic: _state.IsStatic, isUnsafe: generateUnsafe),
+                        type: _state.TypeMemberType,
+                        refKind: _refKind,
+                        explicitInterfaceImplementations: default,
+                        name: _state.IdentifierToken.ValueText,
+                        isIndexer: _state.IsIndexer,
+                        parameters: _state.Parameters,
+                        getMethod: getAccessor,
+                        setMethod: setAccessor);
 
-                    var result = await CodeGenerator.AddPropertyDeclarationAsync(
-                        _document.Project.Solution,
-                        _state.TypeToGenerateIn,
-                        CodeGenerationSymbolFactory.CreatePropertySymbol(
-                            attributes: null,
-                            accessibility: DetermineMaximalAccessibility(_state),
-                            modifiers: new DeclarationModifiers(isStatic: _state.IsStatic, isUnsafe: generateUnsafe),
-                            type: _state.TypeMemberType,
-                            explicitInterfaceSymbol: null,
-                            name: _state.IdentifierToken.ValueText,
-                            isIndexer: _state.IsIndexer,
-                            parameters: _state.Parameters,
-                            getMethod: getAccessor,
-                            setMethod: setAccessor),
-                        new CodeGenerationOptions(contextLocation: _state.IdentifierToken.GetLocation()),
-                        cancellationToken: cancellationToken)
-                        .ConfigureAwait(false);
-
-                    return result;
+                    return CodeGenerator.AddPropertyDeclarationAsync(
+                        solution, _state.TypeToGenerateIn, propertySymbol, otions, cancellationToken);
                 }
                 else
                 {
-                    var result = await CodeGenerator.AddFieldDeclarationAsync(
-                        _document.Project.Solution,
-                        _state.TypeToGenerateIn,
-                        CodeGenerationSymbolFactory.CreateFieldSymbol(
-                            attributes: null,
-                            accessibility: DetermineMinimalAccessibility(_state),
-                            modifiers: _isConstant ?
-                                new DeclarationModifiers(isConst: true, isUnsafe: generateUnsafe) :
-                                new DeclarationModifiers(isStatic: _state.IsStatic, isReadOnly: _isReadonly, isUnsafe: generateUnsafe),
-                            type: _state.TypeMemberType,
-                            name: _state.IdentifierToken.ValueText),
-                        new CodeGenerationOptions(contextLocation: _state.IdentifierToken.GetLocation()),
-                        cancellationToken: cancellationToken)
-                        .ConfigureAwait(false);
+                    var fieldSymbol = CodeGenerationSymbolFactory.CreateFieldSymbol(
+                        attributes: default,
+                        accessibility: DetermineMinimalAccessibility(_state),
+                        modifiers: _isConstant
+                            ? new DeclarationModifiers(isConst: true, isUnsafe: generateUnsafe)
+                            : new DeclarationModifiers(isStatic: _state.IsStatic, isReadOnly: _isReadonly, isUnsafe: generateUnsafe),
+                        type: _state.TypeMemberType,
+                        name: _state.IdentifierToken.ValueText);
 
-                    return result;
+                    return CodeGenerator.AddFieldDeclarationAsync(
+                        solution, _state.TypeToGenerateIn, fieldSymbol, otions, cancellationToken);
                 }
+            }
+
+            private IMethodSymbol CreateAccessor(
+                Accessibility accessibility, CancellationToken cancellationToken)
+            {
+                return CodeGenerationSymbolFactory.CreateAccessorSymbol(
+                    attributes: default,
+                    accessibility: accessibility,
+                    statements: GenerateStatements(cancellationToken));
+            }
+
+            private ImmutableArray<SyntaxNode> GenerateStatements(
+                CancellationToken cancellationToken)
+            {
+                var syntaxFactory = _document.Project.Solution.Workspace.Services.GetLanguageServices(_state.TypeToGenerateIn.Language).GetService<SyntaxGenerator>();
+
+                var throwStatement = CodeGenerationHelpers.GenerateThrowStatement(
+                    syntaxFactory, this._document, "System.NotImplementedException", cancellationToken);
+
+                return _state.TypeToGenerateIn.TypeKind != TypeKind.Interface && _refKind != RefKind.None
+                    ? ImmutableArray.Create(throwStatement)
+                    : default;
             }
 
             private Accessibility DetermineMaximalAccessibility(State state)
@@ -133,7 +153,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
 
                 // Otherwise, figure out what accessibility modifier to use and optionally mark
                 // it as static.
-                var syntaxFacts = _document.GetLanguageService<ISyntaxFactsService>();
+                var syntaxFacts = _document.Document.GetLanguageService<ISyntaxFactsService>();
                 if (syntaxFacts.IsAttributeNamedArgumentIdentifier(state.SimpleNameOrMemberAccessExpressionOpt))
                 {
                     return Accessibility.Public;
@@ -147,7 +167,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                     // NOTE(cyrusn): We only generate protected in the case of statics.  Consider
                     // the case where we're generating into one of our base types.  i.e.:
                     //
-                    // class B : A { void Foo() { A a; a.Foo(); }
+                    // class B : A { void Goo() { A a; a.Goo(); }
                     //
                     // In this case we can *not* mark the method as protected.  'B' can only
                     // access protected members of 'A' through an instance of 'B' (or a subclass
@@ -156,9 +176,9 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                     //
                     // However, this does not apply if the method will be static.  i.e.
                     // 
-                    // class B : A { void Foo() { A.Foo(); }
+                    // class B : A { void Goo() { A.Goo(); }
                     //
-                    // B can access the protected statics of A, and so we generate 'Foo' as
+                    // B can access the protected statics of A, and so we generate 'Goo' as
                     // protected.
                     return Accessibility.Protected;
                 }
@@ -184,10 +204,10 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 get
                 {
                     var text = _isConstant
-                        ? FeaturesResources.GenerateConstantIn
+                        ? FeaturesResources.Generate_constant_1_0
                         : _generateProperty
-                            ? _isReadonly ? FeaturesResources.GenerateReadonlyProperty : FeaturesResources.GeneratePropertyIn
-                            : _isReadonly ? FeaturesResources.GenerateReadonlyField : FeaturesResources.GenerateFieldIn;
+                            ? _isReadonly ? FeaturesResources.Generate_read_only_property_1_0 : FeaturesResources.Generate_property_1_0
+                            : _isReadonly ? FeaturesResources.Generate_read_only_field_1_0 : FeaturesResources.Generate_field_1_0;
 
                     return string.Format(
                         text,
@@ -196,13 +216,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 }
             }
 
-            public override string EquivalenceKey
-            {
-                get
-                {
-                    return _equivalenceKey;
-                }
-            }
+            public override string EquivalenceKey => _equivalenceKey;
         }
     }
 }

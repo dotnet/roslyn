@@ -41,11 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
         private void DismissCompletionForSnippetPicker(Action nextHandler)
         {
-            if (sessionOpt != null)
-            {
-                StopModelComputation();
-            }
-
+            DismissSessionIfActive();
             nextHandler();
         }
     }

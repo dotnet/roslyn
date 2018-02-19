@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var member = SyntaxFactory.EnumMemberDeclaration(enumMember.Name.ToIdentifierToken())
                 .WithEqualsValue(value == null ? null : SyntaxFactory.EqualsValueClause(value: value));
 
-            return AddCleanupAnnotationsTo(
+            return AddFormatterAndCodeGeneratorAnnotationsTo(
                 ConditionallyAddDocumentationCommentTo(member, enumMember, options));
         }
 
@@ -138,6 +138,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                                 // Hex
                                 return SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression,
                                     SyntaxFactory.Literal(numericText.Substring(0, 2) + value.ToString("X"), value));
+                            }
+                            else if (numericText.StartsWith("0b", StringComparison.OrdinalIgnoreCase))
+                            {
+                                return SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression,
+                                    SyntaxFactory.Literal(numericText.Substring(0, 2) + Convert.ToString(value, 2), value));
                             }
                         }
                     }

@@ -11,8 +11,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         [Conditional("DEBUG")]
         internal static void AssertIsLabeledStatement(this BoundStatement node)
         {
-            Debug.Assert(node != null);
-            Debug.Assert(node.Kind == BoundKind.LabelStatement || node.Kind == BoundKind.LabeledStatement || node.Kind == BoundKind.SwitchSection);
+            switch (node.Kind)
+            {
+                case BoundKind.LabelStatement:
+                case BoundKind.LabeledStatement:
+                case BoundKind.SwitchSection:
+                case BoundKind.PatternSwitchSection:
+                    break;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(node.Kind);
+            }
         }
 
 
@@ -32,9 +40,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case BoundKind.SwitchSection:
-                    foreach (var boundSwitchLabel in ((BoundSwitchSection)node).BoundSwitchLabels)
+                    foreach (var boundSwitchLabel in ((BoundSwitchSection)node).SwitchLabels)
                     {
                         if (boundSwitchLabel.Label == label)
+                        {
+                            return;
+                        }
+                    }
+                    throw ExceptionUtilities.Unreachable;
+
+                case BoundKind.PatternSwitchSection:
+                    foreach (var boundPatternSwitchLabel in ((BoundPatternSwitchSection)node).SwitchLabels)
+                    {
+                        if (boundPatternSwitchLabel.Label == label)
                         {
                             return;
                         }

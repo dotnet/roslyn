@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
 
@@ -6,7 +6,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
 
         <WorkItem(538972, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538972")>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestExplicitMethod1() As Task
             Dim input =
 <Workspace>
@@ -14,21 +14,21 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         <Document>
 interface I
 {
-    void {|Definition:F$$oo|}();
+    void {|Definition:G$$oo|}();
 }
  
 class C : I
 {
-    void I.{|Definition:Foo|}() { }
+    void I.{|Definition:Goo|}() { }
 }
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
         <WorkItem(538972, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538972")>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestExplicitMethod2() As Task
             Dim input =
 <Workspace>
@@ -36,20 +36,20 @@ class C : I
         <Document>
 interface I
 {
-    void {|Definition:Foo|}();
+    void {|Definition:Goo|}();
 }
  
 class C : I
 {
-    void I.{|Definition:F$$oo|}() { }
+    void I.{|Definition:G$$oo|}() { }
 }
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestExplicitMethodAndInheritance() As Task
             Dim input =
 <Workspace>
@@ -72,7 +72,7 @@ class B : C, A
         </Document>
     </Project>
 </Workspace>
-            Await TestAsync(input)
+            Await TestAPIAndFeature(input)
         End Function
     End Class
 End Namespace

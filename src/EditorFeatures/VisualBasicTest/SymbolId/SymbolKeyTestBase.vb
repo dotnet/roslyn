@@ -1,8 +1,6 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SymbolId
@@ -13,8 +11,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SymbolId
         <Flags>
         Friend Enum SymbolIdComparison
             None = 0
-            CaseSensitive = 1
-            CaseInsensitive = 2
+            IgnoreCase = 1
             IgnoreAssemblyIds = 4
         End Enum
 
@@ -38,17 +35,17 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SymbolId
             Assert.Equal(origlist.Count, newlist.Count)
 
             For i = 0 To newlist.Count - 1
-                ResolveAndVerifySymbol(newlist(i), newCompilation, origlist(i), originalCompilation)
+                ResolveAndVerifySymbol(newlist(i), origlist(i), originalCompilation)
             Next
 
         End Sub
 
         Friend Shared Sub ResolveAndVerifyTypeSymbol(node As ExpressionSyntax, sourceSymbol As ITypeSymbol, model As SemanticModel, sourceComp As Compilation)
             Dim typeinfo = model.GetTypeInfo(node)
-            ResolveAndVerifySymbol(If(typeinfo.Type, typeinfo.ConvertedType), model.Compilation, sourceSymbol, sourceComp)
+            ResolveAndVerifySymbol(If(typeinfo.Type, typeinfo.ConvertedType), sourceSymbol, sourceComp)
         End Sub
 
-        Friend Shared Sub ResolveAndVerifySymbol(node As ExpressionSyntax, sourceSymbol As ISymbol, model As SemanticModel, sourceComp As Compilation, Optional comparison As SymbolIdComparison = SymbolIdComparison.None)
+        Friend Shared Sub ResolveAndVerifySymbol(node As ExpressionSyntax, sourceSymbol As ISymbol, model As SemanticModel, sourceComp As Compilation, Optional comparison As SymbolIdComparison = SymbolIdComparison.IgnoreCase)
             Dim syminfo = model.GetSymbolInfo(node)
             Dim symbol = syminfo.Symbol
 
@@ -56,41 +53,49 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SymbolId
                 symbol = syminfo.CandidateSymbols.Single()
             End If
 
-            ResolveAndVerifySymbol(symbol, model.Compilation, sourceSymbol, sourceComp, comparison)
+            ResolveAndVerifySymbol(symbol, sourceSymbol, sourceComp, comparison)
         End Sub
 
-        Friend Shared Sub ResolveAndVerifySymbol(symbol1 As ISymbol, compilation1 As Compilation, symbol2 As ISymbol, compilation2 As Compilation, Optional comparison As SymbolIdComparison = SymbolIdComparison.None)
+        Friend Shared Sub ResolveAndVerifySymbol(symbol1 As ISymbol, symbol2 As ISymbol, compilation2 As Compilation, Optional comparison As SymbolIdComparison = SymbolIdComparison.IgnoreCase)
 
-            AssertSymbolsIdsEqual(symbol1, compilation1, symbol2, compilation2, comparison)
+            AssertSymbolsIdsEqual(symbol1, symbol2, compilation2, comparison)
 
-            Dim resolvedSymbol = ResolveSymbol(symbol1, compilation1, compilation2, comparison)
+            Dim resolvedSymbol = ResolveSymbol(symbol1, compilation2, comparison)
             Assert.NotNull(resolvedSymbol)
             Assert.Equal(symbol2, resolvedSymbol)
             Assert.Equal(symbol2.GetHashCode(), resolvedSymbol.GetHashCode())
         End Sub
 
-        Friend Shared Function ResolveSymbol(originalSymbol As ISymbol, originalCompilation As Compilation, targetCompilation As Compilation, comparison As SymbolIdComparison) As ISymbol
-            Dim sid = SymbolKey.Create(originalSymbol, originalCompilation, CancellationToken.None)
+        Friend Shared Function ResolveSymbol(originalSymbol As ISymbol, targetCompilation As Compilation, comparison As SymbolIdComparison) As ISymbol
+            Dim sid = SymbolKey.Create(originalSymbol, CancellationToken.None)
+
+            ' Verify that serialization works.
+            Dim serialized = sid.ToString()
+            Dim deserialized = New SymbolKey(serialized)
+
+            Dim comparer = SymbolKey.GetComparer(ignoreCase:=False, ignoreAssemblyKeys:=False)
+            Assert.True(comparer.Equals(sid, deserialized))
+
             Dim symInfo = sid.Resolve(targetCompilation, (comparison And SymbolIdComparison.IgnoreAssemblyIds) = SymbolIdComparison.IgnoreAssemblyIds)
             Return symInfo.Symbol
         End Function
 
-        Friend Shared Sub AssertSymbolsIdsEqual(symbol1 As ISymbol, compilation1 As Compilation, symbol2 As ISymbol, compilation2 As Compilation, comparison As SymbolIdComparison, Optional expectEqual As Boolean = True)
+        Friend Shared Sub AssertSymbolsIdsEqual(symbol1 As ISymbol, symbol2 As ISymbol, compilation2 As Compilation, comparison As SymbolIdComparison, Optional expectEqual As Boolean = True)
 
-            Dim sid1 = SymbolKey.Create(symbol1, compilation1, CancellationToken.None)
-            Dim sid2 = SymbolKey.Create(symbol2, compilation2, CancellationToken.None)
+            Dim sid1 = SymbolKey.Create(symbol1, CancellationToken.None)
+            Dim sid2 = SymbolKey.Create(symbol2, CancellationToken.None)
 
-            Dim isCaseSensitive = (comparison And SymbolIdComparison.CaseSensitive) = SymbolIdComparison.CaseSensitive
+            Dim ignoreCase = (comparison And SymbolIdComparison.IgnoreCase) = SymbolIdComparison.IgnoreCase
             Dim ignoreAssemblyIds = (comparison And SymbolIdComparison.IgnoreAssemblyIds) = SymbolIdComparison.IgnoreAssemblyIds
             Dim message = String.Concat(
-                If(isCaseSensitive, "SymbolID CaseSensitive", "SymbolID CaseInsensitive"),
+                If(ignoreCase, "SymbolID IgnoreCase", "SymbolID"),
                 If(ignoreAssemblyIds, " IgnoreAssemblyIds ", " "),
                 "Compare")
 
             If expectEqual Then
-                Assert.[True](CodeAnalysis.SymbolKey.GetComparer(isCaseSensitive, ignoreAssemblyIds).Equals(sid2, sid1), message)
+                Assert.[True](CodeAnalysis.SymbolKey.GetComparer(ignoreCase, ignoreAssemblyIds).Equals(sid2, sid1), message)
             Else
-                Assert.[False](CodeAnalysis.SymbolKey.GetComparer(isCaseSensitive, ignoreAssemblyIds).Equals(sid2, sid1), message)
+                Assert.[False](CodeAnalysis.SymbolKey.GetComparer(ignoreCase, ignoreAssemblyIds).Equals(sid2, sid1), message)
             End If
         End Sub
 

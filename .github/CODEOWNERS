@@ -1,0 +1,18 @@
+# Automatically request reviews when a pull request changes any owned files
+# More information: https://github.com/blog/2392-introducing-code-owners 
+
+*.groovy @dotnet/roslyn-infrastructure
+.github/ @dotnet/roslyn-infrastructure
+build/ @dotnet/roslyn-infrastructure
+src/CodeStyle/ @dotnet/roslyn-ide
+src/Compilers/ @dotnet/roslyn-compiler
+src/EditorFeatures/ @dotnet/roslyn-ide
+src/Features/ @dotnet/roslyn-ide
+src/Interactive/ @dotnet/roslyn-interactive
+src/NuGet/ @dotnet/roslyn-infrastructure
+src/Scripting/ @dotnet/roslyn-interactive
+src/Setup/ @dotnet/roslyn-infrastructure
+src/Tools/ @dotnet/roslyn-infrastructure
+src/VisualStudio/ @dotnet/roslyn-ide
+src/Workspaces/ @dotnet/roslyn-ide
+

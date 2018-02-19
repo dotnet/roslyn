@@ -17,18 +17,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void NamespaceBindingInInteractiveCode()
         {
-            var compilation = CreateCompilationWithMscorlib(@"
-using Z = Foo.Bar.Script.C;
+            var compilation = CreateStandardCompilation(@"
+using Z = Goo.Bar.Script.C;
 
 class C { }
 
-namespace Foo.Bar
+namespace Goo.Bar
 {
     class B : Z { }
 }
 ",
                 parseOptions: TestOptions.Script,
-                options: TestOptions.ReleaseExe.WithScriptClassName("Foo.Bar.Script")
+                options: TestOptions.ReleaseExe.WithScriptClassName("Goo.Bar.Script")
             );
 
             var tree = compilation.SyntaxTrees[0];
@@ -47,10 +47,10 @@ namespace Foo.Bar
         {
             CompileAndVerifyBindInfo(@"
 public static string[] str = null;
-public static void Foo(string[] r, string i) { str = r;}
-public static void Foo(params string[] r) { str = r;}
-/*<bind>*/ Foo(""1"", ""2"") /*</bind>*/;",
-"Foo(params string[])");
+public static void Goo(string[] r, string i) { str = r;}
+public static void Goo(params string[] r) { str = r;}
+/*<bind>*/ Goo(""1"", ""2"") /*</bind>*/;",
+"Goo(params string[])");
         }
 
         [Fact]
@@ -71,8 +71,8 @@ InnerClass iC = new InnerClass();
         public void MethodCallBinding()
         {
             var testSrc = @"
-void Foo() {};
-/*<bind>*/Foo()/*</bind>*/;
+void Goo() {};
+/*<bind>*/Goo()/*</bind>*/;
 ";
             // Get the bind info for the text identified within the commented <bind> </bind> tags
             var bindInfo = GetBindInfoForTest(testSrc);
@@ -255,7 +255,7 @@ public struct var { }
             string testSrc = @"
 using System.Linq;
 
-var x = from c in ""foo"" select /*<bind>*/c/*</bind>*/";
+var x = from c in ""goo"" select /*<bind>*/c/*</bind>*/";
             // Get the bind info for the text identified within the commented <bind> </bind> tags
             var semanticInfo = GetBindInfoForTest(testSrc);
             Assert.Equal("c", semanticInfo.Symbol.Name);
@@ -264,60 +264,6 @@ var x = from c in ""foo"" select /*<bind>*/c/*</bind>*/";
         }
 
         #region helpers
-
-        protected List<SyntaxNode> GetSyntaxNodeList(SyntaxTree syntaxTree)
-        {
-            return GetSyntaxNodeList(syntaxTree.GetCompilationUnitRoot(), null);
-        }
-
-        protected List<SyntaxNode> GetSyntaxNodeList(SyntaxNode node, List<SyntaxNode> synList)
-        {
-            if (synList == null)
-                synList = new List<SyntaxNode>();
-
-            synList.Add(node);
-
-            foreach (var child in node.ChildNodesAndTokens())
-            {
-                if (child.IsNode)
-                    synList = GetSyntaxNodeList(child.AsNode(), synList);
-            }
-
-            return synList;
-        }
-
-        protected SyntaxNode GetSyntaxNodeForBinding(List<SyntaxNode> synList)
-        {
-            foreach (var node in synList)
-            {
-                string exprFullText = node.ToFullString();
-                exprFullText = exprFullText.Trim();
-
-                if (exprFullText.StartsWith("/*<bind>*/", StringComparison.Ordinal))
-                {
-                    if (exprFullText.Contains("/*</bind>*/"))
-                        if (exprFullText.EndsWith("/*</bind>*/", StringComparison.Ordinal))
-                            return node;
-                        else
-                            continue;
-                    else
-                        return node;
-                }
-
-                if (exprFullText.EndsWith("/*</bind>*/", StringComparison.Ordinal))
-                {
-                    if (exprFullText.Contains("/*<bind>*/"))
-                        if (exprFullText.StartsWith("/*<bind>*/", StringComparison.Ordinal))
-                            return node;
-                        else
-                            continue;
-                    else
-                        return node;
-                }
-            }
-
-            return null;
-        }
 
         private List<ExpressionSyntax> GetExprSyntaxList(SyntaxTree syntaxTree)
         {
@@ -403,7 +349,7 @@ var x = from c in ""foo"" select /*<bind>*/c/*</bind>*/";
 
         private CompilationUtils.SemanticInfoSummary GetBindInfoForTest(string testSrc)
         {
-            var compilation = CreateCompilationWithMscorlib(
+            var compilation = CreateStandardCompilation(
                 testSrc, parseOptions: TestOptions.Script, references: new[] { SystemCoreRef });
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);

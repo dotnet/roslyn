@@ -1,23 +1,18 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
 using System.Composition;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateParameterizedMember;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod
 {
@@ -26,19 +21,13 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod
         AbstractGenerateMethodService<CSharpGenerateMethodService, SimpleNameSyntax, ExpressionSyntax, InvocationExpressionSyntax>
     {
         protected override bool IsExplicitInterfaceGeneration(SyntaxNode node)
-        {
-            return node is MethodDeclarationSyntax;
-        }
+            => node is MethodDeclarationSyntax;
 
         protected override bool IsSimpleNameGeneration(SyntaxNode node)
-        {
-            return node is SimpleNameSyntax;
-        }
+            => node is SimpleNameSyntax;
 
         protected override bool ContainingTypesOrSelfHasUnsafeKeyword(INamedTypeSymbol containingType)
-        {
-            return containingType.ContainingTypesOrSelfHasUnsafeKeyword();
-        }
+            => containingType.ContainingTypesOrSelfHasUnsafeKeyword();
 
         protected override AbstractInvocationInfo CreateInvocationMethodInfo(SemanticDocument document, AbstractGenerateParameterizedMemberService<CSharpGenerateMethodService, SimpleNameSyntax, ExpressionSyntax, InvocationExpressionSyntax>.State state)
         {
@@ -46,14 +35,10 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod
         }
 
         protected override bool AreSpecialOptionsActive(SemanticModel semanticModel)
-        {
-            return CSharpCommonGenerationServiceMethods.AreSpecialOptionsActive(semanticModel);
-        }
+            => CSharpCommonGenerationServiceMethods.AreSpecialOptionsActive(semanticModel);
 
         protected override bool IsValidSymbol(ISymbol symbol, SemanticModel semanticModel)
-        {
-            return CSharpCommonGenerationServiceMethods.IsValidSymbol(symbol, semanticModel);
-        }
+            => CSharpCommonGenerationServiceMethods.IsValidSymbol(symbol, semanticModel);
 
         protected override bool TryInitializeExplicitInterfaceState(
             SemanticDocument document,
@@ -80,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod
                 }
             }
 
-            identifierToken = default(SyntaxToken);
+            identifierToken = default;
             methodSymbol = null;
             typeToGenerateIn = null;
             return false;
@@ -152,14 +137,14 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod
                 }
             }
 
-            identifierToken = default(SyntaxToken);
+            identifierToken = default;
             simpleNameOrMemberAccessExpression = null;
             invocationExpressionOpt = null;
             isInConditionalAccessExpression = false;
             return false;
         }
 
-        protected override ITypeSymbol CanGenerateMethodForSimpleNameOrMemberAccessExpression(
+        protected override ITypeSymbol DetermineReturnTypeForSimpleNameOrMemberAccessExpression(
             ITypeInferenceService typeInferenceService,
             SemanticModel semanticModel,
             ExpressionSyntax expression,

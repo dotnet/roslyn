@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
     internal partial class SyntacticClassificationTaggerProvider : ITaggerProvider
     {
         private readonly IForegroundNotificationService _notificationService;
-        private readonly IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> _asyncListeners;
+        private readonly IAsynchronousOperationListener _listener;
         private readonly ClassificationTypeMap _typeMap;
 
         private readonly ConditionalWeakTable<ITextBuffer, TagComputer> _tagComputers = new ConditionalWeakTable<ITextBuffer, TagComputer>();
@@ -31,25 +31,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         public SyntacticClassificationTaggerProvider(
             IForegroundNotificationService notificationService,
             ClassificationTypeMap typeMap,
-            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
+            IAsynchronousOperationListenerProvider listenerProvider)
         {
             _notificationService = notificationService;
             _typeMap = typeMap;
-            _asyncListeners = asyncListeners;
+            _listener = listenerProvider.GetListener(FeatureAttribute.Classification);
         }
 
         public ITagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
         {
-            if (!buffer.GetOption(InternalFeatureOnOffOptions.SyntacticColorizer))
+            if (!buffer.GetFeatureOnOffOption(InternalFeatureOnOffOptions.SyntacticColorizer))
             {
                 return null;
             }
 
-            TagComputer tagComputer;
-            if (!_tagComputers.TryGetValue(buffer, out tagComputer))
+            if (!_tagComputers.TryGetValue(buffer, out var tagComputer))
             {
-                var asyncListener = new AggregateAsynchronousOperationListener(_asyncListeners, FeatureAttribute.Classification);
-                tagComputer = new TagComputer(buffer, _notificationService, asyncListener, _typeMap, this);
+                tagComputer = new TagComputer(buffer, _notificationService, _listener, _typeMap, this);
                 _tagComputers.Add(buffer, tagComputer);
             }
 

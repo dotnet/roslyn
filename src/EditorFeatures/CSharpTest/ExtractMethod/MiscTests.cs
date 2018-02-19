@@ -42,10 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
 
     }
 }";
-
-            var code = default(string);
-            var span = default(TextSpan);
-            MarkupTestFile.GetSpan(markupCode, out code, out span);
+            MarkupTestFile.GetSpan(markupCode, out var code, out var span);
 
             var root = SyntaxFactory.ParseCompilationUnit(code);
             var result = service.SaveTriviaAroundSelection(root, span);
@@ -89,10 +86,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
 #endif
 
 }";
-
-            var code = default(string);
-            var span = default(TextSpan);
-            MarkupTestFile.GetSpan(markupCode, out code, out span);
+            MarkupTestFile.GetSpan(markupCode, out var code, out var span);
 
             var root = SyntaxFactory.ParseCompilationUnit(code);
             var result = service.SaveTriviaAroundSelection(root, span);
@@ -125,14 +119,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
 
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-        public async Task TestExtractMethodCommandHandlerErrorMessage()
+        public void TestExtractMethodCommandHandlerErrorMessage()
         {
             var markupCode = @"class A
 {
     [|void Method() {}|]
 }";
 
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(markupCode))
+            using (var workspace = TestWorkspace.CreateCSharp(markupCode))
             {
                 var testDocument = workspace.Documents.Single();
                 var container = testDocument.GetOpenTextContainer();
@@ -179,7 +173,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             {
                 Assert.Equal(typeof(TLanguageService), typeof(ISyntaxFactsService));
 
-                return (TLanguageService)((object)new CSharpSyntaxFactsService());
+                return (TLanguageService)((object)CSharpSyntaxFactsService.Instance);
             }
         }
     }

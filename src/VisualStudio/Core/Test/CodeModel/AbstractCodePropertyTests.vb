@@ -1,4 +1,6 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Imports System.Threading.Tasks
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
     Public MustInherit Class AbstractCodePropertyTests
@@ -100,26 +102,26 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
             Throw New NotSupportedException
         End Function
 
-        Protected Async Function TestAutoImplementedPropertyExtender_IsAutoImplemented(code As XElement, expected As Boolean) As Threading.Tasks.Task
-            Await TestElement(code,
+        Protected Sub TestAutoImplementedPropertyExtender_IsAutoImplemented(code As XElement, expected As Boolean)
+            TestElement(code,
                 Sub(codeElement)
                     Assert.Equal(expected, AutoImplementedPropertyExtender_GetIsAutoImplemented(codeElement))
                 End Sub)
-        End Function
+        End Sub
 
-        Protected Async Function TestGetter(code As XElement, verifier As Action(Of EnvDTE.CodeFunction)) As Threading.Tasks.Task
-            Await TestElement(code,
+        Protected Sub TestGetter(code As XElement, verifier As Action(Of EnvDTE.CodeFunction))
+            TestElement(code,
                 Sub(codeElement)
                     verifier(codeElement.Getter)
                 End Sub)
-        End Function
+        End Sub
 
-        Protected Async Function TestSetter(code As XElement, verifier As Action(Of EnvDTE.CodeFunction)) As Threading.Tasks.Task
-            Await TestElement(code,
+        Protected Sub TestSetter(code As XElement, verifier As Action(Of EnvDTE.CodeFunction))
+            TestElement(code,
                 Sub(codeElement)
                     verifier(codeElement.Setter)
                 End Sub)
-        End Function
+        End Sub
 
     End Class
 End Namespace

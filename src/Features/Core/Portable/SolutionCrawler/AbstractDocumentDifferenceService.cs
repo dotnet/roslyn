@@ -1,10 +1,6 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -27,23 +23,17 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     // somehow, we can't get the service. without it, there is nothing we can do.
                     return new DocumentDifferenceResult(InvocationReasons.DocumentChanged);
                 }
-
                 // this is based on the implementation detail where opened documents use strong references
                 // to tree and text rather than recoverable versions.
-                SourceText oldText;
-                SourceText newText;
-                if (!oldDocument.TryGetText(out oldText) ||
-                    !newDocument.TryGetText(out newText))
+                if (!oldDocument.TryGetText(out var oldText) ||
+                    !newDocument.TryGetText(out var newText))
                 {
                     // no cheap way to determine top level changes. assumes top level has changed
                     return new DocumentDifferenceResult(InvocationReasons.DocumentChanged);
                 }
-
                 // quick check whether two tree versions are same
-                VersionStamp oldVersion;
-                VersionStamp newVersion;
-                if (oldDocument.TryGetSyntaxVersion(out oldVersion) &&
-                    newDocument.TryGetSyntaxVersion(out newVersion) &&
+                if (oldDocument.TryGetSyntaxVersion(out var oldVersion) &&
+                    newDocument.TryGetSyntaxVersion(out var newVersion) &&
                     oldVersion.Equals(newVersion))
                 {
                     // nothing has changed. don't do anything.
@@ -52,19 +42,16 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 }
 
                 var range = newText.GetEncompassingTextChangeRange(oldText);
-                if (range == default(TextChangeRange))
+                if (range == default)
                 {
                     // nothing has changed. don't do anything
                     return null;
                 }
 
                 var incrementalParsingCandidate = range.NewLength != newText.Length;
-
                 // see whether we can get it without explicit parsing
-                SyntaxNode oldRoot;
-                SyntaxNode newRoot;
-                if (!oldDocument.TryGetSyntaxRoot(out oldRoot) ||
-                    !newDocument.TryGetSyntaxRoot(out newRoot))
+                if (!oldDocument.TryGetSyntaxRoot(out var oldRoot) ||
+                    !newDocument.TryGetSyntaxRoot(out var newRoot))
                 {
                     if (!incrementalParsingCandidate)
                     {
@@ -76,12 +63,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     oldRoot = await oldDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
                     newRoot = await newDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
                 }
-
                 // at this point, we must have these version already calculated
-                VersionStamp oldTopLevelChangeVersion;
-                VersionStamp newTopLevelChangeVersion;
-                if (!oldDocument.TryGetTopLevelChangeTextVersion(out oldTopLevelChangeVersion) ||
-                    !newDocument.TryGetTopLevelChangeTextVersion(out newTopLevelChangeVersion))
+                if (!oldDocument.TryGetTopLevelChangeTextVersion(out var oldTopLevelChangeVersion) ||
+                    !newDocument.TryGetTopLevelChangeTextVersion(out var newTopLevelChangeVersion))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }

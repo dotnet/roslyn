@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -32,8 +32,7 @@ namespace Roslyn.Hosting.Diagnostics.PerfMargin
                 var featureNames = name.Split('_');
                 var featureName = featureNames.Length > 1 ? featureNames[0] : "Uncategorized";
 
-                ActivityLevel parent;
-                if (!features.TryGetValue(featureName, out parent))
+                if (!features.TryGetValue(featureName, out var parent))
                 {
                     parent = new ActivityLevel(featureName, root, createChildList: true);
                     features[featureName] = parent;

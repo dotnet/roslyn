@@ -1,7 +1,9 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.CodeGen
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
@@ -14,6 +16,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             body As BoundBlock,
             previousSubmissionFields As SynthesizedSubmissionFields,
             compilationState As TypeCompilationState,
+            instrumentForDynamicAnalysis As Boolean,
+            <Out> ByRef dynamicAnalysisSpans As ImmutableArray(Of SourceSpan),
+            debugDocumentProvider As DebugDocumentProvider,
             diagnostics As DiagnosticBag,
             ByRef lazyVariableSlotAllocator As VariableSlotAllocator,
             lambdaDebugInfoBuilder As ArrayBuilder(Of LambdaDebugInfo),
@@ -32,8 +37,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim rewrittenNodes As HashSet(Of BoundNode) = Nothing
             Dim flags = If(allowOmissionOfConditionalCalls, LocalRewriter.RewritingFlags.AllowOmissionOfConditionalCalls, LocalRewriter.RewritingFlags.Default)
             Dim localDiagnostics = DiagnosticBag.GetInstance()
+            dynamicAnalysisSpans = ImmutableArray(Of SourceSpan).Empty
 
             Try
+                Dim dynamicInstrumenter As DynamicAnalysisInjector =
+                    If(instrumentForDynamicAnalysis,
+                        DynamicAnalysisInjector.TryCreate(method, body, New SyntheticBoundNodeFactory(method, method, body.Syntax, compilationState, diagnostics), diagnostics, debugDocumentProvider, Instrumenter.NoOp),
+                        Nothing)
+
+                ' We don't want IL to differ based upon whether we write the PDB to a file/stream or not.
+                ' Presence of sequence points in the tree affects final IL, therefore, we always generate them.
                 Dim loweredBody = LocalRewriter.Rewrite(body,
                                                     method,
                                                     compilationState,
@@ -43,7 +56,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                     sawLambdas,
                                                     symbolsCapturedWithoutCopyCtor,
                                                     flags,
+                                                    If(dynamicInstrumenter IsNot Nothing, New DebugInfoInjector(dynamicInstrumenter), DebugInfoInjector.Singleton),
                                                     currentMethod:=Nothing)
+
+                If dynamicInstrumenter IsNot Nothing Then
+                    dynamicAnalysisSpans = dynamicInstrumenter.DynamicAnalysisSpans
+                End If
 
                 If loweredBody.HasErrors OrElse localDiagnostics.HasAnyErrors Then
                     diagnostics.AddRangeAndFree(localDiagnostics)
@@ -61,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If lazyVariableSlotAllocator Is Nothing Then
                     ' synthesized lambda methods are handled in LambdaRewriter.RewriteLambdaAsMethod
                     Debug.Assert(TypeOf method IsNot SynthesizedLambdaMethod)
-                    lazyVariableSlotAllocator = compilationState.ModuleBuilderOpt.TryCreateVariableSlotAllocator(method, method)
+                    lazyVariableSlotAllocator = compilationState.ModuleBuilderOpt.TryCreateVariableSlotAllocator(method, method, diagnostics)
                 End If
 
                 ' Lowers lambda expressions into expressions that construct delegates.    

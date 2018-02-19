@@ -3,6 +3,7 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
@@ -15,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             _builder = builder;
         }
 
-        internal static ImmutableArray<SyntaxNode> GetDeclarators(SourceMethodSymbol method)
+        internal static ImmutableArray<SyntaxNode> GetDeclarators(SourceMemberMethodSymbol method)
         {
             var builder = ArrayBuilder<SyntaxNode>.GetInstance();
             var visitor = new LocalVariableDeclaratorsCollector(builder);
@@ -83,6 +84,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         {
             _builder.Add(node);
             base.VisitVariableDeclarator(node);
+        }
+
+        public override void VisitSingleVariableDesignation(SingleVariableDesignationSyntax node)
+        {
+            _builder.Add(node);
+            base.VisitSingleVariableDesignation(node);
         }
 
         public override void VisitCatchDeclaration(CatchDeclarationSyntax node)

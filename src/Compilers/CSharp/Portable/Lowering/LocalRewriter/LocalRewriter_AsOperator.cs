@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression MakeAsOperator(
             BoundAsOperator oldNode,
-            CSharpSyntaxNode syntax,
+            SyntaxNode syntax,
             BoundExpression rewrittenOperand,
             BoundTypeExpression rewrittenTargetType,
             Conversion conversion,
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (constantValue != null)
                 {
                     Debug.Assert(constantValue.IsNull);
-                    BoundExpression result = rewrittenType.IsNullableType() ? new BoundDefaultOperator(syntax, rewrittenType) : MakeLiteral(syntax, constantValue, rewrittenType);
+                    BoundExpression result = rewrittenType.IsNullableType() ? new BoundDefaultExpression(syntax, rewrittenType) : MakeLiteral(syntax, constantValue, rewrittenType);
 
                     if (rewrittenOperand.ConstantValue != null)
                     {
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // Operand with bound implicit conversion to target type.
                     // We don't need a runtime check, generate a conversion for the operand instead.
-                    return MakeConversion(syntax, rewrittenOperand, conversion, rewrittenType, @checked: false);
+                    return MakeConversionNode(syntax, rewrittenOperand, conversion, rewrittenType, @checked: false);
                 }
             }
 

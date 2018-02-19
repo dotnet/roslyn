@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -52,30 +53,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         IEnumerable<Cci.ICustomAttribute> Cci.IReference.GetAttributes(EmitContext context)
         {
-            return GetCustomAttributesToEmit(((PEModuleBuilder)context.Module).CompilationState);
+            return GetCustomAttributesToEmit((PEModuleBuilder)context.Module);
         }
 
-        internal virtual IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(ModuleCompilationState compilationState)
+        internal virtual IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(PEModuleBuilder moduleBuilder)
         {
             CheckDefinitionInvariant();
 
             Debug.Assert(this.Kind != SymbolKind.Assembly);
-            return GetCustomAttributesToEmit(compilationState, emittingAssemblyAttributesInNetModule: false);
+            return GetCustomAttributesToEmit(moduleBuilder, emittingAssemblyAttributesInNetModule: false);
         }
 
-        internal IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(ModuleCompilationState compilationState, bool emittingAssemblyAttributesInNetModule)
+        internal IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(PEModuleBuilder moduleBuilder, bool emittingAssemblyAttributesInNetModule)
         {
             CheckDefinitionInvariant();
+            Debug.Assert(this.Kind != SymbolKind.Assembly);
 
             ImmutableArray<CSharpAttributeData> userDefined;
             ArrayBuilder<SynthesizedAttributeData> synthesized = null;
             userDefined = this.GetAttributes();
-            this.AddSynthesizedAttributes(compilationState, ref synthesized);
-
-            if (userDefined.IsEmpty && synthesized == null)
-            {
-                return SpecializedCollections.EmptyEnumerable<CSharpAttributeData>();
-            }
+            this.AddSynthesizedAttributes(moduleBuilder, ref synthesized);
 
             // Note that callers of this method (CCI and ReflectionEmitter) have to enumerate 
             // all items of the returned iterator, otherwise the synthesized ArrayBuilder may leak.
@@ -87,6 +84,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// The <paramref name="synthesized"/> builder is freed after all its items are enumerated.
         /// </summary>
         internal IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(
+            ImmutableArray<CSharpAttributeData> userDefined,
+            ArrayBuilder<SynthesizedAttributeData> synthesized,
+            bool isReturnType,
+            bool emittingAssemblyAttributesInNetModule)
+        {
+            CheckDefinitionInvariant();
+
+            //PERF: Avoid creating an iterator for the common case of no attributes.
+            if (userDefined.IsEmpty && synthesized == null)
+            {
+                return SpecializedCollections.EmptyEnumerable<CSharpAttributeData>();
+            }
+
+            return GetCustomAttributesToEmitIterator(userDefined, synthesized, isReturnType, emittingAssemblyAttributesInNetModule);
+        }
+
+        private IEnumerable<CSharpAttributeData> GetCustomAttributesToEmitIterator(
             ImmutableArray<CSharpAttributeData> userDefined,
             ArrayBuilder<SynthesizedAttributeData> synthesized,
             bool isReturnType,

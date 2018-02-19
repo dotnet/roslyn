@@ -71,6 +71,21 @@ namespace Microsoft.CodeAnalysis
         bool ReturnsVoid { get; }
 
         /// <summary>
+        /// Returns true if this method returns by reference.
+        /// </summary>
+        bool ReturnsByRef { get; }
+
+        /// <summary>
+        /// Returns true if this method returns by ref readonly.
+        /// </summary>
+        bool ReturnsByRefReadonly { get; }
+
+        /// <summary>
+        /// Returns the RefKind of the method.
+        /// </summary>
+        RefKind RefKind { get; }
+
+        /// <summary>
         /// Gets the return type of the method.
         /// </summary>
         ITypeSymbol ReturnType { get; }
@@ -152,9 +167,14 @@ namespace Microsoft.CodeAnalysis
         ImmutableArray<IMethodSymbol> ExplicitInterfaceImplementations { get; }
 
         /// <summary>
-        /// Returns the list of custom modifiers, if any, associated with the returned value. 
+        /// Returns the list of custom modifiers, if any, associated with the return type. 
         /// </summary>
         ImmutableArray<CustomModifier> ReturnTypeCustomModifiers { get; }
+
+        /// <summary>
+        /// Custom modifiers associated with the ref modifier, or an empty array if there are none.
+        /// </summary>
+        ImmutableArray<CustomModifier> RefCustomModifiers { get; }
 
         /// <summary>
         /// Returns the list of custom attributes, if any, associated with the returned value. 

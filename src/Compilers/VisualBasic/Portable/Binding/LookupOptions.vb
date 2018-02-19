@@ -117,18 +117,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' the same name.  This is not possible in the .NET world, but for backwards compatibility, especially with Office,
         ''' the compiler will ignore ambiguities when performing a lookup in a CoClass interface.  Example:
         '''
-        '''     Interface _Foo
+        '''     Interface _Goo
         '''        Sub Quit
         '''
-        '''     Interface FooSource
+        '''     Interface GooSource
         '''        Event Quit
         '''
-        '''     &lt; System.Runtime.InteropServices.CoClass(GetType(FooClass)) &gt;
-        '''     Interface Foo : Inherits _Foo, FooSource
+        '''     &lt; System.Runtime.InteropServices.CoClass(GetType(GooClass)) &gt;
+        '''     Interface Goo : Inherits _Goo, GooSource
         '''
-        '''     Class FooClass : Implements Foo
-        '''         Event Quit Implements Foo.Quit
-        '''         Sub Quit Implements Foo.Quit
+        '''     Class GooClass : Implements Goo
+        '''         Event Quit Implements Goo.Quit
+        '''         Sub Quit Implements Goo.Quit
         '''
         ''' </summary>
         EventsOnly = 1 << 15
@@ -139,15 +139,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         NoSystemObjectLookupForInterfaces = 1 << 16
 
         ''' <summary>
-        ''' Ignore duplicate types from the cor library.
-        ''' </summary>
-        IgnoreCorLibraryDuplicatedTypes = 1 << 17
-
-        ''' <summary>
         ''' Handle a case of being able to refer to System.Int32 through System.Integer.
         ''' Same for other intrinsic types with intrinsic name different from emitted name.
         ''' </summary>
-        AllowIntrinsicAliases = 1 << 18
+        AllowIntrinsicAliases = 1 << 17
     End Enum
 
     Friend Module LookupOptionExtensions

@@ -6,6 +6,7 @@ Imports System.Reflection
 Imports System.Reflection.Metadata
 Imports System.Runtime.InteropServices
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
 
@@ -327,10 +328,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         End Property
 
         Public Function GetEventRegistrationTokenType() As NamedTypeSymbol
-            Return GetWellKnownType(WellKnownType.System_Runtime_InteropServices_WindowsRuntime_EventRegistrationToken, False)
+            Return GetWellKnownType(WellKnownType.System_Runtime_InteropServices_WindowsRuntime_EventRegistrationToken)
         End Function
 
-        Private Function GetWellKnownType(type As WellKnownType, Optional careAboutAmbiguity As Boolean = True) As NamedTypeSymbol
+        Private Function GetWellKnownType(type As WellKnownType) As NamedTypeSymbol
             Dim emittedName As MetadataTypeName = MetadataTypeName.FromFullName(type.GetMetadataName(), useCLSCompliantNameArityEncoding:=True)
 
             ' First, check this module
@@ -354,10 +355,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                         ' being returned.  Do we want to differentiate between no result and ambiguous
                         ' results?  There doesn't seem to be an existing error code for "duplicate well-
                         ' known type".
-                        If (careAboutAmbiguity) Then
+                        If referencedAssemblyResult IsNot currResult Then
                             referencedAssemblyResult = Nothing
+                            Exit For
                         End If
-                        Exit For
                     End If
                 End If
             Next
@@ -423,38 +424,59 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         End Function
 
         ''' <summary>
-        ''' If this module forwards the given type to another assembly, return that assembly;
-        ''' otherwise, return Nothing.
+        ''' Returns a tuple of the assemblies this module forwards the given type to.
         ''' </summary>
         ''' <param name="fullName">Type to look up.</param>
         ''' <param name="ignoreCase">Pass true to look up fullName case-insensitively.  WARNING: more expensive.</param>
         ''' <param name="matchedName">Returns the actual casing of the matching name.</param>
-        ''' <returns>Assembly symbol or Nothing.</returns>
+        ''' <returns>A tuple of the forwarded to assemblies.</returns>
         ''' <remarks>
-        ''' The returned assembly may also forward the type.
+        ''' The returned assemblies may also forward the type.
         ''' </remarks>
-        Friend Function GetAssemblyForForwardedType(ByRef fullName As MetadataTypeName, ignoreCase As Boolean, <Out> ByRef matchedName As String) As AssemblySymbol
-            Dim assemblyRef As AssemblyReferenceHandle = Me.Module.GetAssemblyForForwardedType(fullName.FullName, ignoreCase, matchedName)
-            Try
-                Return If(assemblyRef.IsNil, Nothing, Me.GetReferencedAssemblySymbols()(Me.Module.GetAssemblyReferenceIndexOrThrow(assemblyRef)))
-            Catch mrEx As BadImageFormatException
-                Return Nothing
-            End Try
+        Friend Function GetAssembliesForForwardedType(ByRef fullName As MetadataTypeName, ignoreCase As Boolean, <Out> ByRef matchedName As String) As (FirstSymbol As AssemblySymbol, SecondSymbol As AssemblySymbol)
+            Dim indices = Me.Module.GetAssemblyRefsForForwardedType(fullName.FullName, ignoreCase, matchedName)
+
+            If indices.FirstIndex < 0 Then
+                Return (Nothing, Nothing)
+            End If
+
+            Dim firstSymbol = GetReferencedAssemblySymbol(indices.FirstIndex)
+
+            If indices.SecondIndex < 0 Then
+                Return (firstSymbol, Nothing)
+            End If
+
+            Dim secondSymbol = GetReferencedAssemblySymbol(indices.SecondIndex)
+            Return (firstSymbol, secondSymbol)
         End Function
 
         Friend Iterator Function GetForwardedTypes() As IEnumerable(Of NamedTypeSymbol)
-            For Each forwarder As KeyValuePair(Of String, AssemblyReferenceHandle) In Me.Module.GetForwardedTypes()
-                Dim assembly As AssemblySymbol
-
-                Try
-                    assembly = Me.GetReferencedAssemblySymbols()(Me.Module.GetAssemblyReferenceIndexOrThrow(forwarder.Value))
-                Catch ex As BadImageFormatException
-                    Continue For
-                End Try
-
+            For Each forwarder As KeyValuePair(Of String, (FirstIndex As Integer, SecondIndex As Integer)) In Me.Module.GetForwardedTypes()
                 Dim name = MetadataTypeName.FromFullName(forwarder.Key)
-                Yield assembly.LookupTopLevelMetadataType(name, digThroughForwardedTypes:=True)
+
+                Debug.Assert(forwarder.Value.FirstIndex >= 0, "First index should never be negative")
+                Dim firstSymbol = GetReferencedAssemblySymbol(forwarder.Value.FirstIndex)
+                Debug.Assert(firstSymbol IsNot Nothing, "Invalid indexes (out of bound) are discarded during reading metadata in PEModule.EnsureForwardTypeToAssemblyMap()")
+
+                If forwarder.Value.SecondIndex >= 0 Then
+                    Dim secondSymbol = GetReferencedAssemblySymbol(forwarder.Value.SecondIndex)
+                    Debug.Assert(secondSymbol IsNot Nothing, "Invalid indexes (out of bound) are discarded during reading metadata in PEModule.EnsureForwardTypeToAssemblyMap()")
+
+                    Yield ContainingAssembly.CreateMultipleForwardingErrorTypeSymbol(name, Me, firstSymbol, secondSymbol)
+                Else
+                    Yield firstSymbol.LookupTopLevelMetadataType(name, digThroughForwardedTypes:= true)
+                End If
             Next
+        End Function
+
+        Private Overloads Function GetReferencedAssemblySymbol(assemblyRef As AssemblyReferenceHandle) As AssemblySymbol
+            Dim referencedAssemblyIndex As Integer
+            Try
+                referencedAssemblyIndex = Me.Module.GetAssemblyReferenceIndexOrThrow(assemblyRef)
+            Catch ex As BadImageFormatException
+                Return Nothing
+            End Try
+            Return GetReferencedAssemblySymbol(referencedAssemblyIndex)
         End Function
 
         Public Overrides Function GetMetadata() As ModuleMetadata

@@ -4,6 +4,7 @@
 ' Contains the definition of the Scanner, which produces tokens from text 
 '-----------------------------------------------------------------------------
 
+Imports Microsoft.CodeAnalysis.Syntax.InternalSyntax
 Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
@@ -89,7 +90,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Dim text = GetText(length)
 
-            Dim trailingTrivia As SyntaxList(Of VisualBasicSyntaxNode) = If(scanTrailingTrivia, ScanSingleLineTrivia(), Nothing)
+            Dim trailingTrivia As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of VisualBasicSyntaxNode) = If(scanTrailingTrivia, ScanSingleLineTrivia(), Nothing)
 
             Return MakePunctuationToken(kind, text, leadingTrivia, trailingTrivia.Node)
 

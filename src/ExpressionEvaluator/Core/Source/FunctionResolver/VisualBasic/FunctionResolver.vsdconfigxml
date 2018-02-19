@@ -1,0 +1,37 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+     Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+-->
+<Configuration xmlns="http://schemas.microsoft.com/vstudio/vsdconfig/2008">
+  <DefineGuid Name="VisualBasicFunctionResolverId" Value="5901F6C2-5681-4371-8DF5-143821E1E4A1"/>
+  <ManagedComponent
+    ComponentId="VisualBasicFunctionResolverId"
+    ComponentLevel="65100"
+    Synchronized="true"
+    AssemblyName="Microsoft.CodeAnalysis.ExpressionEvaluator.FunctionResolver">
+    <Class Name="Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.VisualBasicFunctionResolver">
+      <Implements>
+        <InterfaceGroup Priority="Normal">
+          <Filter>
+            <LanguageId RequiredValue="DkmLanguageId.VB"/>
+            <BaseDebugMonitorId RequiredValue="DkmBaseDebugMonitorId.InProcessManagedNativeInterop"/>
+            <BaseDebugMonitorId RequiredValue="DkmBaseDebugMonitorId.ClrVirtualMachine"/>
+          </Filter>
+          <Interface Name="IDkmRuntimeFunctionResolver"/>
+        </InterfaceGroup>
+        <InterfaceGroup CallOnlyWhenLoaded="true" Priority="Normal">
+          <Filter>
+            <RuntimeId RequiredValue="DkmRuntimeId.Clr"/>
+            <RuntimeId RequiredValue="DkmRuntimeId.ClrNativeCompilation"/>
+          </Filter>
+          <Interface Name="IDkmModuleInstanceLoadNotification"/>
+          <Interface Name="IDkmModuleInstanceUnloadNotification"/>
+          <Interface Name="IDkmModuleModifiedNotification"/>
+          <Interface Name="IDkmModuleSymbolsLoadedNotification"/>
+        </InterfaceGroup>
+      </Implements>
+    </Class>
+  </ManagedComponent>
+</Configuration>

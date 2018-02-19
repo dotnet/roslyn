@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Composition
 Imports System.Globalization
@@ -125,9 +125,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Suppression
             Dim attributeList = CreateAttributeList(targetSymbol, diagnostic)
 
             Dim attributeStatement = SyntaxFactory.AttributesStatement(New SyntaxList(Of AttributeListSyntax)().Add(attributeList))
-            If Not isFirst AndAlso Not IsEndOfLine(compilationRoot.Attributes.Last().GetTrailingTrivia().LastOrDefault) Then
-                ' Add leading end of line trivia to attribute statement
-                attributeStatement = attributeStatement.WithLeadingTrivia(attributeStatement.GetLeadingTrivia.Add(SyntaxFactory.ElasticCarriageReturnLineFeed))
+            If Not isFirst Then
+                Dim trailingTrivia = compilationRoot.Attributes.Last().GetTrailingTrivia()
+                Dim lastTrivia = If(trailingTrivia.IsEmpty, Nothing, trailingTrivia(trailingTrivia.Count - 1))
+                If Not IsEndOfLine(lastTrivia) Then
+                    ' Add leading end of line trivia to attribute statement
+                    attributeStatement = attributeStatement.WithLeadingTrivia(attributeStatement.GetLeadingTrivia.Add(SyntaxFactory.ElasticCarriageReturnLineFeed))
+                End If
             End If
 
             attributeStatement = CType(Await Formatter.FormatAsync(attributeStatement, workspace, cancellationToken:=cancellationToken).ConfigureAwait(False), AttributesStatementSyntax)
@@ -159,7 +163,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Suppression
             Dim ruleId = SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal(ruleIdText))
             Dim ruleIdArgument = SyntaxFactory.SimpleArgument(ruleId)
 
-            Dim justificationExpr = SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal(FeaturesResources.SuppressionPendingJustification))
+            Dim justificationExpr = SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal(FeaturesResources.Pending))
             Dim justificationArgument = SyntaxFactory.SimpleArgument(SyntaxFactory.NameColonEquals(SyntaxFactory.IdentifierName("Justification")), expression:=justificationExpr)
 
             Dim attributeArgumentList = SyntaxFactory.ArgumentList().AddArguments(categoryArgument, ruleIdArgument, justificationArgument)

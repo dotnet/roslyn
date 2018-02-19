@@ -71,10 +71,7 @@ namespace Roslyn.Collections.Immutable
         /// <summary>
         /// Gets an empty map with default equality comparers.
         /// </summary>
-        public static ImmutableHashMap<TKey, TValue> Empty
-        {
-            get { return s_emptySingleton; }
-        }
+        public static ImmutableHashMap<TKey, TValue> Empty => s_emptySingleton;
 
         /// <summary>
         /// See the <see cref="IImmutableDictionary&lt;TKey, TValue&gt;"/> interface.
@@ -309,8 +306,7 @@ namespace Roslyn.Collections.Immutable
                     var en = stack.Peek();
                     if (en.MoveNext())
                     {
-                        var vb = en.Current as ValueBucket;
-                        if (vb != null)
+                        if (en.Current is ValueBucket vb)
                         {
                             yield return vb.Key;
                         }
@@ -344,8 +340,7 @@ namespace Roslyn.Collections.Immutable
         {
             get
             {
-                TValue value;
-                if (this.TryGetValue(key, out value))
+                if (this.TryGetValue(key, out var value))
                 {
                     return value;
                 }
@@ -405,7 +400,7 @@ namespace Roslyn.Collections.Immutable
                 }
             }
 
-            value = default(TValue);
+            value = default;
             return false;
         }
 
@@ -497,7 +492,7 @@ namespace Roslyn.Collections.Immutable
             }
             else
             {
-                existingKey = default(TKey);
+                existingKey = default;
                 return false;
             }
         }
@@ -552,8 +547,7 @@ namespace Roslyn.Collections.Immutable
             {
                 // If the items being added actually come from an ImmutableHashMap<TKey, TValue>
                 // then there is no value in reconstructing it.
-                ImmutableHashMap<TKey, TValue> other;
-                if (TryCastToImmutableMap(pairs, out other))
+                if (TryCastToImmutableMap(pairs, out var other))
                 {
                     return other.WithComparers(_keyComparer, _valueComparer);
                 }
@@ -584,8 +578,7 @@ namespace Roslyn.Collections.Immutable
                 var en = stack.Peek();
                 if (en.MoveNext())
                 {
-                    var vb = en.Current as ValueBucket;
-                    if (vb != null)
+                    if (en.Current is ValueBucket vb)
                     {
                         yield return vb;
                     }
@@ -646,10 +639,7 @@ namespace Roslyn.Collections.Immutable
                 this.Value = value;
             }
 
-            internal override int Count
-            {
-                get { return 1; }
-            }
+            internal override int Count => 1;
 
             internal override Bucket Add(int suggestedHashRoll, ValueBucket bucket, IEqualityComparer<TKey> comparer, IEqualityComparer<TValue> valueComparer, bool overwriteExistingValue)
             {
@@ -728,10 +718,7 @@ namespace Roslyn.Collections.Immutable
                 _buckets = buckets;
             }
 
-            internal override int Count
-            {
-                get { return _buckets.Length; }
-            }
+            internal override int Count => _buckets.Length;
 
             internal override Bucket Add(int suggestedHashRoll, ValueBucket bucket, IEqualityComparer<TKey> comparer, IEqualityComparer<TValue> valueComparer, bool overwriteExistingValue)
             {
@@ -887,10 +874,7 @@ namespace Roslyn.Collections.Immutable
                 throw new InvalidOperationException();
             }
 
-            internal override int Count
-            {
-                get { return _count; }
-            }
+            internal override int Count => _count;
 
             internal override Bucket Add(int suggestedHashRoll, ValueBucket bucket, IEqualityComparer<TKey> keyComparer, IEqualityComparer<TValue> valueComparer, bool overwriteExistingValue)
             {
@@ -1169,13 +1153,7 @@ namespace Roslyn.Collections.Immutable
 
         private static class Strings
         {
-            public static string DuplicateKey
-            {
-                get
-                {
-                    return Microsoft.CodeAnalysis.WorkspacesResources.DuplicateKey;
-                }
-            }
+            public static string DuplicateKey => Microsoft.CodeAnalysis.WorkspacesResources.An_element_with_the_same_key_but_a_different_value_already_exists;
         }
     }
 }

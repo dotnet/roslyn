@@ -6,6 +6,7 @@
 
 ' // Parse a line containing a conditional compilation directive.
 Imports System.Globalization
+Imports Microsoft.CodeAnalysis.Syntax.InternalSyntax
 Imports InternalSyntaxFactory = Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.SyntaxFactory
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
@@ -22,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 CurrentToken.Kind = SyntaxKind.BadToken Then
 
                 Dim missingHash = InternalSyntaxFactory.MissingPunctuation(SyntaxKind.HashToken)
-                missingHash = missingHash.AddLeadingSyntax(New SyntaxList(Of SyntaxToken)(CurrentToken))
+                missingHash = missingHash.AddLeadingSyntax(New CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of SyntaxToken)(CurrentToken))
                 GetNextToken()
                 Return (ParseBadDirective(missingHash))
             End If
@@ -227,7 +228,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Dim Name = ParseIdentifier()
 
-            Dim unexpected As SyntaxList(Of SyntaxToken) = Nothing
+            Dim unexpected As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of SyntaxToken) = Nothing
             If Name.ContainsDiagnostics Then
                 unexpected = ResyncAt({SyntaxKind.EqualsToken})
             End If

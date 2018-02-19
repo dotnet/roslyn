@@ -9,6 +9,7 @@ Imports System.Text
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Collections
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
@@ -423,7 +424,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                          CType(ctorArgument.DecodeValue(Of Short)(SpecialType.System_Int16), ClassInterfaceType))
 
             Select Case interfaceType
-                Case ClassInterfaceType.None, ClassInterfaceType.AutoDispatch, ClassInterfaceType.AutoDual
+                Case ClassInterfaceType.None, Cci.Constants.ClassInterfaceType_AutoDispatch, Cci.Constants.ClassInterfaceType_AutoDual
                     Exit Select
                 Case Else
                     diagnostics.Add(ERRID.ERR_BadAttribute1, If(nodeOpt IsNot Nothing, nodeOpt.ArgumentList.Arguments(0).GetLocation(), NoLocation.Singleton), Me.AttributeClass)
@@ -448,7 +449,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                CType(ctorArgument.DecodeValue(Of Short)(SpecialType.System_Int16), ComInterfaceType))
 
             Select Case interfaceType
-                Case ComInterfaceType.InterfaceIsDual, ComInterfaceType.InterfaceIsIDispatch, ComInterfaceType.InterfaceIsIInspectable, ComInterfaceType.InterfaceIsIUnknown
+                Case Cci.Constants.ComInterfaceType_InterfaceIsDual, Cci.Constants.ComInterfaceType_InterfaceIsIDispatch, ComInterfaceType.InterfaceIsIInspectable, ComInterfaceType.InterfaceIsIUnknown
                     Return True
                 Case Else
                     Return False

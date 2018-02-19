@@ -1,0 +1,4 @@
+[sjis.cs]
+# This is actually supposed to be Shift-JIS, but it's not supported. Use a value to prevent it from being automatically
+# converted to UTF-8.
+charset = unset

@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis
@@ -93,6 +94,20 @@ namespace Microsoft.CodeAnalysis
                 }
             }
             return (n1 == n2) ? -1 : n + 1;
+        }
+
+        /// <summary>
+        /// Returns <c>true</c> if the provided position is in a hidden region inaccessible to the user.
+        /// </summary>
+        public static bool IsHiddenPosition(this SyntaxTree tree, int position, CancellationToken cancellationToken = default)
+        {
+            if (!tree.HasHiddenRegions())
+            {
+                return false;
+            }
+
+            var lineVisibility = tree.GetLineVisibility(position, cancellationToken);
+            return lineVisibility == LineVisibility.Hidden || lineVisibility == LineVisibility.BeforeFirstLineDirective;
         }
     }
 }

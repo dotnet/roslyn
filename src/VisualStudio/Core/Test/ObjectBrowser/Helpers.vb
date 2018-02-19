@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Runtime.CompilerServices
 Imports Microsoft.VisualStudio.Shell.Interop
@@ -250,6 +250,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ObjectBrowser
         <Extension>
         Friend Function GetMemberList(simpleObjectList As IVsSimpleObjectList2, index As Integer) As IVsSimpleObjectList2
             Return GetList(simpleObjectList, index, ObjectListKind.Members)
+        End Function
+
+        <Extension>
+        Friend Function GetReferenceList(simpleLibrary As IVsSimpleLibrary2) As IVsSimpleObjectList2
+            Return GetList(simpleLibrary, ObjectListKind.References)
+        End Function
+
+        <Extension>
+        Friend Function GetReferenceList(simpleObjectList As IVsSimpleObjectList2, index As Integer) As IVsSimpleObjectList2
+            Return GetList(simpleObjectList, index, ObjectListKind.References)
         End Function
 
     End Module

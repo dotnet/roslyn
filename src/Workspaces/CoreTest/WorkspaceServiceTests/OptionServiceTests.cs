@@ -156,7 +156,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             var newOptionSet = optionSet.WithChangedOption(optionKey, false);
             Assert.NotSame(optionSet, newOptionSet);
             Assert.NotEqual(optionSet, newOptionSet);
-            Assert.NotEqual(optionSet.GetAccessedOptions().Count(), newOptionSet.GetAccessedOptions().Count());
         }
     }
 }

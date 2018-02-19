@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             IsVarianceUnsafe(
                 method.ReturnType,
                 requireOutputSafety: true,
-                requireInputSafety: false,
+                requireInputSafety: method.RefKind != RefKind.None,
                 context: method,
                 locationProvider: returnTypeLocationProvider,
                 locationArg: method,
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 IsVarianceUnsafe(
                     property.Type,
                     requireOutputSafety: hasGetter,
-                    requireInputSafety: hasSetter,
+                    requireInputSafety: hasSetter || !(property.GetMethod?.RefKind == RefKind.None),
                     context: property,
                     locationProvider: p =>
                         {
@@ -246,8 +246,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return IsVarianceUnsafe(((ArrayTypeSymbol)type).ElementType, requireOutputSafety, requireInputSafety, context, locationProvider, locationArg, diagnostics);
                 case SymbolKind.ErrorType:
                 case SymbolKind.NamedType:
+                    var namedType = (NamedTypeSymbol)type.TupleUnderlyingTypeOrSelf();
                     // 3) (see IsVarianceUnsafe(NamedTypeSymbol))
-                    return IsVarianceUnsafe((NamedTypeSymbol)type, requireOutputSafety, requireInputSafety, context, locationProvider, locationArg, diagnostics);
+                    return IsVarianceUnsafe(namedType, requireOutputSafety, requireInputSafety, context, locationProvider, locationArg, diagnostics);
                 default:
                     return false;
             }

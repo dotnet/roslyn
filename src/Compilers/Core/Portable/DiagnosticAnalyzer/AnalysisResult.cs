@@ -3,8 +3,9 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -13,195 +14,143 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// 1. Local and non-local diagnostics, per-analyzer.
     /// 2. Analyzer execution times, if requested.
     /// </summary>
-    internal partial class AnalysisResult
+    public class AnalysisResult
     {
-        private readonly object _gate = new object();
-        private readonly Dictionary<DiagnosticAnalyzer, TimeSpan> _analyzerExecutionTimeOpt;
-
-        private Dictionary<SyntaxTree, Dictionary<DiagnosticAnalyzer, List<Diagnostic>>> _localSemanticDiagnosticsOpt = null;
-        private Dictionary<SyntaxTree, Dictionary<DiagnosticAnalyzer, List<Diagnostic>>> _localSyntaxDiagnosticsOpt = null;
-        private Dictionary<DiagnosticAnalyzer, List<Diagnostic>> _nonLocalDiagnosticsOpt = null;
-
-        public AnalysisResult(bool logAnalyzerExecutionTime, ImmutableArray<DiagnosticAnalyzer> analyzers)
+        internal AnalysisResult(
+            ImmutableArray<DiagnosticAnalyzer> analyzers,
+            ImmutableDictionary<SyntaxTree, ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>> localSyntaxDiagnostics,
+            ImmutableDictionary<SyntaxTree, ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>> localSemanticDiagnostics,
+            ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>> nonLocalDiagnostics,
+            ImmutableDictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo> analyzerTelemetryInfo)
         {
-            _analyzerExecutionTimeOpt = logAnalyzerExecutionTime ? CreateAnalyzerExecutionTimeMap(analyzers) : null;
+            Analyzers = analyzers;
+            SyntaxDiagnostics = localSyntaxDiagnostics;
+            SemanticDiagnostics = localSemanticDiagnostics;
+            CompilationDiagnostics = nonLocalDiagnostics;
+            AnalyzerTelemetryInfo = analyzerTelemetryInfo;
         }
 
-        private static Dictionary<DiagnosticAnalyzer, TimeSpan> CreateAnalyzerExecutionTimeMap(ImmutableArray<DiagnosticAnalyzer> analyzers)
+        /// <summary>
+        /// Analyzers corresponding to this analysis result.
+        /// </summary>
+        public ImmutableArray<DiagnosticAnalyzer> Analyzers { get; private set; }
+
+        /// <summary>
+        /// Syntax diagnostics reported by the <see cref="Analyzers"/>.
+        /// </summary>
+        public ImmutableDictionary<SyntaxTree, ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>> SyntaxDiagnostics { get; private set; }
+
+        /// <summary>
+        /// Semantic diagnostics reported by the <see cref="Analyzers"/>.
+        /// </summary>
+        public ImmutableDictionary<SyntaxTree, ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>> SemanticDiagnostics { get; private set; }
+
+        /// <summary>
+        /// Compilation diagnostics reported by the <see cref="Analyzers"/>.
+        /// </summary>
+        public ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>> CompilationDiagnostics { get; private set; }
+
+        /// <summary>
+        /// Analyzer telemetry info (register action counts and execution times).
+        /// </summary>
+        public ImmutableDictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo> AnalyzerTelemetryInfo { get; private set; }
+
+        /// <summary>
+        /// Gets all the diagnostics reported by the given <paramref name="analyzer"/>.
+        /// </summary>
+        public ImmutableArray<Diagnostic> GetAllDiagnostics(DiagnosticAnalyzer analyzer)
         {
-            var map = new Dictionary<DiagnosticAnalyzer, TimeSpan>(analyzers.Length);
-            foreach (var analyzer in analyzers)
+            if (!Analyzers.Contains(analyzer))
             {
-                map[analyzer] = default(TimeSpan);
+                throw new ArgumentException(CodeAnalysisResources.UnsupportedAnalyzerInstance, nameof(analyzer));
             }
 
-            return map;
+            return GetDiagnostics(SpecializedCollections.SingletonEnumerable(analyzer), getLocalSyntaxDiagnostics: true, getLocalSemanticDiagnostics: true, getNonLocalDiagnostics: true);
         }
 
-        public TimeSpan GetAnalyzerExecutionTime(DiagnosticAnalyzer analyzer)
+        /// <summary>
+        /// Gets all the diagnostics reported by all the <see cref="Analyzers"/>.
+        /// </summary>
+        public ImmutableArray<Diagnostic> GetAllDiagnostics()
         {
-            Debug.Assert(_analyzerExecutionTimeOpt != null);
-
-            lock (_gate)
-            {
-                return _analyzerExecutionTimeOpt[analyzer];
-            }
+            return GetDiagnostics(Analyzers, getLocalSyntaxDiagnostics: true, getLocalSemanticDiagnostics: true, getNonLocalDiagnostics: true);
         }
 
-        public void StoreAnalysisResult(AnalysisScope analysisScope, AnalyzerDriver driver, Compilation compilation)
+        internal ImmutableArray<Diagnostic> GetSyntaxDiagnostics(ImmutableArray<DiagnosticAnalyzer> analyzers)
         {
-            foreach (var analyzer in analysisScope.Analyzers)
-            {
-                // Dequeue reported analyzer diagnostics from the driver and store them in our maps.
-                var syntaxDiagnostics = driver.DequeueLocalDiagnostics(analyzer, syntax: true, compilation: compilation);
-                var semanticDiagnostics = driver.DequeueLocalDiagnostics(analyzer, syntax: false, compilation: compilation);
-                var compilationDiagnostics = driver.DequeueNonLocalDiagnostics(analyzer, compilation);
+            return GetDiagnostics(analyzers, getLocalSyntaxDiagnostics: true, getLocalSemanticDiagnostics: false, getNonLocalDiagnostics: false);
+        }
 
-                lock (_gate)
+        internal ImmutableArray<Diagnostic> GetSemanticDiagnostics(ImmutableArray<DiagnosticAnalyzer> analyzers)
+        {
+            return GetDiagnostics(analyzers, getLocalSyntaxDiagnostics: false, getLocalSemanticDiagnostics: true, getNonLocalDiagnostics: false);
+        }
+
+        internal ImmutableArray<Diagnostic> GetDiagnostics(IEnumerable<DiagnosticAnalyzer> analyzers, bool getLocalSyntaxDiagnostics, bool getLocalSemanticDiagnostics, bool getNonLocalDiagnostics)
+        {
+            var excludedAnalyzers = Analyzers.Except(analyzers);
+            var excludedAnalyzersSet = excludedAnalyzers.Any() ? excludedAnalyzers.ToImmutableHashSet() : ImmutableHashSet<DiagnosticAnalyzer>.Empty;
+            return GetDiagnostics(excludedAnalyzersSet, getLocalSyntaxDiagnostics, getLocalSemanticDiagnostics, getNonLocalDiagnostics);
+        }
+
+        private ImmutableArray<Diagnostic> GetDiagnostics(ImmutableHashSet<DiagnosticAnalyzer> excludedAnalyzers, bool getLocalSyntaxDiagnostics, bool getLocalSemanticDiagnostics, bool getNonLocalDiagnostics)
+        {
+            if (SyntaxDiagnostics.Count > 0 || SemanticDiagnostics.Count > 0 || CompilationDiagnostics.Count > 0)
+            {
+                var builder = ImmutableArray.CreateBuilder<Diagnostic>();
+                if (getLocalSyntaxDiagnostics)
                 {
-                    if (syntaxDiagnostics.Length > 0 || semanticDiagnostics.Length > 0 || compilationDiagnostics.Length > 0)
+                    AddLocalDiagnostics(SyntaxDiagnostics, excludedAnalyzers, builder);
+                }
+
+                if (getLocalSemanticDiagnostics)
+                {
+                    AddLocalDiagnostics(SemanticDiagnostics, excludedAnalyzers, builder);
+                }
+
+                if (getNonLocalDiagnostics)
+                {
+                    AddNonLocalDiagnostics(CompilationDiagnostics, excludedAnalyzers, builder);
+                }
+
+                return builder.ToImmutable();
+            }
+
+            return ImmutableArray<Diagnostic>.Empty;
+        }
+
+        private static void AddLocalDiagnostics(
+            ImmutableDictionary<SyntaxTree, ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>>  localDiagnostics,
+            ImmutableHashSet<DiagnosticAnalyzer> excludedAnalyzers,
+            ImmutableArray<Diagnostic>.Builder builder)
+        {
+            foreach (var diagnosticsByTree in localDiagnostics)
+            {
+                foreach (var diagnosticsByAnalyzer in diagnosticsByTree.Value)
+                {
+                    if (excludedAnalyzers.Contains(diagnosticsByAnalyzer.Key))
                     {
-                        UpdateLocalDiagnostics_NoLock(analyzer, syntaxDiagnostics, ref _localSyntaxDiagnosticsOpt);
-                        UpdateLocalDiagnostics_NoLock(analyzer, semanticDiagnostics, ref _localSemanticDiagnosticsOpt);
-                        UpdateNonLocalDiagnostics_NoLock(analyzer, compilationDiagnostics);
+                        continue;
                     }
 
-                    if (_analyzerExecutionTimeOpt != null)
-                    {
-                        _analyzerExecutionTimeOpt[analyzer] += driver.ResetAnalyzerExecutionTime(analyzer);
-                    }
+                    builder.AddRange(diagnosticsByAnalyzer.Value);
                 }
             }
         }
 
-        private void UpdateLocalDiagnostics_NoLock(DiagnosticAnalyzer analyzer, ImmutableArray<Diagnostic> diagnostics, ref Dictionary<SyntaxTree, Dictionary<DiagnosticAnalyzer, List<Diagnostic>>> lazyLocalDiagnostics)
-        {
-            if (diagnostics.IsEmpty)
-            {
-                return;
-            }
-
-            lazyLocalDiagnostics = lazyLocalDiagnostics ?? new Dictionary<SyntaxTree, Dictionary<DiagnosticAnalyzer, List<Diagnostic>>>();
-
-            foreach (var diagsByTree in diagnostics.GroupBy(d => d.Location.SourceTree))
-            {
-                var tree = diagsByTree.Key;
-
-                Dictionary<DiagnosticAnalyzer, List<Diagnostic>> allDiagnostics;
-                if (!lazyLocalDiagnostics.TryGetValue(tree, out allDiagnostics))
-                {
-                    allDiagnostics = new Dictionary<DiagnosticAnalyzer, List<Diagnostic>>();
-                    lazyLocalDiagnostics[tree] = allDiagnostics;
-                }
-
-                List<Diagnostic> analyzerDiagnostics;
-                if (!allDiagnostics.TryGetValue(analyzer, out analyzerDiagnostics))
-                {
-                    analyzerDiagnostics = new List<Diagnostic>();
-                    allDiagnostics[analyzer] = analyzerDiagnostics;
-                }
-
-                analyzerDiagnostics.AddRange(diagsByTree);
-            }
-        }
-
-        private void UpdateNonLocalDiagnostics_NoLock(DiagnosticAnalyzer analyzer, ImmutableArray<Diagnostic> diagnostics)
-        {
-            if (diagnostics.IsEmpty)
-            {
-                return;
-            }
-
-            _nonLocalDiagnosticsOpt = _nonLocalDiagnosticsOpt ?? new Dictionary<DiagnosticAnalyzer, List<Diagnostic>>();
-
-            List<Diagnostic> currentDiagnostics;
-            if (!_nonLocalDiagnosticsOpt.TryGetValue(analyzer, out currentDiagnostics))
-            {
-                currentDiagnostics = new List<Diagnostic>();
-                _nonLocalDiagnosticsOpt[analyzer] = currentDiagnostics;
-            }
-
-            currentDiagnostics.AddRange(diagnostics);
-        }
-
-        public ImmutableArray<Diagnostic> GetDiagnostics(AnalysisScope analysisScope, bool getLocalDiagnostics, bool getNonLocalDiagnostics)
-        {
-            lock (_gate)
-            {
-                return GetDiagnostics_NoLock(analysisScope, getLocalDiagnostics, getNonLocalDiagnostics);
-            }
-        }
-
-        private ImmutableArray<Diagnostic> GetDiagnostics_NoLock(AnalysisScope analysisScope, bool getLocalDiagnostics, bool getNonLocalDiagnostics)
-        {
-            Debug.Assert(getLocalDiagnostics || getNonLocalDiagnostics);
-
-            var builder = ImmutableArray.CreateBuilder<Diagnostic>();
-            if (getLocalDiagnostics)
-            {
-                if (!analysisScope.IsTreeAnalysis)
-                {
-                    AddAllLocalDiagnostics_NoLock(_localSyntaxDiagnosticsOpt, analysisScope, builder);
-                    AddAllLocalDiagnostics_NoLock(_localSemanticDiagnosticsOpt, analysisScope, builder);
-                }
-                else if (analysisScope.IsSyntaxOnlyTreeAnalysis)
-                {
-                    AddLocalDiagnosticsForPartialAnalysis_NoLock(_localSyntaxDiagnosticsOpt, analysisScope, builder);
-                }
-                else
-                {
-                    AddLocalDiagnosticsForPartialAnalysis_NoLock(_localSemanticDiagnosticsOpt, analysisScope, builder);
-                }
-            }
-
-            if (getNonLocalDiagnostics && _nonLocalDiagnosticsOpt != null)
-            {
-                AddDiagnostics_NoLock(_nonLocalDiagnosticsOpt, analysisScope, builder);
-            }
-
-            return builder.ToImmutableArray();
-        }
-
-        private static void AddAllLocalDiagnostics_NoLock(
-            Dictionary<SyntaxTree, Dictionary<DiagnosticAnalyzer, List<Diagnostic>>> localDiagnostics,
-            AnalysisScope analysisScope,
+        private static void AddNonLocalDiagnostics(
+            ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>> nonLocalDiagnostics,
+            ImmutableHashSet<DiagnosticAnalyzer> excludedAnalyzers,
             ImmutableArray<Diagnostic>.Builder builder)
         {
-            if (localDiagnostics != null)
+            foreach (var diagnosticsByAnalyzer in nonLocalDiagnostics)
             {
-                foreach (var localDiagsByTree in localDiagnostics.Values)
+                if (excludedAnalyzers.Contains(diagnosticsByAnalyzer.Key))
                 {
-                    AddDiagnostics_NoLock(localDiagsByTree, analysisScope, builder);
+                    continue;
                 }
-            }
-        }
 
-        private static void AddLocalDiagnosticsForPartialAnalysis_NoLock(
-            Dictionary<SyntaxTree, Dictionary<DiagnosticAnalyzer, List<Diagnostic>>> localDiagnostics,
-            AnalysisScope analysisScope,
-            ImmutableArray<Diagnostic>.Builder builder)
-        {
-            Dictionary<DiagnosticAnalyzer, List<Diagnostic>> diagnosticsForTree;
-            if (localDiagnostics != null && localDiagnostics.TryGetValue(analysisScope.FilterTreeOpt, out diagnosticsForTree))
-            {
-                AddDiagnostics_NoLock(diagnosticsForTree, analysisScope, builder);
-            }
-        }
-
-        private static void AddDiagnostics_NoLock(
-            Dictionary<DiagnosticAnalyzer, List<Diagnostic>> diagnostics,
-            AnalysisScope analysisScope,
-            ImmutableArray<Diagnostic>.Builder builder)
-        {
-            Debug.Assert(diagnostics != null);
-
-            foreach (var analyzer in analysisScope.Analyzers)
-            {
-                List<Diagnostic> diagnosticsByAnalyzer;
-                if (diagnostics.TryGetValue(analyzer, out diagnosticsByAnalyzer))
-                {
-                    builder.AddRange(diagnosticsByAnalyzer);
-                }
+                builder.AddRange(diagnosticsByAnalyzer.Value);
             }
         }
     }

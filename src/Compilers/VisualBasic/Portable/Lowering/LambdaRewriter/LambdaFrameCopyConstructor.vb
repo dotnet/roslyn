@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly _parameters As ImmutableArray(Of ParameterSymbol)
 
-        Friend Sub New(syntaxNode As VisualBasicSyntaxNode, containingType As LambdaFrame)
+        Friend Sub New(syntaxNode As SyntaxNode, containingType As LambdaFrame)
             MyBase.New(syntaxNode, containingType)
 
             _parameters = ImmutableArray.Create(Of ParameterSymbol)(New SourceSimpleParameterSymbol(Me, "arg0", 0, containingType, Nothing))
@@ -39,5 +39,4 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
     End Class
-
 End Namespace

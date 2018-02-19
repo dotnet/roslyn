@@ -711,7 +711,7 @@ Class C
         For Each x In str
             System.Console.WriteLine(x)
         Next
-        For Each var In "foo"
+        For Each var In "goo"
             If Not var.[GetType]().Equals(GetType(Char)) Then
                 System.Console.WriteLine("False")
             End If
@@ -1962,13 +1962,13 @@ Option Infer On
 Imports System.Collections
 Class Program
     Public  Shared Sub Main()
-        Foo(sub(x)
+        Goo(sub(x)
                 For Each y In x
                 Next
             end sub )
     End Sub
 
-    Public Shared Sub Foo(a As System.Action(Of IEnumerable))
+    Public Shared Sub Goo(a As System.Action(Of IEnumerable))
         System.Console.WriteLine(1)
     End Sub
 
@@ -2273,7 +2273,7 @@ Class C1(Of S As {IEnumerator, IDisposable})
         Dim myCustomCollection As Custom(Of S) = nothing
 
         For Each element In myCustomCollection
-            Console.WriteLine("foo")
+            Console.WriteLine("goo")
         Next
     End Sub
 End Class 
@@ -2302,7 +2302,7 @@ End Class
   IL_0013:  callvirt   "Function System.Collections.IEnumerator.get_Current() As Object"
   IL_0018:  call       "Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object"
   IL_001d:  pop
-  IL_001e:  ldstr      "foo"
+  IL_001e:  ldstr      "goo"
   IL_0023:  call       "Sub System.Console.WriteLine(String)"
   IL_0028:  ldloca.s   V_1
   IL_002a:  constrained. "S"
@@ -2346,7 +2346,7 @@ Class C1(Of S As {IEnumerator, IDisposable, Structure})
         Dim myCustomCollection As Custom(Of S) = nothing
 
         For Each element In myCustomCollection
-            Console.WriteLine("foo")
+            Console.WriteLine("goo")
         Next
     End Sub
 End Class 
@@ -2375,7 +2375,7 @@ End Class
   IL_0013:  callvirt   "Function System.Collections.IEnumerator.get_Current() As Object"
   IL_0018:  call       "Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object"
   IL_001d:  pop
-  IL_001e:  ldstr      "foo"
+  IL_001e:  ldstr      "goo"
   IL_0023:  call       "Sub System.Console.WriteLine(String)"
   IL_0028:  ldloca.s   V_1
   IL_002a:  constrained. "S"
@@ -2771,7 +2771,7 @@ Module m1
         for j = 0 to 2
             ' test lifting of control variable in loop body and lifting of control variable when used 
             ' in the collection expression itself.
-            for each i as integer in (function(a) foo())(i)
+            for each i as integer in (function(a) goo())(i)
                 x(i) = sub() console.write(i.toString &amp; " ")
             next
 
@@ -2783,7 +2783,7 @@ Module m1
         next j
     End Sub
 
-    function foo() as IEnumerable(of Integer)
+    function goo() as IEnumerable(of Integer)
         return new list(of integer) from {1, 2, 3}
     end function
 End Module

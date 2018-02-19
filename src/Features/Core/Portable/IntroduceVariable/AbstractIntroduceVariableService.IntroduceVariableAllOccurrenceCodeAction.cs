@@ -26,7 +26,6 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
 
             protected override async Task<Document> PostProcessChangesAsync(Document document, CancellationToken cancellationToken)
             {
-                var optionSet = document.Project.Solution.Workspace.Options.WithChangedOption(FormattingOptions.AllowDisjointSpanMerging, true);
                 document = await Simplifier.ReduceAsync(document, Simplifier.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
                 document = await Formatter.FormatAsync(document, Formatter.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
                 document = await CaseCorrector.CaseCorrectAsync(document, CaseCorrector.Annotation, cancellationToken).ConfigureAwait(false);

@@ -6,10 +6,9 @@
 Option Compare Binary
 Option Strict On
 
-Imports System.Text
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis.Syntax.InternalSyntax
 Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
+Imports CoreInternalSyntax = Microsoft.CodeAnalysis.Syntax.InternalSyntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     Partial Friend Class Scanner
@@ -228,14 +227,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             ' // [14]    CharData    ::=    [^<&]* - ([^<&]* ']]>' [^<&]*)
 
-            Dim precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode) = Nothing
+            Dim precedingTrivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode) = Nothing
             If IsAtNewLine() OrElse _isStartingFirstXmlDocLine Then
                 Dim xDocTrivia = ScanXmlDocTrivia()
                 _isStartingFirstXmlDocLine = False           ' no longer starting
                 If xDocTrivia Is Nothing Then
                     Return MakeEofToken()  ' XmlDoc lines must start with XmlDocTrivia
                 End If
-                precedingTrivia = New SyntaxList(Of VisualBasicSyntaxNode)(xDocTrivia)
+                precedingTrivia = New CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)(xDocTrivia)
             End If
 
             Dim Here As Integer = 0
@@ -451,14 +450,14 @@ CleanUp:
             ' //  =
             ' //  Whitespace
 
-            Dim precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode) = Nothing
+            Dim precedingTrivia As CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode) = Nothing
 
             If IsAtNewLine() AndAlso Not Me._doNotRequireXmlDocCommentPrefix Then
                 Dim xDocTrivia = ScanXmlDocTrivia()
                 If xDocTrivia Is Nothing Then
                     Return MakeEofToken()  ' XmlDoc lines must start with XmlDocTrivia
                 End If
-                precedingTrivia = New SyntaxList(Of VisualBasicSyntaxNode)(xDocTrivia)
+                precedingTrivia = New CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)(xDocTrivia)
             End If
 
             While CanGet()

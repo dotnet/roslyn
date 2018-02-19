@@ -18,7 +18,11 @@ Public Class ParseVarDecl
                 dim j() as integer
                 dim k(,,) as integer
                 dim m(10) as integer
+
                 dim n(10)(,,) as integer
+                dim o as (integer, integer)
+                dim p as (a as integer, b as (c as integer, d as integer))
+                dim q as (a as integer, b as (c as integer, d as integer))?()
 
                 public public_i as integer
                 friend friend_i as integer
@@ -36,6 +40,11 @@ Public Class ParseVarDecl
                 dim m(10) as integer
                 dim n(10)(,,) as integer
 
+                dim n(10)(,,) as integer
+                dim o as (integer, integer)
+                dim p as (a as integer, b as (c as integer, d as integer))
+                dim q as (a as integer, b as (c as integer, d as integer))?()
+
                 public public_i as integer
                 friend friend_i as integer
                 shared shared_i as integer
@@ -51,6 +60,11 @@ Public Class ParseVarDecl
                 dim k(,,) as integer
                 dim m(10) as integer
                 dim n(10)(,,) as integer
+
+                dim n(10)(,,) as integer
+                dim o as (integer, integer)
+                dim p as (a as integer, b as (c as integer, d as integer))
+                dim q as (a as integer, b as (c as integer, d as integer))?()
 
                 public public_i as integer
                 friend friend_i as integer
@@ -71,7 +85,7 @@ Public Class ParseVarDecl
                 Private i3(10)(,,) As Integer
                 Private i4 As Integer() = {1,2,3} 
                 Private i5 As New Integer()
-                'Private c1 = New List(Of Integer) From {1, 2, 3} 'ParseTerm does not support New expression yet
+                Private c1 = New List(Of Integer) From {1, 2, 3} 
                 private c2 as new customer with {.a = 1, .b = 2, .c = 3}
             End Class
         ]]>)
@@ -119,7 +133,7 @@ Public Class ParseVarDecl
 
     <WorkItem(898582, "DevDiv/Personal")>
     <Fact>
-    Public Sub ParseIncorrectShorArr()
+    Public Sub ParseIncorrectShortArr()
         ParseAndVerify(<![CDATA[
             Sub ArExtNewErr001()
 FixedRankArray_19 = New Short() (1,
@@ -236,7 +250,7 @@ End Class
         ParseAndVerify(<![CDATA[
 Module Program
     Sub Main()
-        Dim [foo as integer = 23 
+        Dim [goo as integer = 23 
         Dim [goo As Char = "d"c
 
         Dim [ as integer = 23 
@@ -252,7 +266,7 @@ Module Program
     End Sub
 End Module
             ]]>, Diagnostic(ERRID.ERR_ExpectedIdentifier, ""),
-                 Diagnostic(ERRID.ERR_MissingEndBrack, "[foo"),
+                 Diagnostic(ERRID.ERR_MissingEndBrack, "[goo"),
                  Diagnostic(ERRID.ERR_ExpectedIdentifier, ""),
                  Diagnostic(ERRID.ERR_MissingEndBrack, "[goo"),
                  Diagnostic(ERRID.ERR_ExpectedIdentifier, ""),

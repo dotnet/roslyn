@@ -130,6 +130,7 @@ Executes script-file.csx if specified, otherwise launches an interactive REPL (R
 
 Options:
   /help                          Display this usage message (alternative form: /?)
+  /version                       Display the version and exit
   /i                             Drop to REPL after executing the specified script.
   /r:<file>                      Reference metadata from the specified assembly file (alternative form: /reference)
   /r:<file list>                 Reference metadata from the specified assembly files (alternative form: /reference)

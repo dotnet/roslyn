@@ -1,24 +1,16 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Text;
 using System.Collections.ObjectModel;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Type = Microsoft.VisualStudio.Debugger.Metadata.Type;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {
     internal sealed partial class CSharpFormatter : Formatter
     {
-        /// <summary>
-        /// Singleton instance of CSharpFormatter (created using default constructor).
-        /// </summary>
-        internal readonly static CSharpFormatter Instance = new CSharpFormatter();
-
         public CSharpFormatter()
-            : base(defaultFormat: "{{{0}}}",
-                   nullString: "null",
-                   staticMembersString: Resources.StaticMembers)
+            : base(defaultFormat: "{{{0}}}", nullString: "null", thisString: "this")
         {
         }
 

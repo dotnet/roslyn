@@ -111,7 +111,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                         access = Accessibility.Protected
 
                     Case Else
-                        Debug.Assert(False, "Unexpected!!!")
+                        access = Accessibility.Private
                 End Select
 
                 Return access
@@ -340,6 +340,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 Dim moduleSymbol = _containingType.ContainingPEModule
                 Dim customModifiers As ImmutableArray(Of ModifierInfo(Of TypeSymbol)) = Nothing
                 Dim type As TypeSymbol = New MetadataDecoder(moduleSymbol, _containingType).DecodeFieldSignature(_handle, Nothing, customModifiers)
+
+                type = TupleTypeDecoder.DecodeTupleTypesIfApplicable(type, _handle, moduleSymbol)
 
                 ImmutableInterlocked.InterlockedCompareExchange(_lazyCustomModifiers, VisualBasicCustomModifier.Convert(customModifiers), Nothing)
                 Interlocked.CompareExchange(_lazyType, type, Nothing)

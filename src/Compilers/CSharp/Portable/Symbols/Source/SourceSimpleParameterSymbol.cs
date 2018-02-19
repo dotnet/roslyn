@@ -1,13 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
-using System.Diagnostics;
-using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -53,6 +47,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ImmutableArray<CustomModifier>.Empty; }
         }
 
+        public override ImmutableArray<CustomModifier> RefCustomModifiers
+        {
+            get { return ImmutableArray<CustomModifier>.Empty; }
+        }
+
         internal override SyntaxReference SyntaxReference
         {
             get { return null; }
@@ -61,16 +60,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool IsExtensionMethodThis
         {
             get { return false; }
-        }
-
-        internal override bool IsMetadataIn
-        {
-            get { return false; }
-        }
-
-        internal override bool IsMetadataOut
-        {
-            get { return RefKind == RefKind.Out; }
         }
 
         internal override bool IsIDispatchConstant

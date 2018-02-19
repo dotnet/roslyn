@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.Linq;
+using System.Collections.Immutable;
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.Emit;
@@ -36,51 +36,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        IEnumerable<int> Cci.IArrayTypeReference.LowerBounds
-        {
-            get
-            {
-                var lowerBounds = this.LowerBounds;
-
-                if (lowerBounds.IsDefault)
-                {
-                    return Enumerable.Repeat(0, Rank);
-                }
-                else
-                {
-                    return lowerBounds;
-                }
-            }
-        }
-
-        uint Cci.IArrayTypeReference.Rank
-        {
-            get
-            {
-                return (uint)this.Rank;
-            }
-        }
-
-        IEnumerable<ulong> Cci.IArrayTypeReference.Sizes
-        {
-            get
-            {
-                if (this.Sizes.IsEmpty)
-                {
-                    return SpecializedCollections.EmptyEnumerable<ulong>();
-                }
-
-                return GetSizes();
-            }
-        }
-
-        private IEnumerable<ulong> GetSizes()
-        {
-            foreach (var size in this.Sizes)
-            {
-                yield return (ulong)size;
-            }
-        }
+        ImmutableArray<int> Cci.IArrayTypeReference.LowerBounds => LowerBounds;
+        int Cci.IArrayTypeReference.Rank => Rank;
+        ImmutableArray<int> Cci.IArrayTypeReference.Sizes => Sizes;
 
         void Cci.IReference.Dispatch(Cci.MetadataVisitor visitor)
         {
@@ -91,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         bool Cci.ITypeReference.IsValueType => false;
 
         TypeDefinitionHandle Cci.ITypeReference.TypeDef => default(TypeDefinitionHandle);
-        Cci.PrimitiveTypeCode Cci.ITypeReference.TypeCode(EmitContext context) => Cci.PrimitiveTypeCode.NotPrimitive;
+        Cci.PrimitiveTypeCode Cci.ITypeReference.TypeCode => Cci.PrimitiveTypeCode.NotPrimitive;
 
         Cci.ITypeDefinition Cci.ITypeReference.GetResolvedType(EmitContext context) => null;
         Cci.IGenericMethodParameterReference Cci.ITypeReference.AsGenericMethodParameterReference => null;

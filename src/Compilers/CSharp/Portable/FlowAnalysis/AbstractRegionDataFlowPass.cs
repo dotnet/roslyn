@@ -2,9 +2,9 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -33,13 +33,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             SetState(ReachableState());
             MakeSlots(MethodParameters);
             if ((object)MethodThisParameter != null) GetOrCreateSlot(MethodThisParameter);
-            return base.Scan(ref badRegion);
+            var result = base.Scan(ref badRegion);
+            return result;
         }
 
         public override BoundNode VisitLambda(BoundLambda node)
         {
             MakeSlots(node.Symbol.Parameters);
             return base.VisitLambda(node);
+        }
+
+        public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
+        {
+            MakeSlots(node.Symbol.Parameters);
+            return base.VisitLocalFunctionStatement(node);
         }
 
         private void MakeSlots(ImmutableArray<ParameterSymbol> parameters)

@@ -37,6 +37,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override Symbol ContainingSymbol { get { return _containingSymbol; } }
 
+        public override RefKind RefKind { get { return RefKind.None; } }
+
         public override TypeSymbol Type { get { return _type; } }
 
         public override string Name { get { return _name; } }
@@ -82,5 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override ImmutableArray<PropertySymbol> ExplicitInterfaceImplementations { get { return ImmutableArray<PropertySymbol>.Empty; } }
 
         public override ImmutableArray<CustomModifier> TypeCustomModifiers { get { return ImmutableArray<CustomModifier>.Empty; } }
+
+        public override ImmutableArray<CustomModifier> RefCustomModifiers { get { return ImmutableArray<CustomModifier>.Empty; } }
     }
 }

@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         private void TestParseVersion(string value)
         {
-            string displayName = "Foo, Version=" + value;
+            string displayName = "Goo, Version=" + value;
             var fusion = FusionAssemblyIdentity.ToAssemblyIdentity(FusionAssemblyIdentity.ToAssemblyNameObject(displayName));
 
             AssemblyIdentity id = null;
@@ -119,38 +119,38 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void GetDisplayName()
         {
-            var id = new AssemblyIdentity("foo");
-            Assert.Equal("foo, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", id.GetDisplayName());
+            var id = new AssemblyIdentity("goo");
+            Assert.Equal("goo, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", id.GetDisplayName());
 
-            id = new AssemblyIdentity("foo", new Version(1, 2, 3, 4));
-            Assert.Equal("foo, Version=1.2.3.4, Culture=neutral, PublicKeyToken=null", id.GetDisplayName());
+            id = new AssemblyIdentity("goo", new Version(1, 2, 3, 4));
+            Assert.Equal("goo, Version=1.2.3.4, Culture=neutral, PublicKeyToken=null", id.GetDisplayName());
 
-            id = new AssemblyIdentity("foo", cultureName: "en-US");
-            Assert.Equal("foo, Version=0.0.0.0, Culture=en-US, PublicKeyToken=null", id.GetDisplayName());
+            id = new AssemblyIdentity("goo", cultureName: "en-US");
+            Assert.Equal("goo, Version=0.0.0.0, Culture=en-US, PublicKeyToken=null", id.GetDisplayName());
 
-            id = new AssemblyIdentity("foo", publicKeyOrToken: new byte[] { 0x01, 0x23, 0x45, 0x67, 0x89, 0xAB, 0xCD, 0xEF }.AsImmutableOrNull());
-            Assert.Equal("foo, Version=0.0.0.0, Culture=neutral, PublicKeyToken=0123456789abcdef", id.GetDisplayName(), StringComparer.OrdinalIgnoreCase);
+            id = new AssemblyIdentity("goo", publicKeyOrToken: new byte[] { 0x01, 0x23, 0x45, 0x67, 0x89, 0xAB, 0xCD, 0xEF }.AsImmutableOrNull());
+            Assert.Equal("goo, Version=0.0.0.0, Culture=neutral, PublicKeyToken=0123456789abcdef", id.GetDisplayName(), StringComparer.OrdinalIgnoreCase);
 
-            id = new AssemblyIdentity("foo", isRetargetable: true);
-            Assert.Equal("foo, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null, Retargetable=Yes", id.GetDisplayName());
+            id = new AssemblyIdentity("goo", isRetargetable: true);
+            Assert.Equal("goo, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null, Retargetable=Yes", id.GetDisplayName());
 
-            id = new AssemblyIdentity("foo", contentType: AssemblyContentType.WindowsRuntime);
-            Assert.Equal("foo, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null, ContentType=WindowsRuntime", id.GetDisplayName());
+            id = new AssemblyIdentity("goo", contentType: AssemblyContentType.WindowsRuntime);
+            Assert.Equal("goo, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null, ContentType=WindowsRuntime", id.GetDisplayName());
 
-            id = new AssemblyIdentity("Foo", publicKeyOrToken: RoPublicKey1, hasPublicKey: true);
+            id = new AssemblyIdentity("Goo", publicKeyOrToken: RoPublicKey1, hasPublicKey: true);
             string dn1 = id.GetDisplayName();
             string dn2 = id.GetDisplayName(fullKey: false);
             Assert.True(ReferenceEquals(dn1, dn2), "cached full name expected");
-            Assert.Equal("Foo, Version=0.0.0.0, Culture=neutral, PublicKeyToken=" + StrPublicKeyToken1, dn1);
+            Assert.Equal("Goo, Version=0.0.0.0, Culture=neutral, PublicKeyToken=" + StrPublicKeyToken1, dn1);
 
             string dnFull = id.GetDisplayName(fullKey: true);
-            Assert.Equal("Foo, Version=0.0.0.0, Culture=neutral, PublicKey=" + StrPublicKey1, dnFull);
+            Assert.Equal("Goo, Version=0.0.0.0, Culture=neutral, PublicKey=" + StrPublicKey1, dnFull);
 
-            id = new AssemblyIdentity("Foo", cultureName: "neutral");
-            Assert.Equal("Foo, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", id.GetDisplayName());
+            id = new AssemblyIdentity("Goo", cultureName: "neutral");
+            Assert.Equal("Goo, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", id.GetDisplayName());
 
-            id = new AssemblyIdentity("Foo", cultureName: "  '\t\r\n\\=,  ");
-            Assert.Equal(@"Foo, Version=0.0.0.0, Culture=""  \'\t\r\n\\\=\,  "", PublicKeyToken=null", id.GetDisplayName());
+            id = new AssemblyIdentity("Goo", cultureName: "  '\t\r\n\\=,  ");
+            Assert.Equal(@"Goo, Version=0.0.0.0, Culture=""  \'\t\r\n\\\=\,  "", PublicKeyToken=null", id.GetDisplayName());
         }
 
         [Fact]
@@ -309,7 +309,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // invalid characters:
             foreach (var c in ClrInvalidCharacters)
             {
-                TestParseSimpleName("foo" + c, "foo" + c);
+                TestParseSimpleName("goo" + c, "goo" + c);
             }
 
             TestParseSimpleName("'*', Version=1.0.0.0", expected: "*", expectedFusion: null);
@@ -364,57 +364,57 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             TestParseDisplayName("", null);
             TestParseDisplayName("fo=o, Culture=neutral, Version=1.0.0.0", null);
-            TestParseDisplayName("foo, Culture=neutral, Version,1.0.0.0", null);
+            TestParseDisplayName("goo, Culture=neutral, Version,1.0.0.0", null);
 
             // custom properties:
-            TestParseDisplayName("foo, A=B",
-                new AssemblyIdentity("foo"), N | AssemblyIdentityParts.Unknown);
+            TestParseDisplayName("goo, A=B",
+                new AssemblyIdentity("goo"), N | AssemblyIdentityParts.Unknown);
 
             // we don't allow CT=WinRT + Retargetable, fusion does.
             Assert.False(
-                AssemblyIdentity.TryParseDisplayName("foo, Version=1.0.0.0, Culture=en-US, Retargetable=Yes, ContentType=WindowsRuntime, PublicKeyToken=" + StrPublicKeyToken1, out id));
+                AssemblyIdentity.TryParseDisplayName("goo, Version=1.0.0.0, Culture=en-US, Retargetable=Yes, ContentType=WindowsRuntime, PublicKeyToken=" + StrPublicKeyToken1, out id));
 
             // order
-            TestParseDisplayName("foo, Culture=neutral, Version=1.0.0.0",
-                new AssemblyIdentity("foo", new Version(1, 0, 0, 0)), NVC);
+            TestParseDisplayName("goo, Culture=neutral, Version=1.0.0.0",
+                new AssemblyIdentity("goo", new Version(1, 0, 0, 0)), NVC);
 
-            TestParseDisplayName("foo, Version=1.0.0.0, Culture=en-US, Retargetable=Yes, PublicKeyToken=" + StrPublicKeyToken1,
-                new AssemblyIdentity("foo", new Version(1, 0, 0, 0), "en-US", RoPublicKeyToken1, hasPublicKey: false, isRetargetable: true),
+            TestParseDisplayName("goo, Version=1.0.0.0, Culture=en-US, Retargetable=Yes, PublicKeyToken=" + StrPublicKeyToken1,
+                new AssemblyIdentity("goo", new Version(1, 0, 0, 0), "en-US", RoPublicKeyToken1, hasPublicKey: false, isRetargetable: true),
                 NVCT | AssemblyIdentityParts.Retargetability);
 
-            TestParseDisplayName("foo, PublicKey=" + StrPublicKey1 + ", Version=1.0.0.1",
-                new AssemblyIdentity("foo", new Version(1, 0, 0, 1), publicKeyOrToken: RoPublicKey1, hasPublicKey: true),
+            TestParseDisplayName("goo, PublicKey=" + StrPublicKey1 + ", Version=1.0.0.1",
+                new AssemblyIdentity("goo", new Version(1, 0, 0, 1), publicKeyOrToken: RoPublicKey1, hasPublicKey: true),
                 NVK);
 
-            TestParseDisplayName(@"Foo, Version=0.0.0.0, Culture=""  \'\t\r\n\\\=\,  "", PublicKeyToken=null",
-                new AssemblyIdentity("Foo", cultureName: "  '\t\r\n\\=,  "),
+            TestParseDisplayName(@"Goo, Version=0.0.0.0, Culture=""  \'\t\r\n\\\=\,  "", PublicKeyToken=null",
+                new AssemblyIdentity("Goo", cultureName: "  '\t\r\n\\=,  "),
                 NVCT);
 
             // duplicates
-            TestParseDisplayName("foo, Version=1.0.0.0, Version=1.0.0.0", null);
-            TestParseDisplayName("foo, Version=1.0.0.0, Version=2.0.0.0", null);
-            TestParseDisplayName("foo, Culture=neutral, Version=1.0.0.0, Culture=en-US", null);
+            TestParseDisplayName("goo, Version=1.0.0.0, Version=1.0.0.0", null);
+            TestParseDisplayName("goo, Version=1.0.0.0, Version=2.0.0.0", null);
+            TestParseDisplayName("goo, Culture=neutral, Version=1.0.0.0, Culture=en-US", null);
         }
 
         [Fact]
         public void TryParseDisplayName_Version()
         {
-            TestParseDisplayName("Version=1.2.3.4, foo", null);
+            TestParseDisplayName("Version=1.2.3.4, goo", null);
             TestParseDisplayName("Version=1.2.3.4", null);
 
             TestParseDisplayName("Version=", null);
-            TestParseDisplayName("foo, Version=", null);
-            TestParseDisplayName("foo, Version", null);
+            TestParseDisplayName("goo, Version=", null);
+            TestParseDisplayName("goo, Version", null);
 
-            TestParseDisplayName("foo, Version=1",
-                new AssemblyIdentity("foo", new Version(1, 0, 0, 0)), N | AssemblyIdentityParts.VersionMajor);
+            TestParseDisplayName("goo, Version=1",
+                new AssemblyIdentity("goo", new Version(1, 0, 0, 0)), N | AssemblyIdentityParts.VersionMajor);
 
-            TestParseDisplayName("foo, Version=.", new AssemblyIdentity("foo"), N);
-            TestParseDisplayName("foo, Version=..", new AssemblyIdentity("foo"), N);
-            TestParseDisplayName("foo, Version=...", new AssemblyIdentity("foo"), N);
+            TestParseDisplayName("goo, Version=.", new AssemblyIdentity("goo"), N);
+            TestParseDisplayName("goo, Version=..", new AssemblyIdentity("goo"), N);
+            TestParseDisplayName("goo, Version=...", new AssemblyIdentity("goo"), N);
 
-            TestParseDisplayName("foo, Version=*, Culture=en-US",
-                new AssemblyIdentity("foo", cultureName: "en-US"),
+            TestParseDisplayName("goo, Version=*, Culture=en-US",
+                new AssemblyIdentity("goo", cultureName: "en-US"),
                 AssemblyIdentityParts.Name | AssemblyIdentityParts.Culture);
         }
 
@@ -492,80 +492,80 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void TryParseDisplayName_Culture()
         {
-            TestParseDisplayName("foo, Version=1.0.0.1, Culture=null",
-                new AssemblyIdentity("foo", new Version(1, 0, 0, 1), cultureName: "null"), NVC);
+            TestParseDisplayName("goo, Version=1.0.0.1, Culture=null",
+                new AssemblyIdentity("goo", new Version(1, 0, 0, 1), cultureName: "null"), NVC);
 
-            TestParseDisplayName("foo, Version=1.0.0.1, cULture=en-US",
-                new AssemblyIdentity("foo", new Version(1, 0, 0, 1), cultureName: "en-US"), NVC);
+            TestParseDisplayName("goo, Version=1.0.0.1, cULture=en-US",
+                new AssemblyIdentity("goo", new Version(1, 0, 0, 1), cultureName: "en-US"), NVC);
 
-            TestParseDisplayName("foo, Version=1.0.0.1, Language=en-US",
-                new AssemblyIdentity("foo", new Version(1, 0, 0, 1), cultureName: "en-US"), NVC);
+            TestParseDisplayName("goo, Version=1.0.0.1, Language=en-US",
+                new AssemblyIdentity("goo", new Version(1, 0, 0, 1), cultureName: "en-US"), NVC);
 
-            TestParseDisplayName("foo, Version=1.0.0.1, languagE=en-US",
-                new AssemblyIdentity("foo", new Version(1, 0, 0, 1), cultureName: "en-US"), NVC);
+            TestParseDisplayName("goo, Version=1.0.0.1, languagE=en-US",
+                new AssemblyIdentity("goo", new Version(1, 0, 0, 1), cultureName: "en-US"), NVC);
 
-            TestParseDisplayName("foo, Culture=*, Version=1.0.0.1",
-                new AssemblyIdentity("foo", new Version(1, 0, 0, 1)), NV);
+            TestParseDisplayName("goo, Culture=*, Version=1.0.0.1",
+                new AssemblyIdentity("goo", new Version(1, 0, 0, 1)), NV);
 
-            TestParseDisplayName("foo, Culture=*", new AssemblyIdentity("foo"), N);
+            TestParseDisplayName("goo, Culture=*", new AssemblyIdentity("goo"), N);
 
-            TestParseDisplayName("foo, Culture=*, Culture=en-US, Version=1.0.0.1", null);
+            TestParseDisplayName("goo, Culture=*, Culture=en-US, Version=1.0.0.1", null);
 
-            TestParseDisplayName("Foo, Version=1.0.0.0, Culture='neutral', PublicKeyToken=null",
-                new AssemblyIdentity("Foo", new Version(1, 0, 0, 0), cultureName: null), NVCT);
+            TestParseDisplayName("Goo, Version=1.0.0.0, Culture='neutral', PublicKeyToken=null",
+                new AssemblyIdentity("Goo", new Version(1, 0, 0, 0), cultureName: null), NVCT);
         }
 
         [Fact]
         public void TryParseDisplayName_Keys()
         {
             // empty keys:
-            TestParseDisplayName("foo, PublicKeyToken=null, Version=1.0.0.1",
-                new AssemblyIdentity("foo", new Version(1, 0, 0, 1)), NVT);
+            TestParseDisplayName("goo, PublicKeyToken=null, Version=1.0.0.1",
+                new AssemblyIdentity("goo", new Version(1, 0, 0, 1)), NVT);
 
-            TestParseDisplayName("foo, PublicKeyToken=neutral, Version=1.0.0.1",
-                new AssemblyIdentity("foo", new Version(1, 0, 0, 1)), NVT);
+            TestParseDisplayName("goo, PublicKeyToken=neutral, Version=1.0.0.1",
+                new AssemblyIdentity("goo", new Version(1, 0, 0, 1)), NVT);
 
-            TestParseDisplayName("foo, PublicKeyToken=*, Version=1.0.0.1",
-                new AssemblyIdentity("foo", new Version(1, 0, 0, 1)), NV);
+            TestParseDisplayName("goo, PublicKeyToken=*, Version=1.0.0.1",
+                new AssemblyIdentity("goo", new Version(1, 0, 0, 1)), NV);
 
-            TestParseDisplayName("foo, PublicKey=null, Version=1.0.0.1", null);
-            TestParseDisplayName("foo, PublicKey=neutral, Version=1.0.0.1", null);
+            TestParseDisplayName("goo, PublicKey=null, Version=1.0.0.1", null);
+            TestParseDisplayName("goo, PublicKey=neutral, Version=1.0.0.1", null);
 
-            TestParseDisplayName("foo, PublicKey=*, Version=1.0.0.1",
-                new AssemblyIdentity("foo", new Version(1, 0, 0, 1)), NV);
+            TestParseDisplayName("goo, PublicKey=*, Version=1.0.0.1",
+                new AssemblyIdentity("goo", new Version(1, 0, 0, 1)), NV);
 
             // keys
-            TestParseDisplayName("foo, PublicKeyToken=, Version=1.0.0.1", null);
-            TestParseDisplayName("foo, PublicKeyToken=1, Version=1.0.0.1", null);
-            TestParseDisplayName("foo, PublicKeyToken=111111111111111, Version=1.0.0.1", null);
-            TestParseDisplayName("foo, PublicKeyToken=1111111111111111111, Version=1.0.0.1", null);
-            TestParseDisplayName("foo, PublicKey=1, Version=1.0.0.1", null);
-            TestParseDisplayName("foo, PublicKey=1000000040000000", null);
-            TestParseDisplayName("foo, PublicKey=11, Version=1.0.0.1", null);
+            TestParseDisplayName("goo, PublicKeyToken=, Version=1.0.0.1", null);
+            TestParseDisplayName("goo, PublicKeyToken=1, Version=1.0.0.1", null);
+            TestParseDisplayName("goo, PublicKeyToken=111111111111111, Version=1.0.0.1", null);
+            TestParseDisplayName("goo, PublicKeyToken=1111111111111111111, Version=1.0.0.1", null);
+            TestParseDisplayName("goo, PublicKey=1, Version=1.0.0.1", null);
+            TestParseDisplayName("goo, PublicKey=1000000040000000", null);
+            TestParseDisplayName("goo, PublicKey=11, Version=1.0.0.1", null);
 
             // TODO: need to calculate the correct token for the ECMA key.
-            // TestParseDisplayName("foo, PublicKey=0000000040000000",
+            // TestParseDisplayName("goo, PublicKey=0000000040000000",
             //    expectedParts: 0,
             //    expectedFusion: null, // Fusion rejects the ECMA key.
-            //    expected: new AssemblyIdentity("foo", hasPublicKey: true, publicKeyOrToken: new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0 }.AsImmutable()));
+            //    expected: new AssemblyIdentity("goo", hasPublicKey: true, publicKeyOrToken: new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0 }.AsImmutable()));
 
             // if public key token calculated from public key matches, then it's ok to specify both
-            TestParseDisplayName("foo, Culture=neutral, Version=1.0.0.0, PublicKey=" + StrPublicKey1 + ", PublicKeyToken=" + StrPublicKeyToken1,
-                new AssemblyIdentity("foo", new Version(1, 0, 0, 0), publicKeyOrToken: RoPublicKey1, hasPublicKey: true), NVC | AssemblyIdentityParts.PublicKeyOrToken);
+            TestParseDisplayName("goo, Culture=neutral, Version=1.0.0.0, PublicKey=" + StrPublicKey1 + ", PublicKeyToken=" + StrPublicKeyToken1,
+                new AssemblyIdentity("goo", new Version(1, 0, 0, 0), publicKeyOrToken: RoPublicKey1, hasPublicKey: true), NVC | AssemblyIdentityParts.PublicKeyOrToken);
 
-            TestParseDisplayName("foo, Culture=neutral, Version=1.0.0.0, PublicKey=" + StrPublicKey1 + ", PublicKeyToken=1111111111111111", null);
+            TestParseDisplayName("goo, Culture=neutral, Version=1.0.0.0, PublicKey=" + StrPublicKey1 + ", PublicKeyToken=1111111111111111", null);
         }
 
         [Fact]
         public void TryParseDisplayName_ContentType()
         {
-            TestParseDisplayName("foo, Version=1.0.0.1, ContentType=WindowsRuntime",
-                new AssemblyIdentity("foo", new Version(1, 0, 0, 1), contentType: AssemblyContentType.WindowsRuntime), NV | AssemblyIdentityParts.ContentType);
+            TestParseDisplayName("goo, Version=1.0.0.1, ContentType=WindowsRuntime",
+                new AssemblyIdentity("goo", new Version(1, 0, 0, 1), contentType: AssemblyContentType.WindowsRuntime), NV | AssemblyIdentityParts.ContentType);
 
-            TestParseDisplayName("foo, Version=1.0.0.1, ContentType=*",
-                new AssemblyIdentity("foo", new Version(1, 0, 0, 1)), NV);
+            TestParseDisplayName("goo, Version=1.0.0.1, ContentType=*",
+                new AssemblyIdentity("goo", new Version(1, 0, 0, 1)), NV);
 
-            TestParseDisplayName("foo, Version=1.0.0.1, ContentType=Default", null);
+            TestParseDisplayName("goo, Version=1.0.0.1, ContentType=Default", null);
         }
 
         [Fact]
@@ -573,30 +573,30 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             // for some reason the Fusion rejects to parse Retargetable if they are not full names
 
-            TestParseDisplayName("foo, Version=1.0.0.0, Culture=neutral, PublicKeyToken=" + StrPublicKeyToken1 + ", Retargetable=yEs",
-                new AssemblyIdentity("foo", new Version(1, 0, 0, 0), publicKeyOrToken: RoPublicKeyToken1, isRetargetable: true),
+            TestParseDisplayName("goo, Version=1.0.0.0, Culture=neutral, PublicKeyToken=" + StrPublicKeyToken1 + ", Retargetable=yEs",
+                new AssemblyIdentity("goo", new Version(1, 0, 0, 0), publicKeyOrToken: RoPublicKeyToken1, isRetargetable: true),
                 NVCT | AssemblyIdentityParts.Retargetability);
 
-            TestParseDisplayName("foo, Version=1.0.0.0, Culture=neutral, PublicKeyToken=" + StrPublicKeyToken1 + ", Retargetable=*",
-                new AssemblyIdentity("foo", new Version(1, 0, 0, 0), publicKeyOrToken: RoPublicKeyToken1),
+            TestParseDisplayName("goo, Version=1.0.0.0, Culture=neutral, PublicKeyToken=" + StrPublicKeyToken1 + ", Retargetable=*",
+                new AssemblyIdentity("goo", new Version(1, 0, 0, 0), publicKeyOrToken: RoPublicKeyToken1),
                 NVCT);
 
-            TestParseDisplayName("foo, Version=1.0.0.0, Culture=neutral, PublicKeyToken=" + StrPublicKeyToken1 + ", retargetable=NO",
-                new AssemblyIdentity("foo", new Version(1, 0, 0, 0), publicKeyOrToken: RoPublicKeyToken1),
+            TestParseDisplayName("goo, Version=1.0.0.0, Culture=neutral, PublicKeyToken=" + StrPublicKeyToken1 + ", retargetable=NO",
+                new AssemblyIdentity("goo", new Version(1, 0, 0, 0), publicKeyOrToken: RoPublicKeyToken1),
                 NVCT | AssemblyIdentityParts.Retargetability);
 
-            TestParseDisplayName("foo, Version=1.0.0.0, Culture=neutral, PublicKeyToken=" + StrPublicKeyToken1 + ", Retargetable=Bar",
+            TestParseDisplayName("goo, Version=1.0.0.0, Culture=neutral, PublicKeyToken=" + StrPublicKeyToken1 + ", Retargetable=Bar",
                 null);
 
-            TestParseDisplayName("foo, Version=1.0.0.1, Retargetable=*",
-                new AssemblyIdentity("foo", new Version(1, 0, 0, 1)), NV);
+            TestParseDisplayName("goo, Version=1.0.0.1, Retargetable=*",
+                new AssemblyIdentity("goo", new Version(1, 0, 0, 1)), NV);
 
-            TestParseDisplayName("foo, Version=1.0.0.1, Retargetable=No",
-                new AssemblyIdentity("foo", new Version(1, 0, 0, 1)), NV | AssemblyIdentityParts.Retargetability,
+            TestParseDisplayName("goo, Version=1.0.0.1, Retargetable=No",
+                new AssemblyIdentity("goo", new Version(1, 0, 0, 1)), NV | AssemblyIdentityParts.Retargetability,
                 expectedFusion: null);
 
-            TestParseDisplayName("foo, Version=1.0.0.1, retargetable=YEs",
-                new AssemblyIdentity("foo", new Version(1, 0, 0, 1), isRetargetable: true), NV | AssemblyIdentityParts.Retargetability,
+            TestParseDisplayName("goo, Version=1.0.0.1, retargetable=YEs",
+                new AssemblyIdentity("goo", new Version(1, 0, 0, 1), isRetargetable: true), NV | AssemblyIdentityParts.Retargetability,
                 expectedFusion: null);
         }
     }

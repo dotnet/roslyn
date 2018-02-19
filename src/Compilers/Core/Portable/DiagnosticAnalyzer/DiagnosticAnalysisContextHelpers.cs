@@ -2,7 +2,10 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -73,10 +76,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private static void VerifyDiagnosticLocationInCompilation(string id, Location location, Compilation compilation)
         {
-            if (location.IsInSource && !compilation.ContainsSyntaxTree(location.SourceTree))
+            if (!location.IsInSource)
+            {
+                return;
+            }
+
+            if (!compilation.ContainsSyntaxTree(location.SourceTree))
             {
                 // Disallow diagnostics with source locations outside this compilation.
                 throw new ArgumentException(string.Format(CodeAnalysisResources.InvalidDiagnosticLocationReported, id, location.SourceTree.FilePath), "diagnostic");
+            }
+
+            if (location.SourceSpan.End > location.SourceTree.Length)
+            {
+                // Disallow diagnostics with source locations outside this compilation.
+                throw new ArgumentException(string.Format(CodeAnalysisResources.InvalidDiagnosticSpanReported, id, location.SourceSpan, location.SourceTree.FilePath), "diagnostic");
             }
         }
 
@@ -85,6 +99,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             if (action == null)
             {
                 throw new ArgumentNullException(nameof(action));
+            }
+
+            // Disallow async methods to be registered.
+            if (action.GetMethodInfo().IsDefined(typeof(AsyncStateMachineAttribute)))
+            {
+                throw new ArgumentException(CodeAnalysisResources.AsyncAnalyzerActionCannotBeRegistered, nameof(action));
             }
         }
 

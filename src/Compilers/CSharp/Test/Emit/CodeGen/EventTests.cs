@@ -613,7 +613,7 @@ class D : C
 ";
 
             var ilAssemblyReference = TestReferences.SymbolsTests.Events;
-            var compilation = CreateCompilationWithMscorlib(csharpSource, new MetadataReference[] { ilAssemblyReference }, TestOptions.ReleaseExe);
+            var compilation = CreateStandardCompilation(csharpSource, new MetadataReference[] { ilAssemblyReference }, TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: @"
 VirtualEventWithRaise Raise
 D Raise
@@ -699,7 +699,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe);
+            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
 
             compilation.MakeMemberMissing(WellKnownMember.System_Threading_Interlocked__CompareExchange_T);
 
@@ -771,7 +771,7 @@ struct C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe);
+            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
 
             compilation.MakeMemberMissing(WellKnownMember.System_Threading_Interlocked__CompareExchange_T);
 
@@ -816,6 +816,44 @@ struct C
   IL_000d:  castclass  ""E1""
   IL_0012:  stfld      ""E1 C.e""
   IL_0017:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        [CompilerTrait(CompilerFeature.ExpressionBody)]
+        public void ExpressionBodedEvent()
+        {
+            var source = @"
+class C
+{
+    public int x;
+    public event System.Action E
+    {
+        add => x = 1;
+        remove => x = 0;
+    }
+}";
+            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var verifier = CompileAndVerify(compilation);
+            verifier.VerifyIL("C.E.add", @"
+{
+  // Code size        8 (0x8)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  stfld      ""int C.x""
+  IL_0007:  ret
+}
+");
+            verifier.VerifyIL("C.E.remove", @"
+{
+  // Code size        8 (0x8)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  stfld      ""int C.x""
+  IL_0007:  ret
 }
 ");
         }

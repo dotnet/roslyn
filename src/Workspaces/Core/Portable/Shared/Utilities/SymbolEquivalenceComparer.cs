@@ -1,14 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities
 {
@@ -80,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
         // Very subtle logic here.  When checking if two parameters are the same, we can end up with
         // a tricky infinite loop.  Specifically, consider the case if the parameter refers to a
-        // method type parameter.  i.e. "void Foo<T>(IList<T> arg)".  If we compare two method type
+        // method type parameter.  i.e. "void Goo<T>(IList<T> arg)".  If we compare two method type
         // parameters for equality, then we'll end up asking if their methods are the same.  And that
         // will cause us to check if their parameters are the same.  And then we'll be right back
         // here.  So, instead, when asking if parameters are equal, we pass an appropriate flag so
@@ -216,9 +210,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         {
             yield return namedType;
 
-            IErrorTypeSymbol errorType = namedType as IErrorTypeSymbol;
 
-            if (errorType != null)
+            if (namedType is IErrorTypeSymbol errorType)
             {
                 foreach (var type in errorType.CandidateSymbols.OfType<INamedTypeSymbol>())
                 {

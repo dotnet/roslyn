@@ -25,13 +25,13 @@ namespace Microsoft.CodeAnalysis.Host.Mef
         }
 
         private static ImmutableArray<Assembly> s_defaultAssemblies;
-        private static ImmutableArray<Assembly> DefaultAssemblies
+        public static ImmutableArray<Assembly> DefaultAssemblies
         {
             get
             {
                 if (s_defaultAssemblies == null)
                 {
-                    ImmutableInterlocked.InterlockedCompareExchange(ref s_defaultAssemblies, CreateDefaultAssemblies(), default(ImmutableArray<Assembly>));
+                    ImmutableInterlocked.InterlockedCompareExchange(ref s_defaultAssemblies, CreateDefaultAssemblies(), default);
                 }
 
                 return s_defaultAssemblies;

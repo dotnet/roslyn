@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -19,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Completion
     {
         private const string NonBreakingSpaceString = "\x00A0";
 
-        public static TextSpan GetTextChangeSpan(SourceText text, int position,
+        public static TextSpan GetWordSpan(SourceText text, int position,
             Func<char, bool> isWordStartCharacter, Func<char, bool> isWordCharacter)
         {
             int start = position;
@@ -71,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Completion
             return true;
         }
 
-        public static Func<CancellationToken, Task<ImmutableArray<SymbolDisplayPart>>> CreateDescriptionFactory(
+        public static Func<CancellationToken, Task<CompletionDescription>> CreateDescriptionFactory(
             Workspace workspace,
             SemanticModel semanticModel,
             int position,
@@ -80,34 +81,34 @@ namespace Microsoft.CodeAnalysis.Completion
             return CreateDescriptionFactory(workspace, semanticModel, position, new[] { symbol });
         }
 
-        public static Func<CancellationToken, Task<ImmutableArray<SymbolDisplayPart>>> CreateDescriptionFactory(
-            Workspace workspace, SemanticModel semanticModel, int position, IList<ISymbol> symbols)
+        public static Func<CancellationToken, Task<CompletionDescription>> CreateDescriptionFactory(
+            Workspace workspace, SemanticModel semanticModel, int position, IReadOnlyList<ISymbol> symbols)
         {
             return c => CreateDescriptionAsync(workspace, semanticModel, position, symbols, supportedPlatforms: null, cancellationToken: c);
         }
 
-        public static Func<CancellationToken, Task<ImmutableArray<SymbolDisplayPart>>> CreateDescriptionFactory(
-            Workspace workspace, SemanticModel semanticModel, int position, IList<ISymbol> symbols, SupportedPlatformData supportedPlatforms)
+        public static Func<CancellationToken, Task<CompletionDescription>> CreateDescriptionFactory(
+            Workspace workspace, SemanticModel semanticModel, int position, IReadOnlyList<ISymbol> symbols, SupportedPlatformData supportedPlatforms)
         {
             return c => CreateDescriptionAsync(workspace, semanticModel, position, symbols, supportedPlatforms: supportedPlatforms, cancellationToken: c);
         }
 
-        private static async Task<ImmutableArray<SymbolDisplayPart>> CreateDescriptionAsync(
-            Workspace workspace, SemanticModel semanticModel, int position, IList<ISymbol> symbols, SupportedPlatformData supportedPlatforms, CancellationToken cancellationToken)
+        public static async Task<CompletionDescription> CreateDescriptionAsync(
+            Workspace workspace, SemanticModel semanticModel, int position, IReadOnlyList<ISymbol> symbols, SupportedPlatformData supportedPlatforms, CancellationToken cancellationToken)
         {
             var symbolDisplayService = workspace.Services.GetLanguageServices(semanticModel.Language).GetService<ISymbolDisplayService>();
             var formatter = workspace.Services.GetLanguageServices(semanticModel.Language).GetService<IDocumentationCommentFormattingService>();
 
             // TODO(cyrusn): Figure out a way to cancel this.
-            var symbol = symbols.First();
+            var symbol = symbols[0];
             var sections = await symbolDisplayService.ToDescriptionGroupsAsync(workspace, semanticModel, position, ImmutableArray.Create(symbol), cancellationToken).ConfigureAwait(false);
 
             if (!sections.ContainsKey(SymbolDescriptionGroups.MainDescription))
             {
-                return ImmutableArray.Create<SymbolDisplayPart>();
+                return CompletionDescription.Empty;
             }
 
-            var textContentBuilder = new List<SymbolDisplayPart>();
+            var textContentBuilder = new List<TaggedText>();
             textContentBuilder.AddRange(sections[SymbolDescriptionGroups.MainDescription]);
 
             switch (symbol.Kind)
@@ -134,14 +135,13 @@ namespace Microsoft.CodeAnalysis.Completion
 
             AddDocumentationPart(textContentBuilder, symbol, semanticModel, position, formatter, cancellationToken);
 
-            if (sections.ContainsKey(SymbolDescriptionGroups.AwaitableUsageText))
+            if (sections.TryGetValue(SymbolDescriptionGroups.AwaitableUsageText, out var parts))
             {
-                textContentBuilder.AddRange(sections[SymbolDescriptionGroups.AwaitableUsageText]);
+                textContentBuilder.AddRange(parts);
             }
 
-            if (sections.ContainsKey(SymbolDescriptionGroups.AnonymousTypes))
+            if (sections.TryGetValue(SymbolDescriptionGroups.AnonymousTypes, out parts))
             {
-                var parts = sections[SymbolDescriptionGroups.AnonymousTypes];
                 if (!parts.IsDefaultOrEmpty)
                 {
                     textContentBuilder.AddLineBreak();
@@ -153,26 +153,27 @@ namespace Microsoft.CodeAnalysis.Completion
             if (supportedPlatforms != null)
             {
                 textContentBuilder.AddLineBreak();
-                textContentBuilder.AddRange(supportedPlatforms.ToDisplayParts());
+                textContentBuilder.AddRange(supportedPlatforms.ToDisplayParts().ToTaggedText());
             }
 
-            return textContentBuilder.AsImmutableOrEmpty();
+            return CompletionDescription.Create(textContentBuilder.AsImmutable());
         }
 
-        private static void AddOverloadPart(List<SymbolDisplayPart> textContentBuilder, int overloadCount, bool isGeneric)
+        private static void AddOverloadPart(List<TaggedText> textContentBuilder, int overloadCount, bool isGeneric)
         {
             var text = isGeneric
                 ? overloadCount == 1
-                    ? FeaturesResources.GenericOverload
-                    : FeaturesResources.GenericOverloads
+                    ? FeaturesResources.generic_overload
+                    : FeaturesResources.generic_overloads
                 : overloadCount == 1
-                    ? FeaturesResources.Overload
-                    : FeaturesResources.Overloads;
+                    ? FeaturesResources.overload
+                    : FeaturesResources.overloads_;
 
             textContentBuilder.AddText(NonBreakingSpaceString + text);
         }
 
-        private static void AddDocumentationPart(List<SymbolDisplayPart> textContentBuilder, ISymbol symbol, SemanticModel semanticModel, int position, IDocumentationCommentFormattingService formatter, CancellationToken cancellationToken)
+        private static void AddDocumentationPart(
+            List<TaggedText> textContentBuilder, ISymbol symbol, SemanticModel semanticModel, int position, IDocumentationCommentFormattingService formatter, CancellationToken cancellationToken)
         {
             var documentation = symbol.GetDocumentationParts(semanticModel, position, formatter, cancellationToken);
 
@@ -206,8 +207,11 @@ namespace Microsoft.CodeAnalysis.Completion
             return true;
         }
 
-        public static bool TryRemoveAttributeSuffix(ISymbol symbol, bool isAttributeNameContext, ISyntaxFactsService syntaxFacts, out string name)
+        public static bool TryRemoveAttributeSuffix(ISymbol symbol, SyntaxContext context, out string name)
         {
+            var isAttributeNameContext = context.IsAttributeNameContext;
+            var syntaxFacts = context.GetLanguageService<ISyntaxFactsService>();
+
             if (!isAttributeNameContext)
             {
                 name = null;

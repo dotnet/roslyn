@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion.Providers
@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Even
                     Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()
                 End If
 
-                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Handles", VBFeaturesResources.HandlesKeywordToolTip))
+                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("Handles", VBFeaturesResources.Declares_that_a_procedure_handles_a_specified_event))
             End If
 
             Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()

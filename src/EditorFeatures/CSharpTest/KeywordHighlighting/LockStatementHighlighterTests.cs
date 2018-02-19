@@ -18,17 +18,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
         public async Task TestExample1_1()
         {
             await TestAsync(
-        @"class Account {
+@"class Account
+{
     object lockObj = new object();
     int balance;
 
-    int Withdraw(int amount) {
-        {|Cursor:[|lock|]|} (lockObj) {
-            if (balance >= amount) {
+    int Withdraw(int amount)
+    {
+        {|Cursor:[|lock|]|} (lockObj)
+        {
+            if (balance >= amount)
+            {
                 balance = balance – amount;
                 return amount;
             }
-            else {
+            else
+            {
                 return -1;
             }
         }

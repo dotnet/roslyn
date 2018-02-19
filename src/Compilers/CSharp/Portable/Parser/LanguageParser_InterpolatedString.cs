@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
@@ -79,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var closeQuoteIndex = closeQuoteMissing ? originalText.Length : originalText.Length - 1;
             Debug.Assert(closeQuoteMissing || originalText[closeQuoteIndex] == '"');
             var closeQuote = closeQuoteMissing
-                ? SyntaxFactory.MissingToken(SyntaxKind.InterpolatedStringEndToken).WithTrailingTrivia(originalToken.GetTrailingTrivia())
+                ? SyntaxFactory.MissingToken(SyntaxKind.InterpolatedStringEndToken).TokenWithTrailingTrivia(originalToken.GetTrailingTrivia())
                 : SyntaxFactory.Token(null, SyntaxKind.InterpolatedStringEndToken, originalToken.GetTrailingTrivia());
             var builder = _pool.Allocate<InterpolatedStringContentSyntax>();
 
@@ -146,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 : SyntaxFactory.Token(SyntaxKind.CloseBraceToken);
 
             var parsedText = Substring(text, interpolation.OpenBracePosition, interpolation.HasColon ? interpolation.ColonPosition - 1 : interpolation.CloseBracePosition - 1);
-            using (var tempLexer = new Lexer(Text.SourceText.From(parsedText), this.Options, allowPreprocessorDirectives: false))
+            using (var tempLexer = new Lexer(Text.SourceText.From(parsedText), this.Options, allowPreprocessorDirectives: false, interpolationFollowedByColon: interpolation.HasColon))
             {
                 // TODO: some of the trivia in the interpolation maybe should be trailing trivia of the openBraceToken
                 using (var tempParser = new LanguageParser(tempLexer, null, null))
@@ -162,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     var extraTrivia = tempParser.CurrentToken.GetLeadingTrivia();
                     if (interpolation.HasColon)
                     {
-                        var colonToken = SyntaxFactory.Token(SyntaxKind.ColonToken).WithLeadingTrivia(extraTrivia);
+                        var colonToken = SyntaxFactory.Token(SyntaxKind.ColonToken).TokenWithLeadingTrivia(extraTrivia);
                         var formatText = Substring(text, interpolation.ColonPosition + 1, interpolation.FormatEndPosition);
                         var formatString = MakeStringToken(formatText, formatText, isVerbatim, SyntaxKind.InterpolatedStringTextToken);
                         format = SyntaxFactory.InterpolationFormatClause(colonToken, formatString);
@@ -170,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     else
                     {
                         // Move the leading trivia from the insertion's EOF token to the following token.
-                        closeBraceToken = closeBraceToken.WithLeadingTrivia(extraTrivia);
+                        closeBraceToken = closeBraceToken.TokenWithLeadingTrivia(extraTrivia);
                     }
                 }
             }
@@ -206,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        private DiagnosticInfo[] MoveDiagnostics(DiagnosticInfo[] infos, int offset)
+        private static DiagnosticInfo[] MoveDiagnostics(DiagnosticInfo[] infos, int offset)
         {
             var builder = ArrayBuilder<DiagnosticInfo>.GetInstance();
             foreach (var info in infos)

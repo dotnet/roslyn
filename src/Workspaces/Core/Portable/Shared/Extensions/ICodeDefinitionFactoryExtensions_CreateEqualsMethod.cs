@@ -1,13 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
@@ -17,63 +19,106 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         private const string EqualsName = "Equals";
         private const string DefaultName = "Default";
         private const string ObjName = "obj";
+        private const string OtherName = "other";
 
         public static IMethodSymbol CreateEqualsMethod(
             this SyntaxGenerator factory,
             Compilation compilation,
             INamedTypeSymbol containingType,
-            IList<ISymbol> symbols,
+            ImmutableArray<ISymbol> symbols,
+            SyntaxAnnotation statementAnnotation,
             CancellationToken cancellationToken)
         {
-            var statements = CreateEqualsMethodStatements(factory, compilation, containingType, symbols, cancellationToken);
+            var statements = CreateEqualsMethodStatements(
+                factory, compilation, containingType, symbols, cancellationToken);
+            statements = statements.SelectAsArray(s => s.WithAdditionalAnnotations(statementAnnotation));
 
+            return CreateEqualsMethod(compilation, statements);
+        }
+
+        public static IMethodSymbol CreateEqualsMethod(this Compilation compilation, ImmutableArray<SyntaxNode> statements)
+        {
             return CodeGenerationSymbolFactory.CreateMethodSymbol(
-                attributes: null,
+                attributes: default,
                 accessibility: Accessibility.Public,
                 modifiers: new DeclarationModifiers(isOverride: true),
                 returnType: compilation.GetSpecialType(SpecialType.System_Boolean),
-                explicitInterfaceSymbol: null,
+                refKind: RefKind.None,
+                explicitInterfaceImplementations: default,
                 name: EqualsName,
-                typeParameters: null,
-                parameters: new[] { CodeGenerationSymbolFactory.CreateParameterSymbol(compilation.GetSpecialType(SpecialType.System_Object), ObjName) },
+                typeParameters: default,
+                parameters: ImmutableArray.Create(CodeGenerationSymbolFactory.CreateParameterSymbol(compilation.GetSpecialType(SpecialType.System_Object), ObjName)),
                 statements: statements);
         }
 
-        private static IList<SyntaxNode> CreateEqualsMethodStatements(
+        public static IMethodSymbol CreateIEqutableEqualsMethod(
+            this SyntaxGenerator factory,
+            Compilation compilation,
+            INamedTypeSymbol containingType,
+            ImmutableArray<ISymbol> symbols,
+            SyntaxAnnotation statementAnnotation,
+            CancellationToken cancellationToken)
+        {
+            var statements = CreateIEquatableEqualsMethodStatements(
+                factory, compilation, containingType, symbols, cancellationToken);
+            statements = statements.SelectAsArray(s => s.WithAdditionalAnnotations(statementAnnotation));
+
+            var equatableType = compilation.GetTypeByMetadataName(typeof(IEquatable<>).FullName);
+            var constructed = equatableType.Construct(containingType);
+            var methodSymbol = constructed.GetMembers(EqualsName)
+                                          .OfType<IMethodSymbol>()
+                                          .Single(m => containingType.Equals(m.Parameters.FirstOrDefault()?.Type));
+
+            if (factory.RequiresExplicitImplementationForInterfaceMembers)
+            {
+                return CodeGenerationSymbolFactory.CreateMethodSymbol(
+                    methodSymbol,
+                    modifiers: new DeclarationModifiers(),
+                    explicitInterfaceImplementations: ImmutableArray.Create(methodSymbol),
+                    statements: statements);
+            }
+            else
+            {
+                return CodeGenerationSymbolFactory.CreateMethodSymbol(
+                    methodSymbol,
+                    modifiers: new DeclarationModifiers(),
+                    statements: statements);
+            }
+        }
+
+        private static ImmutableArray<SyntaxNode> CreateEqualsMethodStatements(
             SyntaxGenerator factory,
             Compilation compilation,
             INamedTypeSymbol containingType,
-            IEnumerable<ISymbol> members,
+            ImmutableArray<ISymbol> members,
             CancellationToken cancellationToken)
         {
-            var statements = new List<SyntaxNode>();
+            var statements = ArrayBuilder<SyntaxNode>.GetInstance();
 
-            var parts = StringBreaker.BreakIntoWordParts(containingType.Name);
-            string localName = "v";
-            for (int i = parts.Count - 1; i >= 0; i--)
-            {
-                var p = parts[i];
-                if (char.IsLetter(containingType.Name[p.Start]))
-                {
-                    localName = containingType.Name.Substring(p.Start, p.Length).ToCamelCase();
-                    break;
-                }
-            }
+            // Come up with a good name for the local variable we're going to compare against.
+            // For example, if the class name is "CustomerOrder" then we'll generate:
+            //
+            //      var order = obj as CustomerOrder;
+
+            var localName = GetLocalName(containingType);
 
             var localNameExpression = factory.IdentifierName(localName);
 
             var objNameExpression = factory.IdentifierName(ObjName);
 
-            var expressions = new List<SyntaxNode>();
+            // These will be all the expressions that we'll '&&' together inside the final
+            // return statement of 'Equals'.
+            var expressions = ArrayBuilder<SyntaxNode>.GetInstance();
 
             if (containingType.IsValueType)
             {
-#if false
-                if (!(obj is MyType))
-                {
-                    return false;
-                }
-#endif
+                // If we're a value type, then we need an is-check first to make sure
+                // the object is our type:
+                //
+                //      if (!(obj is MyType))
+                //      {
+                //          return false;
+                //      }
                 var ifStatement = factory.IfStatement(
                     factory.LogicalNotExpression(
                         factory.IsTypeExpression(
@@ -81,9 +126,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                             containingType)),
                     new[] { factory.ReturnStatement(factory.FalseLiteralExpression()) });
 
-#if false
-                var myType = (MyType)obj;
-#endif
+                // Next, we cast the argument to our type:
+                //
+                //      var myType = (MyType)obj;
+
                 var localDeclaration = factory.LocalDeclarationStatement(localName, factory.CastExpression(containingType, objNameExpression));
 
                 statements.Add(ifStatement);
@@ -91,22 +137,25 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
             else
             {
-#if false
-                var myType = obj as MyType;
-#endif
+                // It's not a value type, we can just use "as" to test the parameter is the right type:
+                //
+                //      var myType = obj as MyType;
+
                 var localDeclaration = factory.LocalDeclarationStatement(localName, factory.TryCastExpression(objNameExpression, containingType));
 
                 statements.Add(localDeclaration);
 
-#if false
-                myType != null
-#endif
+                // Ensure that the parameter we got was not null (which also ensures the 'as' test
+                // succeeded):
+                //
+                //      myType != null
                 expressions.Add(factory.ReferenceNotEqualsExpression(localNameExpression, factory.NullLiteralExpression()));
                 if (HasExistingBaseEqualsMethod(containingType, cancellationToken))
                 {
-#if false
-                    base.Equals(obj)
-#endif
+                    // If we're overriding something that also provided an overridden 'Equals',
+                    // then ensure the base type thinks it is equals as well.
+                    //
+                    //      base.Equals(obj)
                     expressions.Add(factory.InvocationExpression(
                         factory.MemberAccessExpression(
                             factory.BaseExpression(),
@@ -115,42 +164,197 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 }
             }
 
-            foreach (var member in members)
-            {
-                var symbolNameExpression = factory.IdentifierName(member.Name);
-                var thisSymbol = factory.MemberAccessExpression(factory.ThisExpression(), symbolNameExpression).WithAdditionalAnnotations(Simplification.Simplifier.Annotation);
-                var otherSymbol = factory.MemberAccessExpression(localNameExpression, symbolNameExpression);
+            AddMemberChecks(factory, compilation, members, localNameExpression, expressions);
 
-#if false
-                EqualityComparer<SType>.Default.Equals(this.S1, myType.S1)
-#endif
-                var expression =
-                    factory.InvocationExpression(
-                        factory.MemberAccessExpression(
-                            GetDefaultEqualityComparer(factory, compilation, member),
-                            factory.IdentifierName(EqualsName)),
-                        thisSymbol,
-                        otherSymbol);
-
-                expressions.Add(expression);
-            }
-
-#if false
-            return myType != null && base.Equals(obj) && EqualityComparer<int>.Default.Equals(this.S1, myType.S1) && ...;
-#endif
+            // Now combine all the comparison expressions together into one final statement like:
+            //
+            //      return myType != null &&
+            //             base.Equals(obj) &&
+            //             this.S1 == myType.S1;
             statements.Add(factory.ReturnStatement(
                 expressions.Aggregate(factory.LogicalAndExpression)));
 
-            return statements;
+            expressions.Free();
+            return statements.ToImmutableAndFree();
         }
 
-        private static SyntaxNode GetDefaultEqualityComparer(
+        private static void AddMemberChecks(
+            SyntaxGenerator factory, Compilation compilation,
+            ImmutableArray<ISymbol> members, SyntaxNode localNameExpression,
+            ArrayBuilder<SyntaxNode> expressions)
+        {
+            var iequatableType = compilation.GetTypeByMetadataName(typeof(IEquatable<>).FullName);
+
+            // Now, iterate over all the supplied members and ensure that our instance
+            // and the parameter think they are equals.  Specialize how we do this for
+            // common types.  Fall-back to EqualityComparer<SType>.Default.Equals for
+            // everything else.
+            foreach (var member in members)
+            {
+                var symbolNameExpression = factory.IdentifierName(member.Name);
+                var thisSymbol = factory.MemberAccessExpression(factory.ThisExpression(), symbolNameExpression)
+                                        .WithAdditionalAnnotations(Simplification.Simplifier.Annotation);
+                var otherSymbol = factory.MemberAccessExpression(localNameExpression, symbolNameExpression);
+
+                var memberType = member.GetSymbolType();
+
+                if (IsPrimitiveValueType(memberType))
+                {
+                    // If we have one of the well known primitive types, then just use '==' to compare
+                    // the values.
+                    //
+                    //      this.a == other.a
+                    expressions.Add(factory.ValueEqualsExpression(thisSymbol, otherSymbol));
+                    continue;
+                }
+
+                var valueIEquatable = memberType?.IsValueType == true && ImplementsIEquatable(memberType, iequatableType);
+                if (valueIEquatable || memberType?.IsTupleType == true)
+                {
+                    // If it's a value type and implements IEquatable<T>, Or if it's a tuple, then 
+                    // just call directly into .Equals. This keeps the code simple and avoids an 
+                    // unnecessary null check.
+                    //
+                    //      this.a.Equals(other.a)
+                    expressions.Add(factory.InvocationExpression(
+                        factory.MemberAccessExpression(thisSymbol, nameof(object.Equals)),
+                        otherSymbol));
+                    continue;
+                }
+
+                // Otherwise call EqualityComparer<SType>.Default.Equals(this.a, other.a).
+                // This will do the appropriate null checks as well as calling directly
+                // into IEquatable<T>.Equals implementations if available.
+
+                expressions.Add(factory.InvocationExpression(
+                        factory.MemberAccessExpression(
+                            GetDefaultEqualityComparer(factory, compilation, GetType(compilation, member)),
+                            factory.IdentifierName(EqualsName)),
+                        thisSymbol,
+                        otherSymbol));
+            }
+        }
+
+        private static ImmutableArray<SyntaxNode> CreateIEquatableEqualsMethodStatements(
             SyntaxGenerator factory,
             Compilation compilation,
-            ISymbol member)
+            INamedTypeSymbol containingType,
+            ImmutableArray<ISymbol> members,
+            CancellationToken cancellationToken)
+        {
+            var statements = ArrayBuilder<SyntaxNode>.GetInstance();
+
+            var otherNameExpression = factory.IdentifierName(OtherName);
+
+            // These will be all the expressions that we'll '&&' together inside the final
+            // return statement of 'Equals'.
+            var expressions = ArrayBuilder<SyntaxNode>.GetInstance();
+
+            if (!containingType.IsValueType)
+            {
+                // It's not a value type. Ensure that the parameter we got was not null.
+                //
+                //      other != null
+                expressions.Add(factory.ReferenceNotEqualsExpression(otherNameExpression, factory.NullLiteralExpression()));
+                if (HasExistingBaseEqualsMethod(containingType, cancellationToken))
+                {
+                    // If we're overriding something that also provided an overridden 'Equals',
+                    // then ensure the base type thinks it is equals as well.
+                    //
+                    //      base.Equals(obj)
+                    expressions.Add(factory.InvocationExpression(
+                        factory.MemberAccessExpression(
+                            factory.BaseExpression(),
+                            factory.IdentifierName(EqualsName)),
+                        otherNameExpression));
+                }
+            }
+
+            AddMemberChecks(factory, compilation, members, otherNameExpression, expressions);
+
+            // Now combine all the comparison expressions together into one final statement like:
+            //
+            //      return other != null &&
+            //             base.Equals(other) &&
+            //             this.S1 == other.S1;
+            statements.Add(factory.ReturnStatement(
+                expressions.Aggregate(factory.LogicalAndExpression)));
+
+            expressions.Free();
+            return statements.ToImmutableAndFree();
+        }
+
+        public static string GetLocalName(this ITypeSymbol containingType)
+        {
+            var name = containingType.Name;
+            if (name.Length > 0)
+            {
+                var parts = StringBreaker.GetWordParts(name);
+                for (var i = parts.Count - 1; i >= 0; i--)
+                {
+                    var p = parts[i];
+                    if (p.Length > 0 && char.IsLetter(name[p.Start]))
+                    {
+                        return name.Substring(p.Start, p.Length).ToCamelCase();
+                    }
+                }
+            }
+
+            return "v";
+        }
+
+        private static bool ImplementsIEquatable(ITypeSymbol memberType, INamedTypeSymbol iequatableType)
+        {
+            if (iequatableType != null)
+            {
+                var constructed = iequatableType.Construct(memberType);
+                return memberType.AllInterfaces.Contains(constructed);
+            }
+
+            return false;
+        }
+
+        private static bool IsPrimitiveValueType(ITypeSymbol typeSymbol)
+        {
+            if (typeSymbol != null)
+            {
+                if (typeSymbol.IsEnumType())
+                {
+                    return true;
+                }
+
+                switch (typeSymbol.SpecialType)
+                {
+                    case SpecialType.System_Boolean:
+                    case SpecialType.System_Char:
+                    case SpecialType.System_SByte:
+                    case SpecialType.System_Byte:
+                    case SpecialType.System_Int16:
+                    case SpecialType.System_UInt16:
+                    case SpecialType.System_Int32:
+                    case SpecialType.System_UInt32:
+                    case SpecialType.System_Int64:
+                    case SpecialType.System_UInt64:
+                    case SpecialType.System_Decimal:
+                    case SpecialType.System_Single:
+                    case SpecialType.System_Double:
+                    case SpecialType.System_String:
+                    case SpecialType.System_Nullable_T:
+                    case SpecialType.System_DateTime:
+                        return true;
+                }
+            }
+
+            return false;
+        }
+
+        public static SyntaxNode GetDefaultEqualityComparer(
+            this SyntaxGenerator factory,
+            Compilation compilation,
+            ITypeSymbol type)
         {
             var equalityComparerType = compilation.EqualityComparerOfTType();
-            var constructedType = equalityComparerType.Construct(GetType(compilation, member));
+            var constructedType = equalityComparerType.Construct(type);
             return factory.MemberAccessExpression(
                 factory.TypeExpression(constructedType),
                 factory.IdentifierName(DefaultName));
@@ -158,10 +362,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         private static ITypeSymbol GetType(Compilation compilation, ISymbol symbol)
         {
-            return symbol.TypeSwitch(
-                (IFieldSymbol field) => field.Type,
-                (IPropertySymbol property) => property.Type,
-                (ISymbol _) => compilation.GetSpecialType(SpecialType.System_Object));
+            switch (symbol)
+            {
+                case IFieldSymbol field: return field.Type;
+                case IPropertySymbol property: return property.Type;
+                default: return compilation.GetSpecialType(SpecialType.System_Object);
+            }
         }
 
         private static bool HasExistingBaseEqualsMethod(INamedTypeSymbol containingType, CancellationToken cancellationToken)

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
@@ -10,8 +10,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Extensions
     {
         public static VsTextSpan ToVsTextSpan(this SnapshotSpan snapshotSpan)
         {
-            int startLine, startColumnIndex, endLine, endColumnIndex;
-            snapshotSpan.GetLinesAndColumns(out startLine, out startColumnIndex, out endLine, out endColumnIndex);
+            snapshotSpan.GetLinesAndColumns(out var startLine, out var startColumnIndex, out var endLine, out var endColumnIndex);
 
             return new VsTextSpan()
             {

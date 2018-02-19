@@ -3,6 +3,7 @@
 #pragma warning disable 436 // SuppressUnmanagedCodeSecurityAttribute defined in source and mscorlib 
 
 using System;
+using System.Reflection.Metadata.Ecma335;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Text;
@@ -222,7 +223,7 @@ namespace Microsoft.Cci
 
             *(pointerTypeDef + pchTypeDef) = (char)0;
             uint* pointerFlags = (uint*)pdwTypeDefFlags.ToPointer();
-            *pointerFlags = _writer.GetTypeDefFlags(t.GetResolvedType(_writer.Context));
+            *pointerFlags = (uint)_writer.GetTypeAttributes(t.GetResolvedType(_writer.Context));
             return 0;
         }
 
@@ -233,7 +234,7 @@ namespace Microsoft.Cci
           IntPtr ppvSigBlob, IntPtr pcbSigBlob, IntPtr pulCodeRVA)
         {
             IMethodDefinition m = _writer.GetMethodDefinition(mb);
-            pointerClass = (uint)_writer.GetTypeToken(m.GetContainingType(_writer.Context));
+            pointerClass = (uint)MetadataTokens.GetToken(_writer.GetTypeHandle(m.GetContainingType(_writer.Context)));
             string methName = m.Name;
 
             // if the buffer is too small to fit the name, truncate the name
@@ -260,7 +261,7 @@ namespace Microsoft.Cci
                 return 0;
             }
 
-            return (uint)_writer.GetTypeToken(nt.GetContainingType(_writer.Context));
+            return (uint)MetadataTokens.GetToken(_writer.GetTypeHandle(nt.GetContainingType(_writer.Context)));
         }
 
         #region Not Implemented 

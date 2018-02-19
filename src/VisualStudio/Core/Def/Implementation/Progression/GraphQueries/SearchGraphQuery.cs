@@ -1,13 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.VisualStudio.GraphModel;
 using Roslyn.Utilities;
 
@@ -44,15 +45,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 {
                     var results = await FindNavigableSourceSymbolsAsync(project, cancellationToken).ConfigureAwait(false);
 
-                    foreach (var result in results)
+                    foreach (var symbol in results)
                     {
                         cancellationToken.ThrowIfCancellationRequested();
 
-                        var symbol = result.Item1;
-
-                        if (symbol is INamedTypeSymbol)
+                        if (symbol is INamedTypeSymbol namedType)
                         {
-                            await AddLinkedNodeForType(project, (INamedTypeSymbol)symbol, graphBuilder, symbol.DeclaringSyntaxReferences.Select(d => d.SyntaxTree)).ConfigureAwait(false);
+                            await AddLinkedNodeForType(project, namedType, graphBuilder, symbol.DeclaringSyntaxReferences.Select(d => d.SyntaxTree)).ConfigureAwait(false);
                         }
                         else
                         {
@@ -105,101 +104,57 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             return memberNode;
         }
 
-        internal async Task<IEnumerable<ValueTuple<ISymbol, IEnumerable<PatternMatch>>>> FindNavigableSourceSymbolsAsync(
+        internal async Task<ImmutableArray<ISymbol>> FindNavigableSourceSymbolsAsync(
             Project project, CancellationToken cancellationToken)
         {
-            var results = new List<ValueTuple<ISymbol, IEnumerable<PatternMatch>>>();
+            var declarations = await DeclarationFinder.FindSourceDeclarationsWithPatternAsync(
+                project, _searchPattern, SymbolFilter.TypeAndMember, cancellationToken).ConfigureAwait(false);
 
-            // The compiler API only supports a predicate which is given a symbol's name.  Because
-            // we only have the name, and nothing else, we need to check it against the last segment
-            // of the pattern.  i.e. if the pattern is 'Console.WL' and we are given 'WriteLine', then
-            // we don't want to check the whole pattern against it (as it will clearly fail), instead
-            // we only want to check the 'WL' portion.  Then, after we get all the candidate symbols
-            // we'll check if the full name matches the full pattern.
-            var patternMatcher = new PatternMatcher(_searchPattern);
-            var symbols = await SymbolFinder.FindSourceDeclarationsAsync(
-                project, k => patternMatcher.GetMatchesForLastSegmentOfPattern(k) != null, SymbolFilter.TypeAndMember, cancellationToken).ConfigureAwait(false);
+            var symbols = declarations.SelectAsArray(d => d.Symbol);
 
-            symbols = symbols.Where(s =>
-                !s.IsConstructor()
-                && !s.IsStaticConstructor() // not constructors, they get matched on type name
-                && !(s is INamespaceSymbol) // not namespaces
-                && s.Locations.Any(loc => loc.IsInSource)); // only source symbols
+            var results = ArrayBuilder<ISymbol>.GetInstance();
 
             foreach (var symbol in symbols)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                // As an optimization, don't bother getting the container for this symbol if this
-                // isn't a dotted pattern.  Getting the container could cause lots of string 
-                // allocations that we don't if we're never going to check it.
-                var matches = !patternMatcher.IsDottedPattern
-                    ? patternMatcher.GetMatches(GetSearchName(symbol))
-                    : patternMatcher.GetMatches(GetSearchName(symbol), GetContainer(symbol));
-
-                if (matches == null)
+                // Ignore constructors and namespaces.  We don't want to expose them through this API.
+                if (symbol.IsConstructor() ||
+                    symbol.IsStaticConstructor() ||
+                    symbol is INamespaceSymbol)
                 {
                     continue;
                 }
 
-                results.Add(ValueTuple.Create(symbol, matches));
+                // Ignore symbols that have no source location.  We don't want to expose them through this API.
+                if (!symbol.Locations.Any(loc => loc.IsInSource))
+                {
+                    continue;
+                }
+
+                results.Add(symbol);
 
                 // also report matching constructors (using same match result as type)
-                var namedType = symbol as INamedTypeSymbol;
-                if (namedType != null)
+                if (symbol is INamedTypeSymbol namedType)
                 {
                     foreach (var constructor in namedType.Constructors)
                     {
                         // only constructors that were explicitly declared
                         if (!constructor.IsImplicitlyDeclared)
                         {
-                            results.Add(ValueTuple.Create((ISymbol)constructor, matches));
+                            results.Add(constructor);
                         }
                     }
                 }
 
                 // report both parts of partial methods
-                var method = symbol as IMethodSymbol;
-                if (method != null && method.PartialImplementationPart != null)
+                if (symbol is IMethodSymbol method && method.PartialImplementationPart != null)
                 {
-                    results.Add(ValueTuple.Create((ISymbol)method, matches));
+                    results.Add(method);
                 }
             }
 
-            return results;
-        }
-
-        public static readonly SymbolDisplayFormat DottedNameFormat =
-            new SymbolDisplayFormat(
-                globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
-                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
-                delegateStyle: SymbolDisplayDelegateStyle.NameOnly,
-                extensionMethodStyle: SymbolDisplayExtensionMethodStyle.StaticMethod,
-                propertyStyle: SymbolDisplayPropertyStyle.NameOnly);
-
-        private static string GetContainer(ISymbol symbol)
-        {
-            var container = symbol.ContainingSymbol;
-            if (container == null)
-            {
-                return null;
-            }
-
-            return container.ToDisplayString(DottedNameFormat);
-        }
-
-        private static string GetSearchName(ISymbol symbol)
-        {
-            if (symbol.IsConstructor() || symbol.IsStaticConstructor())
-            {
-                return symbol.ContainingType.Name;
-            }
-            else if (symbol.IsIndexer() && symbol.Name == WellKnownMemberNames.Indexer)
-            {
-                return "this";
-            }
-
-            return symbol.Name;
+            return results.ToImmutableAndFree();
         }
     }
 }

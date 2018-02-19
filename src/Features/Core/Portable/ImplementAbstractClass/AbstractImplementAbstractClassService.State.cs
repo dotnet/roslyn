@@ -1,7 +1,8 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -9,18 +10,22 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ImplementAbstractClass
 {
-    internal partial class AbstractImplementAbstractClassService
+    internal partial class AbstractImplementAbstractClassService<TClassSyntax>
     {
         private class State
         {
-            public SyntaxNode Location { get; }
+            public TClassSyntax Location { get; }
             public INamedTypeSymbol ClassType { get; }
             public INamedTypeSymbol AbstractClassType { get; }
 
             // The members that are not implemented at all.
-            public IList<Tuple<INamedTypeSymbol, IList<ISymbol>>> UnimplementedMembers { get; }
+            public ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> UnimplementedMembers { get; }
 
-            private State(SyntaxNode node, INamedTypeSymbol classType, INamedTypeSymbol abstractClassType, IList<Tuple<INamedTypeSymbol, IList<ISymbol>>> unimplementedMembers)
+            private State(
+                TClassSyntax node, 
+                INamedTypeSymbol classType, 
+                INamedTypeSymbol abstractClassType,
+                ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> unimplementedMembers)
             {
                 this.Location = node;
                 this.ClassType = classType;
@@ -29,15 +34,14 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
             }
 
             public static State Generate(
-                AbstractImplementAbstractClassService service,
+                AbstractImplementAbstractClassService<TClassSyntax> service,
                 Document document,
                 SemanticModel model,
-                SyntaxNode node,
+                TClassSyntax node,
                 CancellationToken cancellationToken)
             {
-                INamedTypeSymbol classType, abstractClassType;
                 if (!service.TryInitializeState(document, model, node, cancellationToken,
-                    out classType, out abstractClassType))
+                    out var classType, out var abstractClassType))
                 {
                     return null;
                 }
@@ -55,7 +59,7 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                 var unimplementedMembers = classType.GetAllUnimplementedMembers(
                     SpecializedCollections.SingletonEnumerable(abstractClassType), cancellationToken);
 
-                if (unimplementedMembers != null && unimplementedMembers.Count >= 1)
+                if (unimplementedMembers.Length >= 1)
                 {
                     return new State(node, classType, abstractClassType, unimplementedMembers);
                 }

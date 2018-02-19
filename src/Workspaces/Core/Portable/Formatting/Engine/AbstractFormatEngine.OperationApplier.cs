@@ -1,10 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -64,10 +62,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 var indentation = _context.GetBaseIndentation(_tokenStream.GetToken(pairIndex + 1));
 
                 var previousToken = _tokenStream.GetToken(pairIndex);
-
-                bool multipleLines;
-                int tokenLength;
-                _tokenStream.GetTokenLength(previousToken, out tokenLength, out multipleLines);
+                _tokenStream.GetTokenLength(previousToken, out var tokenLength, out var multipleLines);
 
                 // get end column of previous token
                 var endColumnOfPreviousToken = multipleLines ? tokenLength : _tokenStream.GetCurrentColumn(previousToken) + tokenLength;

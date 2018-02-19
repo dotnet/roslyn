@@ -1,10 +1,9 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Editor.VisualBasic.SignatureHelp
-Imports Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
+Imports Microsoft.CodeAnalysis.SignatureHelp
+Imports Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SignatureHelp
     Public Class InvocationExpressionSignatureHelpProviderTests
@@ -24,14 +23,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SignatureHelp
         Public Async Function TestInvocationWithoutParameters() As Task
             Dim markup = <a><![CDATA[
 Class C
-    Sub Foo()
-        [|Foo($$|])
+    Sub Goo()
+        [|Goo($$|])
     End Sub
 End Class
 ]]></a>.Value
 
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
-            expectedOrderedItems.Add(New SignatureHelpTestItem("C.Foo()", String.Empty, Nothing, currentParameterIndex:=0))
+            expectedOrderedItems.Add(New SignatureHelpTestItem("C.Goo()", String.Empty, Nothing, currentParameterIndex:=0))
 
             Await TestAsync(markup, expectedOrderedItems)
         End Function
@@ -41,14 +40,14 @@ End Class
         Public Async Function TestInvocationInsideStringLiteral() As Task
             Dim markup = <a><![CDATA[
 Class C
-    Sub Foo()
-        [|Foo("$$"|])
+    Sub Goo()
+        [|Goo("$$"|])
     End Sub
 End Class
 ]]></a>.Value
 
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
-            expectedOrderedItems.Add(New SignatureHelpTestItem("C.Foo()", currentParameterIndex:=0))
+            expectedOrderedItems.Add(New SignatureHelpTestItem("C.Goo()", currentParameterIndex:=0))
 
             Await TestAsync(markup, expectedOrderedItems)
         End Function
@@ -58,16 +57,16 @@ End Class
             Dim markup = <a><![CDATA[
 Class C
     ''' <summary>
-    ''' Summary for Foo
+    ''' Summary for Goo
     ''' </summary>
-    Sub Foo()
-        [|Foo($$|])
+    Sub Goo()
+        [|Goo($$|])
     End Sub
 End Class
 ]]></a>.Value
 
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
-            expectedOrderedItems.Add(New SignatureHelpTestItem("C.Foo()", "Summary for Foo", Nothing, currentParameterIndex:=0))
+            expectedOrderedItems.Add(New SignatureHelpTestItem("C.Goo()", "Summary for Goo", Nothing, currentParameterIndex:=0))
 
             Await TestAsync(markup, expectedOrderedItems)
         End Function
@@ -76,14 +75,14 @@ End Class
         Public Async Function TestInvocationWithParametersOn1() As Task
             Dim markup = <a><![CDATA[
 Class C
-    Sub Foo(a As Integer, b As Integer)
-        [|Foo($$a, b|])
+    Sub Goo(a As Integer, b As Integer)
+        [|Goo($$a, b|])
     End Sub
 End Class
 ]]></a>.Value
 
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
-            expectedOrderedItems.Add(New SignatureHelpTestItem("C.Foo(a As Integer, b As Integer)", String.Empty, String.Empty, currentParameterIndex:=0))
+            expectedOrderedItems.Add(New SignatureHelpTestItem("C.Goo(a As Integer, b As Integer)", String.Empty, String.Empty, currentParameterIndex:=0))
 
             Await TestAsync(markup, expectedOrderedItems)
         End Function
@@ -93,18 +92,18 @@ End Class
             Dim markup = <a><![CDATA[
 Class C
     ''' <summary>
-    ''' Summary for Foo
+    ''' Summary for Goo
     ''' </summary>
     ''' <param name="a">Param a</param>
     ''' <param name="b">Param b</param>
-    Sub Foo(a As Integer, b As Integer)
-        [|Foo($$a, b|])
+    Sub Goo(a As Integer, b As Integer)
+        [|Goo($$a, b|])
     End Sub
 End Class
 ]]></a>.Value
 
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
-            expectedOrderedItems.Add(New SignatureHelpTestItem("C.Foo(a As Integer, b As Integer)", "Summary for Foo", "Param a", currentParameterIndex:=0))
+            expectedOrderedItems.Add(New SignatureHelpTestItem("C.Goo(a As Integer, b As Integer)", "Summary for Goo", "Param a", currentParameterIndex:=0))
 
             Await TestAsync(markup, expectedOrderedItems)
         End Function
@@ -113,14 +112,14 @@ End Class
         Public Async Function TestInvocationWithParametersOn2() As Task
             Dim markup = <a><![CDATA[
 Class C
-    Sub Foo(a As Integer, b As Integer)
-        [|Foo(a, $$b|])
+    Sub Goo(a As Integer, b As Integer)
+        [|Goo(a, $$b|])
     End Sub
 End Class
 ]]></a>.Value
 
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
-            expectedOrderedItems.Add(New SignatureHelpTestItem("C.Foo(a As Integer, b As Integer)", String.Empty, String.Empty, currentParameterIndex:=1))
+            expectedOrderedItems.Add(New SignatureHelpTestItem("C.Goo(a As Integer, b As Integer)", String.Empty, String.Empty, currentParameterIndex:=1))
 
             Await TestAsync(markup, expectedOrderedItems)
         End Function
@@ -130,18 +129,18 @@ End Class
             Dim markup = <a><![CDATA[
 Class C
     ''' <summary>
-    ''' Summary for Foo
+    ''' Summary for Goo
     ''' </summary>
     ''' <param name="a">Param a</param>
     ''' <param name="b">Param b</param>
-    Sub Foo(a As Integer, b As Integer)
-        [|Foo(a, $$b|])
+    Sub Goo(a As Integer, b As Integer)
+        [|Goo(a, $$b|])
     End Sub
 End Class
 ]]></a>.Value
 
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
-            expectedOrderedItems.Add(New SignatureHelpTestItem("C.Foo(a As Integer, b As Integer)", "Summary for Foo", "Param b", currentParameterIndex:=1))
+            expectedOrderedItems.Add(New SignatureHelpTestItem("C.Goo(a As Integer, b As Integer)", "Summary for Goo", "Param b", currentParameterIndex:=1))
 
             Await TestAsync(markup, expectedOrderedItems)
         End Function
@@ -150,14 +149,14 @@ End Class
         Public Async Function TestInvocationWithoutClosingParen() As Task
             Dim markup = <a><![CDATA[
 Class C
-    Sub Foo()
-        [|Foo($$
+    Sub Goo()
+        [|Goo($$
     |]End Sub
 End Class
 ]]></a>.Value
 
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
-            expectedOrderedItems.Add(New SignatureHelpTestItem("C.Foo()", String.Empty, Nothing, currentParameterIndex:=0))
+            expectedOrderedItems.Add(New SignatureHelpTestItem("C.Goo()", String.Empty, Nothing, currentParameterIndex:=0))
 
             Await TestAsync(markup, expectedOrderedItems)
         End Function
@@ -166,14 +165,14 @@ End Class
         Public Async Function TestInvocationWithoutClosingParenWithParametersOn1() As Task
             Dim markup = <a><![CDATA[
 Class C
-    Sub Foo(a As Integer, b As Integer)
-        [|Foo($$a, b
+    Sub Goo(a As Integer, b As Integer)
+        [|Goo($$a, b
     |]End Sub
 End Class
 ]]></a>.Value
 
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
-            expectedOrderedItems.Add(New SignatureHelpTestItem("C.Foo(a As Integer, b As Integer)", String.Empty, String.Empty, currentParameterIndex:=0))
+            expectedOrderedItems.Add(New SignatureHelpTestItem("C.Goo(a As Integer, b As Integer)", String.Empty, String.Empty, currentParameterIndex:=0))
 
             Await TestAsync(markup, expectedOrderedItems)
         End Function
@@ -182,14 +181,14 @@ End Class
         Public Async Function TestInvocationWithoutClosingParenWithParametersOn2() As Task
             Dim markup = <a><![CDATA[
 Class C
-    Sub Foo(a As Integer, b As Integer)
-        [|Foo(a, $$b
+    Sub Goo(a As Integer, b As Integer)
+        [|Goo(a, $$b
     |]End Sub
 End Class
 ]]></a>.Value
 
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
-            expectedOrderedItems.Add(New SignatureHelpTestItem("C.Foo(a As Integer, b As Integer)", String.Empty, String.Empty, currentParameterIndex:=1))
+            expectedOrderedItems.Add(New SignatureHelpTestItem("C.Goo(a As Integer, b As Integer)", String.Empty, String.Empty, currentParameterIndex:=1))
 
             Await TestAsync(markup, expectedOrderedItems)
         End Function
@@ -200,23 +199,23 @@ End Class
             Dim markup = <a><![CDATA[
 Imports System
 Public Class Base
-    Protected Overridable Sub Foo(x As Integer)
+    Protected Overridable Sub Goo(x As Integer)
     End Sub
 End Class
 
 Public Class Derived
     Inherits Base
     Private Sub Test()
-        [|MyBase.Foo($$
+        [|MyBase.Goo($$
     |]End Sub
 
-    Protected Overrides Sub Foo(x As Integer)
+    Protected Overrides Sub Goo(x As Integer)
     End Sub
 End Class
 ]]></a>.Value
 
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
-            expectedOrderedItems.Add(New SignatureHelpTestItem("Base.Foo(x As Integer)", String.Empty, String.Empty, currentParameterIndex:=0))
+            expectedOrderedItems.Add(New SignatureHelpTestItem("Base.Goo(x As Integer)", String.Empty, String.Empty, currentParameterIndex:=0))
 
             Await TestAsync(markup, expectedOrderedItems)
         End Function
@@ -227,23 +226,23 @@ End Class
             Dim markup = <a><![CDATA[
 Imports System
 Public MustInherit Class Base
-    Protected MustOverride Sub Foo(x As Integer)
+    Protected MustOverride Sub Goo(x As Integer)
     End Sub
 End Class
 
 Public Class Derived
     Inherits Base
     Private Sub Test()
-        [|MyBase.Foo($$
+        [|MyBase.Goo($$
     |]End Sub
 
-    Protected Overrides Sub Foo(x As Integer)
+    Protected Overrides Sub Goo(x As Integer)
     End Sub
 End Class
 ]]></a>.Value
 
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
-            expectedOrderedItems.Add(New SignatureHelpTestItem("Base.Foo(x As Integer)", String.Empty, String.Empty, currentParameterIndex:=0))
+            expectedOrderedItems.Add(New SignatureHelpTestItem("Base.Goo(x As Integer)", String.Empty, String.Empty, currentParameterIndex:=0))
 
             Await TestAsync(markup, expectedOrderedItems)
         End Function
@@ -254,20 +253,20 @@ End Class
             Dim markup = <a><![CDATA[
 Imports System
 Public Class Base
-    Protected Overridable Sub Foo(x As Integer)
+    Protected Overridable Sub Goo(x As Integer)
     End Sub
 End Class
 
 Public Class Derived
     Inherits Base
     Private Sub Test()
-        [|Me.Foo($$
+        [|Me.Goo($$
     |]End Sub
 End Class
 ]]></a>.Value
 
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
-            expectedOrderedItems.Add(New SignatureHelpTestItem("Base.Foo(x As Integer)", String.Empty, String.Empty, currentParameterIndex:=0))
+            expectedOrderedItems.Add(New SignatureHelpTestItem("Base.Goo(x As Integer)", String.Empty, String.Empty, currentParameterIndex:=0))
 
             Await TestAsync(markup, expectedOrderedItems)
         End Function
@@ -278,22 +277,22 @@ End Class
             Dim markup = <a><![CDATA[
 Imports System
 Public Class Base
-    Protected Overridable Sub Foo(x As Integer)
+    Protected Overridable Sub Goo(x As Integer)
     End Sub
 End Class
 
 Public Class Derived
     Inherits Base
     Private Sub Test()
-        [|Me.Foo($$
+        [|Me.Goo($$
     |]End Sub
-    Protected Overrides Sub Foo(x As Integer)
+    Protected Overrides Sub Goo(x As Integer)
     End Sub
 End Class
 ]]></a>.Value
 
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
-            expectedOrderedItems.Add(New SignatureHelpTestItem("Derived.Foo(x As Integer)", String.Empty, String.Empty, currentParameterIndex:=0))
+            expectedOrderedItems.Add(New SignatureHelpTestItem("Derived.Goo(x As Integer)", String.Empty, String.Empty, currentParameterIndex:=0))
 
             Await TestAsync(markup, expectedOrderedItems)
         End Function
@@ -304,20 +303,20 @@ End Class
             Dim markup = <a><![CDATA[
 Imports System
 Public MustInherit Class Base
-    Protected MustOverride Sub Foo(x As Integer)
+    Protected MustOverride Sub Goo(x As Integer)
     End Sub
 End Class
 
 Public Class Derived
     Inherits Base
     Private Sub Test()
-        [|Me.Foo($$
+        [|Me.Goo($$
     |]End Sub
 End Class
 ]]></a>.Value
 
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
-            expectedOrderedItems.Add(New SignatureHelpTestItem("Base.Foo(x As Integer)", String.Empty, String.Empty, currentParameterIndex:=0))
+            expectedOrderedItems.Add(New SignatureHelpTestItem("Base.Goo(x As Integer)", String.Empty, String.Empty, currentParameterIndex:=0))
 
             Await TestAsync(markup, expectedOrderedItems)
         End Function
@@ -328,22 +327,22 @@ End Class
             Dim markup = <a><![CDATA[
 Imports System
 Public MustInherit Class Base
-    Protected MustOverride Sub Foo(x As Integer)
+    Protected MustOverride Sub Goo(x As Integer)
     End Sub
 End Class
 
 Public Class Derived
     Inherits Base
     Private Sub Test()
-        [|Me.Foo($$
+        [|Me.Goo($$
     |]End Sub
-    Protected Overrides Sub Foo(x As Integer)
+    Protected Overrides Sub Goo(x As Integer)
     End Sub
 End Class
 ]]></a>.Value
 
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
-            expectedOrderedItems.Add(New SignatureHelpTestItem("Derived.Foo(x As Integer)", String.Empty, String.Empty, currentParameterIndex:=0))
+            expectedOrderedItems.Add(New SignatureHelpTestItem("Derived.Goo(x As Integer)", String.Empty, String.Empty, currentParameterIndex:=0))
 
             Await TestAsync(markup, expectedOrderedItems)
         End Function
@@ -354,22 +353,22 @@ End Class
             Dim markup = <a><![CDATA[
 Imports System
 Public Class Base
-    Protected Friend Sub Foo(x As Integer)
+    Protected Friend Sub Goo(x As Integer)
     End Sub
 End Class
 
 Public Class Derived
     Inherits Base
     Private Sub Test()
-        [|MyBase.Foo($$
+        [|MyBase.Goo($$
     |]End Sub
-    Protected Overrides Sub Foo(x As Integer)
+    Protected Overrides Sub Goo(x As Integer)
     End Sub
 End Class
 ]]></a>.Value
 
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
-            expectedOrderedItems.Add(New SignatureHelpTestItem("Base.Foo(x As Integer)", String.Empty, String.Empty, currentParameterIndex:=0))
+            expectedOrderedItems.Add(New SignatureHelpTestItem("Base.Goo(x As Integer)", String.Empty, String.Empty, currentParameterIndex:=0))
 
             Await TestAsync(markup, expectedOrderedItems)
         End Function
@@ -380,7 +379,7 @@ End Class
             Dim markup = <a><![CDATA[
 Imports System
 Public Class Base
-    Protected Sub Foo(x As Integer)
+    Protected Sub Goo(x As Integer)
     End Sub
 End Class
 
@@ -388,9 +387,9 @@ Public Class Derived
     Inherits Base
     Private Sub Test()
         Dim x as New Base()
-        [|x.Foo($$
+        [|x.Goo($$
     |]End Sub
-    Protected Overrides Sub Foo(x As Integer)
+    Protected Overrides Sub Goo(x As Integer)
     End Sub
 End Class
 ]]></a>.Value
@@ -404,7 +403,7 @@ End Class
             Dim markup = <a><![CDATA[
 Imports System
 Public Class Base
-    Private Sub Foo(x As Integer)
+    Private Sub Goo(x As Integer)
     End Sub
 End Class
 
@@ -412,9 +411,9 @@ Public Class Derived
     Inherits Base
     Private Sub Test()
         Dim x as New Base()
-        [|x.Foo($$
+        [|x.Goo($$
     |]End Sub
-    Protected Overrides Sub Foo(x As Integer)
+    Protected Overrides Sub Goo(x As Integer)
     End Sub
 End Class
 ]]></a>.Value
@@ -467,7 +466,7 @@ End Class]]></a>.Value
 Imports System
 
 Class C
-    Sub Foo(a As Integer, b As Integer)
+    Sub Goo(a As Integer, b As Integer)
         Dim bar As Action(Of Integer) = Sub(i) Console.WriteLine(i)
         [|bar($$
     |]End Sub
@@ -486,7 +485,7 @@ End Class
 Imports System
 
 Class C
-    Sub Foo(a As Integer, b As Integer)
+    Sub Goo(a As Integer, b As Integer)
         Dim bar As Func(Of Integer, String) = Function(i) i.ToString()
         [|bar($$
     |]End Sub
@@ -503,7 +502,7 @@ End Class
         Public Async Function TestInvocationOnLambdaInsideAnonType() As Task
             Dim markup = <a><![CDATA[
 Class C
-    Sub Foo()
+    Sub Goo()
         Dim lambda = Function() 0
         Dim bar = New With {.Value = [|lambda($$}
     |]End Sub
@@ -523,7 +522,7 @@ Class C
     Shared Sub Bar(a As Integer)
     End Sub
 
-    Sub Foo()
+    Sub Goo()
         [|C.Bar($$
     |]End Sub
 End Class
@@ -557,7 +556,7 @@ End Module
 ]]></a>.Value
 
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
-            expectedOrderedItems.Add(New SignatureHelpTestItem($"<{Extension}> MyExtension.ExtensionMethod(x As Integer) As Integer", String.Empty, String.Empty, currentParameterIndex:=0))
+            expectedOrderedItems.Add(New SignatureHelpTestItem($"<{VBFeaturesResources.Extension}> MyExtension.ExtensionMethod(x As Integer) As Integer", String.Empty, String.Empty, currentParameterIndex:=0))
 
             Await TestAsync(markup, expectedOrderedItems)
         End Function
@@ -566,15 +565,15 @@ End Module
         Public Async Function TestProperty() As Task
             Dim markup = <a><![CDATA[
 Class C
-    Property foo As Integer
+    Property goo As Integer
 
     Sub bar()
-        [|foo($$
+        [|goo($$
     |]End Sub
 End Class]]></a>.Value
 
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
-            expectedOrderedItems.Add(New SignatureHelpTestItem("C.foo() As Integer", String.Empty, Nothing, currentParameterIndex:=0))
+            expectedOrderedItems.Add(New SignatureHelpTestItem("C.goo() As Integer", String.Empty, Nothing, currentParameterIndex:=0))
 
             Await TestAsync(markup, expectedOrderedItems)
         End Function
@@ -585,7 +584,7 @@ End Class]]></a>.Value
             Dim markup = <a><![CDATA[
 Imports System.Runtime.CompilerServices
  
-Public Class Foo
+Public Class Goo
     Sub bar()
         Me.ExtensionMethod($$
     End Sub
@@ -593,7 +592,7 @@ End Class
  
 Module SomeModule
     <Extension()>
-    Public Sub ExtensionMethod(ByRef f As Foo)
+    Public Sub ExtensionMethod(ByRef f As Goo)
  
     End Sub
 End Module
@@ -601,7 +600,7 @@ End Module
 ]]></a>.Value
 
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)() From {
-                New SignatureHelpTestItem($"<{Extension}> SomeModule.ExtensionMethod()", String.Empty, Nothing, currentParameterIndex:=0)
+                New SignatureHelpTestItem($"<{VBFeaturesResources.Extension}> SomeModule.ExtensionMethod()", String.Empty, Nothing, currentParameterIndex:=0)
             }
 
             Await TestAsync(markup, expectedOrderedItems)
@@ -618,7 +617,7 @@ Module Program
         M(x).Add($$
     End Sub
 
-    Function M(Of T)(foo As T) As List(Of T)
+    Function M(Of T)(goo As T) As List(Of T)
     End Function
 End Module]]></a>.Value
 
@@ -626,15 +625,15 @@ End Module]]></a>.Value
             expectedOrderedItems.Add(New SignatureHelpTestItem(
 $"List(Of 'a).Add(item As 'a)
 
-{FeaturesResources.AnonymousTypes}
-    'a {FeaturesResources.Is} New With {{ .A As Integer, .B As Integer }}",
+{FeaturesResources.Anonymous_Types_colon}
+    'a {FeaturesResources.is_} New With {{ .A As Integer, .B As Integer }}",
                                      String.Empty,
                                      String.Empty,
                                      currentParameterIndex:=0,
                                      description:=$"
 
-{FeaturesResources.AnonymousTypes}
-    'a {FeaturesResources.Is} New With {{ .A As Integer, .B As Integer }}"))
+{FeaturesResources.Anonymous_Types_colon}
+    'a {FeaturesResources.is_} New With {{ .A As Integer, .B As Integer }}"))
 
             Await TestAsync(markup, expectedOrderedItems)
         End Function
@@ -644,7 +643,7 @@ $"List(Of 'a).Add(item As 'a)
         Public Async Function TestStatic1() As Task
             Dim markup = <a><![CDATA[
 Class C
-    Shared Sub Foo()
+    Shared Sub Goo()
         Bar($$
     End Sub
 
@@ -670,7 +669,7 @@ End Class
         Public Async Function TestStatic2() As Task
             Dim markup = <a><![CDATA[
 Class C
-    Sub Foo()
+    Sub Goo()
         Bar($$
     End Sub
 
@@ -744,16 +743,16 @@ Class C
     ''' &lt;summary&gt;
     ''' Doc Comment!
     ''' &lt;/summary&gt;
-    Async Function Foo() As Task
-        Me.Foo($$
+    Async Function Goo() As Task
+        Me.Goo($$
     End Function
 End Class
 ]]></a>.Value
 
-            Dim documentation = StringFromLines("", WorkspacesResources.Usage, "  Await Foo()")
+            Dim documentation = StringFromLines("", WorkspacesResources.Usage_colon, "  Await Goo()")
 
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)() From {
-                New SignatureHelpTestItem("C.Foo() As Task", currentParameterIndex:=0, methodDocumentation:=documentation)
+                New SignatureHelpTestItem("C.Goo() As Task", currentParameterIndex:=0, methodDocumentation:=documentation)
             }
 
             Await TestSignatureHelpWithMscorlib45Async(markup, expectedOrderedItems, LanguageNames.VisualBasic)
@@ -768,16 +767,16 @@ Class C
     ''' &lt;summary&gt;
     ''' Doc Comment!
     ''' &lt;/summary&gt;
-    Async Function Foo() As Task(Of Integer)
-        Me.Foo($$
+    Async Function Goo() As Task(Of Integer)
+        Me.Goo($$
     End Function
 End Class
 ]]></a>.Value
 
-            Dim documentation = StringFromLines("", WorkspacesResources.Usage, "  Dim r as Integer = Await Foo()")
+            Dim documentation = StringFromLines("", WorkspacesResources.Usage_colon, "  Dim r as Integer = Await Goo()")
 
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)() From {
-                New SignatureHelpTestItem("C.Foo() As Task(Of Integer)", currentParameterIndex:=0, methodDocumentation:=documentation)
+                New SignatureHelpTestItem("C.Goo() As Task(Of Integer)", currentParameterIndex:=0, methodDocumentation:=documentation)
             }
 
             Await TestSignatureHelpWithMscorlib45Async(markup, expectedOrderedItems, LanguageNames.VisualBasic)
@@ -793,7 +792,7 @@ End Class
 Class C
     Default Public Property item(index As Integer) As String
         Get
-            Return "foo"
+            Return "goo"
         End Get
         Set(ByVal value As String)
 
@@ -802,7 +801,7 @@ Class C
 End Class
 
 Class D
-    Sub Foo
+    Sub Goo
         Dim obj As New C
         [|obj($$
     |]End Sub
@@ -824,8 +823,8 @@ End Class
 
             Dim markup = <a><![CDATA[
 Class C
-    Sub Foo(someParameter As Integer, something As Boolean)
-        Foo(something:=false, someParameter:=$$)
+    Sub Goo(someParameter As Integer, something As Boolean)
+        Goo(something:=false, someParameter:=$$)
     End Sub
 End Class
 ]]></a>.Value
@@ -842,14 +841,14 @@ End Class
 
             Dim markup = <a><![CDATA[
 Class C
-    Sub Foo()
-        [|Foo($$
+    Sub Goo()
+        [|Goo($$
     |]End Sub
 End Class
 ]]></a>.Value
 
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
-            expectedOrderedItems.Add(New SignatureHelpTestItem("C.Foo()", String.Empty, Nothing, currentParameterIndex:=0))
+            expectedOrderedItems.Add(New SignatureHelpTestItem("C.Goo()", String.Empty, Nothing, currentParameterIndex:=0))
 
             Await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger:=True)
         End Function
@@ -859,14 +858,14 @@ End Class
 
             Dim markup = <a><![CDATA[
 Class C
-    Sub Foo(a As Integer, b As Integer)
-        [|Foo(a,$$
+    Sub Goo(a As Integer, b As Integer)
+        [|Goo(a,$$
     |]End Sub
 End Class
 ]]></a>.Value
 
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
-            expectedOrderedItems.Add(New SignatureHelpTestItem("C.Foo(a As Integer, b As Integer)", String.Empty, String.Empty, currentParameterIndex:=1))
+            expectedOrderedItems.Add(New SignatureHelpTestItem("C.Goo(a As Integer, b As Integer)", String.Empty, String.Empty, currentParameterIndex:=1))
 
             Await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger:=True)
         End Function
@@ -876,8 +875,8 @@ End Class
 
             Dim markup = <a><![CDATA[
 Class C
-    Sub Foo(a As Integer, b As Integer)
-        [|Foo(a, $$|]
+    Sub Goo(a As Integer, b As Integer)
+        [|Goo(a, $$|]
     End Sub
 End Class
 ]]></a>.Value
@@ -893,7 +892,7 @@ End Class
 Class C
     Dim x as String = Nothing
 
-    Sub Foo()
+    Sub Goo()
         x?($$)
     End Sub
 End Class
@@ -910,7 +909,7 @@ End Class
 Class C
     Dim x as String = Nothing
 
-    Sub Foo()
+    Sub Goo()
         x?.ToString($$)
     End Sub
 End Class
@@ -927,7 +926,7 @@ End Class
             Dim markup = <a><![CDATA[
 Imports System
 Class C
-    Sub Foo()
+    Sub Goo()
         Dim x As Func(Of Integer, Integer)
         x?($$
     End Sub
@@ -1023,20 +1022,20 @@ End Class
             Dim markup = <Text><![CDATA[
 Class Program
     Sub M()
-        Foo.Bar($$
+        Goo.Bar($$
     End Sub
 End Class
 ]]></Text>.Value
 
             Dim referencedCode = <Text><![CDATA[
-Public Class Foo
+Public Class Goo
     <System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Always)>
     Public Shared Sub Bar() 
     End Sub
 End Class
 ]]></Text>.Value
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
-            expectedOrderedItems.Add(New SignatureHelpTestItem("Foo.Bar()", String.Empty, Nothing, currentParameterIndex:=0))
+            expectedOrderedItems.Add(New SignatureHelpTestItem("Goo.Bar()", String.Empty, Nothing, currentParameterIndex:=0))
 
             Await TestSignatureHelpInEditorBrowsableContextsAsync(markup:=markup,
                                                 referencedCode:=referencedCode,
@@ -1053,13 +1052,13 @@ End Class
             Dim markup = <Text><![CDATA[
 Class Program
     Sub M()
-        Foo.Bar($$
+        Goo.Bar($$
     End Sub
 End Class
 ]]></Text>.Value
 
             Dim referencedCode = <Text><![CDATA[
-Public Class Foo
+Public Class Goo
     <System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)>
     Public Shared Sub Bar() 
     End Sub
@@ -1067,7 +1066,7 @@ End Class
 ]]></Text>.Value
 
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
-            expectedOrderedItems.Add(New SignatureHelpTestItem("Foo.Bar()", String.Empty, Nothing, currentParameterIndex:=0))
+            expectedOrderedItems.Add(New SignatureHelpTestItem("Goo.Bar()", String.Empty, Nothing, currentParameterIndex:=0))
 
             Await TestSignatureHelpInEditorBrowsableContextsAsync(markup:=markup,
                                                 referencedCode:=referencedCode,
@@ -1084,21 +1083,21 @@ End Class
             Dim markup = <Text><![CDATA[
 Class Program
     Sub M()
-        Dim f As Foo
+        Dim f As Goo
         f.Bar($$
     End Sub
 End Class
 ]]></Text>.Value
 
             Dim referencedCode = <Text><![CDATA[
-Public Class Foo
+Public Class Goo
     <System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)>
     Public Sub Bar() 
     End Sub
 End Class
 ]]></Text>.Value
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
-            expectedOrderedItems.Add(New SignatureHelpTestItem("Foo.Bar()", String.Empty, Nothing, currentParameterIndex:=0))
+            expectedOrderedItems.Add(New SignatureHelpTestItem("Goo.Bar()", String.Empty, Nothing, currentParameterIndex:=0))
 
             Await TestSignatureHelpInEditorBrowsableContextsAsync(markup:=markup,
                                                 referencedCode:=referencedCode,
@@ -1124,14 +1123,14 @@ End Class
             Dim markup = <Text><![CDATA[
 Class Program
     Sub M()
-        Dim f As Foo
+        Dim f As Goo
         f.Bar($$
     End Sub
 End Class
 ]]></Text>.Value
 
             Dim referencedCode = <Text><![CDATA[
-Public Class Foo
+Public Class Goo
     <System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Always)>
     Public Sub Bar() 
     End Sub
@@ -1143,11 +1142,11 @@ End Class
 ]]></Text>.Value
 
             Dim expectedOrderedItemsMetadataReference = New List(Of SignatureHelpTestItem)()
-            expectedOrderedItemsMetadataReference.Add(New SignatureHelpTestItem("Foo.Bar()", String.Empty, Nothing, currentParameterIndex:=0))
+            expectedOrderedItemsMetadataReference.Add(New SignatureHelpTestItem("Goo.Bar()", String.Empty, Nothing, currentParameterIndex:=0))
 
             Dim expectedOrderedItemsSameSolution = New List(Of SignatureHelpTestItem)()
-            expectedOrderedItemsSameSolution.Add(New SignatureHelpTestItem("Foo.Bar()", String.Empty, Nothing, currentParameterIndex:=0))
-            expectedOrderedItemsSameSolution.Add(New SignatureHelpTestItem("Foo.Bar(x As Integer)", String.Empty, String.Empty, currentParameterIndex:=0))
+            expectedOrderedItemsSameSolution.Add(New SignatureHelpTestItem("Goo.Bar()", String.Empty, Nothing, currentParameterIndex:=0))
+            expectedOrderedItemsSameSolution.Add(New SignatureHelpTestItem("Goo.Bar(x As Integer)", String.Empty, String.Empty, currentParameterIndex:=0))
 
             Await TestSignatureHelpInEditorBrowsableContextsAsync(markup:=markup,
                                                 referencedCode:=referencedCode,
@@ -1164,13 +1163,13 @@ End Class
             Dim markup = <Text><![CDATA[
 Class Program
     Sub M()
-        New Foo().Bar($$
+        New Goo().Bar($$
     End Sub
 End Class
 ]]></Text>.Value
 
             Dim referencedCode = <Text><![CDATA[
-Public Class Foo
+Public Class Goo
     <System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)>
     Public Sub Bar() 
     End Sub
@@ -1197,26 +1196,26 @@ End Class
 Class Program
     Sub M()
         Dim dd as D
-        dd.Foo($$
+        dd.Goo($$
     End Sub   
 End Class
 ]]></Text>.Value
 
             Dim referencedCode = <Text><![CDATA[
 Public Class B
-    Public Overridable Sub Foo(original As Integer) 
+    Public Overridable Sub Goo(original As Integer) 
     End Sub
 End Class
 
 Public Class D 
     Inherits B
-    Public Overrides Sub Foo(derived As Integer) 
+    Public Overrides Sub Goo(derived As Integer) 
     End Sub
 End Class
 ]]></Text>.Value
 
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
-            expectedOrderedItems.Add(New SignatureHelpTestItem("D.Foo(derived As Integer)", String.Empty, String.Empty, currentParameterIndex:=0))
+            expectedOrderedItems.Add(New SignatureHelpTestItem("D.Goo(derived As Integer)", String.Empty, String.Empty, currentParameterIndex:=0))
 
             Await TestSignatureHelpInEditorBrowsableContextsAsync(markup:=markup,
                                                 referencedCode:=referencedCode,
@@ -1234,7 +1233,7 @@ End Class
 Class Program
     Sub M()
         Dim x As C
-        x.Foo($$
+        x.Goo($$
     End Sub
 End Class
 ]]></Text>.Value
@@ -1242,12 +1241,12 @@ End Class
             Dim referencedCode = <Text><![CDATA[
 <System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)>
 Public Class C
-    Public Sub Foo() 
+    Public Sub Goo() 
     End Sub
 End Class
 ]]></Text>.Value
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
-            expectedOrderedItems.Add(New SignatureHelpTestItem("C.Foo()", String.Empty, Nothing, currentParameterIndex:=0))
+            expectedOrderedItems.Add(New SignatureHelpTestItem("C.Goo()", String.Empty, Nothing, currentParameterIndex:=0))
 
             Await TestSignatureHelpInEditorBrowsableContextsAsync(markup:=markup,
                                                 referencedCode:=referencedCode,
@@ -1265,7 +1264,7 @@ End Class
 Class Program
     Sub M()
         Dim x As D
-        x.Foo($$
+        x.Goo($$
     End Sub
 End Class
 ]]></Text>.Value
@@ -1273,19 +1272,19 @@ End Class
             Dim referencedCode = <Text><![CDATA[
 <System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)>
 Public Class B
-    Public Sub Foo() 
+    Public Sub Goo() 
     End Sub
 End Class
 
 Public Class D 
     Inherits B
-    Public Overloads Sub Foo(x As Integer)
+    Public Overloads Sub Goo(x As Integer)
     End Sub
 End Class
 ]]></Text>.Value
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem) From {
-                New SignatureHelpTestItem("B.Foo()", String.Empty, Nothing, currentParameterIndex:=0),
-                New SignatureHelpTestItem("D.Foo(x As Integer)", String.Empty, String.Empty, currentParameterIndex:=0)
+                New SignatureHelpTestItem("B.Goo()", String.Empty, Nothing, currentParameterIndex:=0),
+                New SignatureHelpTestItem("D.Goo(x As Integer)", String.Empty, String.Empty, currentParameterIndex:=0)
             }
 
             Await TestSignatureHelpInEditorBrowsableContextsAsync(markup:=markup,
@@ -1304,25 +1303,25 @@ End Class
 Class Program
     Sub M()
         Dim x As D
-        x.Foo($$
+        x.Goo($$
     End Sub
 End Class
 ]]></Text>.Value
 
             Dim referencedCode = <Text><![CDATA[
 Public Class B
-    Public Sub Foo() 
+    Public Sub Goo() 
     End Sub
 End Class
 
 Public Class D 
     Inherits B
-    Public Sub Foo(x As Integer)
+    Public Sub Goo(x As Integer)
     End Sub
 End Class
 ]]></Text>.Value
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
-            expectedOrderedItems.Add(New SignatureHelpTestItem("D.Foo(x As Integer)", String.Empty, String.Empty, currentParameterIndex:=0))
+            expectedOrderedItems.Add(New SignatureHelpTestItem("D.Goo(x As Integer)", String.Empty, String.Empty, currentParameterIndex:=0))
 
             Await TestSignatureHelpInEditorBrowsableContextsAsync(markup:=markup,
                                                 referencedCode:=referencedCode,
@@ -1340,7 +1339,7 @@ End Class
 Class Program 
     Inherits B
     Sub M()
-        Foo($$
+        Goo($$
     End Sub
 End Class
 ]]></Text>.Value
@@ -1348,12 +1347,12 @@ End Class
             Dim referencedCode = <Text><![CDATA[
 Public Class B
     <System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)>
-    Public Sub Foo() 
+    Public Sub Goo() 
     End Sub
 End Class
 ]]></Text>.Value
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
-            expectedOrderedItems.Add(New SignatureHelpTestItem("B.Foo()", String.Empty, Nothing, currentParameterIndex:=0))
+            expectedOrderedItems.Add(New SignatureHelpTestItem("B.Goo()", String.Empty, Nothing, currentParameterIndex:=0))
 
             Await TestSignatureHelpInEditorBrowsableContextsAsync(markup:=markup,
                                                 referencedCode:=referencedCode,
@@ -1371,22 +1370,22 @@ End Class
 Class Program
     Sub M()
         Dim ci = New C(Of Integer)()
-        ci.Foo($$
+        ci.Goo($$
     End Sub
 End Class
 ]]></Text>.Value
 
             Dim referencedCode = <Text><![CDATA[
 Public Class C(Of T)
-    Public Sub Foo(t As T)
+    Public Sub Goo(t As T)
     End Sub
-    Public Sub Foo(i As Integer)  
+    Public Sub Goo(i As Integer)  
     End Sub
 End Class
 ]]></Text>.Value
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
-            expectedOrderedItems.Add(New SignatureHelpTestItem("C(Of Integer).Foo(t As Integer)", String.Empty, String.Empty, currentParameterIndex:=0))
-            expectedOrderedItems.Add(New SignatureHelpTestItem("C(Of Integer).Foo(i As Integer)", String.Empty, String.Empty, currentParameterIndex:=0))
+            expectedOrderedItems.Add(New SignatureHelpTestItem("C(Of Integer).Goo(t As Integer)", String.Empty, String.Empty, currentParameterIndex:=0))
+            expectedOrderedItems.Add(New SignatureHelpTestItem("C(Of Integer).Goo(i As Integer)", String.Empty, String.Empty, currentParameterIndex:=0))
 
             Await TestSignatureHelpInEditorBrowsableContextsAsync(markup:=markup,
                                                 referencedCode:=referencedCode,
@@ -1404,7 +1403,7 @@ End Class
 Class Program
     Sub M()
         Dim ci = New C(Of Integer)()
-        ci.Foo($$
+        ci.Goo($$
     End Sub
 End Class
 ]]></Text>.Value
@@ -1412,19 +1411,19 @@ End Class
             Dim referencedCode = <Text><![CDATA[
 Public Class C(Of T)
     <System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)>
-    Public Sub Foo(t As T)  
+    Public Sub Goo(t As T)  
     End Sub
-    Public Sub Foo(i As Integer)  
+    Public Sub Goo(i As Integer)  
     End Sub
 End Class
 ]]></Text>.Value
 
             Dim expectedOrderedItemsMetadataReference = New List(Of SignatureHelpTestItem)()
-            expectedOrderedItemsMetadataReference.Add(New SignatureHelpTestItem("C(Of Integer).Foo(i As Integer)", String.Empty, String.Empty, currentParameterIndex:=0))
+            expectedOrderedItemsMetadataReference.Add(New SignatureHelpTestItem("C(Of Integer).Goo(i As Integer)", String.Empty, String.Empty, currentParameterIndex:=0))
 
             Dim expectedOrderedItemsSameSolution = New List(Of SignatureHelpTestItem)()
-            expectedOrderedItemsSameSolution.Add(New SignatureHelpTestItem("C(Of Integer).Foo(t As Integer)", String.Empty, String.Empty, currentParameterIndex:=0))
-            expectedOrderedItemsSameSolution.Add(New SignatureHelpTestItem("C(Of Integer).Foo(i As Integer)", String.Empty, String.Empty, currentParameterIndex:=0))
+            expectedOrderedItemsSameSolution.Add(New SignatureHelpTestItem("C(Of Integer).Goo(t As Integer)", String.Empty, String.Empty, currentParameterIndex:=0))
+            expectedOrderedItemsSameSolution.Add(New SignatureHelpTestItem("C(Of Integer).Goo(i As Integer)", String.Empty, String.Empty, currentParameterIndex:=0))
 
             Await TestSignatureHelpInEditorBrowsableContextsAsync(markup:=markup,
                                                 referencedCode:=referencedCode,
@@ -1442,26 +1441,26 @@ End Class
 Class Program
     Sub M()
         Dim ci = New C(Of Integer)()
-        ci.Foo($$
+        ci.Goo($$
     End Sub
 End Class
 ]]></Text>.Value
 
             Dim referencedCode = <Text><![CDATA[
 Public Class C(Of T)
-    Public Sub Foo(t As T)
+    Public Sub Goo(t As T)
     End Sub
     <System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)>
-    Public Sub Foo(i As Integer)  
+    Public Sub Goo(i As Integer)  
     End Sub
 End Class
 ]]></Text>.Value
             Dim expectedOrderedItemsMetadataReference = New List(Of SignatureHelpTestItem)()
-            expectedOrderedItemsMetadataReference.Add(New SignatureHelpTestItem("C(Of Integer).Foo(t As Integer)", String.Empty, String.Empty, currentParameterIndex:=0))
+            expectedOrderedItemsMetadataReference.Add(New SignatureHelpTestItem("C(Of Integer).Goo(t As Integer)", String.Empty, String.Empty, currentParameterIndex:=0))
 
             Dim expectedOrderedItemsSameSolution = New List(Of SignatureHelpTestItem)()
-            expectedOrderedItemsSameSolution.Add(New SignatureHelpTestItem("C(Of Integer).Foo(t As Integer)", String.Empty, String.Empty, currentParameterIndex:=0))
-            expectedOrderedItemsSameSolution.Add(New SignatureHelpTestItem("C(Of Integer).Foo(i As Integer)", String.Empty, String.Empty, currentParameterIndex:=0))
+            expectedOrderedItemsSameSolution.Add(New SignatureHelpTestItem("C(Of Integer).Goo(t As Integer)", String.Empty, String.Empty, currentParameterIndex:=0))
+            expectedOrderedItemsSameSolution.Add(New SignatureHelpTestItem("C(Of Integer).Goo(i As Integer)", String.Empty, String.Empty, currentParameterIndex:=0))
 
             Await TestSignatureHelpInEditorBrowsableContextsAsync(markup:=markup,
                                                 referencedCode:=referencedCode,
@@ -1479,7 +1478,7 @@ End Class
 Class Program
     Sub M()
         Dim ci = New C(Of Integer)()
-        ci.Foo($$
+        ci.Goo($$
     End Sub
 End Class
 ]]></Text>.Value
@@ -1487,17 +1486,17 @@ End Class
             Dim referencedCode = <Text><![CDATA[
 Public Class C(Of T)
     <System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)>
-    Public Sub Foo(t As T)  
+    Public Sub Goo(t As T)  
     End Sub
     <System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)>
-    Public Sub Foo(i As Integer)  
+    Public Sub Goo(i As Integer)  
     End Sub
 End Class
 ]]></Text>.Value
 
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
-            expectedOrderedItems.Add(New SignatureHelpTestItem("C(Of Integer).Foo(t As Integer)", String.Empty, String.Empty, currentParameterIndex:=0))
-            expectedOrderedItems.Add(New SignatureHelpTestItem("C(Of Integer).Foo(i As Integer)", String.Empty, String.Empty, currentParameterIndex:=0))
+            expectedOrderedItems.Add(New SignatureHelpTestItem("C(Of Integer).Goo(t As Integer)", String.Empty, String.Empty, currentParameterIndex:=0))
+            expectedOrderedItems.Add(New SignatureHelpTestItem("C(Of Integer).Goo(i As Integer)", String.Empty, String.Empty, currentParameterIndex:=0))
 
             Await TestSignatureHelpInEditorBrowsableContextsAsync(markup:=markup,
                                                 referencedCode:=referencedCode,
@@ -1515,23 +1514,23 @@ End Class
 Class Program
     Sub M()
         Dim cii As C(Of Integer, Integer)
-        cii.Foo($$
+        cii.Goo($$
     End Sub
 End Class
 ]]></Text>.Value
 
             Dim referencedCode = <Text><![CDATA[
 Public Class C(Of T, U)
-    Public Sub Foo(t As T)
+    Public Sub Goo(t As T)
     End Sub  
-    Public Sub Foo(u As U)  
+    Public Sub Goo(u As U)  
     End Sub
 End Class
 ]]></Text>.Value
 
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
-            expectedOrderedItems.Add(New SignatureHelpTestItem("C(Of Integer, Integer).Foo(t As Integer)", String.Empty, String.Empty, currentParameterIndex:=0))
-            expectedOrderedItems.Add(New SignatureHelpTestItem("C(Of Integer, Integer).Foo(u As Integer)", String.Empty, String.Empty, currentParameterIndex:=0))
+            expectedOrderedItems.Add(New SignatureHelpTestItem("C(Of Integer, Integer).Goo(t As Integer)", String.Empty, String.Empty, currentParameterIndex:=0))
+            expectedOrderedItems.Add(New SignatureHelpTestItem("C(Of Integer, Integer).Goo(u As Integer)", String.Empty, String.Empty, currentParameterIndex:=0))
 
             Await TestSignatureHelpInEditorBrowsableContextsAsync(markup:=markup,
                                                 referencedCode:=referencedCode,
@@ -1549,7 +1548,7 @@ End Class
 Class Program
     Sub M()
         Dim cii As C(Of Integer, Integer)
-        cii.Foo($$
+        cii.Goo($$
     End Sub
 End Class
 ]]></Text>.Value
@@ -1557,18 +1556,18 @@ End Class
             Dim referencedCode = <Text><![CDATA[
 Public Class C(Of T, U)
     <System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)>
-    Public Sub Foo(t As T)
+    Public Sub Goo(t As T)
     End Sub
-    Public Sub Foo(u As U)
+    Public Sub Goo(u As U)
     End Sub
 End Class
 ]]></Text>.Value
             Dim expectedOrderedItemsMetadataReference = New List(Of SignatureHelpTestItem)()
-            expectedOrderedItemsMetadataReference.Add(New SignatureHelpTestItem("C(Of Integer, Integer).Foo(u As Integer)", String.Empty, String.Empty, currentParameterIndex:=0))
+            expectedOrderedItemsMetadataReference.Add(New SignatureHelpTestItem("C(Of Integer, Integer).Goo(u As Integer)", String.Empty, String.Empty, currentParameterIndex:=0))
 
             Dim expectedOrderedItemsSameSolution = New List(Of SignatureHelpTestItem)()
-            expectedOrderedItemsSameSolution.Add(New SignatureHelpTestItem("C(Of Integer, Integer).Foo(t As Integer)", String.Empty, String.Empty, currentParameterIndex:=0))
-            expectedOrderedItemsSameSolution.Add(New SignatureHelpTestItem("C(Of Integer, Integer).Foo(u As Integer)", String.Empty, String.Empty, currentParameterIndex:=0))
+            expectedOrderedItemsSameSolution.Add(New SignatureHelpTestItem("C(Of Integer, Integer).Goo(t As Integer)", String.Empty, String.Empty, currentParameterIndex:=0))
+            expectedOrderedItemsSameSolution.Add(New SignatureHelpTestItem("C(Of Integer, Integer).Goo(u As Integer)", String.Empty, String.Empty, currentParameterIndex:=0))
 
             Await TestSignatureHelpInEditorBrowsableContextsAsync(markup:=markup,
                                                 referencedCode:=referencedCode,
@@ -1586,7 +1585,7 @@ End Class
 Class Program
     Sub M()
         Dim cii as C(Of Integer, Integer)
-        cii.Foo($$
+        cii.Goo($$
     End Sub
 End Class
 ]]></Text>.Value
@@ -1594,17 +1593,17 @@ End Class
             Dim referencedCode = <Text><![CDATA[
 Public Class C(Of T, U)
     <System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)>
-    Public Sub Foo(t As T)
+    Public Sub Goo(t As T)
     End Sub
     <System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)>
-    Public Sub Foo(u As U)  
+    Public Sub Goo(u As U)  
     End Sub
 End Class
 ]]></Text>.Value
 
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
-            expectedOrderedItems.Add(New SignatureHelpTestItem("C(Of Integer, Integer).Foo(t As Integer)", String.Empty, String.Empty, currentParameterIndex:=0))
-            expectedOrderedItems.Add(New SignatureHelpTestItem("C(Of Integer, Integer).Foo(u As Integer)", String.Empty, String.Empty, currentParameterIndex:=0))
+            expectedOrderedItems.Add(New SignatureHelpTestItem("C(Of Integer, Integer).Goo(t As Integer)", String.Empty, String.Empty, currentParameterIndex:=0))
+            expectedOrderedItems.Add(New SignatureHelpTestItem("C(Of Integer, Integer).Goo(u As Integer)", String.Empty, String.Empty, currentParameterIndex:=0))
 
             Await TestSignatureHelpInEditorBrowsableContextsAsync(markup:=markup,
                                                 referencedCode:=referencedCode,
@@ -1760,14 +1759,14 @@ End Class
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestMethodUnavailableInOneLinkedFile() As Task
             Dim markup = <text><![CDATA[<Workspace>
-                             <Project Language="Visual Basic" CommonReferences="true" AssemblyName="Proj1" PreprocessorSymbols="FOO=true">
+                             <Project Language="Visual Basic" CommonReferences="true" AssemblyName="Proj1" PreprocessorSymbols="GOO=true">
                                  <Document FilePath="SourceDocument">
 class C
-#if FOO
+#if GOO
     sub bar()
     end sub
 #endif
-    sub foo()
+    sub goo()
         bar($$
     end sub
 end class
@@ -1778,23 +1777,23 @@ end class
                                  <Document IsLinkFile="true" LinkAssemblyName="Proj1" LinkFilePath="SourceDocument"/>
                              </Project>
                          </Workspace>]]></text>.Value.NormalizeLineEndings()
-            Dim expectedDescription = New SignatureHelpTestItem("C.bar()" + vbCrLf + vbCrLf + String.Format(FeaturesResources.ProjectAvailability, "Proj1", FeaturesResources.Available) + vbCrLf + String.Format(FeaturesResources.ProjectAvailability, "Proj2", FeaturesResources.NotAvailable) + vbCrLf + vbCrLf + FeaturesResources.UseTheNavigationBarToSwitchContext, currentParameterIndex:=0)
+            Dim expectedDescription = New SignatureHelpTestItem("C.bar()" + vbCrLf + vbCrLf + String.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available) + vbCrLf + String.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available) + vbCrLf + vbCrLf + FeaturesResources.You_can_use_the_navigation_bar_to_switch_context, currentParameterIndex:=0)
             Await VerifyItemWithReferenceWorkerAsync(markup, {expectedDescription}, False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestExcludeLinkedFilesWithInactiveRegions() As Task
             Dim markup = <text><![CDATA[<Workspace>
-                             <Project Language="Visual Basic" CommonReferences="true" AssemblyName="Proj1" PreprocessorSymbols="FOO=true,BAR=true">
+                             <Project Language="Visual Basic" CommonReferences="true" AssemblyName="Proj1" PreprocessorSymbols="GOO=true,BAR=true">
                                  <Document FilePath="SourceDocument">
 class C
-#if FOO
+#if GOO
     sub bar()
     end sub
 #endif
 
 #if BAR
-    sub foo()
+    sub goo()
         bar($$
     end sub
 #endif
@@ -1808,7 +1807,7 @@ class C
                              </Project>
                          </Workspace>]]></text>.Value.NormalizeLineEndings()
 
-            Dim expectedDescription = New SignatureHelpTestItem("C.bar()" + $"\r\n\r\n{String.Format(FeaturesResources.ProjectAvailability, "Proj1", FeaturesResources.Available)}\r\n{String.Format(FeaturesResources.ProjectAvailability, "Proj3", FeaturesResources.NotAvailable)}\r\n\r\n{FeaturesResources.UseTheNavigationBarToSwitchContext}".Replace("\r\n", vbCrLf), currentParameterIndex:=0)
+            Dim expectedDescription = New SignatureHelpTestItem("C.bar()" + $"\r\n\r\n{String.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}\r\n{String.Format(FeaturesResources._0_1, "Proj3", FeaturesResources.Not_Available)}\r\n\r\n{FeaturesResources.You_can_use_the_navigation_bar_to_switch_context}".Replace("\r\n", vbCrLf), currentParameterIndex:=0)
             Await VerifyItemWithReferenceWorkerAsync(markup, {expectedDescription}, False)
         End Function
 
@@ -1819,21 +1818,21 @@ class C
             Dim markup = <a><![CDATA[
 Class C
     Sub M()
-        Foo(""$$)
+        Goo(""$$)
     End Sub
 
-    Sub Foo(Of T)(a As T)
+    Sub Goo(Of T)(a As T)
     End Sub
 
-    Sub Foo(Of T, U)(a As T, b As U)
+    Sub Goo(Of T, U)(a As T, b As U)
     End Sub
 End Class
 ]]></a>.Value
 
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem) From
             {
-                New SignatureHelpTestItem("C.Foo(Of String)(a As String)", String.Empty, String.Empty, currentParameterIndex:=0),
-                New SignatureHelpTestItem("C.Foo(Of T, U)(a As T, b As U)", String.Empty)
+                New SignatureHelpTestItem("C.Goo(Of String)(a As String)", String.Empty, String.Empty, currentParameterIndex:=0),
+                New SignatureHelpTestItem("C.Goo(Of T, U)(a As T, b As U)", String.Empty)
             }
 
             Await TestAsync(markup, expectedOrderedItems)
@@ -1846,21 +1845,21 @@ End Class
             Dim markup = <a><![CDATA[
 Class C
     Sub M()
-        Foo("", $$)
+        Goo("", $$)
     End Sub
 
-    Sub Foo(Of T)(a As T)
+    Sub Goo(Of T)(a As T)
     End Sub
 
-    Sub Foo(Of T, U)(a As T, b As U)
+    Sub Goo(Of T, U)(a As T, b As U)
     End Sub
 End Class
 ]]></a>.Value
 
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem) From
             {
-                New SignatureHelpTestItem("C.Foo(Of T)(a As T)", String.Empty),
-                New SignatureHelpTestItem("C.Foo(Of T, U)(a As T, b As U)", String.Empty, String.Empty, currentParameterIndex:=1)
+                New SignatureHelpTestItem("C.Goo(Of T)(a As T)", String.Empty),
+                New SignatureHelpTestItem("C.Goo(Of T, U)(a As T, b As U)", String.Empty, String.Empty, currentParameterIndex:=1)
             }
 
             Await TestAsync(markup, expectedOrderedItems)
@@ -1900,6 +1899,26 @@ End Class
 "
 
             Await TestAsync(markup, {New SignatureHelpTestItem("List(Of Integer).Add(item As Integer)")})
+        End Function
+
+        <WorkItem(2579, "https://github.com/dotnet/roslyn/issues/2579")>
+        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        Public Async Function TestInvocationOnMeExpression_Constructor() As Task
+            Dim markup = <a><![CDATA[
+Imports System
+Public Class A
+    Public Sub New()
+        [|Me.New($$
+    |]End Sub
+    Public Sub New(x As Integer)
+    End Sub
+End Class
+]]></a>.Value
+
+            Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
+            expectedOrderedItems.Add(New SignatureHelpTestItem("A.New(x As Integer)", String.Empty, String.Empty, currentParameterIndex:=0))
+
+            Await TestAsync(markup, expectedOrderedItems)
         End Function
     End Class
 End Namespace

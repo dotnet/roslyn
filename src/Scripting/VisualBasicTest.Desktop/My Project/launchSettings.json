@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "xUnit.net Console": {
+      "executablePath": "$(XUnitPath)",
+      "commandLineArgs": "$(XUnitArguments)"
+    }
+  }
+}

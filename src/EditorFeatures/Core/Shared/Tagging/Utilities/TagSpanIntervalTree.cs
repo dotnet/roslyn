@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -37,21 +37,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             _tree = IntervalTree.Create(introspector, nodeValues);
         }
 
-        public ITextBuffer Buffer
-        {
-            get
-            {
-                return _textBuffer;
-            }
-        }
+        public ITextBuffer Buffer => _textBuffer;
 
-        public SpanTrackingMode SpanTrackingMode
-        {
-            get
-            {
-                return _spanTrackingMode;
-            }
-        }
+        public SpanTrackingMode SpanTrackingMode => _spanTrackingMode;
 
         public IList<ITagSpan<TTag>> GetIntersectingSpans(SnapshotSpan snapshotSpan)
         {
@@ -59,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             Contract.Requires(snapshot.TextBuffer == _textBuffer);
 
             var introspector = new IntervalIntrospector(snapshot);
-            var intersectingIntervals = _tree.GetIntersectingIntervals(snapshotSpan.Start, snapshotSpan.Length, introspector);
+            var intersectingIntervals = _tree.GetIntervalsThatIntersectWith(snapshotSpan.Start, snapshotSpan.Length, introspector);
 
             List<ITagSpan<TTag>> result = null;
             foreach (var tagNode in intersectingIntervals)
@@ -89,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             SnapshotSpan span, IntervalIntrospector introspector, List<ITagSpan<TTag>> spans)
         {
             var snapshot = span.Snapshot;
-            foreach (var tagNode in _tree.GetIntersectingIntervals(span.Start, span.Length, introspector))
+            foreach (var tagNode in _tree.GetIntervalsThatIntersectWith(span.Start, span.Length, introspector))
             {
                 var tagNodeSpan = tagNode.Span.GetSpan(snapshot);
                 if (span.Contains(tagNodeSpan))

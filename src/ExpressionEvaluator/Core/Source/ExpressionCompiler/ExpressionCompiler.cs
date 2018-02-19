@@ -1,14 +1,15 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Debugger;
+using Microsoft.VisualStudio.Debugger.CallStack;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.ComponentInterfaces;
 using Microsoft.VisualStudio.Debugger.Evaluation;
@@ -20,11 +21,25 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
     public abstract class ExpressionCompiler :
         IDkmClrExpressionCompiler,
         IDkmClrExpressionCompilerCallback,
-        IDkmModuleModifiedNotification
+        IDkmModuleModifiedNotification,
+        IDkmModuleInstanceUnloadNotification,
+        IDkmLanguageFrameDecoder, 
+        IDkmLanguageInstructionDecoder
     {
+        // Need to support IDkmLanguageFrameDecoder and IDkmLanguageInstructionDecoder
+        // See https://github.com/dotnet/roslyn/issues/22620
+        private readonly IDkmLanguageFrameDecoder _languageFrameDecoder;
+        private readonly IDkmLanguageInstructionDecoder _languageInstructionDecoder;
+
         static ExpressionCompiler()
         {
             FatalError.Handler = FailFast.OnFatalException;
+        }
+
+        public ExpressionCompiler(IDkmLanguageFrameDecoder languageFrameDecoder, IDkmLanguageInstructionDecoder languageInstructionDecoder)
+        {
+            _languageFrameDecoder = languageFrameDecoder;
+            _languageInstructionDecoder = languageInstructionDecoder;
         }
 
         DkmCompiledClrLocalsQuery IDkmClrExpressionCompiler.GetClrLocalVariableQuery(
@@ -41,8 +56,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     : GetAliases(runtimeInstance, inspectionContext); // NB: Not affected by retrying.
                 string error;
                 var r = this.CompileWithRetry(
-                    moduleInstance,
-                    runtimeInstance.GetMetadataBlocks(moduleInstance.AppDomain),
+                    moduleInstance.AppDomain,
+                    runtimeInstance,
                     (blocks, useReferencedModulesOnly) => CreateMethodContext(instructionAddress, blocks, useReferencedModulesOnly),
                     (context, diagnostics) =>
                     {
@@ -85,9 +100,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     dkmAlias.Name,
                     dkmAlias.FullName,
                     dkmAlias.Type,
-                    new CustomTypeInfo(
-                        dkmAlias.CustomTypeInfoPayloadTypeId,
-                        dkmAlias.CustomTypeInfoPayload)));
+                    dkmAlias.CustomTypeInfoPayloadTypeId,
+                    dkmAlias.CustomTypeInfoPayload));
             }
             return builder.ToImmutableAndFree();
         }
@@ -105,8 +119,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 var runtimeInstance = instructionAddress.RuntimeInstance;
                 var aliases = GetAliases(runtimeInstance, inspectionContext); // NB: Not affected by retrying.
                 var r = this.CompileWithRetry(
-                    moduleInstance,
-                    runtimeInstance.GetMetadataBlocks(moduleInstance.AppDomain),
+                    moduleInstance.AppDomain,
+                    runtimeInstance,
                     (blocks, useReferencedModulesOnly) => CreateMethodContext(instructionAddress, blocks, useReferencedModulesOnly),
                     (context, diagnostics) =>
                     {
@@ -142,8 +156,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 var runtimeInstance = instructionAddress.RuntimeInstance;
                 var aliases = GetAliases(runtimeInstance, lValue.InspectionContext); // NB: Not affected by retrying.
                 var r = this.CompileWithRetry(
-                    moduleInstance,
-                    runtimeInstance.GetMetadataBlocks(moduleInstance.AppDomain),
+                    moduleInstance.AppDomain,
+                    runtimeInstance,
                     (blocks, useReferencedModulesOnly) => CreateMethodContext(instructionAddress, blocks, useReferencedModulesOnly),
                     (context, diagnostics) =>
                     {
@@ -159,7 +173,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     },
                     out error);
 
-                Debug.Assert((r.ResultProperties.Flags & DkmClrCompilationResultFlags.PotentialSideEffect) == DkmClrCompilationResultFlags.PotentialSideEffect);
+                Debug.Assert(
+                    r.CompileResult == null && r.ResultProperties.Flags == default ||
+                    (r.ResultProperties.Flags & DkmClrCompilationResultFlags.PotentialSideEffect) == DkmClrCompilationResultFlags.PotentialSideEffect);
+
                 result = r.CompileResult.ToQueryResult(this.CompilerId, r.ResultProperties, runtimeInstance);
             }
             catch (Exception e) when (ExpressionEvaluatorFatalError.CrashIfFailFastEnabled(e))
@@ -180,8 +197,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 var runtimeInstance = moduleInstance.RuntimeInstance;
                 var appDomain = moduleInstance.AppDomain;
                 var compileResult = this.CompileWithRetry(
-                    moduleInstance,
-                    runtimeInstance.GetMetadataBlocks(appDomain),
+                    appDomain,
+                    runtimeInstance,
                     (blocks, useReferencedModulesOnly) => CreateTypeContext(appDomain, blocks, moduleInstance.Mvid, token, useReferencedModulesOnly),
                     (context, diagnostics) =>
                     {
@@ -220,6 +237,35 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         void IDkmModuleModifiedNotification.OnModuleModified(DkmModuleInstance moduleInstance)
         {
+            RemoveDataItemIfNecessary(moduleInstance);
+        }
+
+        void IDkmModuleInstanceUnloadNotification.OnModuleInstanceUnload(DkmModuleInstance moduleInstance, DkmWorkList workList, DkmEventDescriptor eventDescriptor)
+        {
+            RemoveDataItemIfNecessary(moduleInstance);
+        }
+
+        #region IDkmLanguageFrameDecoder, IDkmLanguageInstructionDecoder
+
+        void IDkmLanguageFrameDecoder.GetFrameName(DkmInspectionContext inspectionContext, DkmWorkList workList, DkmStackWalkFrame frame, DkmVariableInfoFlags argumentFlags, DkmCompletionRoutine<DkmGetFrameNameAsyncResult> completionRoutine)
+        {
+            _languageFrameDecoder.GetFrameName(inspectionContext, workList, frame, argumentFlags, completionRoutine);
+        }
+
+        void IDkmLanguageFrameDecoder.GetFrameReturnType(DkmInspectionContext inspectionContext, DkmWorkList workList, DkmStackWalkFrame frame, DkmCompletionRoutine<DkmGetFrameReturnTypeAsyncResult> completionRoutine)
+        {
+            _languageFrameDecoder.GetFrameReturnType(inspectionContext, workList, frame, completionRoutine);
+        }
+
+        string IDkmLanguageInstructionDecoder.GetMethodName(DkmLanguageInstructionAddress languageInstructionAddress, DkmVariableInfoFlags argumentFlags)
+        {
+            return _languageInstructionDecoder.GetMethodName(languageInstructionAddress, argumentFlags);
+        }
+
+        #endregion
+
+        private void RemoveDataItemIfNecessary(DkmModuleInstance moduleInstance)
+        {
             // If the module is not a managed module, the module change has no effect.
             var module = moduleInstance as DkmClrModuleInstance;
             if (module == null)
@@ -255,6 +301,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             bool useReferencedModulesOnly);
 
         internal abstract void RemoveDataItem(DkmClrAppDomain appDomain);
+
+        internal abstract ImmutableArray<MetadataBlock> GetMetadataBlocks(
+            DkmClrAppDomain appDomain,
+            DkmClrRuntimeInstance runtimeInstance);
 
         private EvaluationContextBase CreateMethodContext(
             DkmClrInstructionAddress instructionAddress,
@@ -295,18 +345,19 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         internal delegate TResult CompileDelegate<TResult>(EvaluationContextBase context, DiagnosticBag diagnostics);
 
         private TResult CompileWithRetry<TResult>(
-            DkmClrModuleInstance moduleInstance,
-            ImmutableArray<MetadataBlock> metadataBlocks,
+            DkmClrAppDomain appDomain,
+            DkmClrRuntimeInstance runtimeInstance,
             CreateContextDelegate createContext,
             CompileDelegate<TResult> compile,
             out string errorMessage)
         {
+            var metadataBlocks = GetMetadataBlocks(appDomain, runtimeInstance);
             return CompileWithRetry(
                 metadataBlocks,
                 this.DiagnosticFormatter,
                 createContext,
                 compile,
-                (AssemblyIdentity assemblyIdentity, out uint size) => moduleInstance.AppDomain.GetMetaDataBytesPtr(assemblyIdentity.GetDisplayName(), out size),
+                (AssemblyIdentity assemblyIdentity, out uint size) => appDomain.GetMetaDataBytesPtr(assemblyIdentity.GetDisplayName(), out size),
                 out errorMessage);
         }
 
@@ -384,13 +435,15 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         private static DkmClrLocalVariableInfo ToLocalVariableInfo(LocalAndMethod local)
         {
+            ReadOnlyCollection<byte> customTypeInfo;
+            Guid customTypeInfoId = local.GetCustomTypeInfo(out customTypeInfo);
             return DkmClrLocalVariableInfo.Create(
                 local.LocalDisplayName,
                 local.LocalName,
                 local.MethodName,
                 local.Flags,
                 DkmEvaluationResultCategory.Data,
-                local.GetCustomTypeInfo().ToDkmClrCustomTypeInfo());
+                customTypeInfo.ToCustomTypeInfo(customTypeInfoId));
         }
 
         private struct GetLocalsResult

@@ -85,8 +85,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
             }
 
             _waitIndicator.Wait(
-                title: EditorFeaturesResources.AutomaticLineEnder,
-                message: EditorFeaturesResources.AutomaticallyCompleting,
+                title: EditorFeaturesResources.Automatic_Line_Ender,
+                message: EditorFeaturesResources.Automatically_completing,
                 allowCancel: false, action: w =>
                 {
                     // caret is not on the subject buffer. nothing we can do
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
                         return;
                     }
 
-                    using (var transaction = args.TextView.CreateEditTransaction(EditorFeaturesResources.AutomaticLineEnder, _undoRegistry, _editorOperationsFactoryService))
+                    using (var transaction = args.TextView.CreateEditTransaction(EditorFeaturesResources.Automatic_Line_Ender, _undoRegistry, _editorOperationsFactoryService))
                     {
                         // try to move the caret to the end of the line on which the caret is
                         args.TextView.TryMoveCaretToAndEnsureVisible(subjectLineWhereCaretIsOn.End);
@@ -139,8 +139,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
         /// </summary>
         private int? GetInsertionPoint(Document document, ITextSnapshotLine line, CancellationToken cancellationToken)
         {
-            var root = document.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-            var text = document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var root = document.GetSyntaxRootSynchronously(cancellationToken);
+            var text = root.SyntaxTree.GetText(cancellationToken);
 
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 

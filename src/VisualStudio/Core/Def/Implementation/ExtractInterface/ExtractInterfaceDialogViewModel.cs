@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
+using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterface
@@ -58,31 +59,31 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
 
             if (!MemberContainers.Any(c => c.IsChecked))
             {
-                SendFailureNotification(ServicesVSResources.YouMustSelectAtLeastOneMember);
+                SendFailureNotification(ServicesVSResources.You_must_select_at_least_one_member);
                 return false;
             }
 
             if (_conflictingTypeNames.Contains(trimmedInterfaceName))
             {
-                SendFailureNotification(ServicesVSResources.InterfaceNameConflictsWithTypeName);
+                SendFailureNotification(ServicesVSResources.Interface_name_conflicts_with_an_existing_type_name);
                 return false;
             }
 
             if (!_syntaxFactsService.IsValidIdentifier(trimmedInterfaceName))
             {
-                SendFailureNotification(string.Format(ServicesVSResources.InterfaceNameIsNotAValidIdentifier, _languageName));
+                SendFailureNotification(string.Format(ServicesVSResources.Interface_name_is_not_a_valid_0_identifier, _languageName));
                 return false;
             }
 
             if (trimmedFileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
             {
-                SendFailureNotification(ServicesVSResources.IllegalCharactersInPath);
+                SendFailureNotification(ServicesVSResources.Illegal_characters_in_path);
                 return false;
             }
 
             if (!System.IO.Path.GetExtension(trimmedFileName).Equals(_fileExtension, StringComparison.OrdinalIgnoreCase))
             {
-                SendFailureNotification(string.Format(ServicesVSResources.FileNameMustHaveTheExtension, _fileExtension));
+                SendFailureNotification(string.Format(ServicesVSResources.File_name_must_have_the_0_extension, _fileExtension));
                 return false;
             }
 
@@ -127,7 +128,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
                 if (SetProperty(ref _interfaceName, value))
                 {
                     FileName = string.Format("{0}{1}", value.Trim(), _fileExtension);
-                    NotifyPropertyChanged("GeneratedName");
+                    NotifyPropertyChanged(nameof(GeneratedName));
                 }
             }
         }
@@ -185,6 +186,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
             public ImageSource Glyph
             {
                 get { return MemberSymbol.GetGlyph().GetImageSource(_glyphService); }
+            }
+
+            public string MemberAutomationText
+            {
+                get { return MemberSymbol.Kind + " " + MemberName; }
             }
         }
     }

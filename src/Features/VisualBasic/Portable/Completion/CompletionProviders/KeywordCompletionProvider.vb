@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
 Imports System.Collections.Immutable
@@ -6,6 +6,7 @@ Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
+Imports Microsoft.CodeAnalysis.Completion
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     Friend Class KeywordCompletionProvider
@@ -21,13 +22,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return Await VisualBasicSyntaxContext.CreateContextAsync(document.Project.Solution.Workspace, semanticModel, position, cancellationToken).ConfigureAwait(False)
         End Function
 
-        Protected Overrides Function GetTextChangeSpan(text As SourceText, position As Integer) As TextSpan
-            Return CompletionUtilities.GetTextChangeSpan(text, position)
-        End Function
-
-        Public Overrides Function IsTriggerCharacter(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
+        Friend Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
             ' We show 'Of' after dim x as new list(
             Return CompletionUtilities.IsDefaultTriggerCharacterOrParen(text, characterPosition, options)
+        End Function
+
+        Private Shared ReadOnly s_tupleRules As CompletionItemRules = CompletionItemRules.Default.
+            WithCommitCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, ":"c))
+
+        Protected Overrides Function CreateItem(keyword As RecommendedKeyword, context As VisualBasicSyntaxContext) As CompletionItem
+            Dim rules = If(context.IsPossibleTupleContext, s_tupleRules, CompletionItemRules.Default)
+
+            Return CommonCompletionItem.Create(
+                displayText:=keyword.Keyword,
+                description:=keyword.DescriptionFactory(CancellationToken.None),
+                glyph:=Glyph.Keyword,
+                tags:=s_Tags,
+                rules:=rules.WithMatchPriority(keyword.MatchPriority))
         End Function
 
         Private Shared Function GetKeywordRecommenders() As ImmutableArray(Of IKeywordRecommender(Of VisualBasicSyntaxContext))
@@ -175,5 +186,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             }.ToImmutableArray()
         End Function
 
+        Friend Overrides Function GetCurrentSpan(span As TextSpan, text As SourceText) As TextSpan
+            Return CompletionUtilities.GetCompletionItemSpan(text, span.End)
+        End Function
     End Class
 End Namespace

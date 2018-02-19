@@ -16,26 +16,48 @@ namespace Microsoft.CodeAnalysis.Host
 
         private int _refCounter;
 
+        public string WorkingFolderPath { get; }
+        public string SolutionFilePath { get; }
+
+        public string DatabaseFile { get; }
+        public string DatabaseDirectory => Path.GetDirectoryName(DatabaseFile);
+
+        protected bool PersistenceEnabled
+            => _optionService.GetOption(PersistentStorageOptions.Enabled);
+
         protected AbstractPersistentStorage(
-            IOptionService optionService, string workingFolderPath, string solutionFilePath, Action<AbstractPersistentStorage> disposer)
+            IOptionService optionService, 
+            string workingFolderPath, 
+            string solutionFilePath,
+            string databaseFile,
+            Action<AbstractPersistentStorage> disposer)
         {
             Contract.ThrowIfNull(disposer);
 
             this.WorkingFolderPath = workingFolderPath;
             this.SolutionFilePath = solutionFilePath;
+            this.DatabaseFile = databaseFile;
 
             _refCounter = 0;
             _optionService = optionService;
             _disposer = disposer;
+
+            if (!Directory.Exists(this.DatabaseDirectory))
+            {
+                Directory.CreateDirectory(this.DatabaseDirectory);
+            }
         }
 
-        public string WorkingFolderPath { get; }
-        public string SolutionFilePath { get; }
+        public abstract void Initialize(Solution solution);
+        public abstract void Close();
 
-        protected bool PersistenceEnabled
-        {
-            get { return _optionService.GetOption(PersistentStorageOptions.Enabled); }
-        }
+        public abstract Task<Stream> ReadStreamAsync(string name, CancellationToken cancellationToken = default);
+        public abstract Task<Stream> ReadStreamAsync(Project project, string name, CancellationToken cancellationToken = default);
+        public abstract Task<Stream> ReadStreamAsync(Document document, string name, CancellationToken cancellationToken = default);
+
+        public abstract Task<bool> WriteStreamAsync(string name, Stream stream, CancellationToken cancellationToken = default);
+        public abstract Task<bool> WriteStreamAsync(Project project, string name, Stream stream, CancellationToken cancellationToken = default);
+        public abstract Task<bool> WriteStreamAsync(Document document, string name, Stream stream, CancellationToken cancellationToken = default);
 
         public void Dispose()
         {
@@ -61,17 +83,5 @@ namespace Microsoft.CodeAnalysis.Host
             Contract.Requires(changedValue >= 0);
             return changedValue == 0;
         }
-
-        public virtual void Close()
-        {
-        }
-
-        public abstract Task<Stream> ReadStreamAsync(string name, CancellationToken cancellationToken = default(CancellationToken));
-        public abstract Task<Stream> ReadStreamAsync(Project project, string name, CancellationToken cancellationToken = default(CancellationToken));
-        public abstract Task<Stream> ReadStreamAsync(Document document, string name, CancellationToken cancellationToken = default(CancellationToken));
-
-        public abstract Task<bool> WriteStreamAsync(string name, Stream stream, CancellationToken cancellationToken = default(CancellationToken));
-        public abstract Task<bool> WriteStreamAsync(Project project, string name, Stream stream, CancellationToken cancellationToken = default(CancellationToken));
-        public abstract Task<bool> WriteStreamAsync(Document document, string name, Stream stream, CancellationToken cancellationToken = default(CancellationToken));
     }
 }

@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
 Imports System.Threading.Tasks
@@ -79,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
 
         ''' <summary>
         ''' Commits any dirty region, if one exists.
-        ''' 
+        '''
         ''' To improve perf, passing false to isExplicitFormat will avoid semantic checks when expanding
         ''' the formatting span to an entire block
         ''' </summary>
@@ -114,8 +114,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                         Return
                     End If
 
-                    Dim tree = _dirtyState.BaseDocument.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken)
-                    _commitFormatter.CommitRegionAsync(info.SpanToFormat, isExplicitFormat, info.UseSemantics, dirtyRegion, _dirtyState.BaseSnapshot, tree, cancellationToken).Wait(cancellationToken)
+                    Dim tree = _dirtyState.BaseDocument.GetSyntaxTreeSynchronously(cancellationToken)
+                    _commitFormatter.CommitRegion(info.SpanToFormat, isExplicitFormat, info.UseSemantics, dirtyRegion, _dirtyState.BaseSnapshot, tree, cancellationToken)
                 End Using
             Finally
                 ' We may have tracked a dirty region while committing or it may have been aborted.
@@ -147,7 +147,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             End If
 
             formattingInfo.UseSemantics = True
-            Dim tree = document.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken)
+            Dim tree = document.GetSyntaxTreeSynchronously(cancellationToken)
 
             ' No matter what, we will always include the dirty span
             Dim finalSpanStart = dirtySpan.Start.Position
@@ -200,7 +200,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                 Return False
             End If
 
-            Dim tree = document.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken)
+            Dim tree = document.GetSyntaxTreeSynchronously(cancellationToken)
 
             Dim oldStatement = ContainingStatementInfo.GetInfo(oldPoint, tree, cancellationToken)
             Dim newStatement = ContainingStatementInfo.GetInfo(newPoint, tree, cancellationToken)

@@ -106,14 +106,15 @@ end namespace
         Dim table As DeclarationTable = DeclarationTable.Empty
         Assert.False(table.AllRootNamespaces().Any)
 
-        Dim mr = table.MergedRoot
+        Dim mr = table.CalculateMergedRoot(Nothing)
         Assert.NotNull(mr)
+        Assert.True(mr.Declarations.IsEmpty)
+        Assert.True(table.TypeNames.IsEmpty())
 
         table = table.AddRootDeclaration(Lazy(decl1))
+        mr = table.CalculateMergedRoot(Nothing)
 
-        Assert.Same(decl1, table.AllRootNamespaces().Single())
-
-        mr = table.MergedRoot
+        Assert.Equal(mr.Declarations, {decl1})
 
         Assert.Equal(DeclarationKind.Namespace, mr.Kind)
         Assert.Equal("", mr.Name)
@@ -142,11 +143,9 @@ end namespace
         Assert.Equal("D", d.Name)
 
         table = table.AddRootDeclaration(Lazy(decl2))
-        Assert.Equal(2, table.AllRootNamespaces().Length)
-        Assert.True(table.AllRootNamespaces().Contains(decl1))
-        Assert.True(table.AllRootNamespaces().Contains(decl2))
+        mr = table.CalculateMergedRoot(Nothing)
 
-        mr = table.MergedRoot
+        Assert.Equal(mr.Declarations, {decl1, decl2})
 
         Assert.Equal(DeclarationKind.Namespace, mr.Kind)
         Assert.Equal("", mr.Name)
@@ -190,20 +189,20 @@ End Class
 
         Dim tree1 = ParseFile(text1)
         Assert.NotNull(tree1)
-        Dim decl1 = DeclarationTreeBuilder.ForTree(tree1, {"Foo", "Bar"}.AsImmutableOrNull(), TestOptions.ReleaseDll.ScriptClassName, isSubmission:=False)
+        Dim decl1 = DeclarationTreeBuilder.ForTree(tree1, {"Goo", "Bar"}.AsImmutableOrNull(), TestOptions.ReleaseDll.ScriptClassName, isSubmission:=False)
 
         Assert.Equal(DeclarationKind.Namespace, decl1.Kind)
         Assert.NotNull(decl1)
         Assert.Equal("", decl1.Name)
         Assert.Equal(1, decl1.Children.Length())
 
-        Dim foo = decl1.Children.Single()
-        Assert.NotNull(foo)
-        Assert.Equal(DeclarationKind.Namespace, foo.Kind)
-        Assert.Equal("Foo", foo.Name)
-        Assert.Equal(1, foo.Children.Length())
+        Dim goo = decl1.Children.Single()
+        Assert.NotNull(goo)
+        Assert.Equal(DeclarationKind.Namespace, goo.Kind)
+        Assert.Equal("Goo", goo.Name)
+        Assert.Equal(1, goo.Children.Length())
 
-        Dim bar = foo.Children.Single()
+        Dim bar = goo.Children.Single()
         Assert.NotNull(bar)
         Assert.Equal(DeclarationKind.Namespace, bar.Kind)
         Assert.Equal("Bar", bar.Name)

@@ -3,10 +3,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using static Microsoft.CodeAnalysis.CodeGeneration.CodeGenerationHelpers;
 using static Microsoft.CodeAnalysis.CSharp.CodeGeneration.CSharpCodeGenerationHelpers;
 
@@ -17,10 +18,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal static NamespaceDeclarationSyntax AddMethodTo(
             NamespaceDeclarationSyntax destination,
             IMethodSymbol method,
+            Workspace workspace,
             CodeGenerationOptions options,
             IList<bool> availableIndices)
         {
-            var declaration = GenerateMethodDeclaration(method, CodeGenerationDestination.Namespace, options);
+            var declaration = GenerateMethodDeclaration(
+                method, CodeGenerationDestination.Namespace, workspace, options,
+                destination?.SyntaxTree.Options ?? options.ParseOptions);
             var members = Insert(destination.Members, declaration, options, availableIndices, after: LastMethod);
             return destination.WithMembers(members.ToSyntaxList());
         }
@@ -28,10 +32,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal static CompilationUnitSyntax AddMethodTo(
             CompilationUnitSyntax destination,
             IMethodSymbol method,
+            Workspace workspace,
             CodeGenerationOptions options,
             IList<bool> availableIndices)
         {
-            var declaration = GenerateMethodDeclaration(method, CodeGenerationDestination.CompilationUnit, options);
+            var declaration = GenerateMethodDeclaration(
+                method, CodeGenerationDestination.CompilationUnit, workspace, options,
+                destination?.SyntaxTree.Options ?? options.ParseOptions);
             var members = Insert(destination.Members, declaration, options, availableIndices, after: LastMethod);
             return destination.WithMembers(members.ToSyntaxList());
         }
@@ -39,10 +46,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal static TypeDeclarationSyntax AddMethodTo(
             TypeDeclarationSyntax destination,
             IMethodSymbol method,
+            Workspace workspace,
             CodeGenerationOptions options,
             IList<bool> availableIndices)
         {
-            var methodDeclaration = GenerateMethodDeclaration(method, GetDestination(destination), options);
+            var methodDeclaration = GenerateMethodDeclaration(
+                method, GetDestination(destination), workspace, options,
+                destination?.SyntaxTree.Options ?? options.ParseOptions);
 
             // Create a clone of the original type with the new method inserted. 
             var members = Insert(destination.Members, methodDeclaration, options, availableIndices, after: LastMethod);
@@ -51,7 +61,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         public static MethodDeclarationSyntax GenerateMethodDeclaration(
-            IMethodSymbol method, CodeGenerationDestination destination, CodeGenerationOptions options)
+            IMethodSymbol method, CodeGenerationDestination destination, 
+            Workspace workspace, CodeGenerationOptions options,
+            ParseOptions parseOptions)
         {
             options = options ?? CodeGenerationOptions.Default;
 
@@ -61,14 +73,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 return reusableSyntax;
             }
 
-            var declaration = GenerateMethodDeclarationWorker(method, destination, options);
+            var declaration = GenerateMethodDeclarationWorker(
+                method, destination, workspace, options, parseOptions);
 
             return AddAnnotationsTo(method,
                 ConditionallyAddDocumentationCommentTo(declaration, method, options));
         }
 
         private static MethodDeclarationSyntax GenerateMethodDeclarationWorker(
-            IMethodSymbol method, CodeGenerationDestination destination, CodeGenerationOptions options)
+            IMethodSymbol method, CodeGenerationDestination destination, 
+            Workspace workspace, CodeGenerationOptions options, ParseOptions parseOptions)
         {
             var hasNoBody = !options.GenerateMethodBodies ||
                             destination == CodeGenerationDestination.InterfaceType ||
@@ -76,17 +90,41 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             var explicitInterfaceSpecifier = GenerateExplicitInterfaceSpecifier(method.ExplicitInterfaceImplementations);
 
-            return AddCleanupAnnotationsTo(SyntaxFactory.MethodDeclaration(
+            var methodDeclaration = SyntaxFactory.MethodDeclaration(
                 attributeLists: GenerateAttributes(method, options, explicitInterfaceSpecifier != null),
                 modifiers: GenerateModifiers(method, destination, options),
-                returnType: method.ReturnType.GenerateTypeSyntax(),
+                returnType: method.GenerateReturnTypeSyntax(),
                 explicitInterfaceSpecifier: explicitInterfaceSpecifier,
                 identifier: method.Name.ToIdentifierToken(),
                 typeParameterList: GenerateTypeParameterList(method, options),
                 parameterList: ParameterGenerator.GenerateParameterList(method.Parameters, explicitInterfaceSpecifier != null, options),
                 constraintClauses: GenerateConstraintClauses(method),
                 body: hasNoBody ? null : StatementGenerator.GenerateBlock(method),
-                semicolonToken: hasNoBody ? SyntaxFactory.Token(SyntaxKind.SemicolonToken) : new SyntaxToken()));
+                expressionBody: default,
+                semicolonToken: hasNoBody ? SyntaxFactory.Token(SyntaxKind.SemicolonToken) : new SyntaxToken());
+
+            methodDeclaration = UseExpressionBodyIfDesired(workspace, methodDeclaration, parseOptions);
+
+            return AddFormatterAndCodeGeneratorAnnotationsTo(methodDeclaration);
+        }
+
+        private static MethodDeclarationSyntax UseExpressionBodyIfDesired(
+            Workspace workspace, MethodDeclarationSyntax methodDeclaration, ParseOptions options)
+        {
+            if (methodDeclaration.ExpressionBody == null)
+            {
+                var expressionBodyPreference = workspace.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods).Value;
+                if (methodDeclaration.Body.TryConvertToExpressionBody(
+                        methodDeclaration.Kind(), options, expressionBodyPreference,
+                        out var expressionBody, out var semicolonToken))
+                {
+                    return methodDeclaration.WithBody(null)
+                                            .WithExpressionBody(expressionBody)
+                                            .WithSemicolonToken(semicolonToken);
+                }
+            }
+
+            return methodDeclaration;
         }
 
         private static SyntaxList<AttributeListSyntax> GenerateAttributes(
@@ -108,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             return !method.ExplicitInterfaceImplementations.Any() && !method.IsOverride
                 ? method.TypeParameters.GenerateConstraintClauses()
-                : default(SyntaxList<TypeParameterConstraintClauseSyntax>);
+                : default;
         }
 
         private static TypeParameterListSyntax GenerateTypeParameterList(

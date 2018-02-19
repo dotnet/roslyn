@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,27 +10,28 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Async
 {
+#pragma warning disable RS1016 // Code fix providers should provide FixAll support. https://github.com/dotnet/roslyn/issues/23528
     internal abstract partial class AbstractAsyncCodeFix : CodeFixProvider
+#pragma warning restore RS1016 // Code fix providers should provide FixAll support.
     {
-        protected abstract Task<CodeAction> GetCodeFix(SyntaxNode root, SyntaxNode node, Document document, Diagnostic diagnostic, CancellationToken cancellationToken);
+        protected abstract Task<CodeAction> GetCodeActionAsync(
+            SyntaxNode root, SyntaxNode node, Document document, Diagnostic diagnostic, CancellationToken cancellationToken);
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
-
-            SyntaxNode node;
-            if (!TryGetNode(root, context.Span, out node))
+            if (!TryGetNode(root, context.Span, out var node))
             {
                 return;
             }
 
             var diagnostic = context.Diagnostics.FirstOrDefault();
 
-            var codeAction = await GetCodeFix(root, node, context.Document, diagnostic, context.CancellationToken).ConfigureAwait(false);
-
+            var codeAction = await GetCodeActionAsync(
+                root, node, context.Document, diagnostic, context.CancellationToken).ConfigureAwait(false);
             if (codeAction != null)
             {
-                context.RegisterCodeFix(codeAction, diagnostic);
+                context.RegisterCodeFix(codeAction, context.Diagnostics);
             }
         }
 

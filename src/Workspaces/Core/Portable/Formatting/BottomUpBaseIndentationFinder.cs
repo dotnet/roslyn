@@ -139,8 +139,8 @@ namespace Microsoft.CodeAnalysis.Formatting
             CancellationToken cancellationToken)
         {
             var tuple = GetIndentationRuleOfCurrentPosition(root, token, list, position);
-            var indentationLevel = tuple.Item1;
-            var operation = tuple.Item2;
+            var indentationLevel = tuple.indentation;
+            var operation = tuple.operation;
 
             if (operation == null)
             {
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             throw ExceptionUtilities.Unreachable;
         }
 
-        private ValueTuple<int, IndentBlockOperation> GetIndentationRuleOfCurrentPosition(
+        private (int indentation, IndentBlockOperation operation) GetIndentationRuleOfCurrentPosition(
             SyntaxNode root, SyntaxToken token, List<IndentBlockOperation> list, int position)
         {
             var indentationLevel = 0;
@@ -186,24 +186,24 @@ namespace Microsoft.CodeAnalysis.Formatting
             {
                 if (operation.Option.IsOn(IndentBlockOption.AbsolutePosition))
                 {
-                    return ValueTuple.Create(operation.IndentationDeltaOrPosition + _indentationSize * indentationLevel, operation);
+                    return (operation.IndentationDeltaOrPosition + _indentationSize * indentationLevel, operation);
                 }
 
                 if (operation.Option == IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine)
                 {
-                    return ValueTuple.Create(indentationLevel, operation);
+                    return (indentationLevel, operation);
                 }
 
                 if (operation.IsRelativeIndentation)
                 {
-                    return ValueTuple.Create(indentationLevel, operation);
+                    return (indentationLevel, operation);
                 }
 
                 // move up to its containing operation
                 indentationLevel += operation.IndentationDeltaOrPosition;
             }
 
-            return new ValueTuple<int, IndentBlockOperation>(indentationLevel, null);
+            return (indentationLevel, null);
         }
 
         private List<IndentBlockOperation> GetParentIndentBlockOperations(SyntaxToken token)
@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 currentNode = currentNode.Parent;
             }
 
-            return default(SyntaxToken);
+            return default;
         }
 
         private IndentBlockOperation GetIndentationDataFor(SyntaxNode root, SyntaxToken token, int position)

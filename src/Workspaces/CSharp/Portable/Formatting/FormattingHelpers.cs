@@ -273,52 +273,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return false;
             }
 
-            var ifStatement = statement as IfStatementSyntax;
-            if (ifStatement != null)
+            switch (statement)
             {
-                return ifStatement.CloseParenToken.Equals(token);
-            }
-
-            var switchStatement = statement as SwitchStatementSyntax;
-            if (switchStatement != null)
-            {
-                return switchStatement.CloseParenToken.Equals(token);
-            }
-
-            var whileStatement = statement as WhileStatementSyntax;
-            if (whileStatement != null)
-            {
-                return whileStatement.CloseParenToken.Equals(token);
-            }
-
-            var doStatement = statement as DoStatementSyntax;
-            if (doStatement != null)
-            {
-                return doStatement.CloseParenToken.Equals(token);
-            }
-
-            var forStatement = statement as ForStatementSyntax;
-            if (forStatement != null)
-            {
-                return forStatement.CloseParenToken.Equals(token);
-            }
-
-            var foreachStatement = statement as ForEachStatementSyntax;
-            if (foreachStatement != null)
-            {
-                return foreachStatement.CloseParenToken.Equals(token);
-            }
-
-            var lockStatement = statement as LockStatementSyntax;
-            if (lockStatement != null)
-            {
-                return lockStatement.CloseParenToken.Equals(token);
-            }
-
-            var usingStatement = statement as UsingStatementSyntax;
-            if (usingStatement != null)
-            {
-                return usingStatement.CloseParenToken.Equals(token);
+                case IfStatementSyntax ifStatement:
+                    return ifStatement.CloseParenToken.Equals(token);
+                case SwitchStatementSyntax switchStatement:
+                    return switchStatement.CloseParenToken.Equals(token);
+                case WhileStatementSyntax whileStatement:
+                    return whileStatement.CloseParenToken.Equals(token);
+                case DoStatementSyntax doStatement:
+                    return doStatement.CloseParenToken.Equals(token);
+                case ForStatementSyntax forStatement:
+                    return forStatement.CloseParenToken.Equals(token);
+                case CommonForEachStatementSyntax foreachStatement:
+                    return foreachStatement.CloseParenToken.Equals(token);
+                case LockStatementSyntax lockStatement:
+                    return lockStatement.CloseParenToken.Equals(token);
+                case UsingStatementSyntax usingStatement:
+                    return usingStatement.CloseParenToken.Equals(token);
+                case FixedStatementSyntax fixedStatement:
+                    return fixedStatement.CloseParenToken.Equals(token);
             }
 
             return false;
@@ -384,8 +358,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return node is IfStatementSyntax ||
                    node is WhileStatementSyntax ||
                    node is ForStatementSyntax ||
-                   node is ForEachStatementSyntax ||
+                   node is CommonForEachStatementSyntax ||
                    node is UsingStatementSyntax ||
+                   node is FixedStatementSyntax ||
                    node is LockStatementSyntax;
         }
 
@@ -564,6 +539,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         public static bool IsInterpolation(this SyntaxToken currentToken)
         {
             return currentToken.Parent.IsKind(SyntaxKind.Interpolation);
+        }
+
+        /// <summary>
+        /// Checks whether currentToken is the opening paren of a deconstruction-declaration in var form, such as `var (x, y) = ...`
+        /// </summary>
+        public static bool IsOpenParenInVarDeconstructionDeclaration(this SyntaxToken currentToken)
+        {
+            return currentToken.Kind() == SyntaxKind.OpenParenToken &&
+                currentToken.Parent is ParenthesizedVariableDesignationSyntax &&
+                currentToken.Parent.Parent is DeclarationExpressionSyntax;
         }
     }
 }

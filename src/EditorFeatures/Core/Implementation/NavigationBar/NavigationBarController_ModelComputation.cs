@@ -1,5 +1,6 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -144,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
                     t => PushSelectedItemsToPresenter(t.Result),
                     cancellationToken,
                     TaskContinuationOptions.OnlyOnRanToCompletion,
-                    ForegroundThreadAffinitizedObject.CurrentForegroundThreadData.TaskScheduler).CompletesAsyncOperation(asyncToken);
+                    ForegroundTaskScheduler).CompletesAsyncOperation(asyncToken);
             }
         }
 
@@ -152,15 +153,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         {
             var leftItem = GetMatchingItem(model.Types, caretPosition, model.ItemService, cancellationToken);
 
-            if (leftItem.Item1 == null)
+            if (leftItem.item == null)
             {
                 // Nothing to show at all
                 return new NavigationBarSelectedTypeAndMember(null, null);
             }
 
-            var rightItem = GetMatchingItem(leftItem.Item1.ChildItems, caretPosition, model.ItemService, cancellationToken);
+            var rightItem = GetMatchingItem(leftItem.item.ChildItems, caretPosition, model.ItemService, cancellationToken);
 
-            return new NavigationBarSelectedTypeAndMember(leftItem.Item1, leftItem.Item2, rightItem.Item1, rightItem.Item2);
+            return new NavigationBarSelectedTypeAndMember(leftItem.item, leftItem.gray, rightItem.item, rightItem.gray);
         }
 
         /// <summary>
@@ -168,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         /// positioned after the cursor.
         /// </summary>
         /// <returns>A tuple of the matching item, and if it should be shown grayed.</returns>
-        private static ValueTuple<T, bool> GetMatchingItem<T>(IEnumerable<T> items, SnapshotPoint point, INavigationBarItemService itemsService, CancellationToken cancellationToken) where T : NavigationBarItem
+        private static (T item, bool gray) GetMatchingItem<T>(IEnumerable<T> items, SnapshotPoint point, INavigationBarItemService itemsService, CancellationToken cancellationToken) where T : NavigationBarItem
         {
             T exactItem = null;
             int exactItemStart = 0;
@@ -204,7 +205,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
 
             if (exactItem != null)
             {
-                return ValueTuple.Create(exactItem, false);
+                return (exactItem, gray: false);
             }
             else
             {
@@ -216,7 +217,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
                     itemToGray = null;
                 }
 
-                return ValueTuple.Create(itemToGray, itemToGray != null);
+                return (itemToGray, gray: itemToGray != null);
             }
         }
 

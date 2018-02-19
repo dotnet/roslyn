@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -65,8 +65,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
 
             context.RegisterRefactoring(
                 new MyCodeAction(
-                    CSharpFeaturesResources.InvertIfStatement,
-                    (c) => InvertIfAsync(document, ifStatement, c)));
+                    CSharpFeaturesResources.Invert_if_statement,
+                    c => InvertIfAsync(document, ifStatement, c)));
         }
 
         private async Task<Document> InvertIfAsync(Document document, IfStatementSyntax ifStatement, CancellationToken cancellationToken)
@@ -182,8 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
             CancellationToken cancellationToken,
             out ExpressionSyntax result)
         {
-            Tuple<SyntaxKind, SyntaxKind> tuple;
-            if (s_binaryMap.TryGetValue(expression.Kind(), out tuple))
+            if (s_binaryMap.TryGetValue(expression.Kind(), out var tuple))
             {
                 var binaryExpression = (BinaryExpressionSyntax)expression;
                 var expressionType = tuple.Item1;
@@ -221,8 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
 
         private ExpressionSyntax Negate(ExpressionSyntax expression, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
-            ExpressionSyntax result;
-            if (TryNegateBinaryComparisonExpression(expression, semanticModel, cancellationToken, out result))
+            if (TryNegateBinaryComparisonExpression(expression, semanticModel, cancellationToken, out var result))
             {
                 return result;
             }

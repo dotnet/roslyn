@@ -3,38 +3,29 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    [ExportLanguageService(typeof(ISemanticFactsService), LanguageNames.CSharp), Shared]
     internal class CSharpSemanticFactsService : ISemanticFactsService
     {
-        public bool SupportsImplicitInterfaceImplementation
+        internal static readonly CSharpSemanticFactsService Instance = new CSharpSemanticFactsService();
+
+        private CSharpSemanticFactsService()
         {
-            get
-            {
-                return true;
-            }
         }
 
-        public bool ExposesAnonymousFunctionParameterNames
-        {
-            get
-            {
-                return false;
-            }
-        }
+        public bool SupportsImplicitInterfaceImplementation => true;
+
+        public bool ExposesAnonymousFunctionParameterNames => false;
 
         public bool IsExpressionContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken)
         {
@@ -43,6 +34,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 semanticModel.SyntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken),
                 attributes: true, cancellationToken: cancellationToken, semanticModelOpt: semanticModel);
         }
+
+        public bool IsInExpressionTree(SemanticModel semanticModel, SyntaxNode node, INamedTypeSymbol expressionTypeOpt, CancellationToken cancellationToken)
+            => node.IsInExpressionTree(semanticModel, expressionTypeOpt, cancellationToken);
 
         public bool IsStatementContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken)
         {
@@ -58,6 +52,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool IsNamespaceContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken)
         {
             return semanticModel.SyntaxTree.IsNamespaceContext(position, cancellationToken, semanticModel);
+        }
+
+        public bool IsNamespaceDeclarationNameContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken)
+        {
+            return semanticModel.SyntaxTree.IsNamespaceDeclarationNameContext(position, cancellationToken);
         }
 
         public bool IsTypeDeclarationContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken)
@@ -94,34 +93,27 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public bool IsWrittenTo(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
-        {
-            return (node as ExpressionSyntax).IsWrittenTo();
-        }
+            => (node as ExpressionSyntax).IsWrittenTo();
 
         public bool IsOnlyWrittenTo(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
-        {
-            return (node as ExpressionSyntax).IsOnlyWrittenTo();
-        }
+            => (node as ExpressionSyntax).IsOnlyWrittenTo();
 
         public bool IsInOutContext(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
-        {
-            return (node as ExpressionSyntax).IsInOutContext();
-        }
+            => (node as ExpressionSyntax).IsInOutContext();
 
         public bool IsInRefContext(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
-        {
-            return (node as ExpressionSyntax).IsInRefContext();
-        }
+            => (node as ExpressionSyntax).IsInRefContext();
+
+        public bool IsInInContext(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
+            => (node as ExpressionSyntax).IsInInContext();
 
         public bool CanReplaceWithRValue(SemanticModel semanticModel, SyntaxNode expression, CancellationToken cancellationToken)
         {
             return (expression as ExpressionSyntax).CanReplaceWithRValue(semanticModel, cancellationToken);
         }
 
-        public string GenerateNameForExpression(SemanticModel semanticModel, SyntaxNode expression, bool capitalize = false)
-        {
-            return semanticModel.GenerateNameForExpression((ExpressionSyntax)expression, capitalize);
-        }
+        public string GenerateNameForExpression(SemanticModel semanticModel, SyntaxNode expression, bool capitalize, CancellationToken cancellationToken)
+            => semanticModel.GenerateNameForExpression((ExpressionSyntax)expression, capitalize, cancellationToken);
 
         public ISymbol GetDeclaredSymbol(SemanticModel semanticModel, SyntaxToken token, CancellationToken cancellationToken)
         {
@@ -157,14 +149,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public bool SupportsParameterizedEvents
-        {
-            get
-            {
-                return true;
-            }
-        }
-
         public bool TryGetSpeculativeSemanticModel(SemanticModel oldSemanticModel, SyntaxNode oldNode, SyntaxNode newNode, out SemanticModel speculativeModel)
         {
             Contract.Requires(oldNode.Kind() == newNode.Kind());
@@ -180,8 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            SemanticModel csharpModel;
-            bool success = model.TryGetSpeculativeSemanticModelForMethodBody(oldMethod.Body.OpenBraceToken.Span.End, newMethod, out csharpModel);
+            var success = model.TryGetSpeculativeSemanticModelForMethodBody(oldMethod.Body.OpenBraceToken.Span.End, newMethod, out var csharpModel);
             speculativeModel = csharpModel;
             return success;
         }
@@ -229,8 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public ForEachSymbols GetForEachSymbols(SemanticModel semanticModel, SyntaxNode forEachStatement)
         {
-            var csforEachStatement = forEachStatement as ForEachStatementSyntax;
-            if (csforEachStatement != null)
+            if (forEachStatement is CommonForEachStatementSyntax csforEachStatement)
             {
                 var info = semanticModel.GetForEachStatementInfo(csforEachStatement);
                 return new ForEachSymbols(
@@ -242,7 +224,45 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                return default(ForEachSymbols);
+                return default;
+            }
+        }
+
+        public ImmutableArray<IMethodSymbol> GetDeconstructionAssignmentMethods(SemanticModel semanticModel, SyntaxNode node)
+        {
+            if (node is AssignmentExpressionSyntax assignment && assignment.IsDeconstruction())
+            {
+                var builder = ArrayBuilder<IMethodSymbol>.GetInstance();
+                FlattenDeconstructionMethods(semanticModel.GetDeconstructionInfo(assignment), builder);
+                return builder.ToImmutableAndFree();
+            }
+
+            return ImmutableArray<IMethodSymbol>.Empty;
+        }
+
+        public ImmutableArray<IMethodSymbol> GetDeconstructionForEachMethods(SemanticModel semanticModel, SyntaxNode node)
+        {
+            if (node is ForEachVariableStatementSyntax @foreach)
+            {
+                var builder = ArrayBuilder<IMethodSymbol>.GetInstance();
+                FlattenDeconstructionMethods(semanticModel.GetDeconstructionInfo(@foreach), builder);
+                return builder.ToImmutableAndFree();
+            }
+
+            return ImmutableArray<IMethodSymbol>.Empty;
+        }
+
+        private static void FlattenDeconstructionMethods(DeconstructionInfo deconstruction, ArrayBuilder<IMethodSymbol> builder)
+        {
+            var method = deconstruction.Method;
+            if (method != null)
+            {
+                builder.Add(method);
+            }
+
+            foreach (var nested in deconstruction.Nested)
+            {
+                FlattenDeconstructionMethods(nested, builder);
             }
         }
 
@@ -256,6 +276,25 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool IsNameOfContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken)
         {
             return semanticModel.SyntaxTree.IsNameOfContext(position, semanticModel, cancellationToken);
+        }
+
+        public bool IsPartial(ITypeSymbol typeSymbol, CancellationToken cancellationToken)
+        {
+            var syntaxRefs = typeSymbol.DeclaringSyntaxReferences;
+            return syntaxRefs.Any(n => ((BaseTypeDeclarationSyntax)n.GetSyntax(cancellationToken)).Modifiers.Any(SyntaxKind.PartialKeyword));
+        }
+
+        public IEnumerable<ISymbol> GetDeclaredSymbols(
+            SemanticModel semanticModel, SyntaxNode memberDeclaration, CancellationToken cancellationToken)
+        {
+            if (memberDeclaration is FieldDeclarationSyntax field)
+            {
+                return field.Declaration.Variables.Select(
+                    v => semanticModel.GetDeclaredSymbol(v, cancellationToken));
+            }
+
+            return SpecializedCollections.SingletonEnumerable(
+                semanticModel.GetDeclaredSymbol(memberDeclaration, cancellationToken));
         }
     }
 }

@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
 
@@ -12,9 +12,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
-                            class $$Foo
+                            class $$Goo
                             {
-                                Foo f;
+                                Goo f;
                             }
                         </Document>
                     </Project>
@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
-                            class {|Definition:$$Foo|}
+                            class {|Definition:$$Goo|}
                             {
                             }
                         </Document>
@@ -62,11 +62,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
-                            class {|Definition:$$Foo|}
+                            class {|Definition:$$Goo|}
                             {
-                                {|Definition:Foo|}()
+                                {|Definition:Goo|}()
                                 {
-                                    {|Reference:var|} x = new {|Reference:Foo|}();
+                                    {|Reference:var|} x = new {|Reference:Goo|}();
                                 }
                             }
                         </Document>
@@ -81,11 +81,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
-                            class {|Definition:Foo|}
+                            class {|Definition:Goo|}
                             {
                                 void Blah()
                                 {
-                                    var x = new {|Reference:$$Foo|}();
+                                    var x = new {|Reference:$$Goo|}();
                                 }
                             }
                         </Document>
@@ -562,5 +562,115 @@ class C
             Await VerifyHighlightsAsync(input)
         End Function
 
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
+        Public Async Function TestPatternMatchingType1() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class C
+{
+    void M()
+    {
+        object o = null;
+        if (o is C $${|Definition:c|})
+        {
+            var d = {|Reference:c|};
+        }
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyHighlightsAsync(input)
+        End Function
+
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
+        Public Async Function TestPatternMatchingType2() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class C
+{
+    void M()
+    {
+        object o = null;
+        if (o is C {|Definition:c|})
+        {
+            var d = $${|Reference:c|};
+        }
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyHighlightsAsync(input)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
+        Public Async Function TestPatternMatchingTypeScoping1() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class Class1 { } 
+class Class2 { } 
+class C
+{
+    void M()
+    {
+        object o = null;
+        if (o is Class1 {|Definition:c|})
+        {
+            var d = $${|Reference:c|};
+        }
+        else if (o is Class2 c)
+        {
+            var d = c;
+        }
+            el
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyHighlightsAsync(input)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
+        Public Async Function TestPatternMatchingTypeScoping2() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class Class1 { } 
+class Class2 { } 
+class C
+{
+    void M()
+    {
+        object o = null;
+        if (o is Class1 c)
+        {
+            var d = c;
+        }
+        else if (o is Class2 {|Definition:c|})
+        {
+            var d = $${|Reference:c|};
+        }
+            el
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyHighlightsAsync(input)
+        End Function
     End Class
 End Namespace

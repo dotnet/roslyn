@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using System.Collections.Generic;
 using System;
@@ -22,18 +23,30 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         override protected ImmutableArray<LocalSymbol> BuildLocals()
         {
-            if (_syntax.Declaration != null)
+            ExpressionSyntax expressionSyntax = TargetExpressionSyntax;
+            VariableDeclarationSyntax declarationSyntax = _syntax.Declaration;
+
+            Debug.Assert((expressionSyntax == null) ^ (declarationSyntax == null)); // Can't have both or neither.
+
+            if (expressionSyntax != null)
             {
-                var locals = new ArrayBuilder<LocalSymbol>(_syntax.Declaration.Variables.Count);
-                foreach (VariableDeclaratorSyntax declarator in _syntax.Declaration.Variables)
+                var locals = ArrayBuilder<LocalSymbol>.GetInstance();
+                ExpressionVariableFinder.FindExpressionVariables(this, locals, expressionSyntax);
+                return locals.ToImmutableAndFree();
+            }
+            else
+            {
+                var locals = ArrayBuilder<LocalSymbol>.GetInstance(declarationSyntax.Variables.Count);
+                foreach (VariableDeclaratorSyntax declarator in declarationSyntax.Variables)
                 {
-                    locals.Add(MakeLocal(_syntax.Declaration, declarator, LocalDeclarationKind.UsingVariable));
+                    locals.Add(MakeLocal(declarationSyntax, declarator, LocalDeclarationKind.UsingVariable));
+
+                    // also gather expression-declared variables from the bracketed argument lists and the initializers
+                    ExpressionVariableFinder.FindExpressionVariables(this, locals, declarator);
                 }
 
-                return locals.ToImmutable();
+                return locals.ToImmutableAndFree();
             }
-
-            return ImmutableArray<LocalSymbol>.Empty;
         }
 
         protected override ExpressionSyntax TargetExpressionSyntax
@@ -60,10 +73,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (expressionSyntax != null)
             {
-                expressionOpt = this.BindTargetExpression(diagnostics);
+                expressionOpt = this.BindTargetExpression(diagnostics, originalBinder);
 
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                iDisposableConversion = this.Conversions.ClassifyImplicitConversionFromExpression(expressionOpt, iDisposable, ref useSiteDiagnostics);
+                iDisposableConversion = originalBinder.Conversions.ClassifyImplicitConversionFromExpression(expressionOpt, iDisposable, ref useSiteDiagnostics);
                 diagnostics.Add(expressionSyntax, useSiteDiagnostics);
 
                 if (!iDisposableConversion.IsImplicit)
@@ -79,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 ImmutableArray<BoundLocalDeclaration> declarations;
-                BindForOrUsingOrFixedDeclarations(declarationSyntax, LocalDeclarationKind.UsingVariable, diagnostics, out declarations);
+                originalBinder.BindForOrUsingOrFixedDeclarations(declarationSyntax, LocalDeclarationKind.UsingVariable, diagnostics, out declarations);
 
                 Debug.Assert(!declarations.IsEmpty);
 
@@ -94,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                    iDisposableConversion = Conversions.ClassifyImplicitConversion(declType, iDisposable, ref useSiteDiagnostics);
+                    iDisposableConversion = originalBinder.Conversions.ClassifyImplicitConversionFromType(declType, iDisposable, ref useSiteDiagnostics);
                     diagnostics.Add(declarationSyntax, useSiteDiagnostics);
 
                     if (!iDisposableConversion.IsImplicit)
@@ -111,6 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundStatement boundBody = originalBinder.BindPossibleEmbeddedStatement(_syntax.Statement, diagnostics);
 
+            Debug.Assert(GetDeclaredLocalsForScope(_syntax) == this.Locals);
             return new BoundUsingStatement(
                 _syntax,
                 this.Locals,
@@ -119,6 +133,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                 iDisposableConversion,
                 boundBody,
                 hasErrors);
+        }
+
+        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(SyntaxNode scopeDesignator)
+        {
+            if (_syntax == scopeDesignator)
+            {
+                return this.Locals;
+            }
+
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        internal override ImmutableArray<LocalFunctionSymbol> GetDeclaredLocalFunctionsForScope(CSharpSyntaxNode scopeDesignator)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        internal override SyntaxNode ScopeDesignator
+        {
+            get
+            {
+                return _syntax;
+            }
         }
     }
 }

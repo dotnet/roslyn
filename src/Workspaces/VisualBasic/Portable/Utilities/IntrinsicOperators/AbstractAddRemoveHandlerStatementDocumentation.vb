@@ -13,9 +13,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
         Public Overrides Function GetParameterName(index As Integer) As String
             Select Case index
                 Case 0
-                    Return VBWorkspaceResources.Event1
+                    Return VBWorkspaceResources.event_
                 Case 1
-                    Return VBWorkspaceResources.Handler
+                    Return VBWorkspaceResources.handler
                 Case Else
                     Throw New ArgumentException(NameOf(index))
             End Select

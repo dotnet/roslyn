@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeActions
@@ -87,7 +87,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
             End If
 
             context.RegisterRefactoring(
-                New MyCodeAction(VBFeaturesResources.InvertIfStatement, Function(c) InvertIfAsync(document, relevantIfBlockOrIfStatement, c)))
+                New MyCodeAction(VBFeaturesResources.Invert_If_statement, Function(c) InvertIfAsync(document, relevantIfBlockOrIfStatement, c)))
         End Function
 
         Private Function FindAncestor(Of T As SyntaxNode)(document As SyntacticDocument, startPosition As Integer, cancellationToken As CancellationToken) As T

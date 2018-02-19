@@ -1,10 +1,11 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.InternalElements;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Interop;
@@ -57,10 +58,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
             var node = LookupNode();
             var parentElement = (AbstractCodeElement)this.Parent;
 
-            var nodesBuilder = ImmutableArray.CreateBuilder<SyntaxNode>();
+            var nodesBuilder = ArrayBuilder<SyntaxNode>.GetInstance();
             nodesBuilder.AddRange(CodeModelService.GetLogicalSupportedMemberNodes(node));
 
-            return new NodeSnapshot(this.State, _fileCodeModel, node, parentElement, nodesBuilder.ToImmutable());
+            return new NodeSnapshot(this.State, _fileCodeModel, node, parentElement, 
+                nodesBuilder.ToImmutableAndFree());
         }
 
         protected override bool TryGetItemByIndex(int index, out EnvDTE.CodeElement element)

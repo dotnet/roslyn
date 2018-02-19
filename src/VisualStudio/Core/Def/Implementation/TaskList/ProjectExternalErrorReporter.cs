@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
@@ -24,6 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
         private readonly ProjectId _projectId;
         private readonly string _errorCodePrefix;
+
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly ExternalErrorDiagnosticUpdateSource _diagnosticProvider;
 
@@ -31,11 +33,32 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         {
             _projectId = projectId;
             _errorCodePrefix = errorCodePrefix;
-            _diagnosticProvider = serviceProvider.GetMefService<ExternalErrorDiagnosticUpdateSource>();
-            _workspace = serviceProvider.GetMefService<VisualStudioWorkspaceImpl>();
 
-            Debug.Assert(_diagnosticProvider != null);
+            _workspace = serviceProvider.GetMefService<VisualStudioWorkspaceImpl>();
+            _diagnosticProvider = serviceProvider.GetMefService<ExternalErrorDiagnosticUpdateSource>();
+
             Debug.Assert(_workspace != null);
+            Debug.Assert(_diagnosticProvider != null);
+        }
+
+        private bool CanHandle(string errorId)
+        {
+            // make sure we have error id, otherwise, we simple don't support
+            // this error
+            if (errorId == null)
+            {
+                // record NFW to see who violates contract.
+                WatsonReporter.Report(new Exception("errorId is null"));
+                return false;
+            }
+
+            // we accept all compiler diagnostics
+            if (errorId.StartsWith(_errorCodePrefix))
+            {
+                return true;
+            }
+
+            return _diagnosticProvider.SupportedDiagnosticId(_projectId, errorId);
         }
 
         public int AddNewErrors(IVsEnumExternalErrors pErrors)
@@ -44,8 +67,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             var documentErrorsMap = new Dictionary<DocumentId, HashSet<DiagnosticData>>();
 
             var errors = new ExternalError[1];
-            uint fetched;
-            while (pErrors.Next(1, errors, out fetched) == VSConstants.S_OK && fetched == 1)
+            while (pErrors.Next(1, errors, out var fetched) == VSConstants.S_OK && fetched == 1)
             {
                 var error = errors[0];
 
@@ -102,8 +124,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
             var line = error.iLine;
             var column = error.iCol;
-            var containedDocument = hostDocument as ContainedDocument;
-            if (containedDocument != null)
+            if (hostDocument is ContainedDocument containedDocument)
             {
                 var span = new VsTextSpan
                 {
@@ -134,27 +155,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         // TODO: Use PreserveSig instead of throwing these exceptions for common cases.
         public void ReportError2(string bstrErrorMessage, string bstrErrorId, [ComAliasName("VsShell.VSTASKPRIORITY")]VSTASKPRIORITY nPriority, int iStartLine, int iStartColumn, int iEndLine, int iEndColumn, string bstrFileName)
         {
+            // first we check whether given error is something we can take care.
+            if (!CanHandle(bstrErrorId))
+            {
+                // it is not, let project system takes care.
+                throw new NotImplementedException();
+            }
+
             if ((iEndLine >= 0 && iEndColumn >= 0) &&
-                ((iEndLine < iStartLine) ||
-                 (iEndLine == iStartLine && iEndColumn < iStartColumn)))
+               ((iEndLine < iStartLine) ||
+                (iEndLine == iStartLine && iEndColumn < iStartColumn)))
             {
-                throw new ArgumentException(ServicesVSResources.EndPositionMustBeGreaterThanStart);
+                throw new ArgumentException(ServicesVSResources.End_position_must_be_start_position);
             }
-
-            // We only handle errors that have positions.  For the rest, we punt back to the 
-            // project system.
-            if (iStartLine < 0 || iStartColumn < 0)
-            {
-                throw new NotImplementedException();
-            }
-
-            var hostProject = _workspace.GetHostProject(_projectId);
-            if (!hostProject.ContainsFile(bstrFileName))
-            {
-                throw new NotImplementedException();
-            }
-
-            var hostDocument = hostProject.GetCurrentDocumentFromPath(bstrFileName);
 
             var priority = (VSTASKPRIORITY)nPriority;
             DiagnosticSeverity severity;
@@ -170,8 +183,34 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                     severity = DiagnosticSeverity.Info;
                     break;
                 default:
-                    throw new ArgumentException(ServicesVSResources.NotAValidValue, "nPriority");
+                    throw new ArgumentException(ServicesVSResources.Not_a_valid_value, nameof(nPriority));
             }
+
+            if (bstrFileName == null || iStartLine < 0 || iStartColumn < 0)
+            {
+                // we now takes care of errors that is not belong to file as well.
+                var projectDiagnostic = GetDiagnosticData(
+                    null, bstrErrorId, bstrErrorMessage, severity,
+                    null, 0, 0, 0, 0,
+                    bstrFileName, 0, 0, 0, 0);
+
+                _diagnosticProvider.AddNewErrors(_projectId, projectDiagnostic);
+                return;
+            }
+
+            var hostProject = _workspace.GetHostProject(_projectId);
+            if (!hostProject.ContainsFile(bstrFileName))
+            {
+                var projectDiagnostic = GetDiagnosticData(
+                    null, bstrErrorId, bstrErrorMessage, severity,
+                    null, iStartLine, iStartColumn, iEndLine, iEndColumn,
+                    bstrFileName, iStartLine, iStartColumn, iEndLine, iEndColumn);
+
+                _diagnosticProvider.AddNewErrors(_projectId, projectDiagnostic);
+                return;
+            }
+
+            var hostDocument = hostProject.GetCurrentDocumentFromPath(bstrFileName);
 
             var diagnostic = GetDiagnosticData(
                 hostDocument.Id, bstrErrorId, bstrErrorMessage, severity,
@@ -226,8 +265,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 if (prefix.Equals("CS", StringComparison.OrdinalIgnoreCase) || prefix.Equals("BC", StringComparison.OrdinalIgnoreCase))
                 {
                     var suffix = errorId.Substring(2);
-                    int id;
-                    return int.TryParse(suffix, out id);
+                    return int.TryParse(suffix, out var id);
                 }
             }
 

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -45,9 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
 
         private EnvDTE.CodeElement CreateCodeAttribute(SyntaxNode node, SyntaxNode parentNode)
         {
-            string name;
-            int ordinal;
-            CodeModelService.GetAttributeNameAndOrdinal(parentNode, node, out name, out ordinal);
+            CodeModelService.GetAttributeNameAndOrdinal(parentNode, node, out var name, out var ordinal);
 
             return (EnvDTE.CodeElement)CodeAttribute.Create(this.State, this.FileCodeModel, this.ParentElement, name, ordinal);
         }
@@ -75,9 +73,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
 
             foreach (var child in CodeModelService.GetAttributeNodes(node))
             {
-                string childName;
-                int ordinal;
-                CodeModelService.GetAttributeNameAndOrdinal(node, child, out childName, out ordinal);
+                CodeModelService.GetAttributeNameAndOrdinal(node, child, out var childName, out var ordinal);
                 if (childName == name)
                 {
                     element = (EnvDTE.CodeElement)CodeAttribute.Create(State, FileCodeModel, this.ParentElement, childName, ordinal);

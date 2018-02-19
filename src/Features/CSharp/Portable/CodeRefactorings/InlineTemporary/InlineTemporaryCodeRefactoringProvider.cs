@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -69,6 +69,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
                 return;
             }
 
+            if (variableDeclaration.Type.Kind() == SyntaxKind.RefType)
+            {
+                // TODO: inlining ref returns:
+                // https://github.com/dotnet/roslyn/issues/17132
+                return;
+            }
+
             if (localDeclarationStatement.ContainsDiagnostics)
             {
                 return;
@@ -82,8 +89,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
 
             context.RegisterRefactoring(
                 new MyCodeAction(
-                    CSharpFeaturesResources.InlineTemporaryVariable,
-                    (c) => this.InlineTemporaryAsync(document, variableDeclarator, c)));
+                    CSharpFeaturesResources.Inline_temporary_variable,
+                    c => this.InlineTemporaryAsync(document, variableDeclarator, c)));
         }
 
         private async Task<IEnumerable<ReferenceLocation>> GetReferencesAsync(
@@ -156,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
 
         private static SyntaxAnnotation CreateConflictAnnotation()
         {
-            return ConflictAnnotation.Create(CSharpFeaturesResources.ConflictsDetected);
+            return ConflictAnnotation.Create(CSharpFeaturesResources.Conflict_s_detected);
         }
 
         private async Task<Document> InlineTemporaryAsync(Document document, VariableDeclaratorSyntax declarator, CancellationToken cancellationToken)
@@ -313,7 +320,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
 
         private SyntaxTriviaList GetTriviaToPreserve(SyntaxTriviaList syntaxTriviaList)
         {
-            return ShouldPreserve(syntaxTriviaList) ? syntaxTriviaList : default(SyntaxTriviaList);
+            return ShouldPreserve(syntaxTriviaList) ? syntaxTriviaList : default;
         }
 
         private static bool ShouldPreserve(SyntaxTriviaList trivia)
@@ -329,10 +336,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             var localDeclaration = (LocalDeclarationStatementSyntax)variableDeclaration.Parent;
             var scope = GetScope(variableDeclarator);
 
-            var newLocalDeclaration = localDeclaration.RemoveNode(variableDeclarator, SyntaxRemoveOptions.KeepNoTrivia)
-                .WithAdditionalAnnotations(Formatter.Annotation);
+            var newLocalDeclaration = variableDeclarator.GetLeadingTrivia().Any(t => t.IsDirective)
+                ? localDeclaration.RemoveNode(variableDeclarator, SyntaxRemoveOptions.KeepExteriorTrivia)
+                : localDeclaration.RemoveNode(variableDeclarator, SyntaxRemoveOptions.KeepNoTrivia);
 
-            return scope.ReplaceNode(localDeclaration, newLocalDeclaration);
+            return scope.ReplaceNode(
+                localDeclaration,
+                newLocalDeclaration.WithAdditionalAnnotations(Formatter.Annotation));
         }
 
         private SyntaxNode RemoveDeclaratorFromScope(VariableDeclaratorSyntax variableDeclarator, SyntaxNode scope)
@@ -529,13 +539,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
                             newInitializerSymbolInfo = newSemanticModelForInlinedDocument.GetSymbolInfo(inlinedNode, cancellationToken);
                             if (!SpeculationAnalyzer.SymbolInfosAreCompatible(originalInitializerSymbolInfo, newInitializerSymbolInfo, performEquivalenceCheck: true))
                             {
-                                if (replacementNodesWithChangedSemantics == null)
-                                {
-                                    replacementNodesWithChangedSemantics = new Dictionary<SyntaxNode, SyntaxNode>();
-                                }
-
+                                replacementNodesWithChangedSemantics = replacementNodesWithChangedSemantics ?? new Dictionary<SyntaxNode, SyntaxNode>();
                                 replacementNodesWithChangedSemantics.Add(inlinedNode, originalNode);
                             }
+                        }
+
+                        // Verification: Do not inline a variable into the left side of a deconstruction-assignment
+                        if (IsInDeconstructionAssignmentLeft(innerInitializerInInlineNode))
+                        {
+                            replacementNodesWithChangedSemantics = replacementNodesWithChangedSemantics ?? new Dictionary<SyntaxNode, SyntaxNode>();
+                            replacementNodesWithChangedSemantics.Add(inlinedNode, originalNode);
                         }
                     }
                 }
@@ -548,11 +561,36 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             }
 
             // Replace the conflicting inlined nodes with the original nodes annotated with conflict annotation.
-            Func<SyntaxNode, SyntaxNode, SyntaxNode> conflictAnnotationAdder =
-                (SyntaxNode oldNode, SyntaxNode newNode) =>
-                    newNode.WithAdditionalAnnotations(ConflictAnnotation.Create(CSharpFeaturesResources.ConflictsDetected));
+            SyntaxNode conflictAnnotationAdder(SyntaxNode oldNode, SyntaxNode newNode) =>
+                    newNode.WithAdditionalAnnotations(ConflictAnnotation.Create(CSharpFeaturesResources.Conflict_s_detected));
 
             return await inlinedDocument.ReplaceNodesAsync(replacementNodesWithChangedSemantics.Keys, conflictAnnotationAdder, cancellationToken).ConfigureAwait(false);
+        }
+
+        private static bool IsInDeconstructionAssignmentLeft(ExpressionSyntax node)
+        {
+            var parent = node.Parent;
+            while (parent.IsKind(SyntaxKind.ParenthesizedExpression, SyntaxKind.CastExpression))
+            {
+                parent = parent.Parent;
+            }
+
+            while (parent.IsKind(SyntaxKind.Argument))
+            {
+                parent = parent.Parent;
+                if (!parent.IsKind(SyntaxKind.TupleExpression))
+                {
+                    return false;
+                }
+                else if (parent.IsParentKind(SyntaxKind.SimpleAssignmentExpression))
+                {
+                    return ((AssignmentExpressionSyntax)parent.Parent).Left == parent;
+                }
+
+                parent = parent.Parent;
+            }
+
+            return false;
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction

@@ -4,21 +4,21 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Friend Partial Class BoundParameter
+    Partial Friend Class BoundParameter
 
-        Public Sub New(syntax As VisualBasicSyntaxNode, parameterSymbol As ParameterSymbol, isLValue As Boolean, type As TypeSymbol, hasErrors As Boolean)
+        Public Sub New(syntax As SyntaxNode, parameterSymbol As ParameterSymbol, isLValue As Boolean, type As TypeSymbol, hasErrors As Boolean)
             Me.New(syntax, parameterSymbol, isLValue, suppressVirtualCalls:=False, type:=type, hasErrors:=hasErrors)
         End Sub
 
-        Public Sub New(syntax As VisualBasicSyntaxNode, parameterSymbol As ParameterSymbol, isLValue As Boolean, type As TypeSymbol)
+        Public Sub New(syntax As SyntaxNode, parameterSymbol As ParameterSymbol, isLValue As Boolean, type As TypeSymbol)
             Me.New(syntax, parameterSymbol, isLValue, suppressVirtualCalls:=False, type:=type)
         End Sub
 
-        Public Sub New(syntax As VisualBasicSyntaxNode, parameterSymbol As ParameterSymbol, type As TypeSymbol, hasErrors As Boolean)
+        Public Sub New(syntax As SyntaxNode, parameterSymbol As ParameterSymbol, type As TypeSymbol, hasErrors As Boolean)
             Me.New(syntax, parameterSymbol, isLValue:=True, suppressVirtualCalls:=False, type:=type, hasErrors:=hasErrors)
         End Sub
 
-        Public Sub New(syntax As VisualBasicSyntaxNode, parameterSymbol As ParameterSymbol, type As TypeSymbol)
+        Public Sub New(syntax As SyntaxNode, parameterSymbol As ParameterSymbol, type As TypeSymbol)
             Me.New(syntax, parameterSymbol, isLValue:=True, suppressVirtualCalls:=False, type:=type)
         End Sub
 
@@ -40,5 +40,4 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Me
         End Function
     End Class
-
 End Namespace

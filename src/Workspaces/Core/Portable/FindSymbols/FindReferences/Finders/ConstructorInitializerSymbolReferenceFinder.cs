@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return symbol.MethodKind == MethodKind.Constructor;
         }
 
-        protected override Task<IEnumerable<Document>> DetermineDocumentsToSearchAsync(
+        protected override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
             IMethodSymbol symbol,
             Project project,
             IImmutableSet<Document> documents,
@@ -27,20 +27,19 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         {
             return FindDocumentsAsync(project, documents, async (d, c) =>
             {
-                var contextInfo = await SyntaxTreeInfo.GetContextInfoAsync(d, c).ConfigureAwait(false);
-                if (contextInfo.ContainsBaseConstructorInitializer)
+                var index = await SyntaxTreeIndex.GetIndexAsync(d, c).ConfigureAwait(false);
+                if (index.ContainsBaseConstructorInitializer)
                 {
                     return true;
                 }
 
-                var identifierInfo = await SyntaxTreeInfo.GetIdentifierInfoAsync(d, c).ConfigureAwait(false);
-                if (identifierInfo.ProbablyContainsIdentifier(symbol.ContainingType.Name))
+                if (index.ProbablyContainsIdentifier(symbol.ContainingType.Name))
                 {
-                    if (contextInfo.ContainsThisConstructorInitializer)
+                    if (index.ContainsThisConstructorInitializer)
                     {
                         return true;
                     }
-                    else if (project.Language == LanguageNames.VisualBasic && identifierInfo.ProbablyContainsIdentifier("New"))
+                    else if (project.Language == LanguageNames.VisualBasic && index.ProbablyContainsIdentifier("New"))
                     {
                         // "New" can be explicitly accessed in xml doc comments to reference a constructor.
                         return true;
@@ -51,7 +50,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             }, cancellationToken);
         }
 
-        protected override async Task<IEnumerable<ReferenceLocation>> FindReferencesInDocumentAsync(
+        protected override async Task<ImmutableArray<ReferenceLocation>> FindReferencesInDocumentAsync(
             IMethodSymbol methodSymbol,
             Document document,
             CancellationToken cancellationToken)
@@ -60,7 +59,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
             var typeName = methodSymbol.ContainingType.Name;
 
-            Func<SyntaxToken, bool> tokensMatch = t =>
+            bool tokensMatch(SyntaxToken t)
             {
                 if (syntaxFactsService.IsBaseConstructorInitializer(t))
                 {
@@ -78,7 +77,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 }
 
                 return false;
-            };
+            }
 
             var tokens = await document.GetConstructorInitializerTokensAsync(cancellationToken).ConfigureAwait(false);
             if (semanticModel.Language == LanguageNames.VisualBasic)

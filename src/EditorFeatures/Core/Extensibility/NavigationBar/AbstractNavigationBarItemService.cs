@@ -20,7 +20,8 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
 
         public abstract void NavigateToItem(Document document, NavigationBarItem item, ITextView textView, CancellationToken cancellationToken);
 
-        public void NavigateToSymbolItem(Document document, NavigationBarSymbolItem item, CancellationToken cancellationToken)
+        public void NavigateToSymbolItem(
+            Document document, NavigationBarSymbolItem item, CancellationToken cancellationToken)
         {
             var symbolNavigationService = document.Project.Solution.Workspace.Services.GetService<ISymbolNavigationService>();
 
@@ -31,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
             if (symbol != null &&
                 !(symbol is ITypeSymbol) &&
                 !symbol.IsConstructor() &&
-                symbolNavigationService.TrySymbolNavigationNotify(symbol, document.Project.Solution))
+                symbolNavigationService.TrySymbolNavigationNotify(symbol, document.Project, cancellationToken))
             {
                 return;
             }
@@ -57,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
             else
             {
                 var notificationService = workspace.Services.GetService<INotificationService>();
-                notificationService.SendNotification(EditorFeaturesResources.TheDefinitionOfTheObjectIsHidden, severity: NotificationSeverity.Error);
+                notificationService.SendNotification(EditorFeaturesResources.The_definition_of_the_object_is_hidden, severity: NotificationSeverity.Error);
             }
         }
 

@@ -3,11 +3,11 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     mergedAttributesBuilder.Add(syntax.AttributeLists);
                 }
 
-                var sourceMethod = this.ContainingSymbol as SourceMemberMethodSymbol;
+                var sourceMethod = this.ContainingSymbol as SourceOrdinaryMethodSymbol;
                 if ((object)sourceMethod != null && sourceMethod.IsPartial)
                 {
                     var implementingPart = sourceMethod.SourcePartialImplementation;
@@ -162,16 +162,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return this.GetAttributesBag().Attributes;
         }
 
-        internal override CustomAttributesBag<CSharpAttributeData> GetAttributesBag()
+        /// <summary>
+        /// Returns a bag of applied custom attributes and data decoded from well-known attributes. Returns null if there are no attributes applied on the symbol.
+        /// </summary>
+        /// <remarks>
+        /// Forces binding and decoding of attributes.
+        /// </remarks>
+        internal virtual CustomAttributesBag<CSharpAttributeData> GetAttributesBag()
         {
             if (_lazyCustomAttributesBag == null || !_lazyCustomAttributesBag.IsSealed)
             {
                 bool lazyAttributesStored = false;
 
-                var sourceMethod = this.ContainingSymbol as SourceMemberMethodSymbol;
+                var sourceMethod = this.ContainingSymbol as SourceOrdinaryMethodSymbol;
                 if ((object)sourceMethod == null || (object)sourceMethod.SourcePartialDefinition == null)
                 {
-                    lazyAttributesStored = LoadAndValidateAttributes(OneOrMany.Create(this.MergedAttributeDeclarationSyntaxLists), ref _lazyCustomAttributesBag);
+                    lazyAttributesStored = LoadAndValidateAttributes(
+                        OneOrMany.Create(this.MergedAttributeDeclarationSyntaxLists),
+                        ref _lazyCustomAttributesBag,
+                        binderOpt: (ContainingSymbol as LocalFunctionSymbol)?.SignatureBinder);
                 }
                 else
                 {
@@ -374,13 +383,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
     internal sealed class SourceMethodTypeParameterSymbol : SourceTypeParameterSymbolBase
     {
-        private readonly SourceMemberMethodSymbol _owner;
+        private readonly SourceMethodSymbol _owner;
 
-        public SourceMethodTypeParameterSymbol(SourceMemberMethodSymbol owner, string name, int ordinal, ImmutableArray<Location> locations, ImmutableArray<SyntaxReference> syntaxRefs)
+        public SourceMethodTypeParameterSymbol(SourceMethodSymbol owner, string name, int ordinal, ImmutableArray<Location> locations, ImmutableArray<SyntaxReference> syntaxRefs)
             : base(name, ordinal, locations, syntaxRefs)
         {
             _owner = owner;
         }
+
+        internal override void AddDeclarationDiagnostics(DiagnosticBag diagnostics)
+            => _owner.AddDeclarationDiagnostics(diagnostics);
 
         public override TypeParameterKind TypeParameterKind
         {
@@ -429,13 +441,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected override TypeParameterBounds ResolveBounds(ConsList<TypeParameterSymbol> inProgress, DiagnosticBag diagnostics)
         {
-            var constraintTypes = _owner.GetTypeParameterConstraintTypes(this.Ordinal);
+            var constraintClauses = _owner.TypeParameterConstraintClauses;
+            var constraintTypes = constraintClauses.IsEmpty
+                ? ImmutableArray<TypeSymbol>.Empty
+                : constraintClauses[Ordinal]?.ConstraintTypes ?? ImmutableArray<TypeSymbol>.Empty;
             return this.ResolveBounds(this.ContainingAssembly.CorLibrary, inProgress.Prepend(this), constraintTypes, false, this.DeclaringCompilation, diagnostics);
         }
 
         private TypeParameterConstraintKind GetDeclaredConstraints()
         {
-            return _owner.GetTypeParameterConstraints(this.Ordinal);
+            var constraintClauses = _owner.TypeParameterConstraintClauses;
+            return constraintClauses.IsEmpty
+                ? TypeParameterConstraintKind.None
+                : constraintClauses[Ordinal]?.Constraints ?? TypeParameterConstraintKind.None;
         }
     }
 
@@ -447,7 +465,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal abstract class OverriddenMethodTypeParameterMapBase
     {
         // Method representing overriding or explicit implementation.
-        private readonly SourceMemberMethodSymbol _overridingMethod;
+        private readonly SourceOrdinaryMethodSymbol _overridingMethod;
 
         // Type map shared by all type parameters for this explicit implementation.
         private TypeMap _lazyTypeMap;
@@ -455,12 +473,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // Overridden or explicitly implemented method. May be null in error cases.
         private MethodSymbol _lazyOverriddenMethod = ErrorMethodSymbol.UnknownMethod;
 
-        protected OverriddenMethodTypeParameterMapBase(SourceMemberMethodSymbol overridingMethod)
+        protected OverriddenMethodTypeParameterMapBase(SourceOrdinaryMethodSymbol overridingMethod)
         {
             _overridingMethod = overridingMethod;
         }
 
-        public SourceMemberMethodSymbol OverridingMethod
+        public SourceOrdinaryMethodSymbol OverridingMethod
         {
             get { return _overridingMethod; }
         }
@@ -506,18 +524,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected abstract MethodSymbol GetOverriddenMethod(SourceMemberMethodSymbol overridingMethod);
+        protected abstract MethodSymbol GetOverriddenMethod(SourceOrdinaryMethodSymbol overridingMethod);
     }
 
     internal sealed class OverriddenMethodTypeParameterMap : OverriddenMethodTypeParameterMapBase
     {
-        public OverriddenMethodTypeParameterMap(SourceMemberMethodSymbol overridingMethod)
+        public OverriddenMethodTypeParameterMap(SourceOrdinaryMethodSymbol overridingMethod)
             : base(overridingMethod)
         {
             Debug.Assert(overridingMethod.IsOverride);
         }
 
-        protected override MethodSymbol GetOverriddenMethod(SourceMemberMethodSymbol overridingMethod)
+        protected override MethodSymbol GetOverriddenMethod(SourceOrdinaryMethodSymbol overridingMethod)
         {
             MethodSymbol method = overridingMethod;
             Debug.Assert(method.IsOverride);
@@ -532,13 +550,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
     internal sealed class ExplicitInterfaceMethodTypeParameterMap : OverriddenMethodTypeParameterMapBase
     {
-        public ExplicitInterfaceMethodTypeParameterMap(SourceMemberMethodSymbol implementationMethod)
+        public ExplicitInterfaceMethodTypeParameterMap(SourceOrdinaryMethodSymbol implementationMethod)
             : base(implementationMethod)
         {
             Debug.Assert(implementationMethod.IsExplicitInterfaceImplementation);
         }
 
-        protected override MethodSymbol GetOverriddenMethod(SourceMemberMethodSymbol overridingMethod)
+        protected override MethodSymbol GetOverriddenMethod(SourceOrdinaryMethodSymbol overridingMethod)
         {
             var explicitImplementations = overridingMethod.ExplicitInterfaceImplementations;
             Debug.Assert(explicitImplementations.Length <= 1);
@@ -565,7 +583,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _map = map;
         }
 
-        public SourceMemberMethodSymbol Owner
+        public SourceOrdinaryMethodSymbol Owner
         {
             get { return _map.OverridingMethod; }
         }

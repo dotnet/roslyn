@@ -9,27 +9,23 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 {
-    internal sealed class RetargetingPropertySymbol : PropertySymbol
+    internal sealed class RetargetingPropertySymbol : WrappedPropertySymbol
     {
         /// <summary>
         /// Owning RetargetingModuleSymbol.
         /// </summary>
         private readonly RetargetingModuleSymbol _retargetingModule;
 
-        /// <summary>
-        /// The underlying PropertySymbol, cannot be another RetargetingPropertySymbol.
-        /// </summary>
-        private readonly PropertySymbol _underlyingProperty;
-
         //we want to compute this lazily since it may be expensive for the underlying symbol
         private ImmutableArray<PropertySymbol> _lazyExplicitInterfaceImplementations;
         private ImmutableArray<ParameterSymbol> _lazyParameters;
-        private ImmutableArray<CustomModifier> _lazyTypeCustomModifiers;
+        private CustomModifiersTuple _lazyCustomModifiers;
 
         /// <summary>
         /// Retargeted custom attributes
@@ -41,13 +37,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         private TypeSymbol _lazyType;
 
         public RetargetingPropertySymbol(RetargetingModuleSymbol retargetingModule, PropertySymbol underlyingProperty)
+            : base(underlyingProperty)
         {
             Debug.Assert((object)retargetingModule != null);
-            Debug.Assert((object)underlyingProperty != null);
             Debug.Assert(!(underlyingProperty is RetargetingPropertySymbol));
 
             _retargetingModule = retargetingModule;
-            _underlyingProperty = underlyingProperty;
         }
 
         private RetargetingModuleSymbol.RetargetingSymbolTranslator RetargetingTranslator
@@ -56,19 +51,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             {
                 return _retargetingModule.RetargetingTranslator;
             }
-        }
-
-        public PropertySymbol UnderlyingProperty
-        {
-            get
-            {
-                return _underlyingProperty;
-            }
-        }
-
-        public override bool IsImplicitlyDeclared
-        {
-            get { return _underlyingProperty.IsImplicitlyDeclared; }
         }
 
         public RetargetingModuleSymbol RetargetingModule
@@ -96,9 +78,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             get
             {
+                return CustomModifiersTuple.TypeCustomModifiers;
+            }
+        }
+
+        public override ImmutableArray<CustomModifier> RefCustomModifiers
+        {
+            get
+            {
+                return CustomModifiersTuple.RefCustomModifiers;
+            }
+        }
+
+        private CustomModifiersTuple CustomModifiersTuple
+        {
+            get
+            {
                 return RetargetingTranslator.RetargetModifiers(
-                    _underlyingProperty.TypeCustomModifiers,
-                    ref _lazyTypeCustomModifiers);
+                    _underlyingProperty.TypeCustomModifiers, _underlyingProperty.RefCustomModifiers,
+                    ref _lazyCustomModifiers);
             }
         }
 
@@ -137,14 +135,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
         }
 
-        public override bool IsIndexer
-        {
-            get
-            {
-                return _underlyingProperty.IsIndexer;
-            }
-        }
-
         public override MethodSymbol GetMethod
         {
             get
@@ -162,14 +152,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                 return (object)_underlyingProperty.SetMethod == null
                     ? null
                     : this.RetargetingTranslator.Retarget(_underlyingProperty.SetMethod);
-            }
-        }
-
-        internal override Microsoft.Cci.CallingConvention CallingConvention
-        {
-            get
-            {
-                return _underlyingProperty.CallingConvention;
             }
         }
 
@@ -246,115 +228,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
         }
 
-        public override string Name
-        {
-            get
-            {
-                return _underlyingProperty.Name;
-            }
-        }
-
-        internal override bool HasSpecialName
-        {
-            get
-            {
-                return _underlyingProperty.HasSpecialName;
-            }
-        }
-
-        public override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            return _underlyingProperty.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);
-        }
-
-        public override ImmutableArray<Location> Locations
-        {
-            get
-            {
-                return _underlyingProperty.Locations;
-            }
-        }
-
-        public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
-        {
-            get
-            {
-                return this.UnderlyingProperty.DeclaringSyntaxReferences;
-            }
-        }
-
-        public override Accessibility DeclaredAccessibility
-        {
-            get
-            {
-                return _underlyingProperty.DeclaredAccessibility;
-            }
-        }
-
-        public override bool IsStatic
-        {
-            get
-            {
-                return _underlyingProperty.IsStatic;
-            }
-        }
-
-        public override bool IsVirtual
-        {
-            get
-            {
-                return _underlyingProperty.IsVirtual;
-            }
-        }
-
-        public override bool IsOverride
-        {
-            get
-            {
-                return _underlyingProperty.IsOverride;
-            }
-        }
-
-        public override bool IsAbstract
-        {
-            get
-            {
-                return _underlyingProperty.IsAbstract;
-            }
-        }
-
-        public override bool IsSealed
-        {
-            get
-            {
-                return _underlyingProperty.IsSealed;
-            }
-        }
-
-        public override bool IsExtern
-        {
-            get
-            {
-                return _underlyingProperty.IsExtern;
-            }
-        }
-
-        internal override ObsoleteAttributeData ObsoleteAttributeData
-        {
-            get
-            {
-                return _underlyingProperty.ObsoleteAttributeData;
-            }
-        }
-
         public override ImmutableArray<CSharpAttributeData> GetAttributes()
         {
             return this.RetargetingTranslator.GetRetargetedAttributes(_underlyingProperty.GetAttributes(), ref _lazyCustomAttributes);
         }
 
-        internal override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(ModuleCompilationState compilationState)
+        internal override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(PEModuleBuilder moduleBuilder)
         {
-            return this.RetargetingTranslator.RetargetAttributes(_underlyingProperty.GetCustomAttributesToEmit(compilationState));
+            return this.RetargetingTranslator.RetargetAttributes(_underlyingProperty.GetCustomAttributesToEmit(moduleBuilder));
         }
 
         internal override bool MustCallMethodsDirectly
@@ -375,27 +256,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
 
             return _lazyUseSiteDiagnostic;
-        }
-
-        public override string MetadataName
-        {
-            // We'll never emit this symbol, so it doesn't really
-            // make sense for it to have a metadata name.  However, all
-            // symbols have an implementation of MetadataName (since it
-            // is virtual on Symbol) so we might as well define it in a
-            // consistent way.
-
-            get
-            {
-                return _underlyingProperty.MetadataName;
-            }
-        }
-        internal override bool HasRuntimeSpecialName
-        {
-            get
-            {
-                return _underlyingProperty.HasRuntimeSpecialName;
-            }
         }
 
         internal sealed override CSharpCompilation DeclaringCompilation // perf, not correctness

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using Microsoft.VisualStudio.Text;
@@ -28,15 +28,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 set { _parent = value; }
             }
 
-            public bool CanRedo
-            {
-                get { return true; }
-            }
+            public bool CanRedo => true;
 
-            public bool CanUndo
-            {
-                get { return true; }
-            }
+            public bool CanUndo => true;
 
             public UndoPrimitive(ITextBuffer textBuffer, int trackingSessionId, bool shouldRestoreStateOnUndo)
             {
@@ -47,8 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 
             public void Do()
             {
-                StateMachine stateMachine;
-                if (TryGetStateMachine(out stateMachine))
+                if (TryGetStateMachine(out var stateMachine))
                 {
                     stateMachine.ClearTrackingSession();
                 }
@@ -56,8 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 
             public void Undo()
             {
-                StateMachine stateMachine;
-                if (TryGetStateMachine(out stateMachine))
+                if (TryGetStateMachine(out var stateMachine))
                 {
                     if (_shouldRestoreStateOnUndo)
                     {
@@ -73,8 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             private bool TryGetStateMachine(out StateMachine stateMachine)
             {
                 stateMachine = null;
-                ITextBuffer textBuffer;
-                return _weakTextBuffer.TryGetTarget(out textBuffer) &&
+                return _weakTextBuffer.TryGetTarget(out var textBuffer) &&
                     textBuffer.Properties.TryGetProperty(typeof(StateMachine), out stateMachine);
             }
 

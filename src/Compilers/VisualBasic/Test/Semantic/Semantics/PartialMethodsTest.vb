@@ -260,10 +260,10 @@ End Class
 Imports System
 
 Public Module Module1
-    Partial Private Sub FOo(Of T As Class, U As T, V As {U, Exception})(aa As T, y As U, z As V)
+    Partial Private Sub GOo(Of T As Class, U As T, V As {U, Exception})(aa As T, y As U, z As V)
     End Sub
-    Private Sub foo(Of T As Class, U As T, V As {U, Exception})(aa As T, y As U, z As V)
-        Console.WriteLine("foo")
+    Private Sub goo(Of T As Class, U As T, V As {U, Exception})(aa As T, y As U, z As V)
+        Console.WriteLine("goo")
     End Sub
     Sub Main()
     End Sub
@@ -275,7 +275,7 @@ End Module
             Dim model = comp.GetSemanticModel(tree1)
 
             Dim id = tree1.GetCompilationUnitRoot().DescendantNodes().OfType(Of MethodStatementSyntax).
-                                                       Where(Function(node) node.Identifier.ValueText = "foo").First()
+                                                       Where(Function(node) node.Identifier.ValueText = "goo").First()
 
             Dim method = model.GetDeclaredSymbol(id)
             Dim unused = method.MetadataName

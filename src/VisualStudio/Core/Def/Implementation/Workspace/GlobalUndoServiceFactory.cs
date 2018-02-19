@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Composition;
@@ -12,6 +12,8 @@ using Microsoft.VisualStudio.TextManager.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     /// <summary>
     /// A service that provide a way to undo operations applied to the workspace
     /// </summary>
@@ -58,7 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             {
                 if (!CanUndo(workspace))
                 {
-                    throw new ArgumentException(ServicesVSResources.WorkspaceUndoNotSupported);
+                    throw new ArgumentException(ServicesVSResources.given_workspace_doesn_t_support_undo);
                 }
 
                 var transaction = new WorkspaceUndoTransaction(_undoHistoryRegistry, _undoManager, workspace, description, this);

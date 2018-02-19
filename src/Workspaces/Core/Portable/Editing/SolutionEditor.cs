@@ -1,9 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -26,18 +23,14 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <summary>
         /// The <see cref="Solution"/> that was specified when the <see cref="SolutionEditor"/> was constructed.
         /// </summary>
-        public Solution OriginalSolution
-        {
-            get { return _solution; }
-        }
+        public Solution OriginalSolution => _solution;
 
         /// <summary>
         /// Gets the <see cref="DocumentEditor"/> for the corresponding <see cref="DocumentId"/>.
         /// </summary>
-        public async Task<DocumentEditor> GetDocumentEditorAsync(DocumentId id, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<DocumentEditor> GetDocumentEditorAsync(DocumentId id, CancellationToken cancellationToken = default)
         {
-            DocumentEditor editor;
-            if (!_documentEditors.TryGetValue(id, out editor))
+            if (!_documentEditors.TryGetValue(id, out var editor))
             {
                 editor = await DocumentEditor.CreateAsync(_solution.GetDocument(id), cancellationToken).ConfigureAwait(false);
                 _documentEditors.Add(id, editor);

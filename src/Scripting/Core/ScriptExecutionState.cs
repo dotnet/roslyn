@@ -1,10 +1,13 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Scripting
 {
@@ -62,26 +65,90 @@ namespace Microsoft.CodeAnalysis.Scripting
         internal async Task<TResult> RunSubmissionsAsync<TResult>(
             ImmutableArray<Func<object[], Task>> precedingExecutors,
             Func<object[], Task> currentExecutor,
+            StrongBox<Exception> exceptionHolderOpt,
+            Func<Exception, bool> catchExceptionOpt,
             CancellationToken cancellationToken)
         {
             Debug.Assert(_frozen == 0);
+            Debug.Assert((exceptionHolderOpt != null) == (catchExceptionOpt != null));
 
-            foreach (var executor in precedingExecutors)
+            // Each executor points to a <Factory> method of the Submission class.
+            // The method creates an instance of the Submission class passing the submission states to its constructor.
+            // The consturctor initializes the links between submissions and stores the Submission instance to 
+            // a slot in submission states that corresponds to the submission.
+            // The <Factory> method then calls the <Initialize> method that consists of top-level script code statements.
+
+            int executorIndex = 0;
+            try
             {
+                while (executorIndex < precedingExecutors.Length)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    EnsureStateCapacity();
+
+                    try
+                    {
+                        await precedingExecutors[executorIndex++](_submissionStates).ConfigureAwait(continueOnCapturedContext: false);
+                    }
+                    finally
+                    {
+                        // The submission constructor always runs into completion (unless we emitted bad code).
+                        // We need to advance the counter to reflect the updates to submission states done in the constructor.
+                        AdvanceStateCounter();
+                    }
+                }
+
                 cancellationToken.ThrowIfCancellationRequested();
 
+                TResult result;
                 EnsureStateCapacity();
-                await executor(_submissionStates).ConfigureAwait(continueOnCapturedContext: false);
-                AdvanceStateCounter();
+
+                try
+                {
+                    executorIndex++;
+                    result = await ((Task<TResult>)currentExecutor(_submissionStates)).ConfigureAwait(continueOnCapturedContext: false);
+                }
+                finally
+                {
+                    // The submission constructor always runs into completion (unless we emitted bad code).
+                    // We need to advance the counter to reflect the updates to submission states done in the constructor.
+                    AdvanceStateCounter();
+                }
+
+                return result;
             }
+            catch (Exception exception) when (catchExceptionOpt?.Invoke(exception) == true)
+            {
+                // The following code creates instances of all submissions without executing the user code.
+                // The constructors don't contain any user code.
+                var submissionCtorArgs = new object[] { null };
 
-            cancellationToken.ThrowIfCancellationRequested();
+                while (executorIndex < precedingExecutors.Length)
+                {
+                    EnsureStateCapacity();
 
-            EnsureStateCapacity();
-            TResult result = await ((Task<TResult>)currentExecutor(_submissionStates)).ConfigureAwait(continueOnCapturedContext: false);
-            AdvanceStateCounter();
+                    // update the value since the array might have been resized:
+                    submissionCtorArgs[0] = _submissionStates;
 
-            return result;
+                    Activator.CreateInstance(precedingExecutors[executorIndex++].GetMethodInfo().DeclaringType, submissionCtorArgs);
+                    AdvanceStateCounter();
+                }
+
+                if (executorIndex == precedingExecutors.Length)
+                {
+                    EnsureStateCapacity();
+
+                    // update the value since the array might have been resized:
+                    submissionCtorArgs[0] = _submissionStates;
+
+                    Activator.CreateInstance(currentExecutor.GetMethodInfo().DeclaringType, submissionCtorArgs);
+                    AdvanceStateCounter();
+                }
+
+                exceptionHolderOpt.Value = exception;
+                return default(TResult);
+            }
         }
 
         private void EnsureStateCapacity()

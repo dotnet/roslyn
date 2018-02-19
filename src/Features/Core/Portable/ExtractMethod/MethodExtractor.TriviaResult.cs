@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 {
                     // bug # 6644
                     // this could happen in malformed code. return as it was.
-                    var status = new OperationStatus(OperationStatusFlag.None, FeaturesResources.CantNotConstructFinalTree);
+                    var status = new OperationStatus(OperationStatusFlag.None, FeaturesResources.can_t_not_construct_final_tree);
                     return status.With(document);
                 }
 

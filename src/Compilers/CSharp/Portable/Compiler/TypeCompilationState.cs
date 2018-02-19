@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -65,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public readonly CSharpCompilation Compilation;
 
-        public LambdaFrame StaticLambdaFrame;
+        public SynthesizedClosureEnvironment StaticLambdaFrame;
 
         /// <summary>
         /// A graph of method->method references for this(...) constructor initializers.
@@ -100,13 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                var moduleBuilder = this.ModuleBuilderOpt;
-                if (moduleBuilder == null)
-                {
-                    return null;
-                }
-
-                return moduleBuilder.DynamicOperationContextType ?? this.Type;
+                return this.ModuleBuilderOpt?.GetDynamicOperationContextType(this.Type);
             }
         }
 
@@ -118,6 +113,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public ArrayBuilder<MethodWithBody> SynthesizedMethods
         {
             get { return _synthesizedMethods; }
+            set
+            {
+                Debug.Assert(_synthesizedMethods == null);
+                _synthesizedMethods = value;
+            }
         }
 
         /// <summary> 
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="method2">the chained-to ctor</param>
         /// <param name="syntax">where to report a cyclic error if needed</param>
         /// <param name="diagnostics">a diagnostic bag for receiving the diagnostic</param>
-        internal void ReportCtorInitializerCycles(MethodSymbol method1, MethodSymbol method2, CSharpSyntaxNode syntax, DiagnosticBag diagnostics)
+        internal void ReportCtorInitializerCycles(MethodSymbol method1, MethodSymbol method2, SyntaxNode syntax, DiagnosticBag diagnostics)
         {
             // precondition and postcondition: the graph _constructorInitializers is acyclic.
             // If adding the edge (method1, method2) would induce a cycle, we report an error

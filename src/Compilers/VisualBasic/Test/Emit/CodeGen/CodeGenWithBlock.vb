@@ -227,12 +227,12 @@ End Class
 Module Program
     Sub Main(args As String())
         With New C1()
-            .Foo()
+            .Goo()
         End With
     End Sub
 
     &lt;Extension()&gt;
-    Public Sub Foo(ByRef x As C1)
+    Public Sub Goo(ByRef x As C1)
     End Sub
 End Module
     </file>
@@ -248,7 +248,7 @@ expectedOutput:="").
   IL_0000:  newobj     "Sub C1..ctor()"
   IL_0005:  stloc.0
   IL_0006:  ldloca.s   V_0
-  IL_0008:  call       "Sub Program.Foo(ByRef C1)"
+  IL_0008:  call       "Sub Program.Goo(ByRef C1)"
   IL_000d:  ldnull
   IL_000e:  pop
   IL_000f:  ret
@@ -529,7 +529,7 @@ Imports System.Runtime.CompilerServices
 
 Structure C1
     Public field As Integer
-    Public Property FooProp As Integer
+    Public Property GooProp As Integer
 End Structure
 
 Class C2
@@ -581,7 +581,7 @@ Imports System.Runtime.CompilerServices
 
 Structure C1
     Public field As Integer
-    Public Property FooProp As Integer
+    Public Property GooProp As Integer
 End Structure
 
 Class C2
@@ -635,7 +635,7 @@ Imports System.Runtime.CompilerServices
 
 Structure C1
     Public field As Integer
-    Public Property FooProp As Integer
+    Public Property GooProp As Integer
 End Structure
 
 Class C2
@@ -868,12 +868,12 @@ Class Clazz
     Public Shared Sub Main(args() As String)
         Using s = New STRUCT()
             With s
-                Foo(.D)
+                Goo(.D)
             End With
             Console.Write(s.D)
         End Using
     End Sub
-    Public Shared Sub Foo(ByRef x As Integer)
+    Public Shared Sub Goo(ByRef x As Integer)
         x = 123
     End Sub
 End Class
@@ -897,7 +897,7 @@ expectedOutput:="0").
   IL_0009:  ldfld      "STRUCT.D As Integer"
   IL_000e:  stloc.1
   IL_000f:  ldloca.s   V_1
-  IL_0011:  call       "Sub Clazz.Foo(ByRef Integer)"
+  IL_0011:  call       "Sub Clazz.Goo(ByRef Integer)"
   IL_0016:  ldloc.0
   IL_0017:  ldfld      "STRUCT.D As Integer"
   IL_001c:  call       "Sub System.Console.Write(Integer)"
@@ -1999,7 +1999,7 @@ expectedOutput:="A = 2; B = 6/6/2006; C = ?")
             c.VerifyDiagnostics()
             c.VerifyIL("C2..ctor", <![CDATA[
 {
-  // Code size      119 (0x77)
+  // Code size      112 (0x70)
   .maxstack  4
   IL_0000:  ldarg.0
   IL_0001:  initobj    "C2"
@@ -2025,19 +2025,16 @@ expectedOutput:="A = 2; B = 6/6/2006; C = ?")
   IL_003e:  ldelema    "C2.ABC"
   IL_0043:  ldfld      "C2.ABC.A As Integer"
   IL_0048:  stfld      "C2._Closure$__4-0.$W3 As Integer"
-  IL_004d:  dup
-  IL_004e:  ldftn      "Sub C2._Closure$__4-0._Lambda$__0()"
-  IL_0054:  newobj     "Sub VB$AnonymousDelegate_0..ctor(Object, System.IntPtr)"
-  IL_0059:  callvirt   "Sub VB$AnonymousDelegate_0.Invoke()"
-  IL_005e:  ldnull
-  IL_005f:  stfld      "C2._Closure$__4-0.$W2 As C2.ABC()"
-  IL_0064:  ldarg.0
-  IL_0065:  ldarg.0
-  IL_0066:  ldfld      "C2.ARR As C2.ABC()"
-  IL_006b:  ldc.i4.1
-  IL_006c:  ldelem     "C2.ABC"
-  IL_0071:  call       "Sub C2.Print(C2.ABC)"
-  IL_0076:  ret
+  IL_004d:  ldftn      "Sub C2._Closure$__4-0._Lambda$__0()"
+  IL_0053:  newobj     "Sub VB$AnonymousDelegate_0..ctor(Object, System.IntPtr)"
+  IL_0058:  callvirt   "Sub VB$AnonymousDelegate_0.Invoke()"
+  IL_005d:  ldarg.0
+  IL_005e:  ldarg.0
+  IL_005f:  ldfld      "C2.ARR As C2.ABC()"
+  IL_0064:  ldc.i4.1
+  IL_0065:  ldelem     "C2.ABC"
+  IL_006a:  call       "Sub C2.Print(C2.ABC)"
+  IL_006f:  ret
 }
 ]]>)
             c.VerifyIL("C2._Closure$__4-0._Lambda$__0", <![CDATA[
@@ -2390,10 +2387,10 @@ Class Clazz
         Console.Write(FLD2.D)
         Console.Write(" ")
         With FLD1
-            Foo(.D, 1)
+            Goo(.D, 1)
         End With
         With FLD2
-            Foo(.D, 1)
+            Goo(.D, 1)
         End With
         Console.Write(FLD1.D)
         Console.Write(" ")
@@ -2403,16 +2400,16 @@ Class Clazz
 
     Public Shared Sub Main(args() As String)
         With FLD1
-            Foo(.D, 2)
+            Goo(.D, 2)
         End With
         With FLD2
-            Foo(.D, 2)
+            Goo(.D, 2)
         End With
         Console.Write(FLD1.D)
         Console.Write(" ")
         Console.Write(FLD2.D)
     End Sub
-    Public Shared Sub Foo(ByRef x As Integer, val As Integer)
+    Public Shared Sub Goo(ByRef x As Integer, val As Integer)
         x = val
     End Sub
 End Class
@@ -2928,14 +2925,14 @@ Class Clazz
 
         Dim result = From x In source Select DirectCast(Function()
                                                             With x
-                                                                Foo(.D)
+                                                                Goo(.D)
                                                             End With
                                                             Return x
                                                         End Function, Func(Of STRUCT))()
 
         Console.Write(result.FirstOrDefault.D)
     End Sub
-    Public Shared Sub Foo(ByRef x As Integer)
+    Public Shared Sub Goo(ByRef x As Integer)
         x = 123
     End Sub
 End Class
@@ -2953,7 +2950,7 @@ End Class
   IL_0006:  ldfld      "STRUCT.D As Integer"
   IL_000b:  stloc.0
   IL_000c:  ldloca.s   V_0
-  IL_000e:  call       "Sub Clazz.Foo(ByRef Integer)"
+  IL_000e:  call       "Sub Clazz.Goo(ByRef Integer)"
   IL_0013:  ldarg.0
   IL_0014:  ldfld      "Clazz._Closure$__1-0.$VB$Local_x As STRUCT"
   IL_0019:  ret
@@ -3091,7 +3088,7 @@ End Structure
 
             c.VerifyIL("Clazz.TEST", <![CDATA[
 {
-  // Code size       89 (0x59)
+  // Code size       82 (0x52)
   .maxstack  3
   .locals init (Clazz._Closure$__1-0 V_0) //$VB$Closure_0
   IL_0000:  newobj     "Sub Clazz._Closure$__1-0..ctor()"
@@ -3118,10 +3115,7 @@ End Structure
   IL_0041:  ldftn      "Sub Clazz._Closure$__1-0._Lambda$__0()"
   IL_0047:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
   IL_004c:  callvirt   "Sub System.Action.Invoke()"
-  IL_0051:  ldloc.0
-  IL_0052:  ldnull
-  IL_0053:  stfld      "Clazz._Closure$__1-0.$W2 As Clazz()"
-  IL_0058:  ret
+  IL_0051:  ret
 }
 ]]>)
             c.VerifyIL("Clazz._Closure$__1-0._Lambda$__0", <![CDATA[
@@ -3179,7 +3173,7 @@ End Structure
 
             c.VerifyIL("Clazz.TEST", <![CDATA[
 {
-  // Code size       89 (0x59)
+  // Code size       82 (0x52)
   .maxstack  3
   .locals init (Clazz._Closure$__1-0 V_0) //$VB$Closure_0
   IL_0000:  newobj     "Sub Clazz._Closure$__1-0..ctor()"
@@ -3206,10 +3200,7 @@ End Structure
   IL_0041:  ldftn      "Sub Clazz._Closure$__1-0._Lambda$__0()"
   IL_0047:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
   IL_004c:  callvirt   "Sub System.Action.Invoke()"
-  IL_0051:  ldloc.0
-  IL_0052:  ldnull
-  IL_0053:  stfld      "Clazz._Closure$__1-0.$W2 As Clazz()"
-  IL_0058:  ret
+  IL_0051:  ret
 }
 ]]>)
             c.VerifyIL("Clazz._Closure$__1-0._Lambda$__0", <![CDATA[
@@ -3277,7 +3268,7 @@ End Structure
             c.VerifyDiagnostics()
             c.VerifyIL("Clazz.TEST", <![CDATA[
 {
-  // Code size      154 (0x9a)
+  // Code size      142 (0x8e)
   .maxstack  3
   .locals init (Clazz V_0, //$W0
                 Clazz V_1, //$W1
@@ -3316,14 +3307,11 @@ End Structure
   IL_006e:  call       "Function System.Linq.Enumerable.Select(Of Char, String)(System.Collections.Generic.IEnumerable(Of Char), System.Func(Of Char, String)) As System.Collections.Generic.IEnumerable(Of String)"
   IL_0073:  call       "Function System.Linq.Enumerable.FirstOrDefault(Of String)(System.Collections.Generic.IEnumerable(Of String)) As String"
   IL_0078:  call       "Sub System.Console.Write(String)"
-  IL_007d:  ldloc.2
-  IL_007e:  ldflda     "Clazz._Closure$__3-0.$W2 As Clazz"
-  IL_0083:  initobj    "Clazz"
-  IL_0089:  ldloca.s   V_1
-  IL_008b:  initobj    "Clazz"
-  IL_0091:  ldloca.s   V_0
-  IL_0093:  initobj    "Clazz"
-  IL_0099:  ret
+  IL_007d:  ldloca.s   V_1
+  IL_007f:  initobj    "Clazz"
+  IL_0085:  ldloca.s   V_0
+  IL_0087:  initobj    "Clazz"
+  IL_008d:  ret
 }
 ]]>)
             c.VerifyIL("Clazz._Closure$__3-0._Lambda$__0",
@@ -3362,13 +3350,13 @@ Module Program
     Sub Main(args As String())
         With New C1(23)
             Console.WriteLine(.Field)
-            .Foo()
+            .Goo()
             Console.WriteLine(.Field)
         End With
     End Sub
 
     &lt;Extension()&gt;
-    Public Sub Foo(ByRef x As C1)
+    Public Sub Goo(ByRef x As C1)
         x = New C1(42)
         Console.WriteLine(x.Field)
     End Sub
@@ -3418,6 +3406,45 @@ End Module
 GetIndex
 Hello, World
 ]]>)
+        End Sub
+
+        <Fact()>
+        <WorkItem(16968, "https://github.com/dotnet/roslyn/issues/16968")>
+        Public Sub WithExpressionIsAccessedFromLambdaExecutedAfterTheBlock()
+            CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Module Module1
+
+    Private f As EventOwner
+
+    Sub Main()
+
+        f = New EventOwner()
+        With f
+            AddHandler .Baz, Sub()
+                                 .Bar = "called"
+                             End Sub
+        End With
+
+        f.RaiseBaz()
+        System.Console.WriteLine(f.Bar)
+    End Sub
+
+End Module
+
+Class EventOwner
+
+    Public Property Bar As String
+
+    Public Event Baz As System.Action
+
+    Public Sub RaiseBaz()
+        RaiseEvent Baz()
+    End Sub
+End Class
+    </file>
+</compilation>, expectedOutput:="called")
         End Sub
 
     End Class

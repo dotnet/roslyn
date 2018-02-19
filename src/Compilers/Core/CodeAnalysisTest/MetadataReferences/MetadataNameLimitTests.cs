@@ -6,7 +6,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.UnitTests
 {
     /// <summary>
-    /// Test <see cref="PeWriter.IsTooLongInternal"/>.
+    /// Test <see cref="MetadataWriter.IsTooLongInternal"/>.
     /// </summary>
     public class MetadataNameLimitsTests
     {

@@ -1,7 +1,8 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
+using System.Globalization;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -57,9 +58,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             Verify(FormatResult("new Decimal()", CreateDkmClrValue(new Decimal())), EvalResult("new Decimal()", "0", "decimal", "new Decimal()", editableValue: "0M"));
             // System.DateTime
             // Set currentCulture to en-US for the test to pass in all locales
-            using (new CultureContext("en-US"))
+            using (new CultureContext(new CultureInfo("en-US", useUserOverride: false)))
             {
-                Verify(FormatResult("new DateTime()", CreateDkmClrValue(new DateTime())), EvalResult("new DateTime()", "{1/1/0001 12:00:00 AM}", "System.DateTime", "new DateTime()", DkmEvaluationResultFlags.Expandable));
+                // Skipped due to https://github.com/dotnet/roslyn/issues/21944
+                //Verify(FormatResult("new DateTime()", CreateDkmClrValue(new DateTime())), EvalResult("new DateTime()", "{1/1/0001 12:00:00 AM}", "System.DateTime", "new DateTime()", DkmEvaluationResultFlags.Expandable));
             }
 
             // System.String
@@ -665,8 +667,8 @@ class C
         /// This tests the managed address-of functionality.  When you take the address
         /// of a managed object, what you get back is an IntPtr*.  As in dev12, this
         /// exposes two pointers, the one to the IntPtr and the one to the actual data
-        /// (in the IntPtr).  For example, if you have a string "str", then "&str" yields
-        /// an IntPtr*.  The pointer is to the "string&" (typed as IntPtr, since Roslyn
+        /// (in the IntPtr).  For example, if you have a string "str", then "&amp;str" yields
+        /// an IntPtr*.  The pointer is to the "string&amp;" (typed as IntPtr, since Roslyn
         /// doesn't have a representation for reference types) and the IntPtr is a pointer
         /// to the actual string object on the heap.
         /// </summary>
@@ -1561,7 +1563,7 @@ struct S
                 using (runtime.Load())
                 {
                     var type = runtime.GetType("S");
-                    var value = CreateDkmClrValue(type.Instantiate(), type: type);
+                    var value = type.Instantiate();
                     var children = GetChildren(FormatResult("s", value));
                     Verify(children,
                         EvalResult(
@@ -1609,7 +1611,7 @@ class E : System.Exception
                 using (runtime.Load())
                 {
                     var type = runtime.GetType("S");
-                    var value = CreateDkmClrValue(type.Instantiate(), type: type);
+                    var value = type.Instantiate();
                     var children = GetChildren(FormatResult("s", value));
                     Verify(children,
                         EvalResult("This", "'s.This' threw an exception of type 'E'", "S {E}", "s.This", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.ExceptionThrown),
@@ -1651,9 +1653,9 @@ class E : System.Exception
             {
                 var runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlib());
                 var type = runtime.GetType(typeof(NullReferenceException));
-                var value = CreateDkmClrValue(
-                    type.Instantiate(),
-                    type: type,
+                var value = type.Instantiate(
+                    new object[0],
+                    alias: null,
                     evalFlags: DkmEvaluationResultFlags.ExceptionThrown);
                 var evalResult = FormatResult("c?.str.Length", value, runtime.GetType(typeof(int?)));
                 Verify(evalResult,
@@ -1789,6 +1791,21 @@ class B : A { }
             Verify(children);
         }
 
+        [Fact]
+        public void DeclaredTypeAndRuntimeTypeDifferByCase()
+        {
+            var source =
+@"class Object { }";
+            var runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlib(GetAssembly(source)));
+            using (runtime.Load())
+            {
+                var value = runtime.GetType("Object").Instantiate();
+                var evalResult = FormatResult("o", value, declaredType: runtime.GetType("System.Object"));
+                Verify(evalResult,
+                    EvalResult("o", "{Object}", "object {Object}", "o", DkmEvaluationResultFlags.None));
+            }
+        }
+
         /// <summary>
         /// Full name should be null for members of thrown
         /// exception since there's no valid expression.
@@ -1813,7 +1830,7 @@ class C
                 using (runtime.Load())
                 {
                     var type = runtime.GetType("C");
-                    var value = CreateDkmClrValue(type.Instantiate(), type: type);
+                    var value = type.Instantiate();
                     var evalResult = FormatResult("o", value);
                     Verify(evalResult,
                         EvalResult("o", "{C}", "C", "o", DkmEvaluationResultFlags.Expandable));
@@ -2189,22 +2206,22 @@ class D : C
     internal A _3 = new A();
     public A _4 = new A();
 }";
-            var compilationA = CSharpTestBase.CreateCompilationWithMscorlib(sourceA, options: TestOptions.ReleaseDll);
+            var compilationA = CSharpTestBase.CreateStandardCompilation(sourceA, options: TestOptions.ReleaseDll);
             var bytesA = compilationA.EmitToArray();
             var referenceA = MetadataReference.CreateFromImage(bytesA);
 
-            var compilationB = CSharpTestBase.CreateCompilationWithMscorlib(sourceB, options: TestOptions.DebugDll, references: new MetadataReference[] { referenceA });
+            var compilationB = CSharpTestBase.CreateStandardCompilation(sourceB, options: TestOptions.DebugDll, references: new MetadataReference[] { referenceA });
             var bytesB = compilationB.EmitToArray();
             var assemblyA = ReflectionUtilities.Load(bytesA);
             var assemblyB = ReflectionUtilities.Load(bytesB);
 
             DkmClrRuntimeInstance runtime = null;
-            GetModuleDelegate getModule = (r, a) => (a == assemblyB) ? new DkmClrModuleInstance(r, a, new DkmModule(a.GetName().Name + ".dll")) : null;
+            DkmClrModuleInstance getModule(DkmClrRuntimeInstance r, System.Reflection.Assembly a) => (a == assemblyB) ? new DkmClrModuleInstance(r, a, new DkmModule(a.GetName().Name + ".dll")) : null;
             runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlibAndSystemCore(assemblyA, assemblyB), getModule: getModule);
             using (runtime.Load())
             {
                 var type = runtime.GetType("B");
-                var value = CreateDkmClrValue(type.Instantiate(), type: type);
+                var value = type.Instantiate();
                 // Format with "Just my code".
                 var inspectionContext = CreateDkmInspectionContext(DkmEvaluationFlags.HideNonPublicMembers, runtimeInstance: runtime);
                 var evalResult = FormatResult("o", value, inspectionContext: inspectionContext);
@@ -2251,16 +2268,58 @@ class D : C
     }
 }";
             DkmClrRuntimeInstance runtime = null;
-            GetMemberValueDelegate getMemberValue = (v, m) => (m == "P") ? CreateErrorValue(runtime.GetType(typeof(int?)), "Function evaluation timed out") : null;
+            VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue getMemberValue(VisualStudio.Debugger.Evaluation.ClrCompilation.DkmClrValue v, string m) => (m == "P") ? CreateErrorValue(runtime.GetType(typeof(int?)), "Function evaluation timed out") : null;
             runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlibAndSystemCore(GetAssembly(source)), getMemberValue: getMemberValue);
             using (runtime.Load())
             {
                 var type = runtime.GetType("C");
-                var value = CreateDkmClrValue(type.Instantiate(), type: type);
+                var value = type.Instantiate();
                 var memberValue = value.GetMemberValue("P", (int)System.Reflection.MemberTypes.Property, "C", DefaultInspectionContext);
                 var evalResult = FormatResult("o.P", memberValue);
                 Verify(evalResult,
                     EvalFailedResult("o.P", "Function evaluation timed out", "int?", "o.P"));
+            }
+        }
+
+        [Fact]
+        public void RootCastExpression()
+        {
+            var source =
+@"class C
+{
+    object F = 3;
+}";
+            var runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlib(GetAssembly(source)));
+            using (runtime.Load())
+            {
+                var typeC = runtime.GetType("C");
+
+                // var o = (object)new C(); var e = (C)o;
+                var value = typeC.Instantiate();
+                var evalResult = FormatResult("(C)o", value);
+                Verify(evalResult,
+                    EvalResult("(C)o", "{C}", "C", "(C)o", DkmEvaluationResultFlags.Expandable));
+                var children = GetChildren(evalResult);
+                Verify(children,
+                    EvalResult("F", "3", "object {int}", "((C)o).F"));
+
+                // var c = new C(); var e = (C)((object)c);
+                value = typeC.Instantiate();
+                evalResult = FormatResult("(C)((object)c)", value);
+                Verify(evalResult,
+                    EvalResult("(C)((object)c)", "{C}", "C", "(C)((object)c)", DkmEvaluationResultFlags.Expandable));
+                children = GetChildren(evalResult);
+                Verify(children,
+                    EvalResult("F", "3", "object {int}", "((C)((object)c)).F"));
+
+                // var a = (object)new[] { new C() }; var e = ((C[])o)[0];
+                value = typeC.Instantiate();
+                evalResult = FormatResult("((C[])o)[0]", value);
+                Verify(evalResult,
+                    EvalResult("((C[])o)[0]", "{C}", "C", "((C[])o)[0]", DkmEvaluationResultFlags.Expandable));
+                children = GetChildren(evalResult);
+                Verify(children,
+                    EvalResult("F", "3", "object {int}", "((C[])o)[0].F"));
             }
         }
 
@@ -2308,7 +2367,7 @@ class C
                 int n = 10;
                 var type = runtime.GetType("C");
                 // C[] with alternating null and non-null values.
-                var value = CreateDkmClrValue(Enumerable.Range(0, n).Select(i => (i % 2) == 0 ? type.Instantiate() : null).ToArray());
+                var value = CreateDkmClrValue(Enumerable.Range(0, n).Select(i => (i % 2) == 0 ? type.UnderlyingType.Instantiate() : null).ToArray());
                 var evalResult = FormatResult("a", value);
 
                 IDkmClrResultProvider resultProvider = new CSharpResultProvider();
@@ -2355,7 +2414,7 @@ class C
                 int n = 10;
                 int nFailures = 2;
                 var type = runtime.GetType("C");
-                var value = CreateDkmClrValue(Enumerable.Range(0, n).Select(i => type.Instantiate(i)).ToArray());
+                var value = CreateDkmClrValue(Enumerable.Range(0, n).Select(i => type.UnderlyingType.Instantiate(i)).ToArray());
                 var evalResult = FormatResult("a", value);
 
                 IDkmClrResultProvider resultProvider = new CSharpResultProvider();
@@ -2379,6 +2438,38 @@ class C
                 Assert.Equal(items.Length, n);
                 Assert.Equal(items.OfType<DkmFailedEvaluationResult>().Count(), nFailures);
             }
+        }
+
+        [Fact]
+        public void NullFormatSpecifiers()
+        {
+            var value = CreateDkmClrValue(3);
+            // With no format specifiers in full name.
+            DkmEvaluationResult evalResult = null;
+            value.GetResult(
+                new DkmWorkList(),
+                DeclaredType: value.Type,
+                CustomTypeInfo: null,
+                InspectionContext: DefaultInspectionContext,
+                FormatSpecifiers: null,
+                ResultName: "o",
+                ResultFullName: "o",
+                CompletionRoutine: asyncResult => evalResult = asyncResult.Result);
+            Verify(evalResult,
+                EvalResult("o", "3", "int", "o"));
+            // With format specifiers in full name.
+            evalResult = null;
+            value.GetResult(
+                new DkmWorkList(),
+                DeclaredType: value.Type,
+                CustomTypeInfo: null,
+                InspectionContext: DefaultInspectionContext,
+                FormatSpecifiers: null,
+                ResultName: "o",
+                ResultFullName: "o, nq",
+                CompletionRoutine: asyncResult => evalResult = asyncResult.Result);
+            Verify(evalResult,
+                EvalResult("o", "3", "int", "o, nq"));
         }
 
         [Fact(Skip = "9895"), WorkItem(9895, "https://github.com/dotnet/roslyn/issues/9895")]

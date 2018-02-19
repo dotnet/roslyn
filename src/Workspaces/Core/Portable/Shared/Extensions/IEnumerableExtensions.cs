@@ -6,15 +6,15 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static partial class IEnumerableExtensions
     {
-        public static Task<IEnumerable<S>> SelectManyAsync<T, S>(this IEnumerable<T> sequence, Func<T, CancellationToken, Task<IEnumerable<S>>> selector, CancellationToken cancellationToken)
+        public static Task<IEnumerable<S>> SelectManyAsync<T, S>(
+            this IEnumerable<T> sequence, 
+            Func<T, CancellationToken, Task<IEnumerable<S>>> selector, CancellationToken cancellationToken)
         {
             var whenAllTask = Task.WhenAll(sequence.Select(e => selector(e, cancellationToken)));
 

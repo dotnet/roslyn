@@ -48,14 +48,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             var declaration = SyntaxFactory.DestructorDeclaration(
                 attributeLists: AttributeGenerator.GenerateAttributeLists(destructor.GetAttributes(), options),
-                modifiers: default(SyntaxTokenList),
+                modifiers: default,
                 tildeToken: SyntaxFactory.Token(SyntaxKind.TildeToken),
                 identifier: CodeGenerationDestructorInfo.GetTypeName(destructor).ToIdentifierToken(),
                 parameterList: SyntaxFactory.ParameterList(),
                 body: hasNoBody ? null : GenerateBlock(destructor),
-                semicolonToken: hasNoBody ? SyntaxFactory.Token(SyntaxKind.SemicolonToken) : default(SyntaxToken));
+                semicolonToken: hasNoBody ? SyntaxFactory.Token(SyntaxKind.SemicolonToken) : default);
 
-            return AddCleanupAnnotationsTo(
+            return AddFormatterAndCodeGeneratorAnnotationsTo(
                 ConditionallyAddDocumentationCommentTo(declaration, destructor, options));
         }
 
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             IMethodSymbol constructor)
         {
             var statements = CodeGenerationDestructorInfo.GetStatements(constructor) == null
-                ? default(SyntaxList<StatementSyntax>)
+                ? default
                 : StatementGenerator.GenerateStatements(CodeGenerationDestructorInfo.GetStatements(constructor));
 
             return SyntaxFactory.Block(statements);

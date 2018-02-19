@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
             this.AssertIsForeground();
 
             // check that the user is not typing in a string literal or comment
-            var tree = document.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var tree = document.GetSyntaxRootSynchronously(cancellationToken).SyntaxTree;
             var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
 
             return !syntaxFactsService.IsInNonUserCode(tree, position, cancellationToken);

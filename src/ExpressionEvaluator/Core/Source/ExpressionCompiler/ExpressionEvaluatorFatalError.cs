@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Diagnostics;
@@ -69,8 +69,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 return false;
             }
 
-            var dkmException = exception as DkmException;
-            if (dkmException != null)
+            if (exception is DkmException dkmException)
             {
                 switch (dkmException.Code)
                 {
@@ -83,21 +82,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
 
             return FatalError.Report(exception);
-        }
-
-        internal delegate bool NonFatalExceptionHandler(Exception exception, string implementationName);
-
-        internal static bool ReportNonFatalException(Exception exception, NonFatalExceptionHandler handler)
-        {
-            if (CrashIfFailFastEnabled(exception))
-            {
-                throw ExceptionUtilities.Unreachable;
-            }
-
-            // Ignore the return value, because we always want to continue after reporting the Exception.
-            handler(exception, nameof(ExpressionEvaluatorFatalError));
-
-            return true;
         }
     }
 }

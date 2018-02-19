@@ -37,10 +37,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxReference syntaxReference,
             SourceLocation nameLocation,
             ICollection<string> memberNames,
-            ImmutableArray<SingleTypeDeclaration> children)
-            : base(name,
-                   syntaxReference,
-                   nameLocation)
+            ImmutableArray<SingleTypeDeclaration> children,
+            ImmutableArray<Diagnostic> diagnostics)
+            : base(name, syntaxReference, nameLocation, diagnostics)
         {
             Debug.Assert(kind != DeclarationKind.Namespace);
 

@@ -21,8 +21,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly _isReadOnly As Boolean
         Private ReadOnly _isWriteOnly As Boolean
         Private ReadOnly _parameters As ImmutableArray(Of ParameterSymbol)
+        Private ReadOnly _returnsByRef As Boolean
         Private ReadOnly _type As TypeSymbol
         Private ReadOnly _typeCustomModifiers As ImmutableArray(Of CustomModifier)
+        Private ReadOnly _refCustomModifiers As ImmutableArray(Of CustomModifier)
         Private ReadOnly _isOverrides As Boolean
         Private ReadOnly _isWithEvents As Boolean
 
@@ -31,8 +33,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                        isReadOnly As Boolean,
                        isWriteOnly As Boolean,
                        parameters As ImmutableArray(Of ParameterSymbol),
+                       returnsByRef As Boolean,
                        [type] As TypeSymbol,
                        typeCustomModifiers As ImmutableArray(Of CustomModifier),
+                       refCustomModifiers As ImmutableArray(Of CustomModifier),
                        Optional isOverrides As Boolean = False,
                        Optional isWithEvents As Boolean = False)
             _name = name
@@ -40,8 +44,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             _isReadOnly = isReadOnly
             _isWriteOnly = isWriteOnly
             _parameters = parameters
+            _returnsByRef = returnsByRef
             _type = [type]
             _typeCustomModifiers = typeCustomModifiers
+            _refCustomModifiers = refCustomModifiers
             _isOverrides = isOverrides
             _isWithEvents = isWithEvents
         End Sub
@@ -82,6 +88,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Public Overrides ReadOnly Property ReturnsByRef As Boolean
+            Get
+                Return _returnsByRef
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property Type As TypeSymbol
             Get
                 Return _type
@@ -91,6 +103,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Overrides ReadOnly Property TypeCustomModifiers As ImmutableArray(Of CustomModifier)
             Get
                 Return _typeCustomModifiers
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property RefCustomModifiers As ImmutableArray(Of CustomModifier)
+            Get
+                Return _refCustomModifiers
             End Get
         End Property
 

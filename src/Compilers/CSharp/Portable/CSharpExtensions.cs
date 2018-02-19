@@ -7,8 +7,8 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Roslyn.Utilities;
-using System.ComponentModel;
+using Microsoft.CodeAnalysis.Syntax;
+using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                var builder = new Syntax.SyntaxTokenListBuilder(list.Count + items.Length);
+                var builder = new SyntaxTokenListBuilder(list.Count + items.Length);
                 if (index > 0)
                 {
                     builder.Add(list, 0, index);
@@ -609,7 +609,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-
         public static TypeInfo GetTypeInfo(this SemanticModel semanticModel, SelectOrGroupClauseSyntax node, CancellationToken cancellationToken = default(CancellationToken))
         {
             var csmodel = semanticModel as CSharpSemanticModel;
@@ -686,6 +685,79 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        /// <summary>
+        /// Gets the underlying <see cref="Conversion"/> information from this <see cref="IConversionOperation"/>. This
+        /// <see cref="IConversionOperation"/> must have been created from CSharp code.
+        /// </summary>
+        /// <param name="conversionExpression">The conversion expression to get original info from.</param>
+        /// <returns>The underlying <see cref="Conversion"/>.</returns>
+        /// <exception cref="InvalidCastException">If the <see cref="IConversionOperation"/> was not created from CSharp code.</exception>
+        public static Conversion GetConversion(this IConversionOperation conversionExpression)
+        {
+            if (conversionExpression is BaseCSharpConversionExpression csharpConversionExpression)
+            {
+                return csharpConversionExpression.ConversionInternal;
+            }
+            else
+            {
+                throw new ArgumentException(string.Format(CSharpResources.IConversionExpressionIsNotCSharpConversion,
+                                                          nameof(IConversionOperation)),
+                                            nameof(conversionExpression));
+            }
+        }
+
+        /// <summary>
+        /// Gets the underlying <see cref="Conversion"/> information from this <see cref="ICompoundAssignmentOperation"/>. This
+        /// conversion is applied before the operator is applied to the result of this conversion and <see cref="IAssignmentOperation.Value"/>.
+        /// </summary>
+        /// <remarks>
+        /// This compound assignment must have been created from C# code.
+        /// </remarks>
+        public static Conversion GetInConversion(this ICompoundAssignmentOperation compoundAssignment)
+        {
+            if (compoundAssignment == null)
+            {
+                throw new ArgumentNullException(nameof(compoundAssignment));
+            }
+
+            if (compoundAssignment is BaseCSharpCompoundAssignmentOperation csharpCompoundAssignment)
+            {
+                return csharpCompoundAssignment.InConversionInternal;
+            }
+            else
+            {
+                throw new ArgumentException(string.Format(CSharpResources.ICompoundAssignmentOperationIsNotCSharpCompoundAssignment,
+                                                          nameof(compoundAssignment)),
+                                            nameof(compoundAssignment));
+            }
+        }
+
+        /// <summary>
+        /// Gets the underlying <see cref="Conversion"/> information from this <see cref="ICompoundAssignmentOperation"/>. This
+        /// conversion is applied after the operator is applied, before the result is assigned to <see cref="IAssignmentOperation.Target"/>.
+        /// </summary>
+        /// <remarks>
+        /// This compound assignment must have been created from C# code.
+        /// </remarks>
+        public static Conversion GetOutConversion(this ICompoundAssignmentOperation compoundAssignment)
+        {
+            if (compoundAssignment == null)
+            {
+                throw new ArgumentNullException(nameof(compoundAssignment));
+            }
+
+            if (compoundAssignment is BaseCSharpCompoundAssignmentOperation csharpCompoundAssignemnt)
+            {
+                return csharpCompoundAssignemnt.OutConversionInternal;
+            }
+            else
+            {
+                throw new ArgumentException(string.Format(CSharpResources.ICompoundAssignmentOperationIsNotCSharpCompoundAssignment,
+                                                          nameof(compoundAssignment)),
+                                            nameof(compoundAssignment));
+            }
+        }
+
         public static Conversion GetSpeculativeConversion(this SemanticModel semanticModel, int position, ExpressionSyntax expression, SpeculativeBindingOption bindingOption)
         {
             var csmodel = semanticModel as CSharpSemanticModel;
@@ -710,6 +782,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return default(ForEachStatementInfo);
             }
+        }
+
+        public static ForEachStatementInfo GetForEachStatementInfo(this SemanticModel semanticModel, CommonForEachStatementSyntax forEachStatement)
+        {
+            var csmodel = semanticModel as CSharpSemanticModel;
+            if (csmodel != null)
+            {
+                return csmodel.GetForEachStatementInfo(forEachStatement);
+            }
+            else
+            {
+                return default(ForEachStatementInfo);
+            }
+        }
+
+        public static DeconstructionInfo GetDeconstructionInfo(this SemanticModel semanticModel, AssignmentExpressionSyntax assignment)
+        {
+            return semanticModel is CSharpSemanticModel csmodel ? csmodel.GetDeconstructionInfo(assignment) : default;
+        }
+
+        public static DeconstructionInfo GetDeconstructionInfo(this SemanticModel semanticModel, ForEachVariableStatementSyntax @foreach)
+        {
+            return semanticModel is CSharpSemanticModel csmodel ? csmodel.GetDeconstructionInfo(@foreach) : default;
         }
 
         public static AwaitExpressionInfo GetAwaitExpressionInfo(this SemanticModel semanticModel, AwaitExpressionSyntax awaitExpression)
@@ -1193,6 +1288,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Given a syntax node of tuple expression, get the tuple type symbol.
+        /// </summary>
+        public static INamedTypeSymbol GetDeclaredSymbol(this SemanticModel semanticModel, TupleExpressionSyntax declaratorSyntax, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            var csmodel = semanticModel as CSharpSemanticModel;
+            return csmodel?.GetDeclaredSymbol(declaratorSyntax, cancellationToken);
+        }
+
+        /// <summary>
+        /// Given a syntax node of a tuple argument, get the tuple element symbol.
+        /// </summary>
+        public static ISymbol GetDeclaredSymbol(this SemanticModel semanticModel, ArgumentSyntax declaratorSyntax, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            var csmodel = semanticModel as CSharpSemanticModel;
+            return csmodel?.GetDeclaredSymbol(declaratorSyntax, cancellationToken);
+        }
+
+        /// <summary>
         /// Given a syntax node that declares a property or member accessor, get the corresponding symbol.
         /// </summary>
         public static IMethodSymbol GetDeclaredSymbol(this SemanticModel semanticModel, AccessorDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
@@ -1204,7 +1317,25 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Given a variable declarator syntax, get the corresponding symbol.
         /// </summary>
+        public static ISymbol GetDeclaredSymbol(this SemanticModel semanticModel, SingleVariableDesignationSyntax designationSyntax, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            var csmodel = semanticModel as CSharpSemanticModel;
+            return csmodel?.GetDeclaredSymbol(designationSyntax, cancellationToken);
+        }
+
+        /// <summary>
+        /// Given a variable declarator syntax, get the corresponding symbol.
+        /// </summary>
         public static ISymbol GetDeclaredSymbol(this SemanticModel semanticModel, VariableDeclaratorSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            var csmodel = semanticModel as CSharpSemanticModel;
+            return csmodel?.GetDeclaredSymbol(declarationSyntax, cancellationToken);
+        }
+
+        /// <summary>
+        /// Given a tuple element syntax, get the corresponding symbol.
+        /// </summary>
+        public static ISymbol GetDeclaredSymbol(this SemanticModel semanticModel, TupleElementSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
         {
             var csmodel = semanticModel as CSharpSemanticModel;
             return csmodel?.GetDeclaredSymbol(declarationSyntax, cancellationToken);

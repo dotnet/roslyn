@@ -14,10 +14,10 @@ Enum MyEnum1
     Buzz
     FizzBuzz
 End Enum
-Class Foo
+Class Goo
     Sub Bar()
         Dim e = MyEnum1.Fizz
-        Select Case {|FixAllInDocument:e|}
+        {|FixAllInDocument:|}Select Case e
             Case MyEnum1.Fizz
                 Exit Select
             Case MyEnum1.Buzz
@@ -43,7 +43,7 @@ Enum MyEnum2
     Buzz
     FizzBuzz
 End Enum
-Class Foo
+Class Goo
     Sub Bar()
         Dim e = MyEnum2.Fizz
         Select Case e
@@ -66,7 +66,7 @@ Enum MyEnum3
     Buzz
     FizzBuzz
 End Enum
-Class Foo
+Class Goo
     Sub Bar()
         Dim e = MyEnum3.Fizz
         Select Case e
@@ -91,7 +91,7 @@ Enum MyEnum1
     Buzz
     FizzBuzz
 End Enum
-Class Foo
+Class Goo
     Sub Bar()
         Dim e = MyEnum1.Fizz
         Select Case e
@@ -124,7 +124,7 @@ Enum MyEnum2
     Buzz
     FizzBuzz
 End Enum
-Class Foo
+Class Goo
     Sub Bar()
         Dim e = MyEnum2.Fizz
         Select Case e
@@ -147,7 +147,7 @@ Enum MyEnum3
     Buzz
     FizzBuzz
 End Enum
-Class Foo
+Class Goo
     Sub Bar()
         Dim e = MyEnum3.Fizz
         Select Case e
@@ -164,7 +164,7 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Await TestAsync(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=Nothing)
+            Await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey:=Nothing)
         End Function
 
         <Fact>
@@ -179,10 +179,10 @@ Enum MyEnum1
     Buzz
     FizzBuzz
 End Enum
-Class Foo
+Class Goo
     Sub Bar()
         Dim e = MyEnum1.Fizz
-        Select Case {|FixAllInProject:e|}
+        {|FixAllInProject:|}Select Case e
             Case MyEnum1.Fizz
                 Exit Select
             Case MyEnum1.Buzz
@@ -199,7 +199,7 @@ Enum MyEnum2
     Buzz
     FizzBuzz
 End Enum
-Class Foo
+Class Goo
     Sub Bar()
         Dim e = MyEnum2.Fizz
         Select Case e
@@ -222,7 +222,7 @@ Enum MyEnum3
     Buzz
     FizzBuzz
 End Enum
-Class Foo
+Class Goo
     Sub Bar()
         Dim e = MyEnum3.Fizz
         Select Case e
@@ -247,7 +247,7 @@ Enum MyEnum1
     Buzz
     FizzBuzz
 End Enum
-Class Foo
+Class Goo
     Sub Bar()
         Dim e = MyEnum1.Fizz
         Select Case e
@@ -269,7 +269,7 @@ Enum MyEnum2
     Buzz
     FizzBuzz
 End Enum
-Class Foo
+Class Goo
     Sub Bar()
         Dim e = MyEnum2.Fizz
         Select Case e
@@ -294,7 +294,7 @@ Enum MyEnum3
     Buzz
     FizzBuzz
 End Enum
-Class Foo
+Class Goo
     Sub Bar()
         Dim e = MyEnum3.Fizz
         Select Case e
@@ -311,7 +311,7 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Await TestAsync(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=Nothing)
+            Await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey:=Nothing)
         End Function
 
         <Fact>
@@ -326,10 +326,10 @@ Enum MyEnum1
     Buzz
     FizzBuzz
 End Enum
-Class Foo
+Class Goo
     Sub Bar()
         Dim e = MyEnum1.Fizz
-        Select Case {|FixAllInSolution:e|}
+        {|FixAllInSolution:|}Select Case e
             Case MyEnum1.Fizz
                 Exit Select
             Case MyEnum1.Buzz
@@ -344,7 +344,7 @@ Enum MyEnum2
     Buzz
     FizzBuzz
 End Enum
-Class Foo
+Class Goo
     Sub Bar()
         Dim e = MyEnum2.Fizz
         Select Case e
@@ -365,7 +365,7 @@ Enum MyEnum3
     Buzz
     FizzBuzz
 End Enum
-Class Foo
+Class Goo
     Sub Bar()
         Dim e = MyEnum3.Fizz
         Select Case e
@@ -388,7 +388,7 @@ Enum MyEnum1
     Buzz
     FizzBuzz
 End Enum
-Class Foo
+Class Goo
     Sub Bar()
         Dim e = MyEnum1.Fizz
         Select Case e
@@ -410,7 +410,7 @@ Enum MyEnum2
     Buzz
     FizzBuzz
 End Enum
-Class Foo
+Class Goo
     Sub Bar()
         Dim e = MyEnum2.Fizz
         Select Case e
@@ -435,7 +435,7 @@ Enum MyEnum3
     Buzz
     FizzBuzz
 End Enum
-Class Foo
+Class Goo
     Sub Bar()
         Dim e = MyEnum3.Fizz
         Select Case e
@@ -454,7 +454,7 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Await TestAsync(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=Nothing)
+            Await TestInRegularAndScriptAsync(input, expected)
         End Function
     End Class
 End Namespace

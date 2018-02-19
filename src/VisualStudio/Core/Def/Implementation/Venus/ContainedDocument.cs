@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -20,8 +20,6 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Differencing;
@@ -34,6 +32,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     /// <summary>
     /// An IVisualStudioDocument which represents the secondary buffer to the workspace API.
     /// </summary>
@@ -66,7 +66,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         private readonly IComponentModel _componentModel;
         private readonly Workspace _workspace;
         private readonly ITextDifferencingSelectorService _differenceSelectorService;
-        private readonly IOptionService _optionService;
         private readonly HostType _hostType;
         private readonly ReiteratedVersionSnapshotTracker _snapshotTracker;
         private readonly IFormattingRule _vbHelperFormattingRule;
@@ -95,11 +94,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             _sourceCodeKind = sourceCodeKind;
             _componentModel = componentModel;
             _workspace = workspace;
-            _optionService = _workspace.Services.GetService<IOptionService>();
             _hostType = GetHostType();
-
-            string filePath;
-            if (!ErrorHandler.Succeeded(((IVsProject)hierarchy).GetMkDocument(itemId, out filePath)))
+            if (!ErrorHandler.Succeeded(((IVsProject)hierarchy).GetMkDocument(itemId, out var filePath)))
             {
                 // we couldn't look up the document moniker from an hierarchy for an itemid.
                 // Since we only use this moniker as a key, we could fall back to something else, like the document name.
@@ -112,14 +108,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
             if (Project.Hierarchy != null)
             {
-                string moniker;
-                Project.Hierarchy.GetCanonicalName(itemId, out moniker);
+                Project.Hierarchy.GetCanonicalName(itemId, out var moniker);
                 _itemMoniker = moniker;
             }
 
             this.Key = new DocumentKey(Project, filePath);
             this.Id = DocumentId.CreateNewId(Project.Id, filePath);
-            this.Folders = containedLanguage.Project.GetFolderNames(itemId);
+            this.Folders = containedLanguage.Project.GetFolderNamesFromHierarchy(itemId);
             this.Loader = TextLoader.From(containedLanguage.SubjectBuffer.AsTextContainer(), VersionStamp.Create(), filePath);
             _differenceSelectorService = componentModel.GetService<ITextDifferencingSelectorService>();
             _snapshotTracker = new ReiteratedVersionSnapshotTracker(_containedLanguage.SubjectBuffer);
@@ -128,23 +123,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
         private HostType GetHostType()
         {
-            var projectionBuffer = _containedLanguage.DataBuffer as IProjectionBuffer;
-            if (projectionBuffer != null)
+            if (_containedLanguage.DataBuffer is IProjectionBuffer projectionBuffer)
             {
-                // For TypeScript hosted in HTML the source buffers will have type names
-                // HTMLX and TypeScript. RazorCSharp has an HTMLX base type but should 
-                // not be associated with the HTML host type. Use ContentType.TypeName 
-                // instead of ContentType.IsOfType for HTMLX to ensure the Razor host 
-                // type is identified correctly.
-                if (projectionBuffer.SourceBuffers.Any(b => b.ContentType.IsOfType(HTML) ||
-                    string.Compare(HTMLX, b.ContentType.TypeName, StringComparison.OrdinalIgnoreCase) == 0))
-                {
-                    return HostType.HTML;
-                }
-
+                // RazorCSharp has an HTMLX base type but should not be associated with
+                // the HTML host type, so we check for it first.
                 if (projectionBuffer.SourceBuffers.Any(b => b.ContentType.IsOfType(Razor)))
                 {
                     return HostType.Razor;
+                }
+
+                // For TypeScript hosted in HTML the source buffers will have type names
+                // HTMLX and TypeScript.
+                if (projectionBuffer.SourceBuffers.Any(b => b.ContentType.IsOfType(HTML) ||
+                    b.ContentType.IsOfType(HTMLX)))
+                {
+                    return HostType.HTML;
                 }
             }
             else
@@ -187,8 +180,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         public event EventHandler<bool> Closing;
 
 #pragma warning restore 67
-
-        IVisualStudioHostProject IVisualStudioHostDocument.Project { get { return this.Project; } }
 
         public ITextBuffer GetOpenTextBuffer()
         {
@@ -423,9 +414,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                         }
 
                         var spanInOriginalText = new TextSpan(offsetInOriginalText + spanInLeftText.Start, spanInLeftText.Length);
-
-                        TextChange textChange;
-                        if (TryGetSubTextChange(originalText, visibleSpanInOriginalText, rightText, spanInOriginalText, spanInRightText, out textChange))
+                        if (TryGetSubTextChange(originalText, visibleSpanInOriginalText, rightText, spanInOriginalText, spanInRightText, out var textChange))
                         {
                             changes.Add(textChange);
                         }
@@ -447,9 +436,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             {
                 var leftReplacementMap = leftPool.Object;
                 var rightReplacementMap = rightPool.Object;
-
-                string leftTextWithReplacement, rightTextWithReplacement;
-                GetTextWithReplacements(leftText, rightText, leftReplacementMap, rightReplacementMap, out leftTextWithReplacement, out rightTextWithReplacement);
+                GetTextWithReplacements(leftText, rightText, leftReplacementMap, rightReplacementMap, out var leftTextWithReplacement, out var rightTextWithReplacement);
 
                 var diffResult = DiffStrings(leftTextWithReplacement, rightTextWithReplacement);
 
@@ -459,9 +446,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                     var spanInRightText = AdjustSpan(diffResult.RightDecomposition.GetSpanInOriginal(difference.Right), rightReplacementMap);
 
                     var spanInOriginalText = new TextSpan(offsetInOriginalText + spanInLeftText.Start, spanInLeftText.Length);
-
-                    TextChange textChange;
-                    if (TryGetSubTextChange(originalText, visibleSpanInOriginalText, rightText, spanInOriginalText, spanInRightText.ToTextSpan(), out textChange))
+                    if (TryGetSubTextChange(originalText, visibleSpanInOriginalText, rightText, spanInOriginalText, spanInRightText.ToTextSpan(), out var textChange))
                     {
                         yield return textChange;
                     }
@@ -541,7 +526,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             SourceText originalText, TextSpan visibleSpanInOriginalText,
             string rightText, TextSpan spanInOriginalText, TextSpan spanInRightText, out TextChange textChange)
         {
-            textChange = default(TextChange);
+            textChange = default;
 
             var visibleFirstLineInOriginalText = originalText.Lines.GetLineFromPosition(visibleSpanInOriginalText.Start);
             var visibleLastLineInOriginalText = originalText.Lines.GetLineFromPosition(visibleSpanInOriginalText.End);
@@ -739,8 +724,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         {
             var subjectBuffer = (IProjectionBuffer)this.GetOpenTextBuffer();
 
-            var projectionDataBuffer = _containedLanguage.DataBuffer as IProjectionBuffer;
-            if (projectionDataBuffer != null)
+            if (_containedLanguage.DataBuffer is IProjectionBuffer projectionDataBuffer)
             {
                 return projectionDataBuffer.CurrentSnapshot
                     .GetSourceSpans()
@@ -789,7 +773,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                     affectedSpans.Add(currentVisibleSpanIndex);
                 }
 
-                edit.Apply();
+                edit.ApplyAndLogExceptions();
             }
         }
 
@@ -810,7 +794,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             var originalText = document.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
             Contract.Requires(object.ReferenceEquals(originalText, snapshot.AsText()));
 
-            var root = document.GetSyntaxRootAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+            var root = document.GetSyntaxRootSynchronously(CancellationToken.None);
 
             var editorOptionsFactory = _componentModel.GetService<IEditorOptionsFactoryService>();
             var editorOptions = editorOptionsFactory.GetOptions(_containedLanguage.DataBuffer);
@@ -842,7 +826,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         private void AdjustIndentationForSpan(
             Document document, ITextEdit edit, TextSpan visibleSpan, IFormattingRule baseIndentationRule, OptionSet options)
         {
-            var root = document.GetSyntaxRootAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+            var root = document.GetSyntaxRootSynchronously(CancellationToken.None);
 
             using (var rulePool = SharedPools.Default<List<IFormattingRule>>().GetPooledObject())
             using (var spanPool = SharedPools.Default<List<TextSpan>>().GetPooledObject())
@@ -875,10 +859,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             if (_hostType == HostType.Razor)
             {
                 var currentSpanIndex = spanIndex;
-
-                TextSpan visibleSpan;
-                TextSpan visibleTextSpan;
-                GetVisibleAndTextSpan(text, spans, currentSpanIndex, out visibleSpan, out visibleTextSpan);
+                GetVisibleAndTextSpan(text, spans, currentSpanIndex, out var visibleSpan, out var visibleTextSpan);
 
                 var end = visibleSpan.End;
                 var current = root.FindToken(visibleTextSpan.Start).Parent;
@@ -940,9 +921,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             var editorOptions = editorOptionsFactory.GetOptions(_containedLanguage.DataBuffer);
 
             var additionalIndentation = GetAdditionalIndentation(root, text, span);
-
-            string baseIndentationString;
-            int parent, indentSize, useTabs = 0, tabSize = 0;
+            int useTabs = 0, tabSize = 0;
 
             // Skip over the first line, since it's in "Venus space" anyway.
             var startingLine = text.Lines.GetLineFromPosition(span.Start);
@@ -951,9 +930,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 Marshal.ThrowExceptionForHR(
                     this.ContainedLanguage.ContainedLanguageHost.GetLineIndent(
                         line.LineNumber,
-                        out baseIndentationString,
-                        out parent,
-                        out indentSize,
+                        out var baseIndentationString,
+                        out var parent,
+                        out var indentSize,
                         out useTabs,
                         out tabSize));
 
@@ -1001,14 +980,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 }
             }
 
-            return (start <= end) ? TextSpan.FromBounds(start, end + 1) : default(TextSpan);
+            return (start <= end) ? TextSpan.FromBounds(start, end + 1) : default;
         }
 
         private int GetAdditionalIndentation(SyntaxNode root, SourceText text, TextSpan span)
         {
             if (_hostType == HostType.HTML)
             {
-                return _optionService.GetOption(FormattingOptions.IndentationSize, this.Project.Language);
+                return _workspace.Options.GetOption(FormattingOptions.IndentationSize, this.Project.Language);
             }
 
             if (_hostType == HostType.Razor)
@@ -1032,8 +1011,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                             var syntaxFact = _workspace.Services.GetLanguageServices(Project.Language).GetService<ISyntaxFactsService>();
                             if (token.Span.Start == end && syntaxFact != null)
                             {
-                                SyntaxToken openBrace;
-                                if (syntaxFact.TryGetCorrespondingOpenBrace(token, out openBrace) && !textSpan.Contains(openBrace.Span))
+                                if (syntaxFact.TryGetCorrespondingOpenBrace(token, out var openBrace) && !textSpan.Contains(openBrace.Span))
                                 {
                                     return 0;
                                 }
@@ -1066,7 +1044,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                         }
                     }
 
-                    return _optionService.GetOption(FormattingOptions.IndentationSize, this.Project.Language);
+                    return _workspace.Options.GetOption(FormattingOptions.IndentationSize, this.Project.Language);
                 }
             }
 
@@ -1170,10 +1148,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             return CheckCode(snapshot, position - tag2.Length, tag1);
         }
 
-        public ITextUndoHistory GetTextUndoHistory()
+        public ITextBuffer GetTextUndoHistoryBuffer()
         {
             // In Venus scenarios, the undo history is associated with the data buffer
-            return _componentModel.GetService<ITextUndoHistoryRegistry>().GetHistory(_containedLanguage.DataBuffer);
+            return _containedLanguage.DataBuffer;
         }
 
         public uint GetItemId()
@@ -1185,8 +1163,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 return (uint)VSConstants.VSITEMID.Nil;
             }
 
-            uint itemId;
-            return Project.Hierarchy.ParseCanonicalName(_itemMoniker, out itemId) == VSConstants.S_OK
+            return Project.Hierarchy.ParseCanonicalName(_itemMoniker, out var itemId) == VSConstants.S_OK
                 ? itemId
                 : (uint)VSConstants.VSITEMID.Nil;
         }

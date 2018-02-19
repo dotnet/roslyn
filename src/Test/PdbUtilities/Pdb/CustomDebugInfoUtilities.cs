@@ -3,16 +3,16 @@
 using System.Collections.Immutable;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
-using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.DiaSymReader;
 
 namespace Roslyn.Test.PdbUtilities
 {
     public static class CustomDebugInfoUtilities
     {
-        public static byte[] GetCustomDebugInfoBytes(ISymUnmanagedReader reader, MethodDefinitionHandle handle, int methodVersion)
+        public static byte[] GetCustomDebugInfoBytes(ISymUnmanagedReader3 reader, MethodDefinitionHandle handle, int methodVersion)
         {
-            return reader.GetCustomDebugInfoBytes(MetadataTokens.GetToken(handle), methodVersion);
+            return reader.GetCustomDebugInfo(MetadataTokens.GetToken(handle), methodVersion);
         }
 
         public static ImmutableArray<byte> GetEditAndContinueLocalSlotMapRecord(byte[] customDebugInfoBlob)

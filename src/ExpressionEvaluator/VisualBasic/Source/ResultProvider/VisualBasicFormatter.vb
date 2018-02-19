@@ -2,6 +2,7 @@
 
 Imports System.Collections.ObjectModel
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
+Imports Microsoft.VisualStudio.Debugger.ComponentInterfaces
 Imports Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
 Imports Microsoft.VisualStudio.Debugger.Metadata
 
@@ -10,7 +11,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
     ''' <summary>
     ''' Computes string representations of <see cref="DkmClrValue"/> instances.
     ''' </summary>
-    Partial Friend NotInheritable Class VisualBasicFormatter : Inherits Formatter
+    Partial Friend NotInheritable Class VisualBasicFormatter
+        Inherits Formatter
 
         ''' <summary>
         ''' Singleton instance of VisualBasicFormatter (created using default constructor).
@@ -18,9 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Friend Shared ReadOnly Instance As VisualBasicFormatter = New VisualBasicFormatter()
 
         Public Sub New()
-            MyBase.New(defaultFormat:="{{{0}}}",
-                       nullString:="Nothing",
-                       staticMembersString:=Resources.SharedMembers)
+            MyBase.New(defaultFormat:="{{{0}}}", nullString:="Nothing", thisString:="Me")
         End Sub
 
         Friend Overrides Function IsValidIdentifier(name As String) As Boolean

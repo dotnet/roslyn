@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Internal.CSharpErrorFactsGenerator
             outputText.AppendLine("    }");
             outputText.AppendLine("}");
 
-            File.WriteAllText(outputPath, outputText.ToString());
+            File.WriteAllText(outputPath, outputText.ToString(), Encoding.UTF8);
 
             return 0;
         }

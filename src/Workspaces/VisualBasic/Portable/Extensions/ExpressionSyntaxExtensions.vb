@@ -4,6 +4,7 @@ Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
 Imports Microsoft.CodeAnalysis.Simplification
@@ -203,6 +204,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
         <Extension()>
         Public Function IsLeftSideOfDot(expression As ExpressionSyntax) As Boolean
+            If expression Is Nothing Then
+                Return False
+            End If
+
             Return _
                 (expression.IsParentKind(SyntaxKind.QualifiedName) AndAlso DirectCast(expression.Parent, QualifiedNameSyntax).Left Is expression) OrElse
                 (expression.IsParentKind(SyntaxKind.SimpleMemberAccessExpression) AndAlso DirectCast(expression.Parent, MemberAccessExpressionSyntax).Expression Is expression)
@@ -359,6 +364,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
             End If
 
+            Return False
+        End Function
+
+        <Extension()>
+        Public Function IsInInContext(expression As ExpressionSyntax, semanticModel As SemanticModel, cancellationToken As CancellationToken) As Boolean
+            ' NOTE: VB does not support in parameters. Always return False here.
             Return False
         End Function
 
@@ -531,14 +542,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 End If
             End If
 
-            ' Technically, you could introduce an LValue for "Foo" in "Foo()" even if "Foo" binds
+            ' Technically, you could introduce an LValue for "Goo" in "Goo()" even if "Goo" binds
             ' to a method.  (i.e. by assigning to a Func<...> type).  However, this is so contrived
             ' and none of the features that use this extension consider this replaceable.
             If TypeOf expression.Parent Is InvocationExpressionSyntax Then
 
-                ' If something is being invoked, then it's either something like Foo(), Foo.Bar(), or
+                ' If something is being invoked, then it's either something like Goo(), Goo.Bar(), or
                 ' SomeExpr() (i.e. Blah[1]()).  In the first and second case, we only allow
-                ' replacement if Foo and Foo.Bar didn't bind to a method.  If we can't bind it, we'll
+                ' replacement if Goo and Goo.Bar didn't bind to a method.  If we can't bind it, we'll
                 ' assume it's a method and we don't allow it to be replaced either.  However, if it's
                 ' an arbitrary expression, we do allow replacement.
                 If expression.IsKind(SyntaxKind.IdentifierName) OrElse expression.IsKind(SyntaxKind.SimpleMemberAccessExpression) Then
@@ -662,7 +673,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Dim descendentExpressions = expression.DescendantNodesAndSelf().OfType(Of ExpressionSyntax).Where(Function(e) span.Contains(e.Span)).ToSet()
 
             Return descendentExpressions.OfType(Of MemberAccessExpressionSyntax).
-                                         Select(Function(m) m.GetExpressionOfMemberAccessExpression()).
+                                         Select(Function(m) m.GetExpressionOfMemberAccessExpression(allowImplicitTarget:=True)).
                                          Where(Function(e) Not descendentExpressions.Contains(e))
         End Function
 
@@ -949,8 +960,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Return False
             End If
 
-            If optionSet.GetOption(SimplificationOptions.QualifyMemberAccessWithThisOrMe, semanticModel.Language) AndAlso
-                 memberAccess.Expression.Kind() = SyntaxKind.MeExpression Then
+            If memberAccess.Expression.IsKind(SyntaxKind.MeExpression) AndAlso
+                Not SimplificationHelpers.ShouldSimplifyMemberAccessExpression(semanticModel, memberAccess.Name, optionSet) Then
                 Return False
             End If
 
@@ -1000,6 +1011,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                                                     memberAccess.GetLeadingTrivia(),
                                                     keywordKind,
                                                     memberAccess.GetTrailingTrivia()))
+
+                                replacementNode = replacementNode.WithAdditionalAnnotations(
+                                    New SyntaxAnnotation(NameOf(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess)))
 
                                 issueSpan = memberAccess.Span
 
@@ -1057,8 +1071,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Return list.Where(Function(t) Not t.IsElastic())
         End Function
 
-        Private Function InsideCrefReference(expr As ExpressionSyntax) As Boolean
-            Dim crefAttribute = expr.FirstAncestorOrSelf(Of XmlCrefAttributeSyntax)()
+        <Extension>
+        Public Function InsideCrefReference(expression As ExpressionSyntax) As Boolean
+            Dim crefAttribute = expression.FirstAncestorOrSelf(Of XmlCrefAttributeSyntax)()
             Return crefAttribute IsNot Nothing
         End Function
 
@@ -1067,17 +1082,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Return nameOfExpression IsNot Nothing
         End Function
 
-        Private Function PreferPredefinedTypeKeywordInMemberAccess(memberAccess As ExpressionSyntax, optionSet As OptionSet) As Boolean
-            Return (((memberAccess.Parent IsNot Nothing) AndAlso (TypeOf memberAccess.Parent Is MemberAccessExpressionSyntax)) OrElse
-                    (InsideCrefReference(memberAccess) AndAlso Not memberAccess.IsLeftSideOfQualifiedName)) AndAlso ' Bug 1012713: Compiler has a bug due to which it doesn't support <PredefinedType>.Member inside crefs (i.e. System.Int32.MaxValue is supported but Integer.MaxValue isn't). Until this bug is fixed, we don't support simplifying types names like System.Int32.MaxValue to Integer.MaxValue.
-                   (Not InsideNameOfExpression(memberAccess)) AndAlso
-                   optionSet.GetOption(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, LanguageNames.VisualBasic)
+        Private Function PreferPredefinedTypeKeywordInMemberAccess(expression As ExpressionSyntax, optionSet As OptionSet) As Boolean
+            Return (IsInMemberAccessContext(expression) OrElse IsInCrefReferenceForPredefinedTypeInMemberAccessContext(expression)) AndAlso
+                   (Not InsideNameOfExpression(expression)) AndAlso
+                   SimplificationHelpers.PreferPredefinedTypeKeywordInMemberAccess(optionSet, LanguageNames.VisualBasic)
+        End Function
+
+        ''' <Remarks>
+        ''' Note: This helper exists solely to work around Bug 1012713. Once it is fixed, this helper must be
+        ''' deleted in favor of <see cref="InsideCrefReference(ExpressionSyntax)"/>.
+        ''' Context: Bug 1012713 makes it so that the compiler doesn't support `PredefinedType.Member` inside crefs 
+        ''' (i.e. System.Int32.MaxValue is supported but Integer.MaxValue isn't). Until this bug is fixed, we don't 
+        ''' support simplifying types names Like System.Int32.MaxValue to Integer.MaxValue.
+        ''' </Remarks>
+        Private Function IsInCrefReferenceForPredefinedTypeInMemberAccessContext(expression As ExpressionSyntax) As Boolean
+            Return (InsideCrefReference(expression) AndAlso Not expression.IsLeftSideOfQualifiedName)
+        End Function
+
+        <Extension>
+        Public Function IsInMemberAccessContext(expression As ExpressionSyntax) As Boolean
+            Return TypeOf expression?.Parent Is MemberAccessExpressionSyntax
         End Function
 
         Private Function PreferPredefinedTypeKeywordInDeclarations(name As NameSyntax, optionSet As OptionSet) As Boolean
-            Return (name.Parent IsNot Nothing) AndAlso (TypeOf name.Parent IsNot MemberAccessExpressionSyntax) AndAlso (Not InsideCrefReference(name)) AndAlso
+            Return (Not IsInMemberAccessContext(name)) AndAlso
+                   (Not InsideCrefReference(name)) AndAlso
                    (Not InsideNameOfExpression(name)) AndAlso
-                   optionSet.GetOption(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, LanguageNames.VisualBasic)
+                   SimplificationHelpers.PreferPredefinedTypeKeywordInDeclarations(optionSet, LanguageNames.VisualBasic)
         End Function
 
         <Extension>
@@ -1301,12 +1332,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                                     keywordKind,
                                     name.GetTrailingTrivia())
                                 Dim valueText = TryCast(name, IdentifierNameSyntax)?.Identifier.ValueText
-                                If token.Text = valueText OrElse
-                                   PreferPredefinedTypeKeywordInDeclarations(name, optionSet) OrElse
-                                   PreferPredefinedTypeKeywordInMemberAccess(name, optionSet) Then
+                                Dim inDeclarationContext = PreferPredefinedTypeKeywordInDeclarations(name, optionSet)
+                                Dim inMemberAccessContext = PreferPredefinedTypeKeywordInMemberAccess(name, optionSet)
+                                If token.Text = valueText OrElse (inDeclarationContext OrElse inMemberAccessContext) Then
+
+                                    Dim codeStyleOptionName As String = Nothing
+                                    If inDeclarationContext Then
+                                        codeStyleOptionName = NameOf(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration)
+                                    ElseIf inMemberAccessContext Then
+                                        codeStyleOptionName = NameOf(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess)
+                                    End If
+
                                     replacementNode = SyntaxFactory.PredefinedType(token)
                                     issueSpan = name.Span
-                                    Return name.CanReplaceWithReducedNameInContext(replacementNode, semanticModel, cancellationToken)
+
+                                    Dim canReplace = name.CanReplaceWithReducedNameInContext(replacementNode, semanticModel, cancellationToken)
+                                    If canReplace Then
+                                        replacementNode = replacementNode.WithAdditionalAnnotations(New SyntaxAnnotation(codeStyleOptionName))
+                                    End If
+
+                                    Return canReplace
                                 End If
                             End If
                         End If
@@ -1722,6 +1767,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         ' It's possible there is another symbol with the same name as the alias that binds first
         Private Function ValidateAliasForTarget(aliasReplacement As IAliasSymbol, semanticModel As SemanticModel, node As ExpressionSyntax, symbol As ISymbol) As Boolean
             Dim aliasName = aliasReplacement.Name
+
+            ' If we're the argument of a NameOf(X.Y) call, then we can't simplify to an
+            ' alias unless the alias has the same name as us (i.e. 'Y').
+            If node.IsNameOfArgumentExpression() Then
+                Dim nameofValueOpt = semanticModel.GetConstantValue(node.Parent.Parent.Parent)
+                If Not nameofValueOpt.HasValue Then
+                    Return False
+                End If
+
+                Dim existingValue = TryCast(nameofValueOpt.Value, String)
+                If existingValue Is Nothing OrElse existingValue <> aliasName Then
+                    Return False
+                End If
+            End If
+
             Dim boundSymbols = semanticModel.LookupNamespacesAndTypes(node.SpanStart, name:=aliasName)
             If boundSymbols.Length = 1 Then
                 Dim boundAlias = TryCast(boundSymbols(0), IAliasSymbol)
@@ -1735,6 +1795,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 End If
             End If
             Return False
+        End Function
+
+        <Extension>
+        Public Function IsNameOfArgumentExpression(expression As ExpressionSyntax) As Boolean
+            Return expression.IsParentKind(SyntaxKind.NameOfExpression)
         End Function
 
         <Extension()>

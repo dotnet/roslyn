@@ -55,11 +55,11 @@ namespace Microsoft.CodeAnalysis
 
                 try
                 {
-                    return ((AssemblyMetadata)peReference.GetMetadata()).GetAssembly().Identity;
+                    return ((AssemblyMetadata)peReference.GetMetadataNoCopy()).GetAssembly().Identity;
                 }
                 catch (Exception e) when (e is BadImageFormatException || e is IOException)
                 {
-                    // ignore, metadata reading errors are reported by the complier for the existing references
+                    // ignore, metadata reading errors are reported by the compiler for the existing references
                     return null;
                 }
             }

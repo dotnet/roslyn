@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.VisualStudio.Text
 
@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrect
         End Function
 
         Public Function GetSpan(version As ITextVersion) As Span Implements ITrackingSpan.GetSpan
-            Throw New NotSupportedException(VBEditorResources.NotSupported)
+            Throw New NotSupportedException(VBEditorResources.not_supported)
         End Function
 
         Public Function GetStartPoint(snapshot As ITextSnapshot) As SnapshotPoint Implements ITrackingSpan.GetStartPoint

@@ -5,12 +5,9 @@ extern alias vbc;
 
 using Microsoft.CodeAnalysis.CommandLine;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.IO.Pipes;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Moq;
@@ -72,43 +69,47 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
     internal static class ServerUtil
     {
         internal static string DefaultClientDirectory { get; } = Path.GetDirectoryName(typeof(DesktopBuildClientTests).Assembly.Location);
-        internal static string DefaultSdkDirectory { get; } = RuntimeEnvironment.GetRuntimeDirectory();
+        internal static string DefaultSdkDirectory { get; } = BuildClient.GetSystemSdkDirectory();
 
-        internal static BuildPaths CreateBuildPaths(string workingDir)
+        internal static BuildPaths CreateBuildPaths(string workingDir, string tempDir)
         {
             return new BuildPaths(
                 clientDir: DefaultClientDirectory,
                 workingDir: workingDir,
-                sdkDir: DefaultSdkDirectory);
+                sdkDir: DefaultSdkDirectory,
+                tempDir: tempDir);
         }
 
         internal static ServerData CreateServer(
             string pipeName = null,
-            TimeSpan? timeout = null,
             ICompilerServerHost compilerServerHost = null,
-            IClientConnectionHost clientConnectionHost = null)
+            bool failingServer = false)
         {
             pipeName = pipeName ?? Guid.NewGuid().ToString();
-            compilerServerHost = compilerServerHost ?? new DesktopCompilerServerHost(DefaultClientDirectory, DefaultSdkDirectory);
+            compilerServerHost = compilerServerHost ?? DesktopBuildServerController.CreateCompilerServerHost();
+            var clientConnectionHost = DesktopBuildServerController.CreateClientConnectionHostForServerHost(compilerServerHost, pipeName);
+
+            if (failingServer)
+            {
+                clientConnectionHost = new FailingClientConnectionHost(clientConnectionHost);
+            }
 
             var serverStatsSource = new TaskCompletionSource<ServerStats>();
             var serverListenSource = new TaskCompletionSource<bool>();
             var cts = new CancellationTokenSource();
+            var mutexName = BuildServerConnection.GetServerMutexName(pipeName);
             var thread = new Thread(_ =>
             {
                 var listener = new TestableDiagnosticListener();
                 listener.Listening += (sender, e) => { serverListenSource.TrySetResult(true); };
                 try
                 {
-                    clientConnectionHost = clientConnectionHost ?? new NamedPipeClientConnectionHost(compilerServerHost, pipeName);
-
-                    var mutexName = BuildProtocolConstants.GetServerMutexName(pipeName);
-                    VBCSCompiler.Run(
-                        mutexName,
+                    DesktopBuildServerController.RunServer(
+                        pipeName,
                         clientConnectionHost,
                         listener,
-                        timeout ?? TimeSpan.FromMilliseconds(-1),
-                        cts.Token);
+                        keepAlive: TimeSpan.FromMilliseconds(-1),
+                        cancellationToken: cts.Token);
                 }
                 finally
                 {
@@ -119,6 +120,13 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
             thread.Start();
 
+            // The contract of this function is that it will return once the server has started.  Spin here until
+            // we can verify the server has started or simply failed to start.
+            while (BuildServerConnection.WasServerMutexOpen(mutexName) != true && thread.IsAlive)
+            {
+                Thread.Yield();
+            }
+
             return new ServerData(cts, pipeName, serverStatsSource.Task, serverListenSource.Task);
         }
 
@@ -127,48 +135,15 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         /// </summary>
         internal static ServerData CreateServerFailsConnection(string pipeName = null)
         {
-            pipeName = pipeName ?? Guid.NewGuid().ToString();
-
-            var taskSource = new TaskCompletionSource<ServerStats>();
-            var cts = new CancellationTokenSource();
-            using (var mre = new ManualResetEvent(initialState: false))
-            {
-                var thread = new Thread(_ =>
-                {
-                    var mutexName = BuildProtocolConstants.GetServerMutexName(pipeName);
-                    bool holdsMutex;
-                    using (var serverMutex = new Mutex(initiallyOwned: true,
-                                                       name: mutexName,
-                                                       createdNew: out holdsMutex))
-                    {
-                        mre.Set();
-                        if (!holdsMutex)
-                        {
-                            throw new InvalidOperationException("Mutex should be unique");
-                        }
-
-                        var connections = CreateServerFailsConnectionCore(pipeName, cts.Token).Result;
-                        taskSource.SetResult(new ServerStats(connections: connections, completedConnections: 0));
-                    }
-                });
-
-                thread.Start();
-
-                // Can't exit until the mutex is acquired.  Otherwise the client can end up in a race 
-                // condition trying to start the server.
-                mre.WaitOne();
-            }
-
-            return new ServerData(cts, pipeName, taskSource.Task, Task.FromException(new Exception()));
+            return CreateServer(pipeName, failingServer: true);
         }
 
         internal static async Task<BuildResponse> Send(string pipeName, BuildRequest request)
         {
-            using (var client = new NamedPipeClientStream(pipeName))
+            using (var client = await BuildServerConnection.TryConnectToServerAsync(pipeName, Timeout.Infinite, cancellationToken: default).ConfigureAwait(false))
             {
-                await client.ConnectAsync();
-                await request.WriteAsync(client);
-                return await BuildResponse.ReadAsync(client);
+                await request.WriteAsync(client).ConfigureAwait(false);
+                return await BuildResponse.ReadAsync(client).ConfigureAwait(false);
             }
         }
 
@@ -192,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
         internal static CompileFunc GetCompileFunc(RequestLanguage language)
         {
-            Func<string[], string, string, string, TextWriter, IAnalyzerAssemblyLoader, int> func;
+            Func<string[], string, string, string, string, TextWriter, IAnalyzerAssemblyLoader, int> func;
             switch (language)
             {
                 case RequestLanguage.CSharpCompile:
@@ -205,29 +180,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                     throw new InvalidOperationException();
             }
 
-            return (args, buildPaths, textWriter, loader) => func(args, buildPaths.ClientDirectory, buildPaths.WorkingDirectory, buildPaths.SdkDirectory, textWriter, loader);
-        }
-
-        private static async Task<int> CreateServerFailsConnectionCore(string pipeName, CancellationToken cancellationToken)
-        {
-            var connections = 0;
-            try
-            {
-                while (!cancellationToken.IsCancellationRequested)
-                {
-                    using (var pipeStream = new NamedPipeServerStream(pipeName, PipeDirection.InOut, NamedPipeServerStream.MaxAllowedServerInstances, PipeTransmissionMode.Byte, PipeOptions.Asynchronous))
-                    {
-                        await pipeStream.WaitForConnectionAsync(cancellationToken);
-                        connections++;
-                    }
-                }
-            }
-            catch (Exception)
-            {
-                // Exceptions are okay and expected here
-            }
-
-            return connections;
+            return (args, buildPaths, textWriter, loader) => func(args, buildPaths.ClientDirectory, buildPaths.WorkingDirectory, buildPaths.SdkDirectory, buildPaths.TempDirectory, textWriter, loader);
         }
     }
 }

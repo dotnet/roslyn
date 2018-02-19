@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -20,6 +21,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly Func<ConsList<Symbol>, Imports> _computeImports;
         private Imports _lazyImports;
         private ImportChain _lazyImportChain;
+        private QuickAttributeChecker _lazyQuickAttributeChecker;
+        private readonly SyntaxList<UsingDirectiveSyntax> _usingsSyntax;
 
         /// <summary>
         /// Creates a binder for a container with imports (usings and extern aliases) that can be
@@ -33,6 +36,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             _container = container;
             _computeImports = basesBeingResolved => Imports.FromSyntax(declarationSyntax, this, basesBeingResolved, inUsing);
+
+            if (!inUsing)
+            {
+                if (declarationSyntax.Kind() == SyntaxKind.CompilationUnit)
+                {
+                    var compilationUnit = (CompilationUnitSyntax)declarationSyntax;
+                    _usingsSyntax = compilationUnit.Usings;
+                }
+                else if (declarationSyntax.Kind() == SyntaxKind.NamespaceDeclaration)
+                {
+                    var namespaceDecl = (NamespaceDeclarationSyntax)declarationSyntax;
+                    _usingsSyntax = namespaceDecl.Usings;
+                }
+            }
         }
 
         /// <summary>
@@ -97,6 +114,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(_lazyImportChain != null);
 
                 return _lazyImportChain;
+            }
+        }
+
+        /// <summary>
+        /// Get <see cref="QuickAttributeChecker"/> that can be used to quickly
+        /// check for certain attribute applications in context of this binder.
+        /// </summary>
+        internal override QuickAttributeChecker QuickAttributeChecker
+        {
+            get
+            {
+                if (_lazyQuickAttributeChecker == null)
+                {
+                    QuickAttributeChecker result = this.Next.QuickAttributeChecker;
+
+                    if ((object)_container == null || _container.Kind == SymbolKind.Namespace)
+                    {
+                        result = result.AddAliasesIfAny(_usingsSyntax);
+                    }
+
+                    _lazyQuickAttributeChecker = result;
+                }
+
+                return _lazyQuickAttributeChecker;
             }
         }
 
@@ -233,5 +274,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return null;
         }
+
+        protected override LocalFunctionSymbol LookupLocalFunction(SyntaxToken nameToken)
+        {
+            return null;
+        }
+
+        internal override uint LocalScopeDepth => Binder.ExternalScope;
     }
 }

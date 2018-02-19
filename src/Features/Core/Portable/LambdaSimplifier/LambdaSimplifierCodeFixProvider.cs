@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Semantics;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
@@ -42,13 +42,13 @@ namespace Microsoft.CodeAnalysis.LambdaSimplifier
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var lambdaNode = root.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true);
-            var lambdaExpression = (ILambdaExpression)semanticModel.GetOperation(lambdaNode, cancellationToken);
+            var lambdaExpression = (IAnonymousFunctionOperation)semanticModel.GetOperation(lambdaNode, cancellationToken);
 
             var annotation = new SyntaxAnnotation();
             var invocationExpression = LambdaSimplifierDiagnosticAnalyzer.TryGetInvocationExpression(lambdaExpression);
 
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            var expression = syntaxFacts.GetInvocationExpressionExpression(invocationExpression.Syntax);
+            var expression = syntaxFacts.GetExpressionOfInvocationExpression(invocationExpression.Syntax);
             expression = syntaxFacts.Parenthesize(expression.WithAdditionalAnnotations(annotation));
 
             var newDocument = document.WithSyntaxRoot(
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.LambdaSimplifier
 
         private async Task<bool> SimplificationPreservesSemanticsAsync(
             Document newDocument,
-            IInvocationExpression invocationExpression,
+            IInvocationOperation invocationExpression,
             SyntaxNode oldExpressionNode,
             SyntaxAnnotation annotation,
             CancellationToken cancellationToken)

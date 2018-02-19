@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -10,12 +11,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod
 {
-    internal class AbstractExtractMethodCodeRefactoringProvider : CodeRefactoringProvider
+    [ExportCodeRefactoringProvider(LanguageNames.CSharp, LanguageNames.VisualBasic,
+        Name = PredefinedCodeRefactoringProviderNames.ExtractMethod), Shared]
+    internal class ExtractMethodCodeRefactoringProvider : CodeRefactoringProvider
     {
-        protected AbstractExtractMethodCodeRefactoringProvider()
-        {
-        }
-
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             // Don't bother if there isn't a selection
@@ -59,20 +58,19 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod
             TextSpan textSpan,
             CancellationToken cancellationToken)
         {
-            var options = document.Project.Solution.Workspace.Options;
             var result = await ExtractMethodService.ExtractMethodAsync(
                 document,
                 textSpan,
-                options,
-                cancellationToken).ConfigureAwait(false);
+                cancellationToken: cancellationToken).ConfigureAwait(false);
             Contract.ThrowIfNull(result);
 
             if (result.Succeeded || result.SucceededWithSuggestion)
             {
-                var description = options.GetOption(ExtractMethodOptions.AllowMovingDeclaration, document.Project.Language) ?
-                                      FeaturesResources.ExtractMethodLocal : FeaturesResources.ExtractMethod;
+                var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+                var description = documentOptions.GetOption(ExtractMethodOptions.AllowMovingDeclaration) ?
+                                      FeaturesResources.Extract_Method_plus_Local : FeaturesResources.Extract_Method;
 
-                var codeAction = new MyCodeAction(description, (c) => AddRenameAnnotationAsync(result.Document, result.InvocationNameToken, c));
+                var codeAction = new MyCodeAction(description, c => AddRenameAnnotationAsync(result.Document, result.InvocationNameToken, c));
                 var methodBlock = result.MethodDeclarationNode;
 
                 return Tuple.Create<CodeAction, string>(codeAction, methodBlock.ToString());

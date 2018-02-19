@@ -70,7 +70,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             containingNamespace As PENamespaceSymbol,
             typesByNS As IEnumerable(Of IGrouping(Of String, TypeDefinitionHandle))
         )
-            Debug.Assert(name IsNot Nothing AndAlso name.Length > 0)
+            Debug.Assert(name IsNot Nothing)
             Debug.Assert(containingNamespace IsNot Nothing)
             Debug.Assert(typesByNS IsNot Nothing)
 

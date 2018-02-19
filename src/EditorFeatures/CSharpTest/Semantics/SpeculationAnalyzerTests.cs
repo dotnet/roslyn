@@ -1,13 +1,9 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -316,6 +312,82 @@ public interface IRogueAction
 }           ", "Name", semanticChanges: false, isBrokenCode: true);
         }
 
+        [Fact, WorkItem(8111, "https://github.com/dotnet/roslyn/issues/8111")]
+        public void SpeculationAnalyzerAnonymousObjectMemberDeclaredWithNeededCast()
+        {
+            Test(@"
+class Program
+{
+    static void Main(string[] args)
+    {
+        object thing = new { shouldBeAnInt = [|(int)Directions.South|] };
+    }
+    public enum Directions { North, East, South, West }
+}           ", "Directions.South", semanticChanges: true);
+        }
+
+        [Fact, WorkItem(8111, "https://github.com/dotnet/roslyn/issues/8111")]
+        public void SpeculationAnalyzerAnonymousObjectMemberDeclaredWithUnneededCast()
+        {
+            Test(@"
+class Program
+{
+    static void Main(string[] args)
+    {
+        object thing = new { shouldBeAnInt = [|(Directions)Directions.South|] };
+    }
+    public enum Directions { North, East, South, West }
+}           ", "Directions.South", semanticChanges: false);
+        }
+
+        [Fact, WorkItem(19987, "https://github.com/dotnet/roslyn/issues/19987")]
+        public void SpeculationAnalyzerSwitchCaseWithRedundantCast()
+        {
+            Test(@"
+class Program
+{
+    static void Main(string[] arts)
+    {
+        var x = 1f;
+        switch (x)
+        {
+            case [|(float) 1|]:
+                System.Console.WriteLine(""one"");
+                break;
+
+            default:
+                System.Console.WriteLine(""not one"");
+                break;
+        }
+    }
+}
+            ", "1", semanticChanges: false);
+        }
+
+        [Fact, WorkItem(19987, "https://github.com/dotnet/roslyn/issues/19987")]
+        public void SpeculationAnalyzerSwitchCaseWithRequiredCast()
+        {
+            Test(@"
+class Program
+{
+    static void Main(string[] arts)
+    {
+        object x = 1f;
+        switch (x)
+        {
+            case [|(float) 1|]: // without the case, object x does not match int 1
+                System.Console.WriteLine(""one"");
+                break;
+
+            default:
+                System.Console.WriteLine(""not one"");
+                break;
+        }
+    }
+}
+            ", "1", semanticChanges: true);
+        }
+
         protected override SyntaxTree Parse(string text)
         {
             return SyntaxFactory.ParseSyntaxTree(text);
@@ -338,7 +410,7 @@ public interface IRogueAction
         protected override bool CompilationSucceeded(Compilation compilation, Stream temporaryStream)
         {
             var langCompilation = compilation;
-            Func<Diagnostic, bool> isProblem = d => d.Severity >= DiagnosticSeverity.Warning;
+            bool isProblem(Diagnostic d) => d.Severity >= DiagnosticSeverity.Warning;
             return !langCompilation.GetDiagnostics().Any(isProblem) &&
                 !langCompilation.Emit(temporaryStream).Diagnostics.Any(isProblem);
         }

@@ -7,8 +7,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
     Friend Class VisualBasicDeclarationComparer
         Implements IComparer(Of SyntaxNode)
 
-        Public Shared ReadOnly Instance As IComparer(Of SyntaxNode) = New VisualBasicDeclarationComparer()
-
         Private Shared ReadOnly s_kindPrecedenceMap As Dictionary(Of SyntaxKind, Integer) = New Dictionary(Of SyntaxKind, Integer)(SyntaxFacts.EqualityComparer) From
             {
                 {SyntaxKind.FieldDeclaration, 0},
@@ -61,7 +59,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 {SyntaxKind.CTypeKeyword, 24}
             }
 
-        Private Sub New()
+        Public Shared ReadOnly WithNamesInstance As New VisualBasicDeclarationComparer(includeName:=True)
+        Public Shared ReadOnly WithoutNamesInstance As New VisualBasicDeclarationComparer(includeName:=False)
+
+        Private ReadOnly _includeName As Boolean
+
+        Private Sub New(includeName As Boolean)
+            _includeName = includeName
         End Sub
 
         Public Function Compare(x As SyntaxNode, y As SyntaxNode) As Integer Implements IComparer(Of SyntaxNode).Compare
@@ -152,27 +156,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return node
         End Function
 
-        Private Shared Function Compare(x As DelegateStatementSyntax, y As DelegateStatementSyntax) As Integer
+        Private Function Compare(x As DelegateStatementSyntax, y As DelegateStatementSyntax) As Integer
             Dim result = 0
-            If EqualAccessibility(x, x.Modifiers, y, y.Modifiers, result) AndAlso
-               EqualIdentifierName(x.Identifier, y.Identifier, result) Then
+            If EqualAccessibility(x, x.Modifiers, y, y.Modifiers, result) Then
 
-                EqualTypeParameterCount(x.TypeParameterList, y.TypeParameterList, result)
+                If _includeName Then
+                    EqualIdentifierName(x.Identifier, y.Identifier, result)
+                End If
             End If
 
             Return result
         End Function
 
-        Private Shared Function Compare(x As FieldDeclarationSyntax, y As FieldDeclarationSyntax) As Integer
+        Private Function Compare(x As FieldDeclarationSyntax, y As FieldDeclarationSyntax) As Integer
             Dim result = 0
             If EqualConstness(x.Modifiers, y.Modifiers, result) AndAlso
                EqualSharedness(x.Modifiers, y.Modifiers, result) AndAlso
+               EqualReadOnlyNess(x.Modifiers, y.Modifiers, result) AndAlso
                EqualAccessibility(x, x.Modifiers, y, y.Modifiers, result) Then
 
-                EqualIdentifierName(
+                If _includeName Then
+                    EqualIdentifierName(
                     x.Declarators.FirstOrDefault().Names.FirstOrDefault().Identifier,
                     y.Declarators.FirstOrDefault().Names.FirstOrDefault().Identifier,
                     result)
+                End If
             End If
 
             Return result
@@ -189,36 +197,40 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return result
         End Function
 
-        Private Shared Function Compare(x As MethodStatementSyntax, y As MethodStatementSyntax) As Integer
+        Private Function Compare(x As MethodStatementSyntax, y As MethodStatementSyntax) As Integer
             Dim result = 0
             If EqualSharedness(x.Modifiers, y.Modifiers, result) AndAlso
-               EqualAccessibility(x, x.Modifiers, y, y.Modifiers, result) AndAlso
-               EqualIdentifierName(x.Identifier, y.Identifier, result) AndAlso
-               EqualTypeParameterCount(x.TypeParameterList, y.TypeParameterList, result) Then
+               EqualAccessibility(x, x.Modifiers, y, y.Modifiers, result) Then
 
-                EqualParameterLists(x.ParameterList, y.ParameterList, result)
+                If _includeName Then
+                    EqualIdentifierName(x.Identifier, y.Identifier, result)
+                End If
             End If
 
             Return result
         End Function
 
-        Private Shared Function Compare(x As EventStatementSyntax, y As EventStatementSyntax) As Integer
+        Private Function Compare(x As EventStatementSyntax, y As EventStatementSyntax) As Integer
             Dim result = 0
             If EqualSharedness(x.Modifiers, y.Modifiers, result) AndAlso
                EqualAccessibility(x, x.Modifiers, y, y.Modifiers, result) Then
 
-                EqualIdentifierName(x.Identifier, y.Identifier, result)
+                If _includeName Then
+                    EqualIdentifierName(x.Identifier, y.Identifier, result)
+                End If
             End If
 
             Return result
         End Function
 
-        Private Shared Function Compare(x As PropertyStatementSyntax, y As PropertyStatementSyntax) As Integer
+        Private Function Compare(x As PropertyStatementSyntax, y As PropertyStatementSyntax) As Integer
             Dim result = 0
             If EqualSharedness(x.Modifiers, y.Modifiers, result) AndAlso
                EqualAccessibility(x, x.Modifiers, y, y.Modifiers, result) Then
 
-                EqualIdentifierName(x.Identifier, y.Identifier, result)
+                If _includeName Then
+                    EqualIdentifierName(x.Identifier, y.Identifier, result)
+                End If
             End If
 
             Return result
@@ -233,22 +245,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return result
         End Function
 
-        Private Shared Function Compare(x As EnumStatementSyntax, y As EnumStatementSyntax) As Integer
+        Private Function Compare(x As EnumStatementSyntax, y As EnumStatementSyntax) As Integer
             Dim result = 0
             If EqualAccessibility(x, x.Modifiers, y, y.Modifiers, result) Then
-                EqualIdentifierName(x.Identifier, y.Identifier, result)
+                If _includeName Then
+                    EqualIdentifierName(x.Identifier, y.Identifier, result)
+                End If
             End If
 
             Return result
         End Function
 
-        Private Shared Function Compare(x As TypeStatementSyntax, y As TypeStatementSyntax) As Integer
+        Private Function Compare(x As TypeStatementSyntax, y As TypeStatementSyntax) As Integer
             Dim result = 0
             If EqualSharedness(x.Modifiers, y.Modifiers, result) AndAlso
-               EqualAccessibility(x, x.Modifiers, y, y.Modifiers, result) AndAlso
-               EqualIdentifierName(x.Identifier, y.Identifier, result) Then
+               EqualAccessibility(x, x.Modifiers, y, y.Modifiers, result) Then
 
-                EqualTypeParameterCount(x.TypeParameterList, y.TypeParameterList, result)
+                If _includeName Then
+                    EqualIdentifierName(x.Identifier, y.Identifier, result)
+                End If
             End If
 
             Return result
@@ -349,6 +364,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Private Shared Function EqualSharedness(x As SyntaxTokenList, y As SyntaxTokenList, ByRef comparisonResult As Integer) As Boolean
             Return BothHaveModifier(x, y, SyntaxKind.SharedKeyword, comparisonResult)
+        End Function
+
+        Private Shared Function EqualReadOnlyness(x As SyntaxTokenList, y As SyntaxTokenList, ByRef comparisonResult As Integer) As Boolean
+            Return BothHaveModifier(x, y, SyntaxKind.ReadOnlyKeyword, comparisonResult)
         End Function
 
         Private Shared Function EqualConstness(x As SyntaxTokenList, y As SyntaxTokenList, ByRef comparisonResult As Integer) As Boolean

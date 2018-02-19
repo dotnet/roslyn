@@ -38,8 +38,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (statement.Kind == BoundKind.ExpressionStatement)
             {
                 BoundExpression expression = ((BoundExpressionStatement)statement).Expression;
+                if (expression.Kind == BoundKind.Sequence && ((BoundSequence)expression).SideEffects.IsDefaultOrEmpty)
+                {
+                    // in case there is a pattern variable declared in a ctor-initializer, it gets wrapped in a bound sequence.
+                    expression = ((BoundSequence)expression).Value;
+                }
+
                 return expression.Kind == BoundKind.Call && ((BoundCall)expression).IsConstructorInitializer();
             }
+
             return false;
         }
 
@@ -51,6 +58,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return method.MethodKind == MethodKind.Constructor &&
                 receiverOpt != null &&
                 (receiverOpt.Kind == BoundKind.ThisReference || receiverOpt.Kind == BoundKind.BaseReference);
+        }
+
+        public static T MakeCompilerGenerated<T>(this T node) where T : BoundNode
+        {
+            node.WasCompilerGenerated = true;
+            return node;
         }
     }
 }

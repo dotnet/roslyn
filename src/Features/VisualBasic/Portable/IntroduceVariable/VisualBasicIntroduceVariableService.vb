@@ -1,9 +1,8 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.IntroduceVariable
-Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -114,9 +113,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
 
         Protected Overrides Function IsInAutoPropertyInitializer(expression As ExpressionSyntax) As Boolean
             Dim propertyStatement = expression.GetAncestorOrThis(Of PropertyStatementSyntax)()
+            Dim equalsValueStatement = expression.GetAncestorOrThis(Of EqualsValueSyntax)
+
             If propertyStatement IsNot Nothing Then
                 Return expression.GetAncestorsOrThis(Of AsClauseSyntax).Contains(propertyStatement.AsClause) OrElse
-                    expression.GetAncestorOrThis(Of EqualsValueSyntax).Contains(propertyStatement.Initializer)
+                    (equalsValueStatement IsNot Nothing AndAlso equalsValueStatement.Contains(propertyStatement.Initializer))
             End If
 
             Return False

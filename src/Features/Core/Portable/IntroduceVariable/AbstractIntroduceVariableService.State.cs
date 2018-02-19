@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
 using System.Threading;
@@ -7,7 +7,6 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.IntroduceVariable
 {
@@ -187,6 +186,11 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             private TExpressionSyntax GetExpressionUnderSpan(SyntaxTree tree, TextSpan textSpan, CancellationToken cancellationToken)
             {
                 var root = tree.GetRoot(cancellationToken);
+                if (textSpan.Length == 0)
+                {
+                    return root.FindToken(textSpan.Start).Parent as TExpressionSyntax;
+                }
+
                 var startToken = root.FindToken(textSpan.Start);
                 var stopToken = root.FindToken(textSpan.End);
 

@@ -411,7 +411,7 @@ Namespace N1
 
         Class C3(Of W)
             Public f2 As IEnumerable(Of U)
-            Public f3 As Foo(Of Bar)
+            Public f3 As Goo(Of Bar)
         End Class
     End Class
 
@@ -618,7 +618,7 @@ Class C1
         Dim loc3 = 5
         Const loc4 = 6
         Const loc5 As Integer = 7
-        Using loc6 As IDisposable = foo()
+        Using loc6 As IDisposable = goo()
         End Using
         For loc7 as Integer = 1 To 10
         Next
@@ -629,7 +629,7 @@ Class C1
         For Each loc10 in {5, 6, 6}
         Next
     End Sub
-    Function foo() As IDisposable
+    Function goo() As IDisposable
     End Function
 End Class
     </file>
@@ -680,7 +680,7 @@ End Class
         <file name="a.vb">
 Imports System
 Imports System.Collections.Generic
-Imports ConsoleAlias = System.Console, FooAlias = System
+Imports ConsoleAlias = System.Console, GooAlias = System
 Imports ListOfIntAlias = System.Collections.Generic.List(Of Integer)
 
 Namespace N1
@@ -691,7 +691,7 @@ End Namespace
 
             Dim tree = comp.SyntaxTrees(0)
             CheckDeclaringSyntax(Of SimpleImportsClauseSyntax)(comp, tree, "ConsoleAlias", SymbolKind.Alias)
-            CheckDeclaringSyntax(Of SimpleImportsClauseSyntax)(comp, tree, "FooAlias", SymbolKind.Alias)
+            CheckDeclaringSyntax(Of SimpleImportsClauseSyntax)(comp, tree, "GooAlias", SymbolKind.Alias)
             CheckDeclaringSyntax(Of SimpleImportsClauseSyntax)(comp, tree, "ListOfIntAlias", SymbolKind.Alias)
         End Sub
 

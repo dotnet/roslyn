@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         // used by DllImportAttribute
-        public void SetDllImport(int attributeIndex, string moduleName, string entryPointName, Cci.PInvokeAttributes flags, bool preserveSig)
+        public void SetDllImport(int attributeIndex, string moduleName, string entryPointName, MethodImportAttributes flags, bool preserveSig)
         {
             VerifySealed(expected: false);
             Debug.Assert(attributeIndex >= 0);
@@ -212,6 +212,26 @@ namespace Microsoft.CodeAnalysis
                 return _lazySecurityAttributeData;
             }
         }
+        #endregion
+
+        #region ExcludeFromCodeCoverageAttribute
+
+        private bool _hasExcludeFromCodeCoverageAttribute;
+        public bool HasExcludeFromCodeCoverageAttribute
+        {
+            get
+            {
+                VerifySealed(expected: true);
+                return _hasExcludeFromCodeCoverageAttribute;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                _hasExcludeFromCodeCoverageAttribute = value;
+                SetDataStored();
+            }
+        }
+
         #endregion
     }
 }

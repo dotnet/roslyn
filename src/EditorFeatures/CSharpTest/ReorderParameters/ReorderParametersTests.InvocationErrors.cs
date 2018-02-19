@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -14,12 +14,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ReorderParameters
 using System;
 class MyClass$$
 {
-    public void Foo(int x, string y)
+    public void Goo(int x, string y)
     {
     }
 }";
 
-            TestReorderParameters(LanguageNames.CSharp, markup, expectedSuccess: false, expectedErrorText: FeaturesResources.YouCanOnlyChangeTheSignatureOfAConstructorIndexerMethodOrDelegate);
+            TestReorderParameters(LanguageNames.CSharp, markup, expectedSuccess: false, expectedErrorText: FeaturesResources.You_can_only_change_the_signature_of_a_constructor_indexer_method_or_delegate);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ReorderParameters)]
@@ -31,12 +31,12 @@ class MyClass
 {
     int t$$ = 2;
 
-    public void Foo(int x, string y)
+    public void Goo(int x, string y)
     {
     }
 }";
 
-            TestReorderParameters(LanguageNames.CSharp, markup, expectedSuccess: false, expectedErrorText: FeaturesResources.YouCanOnlyChangeTheSignatureOfAConstructorIndexerMethodOrDelegate);
+            TestReorderParameters(LanguageNames.CSharp, markup, expectedSuccess: false, expectedErrorText: FeaturesResources.You_can_only_change_the_signature_of_a_constructor_indexer_method_or_delegate);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ReorderParameters)]

@@ -1,20 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CodeGen;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Emit;
-using Microsoft.CodeAnalysis.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 {
@@ -35,6 +30,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private readonly bool _emitPdbSequencePoints;
 
         private readonly HashSet<LocalSymbol> _stackLocals;
+
+        // There are scenarios where rvalues need to be passed to ref/in parameters
+        // in such cases the values must be spilled into temps and retained for the entirety of
+        // the most encompassing expression.       
+        private ArrayBuilder<LocalDefinition> _expressionTemps;
 
         // not 0 when in a protected region with a handler. 
         private int _tryNestingLevel;
@@ -129,12 +129,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 _boundBody = boundBody;
             }
 
-            _methodBodySyntaxOpt = (method as SourceMethodSymbol)?.BodySyntax;
+            _methodBodySyntaxOpt = (method as SourceMemberMethodSymbol)?.BodySyntax;
         }
 
         private bool IsDebugPlus()
         {
             return _module.Compilation.Options.DebugPlusMode;
+        }
+
+        private bool EnablePEVerifyCompat()
+        {
+            return _module.Compilation.LanguageVersion < LanguageVersion.CSharp7_2 || _module.Compilation.FeaturePEVerifyCompatEnabled;
         }
 
         private LocalDefinition LazyReturnTemp
@@ -145,6 +150,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 if (result == null)
                 {
                     Debug.Assert(!_method.ReturnsVoid, "returning something from void method?");
+                    var slotConstraints = _method.RefKind == RefKind.None
+                        ? LocalSlotConstraints.None
+                        : LocalSlotConstraints.ByRef;
+
 
                     var bodySyntax = _methodBodySyntaxOpt;
                     if (_ilEmitStyle == ILEmitStyle.Debug && bodySyntax != null)
@@ -159,14 +168,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                             kind: localSymbol.SynthesizedKind,
                             id: new LocalDebugId(syntaxOffset, ordinal: 0),
                             pdbAttributes: localSymbol.SynthesizedKind.PdbAttributes(),
-                            constraints: LocalSlotConstraints.None,
-                            isDynamic: false,
-                            dynamicTransformFlags: ImmutableArray<TypedConstant>.Empty,
+                            constraints: slotConstraints,
+                            dynamicTransformFlags: ImmutableArray<bool>.Empty,
+                            tupleElementNames: ImmutableArray<string>.Empty,
                             isSlotReusable: false);
                     }
                     else
                     {
-                        result = AllocateTemp(_method.ReturnType, _boundBody.Syntax);
+                        result = AllocateTemp(_method.ReturnType, _boundBody.Syntax, slotConstraints);
                     }
 
                     _returnTemp = result;
@@ -268,6 +277,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             _synthesizedLocalOrdinals.Free();
+
+            Debug.Assert(!(_expressionTemps?.Count > 0), "leaking expression temps?");
+            _expressionTemps?.Free();
         }
 
         private void HandleReturn()
@@ -302,24 +314,29 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             _indirectReturnState = IndirectReturnState.Emitted;
         }
 
-        private void EmitSymbolToken(TypeSymbol symbol, CSharpSyntaxNode syntaxNode)
+        private void EmitTypeReferenceToken(Cci.ITypeReference symbol, SyntaxNode syntaxNode)
         {
-            _builder.EmitToken(_module.Translate(symbol, syntaxNode, _diagnostics), syntaxNode, _diagnostics);
+            _builder.EmitToken(symbol, syntaxNode, _diagnostics);
         }
 
-        private void EmitSymbolToken(MethodSymbol method, CSharpSyntaxNode syntaxNode, BoundArgListOperator optArgList)
+        private void EmitSymbolToken(TypeSymbol symbol, SyntaxNode syntaxNode)
         {
-            _builder.EmitToken(_module.Translate(method, syntaxNode, _diagnostics, optArgList), syntaxNode, _diagnostics);
+            EmitTypeReferenceToken(_module.Translate(symbol, syntaxNode, _diagnostics), syntaxNode);
         }
 
-        private void EmitSymbolToken(FieldSymbol symbol, CSharpSyntaxNode syntaxNode)
+        private void EmitSymbolToken(MethodSymbol method, SyntaxNode syntaxNode, BoundArgListOperator optArgList, bool encodeAsRawDefinitionToken = false)
+        {
+            _builder.EmitToken(_module.Translate(method, syntaxNode, _diagnostics, optArgList, needDeclaration: encodeAsRawDefinitionToken), syntaxNode, _diagnostics, encodeAsRawDefinitionToken);
+        }
+
+        private void EmitSymbolToken(FieldSymbol symbol, SyntaxNode syntaxNode)
         {
             _builder.EmitToken(_module.Translate(symbol, syntaxNode, _diagnostics), syntaxNode, _diagnostics);
         }
 
         private void EmitSequencePointStatement(BoundSequencePoint node)
         {
-            CSharpSyntaxNode syntax = node.Syntax;
+            SyntaxNode syntax = node.Syntax;
             if (_emitPdbSequencePoints)
             {
                 if (syntax == null) //Null syntax indicates hidden sequence point (not equivalent to WasCompilerGenerated)
@@ -390,7 +407,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             _builder.DefineHiddenSequencePoint();
         }
 
-        private void EmitSequencePoint(CSharpSyntaxNode syntax)
+        private void EmitSequencePoint(SyntaxNode syntax)
         {
             EmitSequencePoint(syntax.SyntaxTree, syntax.Span);
         }
@@ -402,6 +419,40 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             _builder.DefineSequencePoint(syntaxTree, span);
             return span;
+        }
+
+        private void AddExpressionTemp(LocalDefinition temp)
+        {
+            // in some cases like stack locals, there is no slot allocated.
+            if (temp == null)
+            {
+                return;
+            }
+
+            ArrayBuilder<LocalDefinition> exprTemps = _expressionTemps;
+            if (exprTemps == null)
+            {
+                exprTemps = ArrayBuilder<LocalDefinition>.GetInstance();
+                _expressionTemps = exprTemps;
+            }
+
+            Debug.Assert(!exprTemps.Contains(temp));
+            exprTemps.Add(temp);
+        }
+
+        private void ReleaseExpressionTemps()
+        {
+            if (_expressionTemps?.Count > 0)
+            {
+                // release in reverse order to keep same temps on top of the temp stack if possible
+                for(int i = _expressionTemps.Count - 1; i >= 0; i--)
+                {
+                    var temp = _expressionTemps[i];
+                    FreeTemp(temp);
+                }
+
+                _expressionTemps.Clear();
+            }
         }
     }
 }

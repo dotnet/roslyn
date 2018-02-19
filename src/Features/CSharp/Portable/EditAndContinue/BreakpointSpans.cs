@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             var line = source.Lines.GetLineFromPosition(position);
             if (IsBlank(line))
             {
-                breakpointSpan = default(TextSpan);
+                breakpointSpan = default;
                 return false;
             }
 
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             // breakpoint there.
             if (tree.IsInInactiveRegion(position, cancellationToken))
             {
-                breakpointSpan = default(TextSpan);
+                breakpointSpan = default;
                 return true;
             }
 
@@ -66,25 +66,21 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 if (breakpointSpan.HasValue)
                 {
                     span = breakpointSpan.Value;
-                    return span != default(TextSpan);
+                    return span != default;
                 }
 
                 node = node.Parent;
             }
 
-            span = default(TextSpan);
+            span = default;
             return false;
         }
 
         private static TextSpan CreateSpan(SyntaxToken startToken, SyntaxToken endToken)
-        {
-            return TextSpan.FromBounds(startToken.SpanStart, endToken.Span.End);
-        }
+            => TextSpan.FromBounds(startToken.SpanStart, endToken.Span.End);
 
         private static TextSpan CreateSpan(SyntaxNode node)
-        {
-            return TextSpan.FromBounds(node.SpanStart, node.Span.End);
-        }
+            => CreateSpan(node.GetFirstToken(), node.GetLastToken());
 
         private static TextSpan CreateSpan(SyntaxNode node, SyntaxToken token)
         {
@@ -98,14 +94,14 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         private static TextSpan CreateSpan(SyntaxTokenList startOpt, SyntaxNodeOrToken startFallbackOpt, SyntaxNodeOrToken endOpt)
         {
-            Debug.Assert(startFallbackOpt != default(SyntaxNodeOrToken) || endOpt != default(SyntaxNodeOrToken));
+            Debug.Assert(startFallbackOpt != default || endOpt != default);
 
             int startPos;
             if (startOpt.Count > 0)
             {
                 startPos = startOpt.First().SpanStart;
             }
-            else if (startFallbackOpt != default(SyntaxNodeOrToken))
+            else if (startFallbackOpt != default)
             {
                 startPos = startFallbackOpt.SpanStart;
             }
@@ -115,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             }
 
             int endPos;
-            if (endOpt != default(SyntaxNodeOrToken))
+            if (endOpt != default)
             {
                 endPos = GetEndPosition(endOpt);
             }
@@ -149,19 +145,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             switch (node.Kind())
             {
                 case SyntaxKind.MethodDeclaration:
-                    var methodDeclaration = (MethodDeclarationSyntax)node;
-                    return (methodDeclaration.Body != null) ? CreateSpanForBlock(methodDeclaration.Body, position) : methodDeclaration.ExpressionBody?.Expression.Span;
-
                 case SyntaxKind.OperatorDeclaration:
-                    var operatorDeclaration = (OperatorDeclarationSyntax)node;
-                    return (operatorDeclaration.Body != null) ? CreateSpanForBlock(operatorDeclaration.Body, position) : operatorDeclaration.ExpressionBody?.Expression.Span;
-
                 case SyntaxKind.ConversionOperatorDeclaration:
-                    var conversionDeclaration = (ConversionOperatorDeclarationSyntax)node;
-                    return (conversionDeclaration.Body != null) ? CreateSpanForBlock(conversionDeclaration.Body, position) : conversionDeclaration.ExpressionBody?.Expression.Span;
-
                 case SyntaxKind.DestructorDeclaration:
-                    return TryCreateSpanForNode(((DestructorDeclarationSyntax)node).Body, position);
+                    var methodDeclaration = (BaseMethodDeclarationSyntax)node;
+                    return (methodDeclaration.Body != null) ? CreateSpanForBlock(methodDeclaration.Body, position) : methodDeclaration.ExpressionBody?.Expression.Span;
 
                 case SyntaxKind.ConstructorDeclaration:
                     return CreateSpanForConstructorDeclaration((ConstructorDeclarationSyntax)node);
@@ -193,20 +181,33 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.DefaultSwitchLabel:
                     return TryCreateSpanForSwitchLabel((SwitchLabelSyntax)node, position);
 
+                case SyntaxKind.CasePatternSwitchLabel:
+                    var caseClause = (CasePatternSwitchLabelSyntax)node;
+                    return caseClause.WhenClause == null
+                        ? TryCreateSpanForSwitchLabel((SwitchLabelSyntax)node, position)
+                        : CreateSpan(caseClause.WhenClause);
+
+                case SyntaxKind.WhenClause:
+                    return CreateSpan(node);
+
                 case SyntaxKind.GetAccessorDeclaration:
                 case SyntaxKind.SetAccessorDeclaration:
-                    var body = ((AccessorDeclarationSyntax)node).Body;
-                    if (body == null)
-                    {
-                        return CreateSpan(node);
-                    }
-
-                    return TryCreateSpanForNode(body, position);
-
                 case SyntaxKind.AddAccessorDeclaration:
                 case SyntaxKind.RemoveAccessorDeclaration:
                 case SyntaxKind.UnknownAccessorDeclaration:
-                    return TryCreateSpanForNode(((AccessorDeclarationSyntax)node).Body, position);
+                    var accessor = (AccessorDeclarationSyntax)node;
+                    if (accessor.ExpressionBody != null)
+                    {
+                        return CreateSpan(accessor.ExpressionBody.Expression);
+                    }
+                    else if (accessor.Body != null)
+                    {
+                        return TryCreateSpanForNode(accessor.Body, position);
+                    }
+                    else
+                    {
+                        return CreateSpan(node);
+                    }
 
                 case SyntaxKind.PropertyDeclaration:
                     var property = (PropertyDeclarationSyntax)node;
@@ -241,8 +242,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return CreateSpanForAccessors(indexer.AccessorList.Accessors, position);
 
                 case SyntaxKind.EventDeclaration:
-                    var evnt = (EventDeclarationSyntax)node;
-                    return evnt.AccessorList.Accessors.Select(a => TryCreateSpanForNode(a, position)).FirstOrDefault();
+                    // event Action P { add [|{|] ... } remove { ... } }
+                    // event Action P { [|add;|] [|remove;|] }
+                    var @event = (EventDeclarationSyntax)node;
+                    return CreateSpanForAccessors(@event.AccessorList.Accessors, position);
 
                 case SyntaxKind.BaseConstructorInitializer:
                 case SyntaxKind.ThisConstructorInitializer:
@@ -284,6 +287,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     var groupClause = (GroupClauseSyntax)node;
                     return TryCreateSpanForNode(groupClause.GroupExpression, position);
 
+                case SyntaxKind.LocalFunctionStatement:
+                    var localFunction = (LocalFunctionStatementSyntax)node;
+                    return (localFunction.Body != null) ?
+                        TryCreateSpanForNode(localFunction.Body, position) :
+                        TryCreateSpanForNode(localFunction.ExpressionBody.Expression, position);
+
                 default:
                     var expression = node as ExpressionSyntax;
                     if (expression != null)
@@ -308,12 +317,18 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 return CreateSpanForConstructorInitializer(constructorSyntax.Initializer);
             }
 
+            if (constructorSyntax.ExpressionBody != null)
+            {
+                return constructorSyntax.ExpressionBody.Expression.Span;
+            }
+
             // static ctor doesn't have a default initializer:
             if (constructorSyntax.Modifiers.Any(SyntaxKind.StaticKeyword))
             {
                 return CreateSpan(constructorSyntax.Body.OpenBraceToken);
             }
 
+            // the declaration is the span of the implicit initializer
             return CreateSpan(constructorSyntax.Modifiers, constructorSyntax.Identifier, constructorSyntax.ParameterList.CloseParenToken);
         }
 
@@ -411,7 +426,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     {
                         // for (int i = 0; ...
                         var firstVariable = forStatement.Declaration.Variables.FirstOrDefault();
-                        return CreateSpan(default(SyntaxTokenList), forStatement.Declaration.Type, firstVariable);
+                        return CreateSpan(default, forStatement.Declaration.Type, firstVariable);
                     }
                     else if (forStatement.Initializers.Count > 0)
                     {
@@ -437,18 +452,27 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     }
 
                 case SyntaxKind.ForEachStatement:
+                case SyntaxKind.ForEachVariableStatement:
                     // Note: if the user was in the body of the foreach, then we would have hit its
                     // nested statement on the way up.  If they were in the expression then we would
                     // have hit that on the way up as well. In "foreach(var f in expr)" we allow a
                     // bp on "foreach", "var f" and "in".
-                    var forEachStatement = (ForEachStatementSyntax)statement;
+                    var forEachStatement = (CommonForEachStatementSyntax)statement;
                     if (position < forEachStatement.OpenParenToken.Span.End || position > forEachStatement.CloseParenToken.SpanStart)
                     {
                         return CreateSpan(forEachStatement.ForEachKeyword);
                     }
                     else if (position < forEachStatement.InKeyword.FullSpan.Start)
                     {
-                        return CreateSpan(forEachStatement.Type, forEachStatement.Identifier);
+                        if (forEachStatement.Kind() == SyntaxKind.ForEachStatement)
+                        {
+                            var simpleForEachStatement = (ForEachStatementSyntax)statement;
+                            return CreateSpan(simpleForEachStatement.Type, simpleForEachStatement.Identifier);
+                        }
+                        else
+                        {
+                            return ((ForEachVariableStatementSyntax)statement).Variable.Span;
+                        }
                     }
                     else if (position < forEachStatement.Expression.FullSpan.Start)
                     {
@@ -551,7 +575,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return null;
             }
 
-            return TryCreateSpanForVariableDeclaration(declaration, default(SyntaxTokenList), default(SyntaxToken), position);
+            return TryCreateSpanForVariableDeclaration(declaration, default, default, position);
         }
 
         private static TextSpan? TryCreateSpanForVariableDeclaration(
@@ -581,7 +605,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 return CreateSpan(modifiersOpt, variableDeclaration, semicolonOpt);
             }
 
-            if (semicolonOpt != default(SyntaxToken) && position > semicolonOpt.SpanStart)
+            if (semicolonOpt != default && position > semicolonOpt.SpanStart)
             {
                 position = variableDeclaration.SpanStart;
             }
@@ -655,7 +679,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 return localDeclaration.Modifiers;
             }
 
-            return default(SyntaxTokenList);
+            return default;
         }
 
         private static TextSpan CreateSpanForCatchClause(CatchClauseSyntax catchClause, int position)
@@ -704,7 +728,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         forStatement.Incrementors.Contains(expression);
 
                 case SyntaxKind.ForEachStatement:
-                    var forEachStatement = (ForEachStatementSyntax)parent;
+                case SyntaxKind.ForEachVariableStatement:
+                    var forEachStatement = (CommonForEachStatementSyntax)parent;
                     return forEachStatement.Expression == expression;
 
                 default:

@@ -1,22 +1,22 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Diagnostics.EngineV2;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
-    internal class SolutionCrawlerLogger
+    internal static class SolutionCrawlerLogger
     {
         private const string Id = nameof(Id);
         private const string Kind = nameof(Kind);
         private const string Analyzer = nameof(Analyzer);
         private const string DocumentCount = nameof(DocumentCount);
+        private const string Languages = nameof(Languages);
         private const string HighPriority = nameof(HighPriority);
         private const string Enabled = nameof(Enabled);
         private const string AnalyzerCount = nameof(AnalyzerCount);
@@ -68,14 +68,20 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             }));
         }
 
-        public static void LogReanalyze(int correlationId, IIncrementalAnalyzer analyzer, IEnumerable<DocumentId> documentIds, bool highPriority)
+        public static void LogReanalyze(
+            int correlationId, 
+            IIncrementalAnalyzer analyzer, 
+            int documentCount,
+            string languages,
+            bool highPriority)
         {
             Logger.Log(FunctionId.WorkCoordinatorRegistrationService_Reanalyze, KeyValueLogMessage.Create(m =>
             {
                 m[Id] = correlationId;
                 m[Analyzer] = analyzer.ToString();
-                m[DocumentCount] = documentIds == null ? 0 : documentIds.Count();
+                m[DocumentCount] = documentCount;
                 m[HighPriority] = highPriority;
+                m[Languages] = languages;
             }));
         }
 
@@ -88,18 +94,20 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             }));
         }
 
-        public static void LogActiveFileAnalyzers(int correlationId, Workspace workspace, ImmutableArray<IIncrementalAnalyzer> reordered)
+        public static void LogAnalyzers(int correlationId, Workspace workspace, ImmutableArray<IIncrementalAnalyzer> reordered, bool onlyHighPriorityAnalyzer)
         {
-            LogAnalyzersWorker(
-                FunctionId.IncrementalAnalyzerProcessor_ActiveFileAnalyzers, FunctionId.IncrementalAnalyzerProcessor_ActiveFileAnalyzer,
-                correlationId, workspace, reordered);
-        }
-
-        public static void LogAnalyzers(int correlationId, Workspace workspace, ImmutableArray<IIncrementalAnalyzer> reordered)
-        {
-            LogAnalyzersWorker(
-                FunctionId.IncrementalAnalyzerProcessor_Analyzers, FunctionId.IncrementalAnalyzerProcessor_Analyzer,
-                correlationId, workspace, reordered);
+            if (onlyHighPriorityAnalyzer)
+            {
+                LogAnalyzersWorker(
+                    FunctionId.IncrementalAnalyzerProcessor_ActiveFileAnalyzers, FunctionId.IncrementalAnalyzerProcessor_ActiveFileAnalyzer,
+                    correlationId, workspace, reordered);
+            }
+            else
+            {
+                LogAnalyzersWorker(
+                    FunctionId.IncrementalAnalyzerProcessor_Analyzers, FunctionId.IncrementalAnalyzerProcessor_Analyzer,
+                    correlationId, workspace, reordered);
+            }
         }
 
         private static void LogAnalyzersWorker(
@@ -249,8 +257,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
             foreach (var analyzer in analyzers)
             {
-                var diagIncrementalAnalyzer = analyzer as BaseDiagnosticIncrementalAnalyzer;
-                if (diagIncrementalAnalyzer != null)
+                if (analyzer is DiagnosticIncrementalAnalyzer diagIncrementalAnalyzer)
                 {
                     diagIncrementalAnalyzer.LogAnalyzerCountSummary();
                     break;

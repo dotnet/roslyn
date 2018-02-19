@@ -22,6 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private _containingSymbol As MethodSymbol
         Private _withExpressionPlaceholderMap As Dictionary(Of BoundValuePlaceholderBase, BoundWithStatement)
         Private _expressionsBeingVisited As Stack(Of BoundExpression)
+        Private _insideNameof As Boolean = False
 
         Private _inExpressionLambda As Boolean
 
@@ -66,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' cannot access ByRef parameters in Lambdas
                 Dim parameterSymbolContainingSymbol As Symbol = parameterSymbol.ContainingSymbol
 
-                If _containingSymbol IsNot parameterSymbolContainingSymbol Then
+                If _containingSymbol IsNot parameterSymbolContainingSymbol AndAlso Not _insideNameof Then
                     ' Need to go up the chain of containers and see if the last lambda we see
                     ' is a QueryLambda, before we reach parameter's container. 
                     If Binder.IsTopMostEnclosingLambdaAQueryLambda(_containingSymbol, parameterSymbolContainingSymbol) Then
@@ -181,6 +182,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Return Nothing
+        End Function
+
+        Public Overrides Function VisitNameOfOperator(node As BoundNameOfOperator) As BoundNode
+            _insideNameof = True
+            Dim r = MyBase.VisitNameOfOperator(node)
+            _insideNameof = False
+            Return r
         End Function
 
         Public Overrides Function Visit(node As BoundNode) As BoundNode

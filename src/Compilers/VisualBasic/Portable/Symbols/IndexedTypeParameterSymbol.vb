@@ -6,6 +6,7 @@ Imports System.Collections.Immutable
 Imports System.Diagnostics
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Collections
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -23,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend NotInheritable Class IndexedTypeParameterSymbol
         Inherits TypeParameterSymbol
 
-        Private Shared s_parameterPool As TypeParameterSymbol() = SpecializedCollections.EmptyArray(Of TypeParameterSymbol)()
+        Private Shared s_parameterPool As TypeParameterSymbol() = Array.Empty(Of TypeParameterSymbol)()
 
         Private ReadOnly _index As Integer
 

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Roslyn.Utilities;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
+using Microsoft.CodeAnalysis.Emit;
 
 namespace Microsoft.Cci
 {
@@ -13,18 +14,15 @@ namespace Microsoft.Cci
         private readonly HashSet<IReference> _alreadySeen = new HashSet<IReference>();
         private readonly HashSet<IReference> _alreadyHasToken = new HashSet<IReference>();
         protected bool typeReferenceNeedsToken;
-        protected IModule module;
 
         internal ReferenceIndexerBase(EmitContext context)
             : base(context)
         {
         }
 
-        public override abstract void Visit(IAssembly assembly);
-
         public override void Visit(IAssemblyReference assemblyReference)
         {
-            if (assemblyReference != this.module.AsAssembly)
+            if (assemblyReference != Context.Module.GetContainingAssembly(Context))
             {
                 RecordAssemblyReference(assemblyReference);
             }
@@ -53,7 +51,7 @@ namespace Microsoft.Cci
             }
 
             IUnitReference definingUnit = MetadataWriter.GetDefiningUnitReference(fieldReference.GetContainingType(Context), Context);
-            if (definingUnit != null && ReferenceEquals(definingUnit, this.module))
+            if (definingUnit != null && ReferenceEquals(definingUnit, Context.Module))
             {
                 return;
             }
@@ -100,7 +98,7 @@ namespace Microsoft.Cci
                 }
             }
 
-            this.Visit(genericTypeInstanceReference.GenericType);
+            this.Visit(genericTypeInstanceReference.GetGenericType(Context));
             this.Visit(genericTypeInstanceReference.GetGenericArguments(Context));
         }
 
@@ -137,7 +135,7 @@ namespace Microsoft.Cci
             // an ordinary method def token. We consistently choose to emit a method ref regardless.)
 
             IUnitReference definingUnit = MetadataWriter.GetDefiningUnitReference(methodReference.GetContainingType(Context), Context);
-            if (definingUnit != null && ReferenceEquals(definingUnit, this.module) && !methodReference.AcceptsExtraArguments)
+            if (definingUnit != null && ReferenceEquals(definingUnit, Context.Module) && !methodReference.AcceptsExtraArguments)
             {
                 return;
             }
@@ -149,12 +147,14 @@ namespace Microsoft.Cci
                 IMethodReference unspecializedMethodReference = specializedMethodReference.UnspecializedVersion;
                 this.Visit(unspecializedMethodReference.GetType(Context));
                 this.Visit(unspecializedMethodReference.GetParameters(Context));
+                this.Visit(unspecializedMethodReference.RefCustomModifiers);
                 this.Visit(unspecializedMethodReference.ReturnValueCustomModifiers);
             }
             else
             {
                 this.Visit(methodReference.GetType(Context));
                 this.Visit(methodReference.GetParameters(Context));
+                this.Visit(methodReference.RefCustomModifiers);
                 this.Visit(methodReference.ReturnValueCustomModifiers);
             }
 
@@ -168,11 +168,11 @@ namespace Microsoft.Cci
 
         protected abstract void ReserveMethodToken(IMethodReference methodReference);
 
-        public override abstract void Visit(IModule module);
+        public override abstract void Visit(CommonPEModuleBuilder module);
 
         public override void Visit(IModuleReference moduleReference)
         {
-            if (moduleReference != this.module)
+            if (moduleReference != Context.Module)
             {
                 RecordModuleReference(moduleReference);
             }
@@ -184,7 +184,7 @@ namespace Microsoft.Cci
 
         public override void Visit(INamespaceTypeReference namespaceTypeReference)
         {
-            if (!this.typeReferenceNeedsToken && namespaceTypeReference.TypeCode(Context) != PrimitiveTypeCode.NotPrimitive)
+            if (!this.typeReferenceNeedsToken && namespaceTypeReference.TypeCode != PrimitiveTypeCode.NotPrimitive)
             {
                 return;
             }
@@ -206,7 +206,7 @@ namespace Microsoft.Cci
                     // If this is a module from a referenced multi-module assembly,
                     // the assembly should be used as the resolution scope. 
                     assemblyReference = moduleReference.GetContainingAssembly(Context);
-                    if (assemblyReference != null && assemblyReference != this.module.AsAssembly)
+                    if (assemblyReference != null && assemblyReference != Context.Module.GetContainingAssembly(Context))
                     {
                         this.Visit(assemblyReference);
                     }
@@ -270,6 +270,7 @@ namespace Microsoft.Cci
             }
 
             this.VisitTypeReferencesThatNeedTokens(typeDefinition.Interfaces(Context));
+
             if (typeDefinition.IsGeneric)
             {
                 this.Visit(typeDefinition.GenericParameters);
@@ -280,20 +281,22 @@ namespace Microsoft.Cci
         {
             VisitTypeDefinitionNoMembers(typeDefinition);
 
-            this.Visit(typeDefinition.Events);
+            this.Visit(typeDefinition.GetEvents(Context));
             this.Visit(typeDefinition.GetFields(Context));
             this.Visit(typeDefinition.GetMethods(Context));
             this.VisitNestedTypes(typeDefinition.GetNestedTypes(Context));
             this.Visit(typeDefinition.GetProperties(Context));
         }
 
-        public void VisitTypeReferencesThatNeedTokens(IEnumerable<ITypeReference> typeReferences)
+        public void VisitTypeReferencesThatNeedTokens(IEnumerable<TypeReferenceWithAttributes> refsWithAttributes)
         {
-            foreach (ITypeReference typeReference in typeReferences)
+            foreach (var refWithAttributes in refsWithAttributes)
             {
-                VisitTypeReferencesThatNeedTokens(typeReference);
+                this.Visit(refWithAttributes.Attributes);
+                VisitTypeReferencesThatNeedTokens(refWithAttributes.TypeRef);
             }
         }
+
 
         private void VisitTypeReferencesThatNeedTokens(ITypeReference typeReference)
         {
@@ -415,12 +418,12 @@ namespace Microsoft.Cci
 
             INestedTypeReference/*?*/ nestedTypeReference = typeReference.AsNestedTypeReference;
             if (this.typeReferenceNeedsToken || nestedTypeReference != null ||
-              (typeReference.TypeCode(Context) == PrimitiveTypeCode.NotPrimitive && typeReference.AsNamespaceTypeReference != null))
+              (typeReference.TypeCode == PrimitiveTypeCode.NotPrimitive && typeReference.AsNamespaceTypeReference != null))
             {
                 ISpecializedNestedTypeReference/*?*/ specializedNestedTypeReference = nestedTypeReference?.AsSpecializedNestedTypeReference;
                 if (specializedNestedTypeReference != null)
                 {
-                    INestedTypeReference unspecializedNestedTypeReference = specializedNestedTypeReference.UnspecializedVersion;
+                    INestedTypeReference unspecializedNestedTypeReference = specializedNestedTypeReference.GetUnspecializedVersion(Context);
                     if (_alreadyHasToken.Add(unspecializedNestedTypeReference))
                     {
                         RecordTypeReference(unspecializedNestedTypeReference);
@@ -450,11 +453,6 @@ namespace Microsoft.Cci
 
             this.typeReferenceNeedsToken = false;
             return true;
-        }
-
-        public override void Visit(IManagedPointerTypeReference managedPointerTypeReference)
-        {
-            Debug.Assert(false, "Unexpected ref type!");
         }
     }
 }

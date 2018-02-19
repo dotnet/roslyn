@@ -117,6 +117,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ImmutableArray<CustomModifier>.Empty; }
         }
 
+        public override ImmutableArray<CustomModifier> RefCustomModifiers
+        {
+            get { return ImmutableArray<CustomModifier>.Empty; }
+        }
+
         internal override bool IsExplicitInterfaceImplementation
         {
             get { return false; }
@@ -145,6 +150,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override ImmutableArray<TypeSymbol> TypeArguments
         {
             get { return ImmutableArray<TypeSymbol>.Empty; }
+        }
+
+        public override RefKind RefKind
+        {
+            get { return RefKind.None; }
         }
 
         public override TypeSymbol ReturnType

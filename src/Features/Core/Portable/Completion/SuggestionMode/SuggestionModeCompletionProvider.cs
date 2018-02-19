@@ -1,60 +1,27 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Completion.SuggestionMode
 {
-    internal abstract class SuggestionModeCompletionProvider : CompletionListProvider
+    internal abstract class SuggestionModeCompletionProvider : CommonCompletionProvider
     {
-        protected abstract Task<CompletionItem> GetBuilderAsync(Document document, int position, CompletionTriggerInfo triggerInfo, CancellationToken cancellationToken);
-        protected abstract TextSpan GetFilterSpan(SourceText text, int position);
+        protected abstract Task<CompletionItem> GetSuggestionModeItemAsync(Document document, int position, TextSpan span, CompletionTrigger triggerInfo, CancellationToken cancellationToken);
 
-        public override async Task ProduceCompletionListAsync(CompletionListContext context)
+        public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
-            var document = context.Document;
-            var position = context.Position;
-            var triggerInfo = context.TriggerInfo;
-            var options = context.Options;
-            var cancellationToken = context.CancellationToken;
-
-            CompletionItem builder;
-            if (options.GetOption(CompletionOptions.AlwaysShowBuilder))
-            {
-                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                builder = this.CreateEmptyBuilder(text, position);
-            }
-            else
-            {
-                builder = await this.GetBuilderAsync(document, position, triggerInfo, cancellationToken).ConfigureAwait(false);
-            }
-
-            if (builder != null)
-            {
-                context.RegisterBuilder(builder);
-            }
+            context.SuggestionModeItem = await this.GetSuggestionModeItemAsync(
+                context.Document, context.Position, context.CompletionListSpan, context.Trigger, context.CancellationToken).ConfigureAwait(false);
         }
 
-        protected CompletionItem CreateEmptyBuilder(SourceText text, int position)
+        protected CompletionItem CreateEmptySuggestionModeItem()
         {
-            return CreateBuilder(text, position, displayText: null, description: null);
+            return CreateSuggestionModeItem(displayText: null, description: null);
         }
 
-        protected CompletionItem CreateBuilder(SourceText text, int position, string displayText, string description)
-        {
-            return new CompletionItem(
-                completionProvider: this,
-                displayText: displayText ?? string.Empty,
-                filterSpan: GetFilterSpan(text, position),
-                description: description != null ? description.ToSymbolDisplayParts() : default(ImmutableArray<SymbolDisplayPart>),
-                isBuilder: true,
-                rules: SuggestionModeCompletionItemRules.Instance);
-        }
-
-        public override bool IsTriggerCharacter(SourceText text, int characterPosition, OptionSet options) => false;
+        internal override bool IsInsertionTrigger(SourceText text, int position, OptionSet options) => false;
     }
 }

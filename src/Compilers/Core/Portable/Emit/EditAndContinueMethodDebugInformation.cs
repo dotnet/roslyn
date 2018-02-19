@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Emit
 {
@@ -121,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Emit
             return mapBuilder.ToImmutableAndFree();
         }
 
-        internal void SerializeLocalSlots(Cci.BlobBuilder writer)
+        internal void SerializeLocalSlots(BlobBuilder writer)
         {
             int syntaxOffsetBaseline = -1;
             foreach (LocalSlotDebugInfo localSlot in this.LocalSlots)
@@ -135,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Emit
             if (syntaxOffsetBaseline != -1)
             {
                 writer.WriteByte(SyntaxOffsetBaseline);
-                writer.WriteCompressedInteger((uint)(-syntaxOffsetBaseline));
+                writer.WriteCompressedInteger(-syntaxOffsetBaseline);
             }
 
             foreach (LocalSlotDebugInfo localSlot in this.LocalSlots)
@@ -160,11 +161,11 @@ namespace Microsoft.CodeAnalysis.Emit
                 }
 
                 writer.WriteByte(b);
-                writer.WriteCompressedInteger((uint)(localSlot.Id.SyntaxOffset - syntaxOffsetBaseline));
+                writer.WriteCompressedInteger(localSlot.Id.SyntaxOffset - syntaxOffsetBaseline);
 
                 if (hasOrdinal)
                 {
-                    writer.WriteCompressedInteger((uint)localSlot.Id.Ordinal);
+                    writer.WriteCompressedInteger(localSlot.Id.Ordinal);
                 }
             }
         }
@@ -237,10 +238,10 @@ namespace Microsoft.CodeAnalysis.Emit
             lambdas = lambdasBuilder.ToImmutableAndFree();
         }
 
-        internal void SerializeLambdaMap(Cci.BlobBuilder writer)
+        internal void SerializeLambdaMap(BlobBuilder writer)
         {
             Debug.Assert(this.MethodOrdinal >= -1);
-            writer.WriteCompressedInteger((uint)(this.MethodOrdinal + 1));
+            writer.WriteCompressedInteger(this.MethodOrdinal + 1);
 
             int syntaxOffsetBaseline = -1;
             foreach (ClosureDebugInfo info in this.Closures)
@@ -259,12 +260,12 @@ namespace Microsoft.CodeAnalysis.Emit
                 }
             }
 
-            writer.WriteCompressedInteger((uint)(-syntaxOffsetBaseline));
-            writer.WriteCompressedInteger((uint)this.Closures.Length);
+            writer.WriteCompressedInteger(-syntaxOffsetBaseline);
+            writer.WriteCompressedInteger(this.Closures.Length);
 
             foreach (ClosureDebugInfo info in this.Closures)
             {
-                writer.WriteCompressedInteger((uint)(info.SyntaxOffset - syntaxOffsetBaseline));
+                writer.WriteCompressedInteger(info.SyntaxOffset - syntaxOffsetBaseline);
             }
 
             foreach (LambdaDebugInfo info in this.Lambdas)
@@ -272,8 +273,8 @@ namespace Microsoft.CodeAnalysis.Emit
                 Debug.Assert(info.ClosureOrdinal >= LambdaDebugInfo.MinClosureOrdinal);
                 Debug.Assert(info.LambdaId.Generation == 0);
 
-                writer.WriteCompressedInteger((uint)(info.SyntaxOffset - syntaxOffsetBaseline));
-                writer.WriteCompressedInteger((uint)(info.ClosureOrdinal - LambdaDebugInfo.MinClosureOrdinal));
+                writer.WriteCompressedInteger(info.SyntaxOffset - syntaxOffsetBaseline);
+                writer.WriteCompressedInteger(info.ClosureOrdinal - LambdaDebugInfo.MinClosureOrdinal);
             }
         }
 

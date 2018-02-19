@@ -8,7 +8,6 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Interop;
 using Roslyn.Utilities;
-using System.Threading;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -17,7 +16,7 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public class DesktopStrongNameProvider : StrongNameProvider
     {
-        private sealed class TempFileStream : Stream
+        internal sealed class TempFileStream : Stream
         {
             private readonly string _path;
             private readonly Stream _stream;
@@ -45,7 +44,7 @@ namespace Microsoft.CodeAnalysis
                 _stream.Dispose();
                 try
                 {
-                    PortableShim.File.Delete(_path);
+                    File.Delete(_path);
                 }
                 catch
                 {
@@ -104,79 +103,62 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        // This exception is only used to detect when the acquisition of IClrStrongName fails
+        // and the likely reason is that we're running on CoreCLR on a non-Windows platform.
+        // The place where the acquisition fails does not have access to localization,
+        // so we can't throw some generic exception with a localized message.
+        // So this is sort of a token for the eventual message to be generated.
+
+        // The path from where this is thrown to where it is caught is all internal,
+        // so there's no chance of an API consumer seeing it.
+        internal sealed class ClrStrongNameMissingException : Exception
+        {
+        }
+
         private readonly ImmutableArray<string> _keyFileSearchPaths;
+        private readonly string _tempPath;
+        internal StrongNameFileSystem FileSystem { get; }
 
         // for testing/mocking
         internal Func<IClrStrongName> TestStrongNameInterfaceFactory;
 
+        internal override SigningCapability Capability => SigningCapability.SignsStream;
+
+        public DesktopStrongNameProvider(ImmutableArray<string> keyFileSearchPaths) : this(keyFileSearchPaths, null, null)
+        {
+        }
+
         /// <summary>
         /// Creates an instance of <see cref="DesktopStrongNameProvider"/>.
         /// </summary>
-        /// <param name="keyFileSearchPaths">
-        /// An ordered set of fully qualified paths which are searched when locating a cryptographic key file.
-        /// </param>
-        public DesktopStrongNameProvider(ImmutableArray<string> keyFileSearchPaths = default(ImmutableArray<string>))
+        /// <param name="tempPath">Path to use for any temporary file generation.</param>
+        /// <param name="keyFileSearchPaths">An ordered set of fully qualified paths which are searched when locating a cryptographic key file.</param>
+        public DesktopStrongNameProvider(ImmutableArray<string> keyFileSearchPaths = default(ImmutableArray<string>), string tempPath = null): this(keyFileSearchPaths, tempPath, null)
+        {
+        }
+
+        internal DesktopStrongNameProvider(ImmutableArray<string> keyFileSearchPaths, string tempPath, StrongNameFileSystem strongNameFileSystem)
         {
             if (!keyFileSearchPaths.IsDefault && keyFileSearchPaths.Any(path => !PathUtilities.IsAbsolute(path)))
             {
                 throw new ArgumentException(CodeAnalysisResources.AbsolutePathExpected, nameof(keyFileSearchPaths));
             }
 
+            FileSystem = strongNameFileSystem ?? StrongNameFileSystem.Instance;
             _keyFileSearchPaths = keyFileSearchPaths.NullToEmpty();
+            _tempPath = tempPath;
         }
 
-        internal virtual bool FileExists(string fullPath)
-        {
-            Debug.Assert(fullPath == null || PathUtilities.IsAbsolute(fullPath));
-            return PortableShim.File.Exists(fullPath);
-        }
 
-        internal virtual byte[] ReadAllBytes(string fullPath)
-        {
-            Debug.Assert(PathUtilities.IsAbsolute(fullPath));
-            return PortableShim.File.ReadAllBytes(fullPath);
-        }
-
-        /// <summary>
-        /// Resolves assembly strong name key file path.
-        /// Internal for testing.
-        /// </summary>
-        /// <returns>Normalized key file path or null if not found.</returns>
-        internal string ResolveStrongNameKeyFile(string path)
-        {
-            // Dev11: key path is simply appended to the search paths, even if it starts with the current (parent) directory ("." or "..").
-            // This is different from PathUtilities.ResolveRelativePath.
-
-            if (PathUtilities.IsAbsolute(path))
-            {
-                if (FileExists(path))
-                {
-                    return FileUtilities.TryNormalizeAbsolutePath(path);
-                }
-
-                return path;
-            }
-
-            foreach (var searchPath in _keyFileSearchPaths)
-            {
-                string combinedPath = PathUtilities.CombineAbsoluteAndRelativePaths(searchPath, path);
-
-                Debug.Assert(combinedPath == null || PathUtilities.IsAbsolute(combinedPath));
-
-                if (FileExists(combinedPath))
-                {
-                    return FileUtilities.TryNormalizeAbsolutePath(combinedPath);
-                }
-            }
-
-            return null;
-        }
-
+        /// <exception cref="IOException"></exception>
         internal override Stream CreateInputStream()
         {
-            var path = PortableShim.Path.GetTempFileName();
-            Func<string, Stream> streamConstructor = lPath => new TempFileStream(lPath, PortableShim.FileStream.Create(lPath, PortableShim.FileMode.Create, PortableShim.FileAccess.ReadWrite, PortableShim.FileShare.ReadWrite));
-            return FileUtilities.CreateFileStreamChecked(streamConstructor, path);
+            Func<string, Stream> streamConstructor = lPath => new TempFileStream(lPath,
+                new FileStream(lPath, FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite));
+
+            var tempPath = _tempPath ?? Path.GetTempPath();
+            var tempName = Path.Combine(tempPath, Guid.NewGuid().ToString("N"));
+            return FileUtilities.CreateFileStreamChecked(streamConstructor, tempName);
         }
 
         internal override StrongNameKeys CreateKeys(string keyFilePath, string keyContainerName, CommonMessageProvider messageProvider)
@@ -187,22 +169,7 @@ namespace Microsoft.CodeAnalysis
 
             if (!string.IsNullOrEmpty(keyFilePath))
             {
-                try
-                {
-                    string resolvedKeyFile = ResolveStrongNameKeyFile(keyFilePath);
-                    if (resolvedKeyFile == null)
-                    {
-                        throw new FileNotFoundException(CodeAnalysisResources.FileNotFound, keyFilePath);
-                    }
-
-                    Debug.Assert(PathUtilities.IsAbsolute(resolvedKeyFile));
-                    var fileContent = ImmutableArray.Create(ReadAllBytes(resolvedKeyFile));
-                    return StrongNameKeys.CreateHelper(fileContent, keyFilePath);
-                }
-                catch (IOException ex)
-                {
-                    return new StrongNameKeys(StrongNameKeys.GetKeyFileError(messageProvider, keyFilePath, ex.Message));
-                }
+                return CommonCreateKeys(FileSystem, keyFilePath, _keyFileSearchPaths, messageProvider);
             }
             else if (!string.IsNullOrEmpty(keyContainerName))
             {
@@ -211,20 +178,30 @@ namespace Microsoft.CodeAnalysis
                     ReadKeysFromContainer(keyContainerName, out publicKey);
                     container = keyContainerName;
                 }
-                catch (IOException ex)
+                catch (ClrStrongNameMissingException)
+                {
+                    return new StrongNameKeys(StrongNameKeys.GetContainerError(messageProvider, keyContainerName,
+                        new CodeAnalysisResourcesLocalizableErrorArgument(nameof(CodeAnalysisResources.AssemblySigningNotSupported))));
+                }
+                catch (Exception ex)
                 {
                     return new StrongNameKeys(StrongNameKeys.GetContainerError(messageProvider, keyContainerName, ex.Message));
                 }
             }
 
-            return new StrongNameKeys(keyPair, publicKey, container, keyFilePath);
+            return new StrongNameKeys(keyPair, publicKey, null, container, keyFilePath);
         }
 
-        private void ReadKeysFromContainer(string keyContainer, out ImmutableArray<byte> publicKey)
+        internal virtual void ReadKeysFromContainer(string keyContainer, out ImmutableArray<byte> publicKey)
         {
             try
             {
                 publicKey = GetPublicKey(keyContainer);
+            }
+            catch (ClrStrongNameMissingException)
+            {
+                // pipe it through so it's catchable directly by type
+                throw;
             }
             catch (Exception ex)
             {
@@ -233,7 +210,8 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <exception cref="IOException"></exception>
-        internal override void SignAssembly(StrongNameKeys keys, Stream inputStream, Stream outputStream)
+        /// <exception cref="ClrStrongNameMissingException"></exception>
+        internal override void SignStream(StrongNameKeys keys, Stream inputStream, Stream outputStream)
         {
             Debug.Assert(inputStream is TempFileStream);
 
@@ -250,7 +228,7 @@ namespace Microsoft.CodeAnalysis
                 Sign(assemblyFilePath, keys.KeyPair);
             }
 
-            using (var fileToSign = PortableShim.FileStream.Create(assemblyFilePath, PortableShim.FileMode.Open))
+            using (var fileToSign = new FileStream(assemblyFilePath, FileMode.Open))
             {
                 fileToSign.CopyTo(outputStream);
             }
@@ -259,13 +237,36 @@ namespace Microsoft.CodeAnalysis
         // EDMAURER in the event that the key is supplied as a file,
         // this type could get an instance member that caches the file
         // contents to avoid reading the file twice - once to get the
-        // public key to establish the assembly name and another to do 
+        // public key to establish the assembly name and another to do
         // the actual signing
 
         // internal for testing
         internal IClrStrongName GetStrongNameInterface()
         {
-            return TestStrongNameInterfaceFactory?.Invoke() ?? ClrStrongName.GetInstance();
+            var factoryCreated = TestStrongNameInterfaceFactory?.Invoke();
+
+            if (factoryCreated != null)
+            {
+                return factoryCreated;
+            }
+
+            try
+            {
+                return ClrStrongName.GetInstance();
+            }
+            catch (MarshalDirectiveException) when (PathUtilities.IsUnixLikePlatform)
+            {
+                // CoreCLR, when not on Windows, doesn't support IClrStrongName (or COM in general).
+                // This is really hard to detect/predict without false positives/negatives.
+                // It turns out that CoreCLR throws a MarshalDirectiveException when attempting
+                // to get the interface (Message "Cannot marshal 'return value': Unknown error."),
+                // so just catch that and state that it's not supported.
+
+                // We're deep in a try block that reports the exception's Message as part of a diagnostic.
+                // This exception will skip through the IOException wrapping by `Sign` (in this class),
+                // then caught by Compilation.SerializeToPeStream or DesktopStringNameProvider.CreateKeys
+                throw new ClrStrongNameMissingException();
+            }
         }
 
         internal ImmutableArray<byte> GetPublicKey(string keyContainer)
@@ -294,6 +295,11 @@ namespace Microsoft.CodeAnalysis
                 int unused;
                 strongName.StrongNameSignatureGeneration(filePath, keyName, IntPtr.Zero, 0, null, out unused);
             }
+            catch (ClrStrongNameMissingException)
+            {
+                // pipe it through so it's catchable directly by type
+                throw;
+            }
             catch (Exception ex)
             {
                 throw new IOException(ex.Message, ex);
@@ -313,27 +319,39 @@ namespace Microsoft.CodeAnalysis
                     strongName.StrongNameSignatureGeneration(filePath, null, (IntPtr)pinned, keyPair.Length, null, out unused);
                 }
             }
+            catch (ClrStrongNameMissingException)
+            {
+                // pipe it through so it's catchable directly by type
+                throw;
+            }
             catch (Exception ex)
             {
                 throw new IOException(ex.Message, ex);
             }
         }
 
+        public override int GetHashCode()
+        {
+            return Hash.CombineValues(_keyFileSearchPaths, StringComparer.Ordinal);
+        }
+
         public override bool Equals(object obj)
         {
-            // Explicitly check that we're not comparing against a derived type
-            if (obj == null || GetType() != obj.GetType())
+            if (obj is null || GetType() != obj.GetType())
             {
                 return false;
             }
 
             var other = (DesktopStrongNameProvider)obj;
-            return _keyFileSearchPaths.SequenceEqual(other._keyFileSearchPaths, StringComparer.Ordinal);
-        }
-
-        public override int GetHashCode()
-        {
-            return Hash.CombineValues(_keyFileSearchPaths, StringComparer.Ordinal);
+            if (FileSystem != other.FileSystem)
+            {
+                return false;
+            }
+            if (!_keyFileSearchPaths.SequenceEqual(other._keyFileSearchPaths, StringComparer.Ordinal))
+            {
+                return false;
+            }
+            return string.Equals(_tempPath, other._tempPath, StringComparison.Ordinal);
         }
     }
 }

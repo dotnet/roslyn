@@ -15,7 +15,7 @@ Scenarios
 
 ## Design
 
-Compilers may assume that there is exactly one assembly representing the "core assembly". This core assembly is either referenced or is currently being compiled.
+Compilers may assume that there is exactly one assembly representing the "core assembly". This core assembly is either referenced or is currently being compiled. The core assembly must not reference any other assemblies.
 
 The core assembly contains the type definitions for the subset of built-in and special types supported on a platform.
 

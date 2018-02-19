@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Text;
@@ -25,11 +25,11 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                 workspace.DocumentActiveContextChanged -= OnDocumentActiveContextChanged;
             }
 
-            private void OnDocumentActiveContextChanged(object sender, DocumentEventArgs e)
+            private void OnDocumentActiveContextChanged(object sender, DocumentActiveContextChangedEventArgs e)
             {
                 var document = SubjectBuffer.AsTextContainer().GetOpenDocumentInCurrentContext();
 
-                if (document != null && document.Id == e.Document.Id)
+                if (document != null && document.Id == e.NewActiveContextDocumentId)
                 {
                     this.RaiseChanged();
                 }

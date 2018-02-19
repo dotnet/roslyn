@@ -2,7 +2,7 @@
 
 using System;
 using System.Threading;
-using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeActions
 {
@@ -24,26 +24,25 @@ namespace Microsoft.CodeAnalysis.CodeActions
     /// </summary>
     public sealed class ApplyChangesOperation : CodeActionOperation
     {
-        private readonly Solution _changedSolution;
+        public Solution ChangedSolution { get; }
 
         public ApplyChangesOperation(Solution changedSolution)
         {
-            if (changedSolution == null)
-            {
-                throw new ArgumentNullException(nameof(changedSolution));
-            }
-
-            _changedSolution = changedSolution;
+            ChangedSolution = changedSolution ?? throw new ArgumentNullException(nameof(changedSolution));
         }
 
-        public Solution ChangedSolution
-        {
-            get { return _changedSolution; }
-        }
+        internal override bool ApplyDuringTests => true;
 
         public override void Apply(Workspace workspace, CancellationToken cancellationToken)
         {
-            workspace.TryApplyChanges(_changedSolution);
+            this.TryApply(workspace, new ProgressTracker(), cancellationToken);
+        }
+
+        internal override bool TryApply(
+            Workspace workspace, IProgressTracker progressTracker, CancellationToken cancellationToken)
+        {
+            workspace.TryApplyChanges(ChangedSolution, progressTracker);
+            return true;
         }
     }
 }

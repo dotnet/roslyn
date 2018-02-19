@@ -1,12 +1,15 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
+Imports Microsoft.CodeAnalysis.Utilities
+Imports System.Collections.Immutable
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateMethod
     Partial Friend MustInherit Class VisualBasicGenerateParameterizedMemberService(Of TService As AbstractGenerateParameterizedMemberService(Of TService, SimpleNameSyntax, ExpressionSyntax, InvocationExpressionSyntax))
@@ -23,14 +26,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateMethod
                 Me.InvocationExpression = state.InvocationExpressionOpt
             End Sub
 
-            Protected Overrides Function DetermineParameterNames(cancellationToken As CancellationToken) As IList(Of String)
-                Dim typeParametersNames = Me.DetermineTypeParameters(cancellationToken).Select(Function(t) t.Name).ToList()
+            Protected Overrides Function DetermineParameterNames(cancellationToken As CancellationToken) As ImmutableArray(Of ParameterName)
+                Dim typeParametersNames = Me.DetermineTypeParameters(cancellationToken).SelectAsArray(Function(t) t.Name)
                 Return Me.Document.SemanticModel.GenerateParameterNames(
-                    Me.InvocationExpression.ArgumentList, reservedNames:=typeParametersNames)
+                    Me.InvocationExpression.ArgumentList, reservedNames:=typeParametersNames, cancellationToken:=cancellationToken)
+            End Function
+
+            Protected Overrides Function DetermineRefKind(cancellationToken As CancellationToken) As RefKind
+                Return RefKind.None
             End Function
 
             Protected Overrides Function DetermineReturnTypeWorker(cancellationToken As CancellationToken) As ITypeSymbol
-                Select Case CType(Me.State.IdentifierToken, SyntaxToken).GetTypeCharacter()
+                Select Case Me.State.IdentifierToken.GetTypeCharacter()
                     Case TypeCharacter.Integer
                         Return Me.Document.SemanticModel.Compilation.GetSpecialType(SpecialType.System_Int32)
                     Case TypeCharacter.Long
@@ -46,15 +53,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateMethod
                 End Select
 
                 Dim typeInference = Document.Project.LanguageServices.GetService(Of ITypeInferenceService)()
-                Dim inferredType = typeInference.InferType(Document.SemanticModel, Me.InvocationExpression,
-                                               objectAsDefault:=True, cancellationToken:=cancellationToken)
-                If State.IsInConditionalAccessExpression Then
-                    Return inferredType.RemoveNullableIfPresent
-                End If
+                Dim inferredType = typeInference.InferType(
+                    Document.SemanticModel, Me.InvocationExpression, objectAsDefault:=True,
+                    nameOpt:=Me.State.IdentifierToken.ValueText, cancellationToken:=cancellationToken)
                 Return inferredType
             End Function
 
-            Protected Overrides Function GetCapturedTypeParameters(cancellationToken As CancellationToken) As IList(Of ITypeParameterSymbol)
+            Protected Overrides Function GetCapturedTypeParameters(cancellationToken As CancellationToken) As ImmutableArray(Of ITypeParameterSymbol)
                 Dim result = New List(Of ITypeParameterSymbol)()
                 If Not Me.InvocationExpression.ArgumentList Is Nothing Then
                     For Each argument In Me.InvocationExpression.ArgumentList.Arguments
@@ -63,10 +68,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateMethod
                     Next
                 End If
 
-                Return result
+                Return result.ToImmutableArray()
             End Function
 
-            Protected Overrides Function GenerateTypeParameters(cancellationToken As CancellationToken) As IList(Of ITypeParameterSymbol)
+            Protected Overrides Function GenerateTypeParameters(cancellationToken As CancellationToken) As ImmutableArray(Of ITypeParameterSymbol)
                 ' Generate dummy type parameter names for a generic method.  If the user is inside a
                 ' generic method, and calls a generic method with type arguments from the outer
                 ' method, then use those same names for the generated type parameters.
@@ -80,12 +85,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateMethod
                         Function(s) Not State.TypeToGenerateIn.GetAllTypeParameters().Any(Function(t) t.Name = s),
                         cancellationToken)
 
-                    Return New List(Of ITypeParameterSymbol) From {typeParameter}
+                    Return ImmutableArray.Create(typeParameter)
                 End If
 
                 Dim usedIdentifiers = New HashSet(Of String) From {"T"}
 
-                Dim list = New List(Of ITypeParameterSymbol)()
+                Dim list = ArrayBuilder(Of ITypeParameterSymbol).GetInstance()
                 For Each typeArgument In genericName.TypeArgumentList.Arguments
                     Dim typeParameter = GetUniqueTypeParameter(typeArgument,
                         Function(s) Not usedIdentifiers.Contains(s) AndAlso Not State.TypeToGenerateIn.GetAllTypeParameters().Any(Function(t) t.Name = s),
@@ -96,7 +101,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateMethod
                     list.Add(typeParameter)
                 Next
 
-                Return list
+                Return list.ToImmutableAndFree()
             End Function
 
             Private Function GetUniqueTypeParameter(type As TypeSyntax,
@@ -121,22 +126,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateMethod
                 Return Nothing
             End Function
 
-            Protected Overrides Function DetermineParameterModifiers(cancellationToken As CancellationToken) As IList(Of RefKind)
+            Protected Overrides Function DetermineParameterModifiers(cancellationToken As CancellationToken) As ImmutableArray(Of RefKind)
                 Return If(Me.InvocationExpression.ArgumentList IsNot Nothing AndAlso Me.InvocationExpression.ArgumentList.GetArgumentCount() > 0,
-                          Me.InvocationExpression.ArgumentList.Arguments.Select(Function(a) RefKind.None).ToList(),
-                          SpecializedCollections.EmptyList(Of RefKind))
+                          Me.InvocationExpression.ArgumentList.Arguments.Select(Function(a) RefKind.None).ToImmutableArray(),
+                          ImmutableArray(Of RefKind).Empty)
             End Function
 
-            Protected Overrides Function DetermineParameterTypes(cancellationToken As CancellationToken) As IList(Of ITypeSymbol)
+            Protected Overrides Function DetermineParameterTypes(cancellationToken As CancellationToken) As ImmutableArray(Of ITypeSymbol)
                 Return If(Me.InvocationExpression.ArgumentList IsNot Nothing AndAlso Me.InvocationExpression.ArgumentList.GetArgumentCount() > 0,
-                          Me.InvocationExpression.ArgumentList.Arguments.Select(Function(a) DetermineParameterType(a, cancellationToken)).ToList(),
-                          SpecializedCollections.EmptyList(Of ITypeSymbol))
+                          Me.InvocationExpression.ArgumentList.Arguments.Select(Function(a) DetermineParameterType(a, cancellationToken)).ToImmutableArray(),
+                          ImmutableArray(Of ITypeSymbol).Empty)
             End Function
 
-            Protected Overrides Function DetermineParameterOptionality(cancellationToken As CancellationToken) As IList(Of Boolean)
+            Protected Overrides Function DetermineParameterOptionality(cancellationToken As CancellationToken) As ImmutableArray(Of Boolean)
                 Return If(Me.InvocationExpression.ArgumentList IsNot Nothing AndAlso Me.InvocationExpression.ArgumentList.GetArgumentCount() > 0,
-                          Me.InvocationExpression.ArgumentList.Arguments.Select(Function(a) DetermineParameterOptionality(a, cancellationToken)).ToList(),
-                          SpecializedCollections.EmptyList(Of Boolean))
+                          Me.InvocationExpression.ArgumentList.Arguments.Select(Function(a) DetermineParameterOptionality(a, cancellationToken)).ToImmutableArray(),
+                          ImmutableArray(Of Boolean).Empty)
             End Function
 
             Private Overloads Function DetermineParameterOptionality(argument As ArgumentSyntax,
@@ -156,6 +161,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateMethod
             Protected Overrides Function IsImplicitReferenceConversion(compilation As Compilation, sourceType As ITypeSymbol, targetType As ITypeSymbol) As Boolean
                 Dim conversion = compilation.ClassifyConversion(sourceType, targetType)
                 Return conversion.IsWidening AndAlso conversion.IsReference
+            End Function
+
+            Protected Overrides Function DetermineTypeArguments(cancellationToken As CancellationToken) As ImmutableArray(Of ITypeSymbol)
+                Dim Result = ArrayBuilder(Of ITypeSymbol).GetInstance()
+
+                If TypeOf State.SimpleNameOpt Is GenericNameSyntax Then
+                    For Each typeArgument In DirectCast(State.SimpleNameOpt, GenericNameSyntax).TypeArgumentList.Arguments
+                        Dim Type = Me.Document.SemanticModel.GetTypeInfo(typeArgument, cancellationToken).Type
+                        Result.Add(Type)
+                    Next
+                End If
+
+                Return Result.ToImmutableAndFree()
             End Function
         End Class
     End Class

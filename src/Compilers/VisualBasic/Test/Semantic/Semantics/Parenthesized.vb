@@ -111,7 +111,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef})
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -136,21 +136,15 @@ BC30203: Identifier expected.
 BC30451: 'C2' is not declared. It may be inaccessible due to its protection level.
     System.Console.WriteLine(C1.(C2).Equals("", ""))
                                  ~~
-BC30182: Type expected.
+BC37259: Tuple must contain at least two elements.
     System.Console.WriteLine(GetType((System.String)))
-                                     ~
-BC30638: Array bounds cannot appear in type specifiers.
-    System.Console.WriteLine(GetType((System.String)))
-                                      ~~~~~~~~~~~~~
+                                                   ~
 BC30456: 'C2' is not a member of 'Type'.
     System.Console.WriteLine(GetType((C1).C2)))
                              ~~~~~~~~~~~~~~~
-BC30182: Type expected.
+BC37259: Tuple must contain at least two elements.
     System.Console.WriteLine(GetType((C1).C2)))
-                                     ~
-BC30638: Array bounds cannot appear in type specifiers.
-    System.Console.WriteLine(GetType((C1).C2)))
-                                      ~~
+                                        ~
 BC30198: ')' expected.
     System.Console.WriteLine(GetType((C1).C2)))
                                          ~

@@ -1,12 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Diagnostics;
 using System.Reflection.Metadata;
-using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGen
@@ -18,13 +14,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             switch (conversion.ConversionKind)
             {
                 case ConversionKind.MethodGroup:
-                    EmitMethodGroupConversion(conversion, used);
-                    return;
+                    throw ExceptionUtilities.UnexpectedValue(conversion.ConversionKind);
                 case ConversionKind.NullToPointer:
                     // The null pointer is represented as 0u.
                     _builder.EmitIntConstant(0);
                     _builder.EmitOpCode(ILOpCode.Conv_u);
                     EmitPopIfUnused(used);
+                    return;
+                case ConversionKind.IdentityValue:
+                    EmitExpressionCore(conversion.Operand, used);
                     return;
             }
 
@@ -53,14 +51,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     break;
                 case ConversionKind.ImplicitReference:
                 case ConversionKind.Boxing:
-                    // from IL prospective ImplicitReference and Boxing conversions are the same thing.
+                    // from IL perspective ImplicitReference and Boxing conversions are the same thing.
                     // both force operand to be an object (O) - which may involve boxing 
                     // and then assume that result has the target type - which may involve unboxing.
                     EmitImplicitReferenceConversion(conversion);
                     break;
                 case ConversionKind.ExplicitReference:
                 case ConversionKind.Unboxing:
-                    // from IL prospective ExplicitReference and UnBoxing conversions are the same thing.
+                    // from IL perspective ExplicitReference and UnBoxing conversions are the same thing.
                     // both force operand to be an object (O) - which may involve boxing 
                     // and then reinterpret result as the target type - which may involve unboxing.
                     EmitExplicitReferenceConversion(conversion);
@@ -73,8 +71,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 case ConversionKind.ExplicitUserDefined:
                 case ConversionKind.AnonymousFunction:
                 case ConversionKind.MethodGroup:
+                case ConversionKind.ImplicitTupleLiteral:
+                case ConversionKind.ImplicitTuple:
+                case ConversionKind.ExplicitTupleLiteral:
+                case ConversionKind.ExplicitTuple:
                 case ConversionKind.ImplicitDynamic:
                 case ConversionKind.ExplicitDynamic:
+                case ConversionKind.ImplicitThrow:
                     // None of these things should reach codegen (yet? maybe?)
                     throw ExceptionUtilities.UnexpectedValue(conversion.ConversionKind);
                 case ConversionKind.PointerToVoid:
@@ -107,6 +110,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 #endif
 
                     _builder.EmitNumericConversion(fromPredefTypeKind, toPredefTypeKind, conversion.Checked);
+                    break;
+                case ConversionKind.PinnedObjectToPointer:
+                    // CLR allows unsafe conversion from(O) to native int/uint.
+                    // The conversion does not change the representation of the value, 
+                    // but the value will not be reported to subsequent GC operations (and therefore will not be updated by such operations)
+                    _builder.EmitOpCode(ILOpCode.Conv_u);
                     break;
                 case ConversionKind.NullToPointer:
                     throw ExceptionUtilities.UnexpectedValue(conversion.ConversionKind); // Should be handled by caller.
@@ -174,10 +183,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             //
             // if target type is verifiably a reference type, we can leave the value as-is otherwise
             // we need to unbox to targetType to keep verifier happy.
-            if (!conversion.Type.IsVerifierReference())
+            var resultType = conversion.Type;
+            if (!resultType.IsVerifierReference())
             {
                 _builder.EmitOpCode(ILOpCode.Unbox_any);
                 EmitSymbolToken(conversion.Type, conversion.Syntax);
+            }
+            else if (resultType.IsArray())
+            {
+                // need a static cast here to satisfy verifier
+                // Example: Derived[] can be used in place of Base[] for all purposes except for LDELEMA <Base> 
+                //          Even though it would be safe due to run time check, verifier requires that the static type of the array is Base[]
+                //          We do not know why we are casting, so to be safe, lets make the cast explicit. JIT elides such casts.
+                EmitStaticCast(conversion.Type, conversion.Syntax);
             }
 
             return;
@@ -292,7 +310,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             if ((object)ctor != null) EmitSymbolToken(ctor, node.Syntax, null);
         }
 
-        private MethodSymbol DelegateConstructor(CSharpSyntaxNode syntax, TypeSymbol delegateType)
+        private MethodSymbol DelegateConstructor(SyntaxNode syntax, TypeSymbol delegateType)
         {
             foreach (var possibleCtor in delegateType.GetMembers(WellKnownMemberNames.InstanceConstructorName))
             {
@@ -311,12 +329,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // The delegate '{0}' does not have a valid constructor
             _diagnostics.Add(ErrorCode.ERR_BadDelegateConstructor, syntax.Location, delegateType);
             return null;
-        }
-
-        private void EmitMethodGroupConversion(BoundConversion conversion, bool used)
-        {
-            var group = (BoundMethodGroup)conversion.Operand;
-            EmitDelegateCreation(conversion, group.InstanceOpt, conversion.IsExtensionMethod, conversion.SymbolOpt, conversion.Type, used);
         }
     }
 }

@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
         {
         }
 
-        internal override CompletionListProvider CreateCompletionProvider()
+        internal override CompletionProvider CreateCompletionProvider()
         {
             return new NamedParameterCompletionProvider();
         }
@@ -25,33 +25,34 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
         public async Task SendEnterThroughToEditorTest()
         {
             const string markup = @"
-class Foo
+class Goo
 {
-    public Foo(int a = 42)
+    public Goo(int a = 42)
     { }
 
     void Bar()
     {
-        var b = new Foo($$
+        var b = new Goo($$
     }
 }";
 
-            await VerifySendEnterThroughToEnterAsync(markup, "a:", sendThroughEnterEnabled: false, expected: false);
-            await VerifySendEnterThroughToEnterAsync(markup, "a:", sendThroughEnterEnabled: true, expected: true);
+            await VerifySendEnterThroughToEnterAsync(markup, "a:", sendThroughEnterOption: EnterKeyRule.Never, expected: false);
+            await VerifySendEnterThroughToEnterAsync(markup, "a:", sendThroughEnterOption: EnterKeyRule.AfterFullyTypedWord, expected: true);
+            await VerifySendEnterThroughToEnterAsync(markup, "a:", sendThroughEnterOption: EnterKeyRule.Always, expected: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CommitCharacterTest()
         {
             const string markup = @"
-class Foo
+class Goo
 {
-    public Foo(int a = 42)
+    public Goo(int a = 42)
     { }
 
     void Bar()
     {
-        var b = new Foo($$
+        var b = new Goo($$
     }
 }";
 
@@ -62,14 +63,14 @@ class Foo
         public async Task InObjectCreation()
         {
             var markup = @"
-class Foo
+class Goo
 {
-    public Foo(int a = 42)
+    public Goo(int a = 42)
     { }
 
     void Bar()
     {
-        var b = new Foo($$
+        var b = new Goo($$
     }
 }";
 
@@ -80,13 +81,13 @@ class Foo
         public async Task InBaseConstructor()
         {
             var markup = @"
-class Foo
+class Goo
 {
-    public Foo(int a = 42)
+    public Goo(int a = 42)
     { }
 }
 
-class DogBed : Foo
+class DogBed : Goo
 {
     public DogBed(int b) : base($$
 }
@@ -99,7 +100,7 @@ class DogBed : Foo
         public async Task InvocationExpression()
         {
             var markup = @"
-class Foo
+class Goo
 {
     void Bar(int a)
     {
@@ -115,7 +116,7 @@ class Foo
         public async Task InvocationExpressionAfterComma()
         {
             var markup = @"
-class Foo
+class Goo
 {
     void Bar(int a, string b)
     {
@@ -166,13 +167,13 @@ class Program
             var markup = @"
 partial class PartialClass
 {
-    static partial void Foo(int declaring);
-    static partial void Foo(int implementing)
+    static partial void Goo(int declaring);
+    static partial void Goo(int implementing)
     {
     }
     static void Caller()
     {
-        Foo($$
+        Goo($$
     }
 }
 ";
@@ -185,7 +186,7 @@ partial class PartialClass
         public async Task NotAfterColon()
         {
             var markup = @"
-class Foo
+class Goo
 {
     void Bar(int a, string b)
     {
@@ -203,7 +204,7 @@ class Foo
         {
             var markup = @"
 using System.Collections.Generic;
-class Foo
+class Goo
 {
     void Bar(List<int> integers)
     {
@@ -224,13 +225,13 @@ class Class1
 {
     void Test()
     {
-        Foo(boolean:true, $$)
+        Goo(boolean:true, $$)
     }
  
-    void Foo(string str = ""hello"", char character = 'a')
+    void Goo(string str = ""hello"", char character = 'a')
     { }
  
-    void Foo(string str = ""hello"", bool boolean = false)
+    void Goo(string str = ""hello"", bool boolean = false)
     { }
 }
 ";
@@ -247,13 +248,13 @@ class Class1
 {
     void Test()
     {
-        Foo(str:"""", $$)
+        Goo(str:"""", $$)
     }
  
-    void Foo(string str = ""hello"", char character = 'a')
+    void Goo(string str = ""hello"", char character = 'a')
     { }
  
-    void Foo(string str = ""hello"", bool boolean = false)
+    void Goo(string str = ""hello"", bool boolean = false)
     { }
 }
 ";
@@ -267,7 +268,7 @@ class Class1
         public async Task FilteringOverloadsByCallSiteComplex()
         {
             var markup = @"
-class Foo
+class Goo
 {
     void Test()
     {
@@ -300,7 +301,7 @@ class Bar { }
         public async Task MethodOverloads()
         {
             var markup = @"
-class Foo
+class Goo
 {
     void Test()
     {
@@ -328,7 +329,7 @@ class Foo
         public async Task ExistingNamedParamsAreFilteredOut()
         {
             var markup = @"
-class Foo
+class Goo
 {
     void Test()
     {
@@ -363,9 +364,9 @@ class Foo
             var markup = @"
 class Program
 {
-    void Foo(int @integer)
+    void Goo(int @integer)
     {
-        Foo(@i$$
+        Goo(@i$$
     }
 }
 ";
@@ -381,18 +382,18 @@ class Class1
 {
     void Test()
     {
-        Foo(boolean: true, $$)
+        Goo(boolean: true, $$)
     }
  
-    void Foo(string obj = ""hello"")
+    void Goo(string obj = ""hello"")
     { }
  
-    void Foo(bool boolean = false, Class1 obj = default(Class1))
+    void Goo(bool boolean = false, Class1 obj = default(Class1))
     { }
 }
 ";
             await VerifyItemExistsAsync(markup, "obj:",
-                expectedDescriptionOrNull: $"({FeaturesResources.Parameter}) Class1 obj = default(Class1)");
+                expectedDescriptionOrNull: $"({FeaturesResources.parameter}) Class1 obj = default(Class1)");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -454,6 +455,56 @@ static void M(int x, int y) { }
 }
 ";
             await VerifyNoItemsExistAsync(markup);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CommitWithColonWordFullyTyped()
+        {
+            var markup = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        Main(args$$)
+    }
+}
+";
+
+            var expected = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        Main(args:)
+    }
+}
+";
+            await VerifyProviderCommitAsync(markup, "args:", expected, ':', "args");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CommitWithColonWordPartiallyTyped()
+        {
+            var markup = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        Main(ar$$)
+    }
+}
+";
+
+            var expected = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        Main(args:)
+    }
+}
+";
+            await VerifyProviderCommitAsync(markup, "args:", expected, ':', "arg");
         }
     }
 }

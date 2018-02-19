@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -24,6 +24,8 @@ using VSLangProj140;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     [Export]
     internal class AnalyzersCommandHandler : IAnalyzersCommandHandler, IVsUpdateSolutionEvents
     {
@@ -109,8 +111,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 }
 
                 var buildManager = (IVsSolutionBuildManager)_serviceProvider.GetService(typeof(SVsSolutionBuildManager));
-                uint cookie;
-                buildManager.AdviseUpdateSolutionEvents(this, out cookie);
+                buildManager.AdviseUpdateSolutionEvents(this, out var cookie);
             }
         }
 
@@ -188,7 +189,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         private bool ShouldShowDiagnosticContextMenu(IEnumerable<object> items)
         {
-            return items.All(item => item is DiagnosticItem);
+            return items.All(item => item is BaseDiagnosticItem);
         }
 
         private void UpdateDiagnosticContextMenu()
@@ -218,10 +219,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             _projectAddMenuItem.Visible = selectedProjectSupportsAnalyzers;
             _projectContextAddMenuItem.Visible = selectedProjectSupportsAnalyzers && _tracker.SelectedItemId == VSConstants.VSITEMID_ROOT;
             _referencesContextAddMenuItem.Visible = selectedProjectSupportsAnalyzers;
-
-            string itemName;
             _setActiveRuleSetMenuItem.Visible = selectedProjectSupportsAnalyzers &&
-                                                _tracker.SelectedHierarchy.TryGetItemName(_tracker.SelectedItemId, out itemName) &&
+                                                _tracker.SelectedHierarchy.TryGetItemName(_tracker.SelectedItemId, out var itemName) &&
                                                 Path.GetExtension(itemName).Equals(".ruleset", StringComparison.OrdinalIgnoreCase);
         }
 
@@ -256,7 +255,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
             HashSet<ReportDiagnostic> selectedItemSeverities = new HashSet<ReportDiagnostic>();
 
-            var groups = _tracker.SelectedDiagnosticItems.GroupBy(item => item.AnalyzerItem.AnalyzersFolder.ProjectId);
+            var groups = _tracker.SelectedDiagnosticItems.GroupBy(item => item.ProjectId);
 
             foreach (var group in groups)
             {
@@ -269,8 +268,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
                     foreach (var diagnosticItem in group)
                     {
-                        ReportDiagnostic ruleSetSeverity;
-                        if (specificOptions.TryGetValue(diagnosticItem.Descriptor.Id, out ruleSetSeverity))
+                        if (specificOptions.TryGetValue(diagnosticItem.Descriptor.Id, out var ruleSetSeverity))
                         {
                             selectedItemSeverities.Add(ruleSetSeverity);
                         }
@@ -332,10 +330,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         private bool SelectedProjectSupportsAnalyzers()
         {
-            EnvDTE.Project project;
             return _tracker != null &&
                    _tracker.SelectedHierarchy != null &&
-                   _tracker.SelectedHierarchy.TryGetProject(out project) &&
+                   _tracker.SelectedHierarchy.TryGetProject(out var project) &&
                    project.Object is VSProject3;
         }
 
@@ -375,13 +372,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                     var project = (AbstractProject)workspace.GetHostProject(projectId);
                     if (project == null)
                     {
-                        SendUnableToOpenRuleSetNotification(workspace, string.Format(SolutionExplorerShim.AnalyzersCommandHandler_CouldNotFindProject, projectId));
+                        SendUnableToOpenRuleSetNotification(workspace, string.Format(SolutionExplorerShim.Could_not_find_project_0, projectId));
                         return;
                     }
 
                     if (project.RuleSetFile == null)
                     {
-                        SendUnableToOpenRuleSetNotification(workspace, SolutionExplorerShim.AnalyzersCommandHandler_NoRuleSetFile);
+                        SendUnableToOpenRuleSetNotification(workspace, SolutionExplorerShim.No_rule_set_file_is_specified_or_the_file_does_not_exist);
                         return;
                     }
 
@@ -417,12 +414,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
             foreach (var selectedDiagnostic in _tracker.SelectedDiagnosticItems)
             {
-                var projectId = selectedDiagnostic.AnalyzerItem.AnalyzersFolder.ProjectId;
+                var projectId = selectedDiagnostic.ProjectId;
                 var project = (AbstractProject)workspace.GetHostProject(projectId);
 
                 if (project == null)
                 {
-                    SendUnableToUpdateRuleSetNotification(workspace, string.Format(SolutionExplorerShim.AnalyzersCommandHandler_CouldNotFindProject, projectId));
+                    SendUnableToUpdateRuleSetNotification(workspace, string.Format(SolutionExplorerShim.Could_not_find_project_0, projectId));
                     continue;
                 }
 
@@ -430,21 +427,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
                 if (pathToRuleSet == null)
                 {
-                    SendUnableToUpdateRuleSetNotification(workspace, SolutionExplorerShim.AnalyzersCommandHandler_NoRuleSetFile);
+                    SendUnableToUpdateRuleSetNotification(workspace, SolutionExplorerShim.No_rule_set_file_is_specified_or_the_file_does_not_exist);
                     continue;
                 }
 
                 try
                 {
-                    EnvDTE.Project envDteProject;
-                    project.Hierarchy.TryGetProject(out envDteProject);
+                    project.Hierarchy.TryGetProject(out var envDteProject);
 
                     if (SdkUiUtilities.IsBuiltInRuleSet(pathToRuleSet, _serviceProvider))
                     {
                         pathToRuleSet = CreateCopyOfRuleSetForProject(pathToRuleSet, envDteProject);
                         if (pathToRuleSet == null)
                         {
-                            SendUnableToUpdateRuleSetNotification(workspace, string.Format(SolutionExplorerShim.AnalyzersCommandHandler_CouldNotCreateRuleSetFile, envDteProject.Name));
+                            SendUnableToUpdateRuleSetNotification(workspace, string.Format(SolutionExplorerShim.Could_not_create_a_rule_set_for_project_0, envDteProject.Name));
                             continue;
                         }
 
@@ -455,8 +451,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                     var componentModel = (IComponentModel)_serviceProvider.GetService(typeof(SComponentModel));
                     var waitIndicator = componentModel.GetService<IWaitIndicator>();
                     waitIndicator.Wait(
-                        title: SolutionExplorerShim.AnalyzersCommandHandler_RuleSet,
-                        message: string.Format(SolutionExplorerShim.AnalyzersCommandHandler_CheckingOutRuleSet, Path.GetFileName(pathToRuleSet)),
+                        title: SolutionExplorerShim.Rule_Set,
+                        message: string.Format(SolutionExplorerShim.Checking_out_0_for_editing, Path.GetFileName(pathToRuleSet)),
                         allowCancel: false,
                         action: c =>
                         {
@@ -491,13 +487,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         private void SetActiveRuleSetHandler(object sender, EventArgs e)
         {
-            EnvDTE.Project project;
-            string ruleSetFileFullPath;
-            if (_tracker.SelectedHierarchy.TryGetProject(out project) &&
-                _tracker.SelectedHierarchy.TryGetCanonicalName(_tracker.SelectedItemId, out ruleSetFileFullPath))
+            if (_tracker.SelectedHierarchy.TryGetProject(out var project) &&
+                _tracker.SelectedHierarchy.TryGetCanonicalName(_tracker.SelectedItemId, out var ruleSetFileFullPath))
             {
                 string projectDirectoryFullPath = Path.GetDirectoryName(project.FullName);
-                string ruleSetFileRelativePath = FilePathUtilities.GetRelativePath(projectDirectoryFullPath, ruleSetFileFullPath);
+                string ruleSetFileRelativePath = PathUtilities.GetRelativePath(projectDirectoryFullPath, ruleSetFileFullPath);
 
                 UpdateProjectConfigurationsToUseRuleSetFile(project, ruleSetFileRelativePath);
             }
@@ -612,7 +606,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         {
             SendErrorNotification(
                 workspace,
-                SolutionExplorerShim.AnalyzersCommandHandler_RuleSetFileCouldNotBeOpened,
+                SolutionExplorerShim.The_rule_set_file_could_not_be_opened,
                 message);
         }
 
@@ -620,7 +614,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         {
             SendErrorNotification(
                 workspace,
-                SolutionExplorerShim.AnalyzersCommandHandler_RuleSetFileCouldNotBeUpdated,
+                SolutionExplorerShim.The_rule_set_file_could_not_be_updated,
                 message);
         }
 

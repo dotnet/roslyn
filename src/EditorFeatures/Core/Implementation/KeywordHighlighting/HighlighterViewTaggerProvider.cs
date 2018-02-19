@@ -38,8 +38,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
         public HighlighterViewTaggerProvider(
             IHighlightingService highlightingService,
             IForegroundNotificationService notificationService,
-            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
-            : base(new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.KeywordHighlighting), notificationService)
+            IAsynchronousOperationListenerProvider listenerProvider)
+            : base(listenerProvider.GetListener(FeatureAttribute.KeywordHighlighting), notificationService)
         {
             _highlightingService = highlightingService;
         }
@@ -61,8 +61,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
                 return;
             }
 
-            var options = document.Project.Solution.Workspace.Options;
-            if (!options.GetOption(FeatureOnOffOptions.KeywordHighlighting, document.Project.Language))
+            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            if (!documentOptions.GetOption(FeatureOnOffOptions.KeywordHighlighting))
             {
                 return;
             }

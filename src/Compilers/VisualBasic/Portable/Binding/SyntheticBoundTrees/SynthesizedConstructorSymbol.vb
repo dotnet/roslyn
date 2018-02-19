@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend Partial Class SynthesizedConstructorSymbol
         Inherits SynthesizedConstructorBase
 
-        Friend Overrides Function GetBoundMethodBody(diagnostics As DiagnosticBag, Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
+        Friend Overrides Function GetBoundMethodBody(compilationState As TypeCompilationState, diagnostics As DiagnosticBag, Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
             methodBodyBinder = Nothing
             Dim returnStmt = New BoundReturnStatement(Me.Syntax, Nothing, Nothing, Nothing)
             returnStmt.SetWasCompilerGenerated()

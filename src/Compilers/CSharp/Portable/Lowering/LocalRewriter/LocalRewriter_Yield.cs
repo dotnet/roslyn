@@ -10,12 +10,29 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override BoundNode VisitYieldBreakStatement(BoundYieldBreakStatement node)
         {
-            return AddSequencePoint((BoundStatement)base.VisitYieldBreakStatement(node));
+            var result = (BoundStatement)base.VisitYieldBreakStatement(node);
+
+            // We also add sequence points for the implicit "yield break" statement at the end of the method body
+            // (added by FlowAnalysisPass.AppendImplicitReturn). Implicitly added "yield break" for async method 
+            // does not need sequence points added here since it would be done later (presumably during Async rewrite).
+            if (this.Instrument && 
+                (!node.WasCompilerGenerated || (node.Syntax.Kind() == SyntaxKind.Block && _factory.CurrentMethod?.IsAsync == false)))
+            {
+                result = _instrumenter.InstrumentYieldBreakStatement(node, result);
+            }
+
+            return result;
         }
 
         public override BoundNode VisitYieldReturnStatement(BoundYieldReturnStatement node)
         {
-            return AddSequencePoint((BoundStatement)base.VisitYieldReturnStatement(node));
+            var result = (BoundStatement)base.VisitYieldReturnStatement(node);
+            if (this.Instrument && !node.WasCompilerGenerated)
+            {
+                result = _instrumenter.InstrumentYieldReturnStatement(node, result);
+            }
+
+            return result;
         }
     }
 }

@@ -66,6 +66,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End Get
             End Property
 
+            Public Overrides ReadOnly Property RefCustomModifiers As ImmutableArray(Of CustomModifier)
+                Get
+                    Return ImmutableArray(Of CustomModifier).Empty
+                End Get
+            End Property
+
             Public Overrides ReadOnly Property SetMethod As MethodSymbol
                 Get
                     Return _setMethod
@@ -75,6 +81,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Public Overrides ReadOnly Property GetMethod As MethodSymbol
                 Get
                     Return _getMethod
+                End Get
+            End Property
+
+            Public Overrides ReadOnly Property ReturnsByRef As Boolean
+                Get
+                    Return False
                 End Get
             End Property
 

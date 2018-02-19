@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
 Imports System.Threading.Tasks
@@ -10,7 +10,7 @@ Imports Roslyn.Utilities
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
     Friend Class MockCompletionProvider
-        Inherits CompletionListProvider
+        Inherits CommonCompletionProvider
 
         Private ReadOnly _getItems As Func(Of Document, Integer, CancellationToken, IEnumerable(Of CompletionItem))
         Private ReadOnly _isTriggerCharacter As Func(Of SourceText, Integer, Boolean)
@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Me._isTriggerCharacter = isTriggerCharacter
         End Sub
 
-        Public Overrides Function ProduceCompletionListAsync(context As CompletionListContext) As Task
+        Public Overrides Function ProvideCompletionsAsync(context As CompletionContext) As Task
             If _getItems Is Nothing Then
                 Return SpecializedTasks.EmptyTask
             End If
@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Return SpecializedTasks.EmptyTask
         End Function
 
-        Public Overrides Function IsTriggerCharacter(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
+        Friend Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
             Return If(_isTriggerCharacter Is Nothing, Nothing, _isTriggerCharacter(text, characterPosition))
         End Function
 

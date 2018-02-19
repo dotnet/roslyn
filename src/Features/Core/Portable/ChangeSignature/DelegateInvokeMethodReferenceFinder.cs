@@ -31,18 +31,19 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             return symbol.MethodKind == MethodKind.DelegateInvoke;
         }
 
-        protected override async Task<IEnumerable<ISymbol>> DetermineCascadedSymbolsAsync(
-            IMethodSymbol symbol,
+        protected override async Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
+            SymbolAndProjectId<IMethodSymbol> symbolAndProjectId,
             Solution solution,
             IImmutableSet<Project> projects,
             CancellationToken cancellationToken)
         {
-            var result = new List<ISymbol>();
+            var result = ImmutableArray.CreateBuilder<SymbolAndProjectId>();
 
+            var symbol = symbolAndProjectId.Symbol;
             var beginInvoke = symbol.ContainingType.GetMembers(WellKnownMemberNames.DelegateBeginInvokeName).FirstOrDefault();
             if (beginInvoke != null)
             {
-                result.Add(beginInvoke);
+                result.Add(symbolAndProjectId.WithSymbol(beginInvoke));
             }
 
             // All method group references
@@ -51,23 +52,24 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 foreach (var document in project.Documents)
                 {
                     var changeSignatureService = document.GetLanguageService<AbstractChangeSignatureService>();
-                    result.AddRange(await changeSignatureService.DetermineCascadedSymbolsFromDelegateInvoke(symbol, document, cancellationToken).ConfigureAwait(false));
+                    result.AddRange(await changeSignatureService.DetermineCascadedSymbolsFromDelegateInvoke(
+                        symbolAndProjectId, document, cancellationToken).ConfigureAwait(false));
                 }
             }
 
-            return result;
+            return result.ToImmutable();
         }
 
-        protected override Task<IEnumerable<Document>> DetermineDocumentsToSearchAsync(
+        protected override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
             IMethodSymbol symbol,
             Project project,
             IImmutableSet<Document> documents,
             CancellationToken cancellationToken)
         {
-            return Task.FromResult(project.Documents);
+            return Task.FromResult(project.Documents.ToImmutableArray());
         }
 
-        protected override async Task<IEnumerable<ReferenceLocation>> FindReferencesInDocumentAsync(
+        protected override async Task<ImmutableArray<ReferenceLocation>> FindReferencesInDocumentAsync(
             IMethodSymbol methodSymbol,
             Document document,
             CancellationToken cancellationToken)
@@ -98,8 +100,10 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             var invocations = nodes.Where(n => syntaxFactsService.IsInvocationExpression(n))
                 .Where(e => semanticModel.GetSymbolInfo(e, cancellationToken).Symbol.OriginalDefinition == methodSymbol);
 
-            return invocations.Concat(convertedAnonymousFunctions).Select(
+            var result = invocations.Concat(convertedAnonymousFunctions).Select(
                 e => new ReferenceLocation(document, null, e.GetLocation(), isImplicit: false, isWrittenTo: false, candidateReason: CandidateReason.None));
+
+            return result.ToImmutableArray();
         }
     }
 }

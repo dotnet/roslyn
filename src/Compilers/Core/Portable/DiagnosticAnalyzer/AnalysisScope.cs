@@ -44,28 +44,30 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public bool IsTreeAnalysis => FilterTreeOpt != null;
 
         public AnalysisScope(Compilation compilation, ImmutableArray<DiagnosticAnalyzer> analyzers, bool concurrentAnalysis, bool categorizeDiagnostics)
+            : this (compilation.SyntaxTrees, analyzers, filterTreeOpt: null, filterSpanOpt: null, isSyntaxOnlyTreeAnalysis: false, concurrentAnalysis: concurrentAnalysis, categorizeDiagnostics: categorizeDiagnostics)
         {
-            SyntaxTrees = compilation.SyntaxTrees;
-            Analyzers = analyzers;
-            ConcurrentAnalysis = concurrentAnalysis;
-            CategorizeDiagnostics = categorizeDiagnostics;
-
-            FilterTreeOpt = null;
-            FilterSpanOpt = null;
-            IsSyntaxOnlyTreeAnalysis = false;
         }
 
         public AnalysisScope(ImmutableArray<DiagnosticAnalyzer> analyzers, SyntaxTree filterTree, TextSpan? filterSpan, bool syntaxAnalysis, bool concurrentAnalysis, bool categorizeDiagnostics)
+            : this (SpecializedCollections.SingletonEnumerable(filterTree), analyzers, filterTree, filterSpan, syntaxAnalysis, concurrentAnalysis, categorizeDiagnostics)
         {
             Debug.Assert(filterTree != null);
+        }
 
-            SyntaxTrees = SpecializedCollections.SingletonEnumerable(filterTree);
+        private AnalysisScope(IEnumerable<SyntaxTree> trees, ImmutableArray<DiagnosticAnalyzer> analyzers, SyntaxTree filterTreeOpt, TextSpan? filterSpanOpt, bool isSyntaxOnlyTreeAnalysis, bool concurrentAnalysis, bool categorizeDiagnostics)
+        {
+            SyntaxTrees = trees;
             Analyzers = analyzers;
-            FilterTreeOpt = filterTree;
-            FilterSpanOpt = filterSpan;
-            IsSyntaxOnlyTreeAnalysis = syntaxAnalysis;
+            FilterTreeOpt = filterTreeOpt;
+            FilterSpanOpt = filterSpanOpt;
+            IsSyntaxOnlyTreeAnalysis = isSyntaxOnlyTreeAnalysis;
             ConcurrentAnalysis = concurrentAnalysis;
             CategorizeDiagnostics = categorizeDiagnostics;
+        }
+
+        public AnalysisScope WithAnalyzers(ImmutableArray<DiagnosticAnalyzer> analyzers)
+        {
+            return new AnalysisScope(SyntaxTrees, analyzers, FilterTreeOpt, FilterSpanOpt, IsSyntaxOnlyTreeAnalysis, ConcurrentAnalysis, CategorizeDiagnostics);
         }
 
         public static bool ShouldSkipSymbolAnalysis(SymbolDeclaredCompilationEvent symbolEvent)

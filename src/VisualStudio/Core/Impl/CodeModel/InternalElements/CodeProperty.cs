@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -117,8 +117,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
         {
             get
             {
-                EnvDTE.CodeClass parentClass = this.Parent as EnvDTE.CodeClass;
-                if (parentClass != null)
+                if (this.Parent is EnvDTE.CodeClass parentClass)
                 {
                     return parentClass;
                 }
@@ -144,16 +143,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
         }
 
         private bool HasAccessorNode(MethodKind methodKind)
-        {
-            SyntaxNode accessorNode;
-            return CodeModelService.TryGetAccessorNode(LookupNode(), methodKind, out accessorNode);
-        }
+            => CodeModelService.TryGetAccessorNode(LookupNode(), methodKind, out var accessorNode);
+
+        private bool IsExpressionBodiedProperty()
+            => CodeModelService.IsExpressionBodiedProperty(LookupNode());
 
         public EnvDTE.CodeFunction Getter
         {
             get
             {
-                if (!HasAccessorNode(MethodKind.PropertyGet))
+                if (!HasAccessorNode(MethodKind.PropertyGet) &&
+                    !IsExpressionBodiedProperty())
                 {
                     return null;
                 }

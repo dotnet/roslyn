@@ -3,11 +3,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection;
-using System.Runtime.InteropServices;
-using Roslyn.Utilities;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 
 namespace Microsoft.Cci
@@ -166,7 +163,7 @@ namespace Microsoft.Cci
         /// (The element type of a safe array is VARIANT. The "sub type" specifies the value of all of the tag fields (vt) of the element values. )
         /// -1 if it should be omitted from the marshal blob.
         /// </summary>
-        System.Runtime.InteropServices.VarEnum SafeArrayElementSubtype
+        VarEnum SafeArrayElementSubtype
         {
             get;
         }
@@ -215,43 +212,6 @@ namespace Microsoft.Cci
     }
 
     /// <summary>
-    /// This enum is used internally by BCL. It includes flags that are not in the metadata spec.
-    /// </summary>
-    [Flags]
-    internal enum PInvokeAttributes : ushort
-    {
-        NoMangle = 0x0001,
-
-        CharSetMask = 0x0006,
-        CharSetNotSpec = 0x0000,
-        CharSetAnsi = 0x0002,
-        CharSetUnicode = 0x0004,
-        CharSetAuto = 0x0006,
-
-
-        BestFitUseAssem = 0x0000,
-        BestFitEnabled = 0x0010,
-        BestFitDisabled = 0x0020,
-        BestFitMask = 0x0030,
-
-        ThrowOnUnmappableCharUseAssem = 0x0000,
-        ThrowOnUnmappableCharEnabled = 0x1000,
-        ThrowOnUnmappableCharDisabled = 0x2000,
-        ThrowOnUnmappableCharMask = 0x3000,
-
-        SupportsLastError = 0x0040,
-
-        CallConvMask = 0x0700,
-        CallConvWinapi = 0x0100,
-        CallConvCdecl = 0x0200,
-        CallConvStdcall = 0x0300,
-        CallConvThiscall = 0x0400,
-        CallConvFastcall = 0x0500,
-
-        MaxValue = 0xFFFF,
-    }
-
-    /// <summary>
     /// Information that describes how a method from the underlying Platform is to be invoked.
     /// </summary>
     internal interface IPlatformInvokeInformation
@@ -269,7 +229,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// Flags that determine marshalling behavior.
         /// </summary>
-        PInvokeAttributes Flags { get; }
+        MethodImportAttributes Flags { get; }
     }
 
     internal class ResourceSection

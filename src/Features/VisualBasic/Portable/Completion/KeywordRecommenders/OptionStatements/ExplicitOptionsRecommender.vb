@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion.Providers
@@ -17,8 +17,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Opti
             End If
 
             If context.TargetToken.IsKind(SyntaxKind.ExplicitKeyword) Then
-                Return {New RecommendedKeyword("On", VBFeaturesResources.OnOptionKeywordToolTip),
-                        New RecommendedKeyword("Off", VBFeaturesResources.OffOptionKeywordToolTip)}
+                Return {New RecommendedKeyword("On", VBFeaturesResources.Turns_a_compiler_option_on),
+                        New RecommendedKeyword("Off", VBFeaturesResources.Turns_a_compiler_option_off)}
             Else
                 Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()
             End If

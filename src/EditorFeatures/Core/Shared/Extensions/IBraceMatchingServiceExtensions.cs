@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading;
 using System.Threading.Tasks;
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             }
             else if (braces1.HasValue && position >= braces1.Value.RightSpan.Start && position < braces1.Value.RightSpan.End)
             {
-                // { ^} -- return left span
+                // { ^} - return left span
                 return braces1.Value.LeftSpan;
             }
 

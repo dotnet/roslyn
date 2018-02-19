@@ -8,8 +8,6 @@ namespace Microsoft.CodeAnalysis.Editor
 {
     internal interface IAsyncCompletionService
     {
-        bool WaitForComputation(ITextView textView, ITextBuffer subjectBuffer);
-
         bool TryGetController(ITextView textView, ITextBuffer subjectBuffer, out Controller controller);
     }
 }

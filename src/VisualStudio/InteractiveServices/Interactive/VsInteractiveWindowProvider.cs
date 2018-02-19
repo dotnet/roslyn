@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 extern alias core;
 
@@ -16,6 +16,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Utilities;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.InteractiveWindow;
 
 namespace Microsoft.VisualStudio.LanguageServices.Interactive
 {
@@ -92,15 +93,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             var window = _vsInteractiveWindow.InteractiveWindow;
             window.TextView.Options.SetOptionValue(DefaultTextViewHostOptions.SuggestionMarginId, true);
 
-            EventHandler closeEventDelegate = null;
-            closeEventDelegate = (sender, e) =>
+            void closeEventDelegate(object sender, EventArgs e)
             {
                 window.TextView.Closed -= closeEventDelegate;
-                InteractiveWindow.InteractiveWindow intWindow = window as InteractiveWindow.InteractiveWindow;
-                LogCloseSession(intWindow.LanguageBufferCounter);
-
+                LogCloseSession(evaluator.SubmissionCount);
                 evaluator.Dispose();
-            };
+            }
 
             // the tool window now owns the engine:
             window.TextView.Closed += closeEventDelegate;
@@ -168,12 +166,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
 
             // swap core commands with specialized command if both exist
             // Command can have multiple names. We need to compare every name to find match.
-            int value;
             foreach (var command in specializedInteractiveCommands)
             {
                 foreach (var name in command.Names)
                 {
-                    if (interactiveCommandMap.TryGetValue(name, out value))
+                    if (interactiveCommandMap.TryGetValue(name, out var value))
                     {
                         interactiveCommands[value] = command;
                         break;

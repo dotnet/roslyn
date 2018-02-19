@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
     {
         private void VerifyShutdownRequest(BuildRequest request)
         {
-            Assert.Equal(1, request.Arguments.Length);
+            Assert.Equal(1, request.Arguments.Count);
 
             var argument = request.Arguments[0];
             Assert.Equal(BuildProtocolConstants.ArgumentId.Shutdown, argument.ArgumentId);
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             var read = await BuildRequest.ReadAsync(memoryStream, default(CancellationToken));
             Assert.Equal(BuildProtocolConstants.ProtocolVersion, read.ProtocolVersion);
             Assert.Equal(RequestLanguage.VisualBasicCompile, read.Language);
-            Assert.Equal(2, read.Arguments.Length);
+            Assert.Equal(2, read.Arguments.Count);
             Assert.Equal(BuildProtocolConstants.ArgumentId.CurrentDirectory, read.Arguments[0].ArgumentId);
             Assert.Equal(0, read.Arguments[0].ArgumentIndex);
             Assert.Equal("directory", read.Arguments[0].Value);
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         {
             var request = BuildRequest.CreateShutdown();
             VerifyShutdownRequest(request);
-            Assert.Equal(1, request.Arguments.Length);
+            Assert.Equal(1, request.Arguments.Count);
 
             var argument = request.Arguments[0];
             Assert.Equal(BuildProtocolConstants.ArgumentId.Shutdown, argument.ArgumentId);

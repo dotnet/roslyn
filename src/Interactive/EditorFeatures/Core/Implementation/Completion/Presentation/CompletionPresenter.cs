@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.Presentation;
@@ -7,7 +7,6 @@ using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
-using Microsoft.VisualStudio.InteractiveWindow;
 using Microsoft.VisualStudio.InteractiveWindow.Commands;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Completion.Presentation
@@ -21,7 +20,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Completion.Presentation
         private readonly IGlyphService _glyphService;
 
         [ImportingConstructor]
-        public CompletionPresenter(ICompletionBroker completionBroker, IGlyphService glyphService)
+        public CompletionPresenter(
+            ICompletionBroker completionBroker,
+            IGlyphService glyphService)
         {
             _completionBroker = completionBroker;
             _glyphService = glyphService;
@@ -30,7 +31,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Completion.Presentation
         ICompletionPresenterSession IIntelliSensePresenter<ICompletionPresenterSession, ICompletionSession>.CreateSession(ITextView textView, ITextBuffer subjectBuffer, ICompletionSession sessionOpt)
         {
             AssertIsForeground();
-            return new CompletionPresenterSession(_completionBroker, _glyphService, textView, subjectBuffer);
+            return new CompletionPresenterSession(
+                _completionBroker, _glyphService, textView, subjectBuffer);
         }
 
         ICompletionSource ICompletionSourceProvider.TryCreateCompletionSource(ITextBuffer textBuffer)

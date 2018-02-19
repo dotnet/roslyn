@@ -3,7 +3,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Threading;
-using Microsoft.CodeAnalysis.Semantics;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public abstract void RegisterSemanticModelAction(Action<SemanticModelAnalysisContext> action);
 
         /// <summary>
-        /// Register an action to be executed at completion of semantic analysis of an <see cref="ISymbol"/> with an appropriate Kind.>
+        /// Register an action to be executed at completion of semantic analysis of an <see cref="ISymbol"/> with an appropriate Kind.
         /// A symbol action reports <see cref="Diagnostic"/>s about <see cref="ISymbol"/>s.
         /// </summary>
         /// <param name="action">Action to be executed for an <see cref="ISymbol"/>.</param>
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         /// <summary>
-        /// Register an action to be executed at completion of semantic analysis of an <see cref="ISymbol"/> with an appropriate Kind.>
+        /// Register an action to be executed at completion of semantic analysis of an <see cref="ISymbol"/> with an appropriate Kind.
         /// A symbol action reports <see cref="Diagnostic"/>s about <see cref="ISymbol"/>s.
         /// </summary>
         /// <param name="action">Action to be executed for an <see cref="ISymbol"/>.</param>
@@ -318,7 +318,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public abstract void RegisterSemanticModelAction(Action<SemanticModelAnalysisContext> action);
 
         /// <summary>
-        /// Register an action to be executed at completion of semantic analysis of an <see cref="ISymbol"/> with an appropriate Kind.>
+        /// Register an action to be executed at completion of semantic analysis of an <see cref="ISymbol"/> with an appropriate Kind.
         /// A symbol action reports <see cref="Diagnostic"/>s about <see cref="ISymbol"/>s.
         /// </summary>
         /// <param name="action">Action to be executed for an <see cref="ISymbol"/>.</param>
@@ -329,7 +329,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         /// <summary>
-        /// Register an action to be executed at completion of semantic analysis of an <see cref="ISymbol"/> with an appropriate Kind.>
+        /// Register an action to be executed at completion of semantic analysis of an <see cref="ISymbol"/> with an appropriate Kind.
         /// A symbol action reports <see cref="Diagnostic"/>s about <see cref="ISymbol"/>s.
         /// </summary>
         /// <param name="action">Action to be executed for an <see cref="ISymbol"/>.</param>
@@ -661,6 +661,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public CancellationToken CancellationToken { get { return _cancellationToken; } }
 
+        internal Func<Diagnostic, bool> IsSupportedDiagnostic => _isSupportedDiagnostic;
+
         public SymbolAnalysisContext(ISymbol symbol, Compilation compilation, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, CancellationToken cancellationToken)
         {
             _symbol = symbol;
@@ -855,17 +857,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly CancellationToken _cancellationToken;
 
         /// <summary>
-        /// Method body and/or expressions subject to analysis.
+        /// One or more operation blocks that are the subject of the analysis.
+        /// This includes all blocks associated with the <see cref="OwningSymbol"/>,
+        /// such as method body, field/property/constructor/parameter initializer(s), attributes, etc.
         /// </summary>
+        /// <remarks>Note that the operation blocks are not in any specific order.</remarks>
         public ImmutableArray<IOperation> OperationBlocks => _operationBlocks;
 
         /// <summary>
-        /// <see cref="ISymbol"/> for which the code block provides a definition or value.
+        /// <see cref="ISymbol"/> for which the <see cref="OperationBlocks"/> provides a definition or value.
         /// </summary>
         public ISymbol OwningSymbol => _owningSymbol;
 
         /// <summary>
-        /// <see cref="CodeAnalysis.Compilation"/> containing the operation block.
+        /// <see cref="CodeAnalysis.Compilation"/> containing the <see cref="OperationBlocks"/>.
         /// </summary>
         public Compilation Compilation => _compilation;
 
@@ -932,17 +937,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly CancellationToken _cancellationToken;
 
         /// <summary>
-        /// Code block that is the subject of the analysis.
+        /// One or more operation blocks that are the subject of the analysis.
+        /// This includes all blocks associated with the <see cref="OwningSymbol"/>,
+        /// such as method body, field/property/constructor/parameter initializer(s), attributes, etc.
         /// </summary>
+        /// <remarks>Note that the operation blocks are not in any specific order.</remarks>
         public ImmutableArray<IOperation> OperationBlocks => _operationBlocks;
 
         /// <summary>
-        /// <see cref="ISymbol"/> for which the code block provides a definition or value.
+        /// <see cref="ISymbol"/> for which the <see cref="OperationBlocks"/> provides a definition or value.
         /// </summary>
         public ISymbol OwningSymbol => _owningSymbol;
 
         /// <summary>
-        /// <see cref="CodeAnalysis.Compilation"/> containing the operation block.
+        /// <see cref="CodeAnalysis.Compilation"/> containing the <see cref="OperationBlocks"/>.
         /// </summary>
         public Compilation Compilation => _compilation;
 
@@ -955,7 +963,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Token to check for requested cancellation of the analysis.
         /// </summary>
         public CancellationToken CancellationToken => _cancellationToken;
-        
+
         public OperationBlockAnalysisContext(ImmutableArray<IOperation> operationBlocks, ISymbol owningSymbol, Compilation compilation, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, CancellationToken cancellationToken)
         {
             _operationBlocks = operationBlocks;

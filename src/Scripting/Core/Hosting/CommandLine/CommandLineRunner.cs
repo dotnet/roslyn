@@ -45,10 +45,10 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         /// </summary>
         internal int RunInteractive()
         {
-            ErrorLogger errorLogger = null;
+            StreamErrorLogger errorLogger = null;
             if (_compiler.Arguments.ErrorLogPath != null)
             {
-                errorLogger = _compiler.GetErrorLogger(_console.Out, CancellationToken.None);
+                errorLogger = _compiler.GetErrorLogger(_console.Error, CancellationToken.None);
                 if (errorLogger == null)
                 {
                     return CommonCompiler.Failed;
@@ -69,6 +69,12 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             Debug.Assert(_compiler.Arguments.IsScriptRunner);
 
             var sourceFiles = _compiler.Arguments.SourceFiles;
+
+            if (_compiler.Arguments.DisplayVersion)
+            {
+                _compiler.PrintVersion(_console.Out);
+                return 0;
+            }
 
             if (sourceFiles.IsEmpty && _compiler.Arguments.DisplayLogo)
             {
@@ -98,15 +104,19 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 }
                 else
                 {
-                    code = _compiler.ReadFileContent(sourceFiles[0], diagnosticsInfos);
+                    code = _compiler.TryReadFileContent(sourceFiles[0], diagnosticsInfos);
                 }
             }
 
+
+            // only emit symbols for non-interactive mode,
+            var emitDebugInformation = !_compiler.Arguments.InteractiveMode;
+
             var scriptPathOpt = sourceFiles.IsEmpty ? null : sourceFiles[0].Path;
-            var scriptOptions = GetScriptOptions(_compiler.Arguments, scriptPathOpt, _compiler.MessageProvider, diagnosticsInfos);
+            var scriptOptions = GetScriptOptions(_compiler.Arguments, scriptPathOpt, _compiler.MessageProvider, diagnosticsInfos, emitDebugInformation);
 
             var errors = _compiler.Arguments.Errors.Concat(diagnosticsInfos.Select(Diagnostic.Create));
-            if (_compiler.ReportErrors(errors, _console.Out, errorLogger))
+            if (_compiler.ReportErrors(errors, _console.Error, errorLogger))
             {
                 return CommonCompiler.Failed;
             }
@@ -120,11 +130,11 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             }
             else
             {
-                return RunScript(scriptOptions, code.ToString(), errorLogger, cancellationToken);
+                return RunScript(scriptOptions, code, errorLogger, cancellationToken);
             }
         }
 
-        private static ScriptOptions GetScriptOptions(CommandLineArguments arguments, string scriptPathOpt, CommonMessageProvider messageProvider, List<DiagnosticInfo> diagnostics)
+        private static ScriptOptions GetScriptOptions(CommandLineArguments arguments, string scriptPathOpt, CommonMessageProvider messageProvider, List<DiagnosticInfo> diagnostics, bool emitDebugInformation)
         {
             var touchedFilesLoggerOpt = (arguments.TouchedFilesPath != null) ? new TouchedFileLogger() : null;
 
@@ -143,16 +153,19 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 references: ImmutableArray.CreateRange(resolvedReferences),
                 namespaces: CommandLineHelpers.GetImports(arguments),
                 metadataResolver: metadataResolver,
-                sourceResolver: sourceResolver);
+                sourceResolver: sourceResolver,
+                emitDebugInformation: emitDebugInformation,
+                fileEncoding: null);
         }
 
         internal static MetadataReferenceResolver GetMetadataReferenceResolver(CommandLineArguments arguments, TouchedFileLogger loggerOpt)
         {
             return new RuntimeMetadataReferenceResolver(
-                new RelativePathResolver(arguments.ReferencePaths, arguments.BaseDirectory),
-                null,
-                GacFileResolver.IsAvailable ? new GacFileResolver(preferredCulture: CultureInfo.CurrentCulture) : null,
-                (path, properties) =>
+                pathResolver: new RelativePathResolver(arguments.ReferencePaths, arguments.BaseDirectory),
+                packageResolver: null,
+                gacFileResolver: GacFileResolver.IsAvailable ? new GacFileResolver(preferredCulture: CultureInfo.CurrentCulture) : null,
+                useCoreResolver: !GacFileResolver.IsAvailable,
+                fileReferenceProvider: (path, properties) =>
                 {
                     loggerOpt?.AddRead(path);
                     return MetadataReference.CreateFromFile(path, properties);
@@ -164,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             return new CommonCompiler.LoggingSourceFileResolver(arguments.SourcePaths, arguments.BaseDirectory, ImmutableArray<KeyValuePair<string, string>>.Empty, loggerOpt);
         }
 
-        private int RunScript(ScriptOptions options, string code, ErrorLogger errorLogger, CancellationToken cancellationToken)
+        private int RunScript(ScriptOptions options, SourceText code, ErrorLogger errorLogger, CancellationToken cancellationToken)
         {
             var globals = new CommandLineScriptGlobals(_console.Out, _objectFormatter);
             globals.Args.AddRange(_compiler.Arguments.ScriptArguments);
@@ -172,12 +185,17 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             var script = Script.CreateInitialScript<int>(_scriptCompiler, code, options, globals.GetType(), assemblyLoaderOpt: null);
             try
             {
-                return script.RunAsync(globals, cancellationToken).Result.ReturnValue;
+                return script.RunAsync(globals, cancellationToken).GetAwaiter().GetResult().ReturnValue;
             }
             catch (CompilationErrorException e)
             {
-                _compiler.ReportErrors(e.Diagnostics, _console.Out, errorLogger);
+                _compiler.ReportErrors(e.Diagnostics, _console.Error, errorLogger);
                 return CommonCompiler.Failed;
+            }
+            catch (Exception e)
+            {
+                DisplayException(e);
+                return e.HResult;
             }
         }
 
@@ -190,8 +208,8 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 
             if (initialScriptCodeOpt != null)
             {
-                var script = Script.CreateInitialScript<object>(_scriptCompiler, initialScriptCodeOpt, options, globals.GetType(), assemblyLoaderOpt: null);
-                TryBuildAndRun(script, globals, ref state, ref options, cancellationToken);
+                var script = Script.CreateInitialScript<object>(_scriptCompiler, SourceText.From(initialScriptCodeOpt), options, globals.GetType(), assemblyLoaderOpt: null);
+                BuildAndRun(script, globals, ref state, ref options, displayResult: false, cancellationToken: cancellationToken);
             }
 
             while (true)
@@ -242,59 +260,41 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 Script<object> newScript;
                 if (state == null)
                 {
-                    newScript = Script.CreateInitialScript<object>(_scriptCompiler, code, options, globals.GetType(), assemblyLoaderOpt: null);
+                    newScript = Script.CreateInitialScript<object>(_scriptCompiler, SourceText.From(code ?? string.Empty), options, globals.GetType(), assemblyLoaderOpt: null);
                 }
                 else
                 {
                     newScript = state.Script.ContinueWith(code, options);
                 }
 
-                if (!TryBuildAndRun(newScript, globals, ref state, ref options, cancellationToken))
-                {
-                    continue;
-                }
-
-                if (newScript.HasReturnValue())
-                {
-                    globals.Print(state.ReturnValue);
-                }
+                BuildAndRun(newScript, globals, ref state, ref options, displayResult: true, cancellationToken: cancellationToken);
             }
         }
 
-        private bool TryBuildAndRun(Script<object> newScript, InteractiveScriptGlobals globals, ref ScriptState<object> state, ref ScriptOptions options, CancellationToken cancellationToken)
+        private void BuildAndRun(Script<object> newScript, InteractiveScriptGlobals globals, ref ScriptState<object> state, ref ScriptOptions options, bool displayResult, CancellationToken cancellationToken)
         {
             var diagnostics = newScript.Compile(cancellationToken);
             DisplayDiagnostics(diagnostics);
             if (diagnostics.HasAnyErrors())
             {
-                return false;
+                return;
             }
 
-            try
-            {
-                var task = (state == null) ?
-                    newScript.RunAsync(globals, cancellationToken) :
-                    newScript.RunFromAsync(state, cancellationToken);
+            var task = (state == null) ?
+                newScript.RunAsync(globals, catchException: e => true, cancellationToken: cancellationToken) :
+                newScript.RunFromAsync(state, catchException: e => true, cancellationToken: cancellationToken);
 
-                state = task.GetAwaiter().GetResult();
-            }
-            catch (FileLoadException e) when (e.InnerException is InteractiveAssemblyLoaderException)
+            state = task.GetAwaiter().GetResult();
+            if (state.Exception != null)
             {
-                _console.ForegroundColor = ConsoleColor.Red;
-                _console.Out.WriteLine(e.InnerException.Message);
-                _console.ResetColor();
-
-                return false;
+                DisplayException(state.Exception);
             }
-            catch (Exception e)
+            else if (displayResult && newScript.HasReturnValue())
             {
-                DisplayException(e);
-                return false;
+                globals.Print(state.ReturnValue);
             }
 
             options = UpdateOptions(options, globals);
-
-            return true;
         }
 
         private static ScriptOptions UpdateOptions(ScriptOptions options, InteractiveScriptGlobals globals)
@@ -324,7 +324,15 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             try
             {
                 _console.ForegroundColor = ConsoleColor.Red;
-                _console.Out.Write(_objectFormatter.FormatException(e));
+
+                if (e is FileLoadException && e.InnerException is InteractiveAssemblyLoaderException)
+                {
+                    _console.Error.WriteLine(e.InnerException.Message);
+                }
+                else
+                {
+                    _console.Error.Write(_objectFormatter.FormatException(e));
+                }
             }
             finally
             {
@@ -345,14 +353,12 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             _console.Out.WriteLine();
         }
 
-        private void DisplayDiagnostics(IEnumerable<Diagnostic> diagnostics)
+        private void DisplayDiagnostics(ImmutableArray<Diagnostic> diagnostics)
         {
             const int MaxDisplayCount = 5;
 
-            var errorsAndWarnings = diagnostics.ToArray();
-
             // by severity, then by location
-            var ordered = errorsAndWarnings.OrderBy((d1, d2) =>
+            var ordered = diagnostics.OrderBy((d1, d2) =>
             {
                 int delta = (int)d2.Severity - (int)d1.Severity;
                 return (delta != 0) ? delta : d1.Location.SourceSpan.Start - d2.Location.SourceSpan.Start;
@@ -363,14 +369,14 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 foreach (var diagnostic in ordered.Take(MaxDisplayCount))
                 {
                     _console.ForegroundColor = (diagnostic.Severity == DiagnosticSeverity.Error) ? ConsoleColor.Red : ConsoleColor.Yellow;
-                    _console.Out.WriteLine(diagnostic.ToString());
+                    _console.Error.WriteLine(diagnostic.ToString());
                 }
 
-                if (errorsAndWarnings.Length > MaxDisplayCount)
+                if (diagnostics.Length > MaxDisplayCount)
                 {
-                    int notShown = errorsAndWarnings.Length - MaxDisplayCount;
+                    int notShown = diagnostics.Length - MaxDisplayCount;
                     _console.ForegroundColor = ConsoleColor.DarkRed;
-                    _console.Out.WriteLine(string.Format((notShown == 1) ? ScriptingResources.PlusAdditionalError : ScriptingResources.PlusAdditionalError, notShown));
+                    _console.Error.WriteLine(string.Format(ScriptingResources.PlusAdditionalError, notShown));
                 }
             }
             finally
