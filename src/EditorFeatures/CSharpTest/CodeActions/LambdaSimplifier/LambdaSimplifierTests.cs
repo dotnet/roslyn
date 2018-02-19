@@ -93,7 +93,11 @@ class C
 { 
     void Foo()
     {
-        Bar(Quux); } void Bar(Func<string, object> f); string Quux(object o); }",
+        Bar(Quux);
+    }
+    void Bar(Func<string, object> f);
+    string Quux(object o);
+}",
 fixAllActionEquivalenceKey: LambdaSimplifierCodeFixProvider.FixAllEquivalenceKey);
         }
 
@@ -106,13 +110,21 @@ class C
 { 
     void Foo()
     {
-        Bar(s [||]=> Quux(s)); } void Bar(Func<string, string> f); object Quux(object o); }",
+        Bar(s [||]=> Quux(s));
+    }
+    void Bar(Func<string, string> f);
+    object Quux(object o);
+}",
 @"using System;
 class C
 { 
     void Foo()
     {
-        Bar(Quux); } void Bar(Func<string, string> f); object Quux(object o); }");
+        Bar(Quux); 
+    }
+    void Bar(Func<string, string> f);
+    object Quux(object o);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
@@ -160,13 +172,21 @@ class C
 { 
     void Foo()
     {
-        Bar({|FixAllInDocument:(s1, s2) => Quux(s1, s2)|}); } void Bar(Func<int,bool,string> f); string Quux(int i, bool b); }",
+        Bar({|FixAllInDocument:(s1, s2) => Quux(s1, s2)|});
+    }
+    void Bar(Func<int,bool,string> f);
+    string Quux(int i, bool b);
+}",
 @"using System;
 class C
 { 
     void Foo()
     {
-        Bar(Quux); } void Bar(Func<int,bool,string> f); string Quux(int i, bool b); }",
+        Bar(Quux);
+    }
+    void Bar(Func<int,bool,string> f);
+    string Quux(int i, bool b);
+}",
 fixAllActionEquivalenceKey: LambdaSimplifierCodeFixProvider.FixAllEquivalenceKey);
         }
 
@@ -179,13 +199,21 @@ class C
 { 
     void Foo()
     {
-        Bar({|FixAllInDocument:(s1, s2) => { return Quux(s1, s2); }|}); } void Bar(Func<int,bool,string> f); string Quux(int i, bool b); }",
+        Bar({|FixAllInDocument:(s1, s2) => { return Quux(s1, s2); }|});
+    }
+    void Bar(Func<int,bool,string> f);
+    string Quux(int i, bool b);
+}",
 @"using System;
 class C
 { 
     void Foo()
     {
-        Bar(Quux); } void Bar(Func<int,bool,string> f); string Quux(int i, bool b); }",
+        Bar(Quux);
+    }
+    void Bar(Func<int,bool,string> f);
+    string Quux(int i, bool b);
+}",
 fixAllActionEquivalenceKey: LambdaSimplifierCodeFixProvider.FixAllEquivalenceKey);
         }
 
@@ -198,13 +226,21 @@ class C
 { 
     void Foo()
     {
-        Bar({|FixAllInDocument:(s1, s2) => { return this.Quux(s1, s2); }|}); } void Bar(Func<int,bool,string> f); string Quux(int i, bool b); }",
+        Bar({|FixAllInDocument:(s1, s2) => { return this.Quux(s1, s2); }|});
+    }
+    void Bar(Func<int,bool,string> f);
+    string Quux(int i, bool b);
+}",
 @"using System;
 class C
 { 
     void Foo()
     {
-        Bar(this.Quux); } void Bar(Func<int,bool,string> f); string Quux(int i, bool b); }",
+        Bar(this.Quux);
+    }
+    void Bar(Func<int,bool,string> f);
+    string Quux(int i, bool b);
+}",
 fixAllActionEquivalenceKey: LambdaSimplifierCodeFixProvider.FixAllEquivalenceKey);
         }
 
@@ -246,13 +282,23 @@ class C
 { 
     void Foo()
     {
-        Bar({|FixAllInDocument:s => Quux(s)|}); Bar(s => Quux(s)); } void Bar(Func<int,string> f); string Quux(int i); }",
+        Bar({|FixAllInDocument:s => Quux(s)|});
+        Bar(s => Quux(s));
+    }
+    void Bar(Func<int,string> f);
+    string Quux(int i);
+}",
 @"using System;
 class C
 { 
     void Foo()
     {
-        Bar(Quux); Bar(Quux); } void Bar(Func<int,string> f); string Quux(int i); }",
+        Bar(Quux);
+        Bar(Quux);
+    }
+    void Bar(Func<int,string> f);
+    string Quux(int i);
+}",
 fixAllActionEquivalenceKey: LambdaSimplifierCodeFixProvider.FixAllEquivalenceKey);
         }
 
