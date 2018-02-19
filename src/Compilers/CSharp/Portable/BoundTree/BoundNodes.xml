@@ -846,9 +846,9 @@
     <Field Name="WhenTrue" Type="BoundDecisionDag" Null="disallow"/>
     <Field Name="WhenFalse" Type="BoundDecisionDag" Null="disallow"/>
   </Node>
-  <Node Name="BoundWhereClause" Base="BoundDecisionDag">
+  <Node Name="BoundWhenClause" Base="BoundDecisionDag">
     <Field Name="Bindings" Type="ImmutableArray&lt;(BoundExpression,BoundDagTemp)&gt;" Null="disallow"/>
-    <Field Name="Where" Type="BoundExpression" Null="allow"/>
+    <Field Name="WhenExpression" Type="BoundExpression" Null="allow"/>
     <Field Name="WhenTrue" Type="BoundDecisionDag" Null="disallow"/>
     <Field Name="WhenFalse" Type="BoundDecisionDag" Null="allow"/>
   </Node>

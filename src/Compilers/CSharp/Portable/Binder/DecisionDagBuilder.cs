@@ -374,7 +374,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        return new BoundWhereClause(first.Syntax, first.Bindings, null, new BoundDecision(first.Syntax, first.CaseLabel), null);
+                        return new BoundWhenClause(first.Syntax, first.Bindings, null, new BoundDecision(first.Syntax, first.CaseLabel), null);
                     }
                 }
                 else
@@ -382,7 +382,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // in case the where clause fails, we prepare for the remaining cases.
                     ImmutableArray<PartialCaseDecision> remainingCases = cases.RemoveAt(0);
                     BoundDecisionDag whereFails = MakeDecisionDag(syntax, remainingCases, defaultLabel);
-                    return new BoundWhereClause(first.Syntax, first.Bindings, first.WhereClause, new BoundDecision(first.Syntax, first.CaseLabel), whereFails);
+                    return new BoundWhenClause(first.Syntax, first.Bindings, first.WhereClause, new BoundDecision(first.Syntax, first.CaseLabel), whereFails);
                 }
             }
             else
@@ -428,17 +428,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var trueBuilder = ArrayBuilder<BoundDagDecision>.GetInstance();
             var falseBuilder = ArrayBuilder<BoundDagDecision>.GetInstance();
-            foreach (BoundDagDecision dd in c.Decisions)
+            foreach (BoundDagDecision other in c.Decisions)
             {
-                CheckConsistentDecision(d: d, other: dd,
-                    permitsTrue: out bool permitsTrue, permitsFalse: out bool permitsFalse,
-                    killsDecisionOnTrueBranch: out bool killsDecisionOnTrueBranch,
-                    killsDecisionOnFalseBranch: out bool killsDecisionOnFalseBranch);
-                if (permitsTrue)
+                CheckConsistentDecision(
+                    d: d,
+                    other: other,
+                    trueDecisionPermitsTrueOther: out bool trueDecisionPermitsTrueOther,
+                    falseDecisionPermitsTrueOther: out bool falseDecisionPermitsTrueOther,
+                    trueDecisionImpliesTrueOther: out bool trueDecisionImpliesTrueOther,
+                    falseDecisionImpliesTrueOther: out bool falseDecisionImpliesTrueOther);
+                if (trueDecisionPermitsTrueOther)
                 {
-                    if (d != dd && !killsDecisionOnTrueBranch)
+                    if (!trueDecisionImpliesTrueOther)
                     {
-                        trueBuilder?.Add(dd);
+                        Debug.Assert(d != other);
+                        trueBuilder?.Add(other);
                     }
                 }
                 else
@@ -446,12 +450,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     trueBuilder?.Free();
                     trueBuilder = null;
                 }
-                if (permitsFalse)
+                if (falseDecisionPermitsTrueOther)
                 {
-                    Debug.Assert(d != dd);
-                    if (!killsDecisionOnFalseBranch)
+                    if (!falseDecisionImpliesTrueOther)
                     {
-                        falseBuilder?.Add(dd);
+                        Debug.Assert(d != other);
+                        falseBuilder?.Add(other);
                     }
                 }
                 else
@@ -476,28 +480,32 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Given that the decision d has occurred and produced a true/false result,
-        /// set permitsTrue if a true decision on d would permit other to succeed.
-        /// set permitsFalse if a false decision on d would permit other to succeed.
-        /// sets killsDecisionOnFalseBranch when d being false means other has been proven true
-        /// sets killsDecisionOnTrueBranch when d being true means other has been proven true
+        /// set some flags indicating the implied status of the other decision.
         /// </summary>
+        /// <param name="d"></param>
+        /// <param name="other"></param>
+        /// <param name="trueDecisionPermitsTrueOther">set if d being true would permit other to succeed</param>
+        /// <param name="falseDecisionPermitsTrueOther">set if a false decision on d would permit other to succeed</param>
+        /// <param name="trueDecisionImpliesTrueOther">set if d being false means other has been proven true</param>
+        /// <param name="falseDecisionImpliesTrueOther">set if d being true means other has been proven true</param>
         private void CheckConsistentDecision(
             BoundDagDecision d,
             BoundDagDecision other,
-            out bool permitsTrue,
-            out bool permitsFalse,
-            out bool killsDecisionOnTrueBranch,
-            out bool killsDecisionOnFalseBranch)
+            out bool trueDecisionPermitsTrueOther,
+            out bool falseDecisionPermitsTrueOther,
+            out bool trueDecisionImpliesTrueOther,
+            out bool falseDecisionImpliesTrueOther)
         {
             // PROTOTYPE(patterns2): the names and API shape are confusing. Perhaps
             // could be renamed to couldBeTrueIfTrue, couldBeFalseIfFalse, isDefinitelyTrueIfTrue, and isDefinitelyFalseIfFalse.
             // Possibly also use a tuple for returning the result.
 
             // innocent until proven guilty
-            permitsTrue = true;
-            permitsFalse = true;
-            killsDecisionOnTrueBranch = false;
-            killsDecisionOnFalseBranch = false;
+            trueDecisionPermitsTrueOther = true;
+            falseDecisionPermitsTrueOther = true;
+
+            trueDecisionImpliesTrueOther = false;
+            falseDecisionImpliesTrueOther = false;
 
             // if decisions test unrelated things, there is no implication from one to the other
             if (d.Input != other.Input)
@@ -505,11 +513,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            // a test cannot be both true and false
+            // a test is consistent with itself
             if (d == other)
             {
-                permitsFalse = false;
-                killsDecisionOnTrueBranch = true;
+                trueDecisionImpliesTrueOther = true;
+                falseDecisionPermitsTrueOther = false;
                 return;
             }
 
@@ -521,18 +529,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case BoundValueDecision v2:
                             if (v2.Value == ConstantValue.Null)
                             {
-                                permitsTrue = false; // if v!=null is true, then v==null cannot succeed
-                                killsDecisionOnFalseBranch = true; // if v!=null is false, then v==null has been proven true
+                                trueDecisionPermitsTrueOther = false; // if v!=null is true, then v==null cannot succeed
+                                falseDecisionImpliesTrueOther = true; // if v!=null is false, then v==null has been proven true
                             }
                             else
                             {
-                                // Given that v!=null fails, v==K might succeed
-                                permitsFalse = false;
+                                // Given that v!=null fails, v is null and v==K cannot succeed
+                                falseDecisionPermitsTrueOther = false;
                             }
                             break;
                         default:
                             // Once v!=null fails, it must fail a type test
-                            permitsFalse = false;
+                            falseDecisionPermitsTrueOther = false;
                             break;
                     }
                     break;
@@ -541,27 +549,33 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         case BoundNonNullDecision n2:
                             // Once `v is T` is true, v!=null cannot fail
-                            permitsFalse = false;
-                            killsDecisionOnTrueBranch = true;
+                            trueDecisionImpliesTrueOther = true;
                             break;
                         case BoundTypeDecision t2:
                             // If T1 could never be T2, then success of T1 implies failure of T2.
-                            bool? matchPossible = Binder.ExpressionOfTypeMatchesPatternType(Conversions, t1.Type, t2.Type, ref discardedUseSiteDiagnostics, out _);
-                            if (matchPossible == false)
+                            bool? matches = Binder.ExpressionOfTypeMatchesPatternType(Conversions, t1.Type, t2.Type, ref discardedUseSiteDiagnostics, out _);
+                            if (matches == false)
                             {
-                                permitsTrue = false;
+                                trueDecisionPermitsTrueOther = false;
                             }
 
                             // If every T2 is a T1, then failure of T1 implies failure of T2.
-                            matchPossible = Binder.ExpressionOfTypeMatchesPatternType(Conversions, t2.Type, t1.Type, ref discardedUseSiteDiagnostics, out _);
-                            if (matchPossible == true)
+                            matches = Binder.ExpressionOfTypeMatchesPatternType(Conversions, t2.Type, t1.Type, ref discardedUseSiteDiagnostics, out _);
+                            if (matches == true)
                             {
                                 // Once we know it is of the subtype, we do not need to test for the supertype.
-                                permitsFalse = false;
-                                killsDecisionOnTrueBranch = true;
+                                falseDecisionPermitsTrueOther = false;
                             }
                             break;
                         case BoundValueDecision v2:
+                            if (v2.Value == ConstantValue.Null)
+                            {
+                                trueDecisionPermitsTrueOther = false; // if v is T1 is true, then v==null cannot succeed
+                            }
+                            else
+                            {
+                                // PROTOTYPE(patterns2): what can knowing that the type is/isn't T1 imply about knowing the value is v2?
+                            }
                             break;
                     }
                     break;
@@ -571,37 +585,39 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case BoundNonNullDecision n2:
                             if (v1.Value == ConstantValue.Null)
                             {
-                                // once v==null is false, we know v!=null is true and do not need to test it
-                                permitsTrue = false;
-                                killsDecisionOnFalseBranch = true;
+                                trueDecisionPermitsTrueOther = false; // v==null being true does not permit v!=null to be true
+                                falseDecisionImpliesTrueOther = true; // v==null being false implies v!=null to be true
                             }
                             else
                             {
-                                // once v==K is true, we know v!=null is true and do not need to test it
-                                permitsFalse = false;
-                                killsDecisionOnTrueBranch = true;
+                                // v==K implies v!=null
+                                trueDecisionImpliesTrueOther = true;
                             }
                             break;
                         case BoundTypeDecision t2:
                             if (v1.Value == ConstantValue.Null)
                             {
-                                permitsTrue = false;
+                                // v==null does not permit v is T
+                                trueDecisionPermitsTrueOther = false;
                             }
 
                             break;
                         case BoundValueDecision v2:
-                            Debug.Assert(v1.Value != v2.Value);
-                            permitsTrue = false;
-                            if (v1.Input.Type.SpecialType == SpecialType.System_Boolean)
+                            if (v1.Value == v2.Value)
                             {
-                                // As a special case, we note that boolean values can only ever be true or false.
-                                // However, in order to exclude bad constant values, we check the values.
-                                if (v1.Value == ConstantValue.True && v2.Value == ConstantValue.False ||
-                                    v1.Value == ConstantValue.False && v2.Value == ConstantValue.True)
+                                trueDecisionImpliesTrueOther = true;
+                                falseDecisionPermitsTrueOther = false;
+                            }
+                            else
+                            {
+                                trueDecisionPermitsTrueOther = false;
+                                if (v1.Input.Type.SpecialType == SpecialType.System_Boolean)
                                 {
-                                    killsDecisionOnFalseBranch = true;
+                                    // As a special case, we note that boolean values can only ever be true or false.
+                                    falseDecisionImpliesTrueOther = true;
                                 }
                             }
+
                             break;
                     }
                     break;

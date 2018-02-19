@@ -12,43 +12,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed partial class LocalRewriter
     {
-        private struct IsPatternExpressionLocalRewriter
+        private class PatternLocalRewriter
         {
-            private readonly LocalRewriter _localRewriter;
-            private readonly SyntheticBoundNodeFactory _factory;
+            protected readonly LocalRewriter _localRewriter;
+            protected readonly BoundExpression _loweredInput;
+            protected readonly SyntheticBoundNodeFactory _factory;
+            protected readonly DagTempAllocator _tempAllocator;
+            protected readonly BoundDagTemp _inputTemp;
 
-            /// <summary>
-            /// Accumulates side-effects that come before the next conjunct.
-            /// </summary>
-            private readonly ArrayBuilder<BoundExpression> _sideEffectBuilder;
-
-            /// <summary>
-            /// Accumulates conjuncts (conditions that must all be true) for the translation. When a conjunct is added,
-            /// elements of the _sideEffectBuilder, if any, should be added as part of a sequence expression for
-            /// the conjunct being added.
-            /// </summary>
-            private readonly ArrayBuilder<BoundExpression> _conjunctBuilder;
-
-            private readonly DagTempAllocator _tempAllocator;
-
-            private readonly BoundExpression _loweredInput;
-            private readonly BoundDagTemp _inputTemp;
-
-            public IsPatternExpressionLocalRewriter(LocalRewriter localRewriter, BoundExpression loweredInput)
+            public PatternLocalRewriter(LocalRewriter localRewriter, BoundExpression loweredInput)
             {
+                this._loweredInput = loweredInput;
                 this._localRewriter = localRewriter;
                 this._factory = localRewriter._factory;
-                this._tempAllocator = new DagTempAllocator(localRewriter._factory);
-                this._loweredInput = loweredInput;
+                this._factory.Syntax = _loweredInput.Syntax;
+                this._tempAllocator = new DagTempAllocator(_factory);
                 this._inputTemp = new BoundDagTemp(loweredInput.Syntax, loweredInput.Type, null, 0);
-                this._conjunctBuilder = ArrayBuilder<BoundExpression>.GetInstance();
-                this._sideEffectBuilder = ArrayBuilder<BoundExpression>.GetInstance();
             }
 
             public void Free()
             {
-                _conjunctBuilder.Free();
-                _sideEffectBuilder.Free();
                 _tempAllocator.Free();
             }
 
@@ -94,33 +77,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            private bool LowerDecision(BoundDagDecision decision)
+            protected void LowerDecision(BoundDagDecision decision, out BoundExpression sideEffect, out BoundExpression test)
             {
-                SyntaxNode oldSyntax = _factory.Syntax;
-                _factory.Syntax = decision.Syntax;
-                bool result = LowerDecisionCore(decision);
-                _factory.Syntax = oldSyntax;
-                return result;
-            }
-
-            /// <summary>
-            /// Translate the single decision into _sideEffectBuilder and _conjunctBuilder.
-            /// Returns true if no further decisions need to be translated (e.g. when producing a `false` conjunct).
-            /// </summary>
-            private bool LowerDecisionCore(BoundDagDecision decision)
-            {
-                void addConjunct(ref IsPatternExpressionLocalRewriter self, BoundExpression expression)
-                {
-                    // PROTOTYPE(patterns2): could handle constant expressions more efficiently.
-                    if (self._sideEffectBuilder.Count != 0)
-                    {
-                        expression = self._factory.Sequence(ImmutableArray<LocalSymbol>.Empty, self._sideEffectBuilder.ToImmutable(), expression);
-                        self._sideEffectBuilder.Clear();
-                    }
-
-                    self._conjunctBuilder.Add(expression);
-                }
-
+                sideEffect = null;
+                test = null;
                 BoundExpression input = _tempAllocator.GetTemp(decision.Input);
                 switch (decision)
                 {
@@ -131,21 +91,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                             bool decisionResult = _loweredInput.ConstantValue != ConstantValue.Null;
                             if (!decisionResult)
                             {
-                                _conjunctBuilder.Add(_factory.Literal(decisionResult));
-                                return true;
+                                test = _factory.Literal(decisionResult);
                             }
                         }
                         else
                         {
                             // PROTOTYPE(patterns2): combine null test and type test when possible for improved code
-                            addConjunct(ref this, _localRewriter.MakeNullCheck(d.Syntax, input, input.Type.IsNullableType() ? BinaryOperatorKind.NullableNullNotEqual : BinaryOperatorKind.NotEqual));
+                            test = _localRewriter.MakeNullCheck(d.Syntax, input, input.Type.IsNullableType() ? BinaryOperatorKind.NullableNullNotEqual : BinaryOperatorKind.NotEqual);
                         }
-                        break;
+                        return;
                     case BoundTypeDecision d:
                         {
-                            addConjunct(ref this, _factory.Is(input, d.Type));
+                            test = _factory.Is(input, d.Type);
                         }
-                        break;
+                        return;
                     case BoundValueDecision d:
                         // If the actual input is a constant, short-circuit this test
                         if (d.Input == _inputTemp && _loweredInput.ConstantValue != null)
@@ -153,20 +112,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                             bool decisionResult = _loweredInput.ConstantValue == d.Value;
                             if (!decisionResult)
                             {
-                                _conjunctBuilder.Add(_factory.Literal(decisionResult));
-                                return true;
+                                test = _factory.Literal(decisionResult);
                             }
                         }
                         else if (d.Value == ConstantValue.Null)
                         {
-                            addConjunct(ref this, _localRewriter.MakeNullCheck(d.Syntax, input, input.Type.IsNullableType() ? BinaryOperatorKind.NullableNullEqual : BinaryOperatorKind.Equal));
+                            test = _localRewriter.MakeNullCheck(d.Syntax, input, input.Type.IsNullableType() ? BinaryOperatorKind.NullableNullEqual : BinaryOperatorKind.Equal);
                         }
                         else
                         {
                             Debug.Assert(!input.Type.IsNullableType());
-                            addConjunct(ref this, _localRewriter.MakeEqual(_factory.Literal(d.Value, input.Type), input));
+                            test = _localRewriter.MakeEqual(_factory.Literal(d.Value, input.Type), input);
                         }
-                        break;
+                        return;
                     case BoundDagFieldEvaluation f:
                         {
                             // PROTOTYPE(patterns2): I believe simply using TupleUnderlyingField is not sufficient for correct handling of long tuples.
@@ -175,17 +133,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                             field = field.TupleUnderlyingField ?? field;
                             var outputTemp = new BoundDagTemp(f.Syntax, field.Type, f, 0);
                             BoundExpression output = _tempAllocator.GetTemp(outputTemp);
-                            _sideEffectBuilder.Add(_factory.AssignmentExpression(output, _factory.Field(input, field)));
+                            sideEffect = _factory.AssignmentExpression(output, _factory.Field(input, field));
                         }
-                        break;
+                        return;
                     case BoundDagPropertyEvaluation p:
                         {
                             PropertySymbol property = p.Property;
                             var outputTemp = new BoundDagTemp(p.Syntax, property.Type, p, 0);
                             BoundExpression output = _tempAllocator.GetTemp(outputTemp);
-                            _sideEffectBuilder.Add(_factory.AssignmentExpression(output, _factory.Property(input, property)));
+                            sideEffect = _factory.AssignmentExpression(output, _factory.Property(input, property));
                         }
-                        break;
+                        return;
                     case BoundDagDeconstructEvaluation d:
                         {
                             MethodSymbol method = d.DeconstructMethod;
@@ -218,9 +176,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 var outputTemp = new BoundDagTemp(d.Syntax, parameter.Type, d, i - extensionExtra);
                                 addArg(RefKind.Out, _tempAllocator.GetTemp(outputTemp));
                             }
-                            _sideEffectBuilder.Add(_factory.Call(receiver, method, refKindBuilder.ToImmutableAndFree(), argBuilder.ToImmutableAndFree()));
+                            sideEffect = _factory.Call(receiver, method, refKindBuilder.ToImmutableAndFree(), argBuilder.ToImmutableAndFree());
                         }
-                        break;
+                        return;
                     case BoundDagTypeEvaluation t:
                         {
                             TypeSymbol inputType = input.Type;
@@ -235,17 +193,77 @@ namespace Microsoft.CodeAnalysis.CSharp
                             Conversion conversion = _factory.Compilation.ClassifyConversion(inputType, output.Type);
                             if (conversion.Exists)
                             {
-                                _sideEffectBuilder.Add(_factory.AssignmentExpression(output, _factory.Convert(type, input, conversion)));
+                                sideEffect = _factory.AssignmentExpression(output, _factory.Convert(type, input, conversion));
                             }
                             else
                             {
-                                _sideEffectBuilder.Add(_factory.AssignmentExpression(output, _factory.As(input, type)));
+                                sideEffect = _factory.AssignmentExpression(output, _factory.As(input, type));
                             }
                         }
-                        break;
+                        return;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(decision);
                 }
+            }
+        }
 
-                return false;
+        private class IsPatternExpressionLocalRewriter : PatternLocalRewriter
+        {
+            /// <summary>
+            /// Accumulates side-effects that come before the next conjunct.
+            /// </summary>
+            private readonly ArrayBuilder<BoundExpression> _sideEffectBuilder;
+
+            /// <summary>
+            /// Accumulates conjuncts (conditions that must all be true) for the translation. When a conjunct is added,
+            /// elements of the _sideEffectBuilder, if any, should be added as part of a sequence expression for
+            /// the conjunct being added.
+            /// </summary>
+            private readonly ArrayBuilder<BoundExpression> _conjunctBuilder;
+
+            public IsPatternExpressionLocalRewriter(LocalRewriter localRewriter, BoundExpression loweredInput)
+                : base(localRewriter, loweredInput)
+            {
+                this._conjunctBuilder = ArrayBuilder<BoundExpression>.GetInstance();
+                this._sideEffectBuilder = ArrayBuilder<BoundExpression>.GetInstance();
+            }
+
+            public new void Free()
+            {
+                _conjunctBuilder.Free();
+                _sideEffectBuilder.Free();
+                base.Free();
+            }
+
+            private void LowerDecision(BoundDagDecision decision)
+            {
+                SyntaxNode oldSyntax = _factory.Syntax;
+                _factory.Syntax = decision.Syntax;
+                LowerDecisionCore(decision);
+                _factory.Syntax = oldSyntax;
+            }
+
+            /// <summary>
+            /// Translate the single decision into _sideEffectBuilder and _conjunctBuilder.
+            /// </summary>
+            private void LowerDecisionCore(BoundDagDecision decision)
+            {
+                LowerDecision(decision, out BoundExpression sideEffect, out BoundExpression test);
+                if (sideEffect != null)
+                {
+                    _sideEffectBuilder.Add(sideEffect);
+                }
+                if (test != null)
+                {
+                    // PROTOTYPE(patterns2): could handle constant expressions more efficiently.
+                    if (_sideEffectBuilder.Count != 0)
+                    {
+                        test = _factory.Sequence(ImmutableArray<LocalSymbol>.Empty, _sideEffectBuilder.ToImmutable(), test);
+                        _sideEffectBuilder.Clear();
+                    }
+
+                    _conjunctBuilder.Add(test);
+                }
             }
 
             public BoundExpression LowerIsPattern(BoundPattern pattern, CSharpCompilation compilation)
@@ -272,10 +290,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // then process all of the individual decisions
                 foreach (BoundDagDecision decision in decisions)
                 {
-                    if (LowerDecision(decision))
-                    {
-                        break;
-                    }
+                    LowerDecision(decision);
                 }
 
                 if (_sideEffectBuilder.Count != 0)

@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 processDag(x.WhenTrue);
                                 processDag(x.WhenFalse);
                                 return;
-                            case BoundWhereClause x:
+                            case BoundWhenClause x:
                                 processDag(x.WhenTrue);
                                 processDag(x.WhenFalse);
                                 return;

@@ -91,10 +91,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         PatternSwitchStatement,
         PatternSwitchStatement2,
         SwitchExpression,
-        SwitchExpressionCase,
+        SwitchExpressionArm,
         EvaluationPoint,
         DecisionPoint,
-        WhereClause,
+        WhenClause,
         Decision,
         DagTemp,
         NonNullDecision,
@@ -2970,7 +2970,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal sealed partial class BoundSwitchExpressionArm : BoundNode
     {
         public BoundSwitchExpressionArm(SyntaxNode syntax, ImmutableArray<LocalSymbol> locals, BoundPattern pattern, BoundExpression guard, BoundExpression value, bool hasErrors = false)
-            : base(BoundKind.SwitchExpressionCase, syntax, hasErrors || pattern.HasErrors() || guard.HasErrors() || value.HasErrors())
+            : base(BoundKind.SwitchExpressionArm, syntax, hasErrors || pattern.HasErrors() || guard.HasErrors() || value.HasErrors())
         {
 
             Debug.Assert(!locals.IsDefault, "Field 'locals' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
@@ -2994,7 +2994,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode Accept(BoundTreeVisitor visitor)
         {
-            return visitor.VisitSwitchExpressionCase(this);
+            return visitor.VisitSwitchExpressionArm(this);
         }
 
         public BoundSwitchExpressionArm Update(ImmutableArray<LocalSymbol> locals, BoundPattern pattern, BoundExpression guard, BoundExpression value)
@@ -3097,17 +3097,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal sealed partial class BoundWhereClause : BoundDecisionDag
+    internal sealed partial class BoundWhenClause : BoundDecisionDag
     {
-        public BoundWhereClause(SyntaxNode syntax, ImmutableArray<(BoundExpression,BoundDagTemp)> bindings, BoundExpression @where, BoundDecisionDag whenTrue, BoundDecisionDag whenFalse, bool hasErrors = false)
-            : base(BoundKind.WhereClause, syntax, hasErrors || @where.HasErrors() || whenTrue.HasErrors() || whenFalse.HasErrors())
+        public BoundWhenClause(SyntaxNode syntax, ImmutableArray<(BoundExpression,BoundDagTemp)> bindings, BoundExpression whenExpression, BoundDecisionDag whenTrue, BoundDecisionDag whenFalse, bool hasErrors = false)
+            : base(BoundKind.WhenClause, syntax, hasErrors || whenExpression.HasErrors() || whenTrue.HasErrors() || whenFalse.HasErrors())
         {
 
             Debug.Assert(!bindings.IsDefault, "Field 'bindings' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             Debug.Assert(whenTrue != null, "Field 'whenTrue' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
 
             this.Bindings = bindings;
-            this.Where = @where;
+            this.WhenExpression = whenExpression;
             this.WhenTrue = whenTrue;
             this.WhenFalse = whenFalse;
         }
@@ -3115,7 +3115,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public ImmutableArray<(BoundExpression,BoundDagTemp)> Bindings { get; }
 
-        public BoundExpression Where { get; }
+        public BoundExpression WhenExpression { get; }
 
         public BoundDecisionDag WhenTrue { get; }
 
@@ -3123,14 +3123,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode Accept(BoundTreeVisitor visitor)
         {
-            return visitor.VisitWhereClause(this);
+            return visitor.VisitWhenClause(this);
         }
 
-        public BoundWhereClause Update(ImmutableArray<(BoundExpression,BoundDagTemp)> bindings, BoundExpression @where, BoundDecisionDag whenTrue, BoundDecisionDag whenFalse)
+        public BoundWhenClause Update(ImmutableArray<(BoundExpression,BoundDagTemp)> bindings, BoundExpression whenExpression, BoundDecisionDag whenTrue, BoundDecisionDag whenFalse)
         {
-            if (bindings != this.Bindings || @where != this.Where || whenTrue != this.WhenTrue || whenFalse != this.WhenFalse)
+            if (bindings != this.Bindings || whenExpression != this.WhenExpression || whenTrue != this.WhenTrue || whenFalse != this.WhenFalse)
             {
-                var result = new BoundWhereClause(this.Syntax, bindings, @where, whenTrue, whenFalse, this.HasErrors);
+                var result = new BoundWhenClause(this.Syntax, bindings, whenExpression, whenTrue, whenFalse, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -6939,14 +6939,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitPatternSwitchStatement2(node as BoundPatternSwitchStatement2, arg);
                 case BoundKind.SwitchExpression: 
                     return VisitSwitchExpression(node as BoundSwitchExpression, arg);
-                case BoundKind.SwitchExpressionCase: 
-                    return VisitSwitchExpressionCase(node as BoundSwitchExpressionArm, arg);
+                case BoundKind.SwitchExpressionArm: 
+                    return VisitSwitchExpressionArm(node as BoundSwitchExpressionArm, arg);
                 case BoundKind.EvaluationPoint: 
                     return VisitEvaluationPoint(node as BoundEvaluationPoint, arg);
                 case BoundKind.DecisionPoint: 
                     return VisitDecisionPoint(node as BoundDecisionPoint, arg);
-                case BoundKind.WhereClause: 
-                    return VisitWhereClause(node as BoundWhereClause, arg);
+                case BoundKind.WhenClause: 
+                    return VisitWhenClause(node as BoundWhenClause, arg);
                 case BoundKind.Decision: 
                     return VisitDecision(node as BoundDecision, arg);
                 case BoundKind.DagTemp: 
@@ -7421,7 +7421,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return this.DefaultVisit(node, arg);
         }
-        public virtual R VisitSwitchExpressionCase(BoundSwitchExpressionArm node, A arg)
+        public virtual R VisitSwitchExpressionArm(BoundSwitchExpressionArm node, A arg)
         {
             return this.DefaultVisit(node, arg);
         }
@@ -7433,7 +7433,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return this.DefaultVisit(node, arg);
         }
-        public virtual R VisitWhereClause(BoundWhereClause node, A arg)
+        public virtual R VisitWhenClause(BoundWhenClause node, A arg)
         {
             return this.DefaultVisit(node, arg);
         }
@@ -8089,7 +8089,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return this.DefaultVisit(node);
         }
-        public virtual BoundNode VisitSwitchExpressionCase(BoundSwitchExpressionArm node)
+        public virtual BoundNode VisitSwitchExpressionArm(BoundSwitchExpressionArm node)
         {
             return this.DefaultVisit(node);
         }
@@ -8101,7 +8101,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return this.DefaultVisit(node);
         }
-        public virtual BoundNode VisitWhereClause(BoundWhereClause node)
+        public virtual BoundNode VisitWhenClause(BoundWhenClause node)
         {
             return this.DefaultVisit(node);
         }
@@ -8834,7 +8834,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.VisitList(node.SwitchSections);
             return null;
         }
-        public override BoundNode VisitSwitchExpressionCase(BoundSwitchExpressionArm node)
+        public override BoundNode VisitSwitchExpressionArm(BoundSwitchExpressionArm node)
         {
             this.Visit(node.Pattern);
             this.Visit(node.Guard);
@@ -8854,9 +8854,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Visit(node.WhenFalse);
             return null;
         }
-        public override BoundNode VisitWhereClause(BoundWhereClause node)
+        public override BoundNode VisitWhenClause(BoundWhenClause node)
         {
-            this.Visit(node.Where);
+            this.Visit(node.WhenExpression);
             this.Visit(node.WhenTrue);
             this.Visit(node.WhenFalse);
             return null;
@@ -9748,7 +9748,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol type = this.VisitType(node.Type);
             return node.Update(governingExpression, switchSections, type);
         }
-        public override BoundNode VisitSwitchExpressionCase(BoundSwitchExpressionArm node)
+        public override BoundNode VisitSwitchExpressionArm(BoundSwitchExpressionArm node)
         {
             BoundPattern pattern = (BoundPattern)this.Visit(node.Pattern);
             BoundExpression guard = (BoundExpression)this.Visit(node.Guard);
@@ -9768,12 +9768,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundDecisionDag whenFalse = (BoundDecisionDag)this.Visit(node.WhenFalse);
             return node.Update(decision, whenTrue, whenFalse);
         }
-        public override BoundNode VisitWhereClause(BoundWhereClause node)
+        public override BoundNode VisitWhenClause(BoundWhenClause node)
         {
-            BoundExpression @where = (BoundExpression)this.Visit(node.Where);
+            BoundExpression whenExpression = (BoundExpression)this.Visit(node.WhenExpression);
             BoundDecisionDag whenTrue = (BoundDecisionDag)this.Visit(node.WhenTrue);
             BoundDecisionDag whenFalse = (BoundDecisionDag)this.Visit(node.WhenFalse);
-            return node.Update(node.Bindings, @where, whenTrue, whenFalse);
+            return node.Update(node.Bindings, whenExpression, whenTrue, whenFalse);
         }
         public override BoundNode VisitDecision(BoundDecision node)
         {
@@ -11039,9 +11039,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             );
         }
-        public override TreeDumperNode VisitSwitchExpressionCase(BoundSwitchExpressionArm node, object arg)
+        public override TreeDumperNode VisitSwitchExpressionArm(BoundSwitchExpressionArm node, object arg)
         {
-            return new TreeDumperNode("switchExpressionCase", null, new TreeDumperNode[]
+            return new TreeDumperNode("switchExpressionArm", null, new TreeDumperNode[]
             {
                 new TreeDumperNode("locals", node.Locals, null),
                 new TreeDumperNode("pattern", null, new TreeDumperNode[] { Visit(node.Pattern, null) }),
@@ -11069,12 +11069,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             );
         }
-        public override TreeDumperNode VisitWhereClause(BoundWhereClause node, object arg)
+        public override TreeDumperNode VisitWhenClause(BoundWhenClause node, object arg)
         {
-            return new TreeDumperNode("whereClause", null, new TreeDumperNode[]
+            return new TreeDumperNode("whenClause", null, new TreeDumperNode[]
             {
                 new TreeDumperNode("bindings", node.Bindings, null),
-                new TreeDumperNode("@where", null, new TreeDumperNode[] { Visit(node.Where, null) }),
+                new TreeDumperNode("whenExpression", null, new TreeDumperNode[] { Visit(node.WhenExpression, null) }),
                 new TreeDumperNode("whenTrue", null, new TreeDumperNode[] { Visit(node.WhenTrue, null) }),
                 new TreeDumperNode("whenFalse", null, new TreeDumperNode[] { Visit(node.WhenFalse, null) })
             }

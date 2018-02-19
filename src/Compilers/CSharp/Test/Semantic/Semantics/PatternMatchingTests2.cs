@@ -855,7 +855,7 @@ namespace System
                 );
         }
 
-        [Fact(Skip = "PROTOTYPE(patterns2): lowering and code gen not yet implemented for recursive patterns")]
+        [Fact]
         public void Patterns2_10()
         {
             var source =
@@ -881,6 +881,7 @@ class Program
         }
     }
 }
+
 namespace System
 {
     public struct ValueTuple<T1, T2>
