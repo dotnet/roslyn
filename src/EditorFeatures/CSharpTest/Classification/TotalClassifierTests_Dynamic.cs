@@ -13,10 +13,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
         {
             await TestInClassAsync(@"void M(dynamic d = default(dynamic",
                 Keyword("void"),
-                Identifier("M"),
+                Method("M"),
                 Punctuation.OpenParen,
                 Keyword("dynamic"),
-                Identifier("d"),
+                Parameter("d"),
                 Operators.Equals,
                 Keyword("default"),
                 Punctuation.OpenParen,
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
             await TestInMethodAsync(
 @"dynamic d = (dynamic)a;",
                 Keyword("dynamic"),
-                Identifier("d"),
+                Local("d"),
                 Operators.Equals,
                 Punctuation.OpenParen,
                 Keyword("dynamic"),
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
             await TestInMethodAsync(@"dynamic? a",
                 Keyword("dynamic"),
                 Operators.QuestionMark,
-                Identifier("a"));
+                Local("a"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -152,7 +152,7 @@ class C
                 Identifier("dynamic"),
                 Operators.Text("::"),
                 Identifier("Goo"),
-                Identifier("a"),
+                Field("a"),
                 Punctuation.Semicolon,
                 Punctuation.CloseCurly);
         }
@@ -177,7 +177,7 @@ class C
                 Delegate("MyDelegate"),
                 Punctuation.OpenParen,
                 Keyword("dynamic"),
-                Identifier("d"),
+                Parameter("d"),
                 Punctuation.CloseParen);
         }
 
@@ -194,19 +194,19 @@ class C
                 Punctuation.OpenAngle,
                 Keyword("string"),
                 Punctuation.CloseAngle,
-                Identifier("f"),
+                Local("f"),
                 Operators.Equals,
                 Keyword("delegate"),
                 Punctuation.OpenCurly,
                 Keyword("int"),
-                Identifier("dynamic"),
+                Local("dynamic"),
                 Operators.Equals,
                 Number("10"),
                 Punctuation.Semicolon,
                 Keyword("return"),
-                Identifier("dynamic"),
+                Local("dynamic"),
                 Operators.Dot,
-                Identifier("ToString"),
+                Method("ToString"),
                 Punctuation.OpenParen,
                 Punctuation.CloseParen,
                 Punctuation.Semicolon,
@@ -241,7 +241,7 @@ class C
                 Punctuation.OpenAngle,
                 Keyword("int"),
                 Punctuation.CloseAngle,
-                Identifier("d"),
+                Field("d"),
                 Punctuation.Semicolon,
                 Punctuation.CloseCurly);
         }
@@ -261,7 +261,7 @@ class C
                 Punctuation.CloseAngle,
                 Punctuation.OpenCurly,
                 TypeParameter("T"),
-                Identifier("dynamic"),
+                Field("dynamic"),
                 Punctuation.Semicolon,
                 Punctuation.CloseCurly);
         }
@@ -274,7 +274,7 @@ class C
                 Keyword("this"),
                 Punctuation.OpenBracket,
                 Keyword("dynamic"),
-                Identifier("i"),
+                Parameter("i"),
                 Punctuation.CloseBracket);
         }
 
@@ -288,7 +288,7 @@ class C
                 Operators.Text("+"),
                 Punctuation.OpenParen,
                 Keyword("dynamic"),
-                Identifier("d1"),
+                Parameter("d1"),
                 Punctuation.CloseParen);
         }
 
@@ -302,7 +302,7 @@ class C
                 Keyword("dynamic"),
                 Punctuation.OpenParen,
                 Keyword("dynamic"),
-                Identifier("s"),
+                Parameter("s"),
                 Punctuation.CloseParen);
         }
 
@@ -311,7 +311,7 @@ class C
         {
             await TestInClassAsync(@"dynamic dynamic { get; set; }",
                 Keyword("dynamic"),
-                Identifier("dynamic"),
+                Property("dynamic"),
                 Punctuation.OpenCurly,
                 Keyword("get"),
                 Punctuation.Semicolon,
@@ -326,7 +326,7 @@ class C
             await TestInClassAsync(@"event Action dynamic",
                 Keyword("event"),
                 Identifier("Action"),
-                Identifier("dynamic"));
+                Event("dynamic"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -334,7 +334,7 @@ class C
         {
             await TestInMethodAsync(@"var v = from dynamic in names",
                 Keyword("var"),
-                Identifier("v"),
+                Local("v"),
                 Operators.Equals,
                 Keyword("from"),
                 Identifier("dynamic"),
@@ -349,7 +349,7 @@ class C
 @"var v = from dynamic in names
         select new { dynamic = dynamic };",
                 Keyword("var"),
-                Identifier("v"),
+                Local("v"),
                 Operators.Equals,
                 Keyword("from"),
                 Identifier("dynamic"),
@@ -358,7 +358,7 @@ class C
                 Keyword("select"),
                 Keyword("new"),
                 Punctuation.OpenCurly,
-                Identifier("dynamic"),
+                Property("dynamic"),
                 Operators.Equals,
                 Identifier("dynamic"),
                 Punctuation.CloseCurly,
@@ -371,15 +371,15 @@ class C
             await TestInMethodAsync(
 @"var p = names.Select(dynamic => dynamic.Length);",
                 Keyword("var"),
-                Identifier("p"),
+                Local("p"),
                 Operators.Equals,
                 Identifier("names"),
                 Operators.Dot,
                 Identifier("Select"),
                 Punctuation.OpenParen,
-                Identifier("dynamic"),
+                Parameter("dynamic"),
                 Operators.Text("=>"),
-                Identifier("dynamic"),
+                Parameter("dynamic"),
                 Operators.Dot,
                 Identifier("Length"),
                 Punctuation.CloseParen,
@@ -396,19 +396,19 @@ class C
     return dynamic.Length;
 };",
                 Identifier("D"),
-                Identifier("f"),
+                Local("f"),
                 Operators.Equals,
                 Keyword("delegate"),
                 Punctuation.OpenCurly,
                 Keyword("string"),
-                Identifier("dynamic"),
+                Local("dynamic"),
                 Operators.Equals,
                 String(@"""a"""),
                 Punctuation.Semicolon,
                 Keyword("return"),
-                Identifier("dynamic"),
+                Local("dynamic"),
                 Operators.Dot,
-                Identifier("Length"),
+                Property("Length"),
                 Punctuation.Semicolon,
                 Punctuation.CloseCurly,
                 Punctuation.Semicolon);
@@ -422,7 +422,7 @@ class C
 {
 }",
                 Keyword("dynamic"),
-                Identifier("dynamic"),
+                Method("dynamic"),
                 Punctuation.OpenParen,
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
@@ -438,13 +438,13 @@ class C
 }",
                 Keyword("static"),
                 Keyword("dynamic"),
-                Identifier("dynamic"),
+                Method("dynamic"),
                 Punctuation.OpenParen,
                 Keyword("params"),
                 Keyword("dynamic"),
                 Punctuation.OpenBracket,
                 Punctuation.CloseBracket,
-                Identifier("dynamic"),
+                Parameter("dynamic"),
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly);
@@ -460,18 +460,18 @@ class C
                 Keyword("dynamic"),
                 Punctuation.OpenBracket,
                 Punctuation.CloseBracket,
-                Identifier("M"),
+                Method("M"),
                 Punctuation.OpenParen,
                 Keyword("dynamic"),
                 Punctuation.OpenBracket,
                 Punctuation.CloseBracket,
-                Identifier("p"),
+                Parameter("p"),
                 Punctuation.Comma,
                 Keyword("params"),
                 Keyword("dynamic"),
                 Punctuation.OpenBracket,
                 Punctuation.CloseBracket,
-                Identifier("pa"),
+                Parameter("pa"),
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly);
@@ -488,18 +488,18 @@ partial void F(dynamic d)
 }",
                 Keyword("partial"),
                 Keyword("void"),
-                Identifier("F"),
+                Method("F"),
                 Punctuation.OpenParen,
                 Keyword("dynamic"),
-                Identifier("d"),
+                Parameter("d"),
                 Punctuation.CloseParen,
                 Punctuation.Semicolon,
                 Keyword("partial"),
                 Keyword("void"),
-                Identifier("F"),
+                Method("F"),
                 Punctuation.OpenParen,
                 Keyword("dynamic"),
-                Identifier("d"),
+                Parameter("d"),
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly);
@@ -513,15 +513,15 @@ partial void F(dynamic d)
 {
 }",
                 Keyword("void"),
-                Identifier("F"),
+                Method("F"),
                 Punctuation.OpenParen,
                 Keyword("ref"),
                 Keyword("dynamic"),
-                Identifier("r"),
+                Parameter("r"),
                 Punctuation.Comma,
                 Keyword("out"),
                 Keyword("dynamic"),
-                Identifier("o"),
+                Parameter("o"),
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly);
@@ -535,14 +535,14 @@ partial void F(dynamic d)
 {
 }",
                 Keyword("dynamic"),
-                Identifier("F"),
+                ExtensionMethod("F"),
                 Punctuation.OpenParen,
                 Keyword("this"),
                 Keyword("dynamic"),
-                Identifier("self"),
+                Parameter("self"),
                 Punctuation.Comma,
                 Keyword("dynamic"),
-                Identifier("p"),
+                Parameter("p"),
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly);
@@ -593,7 +593,7 @@ partial void F(dynamic d)
 }",
                 Keyword("unsafe"),
                 Keyword("int"),
-                Identifier("M"),
+                Method("M"),
                 Punctuation.OpenParen,
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
@@ -626,7 +626,7 @@ partial void F(dynamic d)
                 Keyword("int"),
                 Punctuation.OpenBracket,
                 Punctuation.CloseBracket,
-                Identifier("dynamic"),
+                Field("dynamic"),
                 Operators.Equals,
                 Punctuation.OpenCurly,
                 Number("1"),
@@ -641,7 +641,7 @@ partial void F(dynamic d)
                 Keyword("foreach"),
                 Punctuation.OpenParen,
                 Keyword("dynamic"),
-                Identifier("dynamic"),
+                Local("dynamic"),
                 Keyword("in"),
                 Identifier("dynamic"));
         }
@@ -653,7 +653,7 @@ partial void F(dynamic d)
                 Keyword("using"),
                 Punctuation.OpenParen,
                 Keyword("dynamic"),
-                Identifier("d"));
+                Local("d"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -662,7 +662,7 @@ partial void F(dynamic d)
             await TestInMethodAsync(
 @"dynamic dynamic;",
                 Keyword("dynamic"),
-                Identifier("dynamic"),
+                Local("dynamic"),
                 Punctuation.Semicolon);
         }
 
@@ -721,7 +721,7 @@ partial void F(dynamic d)
                 Identifier("dynamic"),
                 Operators.Dot,
                 Identifier("FileInfo"),
-                Identifier("file"),
+                Local("file"),
                 Punctuation.Semicolon);
         }
 
@@ -734,7 +734,7 @@ partial void F(dynamic d)
                 Identifier("dynamic"),
                 Punctuation.Colon,
                 Keyword("int"),
-                Identifier("i"),
+                Local("i"),
                 Operators.Equals,
                 Number("0"),
                 Punctuation.Semicolon,
@@ -749,7 +749,7 @@ partial void F(dynamic d)
             await TestInMethodAsync(
 @"A a = A.dynamic;",
                 Identifier("A"),
-                Identifier("a"),
+                Local("a"),
                 Operators.Equals,
                 Identifier("A"),
                 Operators.Dot,
@@ -768,7 +768,7 @@ partial void F(dynamic d)
                 Keyword("enum"),
                 Enum("A"),
                 Punctuation.OpenCurly,
-                Identifier("dynamic"),
+                EnumField("dynamic"),
                 Punctuation.CloseCurly);
         }
 
@@ -806,7 +806,7 @@ partial void F(dynamic d)
                 TypeParameter("T"),
                 Punctuation.OpenCurly,
                 TypeParameter("dynamic"),
-                Identifier("d"),
+                Field("d"),
                 Punctuation.Semicolon,
                 Punctuation.CloseCurly);
         }
@@ -816,7 +816,7 @@ partial void F(dynamic d)
         {
             await TestInClassAsync(@"dynamic d",
                 Keyword("dynamic"),
-                Identifier("d"));
+                Field("d"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -825,7 +825,7 @@ partial void F(dynamic d)
             await TestInClassAsync(@"static dynamic d",
                 Keyword("static"),
                 Keyword("dynamic"),
-                Identifier("d"));
+                Field("d"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -833,7 +833,7 @@ partial void F(dynamic d)
         {
             await TestInMethodAsync(@"dynamic d",
                 Keyword("dynamic"),
-                Identifier("d"));
+                Local("d"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -843,7 +843,7 @@ partial void F(dynamic d)
                 Keyword("dynamic"),
                 Punctuation.OpenBracket,
                 Punctuation.CloseBracket,
-                Identifier("d"));
+                Local("d"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -852,7 +852,7 @@ partial void F(dynamic d)
             await TestInMethodAsync(
 @"var q = a.Where((dynamic d) => d == dynamic);",
                 Keyword("var"),
-                Identifier("q"),
+                Local("q"),
                 Operators.Equals,
                 Identifier("a"),
                 Operators.Dot,
@@ -860,10 +860,10 @@ partial void F(dynamic d)
                 Punctuation.OpenParen,
                 Punctuation.OpenParen,
                 Keyword("dynamic"),
-                Identifier("d"),
+                Parameter("d"),
                 Punctuation.CloseParen,
                 Operators.Text("=>"),
-                Identifier("d"),
+                Parameter("d"),
                 Operators.Text("=="),
                 Identifier("dynamic"),
                 Punctuation.CloseParen,
@@ -876,7 +876,7 @@ partial void F(dynamic d)
             await TestInMethodAsync(
 @"dynamic d = new dynamic[5];",
                 Keyword("dynamic"),
-                Identifier("d"),
+                Local("d"),
                 Operators.Equals,
                 Keyword("new"),
                 Keyword("dynamic"),
@@ -892,7 +892,7 @@ partial void F(dynamic d)
             await TestInMethodAsync(
 @"dynamic d = new dynamic();",
                 Keyword("dynamic"),
-                Identifier("d"),
+                Local("d"),
                 Operators.Equals,
                 Keyword("new"),
                 Keyword("dynamic"),
@@ -933,7 +933,7 @@ partial void F(dynamic d)
                 Punctuation.OpenAngle,
                 Keyword("dynamic"),
                 Punctuation.CloseAngle,
-                Identifier("l"),
+                Local("l"),
                 Operators.Equals,
                 Keyword("new"),
                 Identifier("List"),
@@ -956,7 +956,7 @@ partial void F(dynamic d)
                 Punctuation.Comma,
                 Keyword("dynamic"),
                 Punctuation.CloseAngle,
-                Identifier("kvp"),
+                Local("kvp"),
                 Punctuation.Semicolon);
         }
 
@@ -1009,7 +1009,7 @@ partial void F(dynamic d)
                 Punctuation.OpenAngle,
                 Keyword("int"),
                 Punctuation.CloseAngle,
-                Identifier("d"),
+                Local("d"),
                 Punctuation.Semicolon);
         }
     }
