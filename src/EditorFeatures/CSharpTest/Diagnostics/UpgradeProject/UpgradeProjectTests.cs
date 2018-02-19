@@ -472,5 +472,42 @@ class C
                     string.Format(CSharpFeaturesResources.Upgrade_all_csharp_projects_to_language_version_0, "7.0")
                     });
         }
+
+        [Fact]
+        public async Task UpgradeProjectWithUnmanagedConstraintTo7_3_Type()
+        {
+            await TestLanguageVersionUpgradedAsync(
+@"
+class Test<T> where T : [|unmanaged|]
+{
+}",
+                LanguageVersion.CSharp7_3,
+                new CSharpParseOptions(LanguageVersion.CSharp7),
+                index: 1);
+        }
+
+        [Fact]
+        public async Task UpgradeProjectWithUnmanagedConstraintTo7_3_Method()
+        {
+            await TestLanguageVersionUpgradedAsync(
+@"
+class Test
+{
+    public void M<T>() where T : [|unmanaged|] { }
+}",
+                LanguageVersion.CSharp7_3,
+                new CSharpParseOptions(LanguageVersion.CSharp7),
+                index: 1);
+        }
+
+        [Fact]
+        public async Task UpgradeProjectWithUnmanagedConstraintTo7_3_Delegate()
+        {
+            await TestLanguageVersionUpgradedAsync(
+@"delegate void D<T>() where T : [|unmanaged|];",
+                LanguageVersion.CSharp7_3,
+                new CSharpParseOptions(LanguageVersion.CSharp7),
+                index: 1);
+        }
     }
 }

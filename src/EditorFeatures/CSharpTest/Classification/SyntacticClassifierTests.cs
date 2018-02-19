@@ -4011,5 +4011,263 @@ void M()
                 Comment(">>>>>>> End"),
                 Punctuation.CloseCurly);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestUnmanagedConstraint_InsideMethod()
+        {
+            await TestInMethodAsync(
+                "var unmanaged = 0;",
+                Keyword("var"),
+                Identifier("unmanaged"),
+                Operators.Equals,
+                Number("0"),
+                Punctuation.Semicolon);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestUnmanagedConstraint_Type_Keyword()
+        {
+            await TestAsync(
+                "class X<T> where T : unmanaged { }",
+                Keyword("class"),
+                Class("X"),
+                Punctuation.OpenAngle,
+                TypeParameter("T"),
+                Punctuation.CloseAngle,
+                Keyword("where"),
+                Identifier("T"),
+                Punctuation.Colon,
+                Keyword("unmanaged"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestUnmanagedConstraint_Type_ExistingInterface()
+        {
+            await TestAsync(@"
+interface unmanaged {}
+class X<T> where T : unmanaged { }",
+                Keyword("interface"),
+                Interface("unmanaged"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Keyword("class"),
+                Class("X"),
+                Punctuation.OpenAngle,
+                TypeParameter("T"),
+                Punctuation.CloseAngle,
+                Keyword("where"),
+                Identifier("T"),
+                Punctuation.Colon,
+                Keyword("unmanaged"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestUnmanagedConstraint_Type_ExistingInterfaceButOutOfScope()
+        {
+            await TestAsync(@"
+namespace OtherScope
+{
+    interface unmanaged {}
+}
+class X<T> where T : unmanaged { }",
+                Keyword("namespace"),
+                Identifier("OtherScope"),
+                Punctuation.OpenCurly,
+                Keyword("interface"),
+                Interface("unmanaged"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly,
+                Keyword("class"),
+                Class("X"),
+                Punctuation.OpenAngle,
+                TypeParameter("T"),
+                Punctuation.CloseAngle,
+                Keyword("where"),
+                Identifier("T"),
+                Punctuation.Colon,
+                Keyword("unmanaged"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestUnmanagedConstraint_Method_Keyword()
+        {
+            await TestAsync(@"
+class X
+{
+    void M<T>() where T : unmanaged { }
+}",
+                Keyword("class"),
+                Class("X"),
+                Punctuation.OpenCurly,
+                Keyword("void"),
+                Identifier("M"),
+                Punctuation.OpenAngle,
+                TypeParameter("T"),
+                Punctuation.CloseAngle,
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Keyword("where"),
+                Identifier("T"),
+                Punctuation.Colon,
+                Keyword("unmanaged"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestUnmanagedConstraint_Method_ExistingInterface()
+        {
+            await TestAsync(@"
+interface unmanaged {}
+class X
+{
+    void M<T>() where T : unmanaged { }
+}",
+                Keyword("interface"),
+                Interface("unmanaged"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Keyword("class"),
+                Class("X"),
+                Punctuation.OpenCurly,
+                Keyword("void"),
+                Identifier("M"),
+                Punctuation.OpenAngle,
+                TypeParameter("T"),
+                Punctuation.CloseAngle,
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Keyword("where"),
+                Identifier("T"),
+                Punctuation.Colon,
+                Keyword("unmanaged"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestUnmanagedConstraint_Method_ExistingInterfaceButOutOfScope()
+        {
+            await TestAsync(@"
+namespace OtherScope
+{
+    interface unmanaged {}
+}
+class X
+{
+    void M<T>() where T : unmanaged { }
+}",
+                Keyword("namespace"),
+                Identifier("OtherScope"),
+                Punctuation.OpenCurly,
+                Keyword("interface"),
+                Interface("unmanaged"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly,
+                Keyword("class"),
+                Class("X"),
+                Punctuation.OpenCurly,
+                Keyword("void"),
+                Identifier("M"),
+                Punctuation.OpenAngle,
+                TypeParameter("T"),
+                Punctuation.CloseAngle,
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Keyword("where"),
+                Identifier("T"),
+                Punctuation.Colon,
+                Keyword("unmanaged"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestUnmanagedConstraint_Delegate_Keyword()
+        {
+            await TestAsync(
+                "delegate void D<T>() where T : unmanaged;",
+                Keyword("delegate"),
+                Keyword("void"),
+                Delegate("D"),
+                Punctuation.OpenAngle,
+                TypeParameter("T"),
+                Punctuation.CloseAngle,
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Keyword("where"),
+                Identifier("T"),
+                Punctuation.Colon,
+                Keyword("unmanaged"),
+                Punctuation.Semicolon);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestUnmanagedConstraint_Delegate_ExistingInterface()
+        {
+            await TestAsync(@"
+interface unmanaged {}
+delegate void D<T>() where T : unmanaged;",
+                Keyword("interface"),
+                Interface("unmanaged"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Keyword("delegate"),
+                Keyword("void"),
+                Delegate("D"),
+                Punctuation.OpenAngle,
+                TypeParameter("T"),
+                Punctuation.CloseAngle,
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Keyword("where"),
+                Identifier("T"),
+                Punctuation.Colon,
+                Keyword("unmanaged"),
+                Punctuation.Semicolon);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestUnmanagedConstraint_Delegate_ExistingInterfaceButOutOfScope()
+        {
+            await TestAsync(@"
+namespace OtherScope
+{
+    interface unmanaged {}
+}
+delegate void D<T>() where T : unmanaged;",
+                Keyword("namespace"),
+                Identifier("OtherScope"),
+                Punctuation.OpenCurly,
+                Keyword("interface"),
+                Interface("unmanaged"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly,
+                Keyword("delegate"),
+                Keyword("void"),
+                Delegate("D"),
+                Punctuation.OpenAngle,
+                TypeParameter("T"),
+                Punctuation.CloseAngle,
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Keyword("where"),
+                Identifier("T"),
+                Punctuation.Colon,
+                Keyword("unmanaged"),
+                Punctuation.Semicolon);
+        }
     }
 }
