@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             int count = 0;
             using (var assembly = AssemblyMetadata.CreateFromImage(verifier.EmittedAssemblyData))
             {
-                var compilation = CreateCompilationRaw(new SyntaxTree[0], new[] { assembly.GetReference() });
+                var compilation = CreateCompilationWithNone(new SyntaxTree[0], new[] { assembly.GetReference() });
                 foreach (NamedTypeSymbol type in compilation.GlobalNamespace.GetMembers().Where(s => s.Kind == SymbolKind.NamedType))
                 {
                     var fields = type.GetMembers().Where(s => s.Kind == SymbolKind.Field);
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             int count = 0;
             using (var assembly = AssemblyMetadata.CreateFromImage(verifier.EmittedAssemblyData))
             {
-                var compilation = CreateCompilationRaw(new SyntaxTree[0], new[] { assembly.GetReference() });
+                var compilation = CreateCompilationWithNone(new SyntaxTree[0], new[] { assembly.GetReference() });
 
                 foreach (NamedTypeSymbol type in compilation.GlobalNamespace.GetMembers().Where(s => s.Kind == SymbolKind.NamedType))
                 {

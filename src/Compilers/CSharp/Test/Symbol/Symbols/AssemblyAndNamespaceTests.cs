@@ -306,7 +306,7 @@ namespace NS.NS1 {
         [Fact]
         public void GetDeclaredSymbolDupNsAliasErr()
         {
-            var compilation = CreateCompilationRaw(@"
+            var compilation = CreateCompilationWithNone(@"
 namespace NS1 {
 	class A { }
 }	
@@ -337,7 +337,7 @@ namespace NS
         [Fact]
         public void GenericNamespace()
         {
-            var compilation = CreateCompilationRaw(@"
+            var compilation = CreateCompilationWithNone(@"
 namespace Goo<T>
 {
     class Program    
@@ -368,7 +368,7 @@ namespace Goo<T>
 
             var aliasedCorlib = TestReferences.NetFx.v4_0_30319.mscorlib.WithAliases(ImmutableArray.Create("Goo"));
 
-            var comp = CreateCompilationRaw(source, new[] { aliasedCorlib });
+            var comp = CreateCompilationWithNone(source, new[] { aliasedCorlib });
 
             // NOTE: this doesn't compile in dev11 - it reports that it cannot find System.Object.
             // However, we've already changed how special type lookup works, so this is not a major issue.

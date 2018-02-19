@@ -1019,7 +1019,7 @@ struct MyTaskMethodBuilder<T>
 
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            var compilation = CreateCompilationRaw(source, references: new[] { MscorlibRef_v20 });
+            var compilation = CreateCompilationWithNone(source, references: new[] { MscorlibRef_v20 });
             compilation.VerifyDiagnostics();
             var type = compilation.GetMember<FieldSymbol>("C.F").Type;
             var normalized = type.NormalizeTaskTypes(compilation);

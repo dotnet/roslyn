@@ -118,7 +118,7 @@ class C
 ";
             var reference = CreateCompilation(source).EmitToImageReference();
 
-            var comp = CreateCompilationRaw("", new[] { reference }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
+            var comp = CreateCompilationWithNone("", new[] { reference }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
 
             var pid = (NamedTypeSymbol)comp.GlobalNamespace.GetMembers().Where(s => s.Name.StartsWith("<PrivateImplementationDetails>", StringComparison.Ordinal)).Single();
 
@@ -139,7 +139,7 @@ unsafe struct S
 }
 ";
             var reference = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).EmitToImageReference();
-            var comp = CreateCompilationRaw("", new[] { reference }, options: TestOptions.UnsafeReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
+            var comp = CreateCompilationWithNone("", new[] { reference }, options: TestOptions.UnsafeReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
 
             var s = (NamedTypeSymbol)comp.GlobalNamespace.GetMembers("S").Single();
             var bufferType = (NamedTypeSymbol)s.GetMembers().Where(t => t.Name == "<C>e__FixedBuffer").Single();
@@ -840,7 +840,7 @@ public class Test
         public void MissingWellKnownAttributesNoDiagnosticsAndNoSynthesizedAttributes(OutputKind outputKind, OptimizationLevel optimizationLevel)
         {
             var options = new CSharpCompilationOptions(outputKind, optimizationLevel: optimizationLevel);
-            var compilation = CreateCompilationRaw("", options: options);
+            var compilation = CreateCompilationWithNone("", options: options);
 
             if (outputKind.IsApplication())
             {
@@ -1539,7 +1539,7 @@ namespace System.Runtime.CompilerServices
             var diagLibRef = diagLibComp.EmitToImageReference();
 
             // Create compilation using Diagnostics but referencing mscorlib without String
-            var comp = CreateCompilationRaw(new SyntaxTree[] { Parse("") }, references: new[] { diagLibRef, mslibNoStringRef });
+            var comp = CreateCompilationWithNone(new SyntaxTree[] { Parse("") }, references: new[] { diagLibRef, mslibNoStringRef });
 
             // Attribute cannot be synthesized because ctor has a use-site error (String type missing)
             var attribute = comp.TrySynthesizeAttribute(WellKnownMember.System_Diagnostics_DebuggerDisplayAttribute__ctor);

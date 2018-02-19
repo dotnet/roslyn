@@ -447,7 +447,7 @@ class C
     }
 }";
             var tree = Parse(source);
-            var compilation = CreateCompilationRaw(new List<SyntaxTree> { tree }, new[] { MscorlibRefSilverlight }, TestOptions.ReleaseExe, "Test");
+            var compilation = CreateCompilationWithNone(new List<SyntaxTree> { tree }, new[] { MscorlibRefSilverlight }, TestOptions.ReleaseExe, "Test");
             CompileAndVerify(compilation, expectedOutput: "k");
         }
 
@@ -504,7 +504,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithCustomILSource(source, il, TargetFramework.Net45, options: TestOptions.ReleaseDll);
+            var compilation = CreateCompilationWithCustomILSource(source, il, TargetFramework.Mscorlib45, options: TestOptions.ReleaseDll);
             var result = CompileAndVerify(compilation);
 
             result.VerifyIL("C.A", @"
@@ -578,7 +578,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithCustomILSource(source, il, TargetFramework.Net45, options: TestOptions.DebugDll);
+            var compilation = CreateCompilationWithCustomILSource(source, il, TargetFramework.Mscorlib45, options: TestOptions.DebugDll);
             var result = CompileAndVerify(compilation);
 
             result.VerifyIL("C.A",
@@ -823,7 +823,7 @@ class Clazz
     }
 }
 ";
-            var compilation = CreateCompilationWithCustomILSource(source, il, TargetFramework.Net45, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithCustomILSource(source, il, TargetFramework.Mscorlib45, options: TestOptions.ReleaseExe);
             var result = CompileAndVerify(compilation, expectedOutput: "Struct1 Struct2 ");
 
             result.VerifyIL("Clazz.Main", @"
@@ -10481,7 +10481,7 @@ class Test
     }
 }
 ";
-            CreateCompilationRaw(source).VerifyEmitDiagnostics(
+            CreateCompilationWithNone(source).VerifyEmitDiagnostics(
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion));
         }
 
@@ -14424,7 +14424,7 @@ class C
         switch (s) { case ""A"": break; case ""B"": break; }
     }
 }";
-            var compilation = CreateCompilationRaw(text);
+            var compilation = CreateCompilationWithNone(text);
             compilation.VerifyDiagnostics();
             using (var stream = new MemoryStream())
             {
@@ -14457,7 +14457,7 @@ class C
 {
     static object F = typeof(C);
 }";
-            var compilation = CreateCompilationRaw(text);
+            var compilation = CreateCompilationWithNone(text);
             compilation.VerifyDiagnostics();
             using (var stream = new MemoryStream())
             {
@@ -14493,7 +14493,7 @@ class C
         return __reftype(__makeref(o));
     }
 }";
-            var compilation = CreateCompilationRaw(text);
+            var compilation = CreateCompilationWithNone(text);
             compilation.VerifyDiagnostics();
             using (var stream = new MemoryStream())
             {

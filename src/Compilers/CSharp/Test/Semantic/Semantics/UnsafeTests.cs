@@ -51,7 +51,7 @@ public static class R
         public fixed byte Buffer[16];
     }
 }";
-            var comp1 = CreateCompilationRaw(text1, assemblyName: "assembly1", references: new[] { MscorlibRef_v20 },
+            var comp1 = CreateCompilationWithNone(text1, assemblyName: "assembly1", references: new[] { MscorlibRef_v20 },
                 options: TestOptions.UnsafeDebugDll);
 
             var ref1 = comp1.EmitToImageReference();

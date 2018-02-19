@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
 
         private Guid CompiledGuid(string source, string assemblyName, CSharpCompilationOptions options, EmitOptions emitOptions = null)
         {
-            var compilation = CreateCompilationRaw(source,
+            var compilation = CreateCompilationWithNone(source,
                 assemblyName: assemblyName,
                 references: new[] { MscorlibRef },
                 options: options.WithDeterministic(true));
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
         {
             var options = (optimize ? TestOptions.ReleaseExe : TestOptions.DebugExe).WithPlatform(platform).WithDeterministic(true);
 
-            var compilation = CreateCompilationRaw(source, assemblyName: "DeterminismTest", references: new[] { MscorlibRef, SystemCoreRef, CSharpRef }, options: options);
+            var compilation = CreateCompilationWithNone(source, assemblyName: "DeterminismTest", references: new[] { MscorlibRef, SystemCoreRef, CSharpRef }, options: options);
 
             // The resolution of the PE header time date stamp is seconds, and we want to make sure that has an opportunity to change
             // between calls to Emit.
@@ -61,11 +61,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
         public void BanVersionWildcards()
         {
             string source = @"[assembly: System.Reflection.AssemblyVersion(""10101.0.*"")] public class C {}";
-            var compilationDeterministic = CreateCompilationRaw(
+            var compilationDeterministic = CreateCompilationWithNone(
                 source,
                 assemblyName: "DeterminismTest", references: new[] { MscorlibRef },
                 options: TestOptions.DebugDll.WithDeterministic(true));
-            var compilationNonDeterministic = CreateCompilationRaw(
+            var compilationNonDeterministic = CreateCompilationWithNone(
                 source,
                 assemblyName: "DeterminismTest",
                 references: new[] { MscorlibRef },
@@ -235,7 +235,7 @@ namespace Namespace3 {
     public class GenericType<T, U> {}
 }
 ";
-            var forwardedToCompilation = CreateCompilationRaw(forwardedToCode);
+            var forwardedToCompilation = CreateCompilationWithNone(forwardedToCode);
             var forwardedToReference = new CSharpCompilationReference(forwardedToCompilation);
 
             var forwardingCode = @"

@@ -1088,7 +1088,7 @@ public sealed class A
 }
 ";
 
-            var lib1 = CreateCompilationRaw(
+            var lib1 = CreateCompilationWithNone(
                 new[] { Parse(srcLib1) },
                 new[] { TestReferences.NetFx.v2_0_50727.mscorlib, TestReferences.NetFx.v3_5_30729.SystemCore },
                 TestOptions.ReleaseDll.WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default));
@@ -1102,7 +1102,7 @@ class Program
     }
 }
 ";
-            var lib2 = CreateCompilationRaw(
+            var lib2 = CreateCompilationWithNone(
                 new[] { Parse(srcLib2) },
                 new[] { MscorlibRef, new CSharpCompilationReference(lib1) },
                 TestOptions.ReleaseDll.WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default));
@@ -1271,7 +1271,7 @@ class B : ILErrors.ModReqClassEventsNonVirtual, ILErrors.ModReqInterfaceEvents {
    public int AProperty { get; set; }
 }";
 
-            var compilation = CreateCompilationRaw(text).VerifyDiagnostics(
+            var compilation = CreateCompilationWithNone(text).VerifyDiagnostics(
                 // (1,7): error CS0518: Predefined type 'System.Object' is not defined or imported
                 // class C 
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "C").WithArguments("System.Object"),
@@ -2313,7 +2313,7 @@ namespace System
                 options = options.WithOutputKind(OutputKind.NetModule);
             }
 
-            var compilation = CreateCompilationRaw(
+            var compilation = CreateCompilationWithNone(
                 new[] { Parse(corLibText) },
                 options: options);
             compilation.VerifyDiagnostics(expectedDiagnostics);
@@ -2352,7 +2352,7 @@ public delegate void D();
 
 public interface I1 {}
 ";
-            var compilation1 = CreateCompilationRaw(source1, options: TestOptions.ReleaseDll, references: new[] { MinCorlibRef });
+            var compilation1 = CreateCompilationWithNone(source1, options: TestOptions.ReleaseDll, references: new[] { MinCorlibRef });
             compilation1.VerifyEmitDiagnostics();
 
             Assert.Equal(TypeKind.Struct, compilation1.GetTypeByMetadataName("A").TypeKind);
@@ -2368,7 +2368,7 @@ interface I2
 }
 ";
 
-            var compilation2 = CreateCompilationRaw(source2, options: TestOptions.ReleaseDll, references: new[] { compilation1.EmitToImageReference(), MinCorlibRef });
+            var compilation2 = CreateCompilationWithNone(source2, options: TestOptions.ReleaseDll, references: new[] { compilation1.EmitToImageReference(), MinCorlibRef });
 
             compilation2.VerifyEmitDiagnostics();
             CompileAndVerify(compilation2);
@@ -2379,7 +2379,7 @@ interface I2
             Assert.Equal(TypeKind.Delegate, compilation2.GetTypeByMetadataName("D").TypeKind);
             Assert.Equal(TypeKind.Interface, compilation2.GetTypeByMetadataName("I1").TypeKind);
 
-            var compilation3 = CreateCompilationRaw(source2, options: TestOptions.ReleaseDll, references: new[] { compilation1.ToMetadataReference(), MinCorlibRef });
+            var compilation3 = CreateCompilationWithNone(source2, options: TestOptions.ReleaseDll, references: new[] { compilation1.ToMetadataReference(), MinCorlibRef });
 
             compilation3.VerifyEmitDiagnostics();
             CompileAndVerify(compilation3);
@@ -2390,7 +2390,7 @@ interface I2
             Assert.Equal(TypeKind.Delegate, compilation3.GetTypeByMetadataName("D").TypeKind);
             Assert.Equal(TypeKind.Interface, compilation3.GetTypeByMetadataName("I1").TypeKind);
 
-            var compilation4 = CreateCompilationRaw(source2, options: TestOptions.ReleaseDll, references: new[] { compilation1.EmitToImageReference() });
+            var compilation4 = CreateCompilationWithNone(source2, options: TestOptions.ReleaseDll, references: new[] { compilation1.EmitToImageReference() });
 
             compilation4.VerifyDiagnostics(
                 // (4,10): error CS0012: The type 'ValueType' is defined in an assembly that is not referenced. You must add a reference to assembly 'mincorlib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2'.
@@ -2420,7 +2420,7 @@ interface I2
             Assert.Equal(TypeKind.Interface, i1.TypeKind);
             Assert.Null(i1.GetUseSiteDiagnostic());
 
-            var compilation5 = CreateCompilationRaw(source2, options: TestOptions.ReleaseDll, references: new[] { compilation1.ToMetadataReference() });
+            var compilation5 = CreateCompilationWithNone(source2, options: TestOptions.ReleaseDll, references: new[] { compilation1.ToMetadataReference() });
 
             compilation5.VerifyEmitDiagnostics(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
@@ -2434,7 +2434,7 @@ interface I2
             Assert.Equal(TypeKind.Delegate, compilation5.GetTypeByMetadataName("D").TypeKind);
             Assert.Equal(TypeKind.Interface, compilation5.GetTypeByMetadataName("I1").TypeKind);
 
-            var compilation6 = CreateCompilationRaw(source2, options: TestOptions.ReleaseDll, references: new[] { compilation1.EmitToImageReference(), MscorlibRef });
+            var compilation6 = CreateCompilationWithNone(source2, options: TestOptions.ReleaseDll, references: new[] { compilation1.EmitToImageReference(), MscorlibRef });
 
             compilation6.VerifyDiagnostics(
                 // (4,10): error CS0012: The type 'ValueType' is defined in an assembly that is not referenced. You must add a reference to assembly 'mincorlib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2'.
@@ -2464,7 +2464,7 @@ interface I2
             Assert.Equal(TypeKind.Interface, i1.TypeKind);
             Assert.Null(i1.GetUseSiteDiagnostic());
 
-            var compilation7 = CreateCompilationRaw(source2, options: TestOptions.ReleaseDll, references: new[] { compilation1.ToMetadataReference(), MscorlibRef });
+            var compilation7 = CreateCompilationWithNone(source2, options: TestOptions.ReleaseDll, references: new[] { compilation1.ToMetadataReference(), MscorlibRef });
 
             compilation7.VerifyEmitDiagnostics();
             CompileAndVerify(compilation7);

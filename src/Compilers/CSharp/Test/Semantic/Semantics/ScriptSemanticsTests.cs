@@ -80,7 +80,7 @@ namespace System.Threading.Tasks {
             }
 
 
-            var taskCompilation = CreateCompilationRaw(taskAssembly, references: new[] { MscorlibRef_v20 });
+            var taskCompilation = CreateCompilationWithNone(taskAssembly, references: new[] { MscorlibRef_v20 });
             taskCompilation.VerifyDiagnostics();
             return taskCompilation.ToMetadataReference();
         }
@@ -90,7 +90,7 @@ namespace System.Threading.Tasks {
         public void NonStandardTaskImplementation_NoGlobalUsing_NoScriptUsing()
         {
 
-            var script = CreateCompilationRaw(
+            var script = CreateCompilationWithNone(
                 source: @" System.Console.Write(""complete"");",
                 parseOptions: TestOptions.Script,
                 options: TestOptions.DebugExe,
@@ -107,7 +107,7 @@ namespace System.Threading.Tasks {
         public void NonStandardTaskImplementation_NoGlobalUsing_NoScriptUsing_NoNamespace()
         {
 
-            var script = CreateCompilationRaw(
+            var script = CreateCompilationWithNone(
                 source: @" System.Console.Write(""complete"");",
                 parseOptions: TestOptions.Script,
                 options: TestOptions.DebugExe,
@@ -132,7 +132,7 @@ namespace System.Threading.Tasks {
         [Fact]
         public void NonStandardTaskImplementation_GlobalUsing_NoScriptUsing_VoidHidden()
         {
-            var script = CreateCompilationRaw(
+            var script = CreateCompilationWithNone(
                 source: @"interface I {}",
                 parseOptions: TestOptions.Script,
                 options: TestOptions.DebugExe.WithUsings("Hidden"),
@@ -152,7 +152,7 @@ namespace System.Threading.Tasks {
         [Fact]
         public void NonStandardTaskImplementation_GlobalUsing_NoScriptUsing()
         {
-            var script = CreateCompilationRaw(
+            var script = CreateCompilationWithNone(
                 source: @" System.Console.Write(""complete"");",
                 parseOptions: TestOptions.Script,
                 options: TestOptions.DebugExe.WithUsings("Hidden"),
@@ -178,7 +178,7 @@ namespace System.Threading.Tasks {
         [Fact]
         public void NonStandardTaskImplementation_NoGlobalUsing_ScriptUsing()
         {
-            var script = CreateCompilationRaw(
+            var script = CreateCompilationWithNone(
                 source: @"
 using Hidden;
 new System.Threading.Tasks.Task<int>().GetAwaiter();
@@ -197,7 +197,7 @@ System.Console.Write(""complete"");",
         [Fact]
         public void NonStandardTaskImplementation_GlobalUsing_ScriptUsing()
         {
-            var script = CreateCompilationRaw(
+            var script = CreateCompilationWithNone(
                 source: @"
 using Hidden;
 new System.Threading.Tasks.Task<int>().GetAwaiter();
@@ -1362,7 +1362,7 @@ goto Label;");
         [WorkItem(17779, "https://github.com/dotnet/roslyn/issues/17779")]
         public void TestScriptWithConstVar()
         {
-            var script = CreateCompilationRaw(
+            var script = CreateCompilationWithNone(
                 source: @"string F() => null; const var x = F();",
                 parseOptions: TestOptions.Script,
                 options: TestOptions.DebugExe,

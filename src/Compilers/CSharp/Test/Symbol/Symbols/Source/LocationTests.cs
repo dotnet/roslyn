@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             // 000000000011111111112222222222333333333344444444445555555555666666666677777777778
             // 012345678901234567890123456789012345678901234567890123456789012345678901234567890
-            var comp = CreateCompilationRaw(text, new[] { MscorlibRef });
+            var comp = CreateCompilationWithNone(text, new[] { MscorlibRef });
             var global = comp.GlobalNamespace;
             var n = global.GetMembers("N").Single() as NamespaceSymbol;
             AssertPos(n, 10, 1);

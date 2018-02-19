@@ -228,17 +228,17 @@ class Test
     static void Main() {}
 }
 ";
-            var compilation = CreateCompilationRaw(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithDocumentationMode(DocumentationMode.Diagnose));
+            var compilation = CreateCompilationWithNone(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithDocumentationMode(DocumentationMode.Diagnose));
             var main = compilation.GetTypeByMetadataName("Test").GetMember<MethodSymbol>("Main");
 
             Assert.Equal(@"<!-- Badly formed XML comment ignored for member ""M:Test.Main"" -->", main.GetDocumentationCommentXml().Trim());
 
-            compilation = CreateCompilationRaw(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithDocumentationMode(DocumentationMode.Parse));
+            compilation = CreateCompilationWithNone(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithDocumentationMode(DocumentationMode.Parse));
             main = compilation.GetTypeByMetadataName("Test").GetMember<MethodSymbol>("Main");
 
             Assert.Equal(@"<!-- Badly formed XML comment ignored for member ""M:Test.Main"" -->", main.GetDocumentationCommentXml().Trim());
 
-            compilation = CreateCompilationRaw(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithDocumentationMode(DocumentationMode.None));
+            compilation = CreateCompilationWithNone(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithDocumentationMode(DocumentationMode.None));
             main = compilation.GetTypeByMetadataName("Test").GetMember<MethodSymbol>("Main");
 
             Assert.Equal(@"", main.GetDocumentationCommentXml().Trim());

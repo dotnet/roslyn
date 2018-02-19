@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             string expectedOutput = null,
             CSharpCompilationOptions options = null,
             CSharpParseOptions parseOptions = null,
-            Verification verify = Verification.Passes) => CompileAndVerify(source, references, targetFramework: TargetFramework.Net46, expectedOutput: expectedOutput, options: options, parseOptions: parseOptions, verify: verify);
+            Verification verify = Verification.Passes) => CompileAndVerify(source, references, targetFramework: TargetFramework.Mscorlib46, expectedOutput: expectedOutput, options: options, parseOptions: parseOptions, verify: verify);
 
         /// <summary>
         /// Reference to an assembly that defines Expression Trees.
@@ -5247,7 +5247,7 @@ class C
 {
     static Expression<D> E = () => new C();
 }";
-            var compilation = CreateCompilationRaw(text);
+            var compilation = CreateCompilationWithNone(text);
             compilation.VerifyDiagnostics();
             using (var stream = new MemoryStream())
             {
@@ -5309,7 +5309,7 @@ class B<T>
     static object F = null;
     static Expression<D> G = () => F;
 }";
-            var compilation = CreateCompilationRaw(text);
+            var compilation = CreateCompilationWithNone(text);
             compilation.VerifyDiagnostics();
             using (var stream = new MemoryStream())
             {
@@ -5382,7 +5382,7 @@ class B<T>
     static void M() { }
     B(object o) { }
 }";
-            var compilation = CreateCompilationRaw(text);
+            var compilation = CreateCompilationWithNone(text);
             compilation.VerifyDiagnostics();
             using (var stream = new MemoryStream())
             {

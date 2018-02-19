@@ -643,7 +643,7 @@ class Program
                     Assert.Null(peAssembly.ManifestModule.FindTargetAttributes(peAssembly.Handle, AttributeDescription.AssemblyAlgorithmIdAttribute));
                 });
 
-            compilation = CreateCompilationRaw(
+            compilation = CreateCompilationWithNone(
 @"
 [assembly: System.Reflection.AssemblyAlgorithmIdAttribute(System.Configuration.Assemblies.AssemblyHashAlgorithm.SHA256)]
 
@@ -672,7 +672,7 @@ class Program
                     Assert.Null(peAssembly.ManifestModule.FindTargetAttributes(peAssembly.Handle, AttributeDescription.AssemblyAlgorithmIdAttribute));
                 });
 
-            compilation = CreateCompilationRaw(
+            compilation = CreateCompilationWithNone(
 @"
 [assembly: System.Reflection.AssemblyAlgorithmIdAttribute(System.Configuration.Assemblies.AssemblyHashAlgorithm.SHA384)]
 
@@ -705,7 +705,7 @@ class Program
                     Assert.Null(peAssembly.ManifestModule.FindTargetAttributes(peAssembly.Handle, AttributeDescription.AssemblyAlgorithmIdAttribute));
                 });
 
-            compilation = CreateCompilationRaw(
+            compilation = CreateCompilationWithNone(
 @"
 [assembly: System.Reflection.AssemblyAlgorithmIdAttribute(System.Configuration.Assemblies.AssemblyHashAlgorithm.SHA512)]
 
@@ -1111,7 +1111,7 @@ public class C {}
                 }
                 ";
 
-            var netmoduleCompilation = CreateCompilationRaw(netModuleSource, 
+            var netmoduleCompilation = CreateCompilationWithNone(netModuleSource, 
                                                          options: TestOptions.ReleaseModule, 
                                                          references: new[] { MinCorlibRef });
             Assert.Null(netmoduleCompilation.GetTypeByMetadataName("System.Runtime.CompilerServices.AssemblyAttributesGoHere"));
@@ -1128,7 +1128,7 @@ public class C {}
             EntityHandle token = peModule.GetTypeRef(peModule.GetAssemblyRef("mincorlib"), "System.Runtime.CompilerServices", "AssemblyAttributesGoHereM");
             Assert.False(token.IsNil);   //could the type ref be located? If not then the attribute's not there.
 
-            var consoleappCompilation = CreateCompilationRaw(
+            var consoleappCompilation = CreateCompilationWithNone(
                 consoleappSource,
                 references: new[] { MinCorlibRef, netModuleWithAssemblyAttributes.GetReference() },
                 options: TestOptions.ReleaseExe);
@@ -1168,7 +1168,7 @@ public class C {}
             token = peModule.GetTypeRef(peModule.GetAssemblyRef("mincorlib"), "System.Runtime.CompilerServices", "AssemblyAttributesGoHereM");
             Assert.True(token.IsNil);   //could the type ref be located? If not then the attribute's not there.
 
-            consoleappCompilation = CreateCompilationRaw(
+            consoleappCompilation = CreateCompilationWithNone(
                 consoleappSource,
                 references: new[] { MinCorlibRef, netModuleWithAssemblyAttributes.GetReference() },
                 options: TestOptions.ReleaseModule);

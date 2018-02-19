@@ -613,8 +613,8 @@ public class C
         }
     }
 }";
-            var compilation0 = CreateCompilationRaw(source, options: TestOptions.DebugDll, references: new[] { MscorlibRef_v20 });
-            var compilation1 = CreateCompilationRaw(source, options: TestOptions.DebugDll, references: new[] { MscorlibRef_v20 });
+            var compilation0 = CreateCompilationWithNone(source, options: TestOptions.DebugDll, references: new[] { MscorlibRef_v20 });
+            var compilation1 = CreateCompilationWithNone(source, options: TestOptions.DebugDll, references: new[] { MscorlibRef_v20 });
 
             var testData0 = new CompilationTestData();
             var bytes0 = compilation0.EmitToArray(testData: testData0);

@@ -25,7 +25,7 @@ class A {
     public int F(int x, int y) {}
 }
 ";
-            var comp = CreateCompilationRaw(text);
+            var comp = CreateCompilationWithNone(text);
             var global = comp.GlobalNamespace;
 
             var a = global.GetMember<NamedTypeSymbol>("A");

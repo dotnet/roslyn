@@ -792,7 +792,7 @@ val: -2
       IL_0001:  ret
     } // end of method C::AllNullNamesMethod
 } // end of class C
-", targetFramework: TargetFramework.Net40, references: s_valueTupleRefs);
+", targetFramework: TargetFramework.Mscorlib40, references: s_valueTupleRefs);
 
             var c = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
 
@@ -1775,7 +1775,7 @@ namespace System
 }
 ";
 
-            var comp = CompileAndVerifyWithMscorlib40(source, targetFramework: TargetFramework.Net46Extended, expectedOutput: @"42");
+            var comp = CompileAndVerifyWithMscorlib40(source, targetFramework: TargetFramework.Mscorlib46Extended, expectedOutput: @"42");
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.<>c__DisplayClass1_0<T>.<Test>b__0()", @"
 {
@@ -2335,7 +2335,7 @@ namespace System
     }
 }
 ";
-            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net46Extended, expectedOutput: @"42", options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Mscorlib46Extended, expectedOutput: @"42", options: TestOptions.ReleaseExe);
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.<Test>d__1<T>.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
@@ -2780,7 +2780,7 @@ class C
 }
 " + trivial2uple + trivial3uple + trivialRemainingTuples + tupleattributes_cs;
 
-            CompileAndVerify(source, expectedOutput: @"42", targetFramework: TargetFramework.Net46, options: TestOptions.ReleaseExe);
+            CompileAndVerify(source, expectedOutput: @"42", targetFramework: TargetFramework.Mscorlib46, options: TestOptions.ReleaseExe);
         }
 
         [Fact]
@@ -3884,7 +3884,7 @@ class C
 ";
 
             var verifier = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
-                targetFramework: TargetFramework.Net46Extended,
+                targetFramework: TargetFramework.Mscorlib46Extended,
                 expectedOutput:"1");
             verifier.VerifyDiagnostics();
         }
@@ -3938,7 +3938,7 @@ static class Extension
         F(t);
     }
 }";
-            var comp = CreateCompilationRaw(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7),
+            var comp = CreateCompilationWithNone(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7),
                 references: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef });
             comp.VerifyEmitDiagnostics();
         }
@@ -9575,7 +9575,7 @@ class Program
         ValueTuple<int, int*> t3 = t2;
     }
 }";
-            var comp = CreateCompilationWithMscorlib45AndCSruntime(source, additionalRefs: s_valueTupleRefs,
+            var comp = CreateCompilationWithMscorlib45AndCSruntime(source, references: s_valueTupleRefs,
                options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics(
                 // (5,31): error CS0306: The type 'int*' may not be used as a type argument
@@ -9827,7 +9827,7 @@ class Program
         var v2 = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, (int*)null);
     }
 }";
-            var comp = CreateCompilationWithMscorlib45AndCSruntime(source, additionalRefs: s_valueTupleRefs,
+            var comp = CreateCompilationWithMscorlib45AndCSruntime(source, references: s_valueTupleRefs,
                options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics(
                 // (15,102): error CS0306: The type 'int*' may not be used as a type argument
@@ -19442,7 +19442,7 @@ public class C : Base2
 }";
 
             var compMatching = CreateCompilationWithCustomILSource(sourceWithMatchingNames, ilSource,
-                targetFramework: TargetFramework.Net46Extended,
+                targetFramework: TargetFramework.Mscorlib46Extended,
                 options: TestOptions.DebugDll);
 
             compMatching.VerifyEmitDiagnostics();
@@ -19454,7 +19454,7 @@ public class C : Base2
 }";
 
             var compDifferent1 = CreateCompilationWithCustomILSource(sourceWithDifferentNames1, ilSource,
-                targetFramework: TargetFramework.Net46Extended,
+                targetFramework: TargetFramework.Mscorlib46Extended,
                 options: TestOptions.DebugDll);
 
             compDifferent1.VerifyDiagnostics(
@@ -19470,7 +19470,7 @@ public class C : Base2
 }";
 
             var compDifferent2 = CreateCompilationWithCustomILSource(sourceWithDifferentNames2, ilSource,
-                targetFramework: TargetFramework.Net46Extended,
+                targetFramework: TargetFramework.Mscorlib46Extended,
                 options: TestOptions.DebugDll);
 
             compDifferent2.VerifyDiagnostics();
@@ -20287,7 +20287,7 @@ class C
     }
 " + trivial2uple + tupleattributes_cs;
 
-            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net46, expectedOutput: @"5", options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Mscorlib46, expectedOutput: @"5", options: TestOptions.ReleaseExe);
 
             // NOTE: !!! There should be NO IL local for  " (long a, int b) v1 " , it should be captured instead
             // NOTE: !!! There should be an IL local for  " (byte x, int y) v2 " , it should not be captured 
@@ -21523,7 +21523,7 @@ namespace ClassLibrary1
     }
 }
 ";
-            var libComp = CreateCompilationWithMscorlib45AndCSruntime(lib, additionalRefs: s_valueTupleRefs, options: TestOptions.DebugDll);
+            var libComp = CreateCompilationWithMscorlib45AndCSruntime(lib, references: s_valueTupleRefs, options: TestOptions.DebugDll);
             libComp.VerifyDiagnostics();
 
             var source = @"
@@ -21577,7 +21577,7 @@ namespace ClassLibrary1
     }
 }
 ";
-            var libComp = CreateCompilationWithMscorlib45AndCSruntime(lib, options: TestOptions.DebugDll, additionalRefs: s_valueTupleRefs);
+            var libComp = CreateCompilationWithMscorlib45AndCSruntime(lib, options: TestOptions.DebugDll, references: s_valueTupleRefs);
             libComp.VerifyDiagnostics();
 
             var source = @"
@@ -21951,7 +21951,7 @@ namespace ConsoleApplication5
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45AndCSruntime(source, additionalRefs: (new[] { libCompRef }).Concat(s_valueTupleRefs).ToArray(), options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithMscorlib45AndCSruntime(source, references: (new[] { libCompRef }).Concat(s_valueTupleRefs).ToArray(), options: TestOptions.DebugExe);
 
             CompileAndVerify(comp, expectedOutput: "42qq", verify: Verification.Fails);
 
@@ -21980,7 +21980,7 @@ namespace ClassLibrary1
     }
 }
 ";
-            var libComp = CreateCompilationWithMscorlib45AndCSruntime(lib, additionalRefs: s_valueTupleRefs, options: TestOptions.DebugDll);
+            var libComp = CreateCompilationWithMscorlib45AndCSruntime(lib, references: s_valueTupleRefs, options: TestOptions.DebugDll);
             libComp.VerifyDiagnostics();
 
             var source = @"
@@ -22189,7 +22189,7 @@ public class C
 }
 public struct S { }
 ";
-            var comp = CreateCompilationWithMscorlib45AndCSruntime(source, additionalRefs: s_valueTupleRefs, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilationWithMscorlib45AndCSruntime(source, references: s_valueTupleRefs, options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics(
                 // (13,18): error CS0306: The type 'int*' may not be used as a type argument
                 //                 (int*, int*) t1 = (p, p); // converted tuple literal with a pointer type
@@ -23297,15 +23297,15 @@ namespace System
         public ValueTuple(T1 item1, T2 item2) => (Item1, Item2) = (item1, item2);
     }
 }";
-            var corlibWithoutVT = CreateCompilationRaw(new[] { Parse(String.Format(versionTemplate, "1") + corlib_cs) }, assemblyName: "corlib");
+            var corlibWithoutVT = CreateCompilationWithNone(new[] { Parse(String.Format(versionTemplate, "1") + corlib_cs) }, assemblyName: "corlib");
             corlibWithoutVT.VerifyDiagnostics();
             var corlibWithoutVTRef = corlibWithoutVT.EmitToImageReference();
 
-            var corlibWithVT = CreateCompilationRaw(new[] { Parse(String.Format(versionTemplate, "2") + corlib_cs + valuetuple_cs) }, assemblyName: "corlib");
+            var corlibWithVT = CreateCompilationWithNone(new[] { Parse(String.Format(versionTemplate, "2") + corlib_cs + valuetuple_cs) }, assemblyName: "corlib");
             corlibWithVT.VerifyDiagnostics();
             var corlibWithVTRef = corlibWithVT.EmitToImageReference();
 
-            var libWithVT = CreateCompilationRaw(valuetuple_cs, references: new[] { corlibWithoutVTRef }, options: TestOptions.DebugDll);
+            var libWithVT = CreateCompilationWithNone(valuetuple_cs, references: new[] { corlibWithoutVTRef }, options: TestOptions.DebugDll);
             libWithVT.VerifyDiagnostics();
             var libWithVTRef = libWithVT.EmitToImageReference();
 
@@ -23671,7 +23671,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationRaw(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
+            var comp = CreateCompilationWithNone(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
                 references: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (7,28): error CS0029: Cannot implicitly convert type 'int?' to 'int'
@@ -23716,7 +23716,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationRaw(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
+            var comp = CreateCompilationWithNone(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
                 references: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (7,17): error CS0029: Cannot implicitly convert type 'int?' to 'int'
@@ -23742,7 +23742,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationRaw(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
+            var comp = CreateCompilationWithNone(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
                 references: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (7,28): error CS8135: Tuple with 2 elements cannot be converted to type '(int, string)?'.
@@ -23787,7 +23787,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationRaw(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
+            var comp = CreateCompilationWithNone(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
                 references: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (7,16): error CS8135: Tuple with 2 elements cannot be converted to type '(int, string)?'.
@@ -23813,7 +23813,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationRaw(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
+            var comp = CreateCompilationWithNone(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
                 references: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (7,32): error CS8135: Tuple with 2 elements cannot be converted to type '(int, string, int)'.
@@ -23852,7 +23852,7 @@ class C
 	}
 }
 ";
-            var comp = CreateCompilationRaw(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
+            var comp = CreateCompilationWithNone(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
                 references: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (6,14): warning CS0219: The variable 't1' is assigned but its value is never used
@@ -23885,7 +23885,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationRaw(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
+            var comp = CreateCompilationWithNone(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
                 references: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (7,32): error CS0029: Cannot implicitly convert type '(int? e, string)' to '(int, string, int)'

@@ -650,7 +650,7 @@ class C
     }
 }";
 
-            CreateCompilationRaw(source).VerifyDiagnostics(
+            CreateCompilationWithNone(source).VerifyDiagnostics(
                 // Related to the using statement:
 
                 // (6,30): warning CS0642: Possible mistaken empty statement

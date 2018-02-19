@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 class X : Y {}
 class Y : X {}
 ";
-            var comp = CreateCompilationRaw(text);
+            var comp = CreateCompilationWithNone(text);
             var global = comp.GlobalNamespace;
             var x = global.GetTypeMembers("X", 0).Single();
             var y = global.GetTypeMembers("Y", 0).Single();
@@ -47,7 +47,7 @@ class Y : X {}
 class X : Y.n {}
 class Y : X.n {}
 ";
-            var comp = CreateCompilationRaw(text);
+            var comp = CreateCompilationWithNone(text);
             var global = comp.GlobalNamespace;
             var x = global.GetTypeMembers("X", 0).Single();
             var y = global.GetTypeMembers("Y", 0).Single();
@@ -94,7 +94,7 @@ class A<T>
 }
 
 ";
-            var comp = CreateCompilationRaw(text);
+            var comp = CreateCompilationWithNone(text);
             var global = comp.GlobalNamespace;
             var a = global.GetTypeMembers("A", 1).Single();
             var b = a.GetTypeMembers("B", 0).Single();
@@ -123,7 +123,7 @@ class B {
 }
 
 ";
-            var comp = CreateCompilationRaw(text);
+            var comp = CreateCompilationWithNone(text);
             var global = comp.GlobalNamespace;
             var a = global.GetTypeMembers("A", 1).Single();
             var b = global.GetTypeMembers("B", 0).Single();
@@ -225,7 +225,7 @@ class Z : A.Y { }
 class W : B.X { }
 
 ";
-            var comp = CreateCompilationRaw(text);
+            var comp = CreateCompilationWithNone(text);
             var global = comp.GlobalNamespace;
             var z = global.GetTypeMembers("Z", 0).Single();
             var w = global.GetTypeMembers("W", 0).Single();
@@ -254,7 +254,7 @@ class C : A {
 }
 
 ";
-            var comp = CreateCompilationRaw(text);
+            var comp = CreateCompilationWithNone(text);
             var global = comp.GlobalNamespace;
             var a = global.GetTypeMembers("A", 0).Single();
 
@@ -291,7 +291,7 @@ class B<T> : A {
   public class Y {}
 }
 ";
-            var comp = CreateCompilationRaw(text);
+            var comp = CreateCompilationWithNone(text);
             var global = comp.GlobalNamespace;
             var a = global.GetTypeMembers("A", 0).Single();
 
@@ -455,7 +455,7 @@ class A {
 }
 class C : A, I<C.B> {}
 ";
-            var comp = CreateCompilationRaw(text);
+            var comp = CreateCompilationWithNone(text);
             var global = comp.GlobalNamespace;
             var c = global.GetTypeMembers("C", 0).Single();
             var cBase = c.BaseType();
@@ -473,7 +473,7 @@ class C : A, I<C.B> {}
 interface I<T> {}
 class E : I<E> {}
 ";
-            var comp = CreateCompilationRaw(text);
+            var comp = CreateCompilationWithNone(text);
             var global = comp.GlobalNamespace;
             var e = global.GetTypeMembers("E", 0).Single();
             Assert.Equal(1, e.Interfaces().Length);
@@ -491,7 +491,7 @@ class G : I<G.H> {
     public class H {}
 }
 ";
-            var comp = CreateCompilationRaw(text);
+            var comp = CreateCompilationWithNone(text);
             var global = comp.GlobalNamespace;
             var g = global.GetTypeMembers("G", 0).Single();
             Assert.Equal(1, g.Interfaces().Length);
@@ -511,7 +511,7 @@ class J : I<J.K.L> {
     }
 }
 ";
-            var comp = CreateCompilationRaw(text);
+            var comp = CreateCompilationWithNone(text);
             var global = comp.GlobalNamespace;
             var j = global.GetTypeMembers("J", 0).Single();
             Assert.Equal(1, j.Interfaces().Length);
@@ -525,7 +525,7 @@ class J : I<J.K.L> {
             var text =
 @"class M : M {}
 ";
-            var comp = CreateCompilationRaw(text);
+            var comp = CreateCompilationWithNone(text);
             var global = comp.GlobalNamespace;
             var m = global.GetTypeMembers("M", 0).Single();
             Assert.True(m.BaseType().IsErrorType());
@@ -540,7 +540,7 @@ class J : I<J.K.L> {
 class N<T> {}
 class O : N<O> {}
 ";
-            var comp = CreateCompilationRaw(text);
+            var comp = CreateCompilationWithNone(text);
             var global = comp.GlobalNamespace;
             var o = global.GetTypeMembers("O", 0).Single();
             Assert.False(o.BaseType().IsErrorType());
@@ -558,7 +558,7 @@ class P : N<P.Q> {
     public class Q {}
 }
 ";
-            var comp = CreateCompilationRaw(text);
+            var comp = CreateCompilationWithNone(text);
             var global = comp.GlobalNamespace;
             var p = global.GetTypeMembers("P", 0).Single();
             Assert.False(p.BaseType().IsErrorType());
@@ -578,7 +578,7 @@ class R : N<R.S.T>{
     }
 }
 ";
-            var comp = CreateCompilationRaw(text);
+            var comp = CreateCompilationWithNone(text);
             var global = comp.GlobalNamespace;
             var r = global.GetTypeMembers("R", 0).Single();
             var rBase = r.BaseType();
@@ -597,7 +597,7 @@ class U : U.I
    public interface I {};
 }
 ";
-            var comp = CreateCompilationRaw(text);
+            var comp = CreateCompilationWithNone(text);
             var global = comp.GlobalNamespace;
             var u = global.GetTypeMembers("U", 0).Single();
             var ifaces = u.Interfaces();
@@ -618,7 +618,7 @@ class C : IX {
     public interface IY {}
 }
 ";
-            var comp = CreateCompilationRaw(text);
+            var comp = CreateCompilationWithNone(text);
             var global = comp.GlobalNamespace;
             var c = global.GetTypeMembers("C", 0).Single();
             var ifaces = c.Interfaces();
@@ -643,7 +643,7 @@ class Y : X {
     public interface I {}
 }
 ";
-            var comp = CreateCompilationRaw(text);
+            var comp = CreateCompilationWithNone(text);
             var global = comp.GlobalNamespace;
             var x = global.GetTypeMembers("X", 0).Single();
             var ifaces = x.Interfaces();
@@ -662,7 +662,7 @@ class B : G {
    public class G {} 
 }
 ";
-            var comp = CreateCompilationRaw(text);
+            var comp = CreateCompilationWithNone(text);
             var global = comp.GlobalNamespace;
             var b = global.GetTypeMembers("B", 0).Single();
             Assert.True(b.BaseType().IsErrorType());
@@ -679,7 +679,7 @@ class B : G {
    class Z<T> : E<B> {}
    class E<U> : Z<D> {}
 ";
-            var comp = CreateCompilationRaw(text);
+            var comp = CreateCompilationWithNone(text);
             var global = comp.GlobalNamespace;
             var z = global.GetTypeMembers("Z", 1).Single();
             Assert.True(z.BaseType().IsErrorType());
@@ -1250,7 +1250,7 @@ namespace N
     }
 }
 ";
-            var comp = CreateCompilationRaw(text);
+            var comp = CreateCompilationWithNone(text);
             var global = comp.GlobalNamespace;
             var n = global.GetMembers("N").OfType<NamespaceSymbol>().Single();
             var c = n.GetTypeMembers("C", 0).Single();
@@ -1275,7 +1275,7 @@ namespace N2 {
   class B : A {}
 }
 ";
-            var comp = CreateCompilationRaw(text);
+            var comp = CreateCompilationWithNone(text);
             var global = comp.GlobalNamespace;
             var n1 = global.GetMembers("N1").Single() as NamespaceSymbol;
             var n2 = global.GetMembers("N2").Single() as NamespaceSymbol;
@@ -1297,7 +1297,7 @@ namespace N2 {
   class B : X {}
 }
 ";
-            var comp = CreateCompilationRaw(text);
+            var comp = CreateCompilationWithNone(text);
             var global = comp.GlobalNamespace;
             var n1 = global.GetMembers("N1").Single() as NamespaceSymbol;
             var n2 = global.GetMembers("N2").Single() as NamespaceSymbol;
@@ -1316,7 +1316,7 @@ namespace N2 {
 using @global = N;
 namespace N { class C {} }
 class D : global::N.C {}";
-            var comp = CreateCompilationRaw(text);
+            var comp = CreateCompilationWithNone(text);
             var global = comp.GlobalNamespace;
             var d = global.GetMembers("D").Single() as NamedTypeSymbol;
             Assert.NotEqual(SymbolKind.ErrorType, d.BaseType().Kind);
@@ -1332,7 +1332,7 @@ class C : G<C[,][]>
 {
 }
 ";
-            var comp = CreateCompilationRaw(text);
+            var comp = CreateCompilationWithNone(text);
             var global = comp.GlobalNamespace;
             var g = global.GetTypeMembers("G", 1).Single();
             var c = global.GetTypeMembers("C", 0).Single();

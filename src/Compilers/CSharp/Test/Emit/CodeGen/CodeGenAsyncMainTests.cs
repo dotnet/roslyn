@@ -350,7 +350,7 @@ namespace System {
     public abstract class ValueType{}
     public struct Int32{}
 }";
-            var corCompilation = CreateCompilationRaw(corAssembly, options: TestOptions.DebugDll);
+            var corCompilation = CreateCompilationWithNone(corAssembly, options: TestOptions.DebugDll);
             corCompilation.VerifyDiagnostics();
 
             var taskAssembly = @"
@@ -369,7 +369,7 @@ static class Program {
         return null;
     }
 }";
-            var sourceCompilation = CreateCompilationRaw(source, new[] { corCompilation.ToMetadataReference(), taskCompilation.ToMetadataReference() }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
+            var sourceCompilation = CreateCompilationWithNone(source, new[] { corCompilation.ToMetadataReference(), taskCompilation.ToMetadataReference() }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
             sourceCompilation.VerifyEmitDiagnostics(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
@@ -390,7 +390,7 @@ static class Program {
 namespace System {
     public class Object {}
 }";
-            var corCompilation = CreateCompilationRaw(corAssembly, options: TestOptions.DebugDll);
+            var corCompilation = CreateCompilationWithNone(corAssembly, options: TestOptions.DebugDll);
             corCompilation.VerifyDiagnostics();
 
             var taskAssembly = @"
@@ -409,7 +409,7 @@ static class Program {
         return null;
     }
 }";
-            var sourceCompilation = CreateCompilationRaw(source, new[] { corCompilation.ToMetadataReference(), taskCompilation.ToMetadataReference() }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
+            var sourceCompilation = CreateCompilationWithNone(source, new[] { corCompilation.ToMetadataReference(), taskCompilation.ToMetadataReference() }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
             sourceCompilation.VerifyEmitDiagnostics(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),

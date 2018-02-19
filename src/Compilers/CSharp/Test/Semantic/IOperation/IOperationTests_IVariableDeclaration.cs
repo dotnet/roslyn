@@ -602,7 +602,7 @@ class C
 }
 ";
 
-            var compilation = CreateCompilationRaw(source);
+            var compilation = CreateCompilationWithNone(source);
             (var operation, _) = GetOperationAndSyntaxForTest<VariableDeclaratorSyntax>(compilation);
             var declarator = (IVariableDeclaratorOperation)operation;
             Assert.Equal(2, declarator.Children.Count());
@@ -624,7 +624,7 @@ class C
 }
 ";
 
-            var compilation = CreateCompilationRaw(source);
+            var compilation = CreateCompilationWithNone(source);
             (var operation, _) = GetOperationAndSyntaxForTest<VariableDeclaratorSyntax>(compilation);
             var declarator = (IVariableDeclaratorOperation)operation;
             Assert.Equal(1, declarator.Children.Count());
@@ -645,7 +645,7 @@ class C
 }
 ";
 
-            var compilation = CreateCompilationRaw(source);
+            var compilation = CreateCompilationWithNone(source);
             (var operation, _) = GetOperationAndSyntaxForTest<VariableDeclaratorSyntax>(compilation);
             var declarator = (IVariableDeclaratorOperation)operation;
             Assert.Equal(1, declarator.Children.Count());
@@ -666,7 +666,7 @@ class C
 }
 ";
 
-            var compilation = CreateCompilationRaw(source);
+            var compilation = CreateCompilationWithNone(source);
             (var operation, _) = GetOperationAndSyntaxForTest<VariableDeclaratorSyntax>(compilation);
             Assert.Empty(operation.Children);
         }

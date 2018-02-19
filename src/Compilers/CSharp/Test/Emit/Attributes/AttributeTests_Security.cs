@@ -631,7 +631,7 @@ namespace System
     }
 }
 ";
-            var comp = CreateCompilationRaw(source);
+            var comp = CreateCompilationWithNone(source);
             comp.EmitToArray(options: new EmitOptions(runtimeMetadataVersion: "v4.0.31019"), expectedWarnings: new DiagnosticDescription[0]);
         }
 

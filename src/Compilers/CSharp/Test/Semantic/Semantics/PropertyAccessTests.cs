@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.Semantics
         arr.Length = 0;
     }
 }";
-            var comp = CreateCompilationRaw(
+            var comp = CreateCompilationWithNone(
                 source: new[] { Parse(text) },
                 references: new[] { AacorlibRef });
 

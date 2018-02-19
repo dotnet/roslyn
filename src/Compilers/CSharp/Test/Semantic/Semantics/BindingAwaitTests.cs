@@ -2569,7 +2569,7 @@ class App {
         return;
     }
 }";
-            CreateWinRtCompilation(source).VerifyDiagnostics(
+            CreateCompilationWithWinRT(source).VerifyDiagnostics(
                 // (12,9): error CS4035: 'Windows.Foundation.IAsyncOperation<Windows.Devices.Enumeration.DeviceInformationCollection>' does not contain a definition for 'GetAwaiter' and no extension method 'GetAwaiter' accepting a first argument of type 'Windows.Foundation.IAsyncOperation<Windows.Devices.Enumeration.DeviceInformationCollection>' could be found (are you missing a using directive for 'System'?)
                 //         await DeviceInformation.FindAllAsync();
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtensionNeedUsing, "await DeviceInformation.FindAllAsync()").WithArguments("Windows.Foundation.IAsyncOperation<Windows.Devices.Enumeration.DeviceInformationCollection>", "GetAwaiter", "System")

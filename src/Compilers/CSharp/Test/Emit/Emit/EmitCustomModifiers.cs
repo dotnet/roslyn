@@ -592,7 +592,7 @@ class Test
     }
 }
 ";
-            var comp = CreateCompilationWithCustomILSource(source, il, TargetFramework.Net40, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithCustomILSource(source, il, TargetFramework.Mscorlib40, options: TestOptions.ReleaseExe);
 
             var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             var method = type.GetMember<MethodSymbol>("Incr");
@@ -648,7 +648,7 @@ class Test
     }
 }
 ";
-            var comp = CreateCompilationWithCustomILSource(source, il, TargetFramework.Net40, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithCustomILSource(source, il, TargetFramework.Mscorlib40, options: TestOptions.ReleaseExe);
 
             var baseType = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             var baseMethod = baseType.GetMember<MethodSymbol>("M");

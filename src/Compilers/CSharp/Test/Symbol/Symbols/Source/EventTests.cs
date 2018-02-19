@@ -364,7 +364,7 @@ class A
                 Assert.Equal(1, e2.GetAttributes(AttributeDescription.DynamicAttribute).Count());
                 Assert.Equal(1, p.GetAttributes(AttributeDescription.DynamicAttribute).Count());
             };
-            var comp = CreateCompilationRaw(source, new[] { MscorlibRef, SystemCoreRef });
+            var comp = CreateCompilationWithNone(source, new[] { MscorlibRef, SystemCoreRef });
             CompileAndVerify(comp, symbolValidator: validator);
         }
 
@@ -376,7 +376,7 @@ public class A
 {
     public event System.Action<dynamic> E1;
 }";
-            var libComp = CreateCompilationRaw(source, new[] { MscorlibRef }).VerifyDiagnostics(
+            var libComp = CreateCompilationWithNone(source, new[] { MscorlibRef }).VerifyDiagnostics(
                 // (4,32): error CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
                 //     public event System.Action<dynamic> E1;
                 Diagnostic(ErrorCode.ERR_DynamicAttributeMissing, "dynamic").WithArguments("System.Runtime.CompilerServices.DynamicAttribute").WithLocation(4, 32),
@@ -393,7 +393,7 @@ public class A
 {
     public event System.Action<dynamic> E1 { add {} remove {} }
 }";
-            var libComp = CreateCompilationRaw(source, references: new[] { MscorlibRef }).VerifyDiagnostics(
+            var libComp = CreateCompilationWithNone(source, references: new[] { MscorlibRef }).VerifyDiagnostics(
                 // (4,32): error CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
                 //     public event System.Action<dynamic> E1 { add {} remove {} }
                 Diagnostic(ErrorCode.ERR_DynamicAttributeMissing, "dynamic").WithArguments("System.Runtime.CompilerServices.DynamicAttribute").WithLocation(4, 32));

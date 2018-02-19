@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 @"
 delegate void A();
 ";
-            var comp = CreateCompilationRaw(text);
+            var comp = CreateCompilationWithNone(text);
             comp.VerifyDiagnostics(
                 // (2,15): error CS0518: Predefined type 'System.MulticastDelegate' is not defined or imported
                 // delegate void A();
@@ -47,7 +47,7 @@ delegate void A();
         public void MissingAsyncTypes()
         {
             var source = "delegate void A();";
-            var comp = CreateCompilationRaw(
+            var comp = CreateCompilationWithNone(
                 source: new[] { Parse(source) },
                 references: new[] { MinCorlibRef });
 

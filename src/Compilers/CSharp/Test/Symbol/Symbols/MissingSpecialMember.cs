@@ -116,7 +116,7 @@ public static class Program
 
     public static void Extension(this string x) {}
 }";
-            var comp = CreateCompilationRaw(source, new[] { MscorlibRef }, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilationWithNone(source, new[] { MscorlibRef }, options: TestOptions.ReleaseDll);
 
             comp.MakeMemberMissing(WellKnownMember.System_Diagnostics_DebuggerHiddenAttribute__ctor);
 
@@ -261,7 +261,7 @@ namespace System
     public struct Void { }
 }
 ";
-            var comp = CreateCompilationRaw(source);
+            var comp = CreateCompilationWithNone(source);
 
             var wellKnownType = comp.GetWellKnownType(WellKnownType.System_Type);
             Assert.Equal(TypeKind.Class, wellKnownType.TypeKind);
@@ -343,8 +343,8 @@ namespace System
                 comp.GetDiagnostics();
             };
 
-            validatePresent(CreateCompilationRaw(string.Format(sourceTemplate, "public")));
-            validatePresent(CreateCompilationRaw(string.Format(sourceTemplate, "internal")));
+            validatePresent(CreateCompilationWithNone(string.Format(sourceTemplate, "public")));
+            validatePresent(CreateCompilationWithNone(string.Format(sourceTemplate, "internal")));
         }
 
         // Document the fact that we don't reject type parameters with constraints (yet?).
@@ -466,16 +466,16 @@ namespace System
 }}
 ";
 
-            var corlibRef = CreateCompilationRaw(corlibSource).EmitToImageReference(expectedWarnings: new[]
+            var corlibRef = CreateCompilationWithNone(corlibSource).EmitToImageReference(expectedWarnings: new[]
             {
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1)
             });
 
-            var publicLibRef = CreateCompilationRaw(string.Format(libSourceTemplate, "public"), new[] { corlibRef }).EmitToImageReference();
-            var internalLibRef = CreateCompilationRaw(string.Format(libSourceTemplate, "internal"), new[] { corlibRef }).EmitToImageReference();
+            var publicLibRef = CreateCompilationWithNone(string.Format(libSourceTemplate, "public"), new[] { corlibRef }).EmitToImageReference();
+            var internalLibRef = CreateCompilationWithNone(string.Format(libSourceTemplate, "internal"), new[] { corlibRef }).EmitToImageReference();
 
-            var comp = CreateCompilationRaw("", new[] { corlibRef, publicLibRef, internalLibRef }, assemblyName: "Test");
+            var comp = CreateCompilationWithNone("", new[] { corlibRef, publicLibRef, internalLibRef }, assemblyName: "Test");
 
             var wellKnown = comp.GetWellKnownType(WellKnownType.System_Type);
             Assert.NotNull(wellKnown);
@@ -488,7 +488,7 @@ namespace System
 
         private static void ValidateSourceAndMetadata(string source, Action<CSharpCompilation> validate)
         {
-            var comp1 = CreateCompilationRaw(source);
+            var comp1 = CreateCompilationWithNone(source);
             validate(comp1);
 
             var reference = comp1.EmitToImageReference(expectedWarnings: new[]
@@ -497,7 +497,7 @@ namespace System
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1)
             });
 
-            var comp2 = CreateCompilationRaw("", new[] { reference });
+            var comp2 = CreateCompilationWithNone("", new[] { reference });
             validate(comp2);
         }
 
@@ -505,7 +505,7 @@ namespace System
         [WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")]
         public void AllSpecialTypes()
         {
-            var comp = CreateCompilationRaw("", new[] { MscorlibRef_v4_0_30316_17626 });
+            var comp = CreateCompilationWithNone("", new[] { MscorlibRef_v4_0_30316_17626 });
 
             for (var special = SpecialType.None + 1; special <= SpecialType.Count; special++)
             {
@@ -519,7 +519,7 @@ namespace System
         [WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")]
         public void AllSpecialTypeMembers()
         {
-            var comp = CreateCompilationRaw("", new[] { MscorlibRef_v4_0_30316_17626 });
+            var comp = CreateCompilationWithNone("", new[] { MscorlibRef_v4_0_30316_17626 });
 
             foreach (SpecialMember special in Enum.GetValues(typeof(SpecialMember)))
             {
@@ -546,7 +546,7 @@ namespace System
                 SystemWindowsFormsRef,
                 ValueTupleRef
             }.Concat(WinRtRefs).ToArray();
-            var comp = CreateCompilationRaw("", refs);
+            var comp = CreateCompilationWithNone("", refs);
 
             for (var wkt = WellKnownType.First; wkt < WellKnownType.NextAvailable; wkt++)
             {
@@ -846,7 +846,7 @@ namespace System
                 SystemWindowsFormsRef,
                 ValueTupleRef
             }.Concat(WinRtRefs).ToArray();
-            var comp = CreateCompilationRaw("", refs);
+            var comp = CreateCompilationWithNone("", refs);
 
             foreach (WellKnownMember wkm in Enum.GetValues(typeof(WellKnownMember)))
             {

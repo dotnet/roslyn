@@ -638,7 +638,7 @@ D Raise
 }
 ";
 
-            var compilation1 = CreateCompilationRaw(source1, assemblyName: GetUniqueName());
+            var compilation1 = CreateCompilationWithNone(source1, assemblyName: GetUniqueName());
             var reference1 = MetadataReference.CreateFromStream(compilation1.EmitToStream());
             var source2 =
 @"
@@ -656,7 +656,7 @@ class C
     }
 }
 ";
-            var compilation2 = CreateCompilationRaw(source2, new[] { reference1 });
+            var compilation2 = CreateCompilationWithNone(source2, new[] { reference1 });
             compilation2.VerifyDiagnostics(
                 // (7,21): warning CS0067: The event 'C.e' is never used
                 //     public event E1 e;

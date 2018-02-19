@@ -2531,7 +2531,7 @@ class Module1
     {}
 }
 ";
-            var c1 = CreateCompilationRaw(text, new MetadataReference[]
+            var c1 = CreateCompilationWithNone(text, new MetadataReference[]
             {
                 MscorlibRef,
                 TestReferences.SymbolsTests.V1.MTTestLib1.dll,

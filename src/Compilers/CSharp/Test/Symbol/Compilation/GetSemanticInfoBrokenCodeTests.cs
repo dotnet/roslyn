@@ -307,7 +307,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     object F = typeof(int?);
 }";
             var tree = Parse(text);
-            var comp = CreateCompilationRaw(new[] { tree });
+            var comp = CreateCompilationWithNone(new[] { tree });
             var model = comp.GetSemanticModel(tree);
             VisitAllExpressions(model, tree.GetCompilationUnitRoot());
         }
@@ -322,7 +322,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     object F = typeof(int*);
 }";
             var tree = Parse(text);
-            var comp = CreateCompilationRaw(new[] { tree });
+            var comp = CreateCompilationWithNone(new[] { tree });
             var model = comp.GetSemanticModel(tree);
             VisitAllExpressions(model, tree.GetCompilationUnitRoot());
         }
@@ -337,7 +337,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     object F = typeof(int[]);
 }";
             var tree = Parse(text);
-            var comp = CreateCompilationRaw(new[] { tree });
+            var comp = CreateCompilationWithNone(new[] { tree });
             var model = comp.GetSemanticModel(tree);
             VisitAllExpressions(model, tree.GetCompilationUnitRoot());
         }

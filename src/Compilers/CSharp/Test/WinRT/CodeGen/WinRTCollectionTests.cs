@@ -341,7 +341,7 @@ public class Class1
         en = new WwwFormUrlDecoder(""?param1=test"").GetEnumerator();
     }
 }";
-            var comp = CreateCompilationRaw(source, references: WinRtRefs);
+            var comp = CreateCompilationWithNone(source, references: WinRtRefs);
             // JsonArray implements both IEnumerable and IList, which both have a GetEnumerator
             // method. We can't know which interface method to call, so we shouldn't emit a
             // GetEnumerator method at all.
@@ -1454,7 +1454,7 @@ class AllMembers
         return FailedCount;
     }
 }";
-            var comp = CreateWinRtCompilation(source, additionalRefs: LegacyRefs);
+            var comp = CreateCompilationWithWinRT(source, references: LegacyRefs);
             comp.VerifyDiagnostics(
                 // (3,1): info CS8019: Unnecessary using directive.
                 // using System.Reflection;
@@ -5680,7 +5680,7 @@ namespace Test
         }
     }
 }";
-            var comp = CreateWinRtCompilation(source, additionalRefs: LegacyRefs);
+            var comp = CreateCompilationWithWinRT(source, references: LegacyRefs);
             comp.VerifyDiagnostics(
     // (30,36): error CS0539: 'R.this[int]' in explicit interface declaration is not a member of interface
     //         int IObservableVector<int>.this[int index]

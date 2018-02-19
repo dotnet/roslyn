@@ -1332,7 +1332,7 @@ class C
     }
 }";
             CompileAndVerify(src,
-                targetFramework: TargetFramework.Net46,
+                targetFramework: TargetFramework.Mscorlib46,
                 expectedOutput: @"1
 0");
         }
@@ -1371,7 +1371,7 @@ class C
     }
 }";
             CompileAndVerifyWithMscorlib40(src,
-                targetFramework: TargetFramework.Net46,
+                targetFramework: TargetFramework.Mscorlib46,
                 expectedOutput: @"1
 0");
         }

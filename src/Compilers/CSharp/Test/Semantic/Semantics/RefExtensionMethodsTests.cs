@@ -2122,7 +2122,7 @@ public static class Program
 }";
 
             CreateCompilationWithMscorlibAndSystemCore(
-                text: code,
+                source: code,
                 parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_1),
                 references: new[] { reference.ToMetadataReference() }).VerifyDiagnostics(
                 // (7,9): error CS8302: Feature 'ref extension methods' is not available in C# 7.1. Please use language version 7.2 or greater.
@@ -2130,7 +2130,7 @@ public static class Program
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "p").WithArguments("ref extension methods", "7.2").WithLocation(7, 9));
 
             CreateCompilationWithMscorlibAndSystemCore(
-                text: code,
+                source: code,
                 parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_1),
                 references: new[] { reference.EmitToImageReference() }).VerifyDiagnostics(
                 // (7,9): error CS8302: Feature 'ref extension methods' is not available in C# 7.1. Please use language version 7.2 or greater.
@@ -2199,7 +2199,7 @@ public static class Program
 }";
 
             CreateCompilationWithMscorlibAndSystemCore(
-                text: code,
+                source: code,
                 parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_1),
                 references: new[] { reference.ToMetadataReference() }).VerifyDiagnostics(
                 // (7,9): error CS8302: Feature 'ref extension methods' is not available in C# 7.1. Please use language version 7.2 or greater.
@@ -2207,7 +2207,7 @@ public static class Program
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "p").WithArguments("ref extension methods", "7.2").WithLocation(7, 9));
 
             CreateCompilationWithMscorlibAndSystemCore(
-                text: code,
+                source: code,
                 parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_1),
                 references: new[] { reference.EmitToImageReference() }).VerifyDiagnostics(
                 // (7,9): error CS8302: Feature 'ref extension methods' is not available in C# 7.1. Please use language version 7.2 or greater.

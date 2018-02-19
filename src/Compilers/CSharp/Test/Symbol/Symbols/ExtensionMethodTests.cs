@@ -2141,7 +2141,7 @@ internal static class C
     private static void Main(string[] args) { }
 }
 ";
-            var compilation = CreateCompilationRaw(source, new[] { MscorlibRef });
+            var compilation = CreateCompilationWithNone(source, new[] { MscorlibRef });
             compilation.VerifyDiagnostics(
                 // (4,29): error CS1110: Cannot define a new extension method because the compiler required type 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be found. Are you missing a reference to System.Core.dll?
                 Diagnostic(ErrorCode.ERR_ExtensionAttrNotFound, "this").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(4, 29));
@@ -3311,7 +3311,7 @@ internal static class Test
     }
 }
 ";
-            var compilation = CreateCompilationRaw(source, new[] { MscorlibRef_v20 }, TestOptions.ReleaseDll);
+            var compilation = CreateCompilationWithNone(source, new[] { MscorlibRef_v20 }, TestOptions.ReleaseDll);
             CompileAndVerify(compilation);
         }
 

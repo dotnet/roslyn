@@ -1396,7 +1396,7 @@ public class C : B<int, long>
     void F1(params int[] a) { }
 }
 ";
-            var comp = CreateCompilationRaw(text);
+            var comp = CreateCompilationWithNone(text);
             var c = comp.GlobalNamespace.GetTypeMembers("C").Single();
             var f1 = c.GetMembers("F1").Single() as MethodSymbol;
             Assert.Equal("void C.F1(params System.Int32[missing][] a)", f1.ToTestDisplayString());

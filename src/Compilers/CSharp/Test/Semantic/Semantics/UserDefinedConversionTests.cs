@@ -1595,7 +1595,7 @@ namespace System
     }
 }
 ";
-            CreateCompilationRaw(source).VerifyDiagnostics();
+            CreateCompilationWithNone(source).VerifyDiagnostics();
         }
     }
 }

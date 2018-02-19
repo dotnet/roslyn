@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.CorLibrary
         [Fact, WorkItem(760148, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/760148")]
         public void Bug760148_1()
         {
-            var corLib = CreateCompilationRaw(@"
+            var corLib = CreateCompilationWithNone(@"
 namespace System
 {
     public class Object
@@ -38,7 +38,7 @@ namespace System
             Assert.False(obj.IsErrorType());
             Assert.Same(corLib.Assembly, obj.ContainingAssembly);
 
-            var consumer = CreateCompilationRaw(@"
+            var consumer = CreateCompilationWithNone(@"
 public class Test
 {
 }
@@ -50,7 +50,7 @@ public class Test
         [Fact, WorkItem(760148, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/760148")]
         public void Bug760148_2()
         {
-            var corLib = CreateCompilationRaw(@"
+            var corLib = CreateCompilationWithNone(@"
 namespace System
 {
     class Object
@@ -59,7 +59,7 @@ namespace System
 }
 ", options: TestOptions.ReleaseDll);
 
-            var consumer = CreateCompilationRaw(@"
+            var consumer = CreateCompilationWithNone(@"
 public class Test
 {
 }

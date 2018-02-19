@@ -197,7 +197,7 @@ namespace System
 ";
 
             // Fine in corlib.
-            CreateCompilationRaw(source1 + source2).VerifyDiagnostics();
+            CreateCompilationWithNone(source1 + source2).VerifyDiagnostics();
 
             // Error elsewhere.
             CreateCompilation(source2).VerifyDiagnostics(

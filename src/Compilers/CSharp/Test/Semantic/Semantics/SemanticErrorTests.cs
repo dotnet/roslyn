@@ -10669,7 +10669,7 @@ public class A
     }
 }
 ";
-            CreateCompilationRaw(text).VerifyDiagnostics(
+            CreateCompilationWithNone(text).VerifyDiagnostics(
                 // (7,16): error CS0517: 'object' has no base class and cannot call a base constructor
                 Diagnostic(ErrorCode.ERR_ObjectCallingBaseConstructor, "Object").WithArguments("object"));
         }
@@ -21075,7 +21075,7 @@ public static class C
 }";
             // include both mscorlib 4.0 and System.Core 3.5, both of which contain ExtensionAttribute
             // These libraries are not yet in our suite
-            CreateCompilationRaw(text).
+            CreateCompilationWithNone(text).
                 VerifyDiagnostics(Diagnostic(ErrorCode.WRN_MultiplePredefTypes, ""));
         }
 

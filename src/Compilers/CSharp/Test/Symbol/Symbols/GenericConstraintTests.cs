@@ -4189,7 +4189,7 @@ class C : I
                     Assert.Equal(2, t.Arity);
                 };
 
-            CompileWithCustomILSource(csharpSource, ilSource, compilationVerifier: compilationVerifier, targetFramework: TargetFramework.Net40);
+            CompileWithCustomILSource(csharpSource, ilSource, compilationVerifier: compilationVerifier, targetFramework: TargetFramework.Mscorlib40);
         }
 
         [WorkItem(542358, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542358")]
@@ -5576,7 +5576,7 @@ End Module",
             var source =
 @"class A { }
 class B<T> where T : A { }";
-            CreateCompilationRaw(source).VerifyDiagnostics(
+            CreateCompilationWithNone(source).VerifyDiagnostics(
                 // (1,7): error CS0518: Predefined type 'System.Object' is not defined or imported
                 // class A { }
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.Object").WithLocation(1, 7),
@@ -5604,7 +5604,7 @@ class B : A<S>
 {
     internal override void M<U>() { }
 }";
-            CreateCompilationRaw(source).VerifyDiagnostics(
+            CreateCompilationWithNone(source).VerifyDiagnostics(
                 // (2,16): error CS0518: Predefined type 'System.Object' is not defined or imported
                 // abstract class A<T>
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.Object").WithLocation(2, 16),

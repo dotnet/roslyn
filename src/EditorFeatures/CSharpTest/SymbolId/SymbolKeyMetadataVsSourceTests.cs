@@ -221,7 +221,7 @@ class Test
     }
 }
 ";
-            var comp20 = CreateCompilationRaw(src1, new[] { TestReferences.NetFx.v4_0_21006.mscorlib });
+            var comp20 = CreateCompilationWithNone(src1, new[] { TestReferences.NetFx.v4_0_21006.mscorlib });
 
             // "Compilation 2 Assembly"
             var comp40 = CreateCompilation(src2, new MetadataReference[] { comp20.EmitToImageReference() });
@@ -319,7 +319,7 @@ class Test
     public void MyEveHandler(object o) { }
 }
 ";
-            var comp20 = CreateCompilationRaw(src1, new[] { TestReferences.NetFx.v4_0_21006.mscorlib });
+            var comp20 = CreateCompilationWithNone(src1, new[] { TestReferences.NetFx.v4_0_21006.mscorlib });
 
             // "Compilation ref Compilation"
             var comp40 = CreateCompilation(src2, new[] { new CSharpCompilationReference(comp20) });
@@ -401,7 +401,7 @@ class Test
     }
 }
 ";
-            var comp20 = CreateCompilationRaw(src1, new[] { TestReferences.NetFx.v4_0_21006.mscorlib });
+            var comp20 = CreateCompilationWithNone(src1, new[] { TestReferences.NetFx.v4_0_21006.mscorlib });
 
             // "Compilation ref Compilation"
             var comp40 = CreateCompilation(src2, new[] { new CSharpCompilationReference(comp20) });

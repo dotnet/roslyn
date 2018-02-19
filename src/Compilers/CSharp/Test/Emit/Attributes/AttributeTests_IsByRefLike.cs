@@ -951,7 +951,7 @@ namespace System
 
     public ref struct NotTypedReference { }
 }";
-            var compilation1 = CreateCompilationRaw(source1, assemblyName: GetUniqueName());
+            var compilation1 = CreateCompilationWithNone(source1, assemblyName: GetUniqueName());
 
             CompileAndVerify(compilation1, verify: Verification.Fails, symbolValidator: module =>
             {

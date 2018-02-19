@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         [Fact]
         public void ErrorsWithAssemblySymbolArguments()
         {
-            var assembly = CreateCompilationRaw("").Assembly;
+            var assembly = CreateCompilationWithNone("").Assembly;
             var identity = assembly.Identity;
             Assert.Same(identity, GetMissingAssemblyIdentity(ErrorCode.ERR_GlobalSingleTypeNameNotFoundFwd, assembly));
             Assert.Same(identity, GetMissingAssemblyIdentity(ErrorCode.ERR_DottedTypeNameNotFoundInNSFwd, assembly));
@@ -735,7 +735,7 @@ class UseLinq
     bool b = Enumerable.Any<int>(null);
 }";
 
-            var compilation = CreateCompilationRaw(source, new[] { MscorlibRef, SystemCoreRef });
+            var compilation = CreateCompilationWithNone(source, new[] { MscorlibRef, SystemCoreRef });
             WithRuntimeInstance(compilation, new[] { MscorlibRef }, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");

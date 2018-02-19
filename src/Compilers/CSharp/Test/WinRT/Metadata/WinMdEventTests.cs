@@ -231,7 +231,7 @@ public partial class B : I
         event dynamicDelegate d3;
     }
 }";
-            _eventLibRef = CreateCompilationRaw(
+            _eventLibRef = CreateCompilationWithNone(
                 eventLibSrc,
                 references: new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef_v4_0_30319_17929 },
                 options:
@@ -303,7 +303,7 @@ class C
     }
 }";
 
-            var dynamicCommon = CreateCompilationRaw(
+            var dynamicCommon = CreateCompilationWithNone(
                 DynamicCommonSrc,
                 references: new[] {
                     MscorlibRef_v4_0_30316_17626,
@@ -2654,7 +2654,7 @@ public class abcdef{
         public void VerifySignatures()
         {
             var text = "public class A{};";
-            var comp = CreateWinRtCompilation(text);
+            var comp = CreateCompilationWithWinRT(text);
 
             var winmdlib = comp.ExternalReferences.Where(r => r.Display == "Windows").Single();
             var winmdNS = comp.GetReferencedAssemblySymbol(winmdlib);
@@ -2748,7 +2748,7 @@ class C : Interface<int>
 ";
 
             var ilRef = CompileIL(il);
-            var comp = CreateCompilationRaw(source, WinRtRefs.Concat(new[] { ilRef }));
+            var comp = CreateCompilationWithNone(source, WinRtRefs.Concat(new[] { ilRef }));
             comp.VerifyDiagnostics();
 
             var interfaceType = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Interface");
@@ -2823,7 +2823,7 @@ interface I
 
             foreach (OutputKind kind in Enum.GetValues(typeof(OutputKind)))
             {
-                var comp = CreateCompilationRaw(source, WinRtRefs, new CSharpCompilationOptions(kind));
+                var comp = CreateCompilationWithNone(source, WinRtRefs, new CSharpCompilationOptions(kind));
                 comp.VerifyDiagnostics();
 
                 var @class = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
@@ -2867,7 +2867,7 @@ class C : Interface
 
             foreach (OutputKind kind in new[] { OutputKind.DynamicallyLinkedLibrary, OutputKind.WindowsRuntimeMetadata })
             {
-                var comp = CreateCompilationRaw(source, WinRtRefs.Concat(new[] { ilRef }), new CSharpCompilationOptions(kind));
+                var comp = CreateCompilationWithNone(source, WinRtRefs.Concat(new[] { ilRef }), new CSharpCompilationOptions(kind));
                 comp.VerifyDiagnostics();
 
                 var @class = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
@@ -2936,7 +2936,7 @@ class OverrideAndImplIncorrectly : ReversedBase, Interface
 
             foreach (OutputKind kind in new[] { OutputKind.DynamicallyLinkedLibrary, OutputKind.WindowsRuntimeMetadata })
             {
-                var comp = CreateCompilationRaw(source, WinRtRefs.Concat(new[] { interfaceILRef, baseILRef }), new CSharpCompilationOptions(kind));
+                var comp = CreateCompilationWithNone(source, WinRtRefs.Concat(new[] { interfaceILRef, baseILRef }), new CSharpCompilationOptions(kind));
                 comp.VerifyDiagnostics(
                     // (40,41): error CS1991: 'OverrideAndImplIncorrectly.WinRT' cannot implement 'Interface.WinRT' because 'Interface.WinRT' is a Windows Runtime event and 'OverrideAndImplIncorrectly.WinRT' is a regular .NET event.
                     //     public override event System.Action WinRT
@@ -3002,7 +3002,7 @@ class C : Interface
 
             foreach (OutputKind kind in new[] { OutputKind.DynamicallyLinkedLibrary, OutputKind.WindowsRuntimeMetadata })
             {
-                var comp = CreateCompilationRaw(source, WinRtRefs.Concat(new[] { ilRef }), new CSharpCompilationOptions(kind));
+                var comp = CreateCompilationWithNone(source, WinRtRefs.Concat(new[] { ilRef }), new CSharpCompilationOptions(kind));
                 comp.VerifyDiagnostics();
 
                 var @class = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
@@ -3074,7 +3074,7 @@ class C : IWinRT, INormal
 
                 var ilRef = CompileIL(il);
 
-                var comp = CreateCompilationRaw(source, WinRtRefs.Concat(new[] { ilRef }));
+                var comp = CreateCompilationWithNone(source, WinRtRefs.Concat(new[] { ilRef }));
                 comp.VerifyDiagnostics(
                     // (4,32): error CS1991: 'C.E' cannot implement 'INormal.E' because 'C.E' is a Windows Runtime event and 'INormal.E' is a regular .NET event.
                     //     public event System.Action E 
@@ -3101,7 +3101,7 @@ class C : INormal, IWinRT
 
                 var ilRef = CompileIL(il);
 
-                var comp = CreateCompilationRaw(source, WinRtRefs.Concat(new[] { ilRef }));
+                var comp = CreateCompilationWithNone(source, WinRtRefs.Concat(new[] { ilRef }));
                 comp.VerifyDiagnostics(
                     // (4,32): error CS1991: 'C.E' cannot implement 'INormal.E' because 'C.E' is a Windows Runtime event and 'INormal.E' is a regular .NET event.
                     //     public event System.Action E 
@@ -3127,7 +3127,7 @@ class Derived : ReversedBase, Interface
             var interfaceILRef = CompileIL(EventInterfaceIL);
             var baseILRef = CompileIL(EventBaseIL);
 
-            var comp = CreateCompilationRaw(source, WinRtRefs.Concat(new[] { interfaceILRef, baseILRef }));
+            var comp = CreateCompilationWithNone(source, WinRtRefs.Concat(new[] { interfaceILRef, baseILRef }));
             comp.VerifyDiagnostics(
                 // 53b0a0ee-4ca7-4106-89d3-972416f701c6.dll: error CS1991: 'ReversedBase.WinRT' cannot implement 'Interface.WinRT' because 'Interface.WinRT' is a Windows Runtime event and 'ReversedBase.WinRT' is a regular .NET event.
                 Diagnostic(ErrorCode.ERR_MixingWinRTEventWithRegular).WithArguments("ReversedBase.WinRT", "Interface.WinRT", "Interface.WinRT", "ReversedBase.WinRT"),
@@ -3158,7 +3158,7 @@ class Derived : ReversedBase, Interface
             var interfaceILRef = CompileIL(EventInterfaceIL);
             var baseILRef = CompileIL(EventBaseIL);
 
-            var comp = CreateCompilationRaw(source, WinRtRefs.Concat(new[] { interfaceILRef, baseILRef }));
+            var comp = CreateCompilationWithNone(source, WinRtRefs.Concat(new[] { interfaceILRef, baseILRef }));
             // BREAK: dev11 doesn't catch these conflicts.
             comp.VerifyDiagnostics(
                 // (10,41): error CS1991: 'Derived.WinRT' cannot implement 'Interface.WinRT' because 'Interface.WinRT' is a Windows Runtime event and 'Derived.WinRT' is a regular .NET event.
@@ -3197,7 +3197,7 @@ class C
 
             foreach (OutputKind kind in new[] { OutputKind.DynamicallyLinkedLibrary, OutputKind.WindowsRuntimeMetadata })
             {
-                var comp = CreateCompilationRaw(source, WinRtRefs, new CSharpCompilationOptions(kind));
+                var comp = CreateCompilationWithNone(source, WinRtRefs, new CSharpCompilationOptions(kind));
                 comp.VerifyDiagnostics(
                     // (10,25): warning CS0067: The event 'C.F' is never used
                     //     event System.Action F;
@@ -3465,7 +3465,7 @@ namespace System.Runtime.InteropServices.WindowsRuntime
 } // end of class C
 ";
             var ilRef = CompileIL(ilSource);
-            var comp = CreateCompilationRaw("", WinRtRefs.Concat(new[] { ilRef }), TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            var comp = CreateCompilationWithNone("", WinRtRefs.Concat(new[] { ilRef }), TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
             comp.VerifyDiagnostics();
 
             var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
